@@ -7,6 +7,11 @@
  * with the default variables, which are described in the defaultEnvVariables
  * constant.
  *
+ * This script *does not* copy all the .env file contents to the environment.ts file,
+ * instead what it does is to read the process.env values that are set on Vercel and
+ * provides the ground to set default values for your .env files, which are not private
+ * or can be shared without any issues when commiting your code to a repository
+ *
  * Author: @rolivencia
  */
 
@@ -16,7 +21,11 @@ import ErrnoException = NodeJS.ErrnoException;
 import { join } from 'node:path';
 
 // Environments
-export type TEnvironmentType = 'development' | 'preview' | 'staging' | 'production';
+export type TEnvironmentType =
+  | 'development'
+  | 'preview'
+  | 'staging'
+  | 'production';
 
 // Constants to generate the environment file
 const environment: TEnvironmentType =
@@ -24,7 +33,7 @@ const environment: TEnvironmentType =
 const dirPath = `src/app/environments`;
 const targetPath = `${dirPath}/environment.ts`;
 
-// Include your default values for .env files, if any
+// Include your shareable default values for .env files, if any
 const defaultEnvVariables = {
   NODE_ENV: 'development',
 };
