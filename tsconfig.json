@@ -6,7 +6,8 @@
     "module": "preserve",
     "lib": ["es2020", "dom"],
     "paths": {},
-    "isolatedModules": true
+    "isolatedModules": true,
+    "skipLibCheck": true
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -23,6 +24,9 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./.storybook/tsconfig.json"
     }
   ],
   "compileOnSave": false,
@@ -30,7 +34,8 @@
   "ts-node": {
     "esm": true,
     "compilerOptions": {
-      "module": "ESNext"
+      "module": "commonjs",
+      "moduleResolution": "node10"
     }
   }
 }
