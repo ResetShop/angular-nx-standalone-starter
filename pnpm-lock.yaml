@@ -104,6 +104,12 @@ importers:
       '@schematics/angular':
         specifier: ~20.3.0
         version: 20.3.5(chokidar@4.0.3)
+      '@storybook/addon-docs':
+        specifier: ^9.1.8
+        version: 9.1.10(@types/react@19.2.2)(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))
+      '@storybook/addon-styling-webpack':
+        specifier: ^2.0.0
+        version: 2.0.0(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))(webpack@5.102.1(@swc/core@1.5.29(@swc/helpers@0.5.17))(esbuild@0.25.9))
       '@storybook/angular':
         specifier: 9.1.10
         version: 9.1.10(15188ecab8e008fd29890e190eab7f05)
@@ -200,6 +206,9 @@ importers:
       typescript-eslint:
         specifier: ^8.40.0
         version: 8.46.1(eslint@9.37.0(jiti@2.6.1))(typescript@5.9.3)
+      webpack:
+        specifier: ^5.102.1
+        version: 5.102.1(@swc/core@1.5.29(@swc/helpers@0.5.17))(esbuild@0.25.9)
 
 packages:
   '@adobe/css-tools@4.4.4':
@@ -2956,6 +2965,15 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@mdx-js/react@3.1.1':
+    resolution:
+      {
+        integrity: sha512-f++rKLQgUVYDAtECQ6fn/is15GkEH9+nZPM3MS0RcxVqoTfawHvDlSCH7JbMhAM6uJ32v3eXLvLmLvjGu7PTQw==,
+      }
+    peerDependencies:
+      '@types/react': '>=16'
+      react: '>=16'
+
   '@modelcontextprotocol/sdk@1.17.3':
     resolution:
       {
@@ -4368,6 +4386,23 @@ packages:
         integrity: sha512-36/hTbH2uaWuGVERyC6da9YwGWnzUZXuPro/F2LfsdOsLnCojz/iSH8MxUt/FD2S5XBSVPhmArFUXcpCQ2Hkiw==,
       }
 
+  '@storybook/addon-docs@9.1.10':
+    resolution:
+      {
+        integrity: sha512-LYK3oXy/0PgY39FhkYVd9D0bzatLGTsMhaPPwSjBOmZgK0f0yBLqaePy7urUFeHYm/rjwAaRmDJNBqUnGTVoig==,
+      }
+    peerDependencies:
+      storybook: ^9.1.10
+
+  '@storybook/addon-styling-webpack@2.0.0':
+    resolution:
+      {
+        integrity: sha512-N8jWhWnk3/nbL4P9zl0OEV/47P0Cxn/kPzSHjdAClyDYnqj9jI6upeLsraZgIV9Ro3QSeqeIloeXb1zMasWpOw==,
+      }
+    peerDependencies:
+      storybook: ^9.0.0
+      webpack: ^5.0.0
+
   '@storybook/angular@9.1.10':
     resolution:
       {
@@ -4419,11 +4454,39 @@ packages:
     peerDependencies:
       storybook: ^9.1.10
 
+  '@storybook/csf-plugin@9.1.10':
+    resolution:
+      {
+        integrity: sha512-247F/JU0Naxm/RIUnQYpqXeCL0wG8UNJkZe+/GkLjdqzsyML0lb+8OwBsWFfG8zfj6fkjmRU2mF44TnNkzoQcg==,
+      }
+    peerDependencies:
+      storybook: ^9.1.10
+
   '@storybook/global@5.0.0':
     resolution:
       {
         integrity: sha512-FcOqPAXACP0I3oJ/ws6/rrPT9WGhu915Cg8D02a9YxLo0DE9zI+a9A5gRGvmQ09fiWPukqI8ZAEoQEdWUKMQdQ==,
       }
+
+  '@storybook/icons@1.6.0':
+    resolution:
+      {
+        integrity: sha512-hcFZIjW8yQz8O8//2WTIXylm5Xsgc+lW9ISLgUk1xGmptIJQRdlhVIXCpSyLrQaaRiyhQRaVg7l3BD9S216BHw==,
+      }
+    engines: { node: '>=14.0.0' }
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
+
+  '@storybook/react-dom-shim@9.1.10':
+    resolution:
+      {
+        integrity: sha512-cxy8GTj73RMJIFPrgqdnMXePGX5iFohM5pDCZ63Te5m5GtzKqsILRXtBBLO6Ouexm/ZYRVznkKiwNKX/Fu24fQ==,
+      }
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
+      storybook: ^9.1.10
 
   '@swc-node/core@1.14.1':
     resolution:
@@ -4825,6 +4888,12 @@ packages:
         integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==,
       }
 
+  '@types/mdx@2.0.13':
+    resolution:
+      {
+        integrity: sha512-+OWZQfAYyio6YkJb3HLxDrvnx6SWWDbC0zVPfBRzUk0/nqoDyf6dNxQi3eArPe8rJ473nobTMQ/8Zk+LxJ+Yuw==,
+      }
+
   '@types/mime@1.3.5':
     resolution:
       {
@@ -4859,6 +4928,12 @@ packages:
     resolution:
       {
         integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==,
+      }
+
+  '@types/react@19.2.2':
+    resolution:
+      {
+        integrity: sha512-6mDvHUFSjyT2B2yeNx2nUgMxh9LtOWvkhIU3uePn2I2oyNymUAX1NIsdgviM4CH+JSrp2D2hsMvJOkxY+0wNRA==,
       }
 
   '@types/retry@0.12.2':
@@ -6755,6 +6830,12 @@ packages:
         integrity: sha512-AZL67abkUzIuvcHqk7c09cezpGNcxUxU4Ioi/05xHk4DQeTkWmGYftIE6ctU6AEt+Gn4n1lDStOtj7FKycP71A==,
       }
     engines: { node: '>=8' }
+
+  csstype@3.1.3:
+    resolution:
+      {
+        integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==,
+      }
 
   data-urls@3.0.2:
     resolution:
@@ -13127,6 +13208,13 @@ packages:
       }
     engines: { node: '>= 0.8' }
 
+  unplugin@1.16.1:
+    resolution:
+      {
+        integrity: sha512-4/u/j4FrCKdi17jaxuJA0jClGxB1AvU2hw/IuayPc4ay1XGaJs/rbb4v5WKwAjNifjmXK9PIFyuPiaK8azyR9w==,
+      }
+    engines: { node: '>=14.0.0' }
+
   unrs-resolver@1.11.1:
     resolution:
       {
@@ -16455,6 +16543,12 @@ snapshots:
   '@lmdb/lmdb-win32-x64@3.4.2':
     optional: true
 
+  '@mdx-js/react@3.1.1(@types/react@19.2.2)(react@19.2.0)':
+    dependencies:
+      '@types/mdx': 2.0.13
+      '@types/react': 19.2.2
+      react: 19.2.0
+
   '@modelcontextprotocol/sdk@1.17.3':
     dependencies:
       ajv: 6.12.6
@@ -17786,6 +17880,24 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
+  '@storybook/addon-docs@9.1.10(@types/react@19.2.2)(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))':
+    dependencies:
+      '@mdx-js/react': 3.1.1(@types/react@19.2.2)(react@19.2.0)
+      '@storybook/csf-plugin': 9.1.10(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))
+      '@storybook/icons': 1.6.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@storybook/react-dom-shim': 9.1.10(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+      storybook: 9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1))
+      ts-dedent: 2.2.0
+    transitivePeerDependencies:
+      - '@types/react'
+
+  '@storybook/addon-styling-webpack@2.0.0(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))(webpack@5.102.1(@swc/core@1.5.29(@swc/helpers@0.5.17))(esbuild@0.25.9))':
+    dependencies:
+      storybook: 9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1))
+      webpack: 5.102.1(@swc/core@1.5.29(@swc/helpers@0.5.17))(esbuild@0.25.9)
+
   '@storybook/angular@9.1.10(15188ecab8e008fd29890e190eab7f05)':
     dependencies:
       '@angular-devkit/architect': 0.2003.5(chokidar@4.0.3)
@@ -17849,7 +17961,23 @@ snapshots:
       storybook: 9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1))
       ts-dedent: 2.2.0
 
+  '@storybook/csf-plugin@9.1.10(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))':
+    dependencies:
+      storybook: 9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1))
+      unplugin: 1.16.1
+
   '@storybook/global@5.0.0': {}
+
+  '@storybook/icons@1.6.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+    dependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+
+  '@storybook/react-dom-shim@9.1.10(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(storybook@9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1)))':
+    dependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+      storybook: 9.1.10(@testing-library/dom@10.4.1)(prettier@2.8.8)(vite@7.1.5(@types/node@22.18.10)(jiti@2.6.1)(less@4.4.2)(sass-embedded@1.93.2)(sass@1.90.0)(terser@5.44.0)(yaml@2.8.1))
 
   '@swc-node/core@1.14.1(@swc/core@1.5.29(@swc/helpers@0.5.17))(@swc/types@0.1.25)':
     dependencies:
@@ -18105,6 +18233,8 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/mdx@2.0.13': {}
+
   '@types/mime@1.3.5': {}
 
   '@types/node-forge@1.3.14':
@@ -18120,6 +18250,10 @@ snapshots:
   '@types/qs@6.14.0': {}
 
   '@types/range-parser@1.2.7': {}
+
+  '@types/react@19.2.2':
+    dependencies:
+      csstype: 3.1.3
 
   '@types/retry@0.12.2': {}
 
@@ -19399,6 +19533,8 @@ snapshots:
   cssstyle@2.3.0:
     dependencies:
       cssom: 0.3.8
+
+  csstype@3.1.3: {}
 
   data-urls@3.0.2:
     dependencies:
@@ -23865,6 +24001,11 @@ snapshots:
   universalify@2.0.1: {}
 
   unpipe@1.0.0: {}
+
+  unplugin@1.16.1:
+    dependencies:
+      acorn: 8.15.0
+      webpack-virtual-modules: 0.6.2
 
   unrs-resolver@1.11.1:
     dependencies:

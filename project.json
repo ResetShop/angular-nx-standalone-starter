@@ -119,7 +119,7 @@
       "options": {
         "port": 4400,
         "configDir": "./.storybook",
-        "browserTarget": "app:build-storybook",
+        "browserTarget": "app:build",
         "compodoc": false
       },
       "configurations": {
@@ -134,7 +134,7 @@
       "options": {
         "outputDir": "dist/storybook/app",
         "configDir": "./.storybook",
-        "browserTarget": "app:build-storybook",
+        "browserTarget": "app:build",
         "compodoc": false
       },
       "configurations": {
