@@ -55,6 +55,8 @@
     "@nx/workspace": "21.6.4",
     "@playwright/test": "^1.36.0",
     "@schematics/angular": "~20.3.0",
+    "@storybook/addon-docs": "^9.1.8",
+    "@storybook/addon-styling-webpack": "^2.0.0",
     "@storybook/angular": "9.1.10",
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
@@ -86,7 +88,8 @@
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.40.0"
+    "typescript-eslint": "^8.40.0",
+    "webpack": "^5.102.1"
   },
   "nx": {
     "includedScripts": []
