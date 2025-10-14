@@ -2,7 +2,7 @@
   "name": "@app/source",
   "type": "module",
   "version": "1.0.0-next.0",
-  "license": "Private",
+  "license": "CC-BY-SA 4.0",
   "engines": {
     "node": "^22.12.0"
   },
