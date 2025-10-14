@@ -106,6 +106,13 @@
           "ci": true
         }
       }
+    },
+    "stylelint": {
+      "executor": "nx-stylelint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["**/*.css", "**/*.scss"]
+      }
     }
   }
 }
