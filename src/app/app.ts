@@ -9,7 +9,7 @@ import { RouterModule } from '@angular/router';
       <span> Hello there, </span>
       Welcome app 👋
     </h1>
-    <router-outlet></router-outlet>
+    <router-outlet />
   `,
   styles: ``,
 })
