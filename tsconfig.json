@@ -34,8 +34,8 @@
   "ts-node": {
     "esm": true,
     "compilerOptions": {
-      "module": "commonjs",
-      "moduleResolution": "node10"
+      "module": "ESNext",
+      "moduleResolution": "node"
     }
   }
 }
