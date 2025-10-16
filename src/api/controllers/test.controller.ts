@@ -1,18 +1,18 @@
-import { Request, Response, Router } from 'express';
+import { Hono } from 'hono';
 
 // TODO: Remove this controller file
-const router = Router();
+const app = new Hono();
 
 /**
  * Test endpoint
  * GET /api/test
  */
-router.get('/', (req: Request, res: Response) => {
-  res.json({
+app.get('/', (c) => {
+  return c.json({
     message: 'Test endpoint is working!',
     timestamp: new Date().toISOString(),
     status: 'success',
   });
 });
 
-export default router;
+export default app;
