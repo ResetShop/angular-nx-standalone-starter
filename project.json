@@ -17,6 +17,7 @@
         "index": "./src/indexFile.html",
         "tsConfig": "tsconfig.app.json",
         "assets": [
+          "./src/assets",
           {
             "glob": "**/*",
             "input": "public"
