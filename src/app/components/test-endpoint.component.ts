@@ -14,9 +14,9 @@ interface TestResponse {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="m-5 p-5 border-gray-200 border-1 rounded-md">
+    <div class="p-5 border-gray-200 border-1 rounded-md">
       <header class="mb-2">
-        <h1 class="text-lg font-bold">Test Endpoint Response:</h1>
+        <h1 class="text-lg font-bold">Application health status:</h1>
       </header>
       @if (testResource.isLoading()) {
       <p>Loading...</p>
