@@ -5,7 +5,12 @@
     "target": "es2022",
     "module": "preserve",
     "lib": ["es2020", "dom"],
-    "paths": {},
+    "paths": {
+      "@components/*": ["src/app/components/*"],
+      "@pages/*": ["src/app/pages/*"],
+      "@providers/*": ["src/app/providers/*"]
+    },
+    "baseUrl": ".",
     "isolatedModules": true,
     "skipLibCheck": true
   },
