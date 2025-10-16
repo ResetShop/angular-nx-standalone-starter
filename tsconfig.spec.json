@@ -3,6 +3,11 @@
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
     "module": "commonjs",
+    "paths": {
+      "@components/*": ["src/app/components/*"],
+      "@pages/*": ["src/app/pages/*"],
+      "@providers/*": ["src/app/providers/*"]
+    },
     "target": "es2016",
     "types": ["jest", "node", "@testing-library/jest-dom"],
     "moduleResolution": "node10"
