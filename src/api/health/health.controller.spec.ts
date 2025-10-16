@@ -1,7 +1,7 @@
 import testController from './health.controller';
 
 describe('Test Controller', () => {
-  const route = '/v1/health';
+  const route = '/v1';
 
   it('should return success response with message and timestamp', async () => {
     const res = await testController.request(route);
