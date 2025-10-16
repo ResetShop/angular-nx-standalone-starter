@@ -1,4 +1,5 @@
 // TODO: Uncomment if using Sanity.io connector. To set the connector to work, you need to add the Sanity.io connection string to your environment variables.
+// TODO: Install @sanity/client package to use this connector.
 
 // import { createClient, SanityClient } from '@sanity/client';
 // import { environment } from './environment';
