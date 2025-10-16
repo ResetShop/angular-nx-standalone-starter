@@ -30,6 +30,7 @@
           "responsive",
           "screen",
           "tailwind",
+          "theme",
           "variants",
           "use"
         ]
