@@ -18,6 +18,10 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
           /src/api/test.controllers.ts, which are only there for testing
           purposes
         </li>
+        <li>
+          Remove TestEndpointComponent from the app.component.ts file, and also
+          from the project
+        </li>
       </ol>
     </div>
 
@@ -27,6 +31,4 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
   `,
   styles: ``,
 })
-export class App {
-  protected title = 'app';
-}
+export class App {}
