@@ -8,7 +8,7 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
   selector: 'app-root',
   template: `
     <h1>
-      <span> Welcome to the Reset Dev Nx + Angular SSR starter repo 👋 </span>
+      <span> {{ title }} </span>
     </h1>
     <div>
       <h2>TODO:</h2>
@@ -31,4 +31,6 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
   `,
   styles: ``,
 })
-export class App {}
+export class App {
+  protected title = 'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋';
+}
