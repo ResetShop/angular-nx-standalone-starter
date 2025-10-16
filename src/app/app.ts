@@ -7,12 +7,12 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-root',
   template: `
-    <h1>
+    <h1 class="font-bold text-xl">
       <span> {{ title }} </span>
     </h1>
     <div>
-      <h2>TODO:</h2>
-      <ol>
+      <h2 class="font-semibold text-lg mb-2">TODO:</h2>
+      <ol class="list-decimal list-inside">
         <li>
           Remove the test route from routes.ts and the test controller from
           /src/api/test.controllers.ts, which are only there for testing
@@ -29,7 +29,11 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
 
     <router-outlet />
   `,
-  styles: ``,
+  styles: `
+  @reference "tailwindcss";
+  :host {
+    @apply grid gap-4 p-4;
+  }`,
 })
 export class App {
   protected title = 'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋';
