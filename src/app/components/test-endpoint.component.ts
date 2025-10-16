@@ -55,6 +55,6 @@ export class TestEndpointComponent {
   private http = inject(HttpClient);
 
   testResource = rxResource({
-    stream: () => this.http.get<TestResponse>('/api/test'),
+    stream: () => this.http.get<TestResponse>('/api/health/v1'),
   });
 }
