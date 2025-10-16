@@ -1,58 +1,92 @@
-import {
-  AngularNodeAppEngine,
-  createNodeRequestHandler,
-  isMainModule,
-  writeResponseToNodeResponse,
-} from '@angular/ssr/node';
-import express from 'express';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { AngularAppEngine, createRequestHandler } from '@angular/ssr';
+import { isMainModule } from '@angular/ssr/node';
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { Hono } from 'hono';
+import { requestId } from 'hono/request-id';
+import { secureHeaders } from 'hono/secure-headers';
 import routes from './api/routes';
 
-const serverDistFolder = dirname(fileURLToPath(import.meta.url));
-const browserDistFolder = resolve(serverDistFolder, '../browser');
+/**
+ * Initialize Hono and export the app instance
+ */
+export const app = new Hono({ strict: false })
+  .use(requestId())
+  .use(secureHeaders());
 
-export const app = express();
-const angularApp = new AngularNodeAppEngine();
+/**
+ * Register routes used by the APIs
+ */
 
-// Registra las routes utilizadas por la API
 for (const route of routes) {
-  app.use(`/api${route.path}`, route.controller);
+  app.route(`/api${route.path}`, route.controller);
 }
 
 /**
- * Serve static files from /browsers
+ * Serve static files from /browser
  */
 app.use(
-  express.static(browserDistFolder, {
-    maxAge: '1y',
-    index: false,
-    redirect: false,
-  }),
+  '*',
+  serveStatic({
+    root: join(import.meta.dirname, '../browser'),
+    onFound: (path, c) => {
+      c.header('Cache-Control', `public, immutable, max-age=31536000`);
+    },
+    onNotFound: () => {
+      // Optionally log or handle the case where a static file is not found
+    },
+  })
 );
 
 /**
- * Handle all other requests by rendering the Angular application.
+ * Handle SSR for rest of the routes using Angular App Engine
  */
-app.use((req, res, next) => {
-  angularApp
-    .handle(req)
-    .then((response) => (response ? writeResponseToNodeResponse(response, res) : next()))
-    .catch(next);
+app.use('*', async (c, next) => {
+  const angularApp = new AngularAppEngine();
+  const response = await angularApp.handle(c.req.raw);
+  if (response) {
+    return response;
+  }
+
+  return next();
+});
+
+/**
+ * Not found
+ */
+app.notFound((c) => {
+  return c.text('404 - Not found', 404);
+});
+
+/**
+ * Error handling
+ */
+app.onError((error, c) => {
+  console.error(`${error}`);
+  return c.text('Internal Server Error', 500);
 });
 
 /**
  * Start the server if this module is the main entry point.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
+ * The server listens on the port defined by the `PORT` environment
+ * variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
-  const port = process.env['PORT'] || 4000;
-  app.listen(port, () => {
-    console.log(`Aplicación corriendo en http://localhost:${port}`);
-  });
+  const port = Number(process.env['PORT'] || 4000);
+  serve(
+    {
+      fetch: app.fetch,
+      port,
+    },
+    (info) => {
+      console.log(`Hono server listening on http://localhost:${info.port}`);
+    }
+  );
 }
 
 /**
- * The request handler used by the Angular CLI (dev-server and during build).
+ * Request handler used by the Angular CLI (for dev-server and during build)
+ * or Firebase Cloud Functions.
  */
-export const reqHandler = createNodeRequestHandler(app);
+export const reqHandler = createRequestHandler(app.fetch);
