@@ -8,6 +8,7 @@
   },
   "scripts": {
     "preinstall": "pnpx only-allow pnpm",
+    "postinstall": "pnpm run config",
     "config": "node --loader ts-node/esm ./scripts/set-environment.ts",
     "prepare": "husky",
     "dev": "nx serve",
