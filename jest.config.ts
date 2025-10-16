@@ -1,9 +1,9 @@
 export default {
   displayName: 'app',
+  testEnvironment: '@happy-dom/jest-environment',
   preset: './jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: './coverage/app',
-  testEnvironment: 'jsdom',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
       'jest-preset-angular',

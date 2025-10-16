@@ -10,7 +10,7 @@
     "preinstall": "pnpx only-allow pnpm",
     "config": "node --loader ts-node/esm ./scripts/set-environment.ts",
     "prepare": "husky",
-    "start": "nx serve",
+    "dev": "nx serve",
     "build": "nx build",
     "storybook": "nx run app:storybook",
     "storybook:build": "nx run app:build-storybook",
@@ -32,9 +32,9 @@
     "@angular/platform-server": "~20.3.0",
     "@angular/router": "~20.3.0",
     "@angular/ssr": "~20.3.0",
+    "@happy-dom/jest-environment": "^20.0.2",
     "express": "^4.21.2",
-    "rxjs": "~7.8.0",
-    "zone.js": "~0.15.0"
+    "rxjs": "~7.8.0"
   },
   "devDependencies": {
     "@angular-devkit/core": "~20.3.0",
