@@ -10,7 +10,7 @@
     "preinstall": "pnpx only-allow pnpm",
     "config": "node --loader ts-node/esm ./scripts/set-environment.ts",
     "prepare": "husky",
-    "start": "nx serve",
+    "dev": "nx serve",
     "build": "nx build",
     "storybook": "nx run app:storybook",
     "storybook:build": "nx run app:build-storybook",
