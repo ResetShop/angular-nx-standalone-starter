@@ -8,6 +8,7 @@
   },
   "scripts": {
     "preinstall": "pnpx only-allow pnpm",
+    "postinstall": "pnpm run config",
     "config": "node --loader ts-node/esm ./scripts/set-environment.ts",
     "prepare": "husky",
     "dev": "nx serve",
@@ -36,6 +37,7 @@
     "@hono/node-server": "^1.19.5",
     "@tailwindcss/postcss": "^4.1.14",
     "hono": "^4.9.12",
+    "ngxtension": "^6.0.0",
     "postcss": "^8.5.6",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.14"
