@@ -1,5 +1,18 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
+
+// Environment
+import { environment } from './environments/environment';
+
+// Providers
+import { Analytics } from './providers/analytics/analytics';
+
+// Components
 import { TestEndpointComponent } from './components/test-endpoint.component';
 
 @Component({
@@ -20,13 +33,20 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
         </li>
         <li>
           Remove TestEndpointComponent from the app.component.ts file, and also
-          from the project
+          from the project.
         </li>
         <li>
           Check which helpers you need to use in the application backend. You'll
           find the helpers in the /src/api/helpers folder, together with the
           environment information to set them up from environment variables in
-          the /src/api/helpers/environment.ts file.
+          the /src/api/helpers/environment.ts file. To properly use the helpers
+          you'll need to install specific packages, which are detailed in the
+          comments for each of them.
+        </li>
+        <li>
+          Under AnalyticsService, you'll find commented code that'll allow you
+          to set up Vercel Speed Insights and Microsoft Clarity clients for
+          Analytics.
         </li>
       </ol>
     </div>
@@ -42,6 +62,15 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
     @apply grid gap-4 p-4;
   }`,
 })
-export class App {
+export class App implements OnInit {
   protected title = 'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋';
+
+  private readonly analytics = inject(Analytics);
+
+  async ngOnInit() {
+    if (environment.environment !== 'production') {
+      return;
+    }
+    await this.analytics.init();
+  }
 }

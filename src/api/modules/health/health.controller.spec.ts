@@ -1,4 +1,4 @@
-import testController from './health.controller.js';
+import testController from './health.controller';
 
 describe('Test Controller', () => {
   const route = '/v1';
