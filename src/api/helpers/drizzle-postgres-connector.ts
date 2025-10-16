@@ -1,4 +1,5 @@
 // TODO: Uncomment if using Drizzle's Postgres connector. To set the connector to work, you need to add the Postgres connection string to your environment variables.
+// TODO: Install drizzle-orm, drizzle-kit and postgres packages to use this connector.
 
 // import { drizzle } from 'drizzle-orm/postgres-js';
 // import postgres from 'postgres';
