@@ -16,7 +16,7 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
         <li>
           Remove the test route from routes.ts and the test controller from
           /src/api/test.controllers.ts, which are only there for testing
-          purposes
+          purposes. Also its corresponding .spec.ts file can be removed.
         </li>
         <li>
           Remove TestEndpointComponent from the app.component.ts file, and also
