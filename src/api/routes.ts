@@ -1,9 +1,8 @@
-import testController from './controllers/test.controller';
+import healthController from './health/health.controller';
 
-// TODO: Remove the /test route from the array
 export default [
   {
-    path: '/test',
-    controller: testController,
+    path: '/health',
+    controller: healthController,
   },
 ];
