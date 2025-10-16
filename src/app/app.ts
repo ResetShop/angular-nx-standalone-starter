@@ -22,6 +22,12 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
           Remove TestEndpointComponent from the app.component.ts file, and also
           from the project
         </li>
+        <li>
+          Check which helpers you need to use in the application backend. You'll
+          find the helpers in the /src/api/helpers folder, together with the
+          environment information to set them up from environment variables in
+          the /src/api/helpers/environment.ts file.
+        </li>
       </ol>
     </div>
 
