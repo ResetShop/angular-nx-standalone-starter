@@ -1,4 +1,4 @@
-import healthController from './health/health.controller';
+import healthController from './modules/health/health.controller';
 
 export default [
   {
