@@ -24,6 +24,7 @@
   "private": true,
   "dependencies": {
     "@angular-devkit/build-angular": "~20.3.0",
+    "@angular/cdk": "^19.0.0",
     "@angular/common": "~20.3.0",
     "@angular/compiler": "~20.3.0",
     "@angular/core": "~20.3.0",
@@ -33,6 +34,7 @@
     "@angular/platform-server": "~20.3.0",
     "@angular/router": "~20.3.0",
     "@angular/ssr": "~20.3.0",
+    "@floating-ui/dom": "^1.6.0",
     "@happy-dom/jest-environment": "^20.0.2",
     "@hono/node-server": "^1.19.5",
     "@tailwindcss/postcss": "^4.1.14",
@@ -90,6 +92,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-preset-angular": "~14.6.1",
     "jest-util": "^29.7.0",
+    "ng-primitives": "^0.84.0",
     "nx": "21.6.4",
     "nx-stylelint": "^18.0.2",
     "only-allow": "^1.2.1",

@@ -10,6 +10,9 @@ importers:
       '@angular-devkit/build-angular':
         specifier: ~20.3.0
         version: 20.3.5(3d6a8a56de47e7600482c1a229f03e65)
+      '@angular/cdk':
+        specifier: ^19.0.0
+        version: 19.2.19(@angular/common@20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
       '@angular/common':
         specifier: ~20.3.0
         version: 20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
@@ -37,6 +40,9 @@ importers:
       '@angular/ssr':
         specifier: ~20.3.0
         version: 20.3.5(5c3ed0f10335c910616f910f612a0d43)
+      '@floating-ui/dom':
+        specifier: ^1.6.0
+        version: 1.7.4
       '@happy-dom/jest-environment':
         specifier: ^20.0.2
         version: 20.0.2(@jest/environment@30.2.0)(@jest/fake-timers@30.2.0)(@jest/types@30.2.0)(jest-mock@30.2.0)(jest-util@29.7.0)
@@ -203,6 +209,9 @@ importers:
       jest-util:
         specifier: ^29.7.0
         version: 29.7.0
+      ng-primitives:
+        specifier: ^0.84.0
+        version: 0.84.0(61d8fdc501e098eaeea56c392c917281)
       nx:
         specifier: 21.6.4
         version: 21.6.4(@swc-node/register@1.9.2(@swc/core@1.5.29(@swc/helpers@0.5.17))(@swc/types@0.1.25)(typescript@5.9.3))(@swc/core@1.5.29(@swc/helpers@0.5.17))
@@ -609,6 +618,16 @@ packages:
         optional: true
       vitest:
         optional: true
+
+  '@angular/cdk@19.2.19':
+    resolution:
+      {
+        integrity: sha512-PCpJagurPBqciqcq4Z8+3OtKLb7rSl4w/qBJoIMua8CgnrjvA1i+SWawhdtfI1zlY8FSwhzLwXV0CmWWfFzQPg==,
+      }
+    peerDependencies:
+      '@angular/common': ^19.0.0 || ^20.0.0
+      '@angular/core': ^19.0.0 || ^20.0.0
+      rxjs: ^6.5.3 || ^7.4.0
 
   '@angular/cli@20.3.5':
     resolution:
@@ -2345,6 +2364,24 @@ packages:
       }
     engines: { node: ^18.18.0 || ^20.9.0 || >=21.1.0 }
 
+  '@floating-ui/core@1.7.3':
+    resolution:
+      {
+        integrity: sha512-sGnvb5dmrJaKEZ+LDIpguvdX3bDlEllmv4/ClQ9awcmCZrlx5jQyyMWFM5kBI+EyNOCDDiKk8il0zeuX3Zlg/w==,
+      }
+
+  '@floating-ui/dom@1.7.4':
+    resolution:
+      {
+        integrity: sha512-OOchDgh4F2CchOX94cRVqhvy7b3AFb+/rQXyswmzmGakRfkMgoWVjfnLWkRirfLEfuD4ysVW16eXzwt3jHIzKA==,
+      }
+
+  '@floating-ui/utils@0.2.10':
+    resolution:
+      {
+        integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==,
+      }
+
   '@happy-dom/jest-environment@20.0.2':
     resolution:
       {
@@ -4059,6 +4096,14 @@ packages:
     peerDependencies:
       typescript: ^3 || ^4 || ^5
 
+  '@phenomnomnominal/tsquery@6.1.3':
+    resolution:
+      {
+        integrity: sha512-CEqpJ872StsxRmwv9ePCZ4BCisrJSlREUC5XxIRYxhvODt4aQoJFFmjTgaP6meyKiiXxxN/VWPZ58j4yHXRkmw==,
+      }
+    peerDependencies:
+      typescript: ^3 || ^4 || ^5
+
   '@pkgjs/parseargs@0.11.0':
     resolution:
       {
@@ -5031,6 +5076,12 @@ packages:
     resolution:
       {
         integrity: sha512-FXx2pKgId/WyYo2jXw63kk7/+TY7u7AziEJxJAnSFzHlqTAS3Ync6SvgYAN/k4/PQpnnVuzoMuVnByKK2qp0ag==,
+      }
+
+  '@types/esquery@1.5.4':
+    resolution:
+      {
+        integrity: sha512-yYO4Q8H+KJHKW1rEeSzHxcZi90durqYgWVfnh5K6ZADVBjBv2e1NEveYX5yT2bffgN7RqzH3k9930m+i2yBoMA==,
       }
 
   '@types/estree@1.0.8':
@@ -10675,6 +10726,23 @@ packages:
         integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==,
       }
 
+  ng-primitives@0.84.0:
+    resolution:
+      {
+        integrity: sha512-RXJpWZqy014tiwt7UUng1JXOgoQLadgcI8KSPACFALDow0b+wt7bbs3GdmPfPwRHWK4nQM7okpkUSEVQSVvHEQ==,
+      }
+    peerDependencies:
+      '@angular/cdk': '>=19.0.0'
+      '@angular/common': '>=19.0.0'
+      '@angular/core': '>=19.0.0'
+      '@angular/forms': '>=19.0.0'
+      '@floating-ui/dom': '>=1.6.0'
+      luxon: '*'
+      rxjs: '>=6.6.0'
+    peerDependenciesMeta:
+      luxon:
+        optional: true
+
   ngxtension@6.0.0:
     resolution:
       {
@@ -14706,6 +14774,14 @@ snapshots:
       - tsx
       - yaml
 
+  '@angular/cdk@19.2.19(@angular/common@20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)':
+    dependencies:
+      '@angular/common': 20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1)
+      parse5: 7.3.0
+      rxjs: 7.8.2
+      tslib: 2.8.1
+
   '@angular/cli@20.3.5(@types/node@22.18.10)(chokidar@4.0.3)':
     dependencies:
       '@angular-devkit/architect': 0.2003.5(chokidar@4.0.3)
@@ -16421,6 +16497,17 @@ snapshots:
     dependencies:
       '@eslint/core': 0.16.0
       levn: 0.4.1
+
+  '@floating-ui/core@1.7.3':
+    dependencies:
+      '@floating-ui/utils': 0.2.10
+
+  '@floating-ui/dom@1.7.4':
+    dependencies:
+      '@floating-ui/core': 1.7.3
+      '@floating-ui/utils': 0.2.10
+
+  '@floating-ui/utils@0.2.10': {}
 
   '@happy-dom/jest-environment@20.0.2(@jest/environment@30.2.0)(@jest/fake-timers@30.2.0)(@jest/types@30.2.0)(jest-mock@30.2.0)(jest-util@29.7.0)':
     dependencies:
@@ -18139,6 +18226,12 @@ snapshots:
       esquery: 1.6.0
       typescript: 5.9.3
 
+  '@phenomnomnominal/tsquery@6.1.3(typescript@5.9.3)':
+    dependencies:
+      '@types/esquery': 1.5.4
+      esquery: 1.6.0
+      typescript: 5.9.3
+
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
@@ -18731,6 +18824,10 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.8
       '@types/json-schema': 7.0.15
+
+  '@types/esquery@1.5.4':
+    dependencies:
+      '@types/estree': 1.0.8
 
   '@types/estree@1.0.8': {}
 
@@ -22693,6 +22790,19 @@ snapshots:
   negotiator@1.0.0: {}
 
   neo-async@2.6.2: {}
+
+  ng-primitives@0.84.0(61d8fdc501e098eaeea56c392c917281):
+    dependencies:
+      '@angular/cdk': 19.2.19(@angular/common@20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/common': 20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1)
+      '@angular/forms': 20.3.4(@angular/common@20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.4(@angular/animations@20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@floating-ui/dom': 1.7.4
+      '@phenomnomnominal/tsquery': 6.1.3(typescript@5.9.3)
+      rxjs: 7.8.2
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - typescript
 
   ngxtension@6.0.0(@angular/common@20.3.4(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.4(@angular/compiler@20.3.4)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2):
     dependencies:
