@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "public": true,
+  "name": "app",
+  "installCommand": "pnpm install",
+  "devCommand": "pnpm run dev",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "functions": {
+    "api/index.mjs": {
+      "includeFiles": "dist/app/**"
+    }
+  }
+}
