@@ -7,9 +7,9 @@ const app = new Hono();
  * Test endpoint
  * GET /api/test
  */
-app.get('/', (c) => {
+app.get('/v1/health', async (c) => {
   return c.json({
-    message: 'Test endpoint is working!',
+    message: 'Server is running!',
     timestamp: new Date().toISOString(),
     status: 'success',
   });
