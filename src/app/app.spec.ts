@@ -1,17 +1,17 @@
-import { TestBed } from '@angular/core/testing';
+import { render, screen } from '@testing-library/angular';
 import { App } from './app';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-    }).compileComponents();
-  });
+  it('should render title', async () => {
+    await render(App, {
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Welcome app');
+    const title = screen.getByText(
+      'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋'
+    );
+    expect(title).toBeInTheDocument();
   });
 });
