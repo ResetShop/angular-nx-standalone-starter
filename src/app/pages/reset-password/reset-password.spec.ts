@@ -1,145 +1,141 @@
-import { render, screen } from "@testing-library/angular";
-import userEvent from "@testing-library/user-event";
-import { provideRouter } from "@angular/router";
-import ResetPassword from "./reset-password";
+import { render, screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
+import { provideRouter } from '@angular/router';
+import ResetPassword from './reset-password';
 
-describe("ResetPassword", () => {
-  it("should create the reset password component", async () => {
-    const { fixture } = await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+describe('ResetPassword', () => {
+	it('should create the reset password component', async () => {
+		const { fixture } = await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    expect(fixture.componentInstance).toBeTruthy();
-  });
+		expect(fixture.componentInstance).toBeTruthy();
+	});
 
-  it("should render the reset password form with email field", async () => {
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+	it('should render the reset password form with email field', async () => {
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    expect(screen.getByLabelText(/dirección de email/i)).toBeInTheDocument();
-  });
+		expect(screen.getByLabelText(/dirección de email/i)).toBeInTheDocument();
+	});
 
-  it("should have submit button disabled when form is invalid", async () => {
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+	it('should render submit button with appButton directive', async () => {
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    const submitButton = screen.getByRole("button", {
-      name: /enviar enlace de restablecimiento/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
+		const submitButton = screen.getByRole('button', {
+			name: /enviar enlace de restablecimiento/i,
+		});
 
-  it("should show required error for email when touched and empty", async () => {
-    const user = userEvent.setup();
+		// Check that the button has the appButton directive classes
+		expect(submitButton).toHaveClass('bg-primary-600');
+		expect(submitButton).toHaveClass('inline-flex');
+		expect(submitButton).toHaveClass('w-full');
+	});
 
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+	it('should show required error for email when touched and empty', async () => {
+		const user = userEvent.setup();
 
-    const emailInput = screen.getByLabelText(/dirección de email/i);
-    await user.click(emailInput);
-    await user.tab();
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    expect(screen.getByText(/el email es requerido/i)).toBeInTheDocument();
-  });
+		const emailInput = screen.getByLabelText(/dirección de email/i);
+		await user.click(emailInput);
+		await user.tab();
 
-  it("should show invalid email error when email format is incorrect", async () => {
-    const user = userEvent.setup();
+		expect(screen.getByText(/el email es requerido/i)).toBeInTheDocument();
+	});
 
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+	it('should show invalid email error when email format is incorrect', async () => {
+		const user = userEvent.setup();
 
-    const emailInput = screen.getByLabelText(/dirección de email/i);
-    await user.type(emailInput, "invalid-email");
-    await user.tab();
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    expect(screen.getByText(/ingrese un email válido/i)).toBeInTheDocument();
-  });
+		const emailInput = screen.getByLabelText(/dirección de email/i);
+		await user.type(emailInput, 'invalid-email');
+		await user.tab();
 
-  it("should enable submit button when form is valid", async () => {
-    const user = userEvent.setup();
+		expect(screen.getByText(/ingrese un email válido/i)).toBeInTheDocument();
+	});
 
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+	it('should enable submit button when form is valid', async () => {
+		const user = userEvent.setup();
 
-    const emailInput = screen.getByLabelText(/dirección de email/i);
-    await user.type(emailInput, "test@example.com");
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    const submitButton = screen.getByRole("button", {
-      name: /enviar enlace de restablecimiento/i,
-    });
-    expect(submitButton).not.toBeDisabled();
-  });
+		const emailInput = screen.getByLabelText(/dirección de email/i);
+		await user.type(emailInput, 'test@example.com');
 
-  it("should render back to login link", async () => {
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+		const submitButton = screen.getByRole('button', {
+			name: /enviar enlace de restablecimiento/i,
+		});
+		expect(submitButton).not.toBeDisabled();
+	});
 
-    const backToLoginLink = screen.getByText(/volver al inicio de sesión/i);
-    expect(backToLoginLink).toBeInTheDocument();
-  });
+	it('should render back to login link', async () => {
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-  it("should display the reset password title", async () => {
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+		const backToLoginLink = screen.getByText(/volver al inicio de sesión/i);
+		expect(backToLoginLink).toBeInTheDocument();
+	});
 
-    expect(screen.getByText(/restablecer contraseña/i)).toBeInTheDocument();
-  });
+	it('should display the reset password title', async () => {
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-  it("should have correct form structure with formGroup directive", async () => {
-    const { container } = await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+		expect(screen.getByText(/restablecer contraseña/i)).toBeInTheDocument();
+	});
 
-    const form = container.querySelector("form");
-    expect(form).toBeInTheDocument();
+	it('should have correct form structure with formGroup directive', async () => {
+		const { container } = await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    const emailInput = container.querySelector(
-      'input[formcontrolname="email"]'
-    );
-    expect(emailInput).toBeInTheDocument();
-  });
+		const form = container.querySelector('form');
+		expect(form).toBeInTheDocument();
 
-  it("should not show error messages when form is untouched", async () => {
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+		const emailInput = container.querySelector('input[formcontrolname="email"]');
+		expect(emailInput).toBeInTheDocument();
+	});
 
-    expect(
-      screen.queryByText(/el email es requerido/i)
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/ingrese un email válido/i)
-    ).not.toBeInTheDocument();
-  });
+	it('should not show error messages when form is untouched', async () => {
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-  it("should clear error when valid email is entered", async () => {
-    const user = userEvent.setup();
+		expect(screen.queryByText(/el email es requerido/i)).not.toBeInTheDocument();
+		expect(screen.queryByText(/ingrese un email válido/i)).not.toBeInTheDocument();
+	});
 
-    await render(ResetPassword, {
-      providers: [provideRouter([])],
-    });
+	it('should clear error when valid email is entered', async () => {
+		const user = userEvent.setup();
 
-    const emailInput = screen.getByLabelText(/dirección de email/i);
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
 
-    // First, trigger error
-    await user.type(emailInput, "invalid");
-    await user.tab();
-    expect(screen.getByText(/ingrese un email válido/i)).toBeInTheDocument();
+		const emailInput = screen.getByLabelText(/dirección de email/i);
 
-    // Then, fix the email
-    await user.clear(emailInput);
-    await user.type(emailInput, "valid@example.com");
-    await user.tab();
+		// First, trigger error
+		await user.type(emailInput, 'invalid');
+		await user.tab();
+		expect(screen.getByText(/ingrese un email válido/i)).toBeInTheDocument();
 
-    expect(
-      screen.queryByText(/ingrese un email válido/i)
-    ).not.toBeInTheDocument();
-  });
+		// Then, fix the email
+		await user.clear(emailInput);
+		await user.type(emailInput, 'valid@example.com');
+		await user.tab();
+
+		expect(screen.queryByText(/ingrese un email válido/i)).not.toBeInTheDocument();
+	});
 });
