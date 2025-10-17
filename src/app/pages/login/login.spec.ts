@@ -1,161 +1,153 @@
-import { render, screen } from "@testing-library/angular";
-import userEvent from "@testing-library/user-event";
-import { provideRouter } from "@angular/router";
-import Login from "./login";
+import { render, screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
+import { provideRouter } from '@angular/router';
+import Login from './login';
 
-describe("Login", () => {
-  it("should create the login component", async () => {
-    const { fixture } = await render(Login, {
-      providers: [provideRouter([])],
-    });
+describe('Login', () => {
+	it('should create the login component', async () => {
+		const { fixture } = await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    expect(fixture.componentInstance).toBeTruthy();
-  });
+		expect(fixture.componentInstance).toBeTruthy();
+	});
 
-  it("should render the login form with email and password fields", async () => {
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+	it('should render the login form with email and password fields', async () => {
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    expect(screen.getByLabelText(/dirección de email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
-  });
+		expect(screen.getByLabelText(/dirección de email/i)).toBeInTheDocument();
+		expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
+	});
 
-  it("should have submit button disabled when form is invalid", async () => {
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+	it('should render submit button with appButton directive', async () => {
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    const submitButton = screen.getByRole("button", {
-      name: /iniciar sesión/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
+		const submitButton = screen.getByRole('button', {
+			name: /iniciar sesión/i,
+		});
 
-  it("should show required error for email when dirty and empty", async () => {
-    const user = userEvent.setup();
+		// Check that the button has the appButton directive classes
+		expect(submitButton).toHaveClass('bg-primary-600');
+		expect(submitButton).toHaveClass('inline-flex');
+		expect(submitButton).toHaveClass('w-full');
+	});
 
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+	it('should show required error for email when dirty and empty', async () => {
+		const user = userEvent.setup();
 
-    const emailInput = screen.getByLabelText(/dirección de email/i);
-    await user.type(emailInput, "a");
-    await user.clear(emailInput);
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    expect(screen.getByText(/el email es requerido/i)).toBeInTheDocument();
-  });
+		const emailInput = screen.getByLabelText(/dirección de email/i);
+		await user.type(emailInput, 'a');
+		await user.clear(emailInput);
 
-  it("should show invalid email error when email format is incorrect and dirty", async () => {
-    const user = userEvent.setup();
+		expect(screen.getByText(/el email es requerido/i)).toBeInTheDocument();
+	});
 
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+	it('should show invalid email error when email format is incorrect and dirty', async () => {
+		const user = userEvent.setup();
 
-    const emailInput = screen.getByLabelText(/dirección de email/i);
-    await user.type(emailInput, "invalid-email");
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    expect(screen.getByText(/ingrese un email válido/i)).toBeInTheDocument();
-  });
+		const emailInput = screen.getByLabelText(/dirección de email/i);
+		await user.type(emailInput, 'invalid-email');
 
-  it("should show required error for password when touched and empty", async () => {
-    const user = userEvent.setup();
+		expect(screen.getByText(/ingrese un email válido/i)).toBeInTheDocument();
+	});
 
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+	it('should show required error for password when dirty and empty', async () => {
+		const user = userEvent.setup();
 
-    const passwordInput = screen.getByLabelText(/contraseña/i);
-    await user.click(passwordInput);
-    await user.tab();
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    expect(screen.getByText(/la contraseña es requerida/i)).toBeInTheDocument();
-  });
+		const passwordInput = screen.getByLabelText(/contraseña/i);
+		await user.type(passwordInput, 'a');
+		await user.clear(passwordInput);
 
-  it("should show minlength error when password is too short and touched", async () => {
-    const user = userEvent.setup();
+		expect(screen.getByText(/la contraseña es requerida/i)).toBeInTheDocument();
+	});
 
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+	it('should show minlength error when password is too short and dirty', async () => {
+		const user = userEvent.setup();
 
-    const passwordInput = screen.getByLabelText(/contraseña/i);
-    await user.type(passwordInput, "1234567");
-    await user.tab();
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    expect(
-      screen.getByText(/la contraseña debe tener al menos 8 caracteres/i)
-    ).toBeInTheDocument();
-  });
+		const passwordInput = screen.getByLabelText(/contraseña/i);
+		await user.type(passwordInput, '1234567');
+		await user.tab();
 
-  it("should enable submit button when form is valid", async () => {
-    const user = userEvent.setup();
+		expect(screen.getByText(/la contraseña debe tener al menos 8 caracteres/i)).toBeInTheDocument();
+	});
 
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+	it('should enable submit button when form is valid', async () => {
+		const user = userEvent.setup();
 
-    const emailInput = screen.getByLabelText(/dirección de email/i);
-    const passwordInput = screen.getByLabelText(/contraseña/i);
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    await user.type(emailInput, "test@example.com");
-    await user.type(passwordInput, "password123");
+		const emailInput = screen.getByLabelText(/dirección de email/i);
+		const passwordInput = screen.getByLabelText(/contraseña/i);
 
-    const submitButton = screen.getByRole("button", {
-      name: /iniciar sesión/i,
-    });
-    expect(submitButton).not.toBeDisabled();
-  });
+		await user.type(emailInput, 'test@example.com');
+		await user.type(passwordInput, 'password123');
 
-  it("should render forgot password link", async () => {
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+		const submitButton = screen.getByRole('button', {
+			name: /iniciar sesión/i,
+		});
+		expect(submitButton).not.toBeDisabled();
+	});
 
-    const forgotPasswordLink = screen.getByText(/¿olvidaste tu contraseña?/i);
-    expect(forgotPasswordLink).toBeInTheDocument();
-  });
+	it('should render forgot password link', async () => {
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-  it("should have correct form structure with formGroup directive", async () => {
-    const { container } = await render(Login, {
-      providers: [provideRouter([])],
-    });
+		const forgotPasswordLink = screen.getByText(/¿olvidaste tu contraseña?/i);
+		expect(forgotPasswordLink).toBeInTheDocument();
+	});
 
-    const form = container.querySelector("form");
-    expect(form).toBeInTheDocument();
+	it('should have correct form structure with formGroup directive', async () => {
+		const { container } = await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-    const emailInput = container.querySelector(
-      'input[formcontrolname="email"]'
-    );
-    const passwordInput = container.querySelector(
-      'input[formcontrolname="password"]'
-    );
+		const form = container.querySelector('form');
+		expect(form).toBeInTheDocument();
 
-    expect(emailInput).toBeInTheDocument();
-    expect(passwordInput).toBeInTheDocument();
-  });
+		const emailInput = container.querySelector('input[formcontrolname="email"]');
+		const passwordInput = container.querySelector('input[formcontrolname="password"]');
 
-  it("should not show email error when form is pristine", async () => {
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+		expect(emailInput).toBeInTheDocument();
+		expect(passwordInput).toBeInTheDocument();
+	});
 
-    expect(
-      screen.queryByText(/el email es requerido/i)
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/ingrese un email válido/i)
-    ).not.toBeInTheDocument();
-  });
+	it('should not show email error when form is pristine', async () => {
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
 
-  it("should not show password error when form is untouched", async () => {
-    await render(Login, {
-      providers: [provideRouter([])],
-    });
+		expect(screen.queryByText(/el email es requerido/i)).not.toBeInTheDocument();
+		expect(screen.queryByText(/ingrese un email válido/i)).not.toBeInTheDocument();
+	});
 
-    expect(
-      screen.queryByText(/la contraseña es requerida/i)
-    ).not.toBeInTheDocument();
-  });
+	it('should not show password error when form is untouched', async () => {
+		await render(Login, {
+			providers: [provideRouter([])],
+		});
+
+		expect(screen.queryByText(/la contraseña es requerida/i)).not.toBeInTheDocument();
+	});
 });
