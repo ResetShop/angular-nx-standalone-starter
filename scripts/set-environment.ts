@@ -43,7 +43,7 @@ function createAppEnvFile() {
   const envFilePath = join(process.cwd(), '.env');
   if (existsSync(envFilePath)) {
     console.log(
-      '.env file for the app already exists, so we use it instead of creating a new one.'
+      '.env file for the app already exists, so we use it instead of creating a new one.',
     );
     return;
   }
@@ -57,22 +57,23 @@ function createAppEnvFile() {
 }
 
 // Creates an .env with default variables for Sanity Studio if it doesn't exist yet
-function createSanityStudioEnvFile() {
-  const envFilePath = join(process.cwd(), 'cms/.env');
-  if (existsSync(envFilePath)) {
-    console.log(
-      '.env file for Sanity Studio already exists, so we use it instead of creating a new one.'
-    );
-    return;
-  }
-
-  const fileContents = Object.entries(defaultEnvVariables)
-    .map(([key, value]) => `${key}=${value}`)
-    .join('\n');
-
-  writeFileSync(envFilePath, fileContents);
-  console.log('Created .env file for Sanity Studio with default values.');
-}
+// TODO: Set to work only if you're using a local Sanity Studio project under the cms folder
+// function createSanityStudioEnvFile() {
+//   const envFilePath = join(process.cwd(), 'cms/.env');
+//   if (existsSync(envFilePath)) {
+//     console.log(
+//       '.env file for Sanity Studio already exists, so we use it instead of creating a new one.',
+//     );
+//     return;
+//   }
+//
+//   const fileContents = Object.entries(defaultEnvVariables)
+//     .map(([key, value]) => `${key}=${value}`)
+//     .join('\n');
+//
+//   writeFileSync(envFilePath, fileContents);
+//   console.log('Created .env file for Sanity Studio with default values.');
+// }
 
 if (environment === 'development') {
   createAppEnvFile();
@@ -144,16 +145,16 @@ writeFile(
     console.log(`Environment variables written to ${targetPath}`);
     console.log(
       'Vercel Environment - VERCEL_ENV = ',
-      process.env['VERCEL_ENV']
+      process.env['VERCEL_ENV'],
     );
     console.log(
       'Vercel Environment - VERCEL_URL = ',
-      process.env['VERCEL_URL']
+      process.env['VERCEL_URL'],
     );
     console.log(
       'Vercel branch URL - VERCEL_BRANCH_URL = ',
-      process.env['VERCEL_BRANCH_URL']
+      process.env['VERCEL_BRANCH_URL'],
     );
     console.log('API and Website URL = ', apiUrl);
-  }
+  },
 );

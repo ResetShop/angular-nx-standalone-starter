@@ -56,11 +56,12 @@ import { TestEndpointComponent } from './components/test-endpoint.component';
     <router-outlet />
   `,
   styles: `
-  /*  Each time you want to use some specific Tailwind classes inside styles, like p-* and m-*, you need to import them here */
-  @reference "tailwindcss";
-  :host {
-    @apply grid gap-4 p-4;
-  }`,
+    /*  Each time you want to use some specific Tailwind classes inside styles, like p-* and m-*, you need to import them here */
+    @reference "tailwindcss";
+    :host {
+      @apply grid gap-4 p-4;
+    }
+  `,
 })
 export class App implements OnInit {
   protected title = 'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋';
