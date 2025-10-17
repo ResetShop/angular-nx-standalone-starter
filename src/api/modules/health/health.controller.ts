@@ -8,11 +8,11 @@ const app = new Hono();
  * GET /api/test
  */
 app.get('/v1', async (c) => {
-  return c.json({
-    message: 'Server is running!',
-    timestamp: new Date().toISOString(),
-    status: 'success',
-  });
+	return c.json({
+		message: 'Server is running!',
+		timestamp: new Date().toISOString(),
+		status: 'success',
+	});
 });
 
 export default app;

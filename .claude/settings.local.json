@@ -1,6 +1,12 @@
 {
 	"permissions": {
-		"allow": ["Bash(test:*)", "Bash(pnpm prettier:*)", "Bash(nx test:*)"]
+		"allow": [
+			"Bash(test:*)",
+			"Bash(nx test:*)",
+			"Bash(pnpm exec prettier:*)",
+			"Bash(nx run:*)",
+			"Bash(pnpm prettier:*)"
+		]
 	},
 	"enableAllProjectMcpServers": true,
 	"enabledMcpjsonServers": ["nx-mcp"]
