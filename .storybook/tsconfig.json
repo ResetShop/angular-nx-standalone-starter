@@ -1,19 +1,19 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
-  },
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true
+	},
 
-  "exclude": ["../**/*.spec.ts"],
-  "include": [
-    "../src/**/*.stories.ts",
-    "../src/**/*.stories.js",
-    "../src/**/*.stories.jsx",
-    "../src/**/*.stories.tsx",
-    "../src/**/*.stories.mdx",
-    "*.js",
-    "*.ts"
-  ]
+	"exclude": ["../**/*.spec.ts"],
+	"include": [
+		"../src/**/*.stories.ts",
+		"../src/**/*.stories.js",
+		"../src/**/*.stories.jsx",
+		"../src/**/*.stories.tsx",
+		"../src/**/*.stories.mdx",
+		"*.js",
+		"*.ts"
+	]
 }
