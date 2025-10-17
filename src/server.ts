@@ -36,7 +36,7 @@ app.use(
     onNotFound: () => {
       // Optionally log or handle the case where a static file is not found
     },
-  })
+  }),
 );
 
 /**
@@ -81,7 +81,7 @@ if (isMainModule(import.meta.url)) {
     },
     (info) => {
       console.log(`Hono server listening on http://localhost:${info.port}`);
-    }
+    },
   );
 }
 
