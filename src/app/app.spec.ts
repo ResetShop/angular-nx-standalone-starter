@@ -16,7 +16,7 @@ describe('App', () => {
     });
 
     const title = screen.getByText(
-      'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋'
+      'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋',
     );
     expect(title).toBeInTheDocument();
   });
