@@ -5,6 +5,6 @@ test('has title', async ({ page }) => {
 
   // Expect h1 to contain a substring.
   await expect(
-    page.getByText('Welcome to the Reset Dev Nx + Angular SSR starter repo 👋')
+    page.getByText('Welcome to the Reset Dev Nx + Angular SSR starter repo 👋'),
   ).toBeVisible();
 });

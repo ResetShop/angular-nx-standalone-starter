@@ -19,18 +19,18 @@ interface TestResponse {
         <h1 class="text-lg font-bold">Application health status:</h1>
       </header>
       @if (testResource.isLoading()) {
-      <p>Loading...</p>
+        <p>Loading...</p>
       } @else if (testResource.error()) {
-      <p class="text-error-100">Error: {{ testResource.error()?.message }}</p>
+        <p class="text-error-100">Error: {{ testResource.error()?.message }}</p>
       } @else if (testResource.value(); as data) {
-      <div class="bg-gray-100 p-4 rounded-sm">
-        <p class="mb-2"><strong>Message:</strong> {{ data.message }}</p>
-        <p class="mb-2"><strong>Status:</strong> {{ data.status }}</p>
-        <p class="mb-2">
-          <strong>Date & Time:</strong>
-          {{ data.timestamp | date : 'yyyy/mm/dd HH:mm (z)' }}
-        </p>
-      </div>
+        <div class="bg-gray-100 p-4 rounded-sm">
+          <p class="mb-2"><strong>Message:</strong> {{ data.message }}</p>
+          <p class="mb-2"><strong>Status:</strong> {{ data.status }}</p>
+          <p class="mb-2">
+            <strong>Date & Time:</strong>
+            {{ data.timestamp | date: 'yyyy/mm/dd HH:mm (z)' }}
+          </p>
+        </div>
       }
     </div>
   `,
