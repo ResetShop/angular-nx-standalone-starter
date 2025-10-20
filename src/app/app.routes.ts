@@ -1,28 +1,18 @@
 import { Route } from '@angular/router';
 
-export const validRoutes = ['', 'health', 'auth', 'auth/login', 'auth/reset-password'];
-
 export const appRoutes: Route[] = [
+	// TODO: Remove access to this route once the project setup is completed
 	{
 		path: 'welcome',
 		loadComponent: () => import('./pages/welcome/welcome'),
 	},
 	{
-		path: 'health',
-		loadComponent: () => import('./pages/health/health'),
+		path: 'auth',
+		loadChildren: () => import('./pages/auth.routes'),
 	},
 	{
-		path: 'auth',
-		children: [
-			{
-				path: 'login',
-				loadComponent: () => import('./pages/login/login'),
-			},
-			{
-				path: 'reset-password',
-				loadComponent: () => import('./pages/reset-password/reset-password'),
-			},
-		],
+		path: 'dashboard',
+		loadChildren: () => import('./pages/dashboard/dashboard.routes'),
 	},
 	{
 		path: '**',

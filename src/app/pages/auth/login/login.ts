@@ -38,7 +38,7 @@ interface LoginForm {
 									class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
 								/>
 								@if (loginForm.controls.email.invalid && loginForm.controls.email.dirty) {
-									<p class="text-danger-600 mt-2 text-sm">
+									<p class="text-danger mt-2 text-sm">
 										@if (loginForm.controls.email.errors?.['required']) {
 											El email es requerido
 										}
@@ -69,7 +69,7 @@ interface LoginForm {
 									class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
 								/>
 								@if (loginForm.controls.password.invalid && loginForm.controls.password.dirty) {
-									<p class="text-danger-600 mt-2 text-sm">
+									<p class="text-danger mt-2 text-sm">
 										@if (loginForm.controls.password.errors?.['required']) {
 											La contraseña es requerida
 										}
@@ -124,9 +124,9 @@ export default class Login {
 		}
 
 		const { email, password } = this.loginForm.value;
+		// TODO: Implement actual login logic
 		console.log('Login attempt:', { email, password });
 
-		// TODO: Implement actual login logic
-		// this.router.navigate(["/dashboard"]);
+		this.router.navigate(['..', 'dashboard']);
 	}
 }
