@@ -12,7 +12,7 @@ describe('Button', () => {
 		expect(button).toHaveClass('inline-flex');
 		expect(button).toHaveClass('items-center');
 		expect(button).toHaveClass('justify-center');
-		expect(button).toHaveClass('bg-primary-600');
+		expect(button).toHaveClass('bg-primary');
 		expect(button).toHaveClass('shadow');
 	});
 
@@ -22,10 +22,10 @@ describe('Button', () => {
 		});
 
 		const button = screen.getByRole('button');
-		expect(button).toHaveClass('bg-primary-600');
-		expect(button).toHaveClass('text-white');
+		expect(button).toHaveClass('bg-primary');
+		expect(button).toHaveClass('text-gray-50');
 		expect(button).toHaveClass('shadow');
-		expect(button).toHaveClass('data-[hover]:bg-primary-500');
+		expect(button).toHaveClass('data-[hover]:bg-primary/90');
 	});
 
 	it('should apply secondary variant classes', async () => {
@@ -34,8 +34,8 @@ describe('Button', () => {
 		});
 
 		const button = screen.getByRole('button');
-		expect(button).toHaveClass('bg-secondary-200');
-		expect(button).toHaveClass('text-secondary-600');
+		expect(button).toHaveClass('bg-gray-200');
+		expect(button).toHaveClass('text-gray-900');
 		expect(button).toHaveClass('shadow');
 	});
 
@@ -45,8 +45,8 @@ describe('Button', () => {
 		});
 
 		const button = screen.getByRole('button');
-		expect(button).toHaveClass('bg-danger-600');
-		expect(button).toHaveClass('text-white');
+		expect(button).toHaveClass('bg-danger');
+		expect(button).toHaveClass('text-gray-50');
 		expect(button).toHaveClass('shadow');
 	});
 
@@ -57,9 +57,8 @@ describe('Button', () => {
 
 		const button = screen.getByRole('button');
 		expect(button).toHaveClass('border');
-		expect(button).toHaveClass('border-secondary-300');
-		expect(button).toHaveClass('bg-transparent');
-		expect(button).toHaveClass('text-secondary-600');
+		expect(button).toHaveClass('border-primary/30');
+		expect(button).toHaveClass('text-gray-50');
 	});
 
 	it('should apply ghost variant classes', async () => {
@@ -69,7 +68,7 @@ describe('Button', () => {
 
 		const button = screen.getByRole('button');
 		expect(button).toHaveClass('bg-transparent');
-		expect(button).toHaveClass('text-secondary-600');
+		expect(button).toHaveClass('text-primary');
 	});
 
 	it('should apply link variant classes', async () => {
@@ -79,7 +78,7 @@ describe('Button', () => {
 
 		const button = screen.getByRole('button');
 		expect(button).toHaveClass('bg-transparent');
-		expect(button).toHaveClass('text-primary-600');
+		expect(button).toHaveClass('text-primary');
 		expect(button).toHaveClass('underline-offset-4');
 	});
 
@@ -169,7 +168,7 @@ describe('Button', () => {
 
 		const link = screen.getByRole('link', { name: /link button/i });
 		expect(link).toBeInTheDocument();
-		expect(link).toHaveClass('bg-primary-600');
+		expect(link).toHaveClass('bg-primary');
 		expect(link).toHaveClass('shadow');
 		expect(link).toHaveClass('inline-flex');
 	});
@@ -180,7 +179,7 @@ describe('Button', () => {
 		});
 
 		const button = screen.getByRole('button');
-		expect(button).toHaveClass('bg-danger-600');
+		expect(button).toHaveClass('bg-danger');
 		expect(button).toHaveClass('h-12');
 		expect(button).toHaveClass('px-6');
 		expect(button).toHaveClass('w-full');
