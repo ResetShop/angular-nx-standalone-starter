@@ -2,6 +2,6 @@ import { setupZonelessTestEnv } from 'jest-preset-angular/setup-env/zoneless/ind
 import '@testing-library/jest-dom';
 
 setupZonelessTestEnv({
-  errorOnUnknownElements: true,
-  errorOnUnknownProperties: true,
+	errorOnUnknownElements: true,
+	errorOnUnknownProperties: true,
 });

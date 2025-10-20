@@ -2,22 +2,22 @@
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 /* 3. Enable keyword animations */
 @media (prefers-reduced-motion: no-preference) {
-  html {
-    interpolate-size: allow-keywords;
-  }
+	html {
+		interpolate-size: allow-keywords;
+	}
 }
 
 body {
-  /* 4. Add accessible line-height */
-  line-height: 1.5;
+	/* 4. Add accessible line-height */
+	line-height: 1.5;
 
-  /* 5. Improve text rendering */
-  -webkit-font-smoothing: antialiased;
+	/* 5. Improve text rendering */
+	-webkit-font-smoothing: antialiased;
 }
 
 /* 6. Improve media defaults */
@@ -26,16 +26,15 @@ picture,
 video,
 canvas,
 svg {
-  display: block;
-  max-width: 100%;
+	display: block;
+	max-width: 100%;
 }
 
 /* 7. Inherit fonts for form controls */
 input,
-button,
 textarea,
 select {
-  font: inherit;
+	font: inherit;
 }
 
 /* 8. Avoid text overflows */
@@ -46,12 +45,12 @@ h3,
 h4,
 h5,
 h6 {
-  overflow-wrap: break-word;
+	overflow-wrap: break-word;
 }
 
 /* 9. Improve line wrapping */
 p {
-  text-wrap: pretty;
+	text-wrap: pretty;
 }
 
 h1,
@@ -60,7 +59,7 @@ h3,
 h4,
 h5,
 h6 {
-  text-wrap: balance;
+	text-wrap: balance;
 }
 
 /*
@@ -69,6 +68,6 @@ h6 {
 /* stylelint-disable selector-id-pattern */
 #root,
 #__next {
-  isolation: isolate;
+	isolation: isolate;
 }
 /* stylelint-enable selector-id-pattern */

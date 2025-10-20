@@ -1,0 +1,187 @@
+import { render, screen } from '@testing-library/angular';
+import { Button } from './button';
+
+describe('Button', () => {
+	it('should apply default classes to a button', async () => {
+		await render(`<button appButton>Click me</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button', { name: /click me/i });
+		expect(button).toBeInTheDocument();
+		expect(button).toHaveClass('inline-flex');
+		expect(button).toHaveClass('items-center');
+		expect(button).toHaveClass('justify-center');
+		expect(button).toHaveClass('bg-primary');
+		expect(button).toHaveClass('shadow');
+	});
+
+	it('should apply default variant classes by default', async () => {
+		await render(`<button appButton>Default</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('bg-primary');
+		expect(button).toHaveClass('text-gray-50');
+		expect(button).toHaveClass('shadow');
+		expect(button).toHaveClass('data-[hover]:bg-primary/90');
+	});
+
+	it('should apply secondary variant classes', async () => {
+		await render(`<button appButton variant="secondary">Secondary</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('bg-gray-200');
+		expect(button).toHaveClass('text-gray-900');
+		expect(button).toHaveClass('shadow');
+	});
+
+	it('should apply destructive variant classes', async () => {
+		await render(`<button appButton variant="destructive">Destructive</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('bg-danger');
+		expect(button).toHaveClass('text-gray-50');
+		expect(button).toHaveClass('shadow');
+	});
+
+	it('should apply outline variant classes', async () => {
+		await render(`<button appButton variant="outline">Outline</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('border');
+		expect(button).toHaveClass('border-primary/30');
+		expect(button).toHaveClass('text-gray-50');
+	});
+
+	it('should apply ghost variant classes', async () => {
+		await render(`<button appButton variant="ghost">Ghost</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('bg-transparent');
+		expect(button).toHaveClass('text-primary');
+	});
+
+	it('should apply link variant classes', async () => {
+		await render(`<button appButton variant="link">Link</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('bg-transparent');
+		expect(button).toHaveClass('text-primary');
+		expect(button).toHaveClass('underline-offset-4');
+	});
+
+	it('should apply small size classes', async () => {
+		await render(`<button appButton size="sm">Small</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('h-8');
+		expect(button).toHaveClass('px-3');
+		expect(button).toHaveClass('text-sm');
+	});
+
+	it('should apply medium size classes by default', async () => {
+		await render(`<button appButton>Medium</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('h-10');
+		expect(button).toHaveClass('px-4');
+		expect(button).toHaveClass('text-base');
+	});
+
+	it('should apply large size classes', async () => {
+		await render(`<button appButton size="lg">Large</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('h-12');
+		expect(button).toHaveClass('px-6');
+		expect(button).toHaveClass('text-lg');
+	});
+
+	it('should apply full width class when fullWidth is true', async () => {
+		await render(`<button appButton [fullWidth]="true">Full Width</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('w-full');
+	});
+
+	it('should not apply full width class by default', async () => {
+		await render(`<button appButton>Not Full Width</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).not.toHaveClass('w-full');
+	});
+
+	it('should set type attribute to button by default', async () => {
+		await render(`<button appButton>Button</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveAttribute('type', 'button');
+	});
+
+	it('should set type attribute to submit', async () => {
+		await render(`<button appButton type="submit">Submit</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveAttribute('type', 'submit');
+	});
+
+	it('should include disabled utility classes', async () => {
+		await render(`<button appButton>Button</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('disabled:pointer-events-none');
+		expect(button).toHaveClass('disabled:opacity-50');
+	});
+
+	it('should work with anchor elements', async () => {
+		await render(`<a appButton href="#">Link Button</a>`, {
+			imports: [Button],
+		});
+
+		const link = screen.getByRole('link', { name: /link button/i });
+		expect(link).toBeInTheDocument();
+		expect(link).toHaveClass('bg-primary');
+		expect(link).toHaveClass('shadow');
+		expect(link).toHaveClass('inline-flex');
+	});
+
+	it('should combine variant, size, and fullWidth', async () => {
+		await render(`<button appButton variant="destructive" size="lg" [fullWidth]="true">Combined</button>`, {
+			imports: [Button],
+		});
+
+		const button = screen.getByRole('button');
+		expect(button).toHaveClass('bg-danger');
+		expect(button).toHaveClass('h-12');
+		expect(button).toHaveClass('px-6');
+		expect(button).toHaveClass('w-full');
+	});
+});

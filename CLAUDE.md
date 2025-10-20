@@ -20,3 +20,31 @@ If the user wants help with fixing an error in their CI pipeline, use the follow
 - Make sure that the problem is fixed by running the task that you passed into the `nx_cloud_fix_cipe_failure` tool
 
 <!-- nx configuration end-->
+
+# Testing Guidelines
+
+- **ALWAYS use Angular Testing Library** (`@testing-library/angular`) for writing unit tests in Angular components.
+- Import `render` and `screen` from `@testing-library/angular`. Try to use render at the top of the tests declaration once, so to avoid repeating it in every test. In case it's specifically needed to do a rerender, it will be explicitly informed in the prompt you receive.
+- Use Testing Library queries (`screen.getByRole`, `screen.getByText`, `screen.getByLabelText`, `screen.getByTestId`, etc.) instead of native element queries
+- **NEVER use `querySelector`, `querySelectorAll`, `closest` or `container` queries** - always prefer semantic queries
+- Follow Testing Library best practices: test user behavior, not implementation details
+- Never use `ComponentFixture`, `TestBed.createComponent()`, or `fixture.nativeElement` directly
+- Query priority (in order of preference):
+  1. `getByRole` - Best for accessibility
+  2. `getByLabelText` - For form fields
+  3. `getByText` - For non-interactive text
+  4. `getByTestId` - Last resort when semantic queries aren't possible
+- Example pattern:
+
+```typescript
+import { render, screen } from '@testing-library/angular';
+
+it('should render button', async () => {
+	await render(`<button appButton>Click me</button>`, {
+		imports: [Button],
+	});
+
+	const button = screen.getByRole('button', { name: /click me/i });
+	expect(button).toBeInTheDocument();
+});
+```

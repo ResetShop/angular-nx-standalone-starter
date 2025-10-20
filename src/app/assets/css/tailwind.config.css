@@ -1,10 +1,29 @@
 @import 'tailwindcss' source('../../..');
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --font-display: 'Satoshi', 'sans-serif';
-  --breakpoint-3xl: 1920px;
-  --color-error-100: red;
-  --color-success-100: green;
-  --ease-fluid: cubic-bezier(0.3, 0, 0, 1);
-  --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
+	--font-display: 'Satoshi', 'sans-serif';
+	--breakpoint-3xl: 1920px;
+
+	/* Semantic Colors in OKLCH */
+
+	--color-primary: oklch(60% 0.22 257deg);
+	--color-secondary: oklch(56% 0.02 244deg);
+	--color-success: oklch(64% 0.18 146deg);
+	--color-danger: oklch(59% 0.2 21.2deg);
+	--color-warning: oklch(84% 0.17 84.9deg);
+	--color-info: oklch(66% 0.11 212deg);
+	--color-light: oklch(98% 0 0deg);
+	--color-dark: oklch(35% 0.01 248deg);
+	--ease-fluid: cubic-bezier(0.3, 0, 0, 1);
+	--ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@layer base {
+	html {
+		@apply font-sans;
+	}
 }
