@@ -3,7 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import Card from '@components/card/card';
-import { Button } from '@components/button';
+import { Button } from '@components/button/button';
 
 interface ResetPasswordForm {
 	email: FormControl<string>;
@@ -56,7 +56,7 @@ interface ResetPasswordForm {
 							[fullWidth]="true"
 							[disabled]="resetPasswordForm.invalid"
 							appButton
-							variant="primary"
+							variant="default"
 							size="md"
 							type="submit"
 						>
@@ -64,9 +64,7 @@ interface ResetPasswordForm {
 						</button>
 
 						<div class="text-center text-sm text-gray-600">
-							<a [routerLink]="loginUrl" class="text-primary-600 hover:text-primary-500 font-semibold"
-								>Volver al inicio de sesión</a
-							>
+							<a [routerLink]="loginUrl" appButton variant="link">Volver al inicio de sesión</a>
 						</div>
 					</div>
 				</ng-template>
