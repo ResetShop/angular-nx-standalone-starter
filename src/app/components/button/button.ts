@@ -108,7 +108,7 @@ export class Button {
 				'dark:border-gray-700',
 				'dark:bg-gray-950',
 				'dark:text-gray-100',
-				'dark:data-[hover]:text-gray-100',
+				'dark:data-[hover]:bg-gray-800',
 			],
 			ghost: [
 				'bg-transparent',
