@@ -3,7 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import Card from '@components/card/card';
-import { Button } from '@components/button';
+import { Button } from '@components/button/button';
 
 interface LoginForm {
 	email: FormControl<string>;
@@ -21,7 +21,7 @@ interface LoginForm {
 					<!-- TODO: Replace the image for your system/company logo -->
 					<div class="mt-4 flex flex-col gap-4">
 						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-						<div class="mb-8 text-center">Ingresar al sistema</div>
+						<div class="mb-8 text-center dark:text-white">Ingresar al sistema</div>
 					</div>
 				</ng-template>
 
@@ -53,7 +53,9 @@ interface LoginForm {
 							<div class="flex items-center justify-between">
 								<label for="password" class="block text-sm/6 font-medium text-gray-900">Contraseña</label>
 								<div class="text-sm">
-									<a [routerLink]="resetPassword" class="text-primary-600 hover:text-primary-500 font-semibold"
+									<a
+										[routerLink]="resetPassword"
+										class="text-primary hover:text-primary/90 font-semibold hover:underline"
 										>¿Olvidaste tu contraseña?</a
 									>
 								</div>
@@ -83,14 +85,7 @@ interface LoginForm {
 
 				<ng-template #cardFooter>
 					<div class="flex justify-center font-semibold">
-						<button
-							[fullWidth]="true"
-							[disabled]="loginForm.invalid"
-							appButton
-							variant="primary"
-							size="md"
-							type="submit"
-						>
+						<button [fullWidth]="true" [disabled]="loginForm.invalid" appButton size="md" type="submit">
 							Iniciar sesión
 						</button>
 					</div>
