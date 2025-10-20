@@ -1,7 +1,19 @@
 {
-  "permissions": {
-    "allow": ["Bash(test:*)", "Bash(pnpm prettier:*)"]
-  },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["nx-mcp"]
+	"permissions": {
+		"allow": [
+			"Bash(test:*)",
+			"Bash(nx test:*)",
+			"Bash(pnpm exec prettier:*)",
+			"Bash(nx run:*)",
+			"Bash(pnpm prettier:*)",
+			"WebFetch(domain:angularprimitives.com)",
+			"WebFetch(domain:ui.shadcn.com)",
+			"WebSearch",
+			"Bash(cat:*)",
+			"Bash(npm run stylelint:*)",
+			"Bash(npm run:*)"
+		]
+	},
+	"enableAllProjectMcpServers": true,
+	"enabledMcpjsonServers": ["nx-mcp"]
 }
