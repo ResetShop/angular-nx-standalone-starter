@@ -10,14 +10,14 @@
 
 	/* Semantic Colors in OKLCH */
 
-	--color-primary: oklch(0.6 0.22 257);
-	--color-secondary: oklch(0.56 0.02 244);
-	--color-success: oklch(0.64 0.18 146);
-	--color-danger: oklch(0.59 0.2 21.2);
-	--color-warning: oklch(0.84 0.17 84.9);
-	--color-info: oklch(0.66 0.11 212);
-	--color-light: oklch(0.98 0 0);
-	--color-dark: oklch(0.35 0.01 248);
+	--color-primary: oklch(60% 0.22 257deg);
+	--color-secondary: oklch(56% 0.02 244deg);
+	--color-success: oklch(64% 0.18 146deg);
+	--color-danger: oklch(59% 0.2 21.2deg);
+	--color-warning: oklch(84% 0.17 84.9deg);
+	--color-info: oklch(66% 0.11 212deg);
+	--color-light: oklch(98% 0 0deg);
+	--color-dark: oklch(35% 0.01 248deg);
 	--ease-fluid: cubic-bezier(0.3, 0, 0, 1);
 	--ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 }

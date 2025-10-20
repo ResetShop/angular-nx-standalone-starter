@@ -9,7 +9,9 @@
 			"WebFetch(domain:angularprimitives.com)",
 			"WebFetch(domain:ui.shadcn.com)",
 			"WebSearch",
-			"Bash(cat:*)"
+			"Bash(cat:*)",
+			"Bash(npm run stylelint:*)",
+			"Bash(npm run:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
