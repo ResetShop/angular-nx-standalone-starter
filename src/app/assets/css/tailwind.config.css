@@ -1,6 +1,8 @@
 @import 'tailwindcss' source('../../..');
 
 @theme {
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
 	--font-display: 'Satoshi', 'sans-serif';
 	--breakpoint-3xl: 1920px;
 
@@ -75,4 +77,10 @@
 	/* Animations */
 	--ease-fluid: cubic-bezier(0.3, 0, 0, 1);
 	--ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@layer base {
+	html {
+		@apply font-sans;
+	}
 }
