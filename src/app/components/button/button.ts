@@ -80,6 +80,7 @@ export class Button {
 				'dark:text-primary',
 				'dark:bg-gray-50',
 				'dark:data-[hover]:bg-gray-200',
+				'shadow',
 			],
 			secondary: [
 				'bg-gray-200',
@@ -89,6 +90,7 @@ export class Button {
 				'dark:bg-gray-900',
 				'dark:text-gray-100',
 				'dark:data-[hover]:bg-gray-900/90',
+				'shadow',
 			],
 			destructive: [
 				'bg-danger',
@@ -97,6 +99,7 @@ export class Button {
 				'data-[focus-visible]:outline-danger/90',
 				'dark:bg-danger',
 				'dark:data-[hover]:bg-danger/90',
+				'shadow',
 			],
 			outline: [
 				'border',
