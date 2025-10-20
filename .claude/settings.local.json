@@ -5,7 +5,11 @@
 			"Bash(nx test:*)",
 			"Bash(pnpm exec prettier:*)",
 			"Bash(nx run:*)",
-			"Bash(pnpm prettier:*)"
+			"Bash(pnpm prettier:*)",
+			"WebFetch(domain:angularprimitives.com)",
+			"WebFetch(domain:ui.shadcn.com)",
+			"WebSearch",
+			"Bash(cat:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
