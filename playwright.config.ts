@@ -5,8 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
+dirname(__filename);
 // For CI, you may want to set BASE_URL to the deployed application.
 const baseURL = process.env['BASE_URL'] || 'http://localhost:3000';
 
