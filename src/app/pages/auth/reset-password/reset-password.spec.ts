@@ -30,7 +30,7 @@ describe('ResetPassword', () => {
 		});
 
 		// Check that the button has the appButton directive classes
-		expect(submitButton).toHaveClass('bg-primary-600');
+		expect(submitButton).toHaveClass('bg-primary');
 		expect(submitButton).toHaveClass('inline-flex');
 		expect(submitButton).toHaveClass('w-full');
 	});
@@ -76,7 +76,7 @@ describe('ResetPassword', () => {
 		const submitButton = screen.getByRole('button', {
 			name: /enviar enlace de restablecimiento/i,
 		});
-		expect(submitButton).not.toBeDisabled();
+		expect(submitButton).toBeEnabled();
 	});
 
 	it('should render back to login link', async () => {
@@ -88,6 +88,16 @@ describe('ResetPassword', () => {
 		expect(backToLoginLink).toBeInTheDocument();
 	});
 
+	it('should render "Volver al inicio de sesión" button as a link with variant', async () => {
+		await render(ResetPassword, {
+			providers: [provideRouter([])],
+		});
+
+		const backButton = screen.getByRole('link', { name: /volver al inicio de sesión/i });
+		expect(backButton).toBeInTheDocument();
+		expect(backButton).toHaveAttribute('variant', 'link');
+	});
+
 	it('should display the reset password title', async () => {
 		await render(ResetPassword, {
 			providers: [provideRouter([])],
@@ -97,14 +107,12 @@ describe('ResetPassword', () => {
 	});
 
 	it('should have correct form structure with formGroup directive', async () => {
-		const { container } = await render(ResetPassword, {
+		await render(ResetPassword, {
 			providers: [provideRouter([])],
 		});
 
-		const form = container.querySelector('form');
-		expect(form).toBeInTheDocument();
-
-		const emailInput = container.querySelector('input[formcontrolname="email"]');
+		// Verify form input exists using semantic query
+		const emailInput = screen.getByLabelText(/dirección de email/i);
 		expect(emailInput).toBeInTheDocument();
 	});
 

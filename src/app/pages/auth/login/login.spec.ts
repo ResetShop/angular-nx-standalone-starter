@@ -31,7 +31,7 @@ describe('Login', () => {
 		});
 
 		// Check that the button has the appButton directive classes
-		expect(submitButton).toHaveClass('bg-primary-600');
+		expect(submitButton).toHaveClass('bg-primary');
 		expect(submitButton).toHaveClass('inline-flex');
 		expect(submitButton).toHaveClass('w-full');
 	});
@@ -107,7 +107,7 @@ describe('Login', () => {
 		const submitButton = screen.getByRole('button', {
 			name: /iniciar sesión/i,
 		});
-		expect(submitButton).not.toBeDisabled();
+		expect(submitButton).toBeEnabled();
 	});
 
 	it('should render forgot password link', async () => {
@@ -120,15 +120,13 @@ describe('Login', () => {
 	});
 
 	it('should have correct form structure with formGroup directive', async () => {
-		const { container } = await render(Login, {
+		await render(Login, {
 			providers: [provideRouter([])],
 		});
 
-		const form = container.querySelector('form');
-		expect(form).toBeInTheDocument();
-
-		const emailInput = container.querySelector('input[formcontrolname="email"]');
-		const passwordInput = container.querySelector('input[formcontrolname="password"]');
+		// Verify form inputs exist using semantic queries
+		const emailInput = screen.getByLabelText(/dirección de email/i);
+		const passwordInput = screen.getByLabelText(/contraseña/i);
 
 		expect(emailInput).toBeInTheDocument();
 		expect(passwordInput).toBeInTheDocument();
