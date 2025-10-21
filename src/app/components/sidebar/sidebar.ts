@@ -10,12 +10,9 @@ import { Navigation } from '@providers/navigation/navigation';
 	selector: 'app-sidebar',
 	imports: [RouterLink, Button, NgIcon, NavSection],
 	template: `
-		<div class="flex items-center border-gray-200 p-2">
+		<div class="flex items-center border-gray-200 px-2">
 			<!--	TODO: Replace with the navigation to your home page / initial page -->
-			<a
-				[routerLink]="['welcome']"
-				class="bg-primary flex w-full items-center justify-center gap-2 rounded-lg p-2 text-base font-semibold text-gray-50"
-			>
+			<a [routerLink]="['welcome']" [fullWidth]="true" appButton variant="default" class="gap-2 font-semibold">
 				<ng-icon name="featherRefreshCw" />
 				<span>Reset Starter Repo</span>
 			</a>

@@ -8,11 +8,11 @@ import { NavigationRoute } from '@interfaces/navigation';
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink],
 	template: `
-		<a [routerLink]="item().route" class="flex items-center gap-2 p-2">
+		<a [routerLink]="item().route" class="flex items-center gap-2 p-2 dark:text-gray-50">
 			@if (item().icon) {
-				<ng-icon [name]="item().icon" class="text-color" data-testid="item-icon" />
+				<ng-icon [name]="item().icon" data-testid="item-icon" />
 			}
-			<span>{{ item().name }}</span>
+			<span class="truncate">{{ item().name }}</span>
 		</a>
 	`,
 	styles: `
