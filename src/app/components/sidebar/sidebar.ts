@@ -10,16 +10,25 @@ import { Navigation } from '@providers/navigation/navigation';
 	selector: 'app-sidebar',
 	imports: [RouterLink, Button, NgIcon, NavSection],
 	template: `
-		<div class="flex items-center border-gray-200 px-2">
+		<div class="border-gray-200 p-2">
 			<!--	TODO: Replace with the navigation to your home page / initial page -->
-			<a [routerLink]="['welcome']" [fullWidth]="true" appButton variant="default" class="gap-2 font-semibold">
-				<ng-icon name="featherRefreshCw" />
-				<span>Reset Starter Repo</span>
-			</a>
+			<div class="flex items-center p-2">
+				<a
+					[routerLink]="['welcome']"
+					[fullWidth]="true"
+					appButton
+					variant="default"
+					size="sm"
+					class="gap-2 font-semibold"
+				>
+					<ng-icon name="featherRefreshCw" />
+					<span>Reset Starter Repo</span>
+				</a>
+			</div>
 		</div>
 		<div class="flex flex-col gap-2">
 			@for (section of sections(); track section.id) {
-				<app-nav-section [section]="section" />
+				<app-nav-section [section]="section" class="px-2" />
 			}
 		</div>
 		<div class="flex items-center justify-center border-gray-200">
@@ -30,7 +39,7 @@ import { Navigation } from '@providers/navigation/navigation';
 	styles: `
 		:host {
 			@reference "tailwindcss";
-			@apply grid h-svh grid-rows-[64px_1fr_64px] p-2;
+			@apply grid h-svh grid-rows-[64px_1fr_64px];
 		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
