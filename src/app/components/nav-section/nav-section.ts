@@ -7,7 +7,9 @@ import { NavigationSection } from '@interfaces/navigation';
 	imports: [NavItem],
 	template: `
 		@if (showTitle()) {
-			<div class="flex h-8 items-center px-2 text-xs font-medium text-black/70">{{ section().name }}</div>
+			<div class="flex h-8 items-center px-2 text-xs font-medium text-black/70 dark:text-white/70">
+				{{ section().name }}
+			</div>
 		}
 		<ul>
 			@for (route of section().routes; track route.id) {
