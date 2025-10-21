@@ -9,6 +9,11 @@ export default [
 				path: 'health',
 				loadComponent: () => import('./pages/health/health'),
 			},
+			// TODO: Remove access to this route once the project setup is completed
+			{
+				path: 'welcome',
+				loadComponent: () => import('./pages/welcome/welcome'),
+			},
 		],
 	},
 ];

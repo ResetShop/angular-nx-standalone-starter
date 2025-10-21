@@ -25,6 +25,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 					Under AnalyticsService, you'll find commented code that'll allow you to set up Vercel Speed Insights and
 					Microsoft Clarity clients for Analytics.
 				</li>
+				<li>
+					For the left sidebar that appears after a login is successful, you may want to update the navigation to a
+					specific component of your application
+				</li>
 			</ol>
 		</div>`,
 })

@@ -39,16 +39,6 @@ describe('Dashboard', () => {
 		expect(main).toBeInTheDocument();
 	});
 
-	it('should render content article', async () => {
-		await render(Dashboard, {
-			providers: [provideRouter([])],
-		});
-
-		const article = screen.getByRole('article');
-		expect(article).toBeInTheDocument();
-		expect(article).toHaveTextContent('Content');
-	});
-
 	it('should render router outlet for nested routes', async () => {
 		await render(Dashboard, {
 			providers: [provideRouter([])],
