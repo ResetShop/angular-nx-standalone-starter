@@ -25,6 +25,7 @@ export default {
 		'^@utils/(.*)$': '<rootDir>/src/app/utils/$1',
 		'^@mocks/(.*)$': '<rootDir>/src/app/mocks/$1',
 		'^@components/(.*)$': '<rootDir>/src/app/components/$1',
+		'^@interfaces/(.*)$': '<rootDir>/src/app/interfaces/$1',
 		'^@providers/(.*)$': '<rootDir>/src/app/providers/$1',
 	},
 };
