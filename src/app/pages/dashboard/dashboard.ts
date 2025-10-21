@@ -9,8 +9,7 @@ import { Sidebar } from '@components/sidebar/sidebar';
 			<app-sidebar />
 		</aside>
 		<nav class="border-b-1 border-gray-200">Header</nav>
-		<main class="">
-			<article>Content</article>
+		<main class="p-4">
 			<router-outlet />
 		</main>`,
 	styles: `
