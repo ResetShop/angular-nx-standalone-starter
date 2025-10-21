@@ -19,7 +19,7 @@ import { Sidebar } from '@components/sidebar/sidebar';
 			@reference "tailwindcss";
 			@apply grid h-svh;
 			grid-template-columns: 240px 1fr;
-			grid-template-rows: 80px 1fr;
+			grid-template-rows: 64px 1fr;
 			grid-template-areas:
 				'aside nav nav'
 				'aside main main';
