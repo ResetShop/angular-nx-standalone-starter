@@ -5,6 +5,7 @@
 		"module": "commonjs",
 		"paths": {
 			"@components/*": ["src/app/components/*"],
+			"@interfaces/*": ["src/app/interfaces/*"],
 			"@pages/*": ["src/app/pages/*"],
 			"@providers/*": ["src/app/providers/*"]
 		},
