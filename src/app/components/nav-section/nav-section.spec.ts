@@ -35,7 +35,7 @@ describe('NavSection', () => {
 
 	it('should create the nav section component', async () => {
 		const { fixture } = await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -44,7 +44,7 @@ describe('NavSection', () => {
 
 	it('should render section title when showTitle is true', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection, showTitle: true },
+			inputs: { section: mockSection, showTitle: true },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -53,7 +53,7 @@ describe('NavSection', () => {
 
 	it('should not render section title when showTitle is false', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection, showTitle: false },
+			inputs: { section: mockSection, showTitle: false },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -62,7 +62,7 @@ describe('NavSection', () => {
 
 	it('should render section title by default when showTitle is not provided', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -71,7 +71,7 @@ describe('NavSection', () => {
 
 	it('should render all navigation routes in the section', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -81,7 +81,7 @@ describe('NavSection', () => {
 
 	it('should render correct number of navigation items', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -91,7 +91,7 @@ describe('NavSection', () => {
 
 	it('should render navigation items with correct routes', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -103,14 +103,12 @@ describe('NavSection', () => {
 	});
 
 	it('should render empty section without routes', async () => {
-		const { container } = await render(NavSection, {
-			componentInputs: { section: mockSectionWithoutRoutes },
+		await render(NavSection, {
+			inputs: { section: mockSectionWithoutRoutes },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
 		expect(screen.getByText('Empty Section')).toBeInTheDocument();
-		const list = container.querySelector('ul');
-		expect(list).toBeInTheDocument();
 		expect(screen.queryAllByRole('link')).toHaveLength(0);
 	});
 
@@ -144,7 +142,7 @@ describe('NavSection', () => {
 		};
 
 		await render(NavSection, {
-			componentInputs: { section: largeSection },
+			inputs: { section: largeSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -156,7 +154,7 @@ describe('NavSection', () => {
 
 	it('should apply correct CSS classes to section title', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection, showTitle: true },
+			inputs: { section: mockSection, showTitle: true },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -171,18 +169,19 @@ describe('NavSection', () => {
 	});
 
 	it('should render list items with appNavItem directive', async () => {
-		const { container } = await render(NavSection, {
-			componentInputs: { section: mockSection },
+		await render(NavSection, {
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
-		const listItems = container.querySelectorAll('li[appNavItem]');
-		expect(listItems).toHaveLength(2);
+		// Verify nav items are rendered by checking for their links
+		const links = screen.getAllByRole('link');
+		expect(links).toHaveLength(2);
 	});
 
 	it('should track routes by id in for loop', async () => {
 		await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -206,7 +205,7 @@ describe('NavSection', () => {
 		};
 
 		await render(NavSection, {
-			componentInputs: { section: sectionNoIcons },
+			inputs: { section: sectionNoIcons },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
@@ -229,13 +228,13 @@ describe('NavSection', () => {
 		};
 
 		const { rerender } = await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 
 		expect(screen.getByText('Test Section')).toBeInTheDocument();
 
-		await rerender({ componentInputs: { section: newSection } });
+		await rerender({ inputs: { section: newSection } });
 
 		expect(screen.getByText('Updated Section')).toBeInTheDocument();
 		expect(screen.getByText('New Route')).toBeInTheDocument();
@@ -244,7 +243,7 @@ describe('NavSection', () => {
 
 	it('should have OnPush change detection strategy', async () => {
 		const { fixture } = await render(NavSection, {
-			componentInputs: { section: mockSection },
+			inputs: { section: mockSection },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
 		});
 

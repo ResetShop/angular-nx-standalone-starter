@@ -145,7 +145,7 @@ describe('NavItem', () => {
 			children: [],
 		};
 
-		const { container, rerender } = await render(NavItem, {
+		const { rerender } = await render(NavItem, {
 			inputs: { item: route1 },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
 		});
