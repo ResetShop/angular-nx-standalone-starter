@@ -7,7 +7,8 @@ import NavSection from '@components/nav-section/nav-section';
 import { Navigation } from '@providers/navigation/navigation';
 
 @Component({
-	selector: 'app-sidebar',
+	// eslint-disable-next-line @angular-eslint/component-selector
+	selector: '[appSidebar]',
 	imports: [RouterLink, Button, NgIcon, NavSection],
 	template: `
 		<div class="border-gray-200 p-2">
