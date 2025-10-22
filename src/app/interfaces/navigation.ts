@@ -1,3 +1,6 @@
+import { Resolve, ResolveFn, Route } from '@angular/router';
+import { Type } from '@angular/core';
+
 export interface NavigationSection {
 	id: string;
 	name: string;
@@ -10,4 +13,8 @@ export interface NavigationRoute {
 	route: string;
 	icon?: string;
 	children: Omit<NavigationRoute, 'children'>[]; // TODO: Remove Omit if navigation has more than 1 level of nesting
+}
+
+export interface NamedRoute extends Route {
+	title: string | Type<Resolve<string>> | ResolveFn<string>;
 }
