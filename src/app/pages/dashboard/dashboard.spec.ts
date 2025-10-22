@@ -20,16 +20,6 @@ describe('Dashboard', () => {
 		expect(sidebar).toBeInTheDocument();
 	});
 
-	it('should render header navigation', async () => {
-		await render(Dashboard, {
-			providers: [provideRouter([])],
-		});
-
-		const header = screen.getByRole('navigation');
-		expect(header).toBeInTheDocument();
-		expect(header).toHaveTextContent('Header');
-	});
-
 	it('should render main content area', async () => {
 		await render(Dashboard, {
 			providers: [provideRouter([])],

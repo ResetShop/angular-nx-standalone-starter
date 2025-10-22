@@ -1,19 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Sidebar } from '@components/sidebar/sidebar';
+import { Header } from '@components/header/header';
 
 @Component({
 	selector: 'app-dashboard',
-	imports: [RouterOutlet, Sidebar],
-	template: ` <aside class="border-r-1 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/90">
-			<app-sidebar />
-		</aside>
-		<nav class="border-b-1 border-gray-200 p-2 dark:border-white/10 dark:bg-black/95">
-			<div class="flex h-full items-center text-gray-50">Header</div>
-		</nav>
+	imports: [RouterOutlet, Sidebar, Header],
+	template: `
+		<aside class="border-r-1 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/90" appSidebar></aside>
+		<header class="border-b-1 border-gray-200 p-4 dark:border-white/10 dark:bg-black/95" appHeader></header>
 		<main class="bg-white p-4 dark:bg-black/95">
 			<router-outlet />
-		</main>`,
+		</main>
+	`,
 	styles: `
 		:host {
 			@reference "tailwindcss";
