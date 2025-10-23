@@ -8,6 +8,7 @@
 		"paths": {
 			"@components/*": ["src/app/components/*"],
 			"@interfaces/*": ["src/app/interfaces/*"],
+			"@mocks/*": ["src/app/mocks/*"],
 			"@pages/*": ["src/app/pages/*"],
 			"@providers/*": ["src/app/providers/*"]
 		},
