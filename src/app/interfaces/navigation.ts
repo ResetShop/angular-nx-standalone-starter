@@ -1,6 +1,12 @@
 import { Resolve, ResolveFn, Route } from '@angular/router';
 import { Type } from '@angular/core';
 
+export interface BreadcrumbItem {
+	title: string;
+	path: string;
+	isActive: boolean;
+}
+
 export interface NavigationSection {
 	id: string;
 	name: string;
