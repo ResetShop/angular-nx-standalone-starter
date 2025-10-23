@@ -11,7 +11,7 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { Analytics } from '@providers/analytics/analytics';
 import { environment } from './environments/environment';
-import { Navigation } from '@providers/navigation/navigation';
+import { provideNavigation } from '@providers/navigation/navigation.provider';
 
 function initializeAnalytics() {
 	return async () => {
@@ -32,7 +32,9 @@ export const appConfig: ApplicationConfig = {
 		provideRouter(appRoutes),
 		provideHttpClient(withFetch()),
 		provideAppInitializer(initializeAnalytics()),
+
+		// Custom providers
 		Analytics,
-		Navigation,
+		provideNavigation(),
 	],
 };

@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { BreadcrumbItem } from '@interfaces/navigation';
+import { BreadcrumbItem, NAVIGATION_CONFIG } from '@interfaces/navigation';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 
@@ -10,29 +10,9 @@ import { filter } from 'rxjs';
 export class Navigation {
 	private router = inject(Router);
 	private activatedRoute = inject(ActivatedRoute);
+	private navigationConfig = inject(NAVIGATION_CONFIG);
 
-	private readonly _sections = signal([
-		{
-			id: 'settings',
-			name: 'Ajustes y mantenimiento',
-			routes: [
-				{
-					id: 'welcome',
-					name: 'Configuración inicial',
-					route: 'welcome',
-					icon: 'featherHome',
-					children: [],
-				},
-				{
-					id: 'health',
-					name: 'Salud',
-					route: 'health',
-					icon: 'featherActivity',
-					children: [],
-				},
-			],
-		},
-	]);
+	private readonly _sections = signal(this.navigationConfig.sections);
 	private readonly _breadcrumbs = signal<BreadcrumbItem[]>([]);
 
 	readonly sections = computed(() => this._sections());

@@ -1,5 +1,6 @@
-import { Resolve, ResolveFn, Route } from '@angular/router';
+import { InjectionToken } from '@angular/core';
 import { Type } from '@angular/core';
+import { Resolve, ResolveFn, Route } from '@angular/router';
 
 export interface BreadcrumbItem {
 	title: string;
@@ -24,3 +25,9 @@ export interface NavigationRoute {
 export interface NamedRoute extends Route {
 	title: string | Type<Resolve<string>> | ResolveFn<string>;
 }
+
+export interface NavigationConfig {
+	sections: NavigationSection[];
+}
+
+export const NAVIGATION_CONFIG = new InjectionToken<NavigationConfig>('Navigation Configuration');
