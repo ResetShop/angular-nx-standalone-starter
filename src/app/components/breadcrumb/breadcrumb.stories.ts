@@ -1,37 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/angular';
-import { moduleMetadata } from '@storybook/angular';
-import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
-import { Subject } from 'rxjs';
+import { applicationConfig } from '@storybook/angular';
+import { provideRouter } from '@angular/router';
 import { Breadcrumb } from './breadcrumb';
+import { Navigation } from '@providers/navigation/navigation';
+import { BreadcrumbItem } from '@interfaces/navigation';
 
-const createMockActivatedRoute = (title: string | undefined, path: string, children: any[] = []) => ({
-	routeConfig: {
-		title,
-		path,
+const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
+	provide: Navigation,
+	useValue: {
+		breadcrumbs: () => breadcrumbs,
+		sections: () => [],
 	},
-	children,
-	outlet: 'primary',
 });
-
-const createMockRouter = (navigationPath: string) => {
-	const eventsSubject = new Subject<NavigationEnd>();
-	// Emit initial navigation event to trigger breadcrumb building
-	setTimeout(() => {
-		eventsSubject.next(new NavigationEnd(1, navigationPath, ''));
-	}, 0);
-	return {
-		events: eventsSubject.asObservable(),
-		navigateByUrl: () => Promise.resolve(true),
-	};
-};
 
 const meta: Meta<Breadcrumb> = {
 	component: Breadcrumb,
 	title: 'Components/Breadcrumb',
 	tags: ['autodocs'],
 	decorators: [
-		moduleMetadata({
-			providers: [],
+		applicationConfig({
+			providers: [provideRouter([])],
 		}),
 	],
 	parameters: {
@@ -105,18 +93,10 @@ type Story = StoryObj<Breadcrumb>;
  */
 export const SingleItem: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/dashboard'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [createMockActivatedRoute('Dashboard', 'dashboard', [])]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([{ title: 'Dashboard', path: '/dashboard', isActive: true }]),
 			],
 		}),
 	],
@@ -131,20 +111,13 @@ export const SingleItem: Story = {
  */
 export const MultipleItems: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/dashboard/health'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Dashboard', 'dashboard', [createMockActivatedRoute('Health', 'health', [])]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Health', path: '/dashboard/health', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -159,24 +132,15 @@ export const MultipleItems: Story = {
  */
 export const DeepNesting: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/dashboard/settings/profile/edit'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Dashboard', 'dashboard', [
-								createMockActivatedRoute('Settings', 'settings', [
-									createMockActivatedRoute('Profile', 'profile', [createMockActivatedRoute('Edit', 'edit', [])]),
-								]),
-							]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Settings', path: '/dashboard/settings', isActive: false },
+					{ title: 'Profile', path: '/dashboard/settings/profile', isActive: false },
+					{ title: 'Edit', path: '/dashboard/settings/profile/edit', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -190,22 +154,13 @@ export const DeepNesting: Story = {
  */
 export const LongTitles: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/user-management/profile-settings'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('User Management Dashboard', 'user-management', [
-								createMockActivatedRoute('User Profile Settings', 'profile-settings', []),
-							]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'User Management Dashboard', path: '/user-management', isActive: false },
+					{ title: 'User Profile Settings', path: '/user-management/profile-settings', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -219,22 +174,13 @@ export const LongTitles: Story = {
  */
 export const SpecialCharacters: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/home/user'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Home & Dashboard', 'home', [
-								createMockActivatedRoute('User (Admin)', 'user', []),
-							]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Home & Dashboard', path: '/home', isActive: false },
+					{ title: 'User (Admin)', path: '/home/user', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -249,22 +195,13 @@ export const SpecialCharacters: Story = {
  */
 export const LightTheme: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/dashboard/analytics'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Dashboard', 'dashboard', [
-								createMockActivatedRoute('Analytics', 'analytics', []),
-							]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Analytics', path: '/dashboard/analytics', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -283,20 +220,13 @@ export const LightTheme: Story = {
  */
 export const DarkTheme: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/dashboard/reports'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Dashboard', 'dashboard', [createMockActivatedRoute('Reports', 'reports', [])]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Reports', path: '/dashboard/reports', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -315,22 +245,14 @@ export const DarkTheme: Story = {
  */
 export const InPageHeader: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/dashboard/users/view'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Dashboard', 'dashboard', [
-								createMockActivatedRoute('Users', 'users', [createMockActivatedRoute('View', 'view', [])]),
-							]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Users', path: '/dashboard/users', isActive: false },
+					{ title: 'View', path: '/dashboard/users/view', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -352,24 +274,14 @@ export const InPageHeader: Story = {
  */
 export const Responsive: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/admin/settings/advanced'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Admin Dashboard & Configuration', 'admin', [
-								createMockActivatedRoute('System Settings', 'settings', [
-									createMockActivatedRoute('Advanced Options', 'advanced', []),
-								]),
-							]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Admin Dashboard & Configuration', path: '/admin', isActive: false },
+					{ title: 'System Settings', path: '/admin/settings', isActive: false },
+					{ title: 'Advanced Options', path: '/admin/settings/advanced', isActive: true },
+				]),
 			],
 		}),
 	],
@@ -389,20 +301,13 @@ export const Responsive: Story = {
  */
 export const AllStates: Story = {
 	decorators: [
-		moduleMetadata({
+		applicationConfig({
 			providers: [
-				{
-					provide: Router,
-					useValue: createMockRouter('/dashboard/reports'),
-				},
-				{
-					provide: ActivatedRoute,
-					useValue: {
-						root: createMockActivatedRoute(undefined, '', [
-							createMockActivatedRoute('Dashboard', 'dashboard', [createMockActivatedRoute('Reports', 'reports', [])]),
-						]),
-					},
-				},
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Reports', path: '/dashboard/reports', isActive: true },
+				]),
 			],
 		}),
 	],
