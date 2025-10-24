@@ -7,13 +7,6 @@ import { Header } from './header';
 import { Navigation } from '@providers/navigation/navigation';
 import { BreadcrumbItem } from '@interfaces/navigation';
 
-// Declare the Header component as a custom element for use in templates
-declare global {
-	interface HTMLElementTagNameMap {
-		appHeader: any;
-	}
-}
-
 const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 	provide: Navigation,
 	useValue: {
