@@ -18,7 +18,7 @@ export interface NavigationRoute {
 	id: string;
 	name: string;
 	route: string;
-	icon?: string;
+	icon?: Record<string, string>;
 	children: Omit<NavigationRoute, 'children'>[]; // TODO: Remove Omit if navigation has more than 1 level of nesting
 }
 

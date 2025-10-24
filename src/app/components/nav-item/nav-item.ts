@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { RouterLink } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
@@ -9,8 +9,8 @@ import { NavigationRoute } from '@interfaces/navigation';
 	imports: [NgIcon, RouterLink],
 	template: `
 		<a [routerLink]="item().route" class="flex items-center gap-2 p-2 dark:text-gray-50">
-			@if (item().icon) {
-				<ng-icon [name]="item().icon" data-testid="item-icon" />
+			@if (iconName(); as iconName) {
+				<ng-icon [name]="iconName" data-testid="item-icon" />
 			}
 			<span class="truncate">{{ item().name }}</span>
 		</a>
@@ -25,4 +25,9 @@ import { NavigationRoute } from '@interfaces/navigation';
 })
 export default class NavItem {
 	readonly item = input.required<NavigationRoute>();
+
+	readonly iconName = computed(() => {
+		const icon = this.item().icon;
+		return icon ? Object.keys(icon)[0] : null; // Get the key name
+	});
 }
