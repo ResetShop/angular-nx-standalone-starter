@@ -30,6 +30,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 					For the left sidebar that appears after a login is successful, you may want to update the navigation to a
 					specific component of your application
 				</li>
+				<li>Update Brand component with anything that fits your project, be it a logo or any other option</li>
 			</ol>
 		</div>
 	`,
