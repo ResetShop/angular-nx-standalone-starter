@@ -7,6 +7,7 @@
 		"lib": ["es2020", "dom"],
 		"paths": {
 			"@components/*": ["src/app/components/*"],
+			"@configs/*": ["src/app/configs/*"],
 			"@interfaces/*": ["src/app/interfaces/*"],
 			"@mocks/*": ["src/app/mocks/*"],
 			"@pages/*": ["src/app/pages/*"],
