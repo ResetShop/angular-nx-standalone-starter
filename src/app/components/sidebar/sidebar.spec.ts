@@ -137,8 +137,12 @@ describe('Sidebar', () => {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
-		const sidebar = screen.getByText('Ajustes y mantenimiento').closest('div');
-		expect(sidebar).toBeInTheDocument();
+		// Verify Brand component is rendered by looking for its unique "Reset Starter Repo" link
+		const brandLink = screen.getByRole('link', { name: /reset starter repo/i });
+		expect(brandLink).toBeInTheDocument();
+
+		// Verify it has the correct routing to the welcome page
+		expect(brandLink).toHaveAttribute('href', '/welcome');
 	});
 
 	it('should have proper structure with all sections and sign out button', async () => {
