@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { featherActivity, featherHome, featherRefreshCw } from '@ng-icons/feather-icons';
+import { featherRefreshCw } from '@ng-icons/feather-icons';
 import NavSection from '@components/nav-section/nav-section';
 import { Navigation } from '@providers/navigation/navigation';
 
@@ -44,7 +44,7 @@ import { Navigation } from '@providers/navigation/navigation';
 		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	viewProviders: [provideIcons({ featherActivity, featherHome, featherRefreshCw })],
+	viewProviders: [provideIcons({ featherRefreshCw })],
 })
 export class Sidebar {
 	navigation = inject(Navigation);
