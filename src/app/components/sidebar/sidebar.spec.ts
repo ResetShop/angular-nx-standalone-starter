@@ -2,37 +2,95 @@ import { render, screen } from '@testing-library/angular';
 import { provideRouter } from '@angular/router';
 import { Sidebar } from './sidebar';
 import { Navigation } from '@providers/navigation/navigation';
+import { NavigationSection } from '@interfaces/navigation';
+import { featherActivity, featherHome } from '@ng-icons/feather-icons';
 
 describe('Sidebar', () => {
-	it('should render the sidebar', async () => {
+	const defaultProviders = () => [provideRouter([])];
+
+	const createNavigationWithSections = (sections: NavigationSection[]) => ({
+		provide: Navigation,
+		useValue: {
+			sections: () => sections,
+			breadcrumbs: () => [],
+		},
+	});
+
+	const mockSettingsSection: NavigationSection = {
+		id: 'settings',
+		name: 'Ajustes y mantenimiento',
+		routes: [
+			{
+				id: 'welcome',
+				name: 'Configuración inicial',
+				route: 'welcome',
+				icon: { featherHome: featherHome },
+				children: [],
+			},
+			{
+				id: 'health',
+				name: 'Salud',
+				route: 'health',
+				icon: { featherActivity: featherActivity },
+				children: [],
+			},
+		],
+	};
+
+	const mockAdminSection: NavigationSection = {
+		id: 'admin',
+		name: 'Administración',
+		routes: [
+			{
+				id: 'users',
+				name: 'Gestión de usuarios',
+				route: 'admin/users',
+				icon: { featherHome: featherHome },
+				children: [],
+			},
+			{
+				id: 'settings',
+				name: 'Configuración del sistema',
+				route: 'admin/settings',
+				icon: { featherActivity: featherActivity },
+				children: [],
+			},
+		],
+	};
+
+	it('should render the sidebar with navigation sections', async () => {
 		await render(Sidebar, {
-			providers: [provideRouter([]), Navigation],
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
 		expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: /salud/i })).toBeInTheDocument();
 	});
 
 	it('should display navigation section titles', async () => {
 		await render(Sidebar, {
-			providers: [provideRouter([]), Navigation],
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
 		const sectionTitle = screen.getByText('Ajustes y mantenimiento');
 		expect(sectionTitle).toBeInTheDocument();
 	});
 
-	it('should render navigation route links', async () => {
+	it('should render navigation route links with correct text', async () => {
 		await render(Sidebar, {
-			providers: [provideRouter([]), Navigation],
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
 		const healthLink = screen.getByRole('link', { name: /salud/i });
 		expect(healthLink).toBeInTheDocument();
+
+		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i });
+		expect(welcomeLink).toBeInTheDocument();
 	});
 
-	it('should render sign out button with link variant', async () => {
+	it('should render sign out button with link variant styling', async () => {
 		await render(Sidebar, {
-			providers: [provideRouter([]), Navigation],
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
 		const signOutButton = screen.getByRole('link', { name: /cerrar sesión/i });
@@ -42,20 +100,62 @@ describe('Sidebar', () => {
 
 	it('should have correct route on navigation items', async () => {
 		await render(Sidebar, {
-			providers: [provideRouter([]), Navigation],
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
 		const healthLink = screen.getByRole('link', { name: /salud/i });
-		console.log(healthLink);
 		expect(healthLink).toHaveAttribute('href', '/health');
+
+		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i });
+		expect(welcomeLink).toHaveAttribute('href', '/welcome');
 	});
 
 	it('should route to login page on sign out', async () => {
 		await render(Sidebar, {
-			providers: [provideRouter([]), Navigation],
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
 		const signOutButton = screen.getByRole('link', { name: /cerrar sesión/i });
 		expect(signOutButton).toHaveAttribute('href', expect.stringContaining('/auth/login'));
+	});
+
+	it('should render multiple navigation sections with different content', async () => {
+		await render(Sidebar, {
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection, mockAdminSection])],
+		});
+
+		expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument();
+		expect(screen.getByText('Administración')).toBeInTheDocument();
+
+		const adminUsersLink = screen.getByRole('link', { name: /gestión de usuarios/i });
+		expect(adminUsersLink).toBeInTheDocument();
+		expect(adminUsersLink).toHaveAttribute('href', '/admin/users');
+	});
+
+	it('should render brand component at the top of sidebar', async () => {
+		await render(Sidebar, {
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+		});
+
+		// Verify Brand component is rendered by looking for its unique "Reset Starter Repo" link
+		const brandLink = screen.getByRole('link', { name: /reset starter repo/i });
+		expect(brandLink).toBeInTheDocument();
+
+		// Verify it has the correct routing to the welcome page
+		expect(brandLink).toHaveAttribute('href', '/welcome');
+	});
+
+	it('should have proper structure with all sections and sign out button', async () => {
+		await render(Sidebar, {
+			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection, mockAdminSection])],
+		});
+
+		const sectionTitles = screen.getByText('Ajustes y mantenimiento');
+		const adminTitle = screen.getByText('Administración');
+		const signOutButton = screen.getByRole('link', { name: /cerrar sesión/i });
+
+		expect(sectionTitles).toBeInTheDocument();
+		expect(adminTitle).toBeInTheDocument();
+		expect(signOutButton).toBeInTheDocument();
 	});
 });
