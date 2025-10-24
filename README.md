@@ -6,6 +6,11 @@ This repository is a starter project for an SSR-ready Angular 20.3 app, which us
 
 Search for the TODOs! They indicate places where you'll need to update fields to suit your project architecture and folder structure.
 
+## Live demo
+
+- App: https://angular-nx-standalone-starter.vercel.app/
+- Storybook: https://angular-nx-standalone-starter-story.vercel.app/
+
 ## Steps to setup the repo for a project
 
 ## Configure a Storybook instance for your project

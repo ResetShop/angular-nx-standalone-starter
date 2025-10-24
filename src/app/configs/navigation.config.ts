@@ -10,14 +10,14 @@ export const navigationConfig: NavigationConfig = {
 				{
 					id: 'welcome',
 					name: 'Configuración inicial',
-					route: 'welcome',
+					route: 'dashboard/welcome',
 					icon: { featherHome },
 					children: [],
 				},
 				{
 					id: 'health',
 					name: 'Salud',
-					route: 'health',
+					route: 'dashboard/health',
 					icon: { featherActivity },
 					children: [],
 				},
