@@ -39,7 +39,7 @@ export default class NavSection {
 		this.section().routes.map((route) => ({
 			id: route.id,
 			route,
-			injector: createEnvironmentInjector([provideIcons(route.icon)], this.injector),
+			injector: createEnvironmentInjector(route.icon ? [provideIcons(route.icon)] : [], this.injector),
 		})),
 	);
 }

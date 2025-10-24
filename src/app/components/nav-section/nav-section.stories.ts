@@ -106,14 +106,14 @@ export const Default: Story = {
 								id: 'home',
 								name: 'Home',
 								route: '/home',
-								icon: 'featherHome',
+								icon: { featherHome },
 								children: []
 							},
 							{
 								id: 'activity',
 								name: 'Activity',
 								route: '/activity',
-								icon: 'featherActivity',
+								icon: { featherActivity },
 								children: []
 							}
 						]
@@ -142,14 +142,14 @@ export const WithoutTitle: Story = {
 								id: 'home',
 								name: 'Home',
 								route: '/home',
-								icon: 'featherHome',
+								icon: { featherHome },
 								children: []
 							},
 							{
 								id: 'settings',
 								name: 'Settings',
 								route: '/settings',
-								icon: 'featherSettings',
+								icon: { featherSettings },
 								children: []
 							}
 						]
@@ -177,14 +177,14 @@ export const MultipleSections: Story = {
 								id: 'home',
 								name: 'Home',
 								route: '/home',
-								icon: 'featherHome',
+								icon: { featherHome },
 								children: []
 							},
 							{
 								id: 'activity',
 								name: 'Activity',
 								route: '/activity',
-								icon: 'featherActivity',
+								icon: { featherActivity },
 								children: []
 							}
 						]
@@ -199,14 +199,14 @@ export const MultipleSections: Story = {
 								id: 'profile',
 								name: 'Profile',
 								route: '/profile',
-								icon: 'featherUser',
+								icon: { featherUser },
 								children: []
 							},
 							{
 								id: 'preferences',
 								name: 'Preferences',
 								route: '/preferences',
-								icon: 'featherSettings',
+								icon: { featherSettings },
 								children: []
 							}
 						]
@@ -221,7 +221,7 @@ export const MultipleSections: Story = {
 								id: 'help',
 								name: 'Help Center',
 								route: '/help',
-								icon: 'featherHelpCircle',
+								icon: { featherHelpCircle },
 								children: []
 							}
 						]
@@ -244,14 +244,14 @@ export const ManyRoutes: Story = {
 						id: 'full',
 						name: 'All Features',
 						routes: [
-							{ id: '1', name: 'Home', route: '/home', icon: 'featherHome', children: [] },
-							{ id: '2', name: 'Activity', route: '/activity', icon: 'featherActivity', children: [] },
-							{ id: '3', name: 'Settings', route: '/settings', icon: 'featherSettings', children: [] },
-							{ id: '4', name: 'Profile', route: '/profile', icon: 'featherUser', children: [] },
-							{ id: '5', name: 'Help', route: '/help', icon: 'featherHelpCircle', children: [] },
-							{ id: '6', name: 'Messages', route: '/messages', icon: 'featherMail', children: [] },
-							{ id: '7', name: 'Calendar', route: '/calendar', icon: 'featherCalendar', children: [] },
-							{ id: '8', name: 'Documents', route: '/documents', icon: 'featherFileText', children: [] }
+							{ id: '1', name: 'Home', route: '/home', icon: { featherHome }, children: [] },
+							{ id: '2', name: 'Activity', route: '/activity', icon: { featherActivity }, children: [] },
+							{ id: '3', name: 'Settings', route: '/settings', icon: { featherSettings }, children: [] },
+							{ id: '4', name: 'Profile', route: '/profile', icon: { featherUser }, children: [] },
+							{ id: '5', name: 'Help', route: '/help', icon: { featherHelpCircle }, children: [] },
+							{ id: '6', name: 'Messages', route: '/messages', icon: { featherMail }, children: [] },
+							{ id: '7', name: 'Calendar', route: '/calendar', icon: { featherCalendar }, children: [] },
+							{ id: '8', name: 'Documents', route: '/documents', icon: { featherFileText }, children: [] }
 						]
 					}"
 				/>
