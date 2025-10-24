@@ -4,8 +4,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 	selector: 'app-welcome',
 	imports: [],
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	template: ` <h1 class="text-xl font-bold">
-			<span> {{ title }} </span>
+	template: `
+		<h1 class="text-xl font-bold">
+			<span>{{ title }}</span>
 		</h1>
 		<div>
 			<h2 class="mb-2 text-lg font-semibold">TODO:</h2>
@@ -29,8 +30,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 					For the left sidebar that appears after a login is successful, you may want to update the navigation to a
 					specific component of your application
 				</li>
+				<li>Update Brand component with anything that fits your project, be it a logo or any other option</li>
 			</ol>
-		</div>`,
+		</div>
+	`,
 })
 export default class Welcome {
 	protected title = 'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋';

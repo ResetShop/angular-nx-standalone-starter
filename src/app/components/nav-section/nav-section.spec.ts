@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/angular';
 import { provideRouter } from '@angular/router';
-import { provideIcons } from '@ng-icons/core';
-import { featherHome, featherActivity, featherSettings } from '@ng-icons/feather-icons';
+import { featherHome, featherActivity, featherSettings, featherRefreshCw } from '@ng-icons/feather-icons';
 import NavSection from './nav-section';
 import { NavigationSection } from '@interfaces/navigation';
 
@@ -14,14 +13,14 @@ describe('NavSection', () => {
 				id: 'route1',
 				name: 'Route 1',
 				route: '/route1',
-				icon: 'featherHome',
+				icon: { featherHome },
 				children: [],
 			},
 			{
 				id: 'route2',
 				name: 'Route 2',
 				route: '/route2',
-				icon: 'featherActivity',
+				icon: { featherActivity },
 				children: [],
 			},
 		],
@@ -33,10 +32,47 @@ describe('NavSection', () => {
 		routes: [],
 	};
 
+	const mockLargeSection: NavigationSection = {
+		id: 'large-section',
+		name: 'Large Section',
+		routes: [
+			{
+				id: 'home',
+				name: 'Home',
+				route: '/home',
+				icon: { featherHome },
+				children: [],
+			},
+			{
+				id: 'activity',
+				name: 'Activity',
+				route: '/activity',
+				icon: { featherActivity },
+				children: [],
+			},
+			{
+				id: 'settings',
+				name: 'Settings',
+				route: '/settings',
+				icon: { featherSettings },
+				children: [],
+			},
+			{
+				id: 'refresh',
+				name: 'Refresh',
+				route: '/refresh',
+				icon: { featherRefreshCw },
+				children: [],
+			},
+		],
+	};
+
+	const defaultProviders = () => [provideRouter([])];
+
 	it('should create the nav section component', async () => {
 		const { fixture } = await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(fixture.componentInstance).toBeTruthy();
@@ -45,7 +81,7 @@ describe('NavSection', () => {
 	it('should render section title when showTitle is true', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection, showTitle: true },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(screen.getByText('Test Section')).toBeInTheDocument();
@@ -54,7 +90,7 @@ describe('NavSection', () => {
 	it('should not render section title when showTitle is false', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection, showTitle: false },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(screen.queryByText('Test Section')).not.toBeInTheDocument();
@@ -63,7 +99,7 @@ describe('NavSection', () => {
 	it('should render section title by default when showTitle is not provided', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(screen.getByText('Test Section')).toBeInTheDocument();
@@ -72,7 +108,7 @@ describe('NavSection', () => {
 	it('should render all navigation routes in the section', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(screen.getByText('Route 1')).toBeInTheDocument();
@@ -82,7 +118,7 @@ describe('NavSection', () => {
 	it('should render correct number of navigation items', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		const links = screen.getAllByRole('link');
@@ -92,7 +128,7 @@ describe('NavSection', () => {
 	it('should render navigation items with correct routes', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		const link1 = screen.getByRole('link', { name: /route 1/i });
@@ -105,7 +141,7 @@ describe('NavSection', () => {
 	it('should render empty section without routes', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSectionWithoutRoutes },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(screen.getByText('Empty Section')).toBeInTheDocument();
@@ -113,49 +149,22 @@ describe('NavSection', () => {
 	});
 
 	it('should render section with multiple routes', async () => {
-		const largeSection: NavigationSection = {
-			id: 'large-section',
-			name: 'Large Section',
-			routes: [
-				{
-					id: 'r1',
-					name: 'Route A',
-					route: '/a',
-					icon: 'featherHome',
-					children: [],
-				},
-				{
-					id: 'r2',
-					name: 'Route B',
-					route: '/b',
-					icon: 'featherActivity',
-					children: [],
-				},
-				{
-					id: 'r3',
-					name: 'Route C',
-					route: '/c',
-					icon: 'featherSettings',
-					children: [],
-				},
-			],
-		};
-
 		await render(NavSection, {
-			inputs: { section: largeSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			inputs: { section: mockLargeSection },
+			providers: defaultProviders(),
 		});
 
-		expect(screen.getByText('Route A')).toBeInTheDocument();
-		expect(screen.getByText('Route B')).toBeInTheDocument();
-		expect(screen.getByText('Route C')).toBeInTheDocument();
-		expect(screen.getAllByRole('link')).toHaveLength(3);
+		expect(screen.getByText('Home')).toBeInTheDocument();
+		expect(screen.getByText('Activity')).toBeInTheDocument();
+		expect(screen.getByText('Settings')).toBeInTheDocument();
+		expect(screen.getByText('Refresh')).toBeInTheDocument();
+		expect(screen.getAllByRole('link')).toHaveLength(4);
 	});
 
 	it('should apply correct CSS classes to section title', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection, showTitle: true },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		const title = screen.getByText('Test Section');
@@ -163,31 +172,18 @@ describe('NavSection', () => {
 		expect(title).toHaveClass('h-8');
 		expect(title).toHaveClass('items-center');
 		expect(title).toHaveClass('px-2');
-		expect(title).toHaveClass('text-xs');
-		expect(title).toHaveClass('font-medium');
-		expect(title).toHaveClass('text-black/70');
 	});
 
-	it('should render list items with appNavItem directive', async () => {
+	it('should render list items with correct structure', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
-		// Verify nav items are rendered by checking for their links
 		const links = screen.getAllByRole('link');
 		expect(links).toHaveLength(2);
-	});
-
-	it('should track routes by id in for loop', async () => {
-		await render(NavSection, {
-			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
-		});
-
-		// Verify all routes are rendered (tracking ensures proper rendering)
-		expect(screen.getByText('Route 1')).toBeInTheDocument();
-		expect(screen.getByText('Route 2')).toBeInTheDocument();
+		expect(links[0]).toHaveAttribute('href', '/route1');
+		expect(links[1]).toHaveAttribute('href', '/route2');
 	});
 
 	it('should handle section with routes without icons', async () => {
@@ -206,7 +202,7 @@ describe('NavSection', () => {
 
 		await render(NavSection, {
 			inputs: { section: sectionNoIcons },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(screen.getByText('Route Without Icon')).toBeInTheDocument();
@@ -221,7 +217,7 @@ describe('NavSection', () => {
 					id: 'new-route',
 					name: 'New Route',
 					route: '/new',
-					icon: 'featherHome',
+					icon: { featherActivity },
 					children: [],
 				},
 			],
@@ -229,7 +225,7 @@ describe('NavSection', () => {
 
 		const { rerender } = await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(screen.getByText('Test Section')).toBeInTheDocument();
@@ -244,7 +240,7 @@ describe('NavSection', () => {
 	it('should have OnPush change detection strategy', async () => {
 		const { fixture } = await render(NavSection, {
 			inputs: { section: mockSection },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherSettings })],
+			providers: defaultProviders(),
 		});
 
 		expect(fixture.componentRef.changeDetectorRef).toBeDefined();

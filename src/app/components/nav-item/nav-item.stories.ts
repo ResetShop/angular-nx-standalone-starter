@@ -72,7 +72,7 @@ export const Default: Story = {
 					id: 'home',
 					name: 'Home',
 					route: '/home',
-					icon: 'featherHome',
+					icon: { featherHome },
 					children: []
 				}" appNavItem></li>
 			</ul>
@@ -110,28 +110,28 @@ export const MultipleItems: Story = {
 					id: 'home',
 					name: 'Home',
 					route: '/home',
-					icon: 'featherHome',
+					icon: { featherHome },
 					children: []
 				}" appNavItem></li>
 				<li [item]="{
 					id: 'activity',
 					name: 'Activity',
 					route: '/activity',
-					icon: 'featherActivity',
+					icon: { featherActivity },
 					children: []
 				}" appNavItem></li>
 				<li [item]="{
 					id: 'settings',
 					name: 'Settings',
 					route: '/settings',
-					icon: 'featherSettings',
+					icon: { featherSettings },
 					children: []
 				}" appNavItem></li>
 				<li [item]="{
 					id: 'profile',
 					name: 'Profile',
 					route: '/profile',
-					icon: 'featherUser',
+					icon: { featherUser },
 					children: []
 				}" appNavItem></li>
 			</ul>
@@ -151,14 +151,14 @@ export const DifferentIcons: Story = {
 						id: 'home',
 						name: 'Home',
 						route: '/home',
-						icon: 'featherHome',
+						icon: { featherHome },
 						children: []
 					}" appNavItem></li>
 					<li [item]="{
 						id: 'help',
 						name: 'Help',
 						route: '/help',
-						icon: 'featherHelpCircle',
+						icon: { featherHelpCircle },
 						children: []
 					}" appNavItem></li>
 				</ul>
@@ -178,7 +178,7 @@ export const LongText: Story = {
 					id: 'long',
 					name: 'This is a very long navigation item name that might wrap',
 					route: '/long-route',
-					icon: 'featherSettings',
+					icon: { featherSettings },
 					children: []
 				}" appNavItem></li>
 			</ul>
