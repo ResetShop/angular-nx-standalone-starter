@@ -1,51 +1,39 @@
-import { render, screen, waitFor } from '@testing-library/angular';
-import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs';
+import { render, screen } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
 import { Header } from './header';
+import { Navigation } from '@providers/navigation/navigation';
+import { BreadcrumbItem } from '@interfaces/navigation';
 
 describe('Header', () => {
-	const createMockActivatedRoute = (title: string | undefined, path: string, children: any[] = []) => ({
-		routeConfig: {
-			title,
-			path,
-		},
-		children,
-		outlet: 'primary',
-	});
+	const defaultProviders = () => [provideRouter([])];
 
-	const createMockRouter = (eventsSubject: Subject<any>) => ({
-		events: eventsSubject.asObservable(),
-		navigateByUrl: jest.fn().mockResolvedValue(true),
+	const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
+		provide: Navigation,
+		useValue: {
+			breadcrumbs: () => breadcrumbs,
+			sections: () => [],
+		},
 	});
 
 	it('should render header component with breadcrumb', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Settings', path: '/settings', isActive: true },
+		];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '') },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
 		const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
 		expect(nav).toBeInTheDocument();
 	});
 
-	it('should render breadcrumb navigation element', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
+	it('should render breadcrumb navigation element with accessibility attributes', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', path: '/dashboard', isActive: true }];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '') },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
 		const breadcrumbNav = screen.getByRole('navigation', { name: /breadcrumb/i });
@@ -53,40 +41,28 @@ describe('Header', () => {
 		expect(breadcrumbNav).toHaveAttribute('aria-label', 'Breadcrumb');
 	});
 
-	it('should display breadcrumbs from active route', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
-		const childRoute = createMockActivatedRoute('Dashboard', 'dashboard', []);
-		const rootRoute = createMockActivatedRoute('Home', 'home', [childRoute]);
+	it('should display breadcrumbs from complex route hierarchy', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Admin', path: '/admin', isActive: false },
+			{ title: 'Dashboard', path: '/admin/dashboard', isActive: true },
+		];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '', [rootRoute]) },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		// Trigger navigation to build breadcrumbs
-		eventsSubject.next(new NavigationEnd(1, '/home/dashboard', ''));
-
-		await waitFor(() => {
-			expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
-		});
+		expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: /home/i })).toHaveAttribute('href', '/');
+		expect(screen.getByRole('link', { name: /admin/i })).toHaveAttribute('href', '/admin');
+		expect(screen.getByText('Dashboard')).toHaveAttribute('aria-current', 'page');
 	});
 
 	it('should have proper semantic structure', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
+		const breadcrumbs: BreadcrumbItem[] = [{ title: 'Home', path: '/', isActive: true }];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '') },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
 		const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
@@ -95,76 +71,66 @@ describe('Header', () => {
 	});
 
 	it('should render breadcrumb with proper list structure', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Profile', path: '/profile', isActive: true },
+		];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '') },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const list = screen.getByRole('list', { hidden: true });
+		const list = screen.getByRole('list');
 		expect(list).toBeInTheDocument();
 	});
 
-	it('should integrate breadcrumb component without errors', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
+	it('should integrate breadcrumb component with multiple nested levels', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Products', path: '/products', isActive: false },
+			{ title: 'Electronics', path: '/products/electronics', isActive: false },
+			{ title: 'Laptops', path: '/products/electronics/laptops', isActive: true },
+		];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '') },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
 		const breadcrumb = screen.getByRole('navigation', { name: /breadcrumb/i });
 		expect(breadcrumb).toBeInTheDocument();
+
+		const links = screen.getAllByRole('link');
+		expect(links).toHaveLength(3);
+		expect(screen.getByText('Laptops')).toHaveAttribute('aria-current', 'page');
 	});
 
 	it('should render breadcrumb with correct styling classes', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Current', path: '/current', isActive: true },
+		];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '') },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
 		const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
 		expect(nav).toHaveClass('flex', 'items-center', 'gap-1');
 	});
 
-	it('should update breadcrumbs when navigation changes', async () => {
-		const eventsSubject = new Subject<NavigationEnd>();
-		const childRoute = createMockActivatedRoute('Settings', 'settings', []);
-		const rootRoute = createMockActivatedRoute('Admin', 'admin', [childRoute]);
+	it('should handle single breadcrumb item gracefully', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [{ title: 'Home', path: '/', isActive: true }];
 
 		await render(Header, {
-			providers: [
-				{ provide: Router, useValue: createMockRouter(eventsSubject) },
-				{
-					provide: ActivatedRoute,
-					useValue: { root: createMockActivatedRoute(undefined, '', [rootRoute]) },
-				},
-			],
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		// Trigger navigation event
-		eventsSubject.next(new NavigationEnd(1, '/admin/settings', ''));
+		const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
+		expect(nav).toBeInTheDocument();
 
-		await waitFor(() => {
-			expect(screen.getByRole('navigation', { name: /breadcrumb/i })).toBeInTheDocument();
-		});
+		const links = screen.queryAllByRole('link');
+		expect(links).toHaveLength(0);
+
+		expect(screen.getByText('Home')).toHaveAttribute('aria-current', 'page');
 	});
 });

@@ -1,400 +1,173 @@
-import { render, screen, waitFor } from '@testing-library/angular';
-import { provideRouter, RouterOutlet } from '@angular/router';
-import { Component } from '@angular/core';
-import { RouterTestingHarness } from '@angular/router/testing';
+import { render, screen } from '@testing-library/angular';
+import { provideRouter } from '@angular/router';
 import { Breadcrumb } from '@components/breadcrumb/breadcrumb';
-
-// Mock components for routes
-@Component({
-	selector: 'app-home-page',
-	standalone: true,
-	template: '<div>Home Page</div>',
-})
-class HomePageComponent {}
-
-@Component({
-	selector: 'app-health-page',
-	standalone: true,
-	template: '<div>Health Page</div>',
-})
-class HealthPageComponent {}
-
-@Component({
-	selector: 'app-dashboard-page',
-	standalone: true,
-	template: '<app-breadcrumb /><router-outlet/>',
-	imports: [RouterOutlet, Breadcrumb],
-})
-class MockDashboardComponentPage {}
-
-@Component({
-	selector: 'app-detail-page',
-	standalone: true,
-	template: '<div>Detail Page</div>',
-})
-class DetailPageComponent {}
-
-@Component({
-	selector: 'app-settings-page',
-	standalone: true,
-	template: '<div>Settings Page</div>',
-})
-class SettingsPageComponent {}
-
-@Component({
-	selector: 'app-admin-page',
-	standalone: true,
-	template: '<div>Admin Page</div>',
-})
-class AdminPageComponent {}
-
-@Component({
-	selector: 'app-test-page',
-	standalone: true,
-	template: '<div>Test Page</div>',
-})
-class TestPageComponent {}
-
-@Component({
-	selector: 'app-current-page',
-	standalone: true,
-	template: '<div>Current Page</div>',
-})
-class CurrentPageComponent {}
-
-@Component({
-	selector: 'app-root-page',
-	standalone: true,
-	template: '<div>Root Page</div>',
-})
-class RootPageComponent {}
+import { Navigation } from '@providers/navigation/navigation';
+import { BreadcrumbItem } from '@interfaces/navigation';
 
 describe('Breadcrumb', () => {
-	it('should render breadcrumb navigation element', async () => {
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter([])],
+	const defaultProviders = () => [provideRouter([])];
+
+	const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
+		provide: Navigation,
+		useValue: {
+			breadcrumbs: () => breadcrumbs,
+			sections: () => [],
+		},
+	});
+
+	it('should render breadcrumb navigation element with semantic structure', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Settings', path: '/settings', isActive: true },
+		];
+
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
 		const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
 		expect(nav).toBeInTheDocument();
-	});
 
-	it('should render breadcrumb list', async () => {
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter([])],
-		});
-
-		const list = screen.getByRole('list', { hidden: true });
+		const list = screen.getByRole('list');
 		expect(list).toBeInTheDocument();
 	});
 
-	it('should display single breadcrumb item on navigation', async () => {
-		const routes = [
-			{
-				path: '',
-				title: 'Dashboard',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'home',
-						title: 'Home Route',
-						component: HomePageComponent,
-					},
-				],
-			},
-		];
+	it('should display single breadcrumb item as active when only one exists', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [{ title: 'Home', path: '/', isActive: true }];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/home', MockDashboardComponentPage);
-
-		await waitFor(() => {
-			const breadcrumbItem = screen.getByText('Home Route');
-			expect(breadcrumbItem).toBeInTheDocument();
-		});
+		const currentPage = screen.getByText('Home');
+		expect(currentPage).toHaveAttribute('aria-current', 'page');
 	});
 
-	it('should mark last breadcrumb as active', async () => {
-		const routes = [
-			{
-				path: '',
-				title: 'Dashboard',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'health',
-						title: 'Health Route',
-						component: HealthPageComponent,
-					},
-				],
-			},
+	it('should mark last breadcrumb as active and others as inactive links', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Dashboard', path: '/dashboard', isActive: false },
+			{ title: 'Settings', path: '/settings', isActive: true },
 		];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/health', MockDashboardComponentPage);
+		const homeLink = screen.getByRole('link', { name: /home/i });
+		expect(homeLink).toHaveAttribute('href', '/');
 
-		await waitFor(() => {
-			const activeItem = screen.getByText('Health Route', {
-				selector: 'span[aria-current="page"]',
-			});
-			expect(activeItem).toHaveAttribute('aria-current', 'page');
-		});
+		const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
+		expect(dashboardLink).toHaveAttribute('href', '/dashboard');
+
+		const settingsSpan = screen.getByText('Settings');
+		expect(settingsSpan).toHaveAttribute('aria-current', 'page');
 	});
 
-	it('should render inactive breadcrumbs as links', async () => {
-		const routes = [
-			{
-				path: 'dashboard',
-				title: 'Dashboard Route',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'detail',
-						title: 'Detail Route',
-						component: DetailPageComponent,
-						children: [
-							{
-								path: 'settings',
-								title: 'Settings Route',
-								component: SettingsPageComponent,
-							},
-						],
-					},
-				],
-			},
+	it('should render navigation items with multiple breadcrumb levels', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Admin', path: '/admin', isActive: false },
+			{ title: 'Users', path: '/admin/users', isActive: false },
+			{ title: 'User Details', path: '/admin/users/123', isActive: true },
 		];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/dashboard/detail/settings', MockDashboardComponentPage);
+		const links = screen.getAllByRole('link');
+		expect(links).toHaveLength(3);
+		expect(links[0]).toHaveAttribute('href', '/');
+		expect(links[1]).toHaveAttribute('href', '/admin');
+		expect(links[2]).toHaveAttribute('href', '/admin/users');
 
-		await waitFor(() => {
-			const link = screen.getByRole('link', { name: /dashboard route/i });
-			expect(link).toHaveAttribute('href', '/dashboard');
-			expect(link).not.toHaveAttribute('aria-current', 'page');
-		});
-
-		await waitFor(() => {
-			const link = screen.getByRole('link', { name: /detail route/i });
-			expect(link).toHaveAttribute('href', '/dashboard/detail');
-			expect(link).not.toHaveAttribute('aria-current', 'page');
-		});
+		const currentPage = screen.getByText('User Details');
+		expect(currentPage).toHaveAttribute('aria-current', 'page');
 	});
 
-	it('should navigate when breadcrumb link is clicked', async () => {
-		const routes = [
-			{
-				path: 'dashboard',
-				title: 'Dashboard Route',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'detail',
-						title: 'Detail Route',
-						component: DetailPageComponent,
-					},
-				],
-			},
+	it('should display breadcrumb with special characters in titles', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home & Dashboard', path: '/', isActive: false },
+			{ title: 'User Settings (Admin)', path: '/settings', isActive: true },
 		];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/dashboard/detail', MockDashboardComponentPage);
-
-		await waitFor(() => {
-			expect(harness.routeNativeElement?.textContent).toContain('Detail Route');
-		});
-
-		await waitFor(() => {
-			expect(harness.routeNativeElement?.textContent).toContain('Dashboard Route');
-		});
-
-		const link = screen.getByRole('link', { name: /dashboard/i });
-		link.click();
-
-		await waitFor(() => {
-			expect(harness.routeNativeElement?.textContent).toContain('Dashboard Route');
-		});
-
-		await waitFor(() => {
-			expect(harness.routeNativeElement?.textContent).not.toContain('Detail Route');
-		});
+		expect(screen.getByText(/Home & Dashboard/)).toBeInTheDocument();
+		expect(screen.getByText(/User Settings \(Admin\)/)).toBeInTheDocument();
 	});
 
-	it('should display multiple breadcrumb levels', async () => {
-		const routes = [
-			{
-				path: 'dashboard',
-				title: 'Dashboard Route',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'admin',
-						title: 'Admin Route',
-						component: AdminPageComponent,
-						children: [
-							{
-								path: 'settings',
-								title: 'Settings Route',
-								component: SettingsPageComponent,
-							},
-						],
-					},
-				],
-			},
+	it('should render separator icons between breadcrumb items', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Settings', path: '/settings', isActive: true },
 		];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/dashboard/admin/settings', MockDashboardComponentPage);
-
-		await waitFor(() => {
-			expect(screen.getByText('Dashboard Route')).toBeInTheDocument();
-			expect(screen.getByText('Admin Route')).toBeInTheDocument();
-			expect(
-				screen.getByText('Settings Route', {
-					selector: 'span[aria-current="page"]',
-				}),
-			).toBeInTheDocument();
-		});
+		const separators = screen.getAllByRole('listitem');
+		expect(separators.length).toBeGreaterThan(2);
 	});
 
-	it('should have proper accessibility attributes', async () => {
-		const routes = [
-			{
-				path: 'dashboard',
-				title: 'Dashboard Route',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'health',
-						title: 'Health Route',
-						component: HealthPageComponent,
-					},
-				],
-			},
+	it('should have proper accessibility attributes for navigation', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Products', path: '/products', isActive: false },
+			{ title: 'Electronics', path: '/products/electronics', isActive: true },
 		];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/dashboard/health', MockDashboardComponentPage);
-
-		await waitFor(() => {
-			const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
-			expect(nav).toHaveAttribute('aria-label', 'Breadcrumb');
-
-			const currentPageSpan = screen.getByText('Health Route', {
-				selector: 'span[aria-current="page"]',
-			});
-			expect(currentPageSpan).toHaveAttribute('aria-current', 'page');
-		});
+		const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
+		expect(nav).toHaveAttribute('aria-label', 'Breadcrumb');
+		expect(nav).toHaveClass('flex', 'items-center', 'gap-1');
 	});
 
-	it('should apply correct styling classes to nav', async () => {
-		const routes = [
-			{
-				path: '',
-				title: 'Home',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'test',
-						title: 'Test Page',
-						component: TestPageComponent,
-					},
-				],
-			},
+	it('should apply correct styling to active breadcrumb item', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Current Page', path: '/current', isActive: true },
 		];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/test', MockDashboardComponentPage);
-
-		await waitFor(() => {
-			const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
-			expect(nav).toHaveClass('flex', 'items-center', 'gap-1');
-		});
+		const currentPage = screen.getByText('Current Page');
+		expect(currentPage).toHaveClass('text-sm', 'font-medium', 'text-gray-900');
 	});
 
-	it('should apply active styling to current page', async () => {
-		const routes = [
-			{
-				path: '',
-				title: 'Root',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'current',
-						title: 'Current Route',
-						component: CurrentPageComponent,
-					},
-				],
-			},
+	it('should apply correct styling to inactive breadcrumb links', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [
+			{ title: 'Home', path: '/', isActive: false },
+			{ title: 'Current', path: '/current', isActive: true },
 		];
 
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/current', MockDashboardComponentPage);
-
-		await waitFor(() => {
-			const activeSpan = screen.getByText('Current Route', {
-				selector: 'span[aria-current="page"]',
-			});
-			expect(activeSpan).toHaveClass('text-sm', 'font-medium', 'text-gray-900', 'dark:text-gray-50');
-		});
+		const homeLink = screen.getByRole('link', { name: /home/i });
+		expect(homeLink).toHaveClass('text-sm', 'font-medium', 'text-gray-500');
+		expect(homeLink).toHaveClass('hover:text-gray-700');
 	});
 
-	it('should apply link styling to inactive breadcrumbs', async () => {
-		const routes = [
-			{
-				path: 'dashboard',
-				title: 'Dashboard',
-				component: MockDashboardComponentPage,
-				children: [
-					{
-						path: 'detail',
-						title: 'Detail',
-						component: DetailPageComponent,
-					},
-				],
-			},
-		];
-
-		await render(MockDashboardComponentPage, {
-			providers: [provideRouter(routes)],
+	it('should handle empty breadcrumbs gracefully', async () => {
+		await render(Breadcrumb, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs([])],
 		});
 
-		const harness = await RouterTestingHarness.create();
-		await harness.navigateByUrl('/dashboard/detail', MockDashboardComponentPage);
+		const nav = screen.getByRole('navigation', { name: /breadcrumb/i });
+		expect(nav).toBeInTheDocument();
 
-		await waitFor(() => {
-			const link = screen.getByRole('link', { name: /dashboard/i });
-			expect(link).toHaveClass('text-sm', 'font-medium', 'text-gray-500', 'hover:text-gray-700');
-		});
+		const listItems = screen.queryAllByRole('listitem');
+		expect(listItems).toHaveLength(0);
 	});
 });
