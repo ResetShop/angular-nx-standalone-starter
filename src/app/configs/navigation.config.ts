@@ -1,4 +1,5 @@
 import { NavigationConfig } from '@interfaces/navigation';
+import { featherActivity, featherHome } from '@ng-icons/feather-icons';
 
 export const navigationConfig: NavigationConfig = {
 	sections: [
@@ -10,14 +11,14 @@ export const navigationConfig: NavigationConfig = {
 					id: 'welcome',
 					name: 'Configuración inicial',
 					route: 'welcome',
-					icon: 'featherHome',
+					icon: { featherHome: featherHome },
 					children: [],
 				},
 				{
 					id: 'health',
 					name: 'Salud',
 					route: 'health',
-					icon: 'featherActivity',
+					icon: { featherActivity: featherActivity },
 					children: [],
 				},
 			],
