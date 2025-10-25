@@ -15,14 +15,14 @@ export interface EnvironmentConfig {
 	// };
 
 	// TODO: Uncomment the database configuration if you're using a database connection
-	// database: {
-	//   pg?: {
-	//     connectionString: string;
-	//   };
-	//   mysql?: {
-	//     connectionString: string;
-	//   };
-	// };
+	database: {
+		pg?: {
+			connectionString: string;
+		};
+		// mysql?: {
+		//   connectionString: string;
+		// };
+	};
 }
 
 export const environment: EnvironmentConfig = {
@@ -43,12 +43,12 @@ export const environment: EnvironmentConfig = {
 	// },
 
 	// TODO: Uncomment the database configuration if you're using a database connection
-	// database: {
-	//   pg: {
-	//     connectionString: process.env['PG_CONNECTION_STRING'] as string,
-	//   },
-	//   mysql: {
-	//     connectionString: process.env['PG_CONNECTION_STRING'] as string,
-	//   },
-	// },
+	database: {
+		pg: {
+			connectionString: process.env['PG_CONNECTION_STRING'] as string,
+		},
+		// mysql: {
+		//   connectionString: process.env['MYSQL_CONNECTION_STRING'] as string,
+		// },
+	},
 };
