@@ -12,6 +12,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 			<h2 class="mb-2 text-lg font-semibold">TODO:</h2>
 			<ol class="list-inside list-decimal">
 				<li>
+					Update the project configuration to set your application name and your specific project configuration for the
+					frontend
+				</li>
+				<li>
 					Remove the test route from routes.ts and the test controller from /src/api/test.controllers.ts, which are only
 					there for testing purposes. Also its corresponding .spec.ts file can be removed.
 				</li>
