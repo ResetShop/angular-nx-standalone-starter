@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import Card from '@components/card/card';
 import { Button } from '@components/button/button';
+import Card from '@components/card/card';
 
 interface LoginForm {
 	email: FormControl<string>;
@@ -56,8 +56,9 @@ interface LoginForm {
 									<a
 										[routerLink]="resetPassword"
 										class="text-primary hover:text-primary/90 font-semibold hover:underline"
-										>¿Olvidaste tu contraseña?</a
 									>
+										¿Olvidaste tu contraseña?
+									</a>
 								</div>
 							</div>
 							<div class="mt-2">
@@ -97,7 +98,7 @@ interface LoginForm {
 	styles: `
 		@reference "tailwindcss";
 		:host {
-			@apply flex h-svh w-svw items-center justify-center bg-gray-500;
+			@apply flex h-svh w-svw items-center justify-center bg-black/95;
 		}
 	`,
 })
