@@ -40,37 +40,44 @@ The Header component serves as the navigation header for the dashboard layout. I
 
 ## Usage
 
+The Header component is used via a directive in your layout:
+
 \`\`\`typescript
 import { Header } from '@components/header';
 
 @Component({
   imports: [Header],
   template: \`
-    <header class="border-b">
-      <app-header />
-    </header>
+    <nav appHeader></nav>
   \`
 })
+export class MyLayout {}
 \`\`\`
 
-## Layout Integration
+## What's Included
 
-The Header component is typically used in the dashboard layout:
+The Header displays:
+- **Breadcrumbs**: Navigation path based on the current route (from Navigation service)
+- **Theme Toggle**: Button to switch between light and dark modes (included in the header)
+
+## Theme Toggle
+
+The ThemeToggle component is automatically included in the Header. It:
+- Shows a Sun icon in light mode, Moon icon in dark mode
+- Toggles the theme when clicked
+- Persists preference to localStorage
+- Respects system dark mode preference on first load
+
+To use ThemeToggle separately:
 
 \`\`\`typescript
+import { ThemeToggle } from '@components/theme-toggle';
+
 @Component({
-  template: \`
-    <aside class="sidebar">
-      <app-sidebar />
-    </aside>
-    <nav class="header-nav">
-      <app-header />
-    </nav>
-    <main class="content">
-      <router-outlet />
-    </main>
-  \`
+  imports: [ThemeToggle],
+  template: \`<app-theme-toggle />\`
 })
+export class MyComponent {}
 \`\`\`
 			`,
 			},

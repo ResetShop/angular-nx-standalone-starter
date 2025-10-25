@@ -1,4 +1,4 @@
-import { Injectable, signal, effect, afterNextRender, inject, PLATFORM_ID, computed } from '@angular/core';
+import { Injectable, signal, effect, inject, PLATFORM_ID, computed } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
@@ -57,5 +57,3 @@ export class Theme {
 		localStorage.setItem(this.THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
 	}
 }
-
-export const createThemeInitializer = (theme: Theme) => afterNextRender(() => theme.applyTheme());

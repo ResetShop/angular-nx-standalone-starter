@@ -12,6 +12,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { Analytics } from '@providers/analytics/analytics';
 import { environment } from './environments/environment';
 import { provideNavigation } from '@providers/navigation/navigation.provider';
+import { Theme } from '@providers/theme/theme';
 
 function initializeAnalytics() {
 	return async () => {
@@ -31,10 +32,13 @@ export const appConfig: ApplicationConfig = {
 		provideZonelessChangeDetection(),
 		provideRouter(appRoutes),
 		provideHttpClient(withFetch()),
+
+		// Initializers
 		provideAppInitializer(initializeAnalytics()),
 
 		// Custom providers
 		Analytics,
+		Theme,
 		provideNavigation(),
 	],
 };
