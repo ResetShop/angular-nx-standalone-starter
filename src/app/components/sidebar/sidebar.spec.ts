@@ -4,9 +4,10 @@ import { Sidebar } from './sidebar';
 import { Navigation } from '@providers/navigation/navigation';
 import { NavigationSection } from '@interfaces/navigation';
 import { featherActivity, featherHome } from '@ng-icons/feather-icons';
+import { provideMockTheme } from '@providers/theme/theme.mock';
 
 describe('Sidebar', () => {
-	const defaultProviders = () => [provideRouter([])];
+	const defaultProviders = () => [provideRouter([]), provideMockTheme(false)];
 
 	const createNavigationWithSections = (sections: NavigationSection[]) => ({
 		provide: Navigation,
