@@ -3,9 +3,10 @@ import { provideRouter } from '@angular/router';
 import { Header } from './header';
 import { Navigation } from '@providers/navigation/navigation';
 import { BreadcrumbItem } from '@interfaces/navigation';
+import { provideMockTheme } from '@providers/theme/theme.mock';
 
 describe('Header', () => {
-	const defaultProviders = () => [provideRouter([])];
+	const defaultProviders = () => [provideRouter([]), provideMockTheme(false)];
 
 	const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 		provide: Navigation,
