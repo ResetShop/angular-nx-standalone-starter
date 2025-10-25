@@ -72,7 +72,7 @@ To use ThemeToggle separately:
 
 \`\`\`typescript
 import { ThemeToggle } from '@components/theme-toggle';
-
+ 
 @Component({
   imports: [ThemeToggle],
   template: \`<app-theme-toggle />\`
@@ -109,7 +109,10 @@ export const Default: Story = {
 		}),
 	],
 	render: () => ({
-		template: '<div appHeader></div>',
+		template: `
+			<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
+				<div appHeader></div>
+			</header>`,
 	}),
 };
 
@@ -127,7 +130,10 @@ export const SingleLevelBreadcrumb: Story = {
 		}),
 	],
 	render: () => ({
-		template: '<div appHeader></div>',
+		template: `
+			<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
+				<div appHeader></div>
+			</header>`,
 	}),
 };
 
@@ -149,7 +155,10 @@ export const MultiLevelBreadcrumb: Story = {
 		}),
 	],
 	render: () => ({
-		template: '<div appHeader></div>',
+		template: `
+			<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
+				<div appHeader></div>
+			</header>`,
 	}),
 };
 
@@ -178,125 +187,11 @@ export const InDashboardLayout: Story = {
 						</div>
 					</aside>
 					<nav class="border-b border-gray-200 p-2 dark:border-gray-800 dark:bg-black/95">
-						<div class="flex h-full items-center dark:text-gray-50">
-							<div appHeader></div>
-						</div>
+						<header appHeader></header>
 					</nav>
 					<main class="bg-white p-4 dark:bg-black/95">
 						<p class="text-sm text-gray-600 dark:text-gray-400">Main content area</p>
 					</main>
-				</div>
-			`,
-	}),
-};
-
-/**
- * Header with light theme styling.
- */
-export const LightTheme: Story = {
-	decorators: [
-		applicationConfig({
-			providers: [
-				provideRouter([]),
-				provideIcons({ featherChevronRight }),
-				createNavigationWithBreadcrumbs([
-					{ title: 'Dashboard', path: '/dashboard', isActive: false },
-					{ title: 'Users', path: '/dashboard/users', isActive: true },
-				]),
-			],
-		}),
-	],
-	render: () => ({
-		template: `
-				<header class="border-b border-gray-200 bg-white p-4">
-					<div appHeader></div>
-				</header>
-			`,
-	}),
-};
-
-/**
- * Header with dark theme styling.
- */
-export const DarkTheme: Story = {
-	decorators: [
-		applicationConfig({
-			providers: [
-				provideRouter([]),
-				provideIcons({ featherChevronRight }),
-				createNavigationWithBreadcrumbs([
-					{ title: 'Dashboard', path: '/dashboard', isActive: false },
-					{ title: 'Settings', path: '/dashboard/settings', isActive: true },
-				]),
-			],
-		}),
-	],
-	render: () => ({
-		template: `
-				<div class="dark">
-					<header class="border-b border-gray-800 bg-black/95 p-4">
-						<div appHeader></div>
-					</header>
-				</div>
-			`,
-	}),
-};
-
-/**
- * Header on a narrow viewport simulating mobile.
- */
-export const MobileViewport: Story = {
-	decorators: [
-		applicationConfig({
-			providers: [
-				provideRouter([]),
-				provideIcons({ featherChevronRight }),
-				createNavigationWithBreadcrumbs([
-					{ title: 'Dashboard', path: '/dashboard', isActive: false },
-					{ title: 'User Management', path: '/dashboard/user-management', isActive: true },
-				]),
-			],
-		}),
-	],
-	render: () => ({
-		template: `
-				<div style="max-width: 375px; border: 1px solid #ccc;">
-					<header class="border-b border-gray-200 p-2 dark:border-gray-800 dark:bg-black/95">
-						<div appHeader></div>
-					</header>
-				</div>
-			`,
-	}),
-	parameters: {
-		viewport: {
-			defaultViewport: 'mobile1',
-		},
-	},
-};
-
-/**
- * Header on a tablet viewport.
- */
-export const TabletViewport: Story = {
-	decorators: [
-		applicationConfig({
-			providers: [
-				provideRouter([]),
-				provideIcons({ featherChevronRight }),
-				createNavigationWithBreadcrumbs([
-					{ title: 'Dashboard', path: '/dashboard', isActive: false },
-					{ title: 'Reports', path: '/dashboard/reports', isActive: false },
-					{ title: 'Sales', path: '/dashboard/reports/sales', isActive: true },
-				]),
-			],
-		}),
-	],
-	render: () => ({
-		template: `
-				<div style="max-width: 768px;">
-					<header class="border-b border-gray-200 p-3 dark:border-gray-800 dark:bg-black/95">
-						<div appHeader></div>
-					</header>
 				</div>
 			`,
 	}),
@@ -317,31 +212,6 @@ export const DeeplyNestedBreadcrumb: Story = {
 					{ title: 'Settings', path: '/dashboard/admin/settings', isActive: false },
 					{ title: 'System', path: '/dashboard/admin/settings/system', isActive: false },
 					{ title: 'Security', path: '/dashboard/admin/settings/system/security', isActive: true },
-				]),
-			],
-		}),
-	],
-	render: () => ({
-		template: `
-				<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
-					<div appHeader></div>
-				</header>
-			`,
-	}),
-};
-
-/**
- * Header with various breadcrumb title lengths.
- */
-export const VariableTitleLengths: Story = {
-	decorators: [
-		applicationConfig({
-			providers: [
-				provideRouter([]),
-				provideIcons({ featherChevronRight }),
-				createNavigationWithBreadcrumbs([
-					{ title: 'Admin Dashboard & Configuration Center', path: '/dashboard', isActive: false },
-					{ title: 'Settings', path: '/dashboard/settings', isActive: true },
 				]),
 			],
 		}),
