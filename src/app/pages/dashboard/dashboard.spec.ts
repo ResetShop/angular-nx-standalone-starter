@@ -4,9 +4,10 @@ import Dashboard from './dashboard';
 import { Navigation } from '@providers/navigation/navigation';
 import { NavigationSection, BreadcrumbItem } from '@interfaces/navigation';
 import { featherActivity, featherHome } from '@ng-icons/feather-icons';
+import { provideMockTheme } from '@providers/theme/theme.mock';
 
 describe('Dashboard', () => {
-	const defaultProviders = () => [provideRouter([])];
+	const defaultProviders = () => [provideRouter([]), provideMockTheme(false)];
 
 	const createNavigationWithSectionsAndBreadcrumbs = (
 		sections: NavigationSection[],

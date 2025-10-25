@@ -2,3 +2,7 @@
 @import './app/assets/css/fonts.css';
 @import './app/assets/css/tailwind.config.css';
 @import './app/assets/css/reset.css';
+
+#body {
+	overflow: hidden;
+}
