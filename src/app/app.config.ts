@@ -12,7 +12,7 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { Analytics } from '@providers/analytics/analytics';
 import { environment } from './environments/environment';
 import { provideNavigation } from '@providers/navigation/navigation.provider';
-import { Theme } from '@providers/theme/theme';
+import { provideTheme } from '@providers/theme/theme';
 
 function initializeAnalytics() {
 	return async () => {
@@ -38,7 +38,8 @@ export const appConfig: ApplicationConfig = {
 
 		// Custom providers
 		Analytics,
-		Theme,
+		// TODO: Add provider functions for custom providers
+		provideTheme(),
 		provideNavigation(),
 	],
 };

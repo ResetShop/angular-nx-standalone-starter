@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { featherMoon, featherSun } from '@ng-icons/feather-icons';
 import { Button } from '@components/button/button';
-import { Theme } from '@providers/theme/theme';
+import { ThemeProvider } from '@providers/theme/theme.abstract';
 
 @Component({
 	selector: 'app-theme-toggle',
@@ -47,7 +47,7 @@ import { Theme } from '@providers/theme/theme';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeToggle {
-	private theme = inject(Theme);
+	private theme = inject(ThemeProvider);
 	private platformId = inject(PLATFORM_ID);
 
 	readonly isBrowser = computed(() => isPlatformBrowser(this.platformId));

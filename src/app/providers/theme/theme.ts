@@ -1,10 +1,16 @@
 import { Injectable, signal, effect, inject, PLATFORM_ID, computed } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { ThemeProvider } from './theme.abstract';
 
-@Injectable({
-	providedIn: 'root',
-})
-export class Theme {
+export const provideTheme = () => [
+	{
+		provide: ThemeProvider,
+		useClass: Theme,
+	},
+];
+
+@Injectable()
+export class Theme extends ThemeProvider {
 	private readonly THEME_STORAGE_KEY = 'theme-preference';
 	private readonly platformId = inject(PLATFORM_ID);
 	private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -13,6 +19,7 @@ export class Theme {
 	private readonly _isDarkMode = signal<boolean>(this.getInitialTheme());
 
 	constructor() {
+		super();
 		effect(() => {
 			this.persistTheme(this._isDarkMode());
 		});

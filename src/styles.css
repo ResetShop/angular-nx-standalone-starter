@@ -4,6 +4,5 @@
 @import './app/assets/css/reset.css';
 
 #body {
-	overflow-x: hidden;
-	overflow-y: hidden;
+	overflow: hidden;
 }
