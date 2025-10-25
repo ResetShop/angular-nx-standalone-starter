@@ -35,11 +35,20 @@ export class Theme extends ThemeProvider {
 			return;
 		}
 
-		const htmlElement = document.documentElement;
-		if (this._isDarkMode()) {
-			htmlElement.classList.add('dark');
+		const transition = document.startViewTransition.bind(document);
+		const updateTheme = () => {
+			const htmlElement = document.documentElement;
+			if (this._isDarkMode()) {
+				htmlElement.classList.add('dark');
+			} else {
+				htmlElement.classList.remove('dark');
+			}
+		};
+
+		if (transition) {
+			transition(updateTheme);
 		} else {
-			htmlElement.classList.remove('dark');
+			updateTheme();
 		}
 	}
 
