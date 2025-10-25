@@ -8,8 +8,8 @@
 	},
 	"scripts": {
 		"preinstall": "pnpx only-allow pnpm",
-		"postinstall": "pnpm run config",
-		"config": "node --loader ts-node/esm ./scripts/set-environment.ts",
+		"postinstall": "pnpm run config && pnpm run drizzle:push-migrations && pnpm run drizzle:seed",
+		"config": "tsx ./scripts/set-environment.ts",
 		"prepare": "husky",
 		"dev": "nx serve",
 		"build": "nx build",
@@ -21,7 +21,8 @@
 		"test:watch": "nx test --watch",
 		"test:e2e": "nx run app:e2e",
 		"drizzle:create-migrations": "drizzle-kit generate",
-		"drizzle:push-migrations": "drizzle-kit push"
+		"drizzle:push-migrations": "drizzle-kit push",
+		"drizzle:seed": "node --import tsx --env-file=.env ./src/db/seed.ts"
 	},
 	"private": true,
 	"dependencies": {
@@ -117,6 +118,7 @@
 		"ts-jest": "^29.1.0",
 		"ts-node": "10.9.1",
 		"tslib": "^2.3.0",
+		"tsx": "^4.20.6",
 		"typescript": "~5.9.2",
 		"typescript-eslint": "^8.40.0",
 		"webpack": "^5.102.1"
