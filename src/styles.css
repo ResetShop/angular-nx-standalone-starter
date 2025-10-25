@@ -3,7 +3,7 @@
 @import './app/assets/css/tailwind.config.css';
 @import './app/assets/css/reset.css';
 
-body {
+#body {
 	overflow-x: hidden;
 	overflow-y: hidden;
 }

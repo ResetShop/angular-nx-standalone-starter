@@ -14,6 +14,10 @@ import { Header } from '@components/header/header';
 		</main>
 	`,
 	styles: `
+		main {
+			overflow: auto;
+		}
+
 		:host {
 			@reference "tailwindcss";
 			@apply grid h-svh;
