@@ -1,3 +1,4 @@
+import { provideHttpClient, withFetch } from '@angular/common/http';
 import {
 	ApplicationConfig,
 	inject,
@@ -5,14 +6,15 @@ import {
 	provideBrowserGlobalErrorListeners,
 	provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { appRoutes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideRouter, TitleStrategy } from '@angular/router';
 import { Analytics } from '@providers/analytics/analytics';
-import { environment } from './environments/environment';
+import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.strategy';
 import { provideNavigation } from '@providers/navigation/navigation.provider';
+import { provideProjectConfig } from '@providers/project/project.provider';
 import { provideTheme } from '@providers/theme/theme';
+import { appRoutes } from './app.routes';
+import { environment } from './environments/environment';
 
 function initializeAnalytics() {
 	return async () => {
@@ -41,5 +43,7 @@ export const appConfig: ApplicationConfig = {
 		// TODO: Add provider functions for custom providers
 		provideTheme(),
 		provideNavigation(),
+		provideProjectConfig(),
+		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },
 	],
 };
