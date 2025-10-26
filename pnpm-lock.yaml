@@ -58,6 +58,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.14
         version: 4.1.14
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.2
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(@types/pg@8.15.5)(pg@8.16.3)(postgres@3.4.7)
@@ -4964,6 +4967,11 @@ packages:
   batch@0.6.1:
     resolution:
       { integrity: sha512-x+VAiMRL6UPkx+kudNvxTl6hB2XNNCG2r+7wixVfIYwu/2HKRXimwQyaumLjMveWvT2Hkd/cAJw+QBMfJ/EKVw== }
+
+  bcryptjs@3.0.2:
+    resolution:
+      { integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog== }
+    hasBin: true
 
   beasties@0.3.5:
     resolution:
@@ -16487,6 +16495,8 @@ snapshots:
       safe-buffer: 5.1.2
 
   batch@0.6.1: {}
+
+  bcryptjs@3.0.2: {}
 
   beasties@0.3.5:
     dependencies:

@@ -49,7 +49,7 @@ async function seed() {
 			.insert(authentication)
 			.values({
 				userId: adminUserRecord[0].id,
-				passwordHash: '$2y$10$Uwrnw8fzJtpfs/aWidJgZe6BeyIA395Ky15jgWpPGumBLDnwjTNSK',
+				passwordHash: '$2b$10$NtbOLIxB.WraBf4TdAGJDeIiUxJwaYqNq8gFWtUGmWtoZnQNMPTnG',
 				failedLoginAttempts: 0,
 			})
 			.onConflictDoNothing();

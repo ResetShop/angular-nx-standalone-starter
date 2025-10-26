@@ -9,6 +9,7 @@ import {
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy } from '@angular/router';
 import { Analytics } from '@providers/analytics/analytics';
+import { initializeAuth } from '@providers/auth/auth.initializer';
 import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.strategy';
 import { provideNavigation } from '@providers/navigation/navigation.provider';
 import { provideProjectConfig } from '@providers/project/project.provider';
@@ -37,6 +38,7 @@ export const appConfig: ApplicationConfig = {
 
 		// Initializers
 		provideAppInitializer(initializeAnalytics()),
+		provideAppInitializer(initializeAuth()),
 
 		// Custom providers
 		Analytics,
