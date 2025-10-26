@@ -1,11 +1,13 @@
 import { Route } from '@angular/router';
 import { authGuard } from '@guards/auth.guard';
+import { noAuthGuard } from '@guards/no-auth.guard';
 import { NamedRoute } from '@interfaces/navigation';
 
 export const appRoutes: Route[] = [
 	{
 		path: 'auth',
 		title: 'Autenticación',
+		canActivate: [noAuthGuard],
 		loadChildren: () => import('./pages/auth.routes'),
 	},
 	{
