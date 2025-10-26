@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Brand } from '@components/brand/brand';
 import { Button } from '@components/button/button';
 import NavSection from '@components/nav-section/nav-section';
@@ -9,7 +9,7 @@ import { Navigation } from '@providers/navigation/navigation';
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appSidebar]',
-	imports: [RouterLink, Button, NavSection, Brand],
+	imports: [Button, NavSection, Brand],
 	template: `
 		<div class="p-2">
 			<app-brand />
