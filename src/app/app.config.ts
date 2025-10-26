@@ -9,6 +9,7 @@ import {
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy } from '@angular/router';
 import { Analytics } from '@providers/analytics/analytics';
+import { provideAuth } from '@providers/auth/auth.provider';
 import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.strategy';
 import { provideNavigation } from '@providers/navigation/navigation.provider';
 import { provideProjectConfig } from '@providers/project/project.provider';
@@ -41,6 +42,7 @@ export const appConfig: ApplicationConfig = {
 		// Custom providers
 		Analytics,
 		// TODO: Add provider functions for custom providers
+		provideAuth(),
 		provideTheme(),
 		provideNavigation(),
 		provideProjectConfig(),
