@@ -1,17 +1,14 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
-
-interface LoginForm {
-	email: FormControl<string>;
-	password: FormControl<string>;
-}
+import { LoginForm } from '@interfaces/auth';
+import { Auth } from '@providers/auth/auth';
 
 @Component({
-	selector: 'app-login-card-page',
+	selector: 'app-login-page',
 	imports: [CommonModule, Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
@@ -103,6 +100,7 @@ interface LoginForm {
 	`,
 })
 export default class Login {
+	auth = inject(Auth);
 	router = inject(Router);
 
 	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password']);
@@ -118,6 +116,15 @@ export default class Login {
 		}),
 	});
 
+	constructor() {
+		effect(() => {
+			const user = this.auth.currentUser();
+			if (user) {
+				this.router.navigate(['..', 'dashboard']);
+			}
+		});
+	}
+
 	onSubmit() {
 		if (this.loginForm.invalid) {
 			this.loginForm.markAllAsTouched();
@@ -125,9 +132,6 @@ export default class Login {
 		}
 
 		const { email, password } = this.loginForm.value;
-		// TODO: Implement actual login logic
-		console.log('Login attempt:', { email, password });
-
-		this.router.navigate(['..', 'dashboard']);
+		this.auth.loginRequestParams.set({ email, password });
 	}
 }
