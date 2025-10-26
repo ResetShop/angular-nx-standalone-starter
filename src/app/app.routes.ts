@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { authGuard } from '@guards/auth.guard';
 import { NamedRoute } from '@interfaces/navigation';
 
 export const appRoutes: Route[] = [
@@ -10,6 +11,7 @@ export const appRoutes: Route[] = [
 	{
 		path: 'dashboard',
 		title: 'Panel Principal',
+		canActivate: [authGuard],
 		loadChildren: () => import('./pages/dashboard/dashboard.routes'),
 	},
 	{

@@ -23,6 +23,7 @@ export default {
 	moduleNameMapper: {
 		'^@components/(.*)$': '<rootDir>/src/app/components/$1',
 		'^@configs/(.*)$': '<rootDir>/src/app/configs/$1',
+		'^@guards/(.*)$': '<rootDir>/src/app/guards/$1',
 		'^@interfaces/(.*)$': '<rootDir>/src/app/interfaces/$1',
 		'^@mocks/(.*)$': '<rootDir>/src/app/mocks/$1',
 		'^@models/(.*)$': '<rootDir>/src/app/models/$1',
