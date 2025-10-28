@@ -120,7 +120,7 @@ export default class Login {
 		effect(() => {
 			const user = this.auth.currentUser();
 			if (user) {
-				this.router.navigate(['..', 'dashboard']);
+				this.router.navigate(['/dashboard']);
 			}
 		});
 	}

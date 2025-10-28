@@ -25,6 +25,7 @@ export class Auth {
 			return this.http.post<LoginResponse>('/api/auth/login', params).pipe(
 				tap((response) => {
 					localStorage.setItem('auth_user', JSON.stringify(response.user));
+					this._currentUser.set(response);
 				}),
 			);
 		},
