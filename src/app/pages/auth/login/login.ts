@@ -6,6 +6,7 @@ import { Button } from '@components/button/button';
 import Card from '@components/card/card';
 import { LoginForm } from '@interfaces/auth';
 import { Auth } from '@providers/auth/auth';
+import { first } from 'rxjs';
 
 @Component({
 	selector: 'app-login-page',
@@ -132,6 +133,6 @@ export default class Login {
 		}
 
 		const { email, password } = this.loginForm.value;
-		this.auth.loginRequestParams.set({ email, password });
+		this.auth.login({ email, password }).pipe(first()).subscribe();
 	}
 }
