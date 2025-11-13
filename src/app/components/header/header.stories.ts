@@ -1,11 +1,12 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
 import { provideRouter } from '@angular/router';
+import { BreadcrumbItem } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
 import { featherChevronRight } from '@ng-icons/feather-icons';
-import { Header } from './header';
 import { Navigation } from '@providers/navigation/navigation';
-import { BreadcrumbItem } from '@interfaces/navigation';
+import { provideMockTheme } from '@providers/theme/theme.mock';
+import type { Meta, StoryObj } from '@storybook/angular';
+import { applicationConfig } from '@storybook/angular';
+import { Header } from './header';
 
 const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 	provide: Navigation,
@@ -21,7 +22,7 @@ const meta: Meta<Header> = {
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [provideRouter([]), provideIcons({ featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherChevronRight }), provideMockTheme(false)],
 		}),
 	],
 	parameters: {
