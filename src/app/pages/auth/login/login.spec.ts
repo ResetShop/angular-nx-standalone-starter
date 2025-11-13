@@ -1,12 +1,14 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { provideRouter } from '@angular/router';
 import Login from './login';
 
 describe('Login', () => {
 	it('should create the login component', async () => {
 		const { fixture } = await render(Login, {
-			providers: [provideRouter([])],
+			providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
 		});
 
 		expect(fixture.componentInstance).toBeTruthy();
