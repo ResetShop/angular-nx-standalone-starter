@@ -27,6 +27,8 @@ jobs:
 
       - name: Generate testing environment file
         run: pnpm run config
+        env:
+          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
 
       - name: Rebuild and prepare
         run: pnpm rebuild && pnpm run prepare --if-present
