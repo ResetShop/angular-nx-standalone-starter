@@ -13,8 +13,13 @@ import { first } from 'rxjs';
 	imports: [CommonModule, Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" class="z-10">
-				<app-card [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
+			<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" class="z-10 sm:h-[420px] sm:w-[420px]">
+				<app-card
+					[titleTemplate]="cardTitle"
+					[contentTemplate]="cardContent"
+					[footerTemplate]="cardFooter"
+					class="h-svh w-svw"
+				/>
 				<ng-template #cardTitle>
 					<!-- TODO: Replace the image for your system/company logo -->
 					<div class="mt-4 flex flex-col gap-4">
