@@ -1,13 +1,20 @@
-import { render, screen } from '@testing-library/angular';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import Dashboard from './dashboard';
-import { Navigation } from '@providers/navigation/navigation';
-import { NavigationSection, BreadcrumbItem } from '@interfaces/navigation';
+import { BreadcrumbItem, NavigationSection } from '@interfaces/navigation';
 import { featherActivity, featherHome } from '@ng-icons/feather-icons';
+import { Navigation } from '@providers/navigation/navigation';
 import { provideMockTheme } from '@providers/theme/theme.mock';
+import { render, screen } from '@testing-library/angular';
+import Dashboard from './dashboard';
 
 describe('Dashboard', () => {
-	const defaultProviders = () => [provideRouter([]), provideMockTheme(false)];
+	const defaultProviders = () => [
+		provideRouter([]),
+		provideMockTheme(false),
+		provideHttpClient(),
+		provideHttpClientTesting(),
+	];
 
 	const createNavigationWithSectionsAndBreadcrumbs = (
 		sections: NavigationSection[],
@@ -129,7 +136,7 @@ describe('Dashboard', () => {
 			],
 		});
 
-		const signOutButton = screen.getByRole('link', { name: /cerrar sesión/i });
+		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
 		expect(signOutButton).toBeInTheDocument();
 	});
 });

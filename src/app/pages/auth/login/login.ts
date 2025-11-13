@@ -1,22 +1,25 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
-
-interface LoginForm {
-	email: FormControl<string>;
-	password: FormControl<string>;
-}
+import { LoginForm } from '@interfaces/auth';
+import { Auth } from '@providers/auth/auth';
+import { first } from 'rxjs';
 
 @Component({
-	selector: 'app-login-card-page',
+	selector: 'app-login-page',
 	imports: [CommonModule, Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" class="z-10">
-				<app-card [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
+			<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" class="z-10 sm:h-[420px] sm:w-[420px]">
+				<app-card
+					[titleTemplate]="cardTitle"
+					[contentTemplate]="cardContent"
+					[footerTemplate]="cardFooter"
+					class="h-svh w-svw"
+				/>
 				<ng-template #cardTitle>
 					<!-- TODO: Replace the image for your system/company logo -->
 					<div class="mt-4 flex flex-col gap-4">
@@ -103,6 +106,7 @@ interface LoginForm {
 	`,
 })
 export default class Login {
+	auth = inject(Auth);
 	router = inject(Router);
 
 	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password']);
@@ -118,6 +122,15 @@ export default class Login {
 		}),
 	});
 
+	constructor() {
+		effect(() => {
+			const user = this.auth.currentUser();
+			if (user) {
+				this.router.navigate(['/dashboard']);
+			}
+		});
+	}
+
 	onSubmit() {
 		if (this.loginForm.invalid) {
 			this.loginForm.markAllAsTouched();
@@ -125,9 +138,6 @@ export default class Login {
 		}
 
 		const { email, password } = this.loginForm.value;
-		// TODO: Implement actual login logic
-		console.log('Login attempt:', { email, password });
-
-		this.router.navigate(['..', 'dashboard']);
+		this.auth.login({ email, password }).pipe(first()).subscribe();
 	}
 }
