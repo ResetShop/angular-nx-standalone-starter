@@ -1,17 +1,21 @@
+import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { AuthService } from './auth.service';
 
 const app = new Hono();
 const authService = new AuthService();
 
-app.post('/login', async (c) => {
-	try {
-		const body = await c.req.json();
-		const { email, password } = body;
+// Schema definitions
+const loginSchema = z.object({
+	email: z.string().email('Invalid email format'),
+	password: z.string().min(1, 'Password is required'),
+});
 
-		if (!email || !password) {
-			return c.json({ error: 'Email and password hash are required' }, 400);
-		}
+// Middleware to validate login request
+app.post('/login', zValidator('json', loginSchema), async (c) => {
+	try {
+		const { email, password } = c.req.valid('json');
 
 		const response = await authService.authenticate({ email, password });
 		return c.json(response, 200);
