@@ -6,27 +6,28 @@ import userEvent from '@testing-library/user-event';
 import Login from './login';
 
 describe('Login', () => {
-	it('should create the login component', async () => {
-		const { fixture } = await render(Login, {
-			providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+	const defaultProviders = () => [provideRouter([]), provideHttpClient(), provideHttpClientTesting()];
+
+	const renderLogin = async () =>
+		render(Login, {
+			providers: defaultProviders(),
 		});
+
+	it('should create the login component', async () => {
+		const { fixture } = await renderLogin();
 
 		expect(fixture.componentInstance).toBeTruthy();
 	});
 
 	it('should render the login form with email and password fields', async () => {
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		expect(screen.getByLabelText(/dirección de email/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument();
 	});
 
 	it('should render submit button with appButton directive', async () => {
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		const submitButton = screen.getByRole('button', {
 			name: /iniciar sesión/i,
@@ -41,9 +42,7 @@ describe('Login', () => {
 	it('should show required error for email when dirty and empty', async () => {
 		const user = userEvent.setup();
 
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		const emailInput = screen.getByLabelText(/dirección de email/i);
 		await user.type(emailInput, 'a');
@@ -55,9 +54,7 @@ describe('Login', () => {
 	it('should show invalid email error when email format is incorrect and dirty', async () => {
 		const user = userEvent.setup();
 
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		const emailInput = screen.getByLabelText(/dirección de email/i);
 		await user.type(emailInput, 'invalid-email');
@@ -68,9 +65,7 @@ describe('Login', () => {
 	it('should show required error for password when dirty and empty', async () => {
 		const user = userEvent.setup();
 
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		const passwordInput = screen.getByLabelText(/contraseña/i);
 		await user.type(passwordInput, 'a');
@@ -82,9 +77,7 @@ describe('Login', () => {
 	it('should show minlength error when password is too short and dirty', async () => {
 		const user = userEvent.setup();
 
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		const passwordInput = screen.getByLabelText(/contraseña/i);
 		await user.type(passwordInput, '1234567');
@@ -96,9 +89,7 @@ describe('Login', () => {
 	it('should enable submit button when form is valid', async () => {
 		const user = userEvent.setup();
 
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		const emailInput = screen.getByLabelText(/dirección de email/i);
 		const passwordInput = screen.getByLabelText(/contraseña/i);
@@ -113,18 +104,14 @@ describe('Login', () => {
 	});
 
 	it('should render forgot password link', async () => {
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		const forgotPasswordLink = screen.getByText(/¿olvidaste tu contraseña?/i);
 		expect(forgotPasswordLink).toBeInTheDocument();
 	});
 
 	it('should have correct form structure with formGroup directive', async () => {
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		// Verify form inputs exist using semantic queries
 		const emailInput = screen.getByLabelText(/dirección de email/i);
@@ -135,18 +122,14 @@ describe('Login', () => {
 	});
 
 	it('should not show email error when form is pristine', async () => {
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		expect(screen.queryByText(/el email es requerido/i)).not.toBeInTheDocument();
 		expect(screen.queryByText(/ingrese un email válido/i)).not.toBeInTheDocument();
 	});
 
 	it('should not show password error when form is untouched', async () => {
-		await render(Login, {
-			providers: [provideRouter([])],
-		});
+		await renderLogin();
 
 		expect(screen.queryByText(/la contraseña es requerida/i)).not.toBeInTheDocument();
 	});

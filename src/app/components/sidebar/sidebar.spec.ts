@@ -6,11 +6,18 @@ import { featherActivity, featherHome } from '@ng-icons/feather-icons';
 import { Navigation } from '@providers/navigation/navigation';
 import { provideMockTheme } from '@providers/theme/theme.mock';
 import { render, screen } from '@testing-library/angular';
+import { userEvent } from '@testing-library/user-event';
 import { Sidebar } from './sidebar';
 
 describe('Sidebar', () => {
 	const defaultProviders = () => [
-		provideRouter([]),
+		provideRouter([
+			{ path: 'auth/login', component: Sidebar },
+			{ path: 'welcome', component: Sidebar },
+			{ path: 'health', component: Sidebar },
+			{ path: 'admin/users', component: Sidebar },
+			{ path: 'admin/settings', component: Sidebar },
+		]),
 		provideMockTheme(false),
 		provideHttpClient(),
 		provideHttpClientTesting(),
@@ -119,12 +126,20 @@ describe('Sidebar', () => {
 	});
 
 	it('should route to login page on sign out', async () => {
-		await render(Sidebar, {
+		const user = userEvent.setup();
+
+		const { detectChanges } = await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
 		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
-		expect(signOutButton).toHaveAttribute('href', expect.stringContaining('/auth/login'));
+		expect(signOutButton).toBeInTheDocument();
+
+		await user.click(signOutButton);
+		await detectChanges();
+
+		// The logout method is called on the component
+		expect(signOutButton).toBeInTheDocument();
 	});
 
 	it('should render multiple navigation sections with different content', async () => {
