@@ -32,6 +32,8 @@ jobs:
 
       - name: Rebuild and prepare
         run: pnpm rebuild && pnpm run prepare --if-present
+        env:
+          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
 
       - name: Cache repository
         uses: actions/cache@v4.2.3
