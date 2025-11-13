@@ -8,8 +8,8 @@
 	},
 	"scripts": {
 		"preinstall": "pnpx only-allow pnpm",
-		"postinstall": "pnpm run config",
-		"config": "node --loader ts-node/esm ./scripts/set-environment.ts",
+		"postinstall": "pnpm run config && pnpm run drizzle:push-migrations && pnpm run drizzle:seed",
+		"config": "tsx ./scripts/set-environment.ts",
 		"prepare": "husky",
 		"dev": "nx serve",
 		"build": "nx build",
@@ -19,7 +19,10 @@
 		"stylelint": "nx stylelint app --skip-nx-cache",
 		"test": "nx test --skip-nx-cache",
 		"test:watch": "nx test --watch",
-		"test:e2e": "nx run app:e2e"
+		"test:e2e": "nx run app:e2e",
+		"drizzle:create-migrations": "drizzle-kit generate",
+		"drizzle:push-migrations": "drizzle-kit push",
+		"drizzle:seed": "tsx ./src/db/seed.ts"
 	},
 	"private": true,
 	"dependencies": {
@@ -37,14 +40,19 @@
 		"@floating-ui/dom": "^1.6.0",
 		"@happy-dom/jest-environment": "^20.0.2",
 		"@hono/node-server": "^1.19.5",
+		"@hono/zod-validator": "^0.7.4",
 		"@ng-icons/core": "^32.2.0",
 		"@ng-icons/feather-icons": "^32.2.0",
 		"@tailwindcss/postcss": "^4.1.14",
+		"bcryptjs": "^3.0.2",
+		"drizzle-orm": "^0.44.7",
 		"hono": "^4.9.12",
 		"ngxtension": "^6.0.0",
+		"pg": "^8.16.3",
 		"postcss": "^8.5.6",
 		"rxjs": "~7.8.0",
-		"tailwindcss": "^4.1.14"
+		"tailwindcss": "^4.1.14",
+		"zod": "^4.1.12"
 	},
 	"devDependencies": {
 		"@angular-devkit/core": "~20.3.0",
@@ -79,8 +87,10 @@
 		"@testing-library/user-event": "^14.6.1",
 		"@types/jest": "^29.5.12",
 		"@types/node": "^22.18.10",
+		"@types/pg": "^8.15.5",
 		"@typescript-eslint/utils": "^8.40.0",
 		"angular-eslint": "^20.3.0",
+		"drizzle-kit": "^0.31.5",
 		"eslint": "^9.8.0",
 		"eslint-config-prettier": "10.1.8",
 		"eslint-plugin-jest": "^29.0.1",
@@ -111,6 +121,7 @@
 		"ts-jest": "^29.1.0",
 		"ts-node": "10.9.1",
 		"tslib": "^2.3.0",
+		"tsx": "^4.20.6",
 		"typescript": "~5.9.2",
 		"typescript-eslint": "^8.40.0",
 		"webpack": "^5.102.1"

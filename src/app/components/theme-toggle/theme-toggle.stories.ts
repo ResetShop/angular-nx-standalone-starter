@@ -1,11 +1,16 @@
-import type { Meta, StoryObj } from '@storybook/angular';
+import { provideMockTheme } from '@providers/theme/theme.mock';
+import { applicationConfig, Meta, StoryObj } from '@storybook/angular';
 import { ThemeToggle } from './theme-toggle';
 
 const meta: Meta<ThemeToggle> = {
 	component: ThemeToggle,
 	title: 'Components/ThemeToggle',
 	tags: ['autodocs'],
-	decorators: [],
+	decorators: [
+		applicationConfig({
+			providers: [provideMockTheme(false)],
+		}),
+	],
 	parameters: {
 		docs: {
 			description: {

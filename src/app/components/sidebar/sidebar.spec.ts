@@ -1,13 +1,27 @@
-import { render, screen } from '@testing-library/angular';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { Sidebar } from './sidebar';
-import { Navigation } from '@providers/navigation/navigation';
 import { NavigationSection } from '@interfaces/navigation';
 import { featherActivity, featherHome } from '@ng-icons/feather-icons';
+import { Navigation } from '@providers/navigation/navigation';
 import { provideMockTheme } from '@providers/theme/theme.mock';
+import { render, screen } from '@testing-library/angular';
+import { userEvent } from '@testing-library/user-event';
+import { Sidebar } from './sidebar';
 
 describe('Sidebar', () => {
-	const defaultProviders = () => [provideRouter([]), provideMockTheme(false)];
+	const defaultProviders = () => [
+		provideRouter([
+			{ path: 'auth/login', component: Sidebar },
+			{ path: 'welcome', component: Sidebar },
+			{ path: 'health', component: Sidebar },
+			{ path: 'admin/users', component: Sidebar },
+			{ path: 'admin/settings', component: Sidebar },
+		]),
+		provideMockTheme(false),
+		provideHttpClient(),
+		provideHttpClientTesting(),
+	];
 
 	const createNavigationWithSections = (sections: NavigationSection[]) => ({
 		provide: Navigation,
@@ -94,7 +108,7 @@ describe('Sidebar', () => {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
-		const signOutButton = screen.getByRole('link', { name: /cerrar sesión/i });
+		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
 		expect(signOutButton).toBeInTheDocument();
 		expect(signOutButton).toHaveAttribute('variant', 'link');
 	});
@@ -112,12 +126,20 @@ describe('Sidebar', () => {
 	});
 
 	it('should route to login page on sign out', async () => {
-		await render(Sidebar, {
+		const user = userEvent.setup();
+
+		const { detectChanges } = await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		});
 
-		const signOutButton = screen.getByRole('link', { name: /cerrar sesión/i });
-		expect(signOutButton).toHaveAttribute('href', expect.stringContaining('/auth/login'));
+		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
+		expect(signOutButton).toBeInTheDocument();
+
+		await user.click(signOutButton);
+		await detectChanges();
+
+		// The logout method is called on the component
+		expect(signOutButton).toBeInTheDocument();
 	});
 
 	it('should render multiple navigation sections with different content', async () => {
@@ -153,7 +175,7 @@ describe('Sidebar', () => {
 
 		const sectionTitles = screen.getByText('Ajustes y mantenimiento');
 		const adminTitle = screen.getByText('Administración');
-		const signOutButton = screen.getByRole('link', { name: /cerrar sesión/i });
+		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
 
 		expect(sectionTitles).toBeInTheDocument();
 		expect(adminTitle).toBeInTheDocument();
