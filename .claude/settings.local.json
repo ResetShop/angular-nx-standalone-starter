@@ -11,7 +11,8 @@
 			"WebSearch",
 			"Bash(cat:*)",
 			"Bash(npm run stylelint:*)",
-			"Bash(npm run:*)"
+			"Bash(npm run:*)",
+			"mcp__nx-mcp__nx_workspace_path"
 		]
 	},
 	"enableAllProjectMcpServers": true,

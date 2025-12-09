@@ -2,7 +2,7 @@
 
 ## How to use this repo
 
-This repository is a starter project for an SSR-ready Angular 20.3 app, which uses Express v5 for its backend web API and that is ready to be deployed in Vercel.
+This repository is a starter project for an SSR-ready Angular 20.3 app, which uses Hono for its backend web API and that is ready to be deployed in Vercel.
 
 Search for the TODOs! They indicate places where you'll need to update fields to suit your project architecture and folder structure.
 
@@ -11,86 +11,216 @@ Search for the TODOs! They indicate places where you'll need to update fields to
 - App: https://angular-nx-standalone-starter.vercel.app/
 - Storybook: https://angular-nx-standalone-starter-story.vercel.app/
 
-## Steps to setup the repo for a project
+## Project Setup Guide
 
-## Configure a Storybook instance for your project
+This guide covers all the setup steps needed to configure this starter repository for your project. The repository includes optional integrations for databases, CMS, and analytics services.
 
-1. Edit `scripts/set-environment.ts` file using the information for your V
+### Quick Start Checklist
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+- [ ] Clone repository and install dependencies
+- [ ] Configure environment variables **[Required]**
+- [ ] Choose and setup database **[Optional]**
+- [ ] Configure CMS integration **[Optional]**
+- [ ] Setup analytics **[Optional]**
+- [ ] Implement authentication token generation **[Required]**
+- [ ] Configure development tools **[Optional]**
+- [ ] Post-setup cleanup **[Required]**
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/angular-standalone-tutorial?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+---
 
-## Finish your CI setup
+### Required Setup
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/UNiQ918kVj)
+#### 1. Prerequisites **[Required]**
 
-## Run tasks
+This project requires:
 
-To run the dev server for your app, use:
+- **Node.js**: `^20.19.0` or `^22.12.0`
+- **pnpm**: Package manager (enforced by preinstall script)
 
-```sh
-npx nx serve app
+**Installation Steps:**
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd angular-nx-standalone-starter
+
+# Install dependencies (automatically runs config and database setup)
+pnpm install
 ```
 
-To create a production bundle:
+Note: The `pnpm install` command automatically runs the configuration script (`scripts/set-environment.ts`) and database migrations via the postinstall hook.
 
-```sh
-npx nx build app
-```
+#### 2. Environment Variables Configuration **[Required]**
 
-To see all available targets to run for a project, run:
+The project uses environment variables for different deployment environments. Configuration is handled automatically for development, but you'll need to set values for staging/production deployments.
 
-```sh
-npx nx show project app
-```
+**Key Environment Variables:**
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+- **Staging Domain** (`scripts/set-environment.ts:83`): Configure your Vercel staging branch URL
+  - Edit the `generateApiUrl` function to set your staging domain
+  - Used for preview deployments on specific branches
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- **Production Domain** (`scripts/set-environment.ts:104`): Set your production website URL
+  - Configure the production environment URL in the `exportedEnvironment` object
+  - Automatically uses `VERCEL_PROJECT_PRODUCTION_URL` if available
 
-## Add new projects
+- **CLARITY_PROJECT_ID** (Optional): Microsoft Clarity analytics project ID
+  - Set this environment variable to enable Clarity analytics
+  - See `scripts/set-environment.ts:110-112` for implementation details
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+**Configuration Locations:**
 
-Use the plugin's generator to create new projects.
+- **Development**: Automatically creates `.env` file via the config script
+- **Vercel Deployment**: Set environment variables in your Vercel project settings
 
-To generate a new application, use:
+#### 3. Authentication Implementation **[Required]**
 
-```sh
-npx nx g @nx/angular:app demo
-```
+The authentication service requires JWT token generation to be implemented:
 
-To generate a new library, use:
+**Implementation Required:**
 
-```sh
-npx nx g @nx/angular:lib mylib
-```
+- **File**: `src/api/modules/auth/auth.service.ts:49`
+- **Task**: Implement access token and refresh token generation logic
+- **Details**: Add your JWT signing logic using your preferred library (e.g., `jsonwebtoken`)
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+This is a critical security component that must be implemented before deploying to production.
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Optional Integrations
 
-## Install Nx Console
+These integrations can be enabled based on your project needs. Each section includes installation commands and configuration steps.
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+#### 1. Database Configuration **[Optional]**
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The starter supports both MySQL and PostgreSQL via Drizzle ORM. Choose one based on your requirements.
 
-## Useful links
+**Setup Steps:**
 
-Learn more:
+1. **Install Database Packages:**
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/angular-standalone-tutorial?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+   For MySQL:
 
-And join the Nx community:
+   ```bash
+   pnpm install drizzle-orm drizzle-kit mysql2
+   ```
 
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+   For PostgreSQL:
+
+   ```bash
+   pnpm install drizzle-orm drizzle-kit postgres
+   ```
+
+2. **Configure Drizzle:**
+   - Edit `drizzle.config.ts:5,10` to set dialect and credentials programmatically
+   - Current implementation has hardcoded values that need to be made dynamic
+
+3. **Uncomment Database Connector:**
+   - For MySQL: Uncomment code in `src/api/helpers/drizzle-mysql-connector.ts:1-2`
+   - For PostgreSQL: Uncomment code in `src/api/helpers/drizzle-postgres-connector.ts:1-2`
+
+4. **Enable Database in Environment Config:**
+   - Uncomment database configuration in `src/api/helpers/environment.ts:17,45`
+
+5. **Set Connection String:**
+   - Add your database connection string to environment variables
+   - Configure separately for development and production environments
+
+#### 2. Sanity.io CMS Integration **[Optional]**
+
+Integrate Sanity.io headless CMS for content management.
+
+**Setup Steps:**
+
+1. **Install Sanity Client:**
+
+   ```bash
+   pnpm install @sanity/client
+   ```
+
+2. **Uncomment Sanity Connector:**
+   - File: `src/api/helpers/sanity-connector.ts:1-2`
+   - Uncomment the connector implementation
+
+3. **Enable Sanity in Environment Config:**
+   - Uncomment Sanity configuration in `src/api/helpers/environment.ts:4,32`
+
+4. **Configure Environment Script (if using local Sanity Studio):**
+   - Note: `scripts/set-environment.ts:53` contains setup for local Sanity Studio under `cms/` folder
+   - Only uncomment if you're running Sanity Studio locally in this repository
+
+5. **Set Environment Variables:**
+   - Add Sanity project ID and dataset to your environment variables
+   - Configure API version and authentication token as needed
+
+#### 3. Analytics Integration **[Optional]**
+
+Enable analytics tracking with Microsoft Clarity and/or Vercel Speed Insights.
+
+##### Microsoft Clarity
+
+1. **Install Clarity Package:**
+
+   ```bash
+   pnpm install @microsoft/clarity
+   ```
+
+2. **Uncomment Clarity Connector:**
+   - File: `src/api/helpers/clarity-connector.ts:1-2`
+
+3. **Enable in Analytics Provider:**
+   - Uncomment Clarity setup in `src/app/providers/analytics/analytics.ts:22`
+
+4. **Uncomment Environment Configuration:**
+   - Files: `src/api/helpers/environment.ts:11,39`
+
+5. **Set Environment Variable:**
+   - Add `CLARITY_PROJECT_ID` with your Microsoft Clarity project ID
+   - See `scripts/set-environment.ts:110` for how this variable is used
+
+##### Vercel Speed Insights
+
+1. **Install Speed Insights:**
+
+   ```bash
+   pnpm install @vercel/speed-insights
+   ```
+
+2. **Uncomment in Analytics Provider:**
+   - Files: `src/app/providers/analytics/analytics.ts:2,11`
+   - Uncomment the Speed Insights initialization code
+
+#### 4. Development Tools **[Optional]**
+
+##### Storybook Assets Configuration
+
+If you need to add static assets for Storybook:
+
+- **File**: `.storybook/main.ts:21`
+- **Action**: Add your project assets directory to the Storybook configuration
+- **Example**: Add paths to image folders, fonts, or other static resources needed in Storybook stories
+
+##### Custom Angular Providers
+
+For adding custom dependency injection providers:
+
+- **File**: `src/app/app.config.ts:45`
+- **Action**: Add your custom provider functions to the application configuration
+- **Use Case**: Custom services, HTTP interceptors, or third-party library providers
+
+---
+
+### Post-Setup Steps **[Required]**
+
+#### Remove Configuration Routes
+
+After completing your setup:
+
+1. **Remove Setup Route:**
+   - File: `src/app/pages/dashboard/dashboard.routes.ts:15`
+   - Remove the welcome/configuration route intended for initial setup only
+
+2. **Verify Application:**
+   - Run `pnpm dev` to start the development server
+   - Ensure all configured features work correctly
+   - Test that removed routes no longer appear
