@@ -16,15 +16,15 @@
  */
 
 // NodeJS & env
-import { writeFileSync, existsSync, mkdirSync, writeFile } from 'fs';
-import ErrnoException = NodeJS.ErrnoException;
+import { existsSync, mkdirSync, writeFile, writeFileSync } from 'fs';
 import { join } from 'node:path';
+import ErrnoException = NodeJS.ErrnoException;
 
 // Environments
 export type TEnvironmentType = 'development' | 'preview' | 'staging' | 'production';
 
 // Constants to generate the environment file
-const environment: TEnvironmentType = (process.env['VERCEL_ENV'] as TEnvironmentType) ?? 'development';
+const environment: TEnvironmentType = (process.env['VERCEL_TARGET_ENV'] as TEnvironmentType) ?? 'development';
 const dirPath = `src/app/environments`;
 const targetPath = `${dirPath}/environment.ts`;
 
@@ -78,12 +78,8 @@ if (environment === 'development') {
 const generateApiUrl = (environment: TEnvironmentType): string => {
 	let url = '/';
 
-	const branchUrl: string = process.env['VERCEL_BRANCH_URL'] as string;
-	// TODO: Declare the staging branch for your project in Vercel
-	const stagingBranchUrl = '';
-
 	// Assigns URL based on the Vercel branch URL for staging environment
-	if (branchUrl === stagingBranchUrl) {
+	if (environment === 'staging') {
 		// TODO: Declare the staging domain name for your project in Vercel
 		url = ``;
 	}
@@ -132,7 +128,7 @@ writeFile(targetPath, environmentFileContent, { flag: 'w' }, function (err: Errn
 		return;
 	}
 	console.log(`Environment variables written to ${targetPath}`);
-	console.log('Vercel Environment - VERCEL_ENV = ', process.env['VERCEL_ENV']);
+	console.log('Vercel Environment - VERCEL_TARGET_ENV = ', process.env['VERCEL_TARGET_ENV']);
 	console.log('Vercel Environment - VERCEL_URL = ', process.env['VERCEL_URL']);
 	console.log('Vercel branch URL - VERCEL_BRANCH_URL = ', process.env['VERCEL_BRANCH_URL']);
 	console.log('API and Website URL = ', apiUrl);
