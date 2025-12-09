@@ -15,33 +15,33 @@ async function seed() {
 	try {
 		console.log('🌱 Starting database seed...');
 
-		// Insert admin user
-		const adminUser = await db
-			.insert(user)
-			.values({
-				firstName: 'Administrador',
-				lastName: 'Sistema',
-				email: 'admin@sistema.com',
-				enabled: true,
-				deleted: false,
-			})
-			.onConflictDoNothing()
-			.returning({ id: user.id });
+		// Check if admin user already exists
+		const existingUser = await db.select({ id: user.id }).from(user).where(eq(user.email, 'admin@sistema.com'));
 
-		console.log('✅ Admin user created/verified');
+		let adminUserRecord;
 
-		// Get the admin user to insert authentication
-		let adminUserRecord = adminUser;
+		if (existingUser.length > 0) {
+			adminUserRecord = existingUser;
+			console.log('✅ Admin user already exists');
+		} else {
+			// Insert admin user if it doesn't exist
+			const insertResult = await db
+				.insert(user)
+				.values({
+					firstName: 'Administrador',
+					lastName: 'Sistema',
+					email: 'admin@sistema.com',
+					enabled: true,
+					deleted: false,
+				})
+				.returning({ id: user.id });
 
-		if (!adminUserRecord.length) {
-			// If insert returned nothing, fetch by email
-			const fetchedUser = await db.select({ id: user.id }).from(user).where(eq(user.email, 'admin@sistema.com'));
-
-			if (!fetchedUser.length) {
-				throw new Error('Failed to create or retrieve admin user');
+			if (!insertResult.length) {
+				throw new Error('Failed to create admin user');
 			}
 
-			adminUserRecord = fetchedUser;
+			adminUserRecord = insertResult;
+			console.log('✅ Admin user created');
 		}
 
 		// Insert authentication record
