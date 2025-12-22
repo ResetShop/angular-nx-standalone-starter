@@ -5,11 +5,16 @@ export const tags = ['autodocs'];
 const preview: Preview = {
 	parameters: {
 		backgrounds: {
-			default: 'light',
-			values: [
-				{ name: 'light', value: '#ffffff' },
-				{ name: 'dark', value: '#0a0a0a' },
-			],
+			options: {
+				light: { name: 'light', value: '#ffffff' },
+				dark: { name: 'dark', value: '#0a0a0a' },
+			},
+		},
+	},
+
+	initialGlobals: {
+		backgrounds: {
+			value: 'light',
 		},
 	},
 };
