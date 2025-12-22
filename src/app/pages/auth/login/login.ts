@@ -1,4 +1,4 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -10,7 +10,7 @@ import { first } from 'rxjs';
 
 @Component({
 	selector: 'app-login-page',
-	imports: [CommonModule, Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
+	imports: [Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
 			<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" class="z-10 sm:h-[420px] sm:w-[420px]">

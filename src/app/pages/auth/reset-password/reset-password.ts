@@ -1,9 +1,9 @@
+import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import Card from '@components/card/card';
 import { Button } from '@components/button/button';
+import Card from '@components/card/card';
 
 interface ResetPasswordForm {
 	email: FormControl<string>;
@@ -11,7 +11,7 @@ interface ResetPasswordForm {
 
 @Component({
 	selector: 'app-reset-password-page',
-	imports: [CommonModule, Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
+	imports: [Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
 			<form (ngSubmit)="onSubmit()" [formGroup]="resetPasswordForm" class="z-10">

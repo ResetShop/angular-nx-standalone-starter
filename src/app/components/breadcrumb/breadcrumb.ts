@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { featherChevronRight } from '@ng-icons/feather-icons';
 import { Navigation } from '@providers/navigation/navigation';
@@ -8,7 +8,7 @@ import { Navigation } from '@providers/navigation/navigation';
 @Component({
 	selector: 'app-breadcrumb',
 	standalone: true,
-	imports: [CommonModule, NgIcon, RouterLink],
+	imports: [NgIcon, RouterLink],
 	providers: [provideIcons({ featherChevronRight })],
 	template: `
 		<nav class="flex items-center gap-1" aria-label="Breadcrumb">
