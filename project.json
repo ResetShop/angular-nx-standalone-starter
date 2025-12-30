@@ -80,11 +80,16 @@
 			}
 		},
 		"test": {
-			"executor": "@nx/jest:jest",
+			"executor": "@nx/vitest:test",
 			"outputs": ["{workspaceRoot}/coverage/{projectName}"],
 			"options": {
-				"jestConfig": "jest.config.ts",
-				"tsConfig": "tsconfig.spec.json"
+				"config": "vitest.config.ts",
+				"reportsDirectory": "./coverage/app"
+			},
+			"configurations": {
+				"ui": {
+					"watch": true
+				}
 			}
 		},
 		"serve-static": {
