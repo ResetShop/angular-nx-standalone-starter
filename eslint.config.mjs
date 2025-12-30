@@ -1,11 +1,10 @@
-import playwright from 'eslint-plugin-playwright';
 import nx from '@nx/eslint-plugin';
 import stylisticJs from '@stylistic/eslint-plugin';
-import storybook from 'eslint-plugin-storybook';
-import jest from 'eslint-plugin-jest';
-import jestDom from 'eslint-plugin-jest-dom';
-import testingLibrary from 'eslint-plugin-testing-library';
 import noBarrelFiles from 'eslint-plugin-no-barrel-files';
+import playwright from 'eslint-plugin-playwright';
+import storybook from 'eslint-plugin-storybook';
+import testingLibrary from 'eslint-plugin-testing-library';
+import vitest from 'eslint-plugin-vitest';
 
 export default [
 	{
@@ -22,12 +21,13 @@ export default [
 		name: 'testing',
 		files: ['**/src/**/?(*.)+(spec|test).ts'],
 		plugins: {
-			'jest-dom': jestDom,
+			vitest,
 			'testing-library': testingLibrary,
 		},
 		rules: {
 			...testingLibrary.configs['flat/angular'].rules,
-			...jestDom.configs['flat/recommended'].rules,
+			...vitest.configs.recommended.rules,
+			'vitest/expect-expect': 'off',
 		},
 	},
 	{
@@ -45,7 +45,7 @@ export default [
 		files: ['**/*.ts'],
 		plugins: {
 			'@stylistic/js': stylisticJs,
-			jest: jest,
+			vitest,
 			'no-barrel-files': noBarrelFiles,
 		},
 		rules: {
@@ -83,7 +83,7 @@ export default [
 				},
 			],
 			'@stylistic/js/no-extra-semi': 'off',
-			'jest/no-focused-tests': 'error',
+			'vitest/no-focused-tests': 'error',
 			'no-barrel-files/no-barrel-files': 'error',
 			'preserve-caught-error': 'error',
 		},
