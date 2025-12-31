@@ -15,17 +15,10 @@ import routes from './api/routes';
 export const app = new Hono({ strict: false }).use(requestId()).use(secureHeaders());
 
 /**
- * Register routes used by the APIs
- */
-
-for (const route of routes) {
-	app.route(`/api${route.path}`, route.controller);
-}
-
-/**
  * Apply authentication middleware to all API routes except public endpoints
  * Public endpoints: /api/auth/login, /api/auth/refresh, /api/health
  * All other /api/* routes require authentication
+ * IMPORTANT: This must be registered BEFORE routes for middleware to apply
  */
 app.use('/api/*', async (c, next) => {
 	const path = c.req.path;
@@ -41,6 +34,14 @@ app.use('/api/*', async (c, next) => {
 	// Apply authentication middleware for all other API routes
 	return verifyAccessToken(c, next);
 });
+
+/**
+ * Register routes used by the APIs
+ */
+
+for (const route of routes) {
+	app.route(`/api${route.path}`, route.controller);
+}
 
 /**
  * Serve static files from /browser
