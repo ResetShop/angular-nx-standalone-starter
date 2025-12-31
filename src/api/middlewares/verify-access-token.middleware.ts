@@ -34,7 +34,7 @@ export default async function verifyAccessToken(c: Context, next: Next) {
 		};
 
 		await next();
-	} catch (error) {
-		return c.json(error, 401);
+	} catch {
+		return c.json({ error: 'Invalid or expired token' }, 401);
 	}
 }
