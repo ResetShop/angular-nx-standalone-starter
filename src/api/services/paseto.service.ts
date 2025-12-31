@@ -32,6 +32,15 @@ export class PasetoService {
 		if (!keyHex) {
 			throw new Error('PASETO_SECRET_KEY not configured');
 		}
+
+		// Validate key length: PASETO v3.local requires a 32-byte key (64 hex characters)
+		if (keyHex.length < 64) {
+			throw new Error(
+				'PASETO_SECRET_KEY must be at least 32 bytes (64 hex characters). ' +
+					'Generate a secure key with: openssl rand -hex 32',
+			);
+		}
+
 		this.secretKey = Buffer.from(keyHex, 'hex');
 		this.issuer = process.env['PASETO_ISSUER'] || 'Reset Shop';
 	}
@@ -67,7 +76,7 @@ export class PasetoService {
 	 */
 	async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
-		const expiresIn = process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? '15m';
+		const expiresIn = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d';
 
 		return await V3.encrypt(
 			{

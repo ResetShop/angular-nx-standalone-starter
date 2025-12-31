@@ -54,6 +54,10 @@ export class AuthService {
 			throw new Error('Invalid credentials');
 		}
 
+		if (foundUser.deleted || !foundUser.enabled) {
+			throw new Error('Invalid credentials'); // Don't reveal that account exists but is disabled/deleted
+		}
+
 		const authRecord = await this.authRepository.findByUserId(foundUser.id);
 
 		if (!authRecord) {
@@ -107,7 +111,12 @@ export class AuthService {
 		// 1. Verify refresh token
 		const payload = await pasetoService.verifyRefreshToken(token);
 
-		// 2. Check if token is revoked in database
+		// 2. Validate token family exists (required for rotation tracking)
+		if (!payload.tokenFamily) {
+			throw new Error('Invalid refresh token: missing token family');
+		}
+
+		// 3. Check if token is revoked in database
 		const tokenHash = createHash('sha256').update(token).digest('hex');
 		const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash);
 
@@ -115,18 +124,22 @@ export class AuthService {
 			throw new Error('Invalid refresh token');
 		}
 
-		// 3. Check if token is expired
+		// 4. Check if token is expired
 		if (storedToken.expiresAt < new Date()) {
 			throw new Error('Refresh token expired');
 		}
 
-		// 4. Get user data
+		// 5. Get user data and validate account status
 		const user = await this.userRepository.findById(Number(payload.sub));
-		if (!user) {
+		if (!user || user.deleted) {
 			throw new Error('User not found');
 		}
 
-		// 5. Generate new tokens
+		if (!user.enabled) {
+			throw new Error('Account is disabled');
+		}
+
+		// 6. Generate new tokens
 		const newAccessToken = await pasetoService.generateAccessToken({
 			sub: user.id.toString(),
 			email: user.email,
@@ -139,14 +152,14 @@ export class AuthService {
 			payload.tokenFamily, // Maintain token family for rotation
 		);
 
-		// 6. Revoke old refresh token
+		// 7. Revoke old refresh token
 		await this.refreshTokenRepository.revokeToken(storedToken.id);
 
-		// 7. Store new refresh token
+		// 8. Store new refresh token
 		const newTokenHash = createHash('sha256').update(newRefreshToken).digest('hex');
 		await this.refreshTokenRepository.create({
 			userId: user.id,
-			tokenFamily: payload.tokenFamily || crypto.randomUUID(),
+			tokenFamily: payload.tokenFamily,
 			tokenHash: newTokenHash,
 			expiresAt: this.getRefreshTokenExpiry(),
 		});
