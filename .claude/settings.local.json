@@ -14,7 +14,8 @@
 			"Bash(npm run:*)",
 			"mcp__nx-mcp__nx_workspace_path",
 			"Bash(nx show:*)",
-			"Bash(npx vitest:*)"
+			"Bash(npx vitest:*)",
+			"Bash(gh api:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
