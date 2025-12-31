@@ -24,7 +24,7 @@ app.use('/api/*', async (c, next) => {
 	const path = c.req.path;
 
 	// Define public paths that don't require authentication
-	const publicPaths = ['/api/auth/login', '/api/auth/refresh', '/api/health'];
+	const publicPaths = ['/api/auth/login', '/api/auth/refresh'];
 
 	// Skip authentication for public paths
 	if (publicPaths.some((p) => path.startsWith(p))) {
