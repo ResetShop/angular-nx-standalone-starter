@@ -91,12 +91,16 @@ export class Auth {
 		// Pass token explicitly in headers since we just cleared the user state
 		if (currentUser?.token) {
 			this.http
-				.post('/api/auth/logout', currentUser, {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${currentUser.token}`,
+				.post(
+					'/api/auth/logout',
+					{},
+					{
+						withCredentials: true,
+						headers: {
+							Authorization: `Bearer ${currentUser.token}`,
+						},
 					},
-				})
+				)
 				.subscribe({
 					error: (error) => console.error('Logout error:', error),
 				});
