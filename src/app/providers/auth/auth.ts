@@ -1,8 +1,8 @@
 import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
-import { LoginFormParams, LoginResponse } from '@interfaces/auth';
-import { tap } from 'rxjs';
+import { LoginFormParams, LoginResponse, RefreshTokenResponse } from '@interfaces/auth';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class Auth {
@@ -24,8 +24,29 @@ export class Auth {
 	login(params: LoginFormParams) {
 		return this.http.post<LoginResponse>('/api/auth/login', params).pipe(
 			tap((response) => {
-				localStorage.setItem('auth_user', JSON.stringify(response.user));
+				localStorage.setItem('auth_user', JSON.stringify(response));
 				this._currentUser.set(response);
+			}),
+		);
+	}
+
+	/**
+	 * Refresh access token using refresh token
+	 */
+	refreshToken(refreshToken: string): Observable<RefreshTokenResponse> {
+		return this.http.post<RefreshTokenResponse>('/api/auth/refresh', { refreshToken }).pipe(
+			tap((response) => {
+				// Update stored tokens
+				const currentUser = this._currentUser();
+				if (currentUser) {
+					const updatedUser = {
+						...currentUser,
+						token: response.token,
+						refreshToken: response.refreshToken,
+					};
+					this._currentUser.set(updatedUser);
+					localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+				}
 			}),
 		);
 	}
@@ -48,6 +69,14 @@ export class Auth {
 	}
 
 	logout() {
+		// Call backend to revoke refresh tokens
+		const currentUser = this._currentUser();
+		if (currentUser?.token) {
+			this.http.post('/api/auth/logout', {}).subscribe({
+				error: (error) => console.error('Logout error:', error),
+			});
+		}
+
 		this._currentUser.set(null);
 		localStorage.removeItem('auth_user');
 	}
