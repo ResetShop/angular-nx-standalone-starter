@@ -1,4 +1,3 @@
-import { join } from 'node:path';
 import { AngularAppEngine, createRequestHandler } from '@angular/ssr';
 import { isMainModule } from '@angular/ssr/node';
 import { serve } from '@hono/node-server';
@@ -6,6 +5,8 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
+import { join } from 'node:path';
+import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes from './api/routes';
 
 /**
@@ -20,6 +21,26 @@ export const app = new Hono({ strict: false }).use(requestId()).use(secureHeader
 for (const route of routes) {
 	app.route(`/api${route.path}`, route.controller);
 }
+
+/**
+ * Apply authentication middleware to all API routes except public endpoints
+ * Public endpoints: /api/auth/login, /api/auth/refresh, /api/health
+ * All other /api/* routes require authentication
+ */
+app.use('/api/*', async (c, next) => {
+	const path = c.req.path;
+
+	// Define public paths that don't require authentication
+	const publicPaths = ['/api/auth/login', '/api/auth/refresh', '/api/health'];
+
+	// Skip authentication for public paths
+	if (publicPaths.some((p) => path.startsWith(p))) {
+		return next();
+	}
+
+	// Apply authentication middleware for all other API routes
+	return verifyAccessToken(c, next);
+});
 
 /**
  * Serve static files from /browser
