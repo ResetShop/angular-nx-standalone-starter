@@ -1,5 +1,10 @@
 import { FormControl } from '@angular/forms';
 
+export interface RefreshTokenResponse {
+	token: string;
+	refreshToken: string;
+}
+
 export interface LoginForm {
 	email: FormControl<string>;
 	password: FormControl<string>;
