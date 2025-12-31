@@ -8,6 +8,7 @@ export interface UserData {
 	firstName: string;
 	lastName: string;
 	enabled: boolean;
+	deleted: boolean;
 }
 
 export class UserRepository extends BaseRepository {
@@ -23,6 +24,7 @@ export class UserRepository extends BaseRepository {
 				firstName: user.firstName,
 				lastName: user.lastName,
 				enabled: user.enabled,
+				deleted: user.deleted,
 			})
 			.from(user)
 			.where(eq(user.email, email))
@@ -43,6 +45,7 @@ export class UserRepository extends BaseRepository {
 				firstName: user.firstName,
 				lastName: user.lastName,
 				enabled: user.enabled,
+				deleted: user.deleted,
 			})
 			.from(user)
 			.where(eq(user.id, id))
