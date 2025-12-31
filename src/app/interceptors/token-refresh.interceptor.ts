@@ -22,14 +22,8 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return throwError(() => error);
 			}
 
-			// Attempt token refresh
-			const currentUser = authService.currentUser();
-			if (!currentUser?.refreshToken) {
-				authService.logout();
-				return throwError(() => error);
-			}
-
-			return authService.refreshToken(currentUser.refreshToken).pipe(
+			// Attempt token refresh (refresh token is in HttpOnly cookie)
+			return authService.refreshToken().pipe(
 				switchMap((newTokens) => {
 					// Retry original request with new token
 					const retryReq = req.clone({
