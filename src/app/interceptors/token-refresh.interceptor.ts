@@ -1,10 +1,15 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Auth } from '@providers/auth/auth';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
+
+// Shared state for coordinating token refresh across requests
+let isRefreshing = false;
+const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 /**
- * Intercepts 401 errors and attempts to refresh token
+ * Intercepts 401 errors and attempts to refresh token.
+ * Implements a mutex pattern to prevent multiple concurrent refresh attempts.
  */
 export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	const authService = inject(Auth);
@@ -22,9 +27,29 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return throwError(() => error);
 			}
 
-			// Attempt token refresh (refresh token is in HttpOnly cookie)
+			// If a refresh is already in progress, wait for it
+			if (isRefreshing) {
+				return refreshTokenSubject.pipe(
+					filter((token): token is string => token !== null),
+					take(1),
+					switchMap((token) => {
+						const retryReq = req.clone({
+							setHeaders: { Authorization: `Bearer ${token}` },
+						});
+						return next(retryReq);
+					}),
+				);
+			}
+
+			// Start a new refresh
+			isRefreshing = true;
+			refreshTokenSubject.next(null);
+
 			return authService.refreshToken().pipe(
 				switchMap((newTokens) => {
+					isRefreshing = false;
+					refreshTokenSubject.next(newTokens.token);
+
 					// Retry original request with new token
 					const retryReq = req.clone({
 						setHeaders: {
@@ -34,6 +59,9 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 					return next(retryReq);
 				}),
 				catchError((refreshError) => {
+					isRefreshing = false;
+					refreshTokenSubject.next(null);
+
 					// Refresh failed - logout user
 					authService.logout();
 					return throwError(() => refreshError);
