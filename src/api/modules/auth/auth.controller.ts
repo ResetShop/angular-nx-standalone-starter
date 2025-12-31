@@ -82,34 +82,25 @@ app.post('/refresh', async (c) => {
 });
 
 // POST /api/auth/logout - Revoke all refresh tokens for the authenticated user
-app.post(
-	'/logout',
-	zValidator(
-		'json',
-		z.object({
-			user: z.object(),
-			token: z.string().min(1, 'Invalid email format'),
-		}),
-	),
-	async (c) => {
-		try {
-			const user = (c as AuthenticatedContext).user;
+// User is extracted from the authenticated context (set by verifyAccessToken middleware)
+app.post('/logout', async (c) => {
+	try {
+		const user = (c as AuthenticatedContext).user;
 
-			if (!user) {
-				return c.json({ error: 'Unauthorized' }, 401);
-			}
-
-			await authService.logout(Number(user.sub));
-
-			// Delete the refresh token cookie
-			deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, { path: '/' });
-
-			return c.json({ message: 'Logged out successfully' });
-		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Logout failed';
-			return c.json({ error: message }, 500);
+		if (!user) {
+			return c.json({ error: 'Unauthorized' }, 401);
 		}
-	},
-);
+
+		await authService.logout(Number(user.sub));
+
+		// Delete the refresh token cookie
+		deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, { path: '/' });
+
+		return c.json({ message: 'Logged out successfully' });
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Logout failed';
+		return c.json({ error: message }, 500);
+	}
+});
 
 export default app;
