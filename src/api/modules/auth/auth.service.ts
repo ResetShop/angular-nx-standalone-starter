@@ -1,4 +1,4 @@
-import { LoginResponse, RefreshTokenResponse } from '@interfaces/auth';
+import { AuthUser, RefreshTokenResponse } from '@interfaces/auth';
 import { compare } from 'bcryptjs';
 import { createHash } from 'crypto';
 import { pasetoService } from '../../services/paseto.service';
@@ -10,6 +10,17 @@ import { RefreshTokenRepository } from './refresh-token.repository';
 interface LoginParams {
 	email: string;
 	password: string;
+}
+
+/**
+ * Complete authentication result from the service layer.
+ * The controller extracts the refresh token to store in HttpOnly cookie
+ * and returns only user + token in the HTTP response.
+ */
+interface AuthResult {
+	user: AuthUser;
+	token: string;
+	refreshToken: string;
 }
 
 export class AuthService {
@@ -36,7 +47,7 @@ export class AuthService {
 	 * @param credentials - Login credentials (email and password)
 	 * @returns LoginResponse object containing user data, access token, and refresh token.
 	 */
-	async authenticate(credentials: LoginParams): Promise<LoginResponse> {
+	async authenticate(credentials: LoginParams): Promise<AuthResult> {
 		const foundUser = await this.userRepository.findByEmail(credentials.email);
 
 		if (!foundUser) {

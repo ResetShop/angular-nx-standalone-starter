@@ -18,7 +18,6 @@ export interface LoginFormParams {
 export interface LoginResponse {
 	user: AuthUser;
 	token: string;
-	refreshToken: string;
 }
 
 export interface AuthUser {
