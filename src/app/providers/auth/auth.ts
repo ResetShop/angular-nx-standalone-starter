@@ -86,40 +86,24 @@ export class Auth {
 	}
 
 	/**
-	 * Sends a request to the backend to revoke refresh tokens and deletes cookies.
-	 * Clears user state immediately for responsive UI.
+	 * Logout user by clearing local state and revoking server-side tokens.
+	 * Uses refresh token from cookie (no access token needed).
 	 */
 	logout() {
-		// Capture current user before clearing
-		const currentUser = this._currentUser();
-
-		// Clear user state immediately for responsive UI and navigation
+		// Clear user state immediately for responsive UI
 		this._currentUser.set(null);
 		localStorage.removeItem('auth_user');
 
 		// Call backend to revoke refresh tokens and delete cookie
-		// Pass token explicitly in headers since we just cleared the user state
-		if (currentUser?.token) {
-			this.http
-				.post(
-					'/api/auth/logout',
-					{},
-					{
-						withCredentials: true,
-						headers: {
-							Authorization: `Bearer ${currentUser.token}`,
-						},
-					},
-				)
-				.subscribe({
-					next: () => {
-						this.router.navigate(['..', 'auth', 'login']);
-					},
-					error: (error) => {
-						console.error('Logout error:', error);
-						this.router.navigate(['..', 'auth', 'login']);
-					},
-				});
-		}
+		// No access token needed - backend uses refresh token from cookie
+		this.http.post('/api/auth/logout', {}, { withCredentials: true }).subscribe({
+			next: () => {
+				this.router.navigate(['..', 'auth', 'login']);
+			},
+			error: (error) => {
+				console.error('Logout error:', error);
+				this.router.navigate(['..', 'auth', 'login']);
+			},
+		});
 	}
 }

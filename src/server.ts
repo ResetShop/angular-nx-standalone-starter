@@ -8,7 +8,6 @@ import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
 
 // Token middlewares
-import verifyAccessTokenAllowExpired from './api/middlewares/verify-access-token-allow-expired.middleware';
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes from './api/routes';
 
@@ -19,8 +18,8 @@ export const app = new Hono({ strict: false }).use(requestId()).use(secureHeader
 
 /**
  * Apply authentication middleware to all API routes except public endpoints
- * Public endpoints: /api/auth/login, /api/auth/refresh
- * Logout allows expired tokens (user should still be able to logout)
+ * Public endpoints: /api/auth/login, /api/auth/refresh, /api/auth/logout
+ * Logout uses refresh token from cookie (no access token needed)
  * All other /api/* routes require valid (non-expired) authentication
  * IMPORTANT: This must be registered BEFORE routes for middleware to apply
  */
@@ -28,16 +27,12 @@ app.use('/api/*', async (c, next) => {
 	const path = c.req.path;
 
 	// Define public paths that don't require authentication
-	const publicPaths = ['/api/auth/login', '/api/auth/refresh'];
+	// Logout is public because it uses the refresh token from cookie to identify user
+	const publicPaths = ['/api/auth/login', '/api/auth/refresh', '/api/auth/logout'];
 
 	// Skip authentication for public paths
 	if (publicPaths.some((p) => path.startsWith(p))) {
 		return next();
-	}
-
-	// Logout allows expired tokens (user should still be able to logout)
-	if (path === '/api/auth/logout') {
-		return verifyAccessTokenAllowExpired(c, next);
 	}
 
 	// Apply authentication middleware for all other API routes
