@@ -9,7 +9,7 @@ import { join } from 'node:path';
 
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
-import routes from './api/routes';
+import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 
 /**
  * Initialize Hono and export the app instance
@@ -26,12 +26,8 @@ export const app = new Hono({ strict: false }).use(requestId()).use(secureHeader
 app.use('/api/*', async (c, next) => {
 	const path = c.req.path;
 
-	// Define public paths that don't require authentication
-	// Logout is public because it uses the refresh token from cookie to identify user
-	const publicPaths = ['/api/auth/login', '/api/auth/refresh', '/api/auth/logout'];
-
 	// Skip authentication for public paths
-	if (publicPaths.some((p) => path.startsWith(p))) {
+	if (PUBLIC_AUTH_ROUTES.some((p) => path.startsWith(p))) {
 		return next();
 	}
 
