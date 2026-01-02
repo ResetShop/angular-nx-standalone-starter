@@ -27,3 +27,10 @@ export interface AuthUser {
 	lastName: string;
 	enabled: boolean;
 }
+
+export interface TokenIntrospectionResponse {
+	id: string;
+	email: string;
+	firstName: string;
+	lastName: string;
+}

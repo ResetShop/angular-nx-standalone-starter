@@ -81,6 +81,24 @@ app.post('/refresh', async (c) => {
 	}
 });
 
+// GET /api/auth/me - Token introspection endpoint
+// Returns the current authenticated user's information from the token
+// Useful for verifying token validity and getting user data
+app.get('/me', (c) => {
+	const user = (c as AuthenticatedContext).user;
+
+	if (!user) {
+		return c.json({ error: 'Unauthorized' }, 401);
+	}
+
+	return c.json({
+		id: user.sub,
+		email: user.email,
+		firstName: user.firstName,
+		lastName: user.lastName,
+	});
+});
+
 // POST /api/auth/logout - Revoke all refresh tokens for the authenticated user
 // User is extracted from the authenticated context (set by verifyAccessToken middleware)
 app.post('/logout', async (c) => {
