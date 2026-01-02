@@ -19,7 +19,6 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			// Only handle 401 Unauthorized errors
 			if (error.status !== 401) {
 				return throwError(() => {
-					authService.logout();
 					return error;
 				});
 			}
