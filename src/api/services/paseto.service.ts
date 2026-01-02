@@ -99,7 +99,7 @@ export class PasetoService {
 		try {
 			const result = await V3.decrypt<TokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,
-				clockTolerance: '1m', // Allow 1 minute clock drift
+				clockTolerance: process.env['PASETO_CLOCK_TOLERANCE'] ?? '1m', // Allow default 1 minute clock drift
 			});
 
 			return result;
@@ -115,7 +115,7 @@ export class PasetoService {
 		try {
 			const result = await V3.decrypt<RefreshTokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,
-				clockTolerance: '1m',
+				clockTolerance: process.env['PASETO_CLOCK_TOLERANCE'] ?? '1m', // Allow default 1 minute clock drift
 			});
 
 			return result;
