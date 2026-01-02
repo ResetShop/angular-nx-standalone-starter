@@ -1,5 +1,5 @@
 {
-	"id": "0cb51a03-693f-4b0a-999c-1f7519f85941",
+	"id": "89635e0a-f744-4c88-90b7-b59ed74d7ce1",
 	"prevId": "9ac16402-9d0b-4f9f-941b-fe3ce4aa012d",
 	"version": "7",
 	"dialect": "postgresql",
@@ -265,7 +265,38 @@
 					"notNull": false
 				}
 			},
-			"indexes": {},
+			"indexes": {
+				"refresh_token_user_id_idx": {
+					"name": "refresh_token_user_id_idx",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"refresh_token_expires_at_idx": {
+					"name": "refresh_token_expires_at_idx",
+					"columns": [
+						{
+							"expression": "expires_at",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
 			"foreignKeys": {
 				"refresh_token_user_id_user_id_fk": {
 					"name": "refresh_token_user_id_user_id_fk",
