@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
+import { pasetoService } from '../../services/paseto.service';
 import { parseDurationToSeconds } from '../../utils/duration';
 import { AuthService } from './auth.service';
 
@@ -99,25 +100,31 @@ app.get('/me', (c) => {
 	});
 });
 
-// POST /api/auth/logout - Revoke all refresh tokens for the authenticated user
-// User is extracted from the authenticated context (set by verifyAccessToken middleware)
+// POST /api/auth/logout - Revoke all refresh tokens for the user
+// Uses refresh token from cookie to identify user (no access token needed)
+// Always succeeds from client perspective - cleans up what it can
 app.post('/logout', async (c) => {
-	try {
-		const user = (c as AuthenticatedContext).user;
+	// Get refresh token before deleting cookie
+	const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
 
-		if (!user) {
-			return c.json({ error: 'Unauthorized' }, 401);
+	// Always delete the cookie
+	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, { path: '/' });
+
+	try {
+		if (!refreshToken) {
+			// No refresh token = nothing to revoke, still success
+			return c.json({ message: 'Logged out successfully' });
 		}
 
-		await authService.logout(Number(user.sub));
-
-		// Delete the refresh token cookie
-		deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, { path: '/' });
+		// Verify refresh token and get user ID
+		const payload = await pasetoService.verifyRefreshToken(refreshToken);
+		await authService.logout(Number(payload.sub));
 
 		return c.json({ message: 'Logged out successfully' });
-	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Logout failed';
-		return c.json({ error: message }, 500);
+	} catch {
+		// Even if token verification fails, logout is still "successful"
+		// Cookie is already deleted, user is effectively logged out
+		return c.json({ message: 'Logged out successfully' });
 	}
 });
 
