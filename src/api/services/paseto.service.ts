@@ -109,6 +109,23 @@ export class PasetoService {
 	}
 
 	/**
+	 * Verify and decode access token, ignoring expiration.
+	 * Use ONLY for logout - allows extracting user data from expired tokens.
+	 */
+	async verifyAccessTokenIgnoreExpiration(token: string): Promise<TokenPayload> {
+		try {
+			const result = await V3.decrypt<TokenPayload>(token, this.secretKey, {
+				issuer: this.issuer,
+				ignoreExp: true,
+			});
+
+			return result;
+		} catch (error) {
+			throw new Error('Invalid token', { cause: error });
+		}
+	}
+
+	/**
 	 * Verify and decode refresh token
 	 */
 	async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
