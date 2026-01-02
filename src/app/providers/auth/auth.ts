@@ -1,15 +1,19 @@
 import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoginFormParams, LoginResponse, RefreshTokenResponse, TokenIntrospectionResponse } from '@interfaces/auth';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class Auth {
+export class Auth implements OnDestroy {
 	private http = inject(HttpClient);
 	private platformId = inject(PLATFORM_ID);
 	private router = inject(Router);
+
+	// Shared state for coordinating token refresh across requests
+	public refreshTokenSubject = new BehaviorSubject<string | null>(null);
+	readonly isTokenRefreshing = signal(false);
 
 	readonly currentUser = computed(() => this._currentUser());
 	readonly isAuthenticated = computed(() => !!this._currentUser());
@@ -22,6 +26,10 @@ export class Auth {
 	);
 
 	private readonly _currentUser = signal<null | LoginResponse>(null);
+
+	ngOnDestroy() {
+		this.refreshTokenSubject.complete();
+	}
 
 	login(params: LoginFormParams) {
 		return this.http.post<LoginResponse>('/api/auth/login', params, { withCredentials: true }).pipe(
