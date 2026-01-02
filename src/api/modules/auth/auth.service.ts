@@ -61,7 +61,7 @@ export class AuthService {
 		const foundUser = await this.userRepository.findByEmail(credentials.email);
 		const authRecord = foundUser ? await this.authRepository.findByUserId(foundUser.id) : null;
 
-		// Compare with dummy hash if hass is not set, so to avoid creating timing differences in auth endpoint
+		// Compare with dummy hash if hash is not set, so to avoid creating timing differences in auth endpoint
 		// responses that could be used to allow attackers to enumerate valid email addresses
 		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy';
 		const passwordMatch = await compare(credentials.password, hashToCompare);
