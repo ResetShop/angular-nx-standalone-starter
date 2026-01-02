@@ -122,9 +122,11 @@ PASETO was chosen over JWT for the following reasons:
 ```
 1. Frontend calls logout()
 2. User state is cleared immediately (for responsive UI)
-3. Backend request is sent with explicit Authorization header
-4. Backend revokes all refresh tokens for user
-5. Backend deletes refresh token cookie
+3. Backend request is sent (no access token needed)
+4. Backend reads refresh token from HttpOnly cookie
+5. Backend revokes all refresh tokens for user
+6. Backend deletes refresh token cookie
+7. Logout always succeeds (fail-safe design)
 ```
 
 ## Security Features
@@ -138,13 +140,13 @@ PASETO was chosen over JWT for the following reasons:
 
 ### Cookie Security
 
-| Attribute  | Value               | Purpose                                     |
-| ---------- | ------------------- | ------------------------------------------- |
-| `httpOnly` | `true`              | Prevents JavaScript access (XSS protection) |
-| `secure`   | `true` (production) | HTTPS only in production                    |
-| `sameSite` | `Strict`            | CSRF protection                             |
-| `path`     | `/`                 | Available site-wide                         |
-| `maxAge`   | 7 days              | Matches refresh token expiry                |
+| Attribute  | Value                           | Purpose                                     |
+| ---------- | ------------------------------- | ------------------------------------------- |
+| `httpOnly` | `true`                          | Prevents JavaScript access (XSS protection) |
+| `secure`   | `COOKIE_SECURE` env (def: true) | HTTPS only (configurable via env var)       |
+| `sameSite` | `Strict`                        | CSRF protection                             |
+| `path`     | `/`                             | Available site-wide                         |
+| `maxAge`   | 7 days                          | Matches refresh token expiry                |
 
 ### Account Protection
 
@@ -155,16 +157,16 @@ PASETO was chosen over JWT for the following reasons:
 
 ### Race Condition Protection
 
-The token refresh interceptor implements a mutex pattern to prevent multiple concurrent refresh attempts:
+The token refresh interceptor implements a mutex pattern to prevent multiple concurrent refresh attempts. The state is managed in the `Auth` service (not module-level) to ensure proper cleanup when the Angular app is destroyed and recreated:
 
 ```typescript
-// Shared state across requests
-let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+// Auth service manages refresh state
+public refreshTokenSubject = new BehaviorSubject<string | null>(null);
+readonly isTokenRefreshing = signal(false);
 
-// If refresh in progress, wait for it
-if (isRefreshing) {
-  return refreshTokenSubject.pipe(
+// Interceptor checks service state
+if (authService.isTokenRefreshing()) {
+  return authService.refreshTokenSubject.pipe(
     filter(token => token !== null),
     take(1),
     switchMap(token => /* retry with new token */)
@@ -174,12 +176,14 @@ if (isRefreshing) {
 
 ## Environment Variables
 
-| Variable                      | Required | Default      | Description                    |
-| ----------------------------- | -------- | ------------ | ------------------------------ |
-| `PASETO_SECRET_KEY`           | Yes      | -            | 32-byte hex-encoded secret key |
-| `PASETO_ISSUER`               | No       | "Reset Shop" | Token issuer claim             |
-| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"        | Access token lifetime          |
-| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"         | Refresh token lifetime         |
+| Variable                      | Required | Default      | Description                                         |
+| ----------------------------- | -------- | ------------ | --------------------------------------------------- |
+| `PASETO_SECRET_KEY`           | Yes      | -            | 32-byte hex-encoded secret key                      |
+| `PASETO_ISSUER`               | No       | "Reset Shop" | Token issuer claim                                  |
+| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"        | Access token lifetime                               |
+| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"         | Refresh token lifetime                              |
+| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"         | Clock drift tolerance for token validation          |
+| `COOKIE_SECURE`               | No       | "true"       | Set to "false" to disable secure cookies (dev only) |
 
 ### Generating a Secret Key
 
@@ -240,9 +244,32 @@ Exchange refresh token for new access + refresh tokens. Refresh token is read fr
 }
 ```
 
+### GET /api/auth/me
+
+Token introspection endpoint. Returns the current authenticated user's information from the token. Useful for verifying token validity and session management.
+
+**Response (200):**
+
+```json
+{
+	"id": "1",
+	"email": "user@example.com",
+	"firstName": "John",
+	"lastName": "Doe"
+}
+```
+
+**Response (401):**
+
+```json
+{
+	"error": "Unauthorized"
+}
+```
+
 ### POST /api/auth/logout
 
-Revoke all refresh tokens for the authenticated user. Requires valid access token.
+Revoke all refresh tokens for the user. Uses refresh token from HttpOnly cookie (no access token required). Always succeeds for fail-safe logout.
 
 **Response (200):**
 
