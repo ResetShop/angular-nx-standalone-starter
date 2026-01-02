@@ -102,6 +102,11 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
 - **`PASETO_ACCESS_TOKEN_EXPIRY`**: Access token lifetime (default: "15m")
 - **`PASETO_REFRESH_TOKEN_EXPIRY`**: Refresh token lifetime (default: "7d")
   - Supported formats: "15m" (minutes), "24h" (hours), "7d" (days), "30s" (seconds)
+- **`PASETO_CLOCK_TOLERANCE`**: Clock drift tolerance for token validation (default: "1m")
+  - Useful for handling slight time differences between client and server
+- **`COOKIE_SECURE`**: Controls the `secure` flag on authentication cookies (default: "true")
+  - Set to "false" for local development without HTTPS
+  - **Always keep as "true" in production**
 
 **Documentation:**
 
