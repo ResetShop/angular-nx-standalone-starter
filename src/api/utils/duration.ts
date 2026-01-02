@@ -22,7 +22,7 @@ export function parseDurationToMs(duration: string): number {
  * Parse a duration string to seconds
  * Supports formats: "7d", "24h", "60m", "30s"
  * @param duration Duration string (e.g., "7d", "24h", "60m", "30s")
- * @returns Duration in milliseconds
+ * @returns Duration in seconds
  * @throws Error if a duration format is invalid
  */
 export function parseDurationToSeconds(duration: string): number {
