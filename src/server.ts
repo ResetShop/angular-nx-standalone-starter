@@ -6,6 +6,9 @@ import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
+
+// Token middlewares
+import verifyAccessTokenAllowExpired from './api/middlewares/verify-access-token-allow-expired.middleware';
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes from './api/routes';
 
@@ -16,8 +19,9 @@ export const app = new Hono({ strict: false }).use(requestId()).use(secureHeader
 
 /**
  * Apply authentication middleware to all API routes except public endpoints
- * Public endpoints: /api/auth/login, /api/auth/refresh, /api/health
- * All other /api/* routes require authentication
+ * Public endpoints: /api/auth/login, /api/auth/refresh
+ * Logout allows expired tokens (user should still be able to logout)
+ * All other /api/* routes require valid (non-expired) authentication
  * IMPORTANT: This must be registered BEFORE routes for middleware to apply
  */
 app.use('/api/*', async (c, next) => {
@@ -29,6 +33,11 @@ app.use('/api/*', async (c, next) => {
 	// Skip authentication for public paths
 	if (publicPaths.some((p) => path.startsWith(p))) {
 		return next();
+	}
+
+	// Logout allows expired tokens (user should still be able to logout)
+	if (path === '/api/auth/logout') {
+		return verifyAccessTokenAllowExpired(c, next);
 	}
 
 	// Apply authentication middleware for all other API routes

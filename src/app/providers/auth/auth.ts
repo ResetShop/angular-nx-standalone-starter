@@ -1,6 +1,7 @@
 import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { LoginFormParams, LoginResponse, RefreshTokenResponse } from '@interfaces/auth';
 import { Observable, tap } from 'rxjs';
 
@@ -8,6 +9,7 @@ import { Observable, tap } from 'rxjs';
 export class Auth {
 	private http = inject(HttpClient);
 	private platformId = inject(PLATFORM_ID);
+	private router = inject(Router);
 
 	readonly currentUser = computed(() => this._currentUser());
 	readonly isAuthenticated = computed(() => !!this._currentUser());
@@ -102,7 +104,13 @@ export class Auth {
 					},
 				)
 				.subscribe({
-					error: (error) => console.error('Logout error:', error),
+					next: () => {
+						this.router.navigate(['..', 'auth', 'login']);
+					},
+					error: (error) => {
+						console.error('Logout error:', error);
+						this.router.navigate(['..', 'auth', 'login']);
+					},
 				});
 		}
 	}

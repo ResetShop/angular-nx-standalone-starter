@@ -39,6 +39,5 @@ export class Sidebar {
 
 	logout() {
 		this.auth.logout();
-		this.router.navigate(['..', 'auth', 'login']);
 	}
 }

@@ -18,7 +18,10 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 		catchError((error: HttpErrorResponse) => {
 			// Only handle 401 Unauthorized errors
 			if (error.status !== 401) {
-				return throwError(() => error);
+				return throwError(() => {
+					authService.logout();
+					return error;
+				});
 			}
 
 			// Don't retry if already on refresh endpoint
