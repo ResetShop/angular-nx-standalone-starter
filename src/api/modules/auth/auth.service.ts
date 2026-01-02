@@ -49,26 +49,27 @@ export class AuthService {
 	 */
 	async authenticate(credentials: LoginParams): Promise<AuthResult> {
 		const foundUser = await this.userRepository.findByEmail(credentials.email);
+		const authRecord = foundUser ? await this.authRepository.findByUserId(foundUser.id) : null;
 
-		if (!foundUser) {
-			throw new Error('Invalid credentials');
-		}
+		// Compare with dummy hash if hass is not set, so to avoid creating timing differences in auth endpoint
+		// responses that could be used to allow attackers to enumerate valid email addresses
+		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy';
+		const passwordMatch = await compare(credentials.password, hashToCompare);
 
-		if (foundUser.deleted || !foundUser.enabled) {
+		if (!foundUser || !authRecord || !passwordMatch || foundUser.deleted || !foundUser.enabled) {
+			if (!foundUser) {
+				console.error('User not found');
+			} else if (!authRecord) {
+				console.error('User authentication record not found');
+			} else if (!passwordMatch) {
+				console.error('Invalid password');
+			} else if (foundUser.deleted) {
+				console.error('User account is deleted');
+			} else if (!foundUser.enabled) {
+				console.error('User account is disabled');
+			}
+
 			throw new Error('Invalid credentials'); // Don't reveal that account exists but is disabled/deleted
-		}
-
-		const authRecord = await this.authRepository.findByUserId(foundUser.id);
-
-		if (!authRecord) {
-			throw new Error('Authentication record not found');
-		}
-
-		const passwordMatch = await compare(credentials.password, authRecord.passwordHash);
-
-		if (!passwordMatch) {
-			// TODO: Increment failed login attempts
-			throw new Error('Invalid credentials');
 		}
 
 		// Cleanup expired tokens for this user
