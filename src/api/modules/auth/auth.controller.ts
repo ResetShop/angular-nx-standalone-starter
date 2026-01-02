@@ -14,7 +14,7 @@ const authService = new AuthService();
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
 const COOKIE_OPTIONS = {
 	httpOnly: true, // Cannot be accessed by JavaScript (XSS protection)
-	secure: process.env['NODE_ENV'] === 'production', // Only HTTPS in production
+	secure: process.env['COOKIE_SECURE'] !== 'false', // HTTPS based on COOKIE_SECURE env var value
 	sameSite: 'Strict' as const, // CSRF protection
 	path: '/',
 	maxAge: parseDurationToSeconds(process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d'), // Default of 7 days
