@@ -1,11 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Auth } from '@providers/auth/auth';
-import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from 'rxjs';
-
-// Shared state for coordinating token refresh across requests
-let isRefreshing = false;
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+import { catchError, filter, switchMap, take, throwError } from 'rxjs';
 
 /**
  * Intercepts 401 errors and attempts to refresh token.
@@ -30,8 +26,8 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			}
 
 			// If a refresh is already in progress, wait for it
-			if (isRefreshing) {
-				return refreshTokenSubject.pipe(
+			if (authService.isTokenRefreshing()) {
+				return authService.refreshTokenSubject.pipe(
 					filter((token): token is string => token !== null),
 					take(1),
 					switchMap((token) => {
@@ -44,13 +40,13 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			}
 
 			// Start a new refresh
-			isRefreshing = true;
-			refreshTokenSubject.next(null);
+			authService.isTokenRefreshing.set(true);
+			authService.refreshTokenSubject.next(null);
 
 			return authService.refreshToken().pipe(
 				switchMap((newTokens) => {
-					isRefreshing = false;
-					refreshTokenSubject.next(newTokens.token);
+					authService.isTokenRefreshing.set(false);
+					authService.refreshTokenSubject.next(newTokens.token);
 
 					// Retry original request with new token
 					const retryReq = req.clone({
@@ -61,8 +57,8 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 					return next(retryReq);
 				}),
 				catchError((refreshError) => {
-					isRefreshing = false;
-					refreshTokenSubject.next(null);
+					authService.isTokenRefreshing.set(false);
+					authService.refreshTokenSubject.next(null);
 
 					// Refresh failed - logout user
 					authService.logout();
