@@ -2,7 +2,7 @@ import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { LoginFormParams, LoginResponse, RefreshTokenResponse } from '@interfaces/auth';
+import { LoginFormParams, LoginResponse, RefreshTokenResponse, TokenIntrospectionResponse } from '@interfaces/auth';
 import { Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -75,6 +75,14 @@ export class Auth {
 		setTimeout(() => {
 			this.minLoadingTimeElapsed.set(true);
 		}, 1000);
+	}
+
+	/**
+	 * Token introspection - verifies current token and returns user data.
+	 * Useful for checking token validity and refreshing user info from server.
+	 */
+	getMe(): Observable<TokenIntrospectionResponse> {
+		return this.http.get<TokenIntrospectionResponse>('/api/auth/me', { withCredentials: true });
 	}
 
 	/**
