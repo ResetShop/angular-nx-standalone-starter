@@ -23,6 +23,16 @@ interface AuthResult {
 	refreshToken: string;
 }
 
+export const AUTH_ERRORS = {
+	INVALID_CREDENTIALS: 'Invalid credentials',
+	TOKEN_EXPIRED: 'Token has expired',
+	TOKEN_INVALID: 'Invalid token',
+	ACCOUNT_DISABLED: 'Account is disabled',
+	ACCOUNT_DELETED: 'Account is deleted',
+	USER_NOT_FOUND: 'User not found',
+	AUTH_RECORD_NOT_FOUND: 'Authentication record not found',
+} as const;
+
 export class AuthService {
 	constructor(
 		private userRepository: UserRepository = new UserRepository(),
@@ -58,18 +68,18 @@ export class AuthService {
 
 		if (!foundUser || !authRecord || !passwordMatch || foundUser.deleted || !foundUser.enabled) {
 			if (!foundUser) {
-				console.error('User not found');
+				console.error(AUTH_ERRORS.USER_NOT_FOUND);
 			} else if (!authRecord) {
-				console.error('User authentication record not found');
+				console.error(AUTH_ERRORS.AUTH_RECORD_NOT_FOUND);
 			} else if (!passwordMatch) {
-				console.error('Invalid password');
+				console.error(AUTH_ERRORS.INVALID_CREDENTIALS);
 			} else if (foundUser.deleted) {
-				console.error('User account is deleted');
+				console.error(AUTH_ERRORS.ACCOUNT_DELETED);
 			} else if (!foundUser.enabled) {
-				console.error('User account is disabled');
+				console.error(AUTH_ERRORS.ACCOUNT_DISABLED);
 			}
 
-			throw new Error('Invalid credentials'); // Don't reveal that account exists but is disabled/deleted
+			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS); // Don't reveal that account exists but is disabled/deleted
 		}
 
 		// Cleanup expired tokens for this user
