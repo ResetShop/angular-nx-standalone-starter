@@ -29,10 +29,10 @@ export function parseDurationToSeconds(duration: string): number {
 	const { value, unit } = parse(duration);
 
 	const multipliers = {
-		s: 1, // seconds to milliseconds
-		m: 60, // minutes to milliseconds
-		h: 60 * 60, // hours to milliseconds
-		d: 24 * 60 * 60, // days to milliseconds
+		s: 1, // seconds to seconds
+		m: 60, // minutes to seconds
+		h: 60 * 60, // hours to seconds
+		d: 24 * 60 * 60, // days to seconds
 	};
 
 	return value * multipliers[unit];
