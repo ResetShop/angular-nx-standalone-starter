@@ -1,5 +1,10 @@
 import { FormControl } from '@angular/forms';
 
+export interface RefreshTokenResponse {
+	token: string;
+	refreshToken: string;
+}
+
 export interface LoginForm {
 	email: FormControl<string>;
 	password: FormControl<string>;
@@ -13,7 +18,6 @@ export interface LoginFormParams {
 export interface LoginResponse {
 	user: AuthUser;
 	token: string;
-	refreshToken: string;
 }
 
 export interface AuthUser {
@@ -22,4 +26,11 @@ export interface AuthUser {
 	firstName: string;
 	lastName: string;
 	enabled: boolean;
+}
+
+export interface TokenIntrospectionResponse {
+	id: string;
+	email: string;
+	firstName: string;
+	lastName: string;
 }

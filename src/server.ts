@@ -1,4 +1,3 @@
-import { join } from 'node:path';
 import { AngularAppEngine, createRequestHandler } from '@angular/ssr';
 import { isMainModule } from '@angular/ssr/node';
 import { serve } from '@hono/node-server';
@@ -6,12 +5,35 @@ import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
-import routes from './api/routes';
+import { join } from 'node:path';
+
+// Token middlewares
+import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
+import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 
 /**
  * Initialize Hono and export the app instance
  */
 export const app = new Hono({ strict: false }).use(requestId()).use(secureHeaders());
+
+/**
+ * Apply authentication middleware to all API routes except public endpoints
+ * Public endpoints: /api/auth/login, /api/auth/refresh, /api/auth/logout
+ * Logout uses refresh token from cookie (no access token needed)
+ * All other /api/* routes require valid (non-expired) authentication
+ * IMPORTANT: This must be registered BEFORE routes for middleware to apply
+ */
+app.use('/api/*', async (c, next) => {
+	const path = c.req.path;
+
+	// Skip authentication for public paths
+	if (PUBLIC_AUTH_ROUTES.some((p) => path.startsWith(p))) {
+		return next();
+	}
+
+	// Apply authentication middleware for all other API routes
+	return verifyAccessToken(c, next);
+});
 
 /**
  * Register routes used by the APIs

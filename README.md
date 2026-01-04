@@ -19,10 +19,10 @@ This guide covers all the setup steps needed to configure this starter repositor
 
 - [ ] Clone repository and install dependencies
 - [ ] Configure environment variables **[Required]**
+- [ ] Generate and configure PASETO secret key **[Required]**
 - [ ] Choose and setup database **[Optional]**
 - [ ] Configure CMS integration **[Optional]**
 - [ ] Setup analytics **[Optional]**
-- [ ] Implement authentication token generation **[Required]**
 - [ ] Configure development tools **[Optional]**
 - [ ] Post-setup cleanup **[Required]**
 
@@ -73,17 +73,46 @@ The project uses environment variables for different deployment environments. Co
 - **Development**: Automatically creates `.env` file via the config script
 - **Vercel Deployment**: Set environment variables in your Vercel project settings
 
-#### 3. Authentication Implementation **[Required]**
+#### 3. Authentication Configuration **[Required]**
 
-The authentication service requires JWT token generation to be implemented:
+The authentication system uses PASETO (Platform-Agnostic Security Tokens) for secure token-based authentication. You must configure the required environment variables before the application will work.
 
-**Implementation Required:**
+**Required Environment Variable:**
 
-- **File**: `src/api/modules/auth/auth.service.ts:49`
-- **Task**: Implement access token and refresh token generation logic
-- **Details**: Add your JWT signing logic using your preferred library (e.g., `jsonwebtoken`)
+- **`PASETO_SECRET_KEY`**: A 32-byte (256-bit) secret key in hexadecimal format
+  - **Generate the key:**
 
-This is a critical security component that must be implemented before deploying to production.
+    ```bash
+    # Using OpenSSL (recommended)
+    openssl rand -hex 32
+
+    # Using Node.js
+    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+    ```
+
+  - **Set in development:** Add to your `.env` file:
+    ```bash
+    PASETO_SECRET_KEY=your_generated_key_here
+    ```
+  - **Set in production:** Configure in your Vercel project environment variables
+
+**Optional Environment Variables:**
+
+- **`PASETO_ISSUER`**: Token issuer claim (default: "Reset Shop")
+- **`PASETO_ACCESS_TOKEN_EXPIRY`**: Access token lifetime (default: "15m")
+- **`PASETO_REFRESH_TOKEN_EXPIRY`**: Refresh token lifetime (default: "7d")
+  - Supported formats: "15m" (minutes), "24h" (hours), "7d" (days), "30s" (seconds)
+- **`PASETO_CLOCK_TOLERANCE`**: Clock drift tolerance for token validation (default: "1m")
+  - Useful for handling slight time differences between client and server
+- **`COOKIE_SECURE`**: Controls the `secure` flag on authentication cookies (default: "true")
+  - Set to "false" for local development without HTTPS
+  - **Always keep as "true" in production**
+
+**Documentation:**
+
+For detailed information about the authentication system, see [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md)
+
+⚠️ **Security Note**: Never commit your `PASETO_SECRET_KEY` to version control. Keep it secret and rotate it periodically in production.
 
 ---
 
