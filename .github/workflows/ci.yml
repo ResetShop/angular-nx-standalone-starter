@@ -147,10 +147,11 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      - name: Generate PASETO key for CI
+        run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
+
       - name: Run Tests
         run: npx nx run app:e2e --skip-nx-cache
-        env:
-          PASETO_SECRET_KEY: ${{ secrets.PASETO_SECRET_KEY }}
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -181,10 +182,11 @@ jobs:
           node-version: 22.12
           cache: 'pnpm'
 
+      - name: Generate PASETO key for CI
+        run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
+
       - name: Run build
         run: npx nx run app:build:production --skip-nx-cache
-        env:
-          PASETO_SECRET_KEY: ${{ secrets.PASETO_SECRET_KEY }}
 
   storybook:
     needs: setup
