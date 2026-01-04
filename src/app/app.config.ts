@@ -1,4 +1,4 @@
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import {
 	ApplicationConfig,
 	inject,
@@ -16,6 +16,8 @@ import { provideProjectConfig } from '@providers/project/project.provider';
 import { provideTheme } from '@providers/theme/theme';
 import { appRoutes } from './app.routes';
 import { environment } from './environments/environment';
+import { authInterceptor } from './interceptors/auth.interceptor';
+import { tokenRefreshInterceptor } from './interceptors/token-refresh.interceptor';
 
 function initializeAnalytics() {
 	return async () => {
@@ -34,7 +36,7 @@ export const appConfig: ApplicationConfig = {
 		provideBrowserGlobalErrorListeners(),
 		provideZonelessChangeDetection(),
 		provideRouter(appRoutes),
-		provideHttpClient(withFetch()),
+		provideHttpClient(withFetch(), withInterceptors([authInterceptor, tokenRefreshInterceptor])),
 
 		// Initializers
 		provideAppInitializer(initializeAnalytics()),
