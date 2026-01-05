@@ -185,6 +185,7 @@ if (authService.isTokenRefreshing()) {
 | `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation          |
 | `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only) |
 | `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                    |
+| `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)  |
 
 ### Generating a Secret Key
 
@@ -357,7 +358,7 @@ cors({
 	credentials: true,
 	allowHeaders: ['Content-Type', 'Authorization'],
 	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-	maxAge: 86400, // Cache preflight requests for 24 hours
+	maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Default: 24 hours
 });
 ```
 
