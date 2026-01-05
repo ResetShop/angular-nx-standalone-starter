@@ -90,4 +90,17 @@ export class RefreshTokenRepository extends BaseRepository {
 
 		return result.length;
 	}
+
+	/**
+	 * Delete all expired refresh tokens globally
+	 * @returns Count of deleted tokens
+	 */
+	async deleteAllExpiredTokens(): Promise<number> {
+		const result = await this.db
+			.delete(refreshToken)
+			.where(lt(refreshToken.expiresAt, new Date()))
+			.returning({ id: refreshToken.id });
+
+		return result.length;
+	}
 }
