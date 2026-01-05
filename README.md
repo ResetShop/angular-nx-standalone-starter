@@ -110,6 +110,8 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
 - **`CORS_ORIGIN`**: Allowed origin for CORS requests (default: "http://localhost:4200")
   - Set to your frontend domain in production (e.g., "https://app.example.com")
   - Required for cookie-based authentication when frontend and backend are on different origins
+- **`CORS_MAX_AGE`**: Preflight request cache duration in seconds (default: 86400 = 24 hours)
+  - Controls how long browsers cache OPTIONS preflight responses
 
 **Documentation:**
 

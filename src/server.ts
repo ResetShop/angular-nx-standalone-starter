@@ -24,7 +24,7 @@ export const app = new Hono({ strict: false })
 			credentials: true,
 			allowHeaders: ['Content-Type', 'Authorization'],
 			allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-			maxAge: 86400, // Cache preflight requests for 24 hours
+			maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Cache preflight requests (default: 24 hours)
 		}),
 	)
 	.use(secureHeaders());
