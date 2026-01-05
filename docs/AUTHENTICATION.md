@@ -176,16 +176,18 @@ if (authService.isTokenRefreshing()) {
 
 ## Environment Variables
 
-| Variable                      | Required | Default                 | Description                                         |
-| ----------------------------- | -------- | ----------------------- | --------------------------------------------------- |
-| `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                      |
-| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                  |
-| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                               |
-| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                              |
-| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation          |
-| `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only) |
-| `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                    |
-| `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)  |
+| Variable                      | Required | Default                 | Description                                          |
+| ----------------------------- | -------- | ----------------------- | ---------------------------------------------------- |
+| `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                       |
+| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                   |
+| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                                |
+| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                               |
+| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation           |
+| `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only)  |
+| `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                     |
+| `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)   |
+| `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 3600000                 | Expired token cleanup interval in ms (default: 1h)   |
+| `CRON_SECRET`                 | No       | -                       | Secret for Vercel Cron Jobs to call cleanup endpoint |
 
 ### Generating a Secret Key
 
@@ -280,6 +282,58 @@ Revoke all refresh tokens for the user. Uses refresh token from HttpOnly cookie 
 	"message": "Logged out successfully"
 }
 ```
+
+### GET /api/auth/cleanup-tokens
+
+Manually trigger expired token cleanup. Requires authentication. Useful for Vercel Cron Jobs or manual maintenance.
+
+**Response (200):**
+
+```json
+{
+	"message": "Cleanup completed",
+	"deletedCount": 5
+}
+```
+
+## Token Cleanup
+
+Expired refresh tokens are automatically cleaned up to prevent database bloat.
+
+### Automatic Cleanup (Non-Serverless)
+
+When running on a traditional server (not Vercel), a background job automatically cleans up expired tokens at a configurable interval (default: 1 hour).
+
+Configure the interval with `TOKEN_CLEANUP_INTERVAL_MS` environment variable.
+
+### Vercel Cron Jobs (Serverless)
+
+On Vercel, background jobs are not supported. Instead, use [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs) to call the cleanup endpoint periodically.
+
+**1. Generate a cron secret:**
+
+```bash
+openssl rand -hex 32
+```
+
+**2. Add `CRON_SECRET` to your Vercel environment variables.**
+
+**3. Add to your `vercel.json`:**
+
+```json
+{
+	"crons": [
+		{
+			"path": "/api/auth/cleanup-tokens",
+			"schedule": "0 * * * *"
+		}
+	]
+}
+```
+
+**4. Vercel automatically sends the `CRON_SECRET` as a Bearer token in the Authorization header.**
+
+This runs the cleanup every hour. The endpoint verifies the `CRON_SECRET` before executing.
 
 ## Database Schema
 
