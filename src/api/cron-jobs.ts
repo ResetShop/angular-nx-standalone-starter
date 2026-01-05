@@ -16,12 +16,14 @@ function startTokenCleanupJob(): void {
 
 /**
  * Start all scheduled cron jobs.
- * Note: Skipped on Vercel (serverless) - use Vercel Cron Jobs with the API endpoint instead.
+ * Note: Skipped in serverless environments - use the API endpoint with scheduled triggers instead.
  */
 export function startCronJobs(): void {
-	// Skip cron jobs on Vercel (serverless environment)
-	if (process.env['VERCEL']) {
-		console.log('[CronJobs] Skipped - running on Vercel. Use Vercel Cron Jobs with GET /api/auth/cleanup-tokens');
+	// Skip cron jobs in serverless environments (SERVERLESS env var defaults to false)
+	if (process.env['SERVERLESS'] === 'true') {
+		console.log(
+			'[CronJobs] Skipped - serverless environment. Use scheduled triggers with GET /api/auth/cleanup-tokens',
+		);
 		return;
 	}
 

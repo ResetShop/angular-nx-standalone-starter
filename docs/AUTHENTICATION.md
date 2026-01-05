@@ -176,18 +176,19 @@ if (authService.isTokenRefreshing()) {
 
 ## Environment Variables
 
-| Variable                      | Required | Default                 | Description                                          |
-| ----------------------------- | -------- | ----------------------- | ---------------------------------------------------- |
-| `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                       |
-| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                   |
-| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                                |
-| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                               |
-| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation           |
-| `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only)  |
-| `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                     |
-| `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)   |
-| `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 3600000                 | Expired token cleanup interval in ms (default: 1h)   |
-| `CRON_SECRET`                 | No       | -                       | Secret for Vercel Cron Jobs to call cleanup endpoint |
+| Variable                      | Required | Default                 | Description                                         |
+| ----------------------------- | -------- | ----------------------- | --------------------------------------------------- |
+| `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                      |
+| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                  |
+| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                               |
+| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                              |
+| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation          |
+| `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only) |
+| `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                    |
+| `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)  |
+| `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 3600000                 | Expired token cleanup interval in ms (default: 1h)  |
+| `SERVERLESS`                  | No       | "false"                 | Set to "true" in serverless environments            |
+| `CRON_SECRET`                 | No       | -                       | Secret for scheduled jobs to call cleanup endpoint  |
 
 ### Generating a Secret Key
 
@@ -300,15 +301,15 @@ Manually trigger expired token cleanup. Requires authentication. Useful for Verc
 
 Expired refresh tokens are automatically cleaned up to prevent database bloat.
 
-### Automatic Cleanup (Non-Serverless)
+### Automatic Cleanup (Traditional Servers)
 
-When running on a traditional server (not Vercel), a background job automatically cleans up expired tokens at a configurable interval (default: 1 hour).
+When running on a traditional server (not serverless), a background job automatically cleans up expired tokens at a configurable interval (default: 1 hour).
 
 Configure the interval with `TOKEN_CLEANUP_INTERVAL_MS` environment variable.
 
-### Vercel Cron Jobs (Serverless)
+### Manual Cleanup (Serverless Environments)
 
-On Vercel, background jobs are not supported. Instead, use [Vercel Cron Jobs](https://vercel.com/docs/cron-jobs) to call the cleanup endpoint periodically.
+In serverless environments where background jobs are not supported, use your platform's cron/scheduler feature to call the cleanup endpoint periodically.
 
 **1. Generate a cron secret:**
 
@@ -316,24 +317,17 @@ On Vercel, background jobs are not supported. Instead, use [Vercel Cron Jobs](ht
 openssl rand -hex 32
 ```
 
-**2. Add `CRON_SECRET` to your Vercel environment variables.**
+**2. Add `CRON_SECRET` to your environment variables.**
 
-**3. Add to your `vercel.json`:**
+**3. Configure your platform's cron scheduler to call the endpoint:**
 
-```json
-{
-	"crons": [
-		{
-			"path": "/api/auth/cleanup-tokens",
-			"schedule": "0 * * * *"
-		}
-	]
-}
+```
+GET /api/auth/cleanup-tokens
+Authorization: Bearer <your-cron-secret>
+Schedule: Every hour (e.g., "0 * * * *")
 ```
 
-**4. Vercel automatically sends the `CRON_SECRET` as a Bearer token in the Authorization header.**
-
-This runs the cleanup every hour. The endpoint verifies the `CRON_SECRET` before executing.
+The endpoint verifies the `CRON_SECRET` before executing. Authenticated users can also trigger cleanup manually.
 
 ## Database Schema
 
