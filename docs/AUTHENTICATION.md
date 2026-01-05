@@ -176,14 +176,15 @@ if (authService.isTokenRefreshing()) {
 
 ## Environment Variables
 
-| Variable                      | Required | Default      | Description                                         |
-| ----------------------------- | -------- | ------------ | --------------------------------------------------- |
-| `PASETO_SECRET_KEY`           | Yes      | -            | 32-byte hex-encoded secret key                      |
-| `PASETO_ISSUER`               | No       | "Reset Shop" | Token issuer claim                                  |
-| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"        | Access token lifetime                               |
-| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"         | Refresh token lifetime                              |
-| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"         | Clock drift tolerance for token validation          |
-| `COOKIE_SECURE`               | No       | "true"       | Set to "false" to disable secure cookies (dev only) |
+| Variable                      | Required | Default                 | Description                                         |
+| ----------------------------- | -------- | ----------------------- | --------------------------------------------------- |
+| `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                      |
+| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                  |
+| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                               |
+| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                              |
+| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation          |
+| `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only) |
+| `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                    |
 
 ### Generating a Secret Key
 
@@ -341,6 +342,56 @@ Two HTTP interceptors handle authentication:
 3. **Monitor Failed Logins**: Track and alert on suspicious login patterns
 4. **Rotate Secret Keys**: Have a key rotation strategy
 5. **Set Appropriate Token Lifetimes**: Balance security vs. UX
+
+## CORS Configuration
+
+The authentication system uses HttpOnly cookies for refresh tokens, which requires proper CORS configuration when the frontend and backend are on different origins.
+
+### How It Works
+
+CORS middleware is configured in `server.ts` with the following settings:
+
+```typescript
+cors({
+	origin: process.env['CORS_ORIGIN'] || 'http://localhost:4200',
+	credentials: true,
+	allowHeaders: ['Content-Type', 'Authorization'],
+	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+	maxAge: 86400, // Cache preflight requests for 24 hours
+});
+```
+
+### Key Points
+
+1. **Credentials Support**: `credentials: true` allows cookies to be sent/received cross-origin
+2. **Specific Origin Required**: When using credentials, the origin **cannot** be `*` (wildcard) - it must be a specific domain
+3. **Preflight Caching**: `maxAge: 86400` caches preflight responses for 24 hours to reduce OPTIONS requests
+
+### Production Deployment
+
+When deploying to production, set the `CORS_ORIGIN` environment variable to your frontend domain:
+
+```bash
+# Single origin
+export CORS_ORIGIN=https://app.example.com
+```
+
+### Common Issues
+
+#### Cookies Not Being Sent
+
+If cookies aren't being sent with requests:
+
+1. Verify `CORS_ORIGIN` matches your frontend's exact origin (including protocol and port)
+2. Ensure the frontend is using `withCredentials: true` in HTTP requests
+3. Check that `COOKIE_SECURE` is set appropriately (must be `true` for HTTPS)
+
+#### Preflight Failures
+
+If OPTIONS requests are failing:
+
+1. Verify the CORS middleware is positioned early in the middleware chain
+2. Check that your reverse proxy (if any) is forwarding OPTIONS requests
 
 ### Token Storage (Frontend)
 
