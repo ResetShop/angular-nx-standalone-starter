@@ -12,6 +12,9 @@ import { join } from 'node:path';
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 
+// Cron jobs
+import { startCronJobs } from './api/cron-jobs';
+
 /**
  * Initialize Hono and export the app instance
  */
@@ -114,6 +117,9 @@ if (isMainModule(import.meta.url)) {
 		},
 		(info) => {
 			console.log(`Hono server listening on http://localhost:${info.port}`);
+
+			// Start cron jobs
+			startCronJobs();
 		},
 	);
 }
