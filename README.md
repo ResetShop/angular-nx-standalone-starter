@@ -107,6 +107,9 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
 - **`COOKIE_SECURE`**: Controls the `secure` flag on authentication cookies (default: "true")
   - Set to "false" for local development without HTTPS
   - **Always keep as "true" in production**
+- **`CORS_ORIGIN`**: Allowed origin for CORS requests (default: "http://localhost:4200")
+  - Set to your frontend domain in production (e.g., "https://app.example.com")
+  - Required for cookie-based authentication when frontend and backend are on different origins
 
 **Documentation:**
 
