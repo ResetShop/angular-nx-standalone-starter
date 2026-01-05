@@ -3,6 +3,7 @@ import { isMainModule } from '@angular/ssr/node';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
@@ -14,7 +15,19 @@ import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 /**
  * Initialize Hono and export the app instance
  */
-export const app = new Hono({ strict: false }).use(requestId()).use(secureHeaders());
+export const app = new Hono({ strict: false })
+	.use(requestId())
+	.use(
+		'*',
+		cors({
+			origin: process.env['CORS_ORIGIN'] || 'http://localhost:4200',
+			credentials: true,
+			allowHeaders: ['Content-Type', 'Authorization'],
+			allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+			maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Cache preflight requests (default: 24 hours)
+		}),
+	)
+	.use(secureHeaders());
 
 /**
  * Apply authentication middleware to all API routes except public endpoints
