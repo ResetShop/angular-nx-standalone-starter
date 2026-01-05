@@ -193,4 +193,17 @@ export class AuthService {
 		// Delete all expired tokens for this user
 		await this.refreshTokenRepository.deleteExpiredTokensForUser(userId);
 	}
+
+	/**
+	 * Delete all expired refresh tokens from the database.
+	 * Used by the cron job and manual cleanup endpoint.
+	 * @returns Count of deleted tokens
+	 */
+	async cleanupExpiredTokens(): Promise<number> {
+		const startTime = Date.now();
+		const deletedCount = await this.refreshTokenRepository.deleteAllExpiredTokens();
+		const duration = Date.now() - startTime;
+		console.log(`[TokenCleanup] Deleted ${deletedCount} expired tokens in ${duration}ms`);
+		return deletedCount;
+	}
 }
