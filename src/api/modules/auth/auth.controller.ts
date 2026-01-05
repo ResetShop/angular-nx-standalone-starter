@@ -128,4 +128,32 @@ app.post('/logout', async (c) => {
 	}
 });
 
+// GET /api/auth/cleanup-tokens - Manually trigger expired token cleanup
+// Public endpoint but protected by CRON_SECRET for Vercel Cron Jobs
+// Also allows authenticated users to call it manually
+app.get('/cleanup-tokens', async (c) => {
+	const cronSecret = process.env['CRON_SECRET'];
+	const authHeader = c.req.header('Authorization');
+	const user = (c as AuthenticatedContext).user;
+
+	// Check authorization: either valid cron secret or authenticated user
+	const isValidCronRequest = cronSecret && authHeader === `Bearer ${cronSecret}`;
+	const isAuthenticatedUser = !!user;
+
+	if (!isValidCronRequest && !isAuthenticatedUser) {
+		return c.json({ error: 'Unauthorized' }, 401);
+	}
+
+	try {
+		const deletedCount = await authService.cleanupExpiredTokens();
+		return c.json({
+			message: 'Cleanup completed',
+			deletedCount,
+		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Cleanup failed';
+		return c.json({ error: message }, 500);
+	}
+});
+
 export default app;
