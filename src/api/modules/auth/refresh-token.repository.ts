@@ -1,8 +1,11 @@
-import { and, eq, inArray, lt } from 'drizzle-orm';
+import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
 
 const DELETE_BATCH_SIZE = 1000;
+
+// Advisory lock key for token cleanup (arbitrary unique number)
+const TOKEN_CLEANUP_LOCK_KEY = 123456789;
 
 interface RefreshTokenData {
 	id: number;
@@ -23,6 +26,24 @@ interface CreateRefreshTokenParams {
 }
 
 export class RefreshTokenRepository extends BaseRepository {
+	/**
+	 * Try to acquire a PostgreSQL advisory lock for token cleanup.
+	 * Non-blocking - returns immediately with true/false.
+	 * Works across multiple server instances sharing the same database.
+	 * @returns true if lock acquired, false if already locked by another process
+	 */
+	async tryAcquireCleanupLock(): Promise<boolean> {
+		const result = await this.db.execute(sql`SELECT pg_try_advisory_lock(${TOKEN_CLEANUP_LOCK_KEY}) as locked`);
+		return (result.rows[0] as { locked: boolean }).locked;
+	}
+
+	/**
+	 * Release the PostgreSQL advisory lock for token cleanup.
+	 */
+	async releaseCleanupLock(): Promise<void> {
+		await this.db.execute(sql`SELECT pg_advisory_unlock(${TOKEN_CLEANUP_LOCK_KEY})`);
+	}
+
 	/**
 	 * Find refresh token by its hash
 	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
