@@ -329,7 +329,12 @@ Schedule: Every hour (e.g., "0 * * * *")
 
 **Vercel Example:**
 
-Add to your `vercel.json`:
+**1. Set required environment variables in Vercel dashboard:**
+
+- `SERVERLESS=true` - Disables background cron jobs (required for serverless)
+- `CRON_SECRET` - Your generated secret for cron authentication
+
+**2. Add to your `vercel.json`:**
 
 ```json
 {
