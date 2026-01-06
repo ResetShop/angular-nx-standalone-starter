@@ -168,8 +168,8 @@ app.get('/cleanup-tokens', async (c) => {
 			deletedCount,
 		});
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Cleanup failed';
-		return c.json({ error: message }, 500);
+		console.error('[TokenCleanup] Error:', error);
+		return c.json({ error: 'Cleanup failed' }, 500);
 	}
 });
 
