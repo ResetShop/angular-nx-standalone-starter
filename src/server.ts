@@ -13,7 +13,7 @@ import verifyAccessToken from './api/middlewares/verify-access-token.middleware'
 import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 
 // Cron jobs
-import { startCronJobs } from './api/cron-jobs';
+import { startCronJobs, stopCronJobs } from './api/cron-jobs';
 
 /**
  * Initialize Hono and export the app instance
@@ -110,7 +110,7 @@ app.onError((error, c) => {
  */
 if (isMainModule(import.meta.url)) {
 	const port = Number(process.env['PORT'] || 4000);
-	serve(
+	const server = serve(
 		{
 			fetch: app.fetch,
 			port,
@@ -122,6 +122,19 @@ if (isMainModule(import.meta.url)) {
 			startCronJobs();
 		},
 	);
+
+	// Graceful shutdown handler
+	const gracefulShutdown = (signal: string) => {
+		console.log(`\n${signal} received. Starting graceful shutdown...`);
+		stopCronJobs();
+		server.close(() => {
+			console.log('Server closed');
+			process.exit(0);
+		});
+	};
+
+	process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+	process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 /**
