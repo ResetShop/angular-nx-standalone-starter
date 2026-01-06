@@ -1,13 +1,12 @@
 import { AuthService } from './modules/auth/auth.service';
 
-const authService = new AuthService();
-
 let cleanupInterval: NodeJS.Timeout | null = null;
 
 /**
  * Token cleanup cron job - removes expired refresh tokens
  */
 function startTokenCleanupJob(): void {
+	const authService = new AuthService();
 	const intervalMs = Number(process.env['TOKEN_CLEANUP_INTERVAL_MS']) || 3600000; // 1 hour default
 	console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
 
