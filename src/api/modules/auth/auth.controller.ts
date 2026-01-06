@@ -1,4 +1,5 @@
 import { zValidator } from '@hono/zod-validator';
+import { timingSafeEqual } from 'crypto';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
@@ -137,7 +138,15 @@ app.get('/cleanup-tokens', async (c) => {
 	const user = (c as AuthenticatedContext).user;
 
 	// Check authorization: either valid cron secret or authenticated user
-	const isValidCronRequest = cronSecret && authHeader === `Bearer ${cronSecret}`;
+	// Use timing-safe comparison to prevent timing attacks on the secret
+	const isValidCronRequest =
+		cronSecret &&
+		authHeader &&
+		(() => {
+			const expected = Buffer.from(`Bearer ${cronSecret}`);
+			const actual = Buffer.from(authHeader);
+			return expected.length === actual.length && timingSafeEqual(expected, actual);
+		})();
 	const isAuthenticatedUser = !!user;
 
 	if (!isValidCronRequest && !isAuthenticatedUser) {
