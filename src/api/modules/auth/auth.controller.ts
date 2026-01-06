@@ -129,6 +129,9 @@ app.post('/logout', async (c) => {
 	}
 });
 
+// Minimum length for CRON_SECRET (32 chars = 256 bits of entropy when hex-encoded)
+const MIN_CRON_SECRET_LENGTH = 32;
+
 // GET /api/auth/cleanup-tokens - Manually trigger expired token cleanup
 // Public endpoint but protected by CRON_SECRET for Vercel Cron Jobs
 // Also allows authenticated users to call it manually
@@ -137,10 +140,16 @@ app.get('/cleanup-tokens', async (c) => {
 	const authHeader = c.req.header('Authorization');
 	const user = (c as AuthenticatedContext).user;
 
+	// Validate CRON_SECRET length if set
+	const isSecretValid = cronSecret && cronSecret.length >= MIN_CRON_SECRET_LENGTH;
+	if (cronSecret && !isSecretValid) {
+		console.warn(`[TokenCleanup] CRON_SECRET is too short (minimum ${MIN_CRON_SECRET_LENGTH} characters required)`);
+	}
+
 	// Check authorization: either valid cron secret or authenticated user
 	// Use timing-safe comparison to prevent timing attacks on the secret
 	const isValidCronRequest =
-		cronSecret &&
+		isSecretValid &&
 		authHeader &&
 		(() => {
 			const expected = Buffer.from(`Bearer ${cronSecret}`);
