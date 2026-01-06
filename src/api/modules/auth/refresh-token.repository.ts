@@ -3,6 +3,7 @@ import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
 
 const DELETE_BATCH_SIZE = 1000;
+const MAX_CLEANUP_BATCHES = 100; // Limit cleanup to 100k tokens per run to prevent indefinite execution
 
 // Advisory lock key for token cleanup
 // Using a hash-like number derived from 'refresh_token_cleanup' to avoid collisions
@@ -123,12 +124,14 @@ export class RefreshTokenRepository extends BaseRepository {
 	/**
 	 * Delete all expired refresh tokens globally.
 	 * Uses batch deletion to avoid locking the table for large datasets.
+	 * Limited to MAX_CLEANUP_BATCHES iterations to prevent indefinite execution.
 	 * @returns Count of deleted tokens
 	 */
 	async deleteAllExpiredTokens(): Promise<number> {
 		let totalDeleted = 0;
+		let batchCount = 0;
 
-		while (true) {
+		while (batchCount < MAX_CLEANUP_BATCHES) {
 			// Select a batch of expired token IDs
 			const expiredBatch = await this.db
 				.select({ id: refreshToken.id })
@@ -145,11 +148,16 @@ export class RefreshTokenRepository extends BaseRepository {
 			await this.db.delete(refreshToken).where(inArray(refreshToken.id, idsToDelete));
 
 			totalDeleted += expiredBatch.length;
+			batchCount++;
 
 			// If we got fewer than batch size, we're done
 			if (expiredBatch.length < DELETE_BATCH_SIZE) {
 				break;
 			}
+		}
+
+		if (batchCount >= MAX_CLEANUP_BATCHES) {
+			console.warn(`[TokenCleanup] Reached max batch limit (${MAX_CLEANUP_BATCHES}). Some expired tokens may remain.`);
 		}
 
 		return totalDeleted;
