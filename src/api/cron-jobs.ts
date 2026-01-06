@@ -26,8 +26,8 @@ function startTokenCleanupJob(): void {
  * Note: Skipped in serverless environments - use the API endpoint with scheduled triggers instead.
  */
 export function startCronJobs(): void {
-	// Skip cron jobs in serverless environments (SERVERLESS env var defaults to false)
-	if (process.env['SERVERLESS'] === 'true') {
+	// Skip cron jobs in serverless environments (IS_SERVERLESS env var defaults to false)
+	if (process.env['IS_SERVERLESS'] === 'true') {
 		console.log(
 			'[CronJobs] Skipped - serverless environment. Use scheduled triggers with GET /api/auth/cleanup-tokens',
 		);
