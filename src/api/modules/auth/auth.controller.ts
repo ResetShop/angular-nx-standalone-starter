@@ -155,6 +155,14 @@ app.get('/cleanup-tokens', async (c) => {
 
 	try {
 		const deletedCount = await authService.cleanupExpiredTokens();
+
+		if (deletedCount === -1) {
+			return c.json({
+				message: 'Cleanup already in progress',
+				deletedCount: 0,
+			});
+		}
+
 		return c.json({
 			message: 'Cleanup completed',
 			deletedCount,
