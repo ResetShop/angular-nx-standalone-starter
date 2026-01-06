@@ -198,11 +198,18 @@ export class AuthService {
 	 * Delete all expired refresh tokens from the database.
 	 * Used by the cron job and manual cleanup endpoint.
 	 * Uses PostgreSQL advisory lock to prevent concurrent executions across multiple server instances.
-	 * @returns Count of deleted tokens, or -1 if cleanup was skipped due to concurrent execution
+	 * @returns Count of deleted tokens, or -1 if cleanup was skipped due to concurrent execution or lock error
 	 */
 	async cleanupExpiredTokens(): Promise<number> {
 		// Try to acquire database-level lock (works across multiple server instances)
-		const lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock();
+		let lockAcquired = false;
+		try {
+			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock();
+		} catch (error) {
+			console.error('[TokenCleanup] Failed to acquire advisory lock:', error);
+			return -1;
+		}
+
 		if (!lockAcquired) {
 			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)');
 			return -1;
@@ -215,7 +222,11 @@ export class AuthService {
 			console.log(`[TokenCleanup] Deleted ${deletedCount} expired tokens in ${duration}ms`);
 			return deletedCount;
 		} finally {
-			await this.refreshTokenRepository.releaseCleanupLock();
+			try {
+				await this.refreshTokenRepository.releaseCleanupLock();
+			} catch (error) {
+				console.error('[TokenCleanup] Failed to release advisory lock:', error);
+			}
 		}
 	}
 }
