@@ -1,6 +1,8 @@
-import { and, eq, lt } from 'drizzle-orm';
+import { and, eq, inArray, lt } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
+
+const DELETE_BATCH_SIZE = 1000;
 
 interface RefreshTokenData {
 	id: number;
@@ -92,15 +94,37 @@ export class RefreshTokenRepository extends BaseRepository {
 	}
 
 	/**
-	 * Delete all expired refresh tokens globally
+	 * Delete all expired refresh tokens globally.
+	 * Uses batch deletion to avoid locking the table for large datasets.
 	 * @returns Count of deleted tokens
 	 */
 	async deleteAllExpiredTokens(): Promise<number> {
-		const result = await this.db
-			.delete(refreshToken)
-			.where(lt(refreshToken.expiresAt, new Date()))
-			.returning({ id: refreshToken.id });
+		let totalDeleted = 0;
 
-		return result.length;
+		while (true) {
+			// Select a batch of expired token IDs
+			const expiredBatch = await this.db
+				.select({ id: refreshToken.id })
+				.from(refreshToken)
+				.where(lt(refreshToken.expiresAt, new Date()))
+				.limit(DELETE_BATCH_SIZE);
+
+			if (!expiredBatch || expiredBatch.length === 0) {
+				break;
+			}
+
+			// Delete the batch by IDs
+			const idsToDelete = expiredBatch.map((t) => t.id);
+			await this.db.delete(refreshToken).where(inArray(refreshToken.id, idsToDelete));
+
+			totalDeleted += expiredBatch.length;
+
+			// If we got fewer than batch size, we're done
+			if (expiredBatch.length < DELETE_BATCH_SIZE) {
+				break;
+			}
+		}
+
+		return totalDeleted;
 	}
 }
