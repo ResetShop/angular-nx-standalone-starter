@@ -187,7 +187,7 @@ if (authService.isTokenRefreshing()) {
 | `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                        |
 | `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)      |
 | `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 86400000                | Cleanup interval in ms (min: 1m, max: 7d, default: 24h) |
-| `SERVERLESS`                  | No       | "false"                 | Set to "true" in serverless environments                |
+| `IS_SERVERLESS`               | No       | "false"                 | Set to "true" in serverless environments                |
 | `CRON_SECRET`                 | No       | -                       | Secret for scheduled jobs to call cleanup endpoint      |
 
 ### Generating a Secret Key
@@ -331,7 +331,7 @@ Schedule: Every hour (e.g., "0 * * * *")
 
 **1. Set required environment variables in Vercel dashboard:**
 
-- `SERVERLESS=true` - Disables background cron jobs (required for serverless)
+- `IS_SERVERLESS=true` - Disables background cron jobs (required for serverless)
 - `CRON_SECRET` - Your generated secret for cron authentication
 
 **2. Add to your `vercel.json`:**
