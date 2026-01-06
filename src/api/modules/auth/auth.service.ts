@@ -34,8 +34,6 @@ export const AUTH_ERRORS = {
 } as const;
 
 export class AuthService {
-	private static isCleanupRunning = false;
-
 	constructor(
 		private userRepository: UserRepository = new UserRepository(),
 		private authRepository: AuthenticationRepository = new AuthenticationRepository(),
@@ -199,16 +197,17 @@ export class AuthService {
 	/**
 	 * Delete all expired refresh tokens from the database.
 	 * Used by the cron job and manual cleanup endpoint.
-	 * Uses a lock to prevent concurrent executions.
+	 * Uses PostgreSQL advisory lock to prevent concurrent executions across multiple server instances.
 	 * @returns Count of deleted tokens, or -1 if cleanup was skipped due to concurrent execution
 	 */
 	async cleanupExpiredTokens(): Promise<number> {
-		if (AuthService.isCleanupRunning) {
-			console.log('[TokenCleanup] Skipped - cleanup already in progress');
+		// Try to acquire database-level lock (works across multiple server instances)
+		const lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock();
+		if (!lockAcquired) {
+			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)');
 			return -1;
 		}
 
-		AuthService.isCleanupRunning = true;
 		try {
 			const startTime = Date.now();
 			const deletedCount = await this.refreshTokenRepository.deleteAllExpiredTokens();
@@ -216,7 +215,7 @@ export class AuthService {
 			console.log(`[TokenCleanup] Deleted ${deletedCount} expired tokens in ${duration}ms`);
 			return deletedCount;
 		} finally {
-			AuthService.isCleanupRunning = false;
+			await this.refreshTokenRepository.releaseCleanupLock();
 		}
 	}
 }
