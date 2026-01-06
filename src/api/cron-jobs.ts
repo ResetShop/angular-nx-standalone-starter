@@ -7,7 +7,9 @@ let cleanupInterval: NodeJS.Timeout | null = null;
  */
 function startTokenCleanupJob(): void {
 	const authService = new AuthService();
-	const intervalMs = Number(process.env['TOKEN_CLEANUP_INTERVAL_MS']) || 3600000; // 1 hour default
+	const DEFAULT_INTERVAL_MS = 86400000; // 24 hours
+	const raw = Number(process.env['TOKEN_CLEANUP_INTERVAL_MS']);
+	const intervalMs = isNaN(raw) || raw <= 0 ? DEFAULT_INTERVAL_MS : raw;
 	console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
 
 	// Run immediately, then at interval
