@@ -176,19 +176,19 @@ if (authService.isTokenRefreshing()) {
 
 ## Environment Variables
 
-| Variable                      | Required | Default                 | Description                                         |
-| ----------------------------- | -------- | ----------------------- | --------------------------------------------------- |
-| `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                      |
-| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                  |
-| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                               |
-| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                              |
-| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation          |
-| `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only) |
-| `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                    |
-| `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)  |
-| `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 3600000                 | Expired token cleanup interval in ms (default: 1h)  |
-| `SERVERLESS`                  | No       | "false"                 | Set to "true" in serverless environments            |
-| `CRON_SECRET`                 | No       | -                       | Secret for scheduled jobs to call cleanup endpoint  |
+| Variable                      | Required | Default                 | Description                                             |
+| ----------------------------- | -------- | ----------------------- | ------------------------------------------------------- |
+| `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                          |
+| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                      |
+| `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                                   |
+| `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                                  |
+| `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation              |
+| `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only)     |
+| `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                        |
+| `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)      |
+| `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 86400000                | Cleanup interval in ms (min: 1m, max: 7d, default: 24h) |
+| `SERVERLESS`                  | No       | "false"                 | Set to "true" in serverless environments                |
+| `CRON_SECRET`                 | No       | -                       | Secret for scheduled jobs to call cleanup endpoint      |
 
 ### Generating a Secret Key
 
@@ -303,7 +303,7 @@ Expired refresh tokens are automatically cleaned up to prevent database bloat.
 
 ### Automatic Cleanup (Traditional Servers)
 
-When running on a traditional server (not serverless), a background job automatically cleans up expired tokens at a configurable interval (default: 1 hour).
+When running on a traditional server (not serverless), a background job automatically cleans up expired tokens at a configurable interval (default: 24 hours).
 
 Configure the interval with `TOKEN_CLEANUP_INTERVAL_MS` environment variable.
 

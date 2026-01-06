@@ -6,10 +6,14 @@ let cleanupInterval: NodeJS.Timeout | null = null;
  * Token cleanup cron job - removes expired refresh tokens
  */
 function startTokenCleanupJob(): void {
-	const authService = new AuthService();
 	const DEFAULT_INTERVAL_MS = 86400000; // 24 hours
+	const MIN_INTERVAL_MS = 60000; // 1 minute
+	const MAX_INTERVAL_MS = 604800000; // 7 days
+
+	const authService = new AuthService();
 	const raw = Number(process.env['TOKEN_CLEANUP_INTERVAL_MS']);
-	const intervalMs = isNaN(raw) || raw <= 0 ? DEFAULT_INTERVAL_MS : raw;
+	const isValidInterval = !isNaN(raw) && raw >= MIN_INTERVAL_MS && raw <= MAX_INTERVAL_MS;
+	const intervalMs = isValidInterval ? raw : DEFAULT_INTERVAL_MS;
 	console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
 
 	// Run immediately, then at interval
