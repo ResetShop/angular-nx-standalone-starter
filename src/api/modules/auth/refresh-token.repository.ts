@@ -4,8 +4,10 @@ import { BaseRepository } from '../../helpers/base.repository';
 
 const DELETE_BATCH_SIZE = 1000;
 
-// Advisory lock key for token cleanup (arbitrary unique number)
-const TOKEN_CLEANUP_LOCK_KEY = 123456789;
+// Advisory lock key for token cleanup
+// Using a hash-like number derived from 'refresh_token_cleanup' to avoid collisions
+// with other advisory locks in the same database
+const TOKEN_CLEANUP_LOCK_KEY = 0x5246544b; // "RFTK" in hex (Refresh Token Cleanup Key)
 
 interface RefreshTokenData {
 	id: number;
