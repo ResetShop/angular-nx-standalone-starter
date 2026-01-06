@@ -327,6 +327,23 @@ Authorization: Bearer <your-cron-secret>
 Schedule: Every hour (e.g., "0 * * * *")
 ```
 
+**Vercel Example:**
+
+Add to your `vercel.json`:
+
+```json
+{
+	"crons": [
+		{
+			"path": "/api/auth/cleanup-tokens",
+			"schedule": "0 * * * *"
+		}
+	]
+}
+```
+
+Vercel automatically includes the `CRON_SECRET` as the Authorization header when calling cron endpoints.
+
 The endpoint verifies the `CRON_SECRET` before executing. Authenticated users can also trigger cleanup manually.
 
 ## Database Schema
