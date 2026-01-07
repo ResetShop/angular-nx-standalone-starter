@@ -37,9 +37,9 @@ export class RefreshTokenRepository extends BaseRepository {
 	 */
 	async tryAcquireCleanupLock(): Promise<boolean> {
 		const result = await this.db.execute(sql`SELECT pg_try_advisory_lock(${TOKEN_CLEANUP_LOCK_KEY}) as locked`);
-		const row = result.rows[0] as { locked: boolean } | undefined;
-		if (!row) {
-			throw new Error('Failed to acquire advisory lock: no result returned');
+		const row = result.rows[0] as { locked: boolean | null | undefined } | undefined;
+		if (!row || typeof row.locked !== 'boolean') {
+			throw new Error('Failed to acquire advisory lock: unexpected result format');
 		}
 		return row.locked;
 	}
