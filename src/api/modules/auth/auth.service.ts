@@ -225,7 +225,11 @@ export class AuthService {
 			try {
 				await this.refreshTokenRepository.releaseCleanupLock();
 			} catch (error) {
-				console.error('[TokenCleanup] Failed to release advisory lock:', error);
+				// Lock will be auto-released when database connection closes
+				console.error(
+					`[TokenCleanup] Failed to release advisory lock at ${new Date().toISOString()}. Lock will auto-release on connection close:`,
+					error,
+				);
 			}
 		}
 	}
