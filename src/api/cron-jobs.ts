@@ -2,6 +2,22 @@ import { AuthService } from './modules/auth/auth.service';
 
 let cleanupInterval: NodeJS.Timeout | null = null;
 
+// Minimum length for CRON_SECRET (32 chars = 256 bits of entropy when hex-encoded)
+const MIN_CRON_SECRET_LENGTH = 32;
+
+/**
+ * Validate CRON_SECRET at startup and log warning if too short.
+ * Only logs once to avoid spam.
+ */
+function validateCronSecret(): void {
+	const cronSecret = process.env['CRON_SECRET'];
+	if (cronSecret && cronSecret.length < MIN_CRON_SECRET_LENGTH) {
+		console.warn(
+			`[CronJobs] WARNING: CRON_SECRET is too short (${cronSecret.length} chars). Minimum ${MIN_CRON_SECRET_LENGTH} characters required for secure authentication.`,
+		);
+	}
+}
+
 /**
  * Token cleanup cron job - removes expired refresh tokens
  */
@@ -26,6 +42,9 @@ function startTokenCleanupJob(): void {
  * Note: Skipped in serverless environments - use the API endpoint with scheduled triggers instead.
  */
 export function startCronJobs(): void {
+	// Validate CRON_SECRET once at startup
+	validateCronSecret();
+
 	// Skip cron jobs in serverless environments (IS_SERVERLESS env var defaults to false)
 	if (process.env['IS_SERVERLESS'] === 'true') {
 		console.log(
