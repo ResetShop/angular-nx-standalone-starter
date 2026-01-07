@@ -140,11 +140,8 @@ app.get('/cleanup-tokens', async (c) => {
 	const authHeader = c.req.header('Authorization');
 	const user = (c as AuthenticatedContext).user;
 
-	// Validate CRON_SECRET length if set
+	// Validate CRON_SECRET length (warning logged at startup in cron-jobs.ts)
 	const isSecretValid = cronSecret && cronSecret.length >= MIN_CRON_SECRET_LENGTH;
-	if (cronSecret && !isSecretValid) {
-		console.warn(`[TokenCleanup] CRON_SECRET is too short (minimum ${MIN_CRON_SECRET_LENGTH} characters required)`);
-	}
 
 	// Check authorization: either valid cron secret or authenticated user
 	// Use timing-safe comparison to prevent timing attacks on the secret
