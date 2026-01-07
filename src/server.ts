@@ -123,11 +123,20 @@ if (isMainModule(import.meta.url)) {
 		},
 	);
 
-	// Graceful shutdown handler
+	// Graceful shutdown handler with timeout
+	const SHUTDOWN_TIMEOUT_MS = 10000; // 10 seconds
 	const gracefulShutdown = (signal: string) => {
 		console.log(`\n${signal} received. Starting graceful shutdown...`);
 		stopCronJobs();
+
+		// Force exit if graceful shutdown takes too long
+		const forceExitTimeout = setTimeout(() => {
+			console.error('Graceful shutdown timed out. Forcing exit...');
+			process.exit(1);
+		}, SHUTDOWN_TIMEOUT_MS);
+
 		server.close(() => {
+			clearTimeout(forceExitTimeout);
 			console.log('Server closed');
 			process.exit(0);
 		});
