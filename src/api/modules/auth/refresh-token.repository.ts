@@ -1,6 +1,7 @@
 import { and, eq, lt } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
+import { type DrizzlePgConnector, drizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
 
 interface RefreshTokenData {
 	id: number;
@@ -20,7 +21,14 @@ interface CreateRefreshTokenParams {
 	expiresAt: Date;
 }
 
+interface RefreshTokenRepositoryDeps {
+	db: DrizzlePgConnector;
+}
+
 export class RefreshTokenRepository extends BaseRepository {
+	constructor(deps: RefreshTokenRepositoryDeps = { db: drizzlePgConnector }) {
+		super(deps);
+	}
 	/**
 	 * Find refresh token by its hash
 	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
