@@ -124,6 +124,3 @@ export class PasetoService {
 		}
 	}
 }
-
-// Singleton instance
-export const pasetoService = new PasetoService();
