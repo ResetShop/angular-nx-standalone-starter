@@ -10,6 +10,10 @@ import { AuthService } from './auth.service';
 
 const app = new Hono();
 
+// Resolve services once at module level (singleton lifetime)
+const authService = container.resolve<AuthService>('authService');
+const pasetoService = container.resolve<PasetoService>('pasetoService');
+
 // Cookie configuration for refresh token
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
 const COOKIE_OPTIONS = {
@@ -33,7 +37,6 @@ app.post(
 	async (c) => {
 		try {
 			const { email, password } = c.req.valid('json');
-			const authService = container.resolve<AuthService>('authService');
 
 			const response = await authService.authenticate({ email, password });
 
@@ -65,7 +68,6 @@ app.post('/refresh', async (c) => {
 			return c.json({ error: 'No refresh token provided' }, 401);
 		}
 
-		const authService = container.resolve<AuthService>('authService');
 		const response = await authService.refreshToken(refreshToken);
 
 		// Update refresh token cookie with new token
@@ -119,8 +121,6 @@ app.post('/logout', async (c) => {
 		}
 
 		// Verify refresh token and get user ID
-		const pasetoService = container.resolve<PasetoService>('pasetoService');
-		const authService = container.resolve<AuthService>('authService');
 		const payload = await pasetoService.verifyRefreshToken(refreshToken);
 		await authService.logout(Number(payload.sub));
 

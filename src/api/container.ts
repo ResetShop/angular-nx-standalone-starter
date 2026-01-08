@@ -9,12 +9,12 @@ import { PasetoService } from './services/paseto.service';
 /**
  * Awilix Dependency Injection Container
  *
- * Using CLASSIC injection mode for:
- * - Better performance than PROXY mode
- * - No minification in server-side code
- * - Dependencies resolved via constructor parameter names
+ * Using PROXY injection mode for:
+ * - Works with minified code (production builds)
+ * - Dependencies resolved via property access on proxy object
+ * - Destructured constructor parameters work correctly
  *
- * Constructor signature pattern for CLASSIC mode:
+ * Constructor signature pattern for PROXY mode:
  * ```typescript
  * class MyService {
  *   constructor({ dep1, dep2 }: { dep1: Dep1; dep2: Dep2 }) {
@@ -25,7 +25,7 @@ import { PasetoService } from './services/paseto.service';
  * ```
  */
 export const container = createContainer({
-	injectionMode: InjectionMode.CLASSIC,
+	injectionMode: InjectionMode.PROXY,
 	strict: true,
 });
 
