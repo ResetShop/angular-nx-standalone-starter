@@ -1,10 +1,30 @@
 import { asClass, asValue, createContainer, InjectionMode } from 'awilix';
-import { drizzlePgConnector } from './helpers/drizzle-postgres-connector';
+import { drizzlePgConnector, type DrizzlePgConnector } from './helpers/drizzle-postgres-connector';
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
 import { UserRepository } from './modules/user/user.repository';
 import { PasetoService } from './services/paseto.service';
+
+/**
+ * Cradle interface defines all dependencies available in the container.
+ * This provides type safety when resolving dependencies.
+ */
+export interface Cradle {
+	// Infrastructure
+	db: DrizzlePgConnector;
+
+	// Services
+	pasetoService: PasetoService;
+
+	// Repositories
+	userRepository: UserRepository;
+	authRepository: AuthenticationRepository;
+	refreshTokenRepository: RefreshTokenRepository;
+
+	// Application Services
+	authService: AuthService;
+}
 
 /**
  * Awilix Dependency Injection Container
@@ -24,7 +44,7 @@ import { PasetoService } from './services/paseto.service';
  * }
  * ```
  */
-export const container = createContainer({
+export const container = createContainer<Cradle>({
 	injectionMode: InjectionMode.PROXY,
 	strict: true,
 });
