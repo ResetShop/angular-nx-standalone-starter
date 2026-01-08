@@ -1,5 +1,6 @@
 import { Context, Next } from 'hono';
-import { pasetoService } from '../services/paseto.service';
+import { container } from '../container';
+import { PasetoService } from '../services/paseto.service';
 
 export interface AuthenticatedContext extends Context {
 	user?: {
@@ -23,6 +24,7 @@ export default async function verifyAccessToken(c: Context, next: Next) {
 	const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
 	try {
+		const pasetoService = container.resolve<PasetoService>('pasetoService');
 		const payload = await pasetoService.verifyAccessToken(token);
 
 		// Attach user info to context
