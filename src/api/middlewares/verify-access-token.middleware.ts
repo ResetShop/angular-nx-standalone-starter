@@ -11,6 +11,9 @@ export interface AuthenticatedContext extends Context {
 	};
 }
 
+// Resolve service once at module level (singleton lifetime)
+const pasetoService = container.resolve<PasetoService>('pasetoService');
+
 /**
  * Hono middleware to validate Paseto access token from Authorization header
  */
@@ -24,7 +27,6 @@ export default async function verifyAccessToken(c: Context, next: Next) {
 	const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
 	try {
-		const pasetoService = container.resolve<PasetoService>('pasetoService');
 		const payload = await pasetoService.verifyAccessToken(token);
 
 		// Attach user info to context
