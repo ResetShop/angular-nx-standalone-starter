@@ -1,7 +1,6 @@
 import { and, eq, lt } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
-import { BaseRepository } from '../../helpers/base.repository';
-import { type DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
+import { BaseRepository, BaseRepositoryDeps } from '../../helpers/base.repository';
 
 interface RefreshTokenData {
 	id: number;
@@ -21,13 +20,9 @@ interface CreateRefreshTokenParams {
 	expiresAt: Date;
 }
 
-interface RefreshTokenRepositoryDeps {
-	db: DrizzlePgConnector;
-}
-
 export class RefreshTokenRepository extends BaseRepository {
-	constructor({ db }: RefreshTokenRepositoryDeps) {
-		super({ db });
+	constructor(deps: BaseRepositoryDeps) {
+		super(deps);
 	}
 	/**
 	 * Find refresh token by its hash

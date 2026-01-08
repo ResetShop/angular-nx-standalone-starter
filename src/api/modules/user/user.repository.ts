@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { user } from '../../../db/schema/user';
-import { BaseRepository } from '../../helpers/base.repository';
-import { type DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
+import { BaseRepository, BaseRepositoryDeps } from '../../helpers/base.repository';
 
 export interface UserData {
 	id: number;
@@ -12,13 +11,9 @@ export interface UserData {
 	deleted: boolean;
 }
 
-interface UserRepositoryDeps {
-	db: DrizzlePgConnector;
-}
-
 export class UserRepository extends BaseRepository {
-	constructor({ db }: UserRepositoryDeps) {
-		super({ db });
+	constructor(deps: BaseRepositoryDeps) {
+		super(deps);
 	}
 	/**
 	 * Finds a user by their email address
