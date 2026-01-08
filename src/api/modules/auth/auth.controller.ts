@@ -2,13 +2,13 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
+import { container } from '../../container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import { pasetoService } from '../../services/paseto.service';
+import { PasetoService } from '../../services/paseto.service';
 import { parseDurationToSeconds } from '../../utils/duration';
 import { AuthService } from './auth.service';
 
 const app = new Hono();
-const authService = new AuthService();
 
 // Cookie configuration for refresh token
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
@@ -33,6 +33,7 @@ app.post(
 	async (c) => {
 		try {
 			const { email, password } = c.req.valid('json');
+			const authService = container.resolve<AuthService>('authService');
 
 			const response = await authService.authenticate({ email, password });
 
@@ -64,6 +65,7 @@ app.post('/refresh', async (c) => {
 			return c.json({ error: 'No refresh token provided' }, 401);
 		}
 
+		const authService = container.resolve<AuthService>('authService');
 		const response = await authService.refreshToken(refreshToken);
 
 		// Update refresh token cookie with new token
@@ -117,6 +119,8 @@ app.post('/logout', async (c) => {
 		}
 
 		// Verify refresh token and get user ID
+		const pasetoService = container.resolve<PasetoService>('pasetoService');
+		const authService = container.resolve<AuthService>('authService');
 		const payload = await pasetoService.verifyRefreshToken(refreshToken);
 		await authService.logout(Number(payload.sub));
 
