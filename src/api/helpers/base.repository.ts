@@ -1,4 +1,4 @@
-import { type DrizzlePgConnector, drizzlePgConnector } from './drizzle-postgres-connector';
+import { type DrizzlePgConnector } from './drizzle-postgres-connector';
 
 interface BaseRepositoryDeps {
 	db: DrizzlePgConnector;
@@ -11,7 +11,7 @@ interface BaseRepositoryDeps {
 export abstract class BaseRepository {
 	protected db: DrizzlePgConnector;
 
-	constructor({ db }: BaseRepositoryDeps = { db: drizzlePgConnector }) {
+	constructor({ db }: BaseRepositoryDeps) {
 		this.db = db;
 	}
 }
