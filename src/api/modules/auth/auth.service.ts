@@ -1,7 +1,7 @@
 import { AuthUser, RefreshTokenResponse } from '@interfaces/auth';
 import { compare } from 'bcryptjs';
 import { createHash } from 'crypto';
-import { pasetoService } from '../../services/paseto.service';
+import { PasetoService } from '../../services/paseto.service';
 import { parseDurationToMs } from '../../utils/duration';
 import { UserRepository } from '../user/user.repository';
 import { AuthenticationRepository } from './authentication.repository';
@@ -33,12 +33,25 @@ export const AUTH_ERRORS = {
 	AUTH_RECORD_NOT_FOUND: 'Authentication record not found',
 } as const;
 
+interface AuthServiceDeps {
+	userRepository: UserRepository;
+	authRepository: AuthenticationRepository;
+	refreshTokenRepository: RefreshTokenRepository;
+	pasetoService: PasetoService;
+}
+
 export class AuthService {
-	constructor(
-		private userRepository: UserRepository = new UserRepository(),
-		private authRepository: AuthenticationRepository = new AuthenticationRepository(),
-		private refreshTokenRepository: RefreshTokenRepository = new RefreshTokenRepository(),
-	) {}
+	private userRepository: UserRepository;
+	private authRepository: AuthenticationRepository;
+	private refreshTokenRepository: RefreshTokenRepository;
+	private pasetoService: PasetoService;
+
+	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService }: AuthServiceDeps) {
+		this.userRepository = userRepository;
+		this.authRepository = authRepository;
+		this.refreshTokenRepository = refreshTokenRepository;
+		this.pasetoService = pasetoService;
+	}
 
 	/**
 	 * Get refresh token expiry date based on environment variable
@@ -86,7 +99,7 @@ export class AuthService {
 		await this.refreshTokenRepository.deleteExpiredTokensForUser(foundUser.id);
 
 		// Generate Paseto tokens
-		const accessToken = await pasetoService.generateAccessToken({
+		const accessToken = await this.pasetoService.generateAccessToken({
 			sub: foundUser.id.toString(),
 			email: foundUser.email,
 			firstName: foundUser.firstName,
@@ -94,7 +107,7 @@ export class AuthService {
 		});
 
 		const tokenFamily = crypto.randomUUID();
-		const refreshToken = await pasetoService.generateRefreshToken(foundUser.id.toString(), tokenFamily);
+		const refreshToken = await this.pasetoService.generateRefreshToken(foundUser.id.toString(), tokenFamily);
 
 		// Store refresh token in database
 		const refreshTokenHash = createHash('sha256').update(refreshToken).digest('hex');
@@ -120,7 +133,7 @@ export class AuthService {
 	 */
 	async refreshToken(token: string): Promise<RefreshTokenResponse> {
 		// 1. Verify refresh token
-		const payload = await pasetoService.verifyRefreshToken(token);
+		const payload = await this.pasetoService.verifyRefreshToken(token);
 
 		// 2. Validate token family exists (required for rotation tracking)
 		if (!payload.tokenFamily) {
@@ -151,14 +164,14 @@ export class AuthService {
 		}
 
 		// 6. Generate new tokens
-		const newAccessToken = await pasetoService.generateAccessToken({
+		const newAccessToken = await this.pasetoService.generateAccessToken({
 			sub: user.id.toString(),
 			email: user.email,
 			firstName: user.firstName,
 			lastName: user.lastName,
 		});
 
-		const newRefreshToken = await pasetoService.generateRefreshToken(
+		const newRefreshToken = await this.pasetoService.generateRefreshToken(
 			user.id.toString(),
 			payload.tokenFamily, // Maintain token family for rotation
 		);
