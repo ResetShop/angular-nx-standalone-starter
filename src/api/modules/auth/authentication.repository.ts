@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { BaseRepository } from '../../helpers/base.repository';
-import { type DrizzlePgConnector, drizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
+import { type DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
 
 export interface AuthenticationData {
 	passwordHash: string;
@@ -12,8 +12,8 @@ interface AuthenticationRepositoryDeps {
 }
 
 export class AuthenticationRepository extends BaseRepository {
-	constructor(deps: AuthenticationRepositoryDeps = { db: drizzlePgConnector }) {
-		super(deps);
+	constructor({ db }: AuthenticationRepositoryDeps) {
+		super({ db });
 	}
 	async findByUserId(userId: number): Promise<AuthenticationData | null> {
 		const result = await this.db
