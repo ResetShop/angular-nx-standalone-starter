@@ -1,7 +1,7 @@
 import { and, eq, lt } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
-import { type DrizzlePgConnector, drizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
+import { type DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
 
 interface RefreshTokenData {
 	id: number;
@@ -26,7 +26,7 @@ interface RefreshTokenRepositoryDeps {
 }
 
 export class RefreshTokenRepository extends BaseRepository {
-	constructor(deps: RefreshTokenRepositoryDeps = { db: drizzlePgConnector }) {
+	constructor(deps: RefreshTokenRepositoryDeps) {
 		super(deps);
 	}
 	/**

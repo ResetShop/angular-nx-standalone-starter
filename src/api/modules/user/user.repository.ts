@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { user } from '../../../db/schema/user';
 import { BaseRepository } from '../../helpers/base.repository';
-import { type DrizzlePgConnector, drizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
+import { type DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
 
 export interface UserData {
 	id: number;
@@ -17,7 +17,7 @@ interface UserRepositoryDeps {
 }
 
 export class UserRepository extends BaseRepository {
-	constructor(deps: UserRepositoryDeps = { db: drizzlePgConnector }) {
+	constructor(deps: UserRepositoryDeps) {
 		super(deps);
 	}
 	/**
