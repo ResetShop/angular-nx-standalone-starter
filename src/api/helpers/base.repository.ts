@@ -1,6 +1,6 @@
 import { type DrizzlePgConnector } from './drizzle-postgres-connector';
 
-interface BaseRepositoryDeps {
+export interface BaseRepositoryDeps {
 	db: DrizzlePgConnector;
 }
 
