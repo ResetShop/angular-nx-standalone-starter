@@ -1,6 +1,5 @@
 import { Context, Next } from 'hono';
 import { container } from '../container';
-import { PasetoService } from '../services/paseto.service';
 
 export interface AuthenticatedContext extends Context {
 	user?: {
@@ -11,8 +10,8 @@ export interface AuthenticatedContext extends Context {
 	};
 }
 
-// Resolve service once at module level (singleton lifetime)
-const pasetoService = container.resolve<PasetoService>('pasetoService');
+// Resolve service using type-safe cradle access (singleton lifetime)
+const pasetoService = container.cradle.pasetoService;
 
 /**
  * Hono middleware to validate Paseto access token from Authorization header
