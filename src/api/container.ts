@@ -7,8 +7,37 @@ import { UserRepository } from './modules/user/user.repository';
 import { PasetoService } from './services/paseto.service';
 
 /**
+ * Validates required environment variables at container setup time.
+ * Fails fast if critical configuration is missing or invalid.
+ */
+function validateEnvironment(): void {
+	const pasetoKey = process.env['PASETO_SECRET_KEY'];
+	if (!pasetoKey) {
+		throw new Error('PASETO_SECRET_KEY environment variable is required');
+	}
+	if (pasetoKey.length < 64) {
+		throw new Error(
+			'PASETO_SECRET_KEY must be at least 32 bytes (64 hex characters). ' + 'Generate with: openssl rand -hex 32',
+		);
+	}
+}
+
+validateEnvironment();
+
+/**
  * Cradle interface defines all dependencies available in the container.
  * This provides type safety when resolving dependencies.
+ *
+ * Dependency Graph:
+ *
+ * AuthService
+ *   ├── UserRepository ──────► db
+ *   ├── AuthRepository ──────► db
+ *   ├── RefreshTokenRepository ► db
+ *   └── PasetoService (no deps)
+ *
+ * Middleware/Controllers resolve services lazily at runtime.
+ * All services are registered as singletons.
  */
 export interface Cradle {
 	// Infrastructure
