@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { user } from '../../../db/schema/user';
-import { BaseRepository, BaseRepositoryDeps } from '../../helpers/base.repository';
+import { BaseRepository } from '../../helpers/base.repository';
 
 export interface UserData {
 	id: number;
@@ -12,9 +12,6 @@ export interface UserData {
 }
 
 export class UserRepository extends BaseRepository {
-	constructor(deps: BaseRepositoryDeps) {
-		super(deps);
-	}
 	/**
 	 * Finds a user by their email address
 	 * @param email Email address to search for
