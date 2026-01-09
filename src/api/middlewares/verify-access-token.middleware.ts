@@ -10,8 +10,11 @@ export interface AuthenticatedContext extends Context {
 	};
 }
 
-// Lazy service resolution - defers container access until first use
-// This avoids import-time resolution issues if module is imported before container setup
+// Cached module-level singleton - resolved lazily on first use from DI container.
+// Since services are registered as container singletons, this caches the reference
+// to avoid repeated container lookups while maintaining lazy initialization.
+// This pattern prevents import-time resolution issues if the module is imported
+// before the container is fully configured.
 let _pasetoService: Cradle['pasetoService'];
 const getPasetoService = () => (_pasetoService ??= container.cradle.pasetoService);
 

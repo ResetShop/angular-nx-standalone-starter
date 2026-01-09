@@ -8,8 +8,11 @@ import { parseDurationToSeconds } from '../../utils/duration';
 
 const app = new Hono();
 
-// Lazy service resolution - defers container access until first use
-// This avoids import-time resolution issues if module is imported before container setup
+// Cached module-level singletons - resolved lazily on first use from DI container.
+// Since services are registered as container singletons, this caches the reference
+// to avoid repeated container lookups while maintaining lazy initialization.
+// This pattern prevents import-time resolution issues if the module is imported
+// before the container is fully configured.
 let _authService: Cradle['authService'];
 let _pasetoService: Cradle['pasetoService'];
 
