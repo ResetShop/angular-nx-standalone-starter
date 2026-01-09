@@ -19,7 +19,7 @@ AuthService
   ├── RefreshTokenRepository ► db
   └── PasetoService (no deps)
 
-Middleware/Controllers resolve services from container at module load.
+Middleware/Controllers resolve services inside handler functions.
 ```
 
 ## Adding a New Service
@@ -75,10 +75,36 @@ container.register({
 
 ### 4. Use in Controllers/Middleware
 
+**Important**: Always resolve dependencies inside handler functions, not at module level.
+This ensures better test isolation since services are resolved at call time rather than import time.
+
 ```typescript
 import { container } from '../../container';
 
-const myService = container.cradle.myService;
+// In a Hono route handler
+app.post('/endpoint', async (c) => {
+	const myService = container.cradle.myService;
+	// Use myService...
+});
+
+// In middleware
+export async function myMiddleware(c: Context, next: Next) {
+	const myService = container.cradle.myService;
+	// Use myService...
+	await next();
+}
+```
+
+**Avoid module-level resolution:**
+
+```typescript
+// DON'T do this - harder to mock in tests
+import { container } from '../../container';
+const myService = container.cradle.myService; // Resolved at import time
+
+app.post('/endpoint', async (c) => {
+	// myService already resolved, can't be mocked easily
+});
 ```
 
 ## Adding a New Repository
@@ -168,11 +194,12 @@ app.use(async (c, next) => {
 
 ## Best Practices
 
-1. **Always use singletons** for stateless services and repositories
-2. **Validate configuration early** in container setup (see `validateEnvironment()`)
-3. **Keep the Cradle interface updated** when adding/removing dependencies
-4. **Use the `verifyContainer()` function** at startup to catch configuration errors
-5. **Prefer constructor injection** over property injection for testability
+1. **Resolve dependencies inside handler functions**, not at module level (improves test isolation)
+2. **Always use singletons** for stateless services and repositories
+3. **Validate configuration early** in container setup (see `validateEnvironment()`)
+4. **Keep the Cradle interface updated** when adding/removing dependencies
+5. **Use the `verifyContainer()` function** at startup to catch configuration errors
+6. **Prefer constructor injection** over property injection for testability
 
 ## Troubleshooting
 
