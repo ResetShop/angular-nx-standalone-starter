@@ -1,4 +1,4 @@
-import { container } from './container';
+import { container, verifyContainer } from './container';
 
 /**
  * DI Container Integration Tests
@@ -52,6 +52,12 @@ describe('DI Container', () => {
 			const repo1 = container.cradle.userRepository;
 			const repo2 = container.cradle.userRepository;
 			expect(repo1).toBe(repo2);
+		});
+	});
+
+	describe('verifyContainer', () => {
+		it('should not throw when all critical dependencies are resolvable', () => {
+			expect(() => verifyContainer()).not.toThrow();
 		});
 	});
 });

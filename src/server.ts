@@ -9,7 +9,7 @@ import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
 
 // DI Container - imported to ensure initialization at startup
-import { container } from './api/container';
+import { verifyContainer } from './api/container';
 
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
@@ -111,7 +111,7 @@ app.onError((error, c) => {
 if (isMainModule(import.meta.url)) {
 	// Verify DI container initialization before starting server
 	try {
-		container.cradle.pasetoService; // Triggers service instantiation
+		verifyContainer();
 		console.log('DI Container initialized successfully');
 	} catch (error) {
 		console.error('DI Container initialization failed:', error);
