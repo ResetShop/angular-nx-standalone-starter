@@ -1,5 +1,5 @@
 import { Context, Next } from 'hono';
-import { container, type Cradle } from '../container';
+import { container } from '../container';
 
 export interface AuthenticatedContext extends Context {
 	user?: {
@@ -10,13 +10,8 @@ export interface AuthenticatedContext extends Context {
 	};
 }
 
-// Cached module-level singleton - resolved lazily on first use from DI container.
-// Since services are registered as container singletons, this caches the reference
-// to avoid repeated container lookups while maintaining lazy initialization.
-// This pattern prevents import-time resolution issues if the module is imported
-// before the container is fully configured.
-let _pasetoService: Cradle['pasetoService'];
-const getPasetoService = () => (_pasetoService ??= container.cradle.pasetoService);
+// Resolve service from DI container (already singleton)
+const pasetoService = container.cradle.pasetoService;
 
 /**
  * Hono middleware to validate Paseto access token from Authorization header
@@ -31,7 +26,7 @@ export default async function verifyAccessToken(c: Context, next: Next) {
 	const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
 	try {
-		const payload = await getPasetoService().verifyAccessToken(token);
+		const payload = await pasetoService.verifyAccessToken(token);
 
 		// Attach user info to context
 		(c as AuthenticatedContext).user = {
