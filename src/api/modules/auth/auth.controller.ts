@@ -8,10 +8,6 @@ import { parseDurationToSeconds } from '../../utils/duration';
 
 const app = new Hono();
 
-// Resolve services from DI container (already singletons)
-const authService = container.cradle.authService;
-const pasetoService = container.cradle.pasetoService;
-
 // Cookie configuration for refresh token
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
 const COOKIE_OPTIONS = {
@@ -33,6 +29,8 @@ app.post(
 		}),
 	),
 	async (c) => {
+		const { authService } = container.cradle;
+
 		try {
 			const { email, password } = c.req.valid('json');
 
@@ -58,6 +56,8 @@ app.post(
 
 // POST /api/auth/refresh - Exchange refresh token for new access + refresh tokens
 app.post('/refresh', async (c) => {
+	const { authService } = container.cradle;
+
 	try {
 		// Read refresh token from HttpOnly cookie
 		const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
@@ -106,6 +106,8 @@ app.get('/me', (c) => {
 // Uses refresh token from cookie to identify user (no access token needed)
 // Always succeeds from client perspective - cleans up what it can
 app.post('/logout', async (c) => {
+	const { authService, pasetoService } = container.cradle;
+
 	// Get refresh token before deleting cookie
 	const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
 

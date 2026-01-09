@@ -10,13 +10,11 @@ export interface AuthenticatedContext extends Context {
 	};
 }
 
-// Resolve service from DI container (already singleton)
-const pasetoService = container.cradle.pasetoService;
-
 /**
  * Hono middleware to validate Paseto access token from Authorization header
  */
 export default async function verifyAccessToken(c: Context, next: Next) {
+	const { pasetoService } = container.cradle;
 	const authHeader = c.req.header('Authorization');
 
 	if (!authHeader?.startsWith('Bearer ')) {
