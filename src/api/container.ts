@@ -93,3 +93,16 @@ container.register({
 	// Services that depend on repositories
 	authService: asClass(AuthService).singleton(),
 });
+
+/**
+ * Verifies that all critical dependencies can be resolved from the container.
+ * Call this at server startup to fail fast if configuration is invalid.
+ * @throws Error if any dependency fails to resolve
+ */
+export function verifyContainer(): void {
+	const criticalDeps: (keyof Cradle)[] = ['pasetoService', 'authService'];
+
+	for (const dep of criticalDeps) {
+		container.resolve(dep);
+	}
+}
