@@ -2,22 +2,15 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
-import { container, type Cradle } from '../../container';
+import { container } from '../../container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { parseDurationToSeconds } from '../../utils/duration';
 
 const app = new Hono();
 
-// Cached module-level singletons - resolved lazily on first use from DI container.
-// Since services are registered as container singletons, this caches the reference
-// to avoid repeated container lookups while maintaining lazy initialization.
-// This pattern prevents import-time resolution issues if the module is imported
-// before the container is fully configured.
-let _authService: Cradle['authService'];
-let _pasetoService: Cradle['pasetoService'];
-
-const getAuthService = () => (_authService ??= container.cradle.authService);
-const getPasetoService = () => (_pasetoService ??= container.cradle.pasetoService);
+// Resolve services from DI container (already singletons)
+const authService = container.cradle.authService;
+const pasetoService = container.cradle.pasetoService;
 
 // Cookie configuration for refresh token
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
@@ -43,7 +36,7 @@ app.post(
 		try {
 			const { email, password } = c.req.valid('json');
 
-			const response = await getAuthService().authenticate({ email, password });
+			const response = await authService.authenticate({ email, password });
 
 			// Set refresh token as HttpOnly cookie
 			setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
@@ -73,7 +66,7 @@ app.post('/refresh', async (c) => {
 			return c.json({ error: 'No refresh token provided' }, 401);
 		}
 
-		const response = await getAuthService().refreshToken(refreshToken);
+		const response = await authService.refreshToken(refreshToken);
 
 		// Update refresh token cookie with new token
 		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
@@ -126,8 +119,8 @@ app.post('/logout', async (c) => {
 		}
 
 		// Verify refresh token and get user ID
-		const payload = await getPasetoService().verifyRefreshToken(refreshToken);
-		await getAuthService().logout(Number(payload.sub));
+		const payload = await pasetoService.verifyRefreshToken(refreshToken);
+		await authService.logout(Number(payload.sub));
 
 		return c.json({ message: 'Logged out successfully' });
 	} catch {
