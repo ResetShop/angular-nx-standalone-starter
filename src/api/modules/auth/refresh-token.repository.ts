@@ -1,6 +1,6 @@
 import { and, eq, lt } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
-import { BaseRepository, BaseRepositoryDeps } from '../../helpers/base.repository';
+import { BaseRepository } from '../../helpers/base.repository';
 
 interface RefreshTokenData {
 	id: number;
@@ -21,9 +21,6 @@ interface CreateRefreshTokenParams {
 }
 
 export class RefreshTokenRepository extends BaseRepository {
-	constructor(deps: BaseRepositoryDeps) {
-		super(deps);
-	}
 	/**
 	 * Find refresh token by its hash
 	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
