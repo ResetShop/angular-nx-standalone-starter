@@ -28,6 +28,8 @@ export class PasetoService {
 	private readonly issuer: string;
 
 	constructor() {
+		// Defense-in-depth: This validation is also performed in container.ts at startup.
+		// Keeping it here ensures the service fails safely even if instantiated outside the DI container.
 		const keyHex = process.env['PASETO_SECRET_KEY'];
 		if (!keyHex) {
 			throw new Error('PASETO_SECRET_KEY not configured');
