@@ -95,14 +95,12 @@ container.register({
 });
 
 /**
- * Verifies that all critical dependencies can be resolved from the container.
+ * Verifies that all registered dependencies can be resolved from the container.
  * Call this at server startup to fail fast if configuration is invalid.
  * @throws Error if any dependency fails to resolve
  */
 export function verifyContainer(): void {
-	const criticalDeps: (keyof Cradle)[] = ['pasetoService', 'authService'];
-
-	for (const dep of criticalDeps) {
+	for (const dep of Object.keys(container.registrations)) {
 		container.resolve(dep);
 	}
 }
