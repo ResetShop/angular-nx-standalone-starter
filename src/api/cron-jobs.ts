@@ -1,4 +1,4 @@
-import { AuthService } from './modules/auth/auth.service';
+import { container } from './container';
 
 let cleanupInterval: NodeJS.Timeout | null = null;
 
@@ -26,7 +26,7 @@ function startTokenCleanupJob(): void {
 	const MIN_INTERVAL_MS = 60000; // 1 minute
 	const MAX_INTERVAL_MS = 604800000; // 7 days
 
-	const authService = new AuthService();
+	const { authService } = container.cradle;
 	const raw = Number(process.env['TOKEN_CLEANUP_INTERVAL_MS']);
 	const isValidInterval = !isNaN(raw) && raw >= MIN_INTERVAL_MS && raw <= MAX_INTERVAL_MS;
 	const intervalMs = isValidInterval ? raw : DEFAULT_INTERVAL_MS;
