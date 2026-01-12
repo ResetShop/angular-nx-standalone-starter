@@ -1,9 +1,7 @@
+import { MIN_CRON_SECRET_LENGTH } from './constants/auth.constants';
 import { container } from './container';
 
 let cleanupInterval: NodeJS.Timeout | null = null;
-
-// Minimum length for CRON_SECRET (32 chars = 256 bits of entropy when hex-encoded)
-const MIN_CRON_SECRET_LENGTH = 32;
 
 /**
  * Validate CRON_SECRET at startup and log warning if too short.
@@ -22,19 +20,25 @@ function validateCronSecret(): void {
  * Token cleanup cron job - removes expired refresh tokens
  */
 function startTokenCleanupJob(): void {
-	const DEFAULT_INTERVAL_MS = 86400000; // 24 hours
-	const MIN_INTERVAL_MS = 60000; // 1 minute
-	const MAX_INTERVAL_MS = 604800000; // 7 days
+	try {
+		const DEFAULT_INTERVAL_MS = 86400000; // 24 hours
+		const MIN_INTERVAL_MS = 60000; // 1 minute
+		const MAX_INTERVAL_MS = 604800000; // 7 days
 
-	const { authService } = container.cradle;
-	const raw = Number(process.env['TOKEN_CLEANUP_INTERVAL_MS']);
-	const isValidInterval = !isNaN(raw) && raw >= MIN_INTERVAL_MS && raw <= MAX_INTERVAL_MS;
-	const intervalMs = isValidInterval ? raw : DEFAULT_INTERVAL_MS;
-	console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
+		const { authService } = container.cradle;
+		const raw = parseInt(process.env['TOKEN_CLEANUP_INTERVAL_MS'] ?? '', 10);
+		const isValidInterval = !isNaN(raw) && raw >= MIN_INTERVAL_MS && raw <= MAX_INTERVAL_MS;
+		const intervalMs = isValidInterval ? raw : DEFAULT_INTERVAL_MS;
+		console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
 
-	// Run immediately, then at interval
-	authService.cleanupExpiredTokens().catch(console.error);
-	cleanupInterval = setInterval(() => authService.cleanupExpiredTokens().catch(console.error), intervalMs);
+		// Run immediately, then at interval
+		authService.cleanupExpiredTokens().catch(console.error);
+		cleanupInterval = setInterval(() => authService.cleanupExpiredTokens().catch(console.error), intervalMs);
+	} catch (error) {
+		console.error('[CronJobs] Failed to start token cleanup job:', error);
+		// Don't crash the server - cron jobs are not critical for basic operation
+		// The cleanup endpoint remains available as a fallback
+	}
 }
 
 /**
