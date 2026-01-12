@@ -289,16 +289,18 @@ describe('AuthService', () => {
 
 			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(false); // Lock released after cleanup
 			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(true);
-			expect(result).toBeGreaterThanOrEqual(0);
+			expect(result).not.toBeNull();
+			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
+			expect(result?.incomplete).toBe(false);
 		});
 
-		it('should return -1 when lock cannot be acquired', async () => {
+		it('should return null when lock cannot be acquired', async () => {
 			// Simulate another process holding the lock
 			mockRefreshTokenRepo.cleanupLockAcquired = true;
 
 			const result = await authService.cleanupExpiredTokens();
 
-			expect(result).toBe(-1);
+			expect(result).toBeNull();
 			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(false);
 		});
 
@@ -326,7 +328,8 @@ describe('AuthService', () => {
 
 			const result = await authService.cleanupExpiredTokens();
 
-			expect(result).toBe(2);
+			expect(result?.deletedCount).toBe(2);
+			expect(result?.incomplete).toBe(false);
 		});
 	});
 });

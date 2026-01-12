@@ -1,4 +1,9 @@
-import { type CreateRefreshTokenParams, type IRefreshTokenRepository, type RefreshTokenData } from './interfaces';
+import {
+	type CleanupResult,
+	type CreateRefreshTokenParams,
+	type IRefreshTokenRepository,
+	type RefreshTokenData,
+} from './interfaces';
 
 export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	private tokens: Map<string, RefreshTokenData> = new Map();
@@ -110,7 +115,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		this.cleanupLockAcquired = false;
 	}
 
-	async deleteAllExpiredTokens(): Promise<number> {
+	async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		this.deleteAllExpiredCalled = true;
 		// Count and remove all expired tokens
 		let count = 0;
@@ -122,6 +127,6 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 				count++;
 			}
 		}
-		return count;
+		return { deletedCount: count, incomplete: false };
 	}
 }

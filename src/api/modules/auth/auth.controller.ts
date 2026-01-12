@@ -163,18 +163,20 @@ app.get('/cleanup-tokens', async (c) => {
 
 	try {
 		const { authService } = container.cradle;
-		const deletedCount = await authService.cleanupExpiredTokens();
+		const result = await authService.cleanupExpiredTokens();
 
-		if (deletedCount === -1) {
+		if (result === null) {
 			return c.json({
 				message: 'Cleanup already in progress',
 				deletedCount: 0,
+				incomplete: false,
 			});
 		}
 
 		return c.json({
-			message: 'Cleanup completed',
-			deletedCount,
+			message: result.incomplete ? 'Cleanup incomplete - max batch limit reached' : 'Cleanup completed',
+			deletedCount: result.deletedCount,
+			incomplete: result.incomplete,
 		});
 	} catch (error) {
 		console.error('[TokenCleanup] Error:', error);
