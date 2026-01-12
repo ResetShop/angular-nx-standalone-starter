@@ -1,11 +1,10 @@
 import { AuthUser, RefreshTokenResponse } from '@interfaces/auth';
 import { compare } from 'bcryptjs';
 import { createHash } from 'crypto';
-import { PasetoService } from '../../services/paseto.service';
+import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
-import { UserRepository } from '../user/user.repository';
-import { AuthenticationRepository } from './authentication.repository';
-import { RefreshTokenRepository } from './refresh-token.repository';
+import { type IUserRepository } from '../user/interfaces';
+import { type IAuthenticationRepository, type IRefreshTokenRepository } from './interfaces';
 
 interface LoginParams {
 	email: string;
@@ -34,17 +33,17 @@ export const AUTH_ERRORS = {
 } as const;
 
 interface AuthServiceDeps {
-	userRepository: UserRepository;
-	authRepository: AuthenticationRepository;
-	refreshTokenRepository: RefreshTokenRepository;
-	pasetoService: PasetoService;
+	userRepository: IUserRepository;
+	authRepository: IAuthenticationRepository;
+	refreshTokenRepository: IRefreshTokenRepository;
+	pasetoService: IPasetoService;
 }
 
 export class AuthService {
-	private userRepository: UserRepository;
-	private authRepository: AuthenticationRepository;
-	private refreshTokenRepository: RefreshTokenRepository;
-	private pasetoService: PasetoService;
+	private userRepository: IUserRepository;
+	private authRepository: IAuthenticationRepository;
+	private refreshTokenRepository: IRefreshTokenRepository;
+	private pasetoService: IPasetoService;
 
 	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService }: AuthServiceDeps) {
 		this.userRepository = userRepository;
