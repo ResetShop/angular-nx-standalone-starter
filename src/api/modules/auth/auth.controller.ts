@@ -164,6 +164,7 @@ app.get('/cleanup-tokens', async (c) => {
 	}
 
 	try {
+		const { authService } = container.cradle;
 		const deletedCount = await authService.cleanupExpiredTokens();
 
 		if (deletedCount === -1) {
