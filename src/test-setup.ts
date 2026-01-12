@@ -6,7 +6,7 @@ import { expect } from 'vitest';
 
 // Setup environment variables required by API tests
 // This is a test-only key - not used in production
-process.env['PASETO_SECRET_KEY'] = '0'.repeat(64); // 32 bytes = 64 hex chars
+process.env['PASETO_SECRET_KEY'] = '0123456789abcdef'.repeat(4); // 32 bytes = 64 hex chars
 
 // Extend Vitest's expect with Testing Library matchers
 expect.extend(matchers);
