@@ -1,26 +1,9 @@
 import { and, eq, lt } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
+import { type CreateRefreshTokenParams, type IRefreshTokenRepository, type RefreshTokenData } from './interfaces';
 
-interface RefreshTokenData {
-	id: number;
-	userId: number;
-	tokenFamily: string;
-	tokenHash: string;
-	expiresAt: Date;
-	isRevoked: boolean | null;
-	createdAt: Date | null;
-	revokedAt: Date | null;
-}
-
-interface CreateRefreshTokenParams {
-	userId: number;
-	tokenFamily: string;
-	tokenHash: string;
-	expiresAt: Date;
-}
-
-export class RefreshTokenRepository extends BaseRepository {
+export class RefreshTokenRepository extends BaseRepository implements IRefreshTokenRepository {
 	/**
 	 * Find refresh token by its hash
 	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
