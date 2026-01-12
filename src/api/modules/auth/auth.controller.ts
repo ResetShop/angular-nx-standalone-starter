@@ -2,13 +2,11 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
+import { container } from '../../container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import { pasetoService } from '../../services/paseto.service';
 import { parseDurationToSeconds } from '../../utils/duration';
-import { AuthService } from './auth.service';
 
 const app = new Hono();
-const authService = new AuthService();
 
 // Cookie configuration for refresh token
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
@@ -31,6 +29,8 @@ app.post(
 		}),
 	),
 	async (c) => {
+		const { authService } = container.cradle;
+
 		try {
 			const { email, password } = c.req.valid('json');
 
@@ -56,6 +56,8 @@ app.post(
 
 // POST /api/auth/refresh - Exchange refresh token for new access + refresh tokens
 app.post('/refresh', async (c) => {
+	const { authService } = container.cradle;
+
 	try {
 		// Read refresh token from HttpOnly cookie
 		const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
@@ -104,6 +106,8 @@ app.get('/me', (c) => {
 // Uses refresh token from cookie to identify user (no access token needed)
 // Always succeeds from client perspective - cleans up what it can
 app.post('/logout', async (c) => {
+	const { authService, pasetoService } = container.cradle;
+
 	// Get refresh token before deleting cookie
 	const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
 

@@ -8,3 +8,6 @@ const { connectionString } = environment.database.pg;
 
 // Disable prefetch as it is not supported for "Transaction" pool mode
 export const drizzlePgConnector = drizzle(connectionString);
+
+// Type export for DI container
+export type DrizzlePgConnector = typeof drizzlePgConnector;

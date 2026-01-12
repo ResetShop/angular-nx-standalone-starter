@@ -1,17 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { user } from '../../../db/schema/user';
 import { BaseRepository } from '../../helpers/base.repository';
+import { type IUserRepository, type UserData } from './interfaces';
 
-export interface UserData {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	enabled: boolean;
-	deleted: boolean;
-}
-
-export class UserRepository extends BaseRepository {
+export class UserRepository extends BaseRepository implements IUserRepository {
 	/**
 	 * Finds a user by their email address
 	 * @param email Email address to search for

@@ -8,6 +8,9 @@ import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
 
+// DI Container - imported to ensure initialization at startup
+import { verifyContainer } from './api/container';
+
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
@@ -106,6 +109,15 @@ app.onError((error, c) => {
  * variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
+	// Verify DI container initialization before starting server
+	try {
+		verifyContainer();
+		console.log('DI Container initialized successfully');
+	} catch (error) {
+		console.error('DI Container initialization failed:', error);
+		process.exit(1);
+	}
+
 	const port = Number(process.env['PORT'] || 4000);
 	serve(
 		{
