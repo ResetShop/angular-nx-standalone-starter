@@ -1,19 +1,5 @@
 import { V3 } from 'paseto';
-
-interface TokenPayload {
-	sub: string; // Subject (user ID)
-	email: string;
-	firstName: string;
-	lastName: string;
-	iat?: string; // Issued at (auto-added)
-	exp?: string; // Expiration (auto-added)
-	iss?: string; // Issuer
-}
-
-interface RefreshTokenPayload {
-	sub: string; // Subject (user ID)
-	tokenFamily?: string; // For refresh token rotation
-}
+import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces';
 
 /**
  * Service to interact with PASETO tokens. It allows for the generation and validation of access and refresh tokens
@@ -23,7 +9,7 @@ interface RefreshTokenPayload {
  * Optionally, the PASETO_ISSUER and PASETO_ACCESS_TOKEN_EXPIRY env vars can also be defined.
  *
  * */
-export class PasetoService {
+export class PasetoService implements IPasetoService {
 	private readonly secretKey: Buffer;
 	private readonly issuer: string;
 

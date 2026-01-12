@@ -4,7 +4,7 @@ import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
 import { UserRepository } from './modules/user/user.repository';
-import { PasetoService } from './services/paseto.service';
+import { PasetoService } from './services/paseto/paseto.service';
 
 /**
  * Validates required environment variables at container setup time.
