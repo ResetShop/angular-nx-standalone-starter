@@ -16,6 +16,13 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Try to acquire a PostgreSQL advisory lock for token cleanup.
 	 * Non-blocking - returns immediately with true/false.
 	 * Works across multiple server instances sharing the same database.
+	 *
+	 * IMPORTANT: Advisory locks are session-level (tied to database connection).
+	 * In environments with connection pooling (e.g., serverless with PgBouncer in
+	 * transaction mode), locks may behave unexpectedly:
+	 * - Lock acquired on one request may persist to the next request using same connection
+	 * - Consider using pg_try_advisory_xact_lock() for transaction-scoped locks if needed
+	 *
 	 * @returns true if lock acquired, false if already locked by another process
 	 */
 	async tryAcquireCleanupLock(): Promise<boolean> {
