@@ -3,8 +3,43 @@ import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
 import { type CreateRefreshTokenParams, type IRefreshTokenRepository, type RefreshTokenData } from './interfaces';
 
-const DELETE_BATCH_SIZE = 1000;
-const MAX_CLEANUP_BATCHES = 100; // Limit cleanup to 100k tokens per run to prevent indefinite execution
+// Token cleanup configuration - configurable via environment variables
+const DEFAULT_DELETE_BATCH_SIZE = 1000;
+const DEFAULT_MAX_CLEANUP_BATCHES = 100; // Limit cleanup to 100k tokens per run to prevent indefinite execution
+const MIN_BATCH_SIZE = 100;
+const MAX_BATCH_SIZE = 10000;
+const MIN_MAX_BATCHES = 10;
+const MAX_MAX_BATCHES = 1000;
+
+/**
+ * Get validated batch size from environment variable.
+ * @returns Batch size clamped between MIN_BATCH_SIZE and MAX_BATCH_SIZE
+ */
+function getDeleteBatchSize(): number {
+	const raw = parseInt(process.env['TOKEN_CLEANUP_BATCH_SIZE'] ?? '', 10);
+	if (isNaN(raw)) {
+		console.warn(
+			`[TokenCleanup] TOKEN_CLEANUP_BATCH_SIZE not set or invalid, using default: ${DEFAULT_DELETE_BATCH_SIZE}`,
+		);
+		return DEFAULT_DELETE_BATCH_SIZE;
+	}
+	return Math.max(MIN_BATCH_SIZE, Math.min(MAX_BATCH_SIZE, raw));
+}
+
+/**
+ * Get validated max cleanup batches from environment variable.
+ * @returns Max batches clamped between MIN_MAX_BATCHES and MAX_MAX_BATCHES
+ */
+function getMaxCleanupBatches(): number {
+	const raw = parseInt(process.env['TOKEN_CLEANUP_MAX_BATCHES'] ?? '', 10);
+	if (isNaN(raw)) {
+		console.warn(
+			`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCHES not set or invalid, using default: ${DEFAULT_MAX_CLEANUP_BATCHES}`,
+		);
+		return DEFAULT_MAX_CLEANUP_BATCHES;
+	}
+	return Math.max(MIN_MAX_BATCHES, Math.min(MAX_MAX_BATCHES, raw));
+}
 
 // Advisory lock key for token cleanup
 // Using a hash-like number derived from 'refresh_token_cleanup' to avoid collisions
@@ -113,20 +148,28 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	/**
 	 * Delete all expired refresh tokens globally.
 	 * Uses batch deletion to avoid locking the table for large datasets.
-	 * Limited to MAX_CLEANUP_BATCHES iterations to prevent indefinite execution.
+	 * Limited to a configurable max batches to prevent indefinite execution.
+	 *
+	 * Configuration via environment variables:
+	 * - TOKEN_CLEANUP_BATCH_SIZE: Tokens per batch (default: 1000, range: 100-10000)
+	 * - TOKEN_CLEANUP_MAX_BATCHES: Max iterations (default: 100, range: 10-1000)
+	 *
 	 * @returns Count of deleted tokens
 	 */
 	async deleteAllExpiredTokens(): Promise<number> {
+		const batchSize = getDeleteBatchSize();
+		const maxBatches = getMaxCleanupBatches();
+
 		let totalDeleted = 0;
 		let batchCount = 0;
 
-		while (batchCount < MAX_CLEANUP_BATCHES) {
+		while (batchCount < maxBatches) {
 			// Select a batch of expired token IDs
 			const expiredBatch = await this.db
 				.select({ id: refreshToken.id })
 				.from(refreshToken)
 				.where(lt(refreshToken.expiresAt, new Date()))
-				.limit(DELETE_BATCH_SIZE);
+				.limit(batchSize);
 
 			if (!expiredBatch || expiredBatch.length === 0) {
 				break;
@@ -140,13 +183,13 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 			batchCount++;
 
 			// If we got fewer than batch size, we're done
-			if (expiredBatch.length < DELETE_BATCH_SIZE) {
+			if (expiredBatch.length < batchSize) {
 				break;
 			}
 		}
 
-		if (batchCount >= MAX_CLEANUP_BATCHES) {
-			console.warn(`[TokenCleanup] Reached max batch limit (${MAX_CLEANUP_BATCHES}). Some expired tokens may remain.`);
+		if (batchCount >= maxBatches) {
+			console.warn(`[TokenCleanup] Reached max batch limit (${maxBatches}). Some expired tokens may remain.`);
 		}
 
 		return totalDeleted;
