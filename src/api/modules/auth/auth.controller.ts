@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'crypto';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
+import { MIN_CRON_SECRET_LENGTH } from '../../constants/auth.constants';
 import { container } from '../../container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { parseDurationToSeconds } from '../../utils/duration';
@@ -132,9 +133,6 @@ app.post('/logout', async (c) => {
 		return c.json({ message: 'Logged out successfully' });
 	}
 });
-
-// Minimum length for CRON_SECRET (32 chars = 256 bits of entropy when hex-encoded)
-const MIN_CRON_SECRET_LENGTH = 32;
 
 // GET /api/auth/cleanup-tokens - Manually trigger expired token cleanup
 // Public endpoint but protected by CRON_SECRET for Vercel Cron Jobs
