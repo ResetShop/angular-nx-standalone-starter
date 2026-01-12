@@ -11,6 +11,12 @@ import { join } from 'node:path';
 // DI Container - imported to ensure initialization at startup
 import { verifyContainer } from './api/container';
 
+/**
+ * Max-age for static asset caching (1 year in seconds).
+ * Used for immutable static files served from /browser.
+ */
+const STATIC_CACHE_MAX_AGE_SECONDS = 31536000;
+
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
@@ -70,7 +76,7 @@ app.use(
 	serveStatic({
 		root: join(import.meta.dirname, '../browser'),
 		onFound: (path, c) => {
-			c.header('Cache-Control', `public, immutable, max-age=31536000`);
+			c.header('Cache-Control', `public, immutable, max-age=${STATIC_CACHE_MAX_AGE_SECONDS}`);
 		},
 		onNotFound: () => {
 			// Optionally log or handle the case where a static file is not found
