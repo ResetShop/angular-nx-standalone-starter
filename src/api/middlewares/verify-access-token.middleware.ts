@@ -1,5 +1,5 @@
 import { Context, Next } from 'hono';
-import { pasetoService } from '../services/paseto.service';
+import { container } from '../container';
 
 export interface AuthenticatedContext extends Context {
 	user?: {
@@ -14,6 +14,7 @@ export interface AuthenticatedContext extends Context {
  * Hono middleware to validate Paseto access token from Authorization header
  */
 export default async function verifyAccessToken(c: Context, next: Next) {
+	const { pasetoService } = container.cradle;
 	const authHeader = c.req.header('Authorization');
 
 	if (!authHeader?.startsWith('Bearer ')) {

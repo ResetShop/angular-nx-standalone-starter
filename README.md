@@ -122,7 +122,8 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
 
 **Documentation:**
 
-For detailed information about the authentication system, see [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md)
+- For detailed information about the authentication system, see [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md)
+- For the dependency injection guide, see [docs/DEPENDENCY_INJECTION.md](./docs/DEPENDENCY_INJECTION.md)
 
 ⚠️ **Security Note**: Never commit your `PASETO_SECRET_KEY` to version control. Keep it secret and rotate it periodically in production.
 

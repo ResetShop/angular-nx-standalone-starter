@@ -1,6 +1,7 @@
 import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
+import { type CreateRefreshTokenParams, type IRefreshTokenRepository, type RefreshTokenData } from './interfaces';
 
 const DELETE_BATCH_SIZE = 1000;
 const MAX_CLEANUP_BATCHES = 100; // Limit cleanup to 100k tokens per run to prevent indefinite execution
@@ -10,25 +11,7 @@ const MAX_CLEANUP_BATCHES = 100; // Limit cleanup to 100k tokens per run to prev
 // with other advisory locks in the same database
 const TOKEN_CLEANUP_LOCK_KEY = 0x5246544b; // "RFTK" in hex (Refresh Token Cleanup Key)
 
-interface RefreshTokenData {
-	id: number;
-	userId: number;
-	tokenFamily: string;
-	tokenHash: string;
-	expiresAt: Date;
-	isRevoked: boolean | null;
-	createdAt: Date | null;
-	revokedAt: Date | null;
-}
-
-interface CreateRefreshTokenParams {
-	userId: number;
-	tokenFamily: string;
-	tokenHash: string;
-	expiresAt: Date;
-}
-
-export class RefreshTokenRepository extends BaseRepository {
+export class RefreshTokenRepository extends BaseRepository implements IRefreshTokenRepository {
 	/**
 	 * Try to acquire a PostgreSQL advisory lock for token cleanup.
 	 * Non-blocking - returns immediately with true/false.
@@ -50,7 +33,6 @@ export class RefreshTokenRepository extends BaseRepository {
 	async releaseCleanupLock(): Promise<void> {
 		await this.db.execute(sql`SELECT pg_advisory_unlock(${TOKEN_CLEANUP_LOCK_KEY})`);
 	}
-
 	/**
 	 * Find refresh token by its hash
 	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
