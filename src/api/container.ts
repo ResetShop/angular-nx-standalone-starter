@@ -15,7 +15,7 @@ function validateEnvironment(): void {
 	if (!pasetoKey) {
 		throw new Error('PASETO_SECRET_KEY environment variable is required');
 	}
-	if (pasetoKey.length < 64) {
+	if (!/^[0-9a-fA-F]{64,}$/.test(pasetoKey)) {
 		throw new Error(
 			'PASETO_SECRET_KEY must be at least 32 bytes (64 hex characters). ' + 'Generate with: openssl rand -hex 32',
 		);
