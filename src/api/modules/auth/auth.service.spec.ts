@@ -282,4 +282,51 @@ describe('AuthService', () => {
 			expect(mockRefreshTokenRepo.deletedExpiredForUsers).toContain(testUser.id);
 		});
 	});
+
+	describe('cleanupExpiredTokens', () => {
+		it('should acquire lock and delete all expired tokens', async () => {
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(false); // Lock released after cleanup
+			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(true);
+			expect(result).toBeGreaterThanOrEqual(0);
+		});
+
+		it('should return -1 when lock cannot be acquired', async () => {
+			// Simulate another process holding the lock
+			mockRefreshTokenRepo.cleanupLockAcquired = true;
+
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(result).toBe(-1);
+			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(false);
+		});
+
+		it('should release lock after successful cleanup', async () => {
+			await authService.cleanupExpiredTokens();
+
+			// Lock should be released
+			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(false);
+		});
+
+		it('should delete expired tokens and return count', async () => {
+			// Add some expired tokens
+			mockRefreshTokenRepo.addToken('expired-1', {
+				userId: 1,
+				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+			});
+			mockRefreshTokenRepo.addToken('expired-2', {
+				userId: 2,
+				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+			});
+			mockRefreshTokenRepo.addToken('valid', {
+				userId: 3,
+				expiresAt: new Date(Date.now() + 86400000), // 1 day from now
+			});
+
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(result).toBe(2);
+		});
+	});
 });
