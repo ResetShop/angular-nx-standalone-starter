@@ -1,7 +1,12 @@
 import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
-import { type CreateRefreshTokenParams, type IRefreshTokenRepository, type RefreshTokenData } from './interfaces';
+import {
+	type CleanupResult,
+	type CreateRefreshTokenParams,
+	type IRefreshTokenRepository,
+	type RefreshTokenData,
+} from './interfaces';
 
 // Token cleanup configuration - configurable via environment variables
 const DEFAULT_DELETE_BATCH_SIZE = 1000;
@@ -154,9 +159,9 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * - TOKEN_CLEANUP_BATCH_SIZE: Tokens per batch (default: 1000, range: 100-10000)
 	 * - TOKEN_CLEANUP_MAX_BATCHES: Max iterations (default: 100, range: 10-1000)
 	 *
-	 * @returns Count of deleted tokens
+	 * @returns CleanupResult with count of deleted tokens and incomplete flag
 	 */
-	async deleteAllExpiredTokens(): Promise<number> {
+	async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		const batchSize = getDeleteBatchSize();
 		const maxBatches = getMaxCleanupBatches();
 
@@ -188,10 +193,11 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 			}
 		}
 
-		if (batchCount >= maxBatches) {
+		const incomplete = batchCount >= maxBatches;
+		if (incomplete) {
 			console.warn(`[TokenCleanup] Reached max batch limit (${maxBatches}). Some expired tokens may remain.`);
 		}
 
-		return totalDeleted;
+		return { deletedCount: totalDeleted, incomplete };
 	}
 }
