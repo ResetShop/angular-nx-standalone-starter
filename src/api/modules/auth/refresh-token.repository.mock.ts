@@ -10,6 +10,8 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	public revokedUserIds: number[] = [];
 	public deletedExpiredForUsers: number[] = [];
 	public createdTokens: RefreshTokenData[] = [];
+	public cleanupLockAcquired = false;
+	public deleteAllExpiredCalled = false;
 
 	/**
 	 * Add a token to the mock repository.
@@ -43,6 +45,8 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		this.revokedUserIds = [];
 		this.deletedExpiredForUsers = [];
 		this.createdTokens = [];
+		this.cleanupLockAcquired = false;
+		this.deleteAllExpiredCalled = false;
 		this.tokenIdCounter = 1;
 	}
 
@@ -86,6 +90,33 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		const now = new Date();
 		for (const [hash, token] of this.tokens.entries()) {
 			if (token.userId === userId && token.expiresAt < now) {
+				this.tokens.delete(hash);
+				this.tokensById.delete(token.id);
+				count++;
+			}
+		}
+		return count;
+	}
+
+	async tryAcquireCleanupLock(): Promise<boolean> {
+		if (this.cleanupLockAcquired) {
+			return false;
+		}
+		this.cleanupLockAcquired = true;
+		return true;
+	}
+
+	async releaseCleanupLock(): Promise<void> {
+		this.cleanupLockAcquired = false;
+	}
+
+	async deleteAllExpiredTokens(): Promise<number> {
+		this.deleteAllExpiredCalled = true;
+		// Count and remove all expired tokens
+		let count = 0;
+		const now = new Date();
+		for (const [hash, token] of this.tokens.entries()) {
+			if (token.expiresAt < now) {
 				this.tokens.delete(hash);
 				this.tokensById.delete(token.id);
 				count++;

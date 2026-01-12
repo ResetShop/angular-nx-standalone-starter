@@ -30,4 +30,7 @@ export interface IRefreshTokenRepository {
 	revokeToken(tokenId: number): Promise<void>;
 	revokeAllForUser(userId: number): Promise<void>;
 	deleteExpiredTokensForUser(userId: number): Promise<number>;
+	tryAcquireCleanupLock(): Promise<boolean>;
+	releaseCleanupLock(): Promise<void>;
+	deleteAllExpiredTokens(): Promise<number>;
 }
