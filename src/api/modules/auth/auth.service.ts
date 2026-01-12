@@ -237,9 +237,13 @@ export class AuthService {
 			try {
 				await this.refreshTokenRepository.releaseCleanupLock();
 			} catch (error) {
-				// Lock will be auto-released when database connection closes
+				// PostgreSQL session advisory locks (pg_advisory_lock) are automatically
+				// released when the database session/connection ends. This is a safety net
+				// - the lock won't persist indefinitely even if explicit release fails.
+				// In serverless with connection pooling, the lock releases when the
+				// pooled connection is recycled or the pool closes.
 				console.error(
-					`[TokenCleanup] Failed to release advisory lock at ${new Date().toISOString()}. Lock will auto-release on connection close:`,
+					'[TokenCleanup] Failed to release advisory lock. Lock will auto-release when DB session ends:',
 					error,
 				);
 			}
