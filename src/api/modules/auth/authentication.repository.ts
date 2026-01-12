@@ -1,12 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { BaseRepository } from '../../helpers/base.repository';
+import { type AuthenticationData, type IAuthenticationRepository } from './interfaces';
 
-export interface AuthenticationData {
-	passwordHash: string;
-}
-
-export class AuthenticationRepository extends BaseRepository {
+export class AuthenticationRepository extends BaseRepository implements IAuthenticationRepository {
 	async findByUserId(userId: number): Promise<AuthenticationData | null> {
 		const result = await this.db
 			.select({
