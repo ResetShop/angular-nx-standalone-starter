@@ -382,6 +382,40 @@ Vercel automatically includes the `CRON_SECRET` as the `Authorization: Bearer <C
 
 The endpoint verifies the `CRON_SECRET` before executing. Authenticated users can also trigger cleanup manually.
 
+### Monitoring Token Cleanup
+
+The cleanup process outputs structured JSON logs for monitoring:
+
+```json
+{
+	"event": "token_cleanup",
+	"deletedCount": 5,
+	"durationMs": 123,
+	"incomplete": false,
+	"timestamp": "2026-01-13T12:00:00.000Z"
+}
+```
+
+**Key Metrics to Monitor:**
+
+| Metric         | Description            | Action Threshold                  |
+| -------------- | ---------------------- | --------------------------------- |
+| `deletedCount` | Tokens deleted per run | Sudden spikes may indicate issues |
+| `durationMs`   | Cleanup duration       | >30s may need smaller batches     |
+| `incomplete`   | Hit batch limit        | `true` requires attention         |
+
+**Configuration Tuning:**
+
+- If `incomplete: true` appears regularly, increase `TOKEN_CLEANUP_MAX_BATCH_COUNT` or run cleanup more frequently
+- If `durationMs` is consistently high (>10s), consider reducing `TOKEN_CLEANUP_BATCH_SIZE` to minimize lock time
+- If `deletedCount` is consistently 0, cleanup frequency can be reduced to save resources
+
+**Alerting Recommendations:**
+
+1. **Alert on `incomplete: true`** - Indicates token backlog building up
+2. **Alert if cleanup fails** - Check logs for database connectivity issues
+3. **Monitor `durationMs` trend** - Increasing times may indicate database performance issues
+
 ## Database Schema
 
 ### refresh_tokens Table
