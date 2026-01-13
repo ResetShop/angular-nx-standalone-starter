@@ -1,44 +1,25 @@
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
 import type { PaginatedResponse, PermissionData, RoleData } from './interfaces';
-import { ROLE_ERRORS } from './role.service';
-
-// Create mock functions
-const mockGetAllRoles = vi.fn();
-const mockGetRole = vi.fn();
-const mockCreateRole = vi.fn();
-const mockUpdateRole = vi.fn();
-const mockDeleteRole = vi.fn();
-const mockGetRolePermissions = vi.fn();
-const mockAssignPermissionsToRole = vi.fn();
-
-// Mock the container
-vi.mock('../../container', () => {
-	return {
-		container: {
-			cradle: {
-				get roleService() {
-					return {
-						getAllRoles: mockGetAllRoles,
-						getRole: mockGetRole,
-						createRole: mockCreateRole,
-						updateRole: mockUpdateRole,
-						deleteRole: mockDeleteRole,
-						getRolePermissions: mockGetRolePermissions,
-						assignPermissionsToRole: mockAssignPermissionsToRole,
-					};
-				},
-			},
-		},
-	};
-});
-
-// Import controller after mocking
 import roleController from './role.controller';
+import { ROLE_ERRORS } from './role.service';
 
 describe('Role Controller', () => {
 	const app = new Hono();
 	app.route('/roles', roleController);
+
+	// Create mock functions
+	const mockGetAllRoles = fn<[{ offset?: number; limit?: number }], Promise<PaginatedResponse<RoleData>>>();
+	const mockGetRole = fn<[number], Promise<RoleData | null>>();
+	const mockCreateRole = fn<[{ name: string; code: string; description?: string }], Promise<RoleData>>();
+	const mockUpdateRole = fn<[number, { description: string }], Promise<RoleData>>();
+	const mockDeleteRole = fn<[number], Promise<void>>();
+	const mockGetRolePermissions = fn<
+		[number, { offset?: number; limit?: number }],
+		Promise<PaginatedResponse<PermissionData>>
+	>();
+	const mockAssignPermissionsToRole = fn<[number, number[]], Promise<void>>();
 
 	// Test data
 	const testRole: RoleData = {
@@ -56,7 +37,22 @@ describe('Role Controller', () => {
 	];
 
 	beforeEach(() => {
-		vi.clearAllMocks();
+		clearAllMocks();
+		setTestCradle({
+			roleService: {
+				getAllRoles: mockGetAllRoles,
+				getRole: mockGetRole,
+				createRole: mockCreateRole,
+				updateRole: mockUpdateRole,
+				deleteRole: mockDeleteRole,
+				getRolePermissions: mockGetRolePermissions,
+				assignPermissionsToRole: mockAssignPermissionsToRole,
+			},
+		});
+	});
+
+	afterEach(() => {
+		resetTestCradle();
 	});
 
 	describe('GET /roles', () => {
@@ -75,7 +71,7 @@ describe('Role Controller', () => {
 			const data = await res.json();
 			expect(data.data).toHaveLength(1);
 			expect(data.total).toBe(1);
-			expect(mockGetAllRoles).toHaveBeenCalledWith({ offset: undefined, limit: undefined });
+			expect(mockGetAllRoles.calls).toEqual([[{ offset: undefined, limit: undefined }]]);
 		});
 
 		it('should pass pagination parameters', async () => {
@@ -90,7 +86,7 @@ describe('Role Controller', () => {
 			const res = await app.request('/roles?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
-			expect(mockGetAllRoles).toHaveBeenCalledWith({ offset: 5, limit: 5 });
+			expect(mockGetAllRoles.calls).toEqual([[{ offset: 5, limit: 5 }]]);
 		});
 
 		it('should validate offset is non-negative', async () => {
@@ -360,7 +356,7 @@ describe('Role Controller', () => {
 			const res = await app.request('/roles/1/permissions?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
-			expect(mockGetRolePermissions).toHaveBeenCalledWith(1, { offset: 5, limit: 5 });
+			expect(mockGetRolePermissions.calls).toEqual([[1, { offset: 5, limit: 5 }]]);
 		});
 
 		it('should return 404 when role not found', async () => {
@@ -397,7 +393,7 @@ describe('Role Controller', () => {
 			expect(res.status).toBe(200);
 			const data = await res.json();
 			expect(data.message).toBe('Permissions assigned successfully');
-			expect(mockAssignPermissionsToRole).toHaveBeenCalledWith(1, [1, 2, 3]);
+			expect(mockAssignPermissionsToRole.calls).toEqual([[1, [1, 2, 3]]]);
 		});
 
 		it('should return 404 when role not found', async () => {
