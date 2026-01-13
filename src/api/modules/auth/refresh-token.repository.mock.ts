@@ -117,11 +117,12 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 
 	async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		this.deleteAllExpiredCalled = true;
-		// Count and remove all expired tokens
+		// Count and remove tokens expired at least EXPIRY_BUFFER_MS ago (matches real repo)
+		const EXPIRY_BUFFER_MS = 3600000;
 		let count = 0;
-		const now = new Date();
+		const cutoffTime = new Date(Date.now() - EXPIRY_BUFFER_MS);
 		for (const [hash, token] of this.tokens.entries()) {
-			if (token.expiresAt < now) {
+			if (token.expiresAt < cutoffTime) {
 				this.tokens.delete(hash);
 				this.tokensById.delete(token.id);
 				count++;
