@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { role } from './role';
 
 export const user = pgTable('user', {
@@ -13,16 +13,22 @@ export const user = pgTable('user', {
 	deleted: boolean('deleted').default(false),
 });
 
-export const userRole = pgTable('user_role', {
-	id: serial('id').primaryKey(),
-	userId: integer('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	roleId: integer('role_id')
-		.notNull()
-		.references(() => role.id, { onDelete: 'cascade' }),
-	createdAt: timestamp('created_at').defaultNow(),
-});
+export const userRole = pgTable(
+	'user_role',
+	{
+		id: serial('id').primaryKey(),
+		userId: integer('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		roleId: integer('role_id')
+			.notNull()
+			.references(() => role.id, { onDelete: 'cascade' }),
+		createdAt: timestamp('created_at').defaultNow(),
+	},
+	(table) => ({
+		userRoleUnique: unique().on(table.userId, table.roleId),
+	}),
+);
 
 export const userRelations = relations(user, ({ many }) => ({
 	roles: many(userRole),
