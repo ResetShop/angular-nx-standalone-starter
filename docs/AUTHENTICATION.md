@@ -374,26 +374,11 @@ Schedule: Every hour (e.g., "0 * * * *")
 			"path": "/api/auth/cleanup-tokens",
 			"schedule": "0 * * * *"
 		}
-	],
-	"headers": [
-		{
-			"source": "/api/auth/cleanup-tokens",
-			"headers": [
-				{
-					"key": "Authorization",
-					"value": "Bearer $CRON_SECRET"
-				}
-			]
-		}
 	]
 }
 ```
 
-**Important:** Vercel Cron Jobs do NOT automatically include the `CRON_SECRET` in requests. You must configure the `headers` section in `vercel.json` to pass the secret as shown above. The `$CRON_SECRET` syntax references your environment variable.
-
-**Alternative approach using Vercel's built-in secret:**
-
-Vercel provides a `VERCEL_CRON_SECRET` environment variable automatically. You can verify cron requests are from Vercel by checking the `x-vercel-cron-signature` header. However, this requires additional verification logic not currently implemented in this starter.
+Vercel automatically includes the `CRON_SECRET` as the `Authorization: Bearer <CRON_SECRET>` header when calling cron endpoints.
 
 The endpoint verifies the `CRON_SECRET` before executing. Authenticated users can also trigger cleanup manually.
 
