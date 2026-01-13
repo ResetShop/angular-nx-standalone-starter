@@ -1,4 +1,5 @@
 import { container, verifyContainer } from './container';
+import { resetTestCradle, setTestCradle } from './container.mock';
 
 /**
  * DI Container Integration Tests
@@ -58,6 +59,42 @@ describe('DI Container', () => {
 	describe('verifyContainer', () => {
 		it('should not throw when all critical dependencies are resolvable', () => {
 			expect(() => verifyContainer()).not.toThrow();
+		});
+	});
+
+	describe('test cradle proxy', () => {
+		afterEach(() => {
+			resetTestCradle();
+		});
+
+		it('should return mocked service when test cradle is set', () => {
+			const mockRoleService = { getAllRoles: () => Promise.resolve([]) };
+			setTestCradle({
+				roleService: mockRoleService as any,
+			});
+
+			expect(container.cradle.roleService).toBe(mockRoleService);
+		});
+
+		it('should throw when accessing unmocked service in test mode', () => {
+			setTestCradle({
+				roleService: { getAllRoles: () => Promise.resolve([]) } as any,
+			});
+
+			// authService wasn't mocked, so accessing it should throw
+			expect(() => container.cradle.authService).toThrow('Test mock missing for service: authService');
+		});
+
+		it('should return real service after test cradle is reset', () => {
+			setTestCradle({
+				roleService: { getAllRoles: () => Promise.resolve([]) } as any,
+			});
+
+			resetTestCradle();
+
+			// After reset, real authService should be accessible
+			expect(container.cradle.authService).toBeDefined();
+			expect(container.cradle.authService.constructor.name).toBe('AuthService');
 		});
 	});
 });

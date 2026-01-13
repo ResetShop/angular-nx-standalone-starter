@@ -1,4 +1,5 @@
-import { asClass, asValue, createContainer, InjectionMode } from 'awilix';
+import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix';
+import { getTestCradle } from './container.mock';
 import { drizzlePgConnector, type DrizzlePgConnector } from './helpers/drizzle-postgres-connector';
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
@@ -77,12 +78,12 @@ export interface Cradle {
  * }
  * ```
  */
-export const container = createContainer<Cradle>({
+const realContainer = createContainer<Cradle>({
 	injectionMode: InjectionMode.PROXY,
 	strict: true,
 });
 
-container.register({
+realContainer.register({
 	// Infrastructure (values)
 	db: asValue(drizzlePgConnector),
 
@@ -101,12 +102,45 @@ container.register({
 });
 
 /**
+ * Container proxy that supports test mode.
+ * When a test cradle is set (via setTestCradle), the proxy returns mock services.
+ * In production, it delegates to the real Awilix container.
+ */
+export const container: Pick<AwilixContainer<Cradle>, 'cradle' | 'resolve' | 'registrations'> = {
+	get cradle(): Cradle {
+		const testCradle = getTestCradle();
+		if (testCradle) {
+			// Return a proxy that throws for unmocked services
+			return new Proxy(testCradle as Cradle, {
+				get(target, prop: keyof Cradle) {
+					if (prop in target) {
+						return target[prop];
+					}
+					throw new Error(`Test mock missing for service: ${String(prop)}`);
+				},
+			});
+		}
+		return realContainer.cradle;
+	},
+	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
+		const testCradle = getTestCradle();
+		if (testCradle && key in testCradle) {
+			return testCradle[key] as Cradle[K];
+		}
+		return realContainer.resolve(key);
+	},
+	get registrations() {
+		return realContainer.registrations;
+	},
+};
+
+/**
  * Verifies that all registered dependencies can be resolved from the container.
  * Call this at server startup to fail fast if configuration is invalid.
  * @throws Error if any dependency fails to resolve
  */
 export function verifyContainer(): void {
-	for (const dep of Object.keys(container.registrations)) {
-		container.resolve(dep);
+	for (const dep of Object.keys(realContainer.registrations)) {
+		realContainer.resolve(dep);
 	}
 }
