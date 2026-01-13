@@ -1,12 +1,14 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import { permission } from './permission';
 import { userRole } from './user';
 
 export const role = pgTable('role', {
 	id: serial('id').primaryKey(),
 	name: text('name').notNull().unique(),
+	code: text('code').notNull().unique(),
 	description: text('description'),
+	removable: boolean('removable').notNull().default(true),
 	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').defaultNow(),
 });
