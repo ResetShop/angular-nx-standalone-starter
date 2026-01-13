@@ -286,14 +286,45 @@ Revoke all refresh tokens for the user. Uses refresh token from HttpOnly cookie 
 
 ### GET /api/auth/cleanup-tokens
 
-Manually trigger expired token cleanup. Requires authentication. Useful for Vercel Cron Jobs or manual maintenance.
+Manually trigger expired token cleanup. Requires either `CRON_SECRET` authorization or an authenticated user session. Useful for Vercel Cron Jobs or manual maintenance.
 
-**Response (200):**
+**Authorization:** Either `Authorization: Bearer <CRON_SECRET>` header or authenticated user session.
+
+**Response (200) - Cleanup completed:**
 
 ```json
 {
 	"message": "Cleanup completed",
-	"deletedCount": 5
+	"deletedCount": 5,
+	"incomplete": false
+}
+```
+
+**Response (200) - Cleanup incomplete (hit batch limit):**
+
+```json
+{
+	"message": "Cleanup incomplete - max batch limit reached",
+	"deletedCount": 100000,
+	"incomplete": true
+}
+```
+
+**Response (200) - Cleanup already in progress:**
+
+```json
+{
+	"message": "Cleanup already in progress",
+	"deletedCount": 0,
+	"incomplete": false
+}
+```
+
+**Response (401):**
+
+```json
+{
+	"error": "Unauthorized"
 }
 ```
 
@@ -332,7 +363,7 @@ Schedule: Every hour (e.g., "0 * * * *")
 **1. Set required environment variables in Vercel dashboard:**
 
 - `IS_SERVERLESS=true` - Disables background cron jobs (required for serverless)
-- `CRON_SECRET` - Your generated secret for cron authentication
+- `CRON_SECRET` - Your generated secret for cron authentication (minimum 32 characters)
 
 **2. Add to your `vercel.json`:**
 
@@ -343,11 +374,26 @@ Schedule: Every hour (e.g., "0 * * * *")
 			"path": "/api/auth/cleanup-tokens",
 			"schedule": "0 * * * *"
 		}
+	],
+	"headers": [
+		{
+			"source": "/api/auth/cleanup-tokens",
+			"headers": [
+				{
+					"key": "Authorization",
+					"value": "Bearer $CRON_SECRET"
+				}
+			]
+		}
 	]
 }
 ```
 
-Vercel automatically includes the `CRON_SECRET` as the Authorization header when calling cron endpoints.
+**Important:** Vercel Cron Jobs do NOT automatically include the `CRON_SECRET` in requests. You must configure the `headers` section in `vercel.json` to pass the secret as shown above. The `$CRON_SECRET` syntax references your environment variable.
+
+**Alternative approach using Vercel's built-in secret:**
+
+Vercel provides a `VERCEL_CRON_SECRET` environment variable automatically. You can verify cron requests are from Vercel by checking the `x-vercel-cron-signature` header. However, this requires additional verification logic not currently implemented in this starter.
 
 The endpoint verifies the `CRON_SECRET` before executing. Authenticated users can also trigger cleanup manually.
 
