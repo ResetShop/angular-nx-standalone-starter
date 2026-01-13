@@ -15,6 +15,13 @@
 			"when": 1767385613844,
 			"tag": "0001_breezy_reaper",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1768325176967,
+			"tag": "0002_wakeful_turbo",
+			"breakpoints": true
 		}
 	]
 }
