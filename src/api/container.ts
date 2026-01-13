@@ -3,6 +3,8 @@ import { drizzlePgConnector, type DrizzlePgConnector } from './helpers/drizzle-p
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
+import { RoleRepository } from './modules/role/role.repository';
+import { RoleService } from './modules/role/role.service';
 import { UserRepository } from './modules/user/user.repository';
 import { PasetoService } from './services/paseto/paseto.service';
 
@@ -50,9 +52,11 @@ export interface Cradle {
 	userRepository: UserRepository;
 	authRepository: AuthenticationRepository;
 	refreshTokenRepository: RefreshTokenRepository;
+	roleRepository: RoleRepository;
 
 	// Application Services
 	authService: AuthService;
+	roleService: RoleService;
 }
 
 /**
@@ -89,9 +93,11 @@ container.register({
 	userRepository: asClass(UserRepository).singleton(),
 	authRepository: asClass(AuthenticationRepository).singleton(),
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
+	roleRepository: asClass(RoleRepository).singleton(),
 
 	// Services that depend on repositories
 	authService: asClass(AuthService).singleton(),
+	roleService: asClass(RoleService).singleton(),
 });
 
 /**
