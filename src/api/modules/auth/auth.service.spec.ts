@@ -1,5 +1,6 @@
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
+import { vi } from 'vitest';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
 import { MockUserRepository } from '../user/user.repository.mock';
 import { AUTH_ERRORS, AuthService } from './auth.service';
@@ -330,6 +331,22 @@ describe('AuthService', () => {
 
 			expect(result?.deletedCount).toBe(2);
 			expect(result?.incomplete).toBe(false);
+		});
+
+		it('should return cleanup result even when lock release fails', async () => {
+			// Make releaseCleanupLock throw an error
+			const releaseSpy = vi
+				.spyOn(mockRefreshTokenRepo, 'releaseCleanupLock')
+				.mockRejectedValue(new Error('Connection lost'));
+
+			// Cleanup should still succeed and return results
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(result).not.toBeNull();
+			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
+			expect(releaseSpy).toHaveBeenCalled();
+
+			releaseSpy.mockRestore();
 		});
 	});
 });
