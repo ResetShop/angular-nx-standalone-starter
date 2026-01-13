@@ -116,7 +116,14 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
   - Background job that removes expired refresh tokens from the database
   - Valid range: 60000 (1 minute) to 604800000 (7 days)
   - Skipped on Vercel (use Vercel Cron Jobs instead)
-- **`CRON_SECRET`**: Secret for Vercel Cron Jobs to authenticate cleanup requests
+- **`TOKEN_CLEANUP_BATCH_SIZE`**: Number of tokens to delete per batch (default: 1000)
+  - Valid range: 100 to 10000
+  - Higher values = faster cleanup but longer transactions
+- **`TOKEN_CLEANUP_MAX_BATCHES`**: Maximum number of batches per cleanup run (default: 100)
+  - Valid range: 10 to 1000
+  - Limits cleanup to batch_size × max_batches tokens per run (default: 100k)
+  - Prevents indefinite execution on large backlogs
+- **`CRON_SECRET`**: Secret for Vercel Cron Jobs to authenticate cleanup requests (minimum 32 characters)
   - Generate with: `openssl rand -hex 32`
   - Required when using Vercel Cron Jobs
 
