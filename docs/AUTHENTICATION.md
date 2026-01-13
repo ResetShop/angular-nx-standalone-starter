@@ -187,7 +187,7 @@ if (authService.isTokenRefreshing()) {
 | `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                        |
 | `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)      |
 | `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 86400000                | Cleanup interval in ms (min: 1m, max: 7d, default: 24h) |
-| `IS_SERVERLESS`               | No       | "false"                 | Set to "true" in serverless environments                |
+| `IS_SERVERLESS`               | No       | "false"                 | Adapts for serverless (see Connection Pooling below)    |
 | `CRON_SECRET`                 | No       | -                       | Secret for scheduled jobs to call cleanup endpoint      |
 
 ### Generating a Secret Key
@@ -362,7 +362,7 @@ Schedule: Every hour (e.g., "0 * * * *")
 
 **1. Set required environment variables in Vercel dashboard:**
 
-- `IS_SERVERLESS=true` - Disables background cron jobs (required for serverless)
+- `IS_SERVERLESS=true` - Disables background cron jobs and uses connection-pool-safe locks
 - `CRON_SECRET` - Your generated secret for cron authentication (minimum 32 characters)
 
 **2. Add to your `vercel.json`:**
@@ -415,6 +415,32 @@ The cleanup process outputs structured JSON logs for monitoring:
 1. **Alert on `incomplete: true`** - Indicates token backlog building up
 2. **Alert if cleanup fails** - Check logs for database connectivity issues
 3. **Monitor `durationMs` trend** - Increasing times may indicate database performance issues
+
+### Connection Pooling Considerations
+
+The token cleanup process uses PostgreSQL advisory locks to prevent concurrent cleanup runs across multiple server instances. The lock behavior adapts based on the `IS_SERVERLESS` environment variable:
+
+| Environment                         | Lock Type                                        | Behavior                                                |
+| ----------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| Traditional (`IS_SERVERLESS=false`) | Session-level (`pg_try_advisory_lock`)           | Lock persists until explicitly released or session ends |
+| Serverless (`IS_SERVERLESS=true`)   | Transaction-scoped (`pg_try_advisory_xact_lock`) | Lock auto-releases when request completes               |
+
+**Why This Matters:**
+
+In serverless environments with connection pooling (e.g., PgBouncer in transaction mode, Neon, Supabase pooler):
+
+- Database connections are shared across requests
+- Session-level locks can "leak" to subsequent requests using the same connection
+- Transaction-scoped locks prevent this by automatically releasing when the transaction ends
+
+**Configuration:**
+
+Set `IS_SERVERLESS=true` when deploying to:
+
+- Vercel (serverless functions)
+- AWS Lambda
+- Any environment using PgBouncer in transaction mode
+- Any managed database with connection pooling
 
 ## Database Schema
 
