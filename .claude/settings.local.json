@@ -15,7 +15,15 @@
 			"mcp__nx-mcp__nx_workspace_path",
 			"Bash(nx show:*)",
 			"Bash(npx vitest:*)",
-			"Bash(gh api:*)"
+			"Bash(gh api:*)",
+			"Bash(npx nx lint:*)",
+			"Bash(npx nx test:*)",
+			"Bash(gh pr view:*)",
+			"Bash(gh issue view:*)",
+			"Bash(gh issue edit:*)",
+			"Bash(gh pr list:*)",
+			"Bash(gh issue list:*)",
+			"Bash(npx nx:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
