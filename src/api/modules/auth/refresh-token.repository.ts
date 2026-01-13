@@ -155,6 +155,9 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Uses batch deletion to avoid locking the table for large datasets.
 	 * Limited to a configurable max batches to prevent indefinite execution.
 	 *
+	 * Only deletes tokens that expired at least 1 hour ago to prevent race conditions
+	 * where a token might be deleted while a refresh operation is in progress.
+	 *
 	 * Configuration via environment variables:
 	 * - TOKEN_CLEANUP_BATCH_SIZE: Tokens per batch (default: 1000, range: 100-10000)
 	 * - TOKEN_CLEANUP_MAX_BATCHES: Max iterations (default: 100, range: 10-1000)
@@ -168,12 +171,16 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 		let totalDeleted = 0;
 		let batchCount = 0;
 
+		// Only delete tokens expired at least EXPIRY_BUFFER_MS ago to avoid race conditions
+		const EXPIRY_BUFFER_MS = 3600000; // 1 hour
+		const cutoffTime = new Date(Date.now() - EXPIRY_BUFFER_MS);
+
 		while (batchCount < maxBatches) {
-			// Select a batch of expired token IDs
+			// Select a batch of expired token IDs (with buffer)
 			const expiredBatch = await this.db
 				.select({ id: refreshToken.id })
 				.from(refreshToken)
-				.where(lt(refreshToken.expiresAt, new Date()))
+				.where(lt(refreshToken.expiresAt, cutoffTime))
 				.limit(batchSize);
 
 			if (!expiredBatch || expiredBatch.length === 0) {
