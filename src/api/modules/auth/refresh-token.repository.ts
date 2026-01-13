@@ -1,6 +1,7 @@
 import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
 import { BaseRepository } from '../../helpers/base.repository';
+import { isServerless } from '../../utils/environment';
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
@@ -79,16 +80,19 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Non-blocking - returns immediately with true/false.
 	 * Works across multiple server instances sharing the same database.
 	 *
-	 * IMPORTANT: Advisory locks are session-level (tied to database connection).
-	 * In environments with connection pooling (e.g., serverless with PgBouncer in
-	 * transaction mode), locks may behave unexpectedly:
-	 * - Lock acquired on one request may persist to the next request using same connection
-	 * - Consider using pg_try_advisory_xact_lock() for transaction-scoped locks if needed
+	 * Lock type is chosen based on environment:
+	 * - Traditional servers (IS_SERVERLESS !== 'true'): Uses session-level lock (pg_try_advisory_lock)
+	 *   that persists until explicitly released or session ends.
+	 * - Serverless (IS_SERVERLESS === 'true'): Uses transaction-scoped lock (pg_try_advisory_xact_lock)
+	 *   that auto-releases when the transaction/request completes. This prevents lock leaks
+	 *   in connection-pooled environments like PgBouncer transaction mode.
 	 *
 	 * @returns true if lock acquired, false if already locked by another process
 	 */
 	async tryAcquireCleanupLock(): Promise<boolean> {
-		const result = await this.db.execute(sql`SELECT pg_try_advisory_lock(${TOKEN_CLEANUP_LOCK_KEY}) as locked`);
+		// Use transaction-scoped locks in serverless to prevent lock leaks with connection pooling
+		const lockFunction = isServerless() ? 'pg_try_advisory_xact_lock' : 'pg_try_advisory_lock';
+		const result = await this.db.execute(sql.raw(`SELECT ${lockFunction}(${TOKEN_CLEANUP_LOCK_KEY}) as locked`));
 		const row = result.rows[0] as { locked: boolean | null | undefined } | undefined;
 		if (!row || typeof row.locked !== 'boolean') {
 			throw new Error('Failed to acquire advisory lock: unexpected result format');
@@ -98,8 +102,14 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 
 	/**
 	 * Release the PostgreSQL advisory lock for token cleanup.
+	 * Only needed for session-level locks (traditional servers).
+	 * In serverless mode, transaction-scoped locks auto-release, so this is a no-op.
 	 */
 	async releaseCleanupLock(): Promise<void> {
+		// Transaction-scoped locks (xact) auto-release - no need to explicitly unlock
+		if (isServerless()) {
+			return;
+		}
 		await this.db.execute(sql`SELECT pg_advisory_unlock(${TOKEN_CLEANUP_LOCK_KEY})`);
 	}
 	/**
