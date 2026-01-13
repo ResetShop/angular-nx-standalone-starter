@@ -230,8 +230,21 @@ export class AuthService {
 		try {
 			const startTime = Date.now();
 			const result = await this.refreshTokenRepository.deleteAllExpiredTokens();
-			const duration = Date.now() - startTime;
-			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${duration}ms`);
+			const durationMs = Date.now() - startTime;
+
+			// Structured logging for monitoring/metrics collection
+			console.log(
+				JSON.stringify({
+					event: 'token_cleanup',
+					deletedCount: result.deletedCount,
+					durationMs,
+					incomplete: result.incomplete,
+					timestamp: new Date().toISOString(),
+				}),
+			);
+
+			// Human-readable summary
+			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`);
 			if (result.incomplete) {
 				console.warn('[TokenCleanup] Cleanup was incomplete - more expired tokens may remain');
 			}
