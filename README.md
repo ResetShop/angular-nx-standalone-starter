@@ -112,6 +112,20 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
   - Required for cookie-based authentication when frontend and backend are on different origins
 - **`CORS_MAX_AGE`**: Preflight request cache duration in seconds (default: 86400 = 24 hours)
   - Controls how long browsers cache OPTIONS preflight responses
+- **`TOKEN_CLEANUP_INTERVAL_MS`**: Expired token cleanup interval in milliseconds (default: 86400000 = 24 hours)
+  - Background job that removes expired refresh tokens from the database
+  - Valid range: 60000 (1 minute) to 604800000 (7 days)
+  - Skipped on Vercel (use Vercel Cron Jobs instead)
+- **`TOKEN_CLEANUP_BATCH_SIZE`**: Number of tokens to delete per batch (default: 1000)
+  - Valid range: 100 to 10000
+  - Higher values = faster cleanup but longer transactions
+- **`TOKEN_CLEANUP_MAX_BATCH_COUNT`**: Maximum number of batches per cleanup run (default: 100)
+  - Valid range: 10 to 1000
+  - Limits cleanup to batch_size × max_batches tokens per run (default: 100k)
+  - Prevents indefinite execution on large backlogs
+- **`CRON_SECRET`**: Secret for Vercel Cron Jobs to authenticate cleanup requests (minimum 32 characters)
+  - Generate with: `openssl rand -hex 32`
+  - Required when using Vercel Cron Jobs
 
 **Documentation:**
 

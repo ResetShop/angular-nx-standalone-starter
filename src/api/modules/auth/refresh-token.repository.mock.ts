@@ -1,4 +1,9 @@
-import { type CreateRefreshTokenParams, type IRefreshTokenRepository, type RefreshTokenData } from './interfaces';
+import {
+	type CleanupResult,
+	type CreateRefreshTokenParams,
+	type IRefreshTokenRepository,
+	type RefreshTokenData,
+} from './interfaces';
 
 export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	private tokens: Map<string, RefreshTokenData> = new Map();
@@ -10,6 +15,8 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	public revokedUserIds: number[] = [];
 	public deletedExpiredForUsers: number[] = [];
 	public createdTokens: RefreshTokenData[] = [];
+	public cleanupLockAcquired = false;
+	public deleteAllExpiredCalled = false;
 
 	/**
 	 * Add a token to the mock repository.
@@ -43,6 +50,8 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		this.revokedUserIds = [];
 		this.deletedExpiredForUsers = [];
 		this.createdTokens = [];
+		this.cleanupLockAcquired = false;
+		this.deleteAllExpiredCalled = false;
 		this.tokenIdCounter = 1;
 	}
 
@@ -92,5 +101,33 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 			}
 		}
 		return count;
+	}
+
+	async tryAcquireCleanupLock(): Promise<boolean> {
+		if (this.cleanupLockAcquired) {
+			return false;
+		}
+		this.cleanupLockAcquired = true;
+		return true;
+	}
+
+	async releaseCleanupLock(): Promise<void> {
+		this.cleanupLockAcquired = false;
+	}
+
+	async deleteAllExpiredTokens(): Promise<CleanupResult> {
+		this.deleteAllExpiredCalled = true;
+		// Count and remove tokens expired at least EXPIRY_BUFFER_MS ago (matches real repo)
+		const EXPIRY_BUFFER_MS = 3600000;
+		let count = 0;
+		const cutoffTime = new Date(Date.now() - EXPIRY_BUFFER_MS);
+		for (const [hash, token] of this.tokens.entries()) {
+			if (token.expiresAt < cutoffTime) {
+				this.tokens.delete(hash);
+				this.tokensById.delete(token.id);
+				count++;
+			}
+		}
+		return { deletedCount: count, incomplete: false };
 	}
 }

@@ -1,7 +1,9 @@
 import { zValidator } from '@hono/zod-validator';
+import { timingSafeEqual } from 'crypto';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
+import { MIN_CRON_SECRET_LENGTH } from '../../constants/auth.constants';
 import { container } from '../../container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { parseDurationToSeconds } from '../../utils/duration';
@@ -129,6 +131,56 @@ app.post('/logout', async (c) => {
 		// Even if token verification fails, logout is still "successful"
 		// Cookie is already deleted, user is effectively logged out
 		return c.json({ message: 'Logged out successfully' });
+	}
+});
+
+// GET /api/auth/cleanup-tokens - Manually trigger expired token cleanup
+// Public endpoint but protected by CRON_SECRET for Vercel Cron Jobs
+// Also allows authenticated users to call it manually
+app.get('/cleanup-tokens', async (c) => {
+	const cronSecret = process.env['CRON_SECRET'];
+	const authHeader = c.req.header('Authorization');
+	const user = (c as AuthenticatedContext).user;
+
+	// Validate CRON_SECRET length (warning logged at startup in cron-jobs.ts)
+	const isSecretValid = cronSecret && cronSecret.length >= MIN_CRON_SECRET_LENGTH;
+
+	// Check authorization: either valid cron secret or authenticated user
+	// Use timing-safe comparison to prevent timing attacks on the secret
+	const isValidCronRequest =
+		isSecretValid &&
+		authHeader &&
+		(() => {
+			const expected = Buffer.from(`Bearer ${cronSecret}`);
+			const actual = Buffer.from(authHeader);
+			return expected.length === actual.length && timingSafeEqual(expected, actual);
+		})();
+	const isAuthenticatedUser = !!user;
+
+	if (!isValidCronRequest && !isAuthenticatedUser) {
+		return c.json({ error: 'Unauthorized' }, 401);
+	}
+
+	try {
+		const { authService } = container.cradle;
+		const result = await authService.cleanupExpiredTokens();
+
+		if (result === null) {
+			return c.json({
+				message: 'Cleanup already in progress',
+				deletedCount: 0,
+				incomplete: false,
+			});
+		}
+
+		return c.json({
+			message: result.incomplete ? 'Cleanup incomplete - max batch limit reached' : 'Cleanup completed',
+			deletedCount: result.deletedCount,
+			incomplete: result.incomplete,
+		});
+	} catch (error) {
+		console.error('[TokenCleanup] Error:', error);
+		return c.json({ error: 'Cleanup failed' }, 500);
 	}
 });
 
