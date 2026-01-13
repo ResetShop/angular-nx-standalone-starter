@@ -119,7 +119,7 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
 - **`TOKEN_CLEANUP_BATCH_SIZE`**: Number of tokens to delete per batch (default: 1000)
   - Valid range: 100 to 10000
   - Higher values = faster cleanup but longer transactions
-- **`TOKEN_CLEANUP_MAX_BATCHES`**: Maximum number of batches per cleanup run (default: 100)
+- **`TOKEN_CLEANUP_MAX_BATCH_COUNT`**: Maximum number of batches per cleanup run (default: 100)
   - Valid range: 10 to 1000
   - Limits cleanup to batch_size × max_batches tokens per run (default: 100k)
   - Prevents indefinite execution on large backlogs

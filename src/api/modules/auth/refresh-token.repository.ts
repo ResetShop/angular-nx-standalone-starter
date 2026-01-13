@@ -48,13 +48,13 @@ function getDeleteBatchSize(): number {
  * @returns Max batches clamped between MIN_MAX_BATCHES and MAX_MAX_BATCHES
  */
 function getMaxCleanupBatches(): number {
-	const envValue = process.env['TOKEN_CLEANUP_MAX_BATCHES'];
+	const envValue = process.env['TOKEN_CLEANUP_MAX_BATCH_COUNT'];
 	const raw = parseInt(envValue ?? '', 10);
 
 	if (!Number.isFinite(raw)) {
 		if (envValue) {
 			console.warn(
-				`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCHES="${envValue}" is invalid. Using default: ${DEFAULT_MAX_CLEANUP_BATCHES}`,
+				`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCH_COUNT="${envValue}" is invalid. Using default: ${DEFAULT_MAX_CLEANUP_BATCHES}`,
 			);
 		}
 		return DEFAULT_MAX_CLEANUP_BATCHES;
@@ -63,7 +63,7 @@ function getMaxCleanupBatches(): number {
 	const clamped = Math.max(MIN_MAX_BATCHES, Math.min(MAX_MAX_BATCHES, raw));
 	if (clamped !== raw) {
 		console.warn(
-			`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCHES=${raw} out of range (${MIN_MAX_BATCHES}-${MAX_MAX_BATCHES}). Using: ${clamped}`,
+			`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCH_COUNT=${raw} out of range (${MIN_MAX_BATCHES}-${MAX_MAX_BATCHES}). Using: ${clamped}`,
 		);
 	}
 	return clamped;
@@ -192,7 +192,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 *
 	 * Configuration via environment variables:
 	 * - TOKEN_CLEANUP_BATCH_SIZE: Tokens per batch (default: 1000, range: 100-10000)
-	 * - TOKEN_CLEANUP_MAX_BATCHES: Max iterations (default: 100, range: 10-1000)
+	 * - TOKEN_CLEANUP_MAX_BATCH_COUNT: Max iterations (default: 100, range: 10-1000)
 	 *
 	 * @returns CleanupResult with count of deleted tokens and incomplete flag
 	 */
