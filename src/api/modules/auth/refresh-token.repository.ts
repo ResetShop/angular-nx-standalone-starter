@@ -21,14 +21,25 @@ const MAX_MAX_BATCHES = 1000;
  * @returns Batch size clamped between MIN_BATCH_SIZE and MAX_BATCH_SIZE
  */
 function getDeleteBatchSize(): number {
-	const raw = parseInt(process.env['TOKEN_CLEANUP_BATCH_SIZE'] ?? '', 10);
-	if (isNaN(raw)) {
-		console.warn(
-			`[TokenCleanup] TOKEN_CLEANUP_BATCH_SIZE not set or invalid, using default: ${DEFAULT_DELETE_BATCH_SIZE}`,
-		);
+	const envValue = process.env['TOKEN_CLEANUP_BATCH_SIZE'];
+	const raw = parseInt(envValue ?? '', 10);
+
+	if (!Number.isFinite(raw)) {
+		if (envValue) {
+			console.warn(
+				`[TokenCleanup] TOKEN_CLEANUP_BATCH_SIZE="${envValue}" is invalid. Using default: ${DEFAULT_DELETE_BATCH_SIZE}`,
+			);
+		}
 		return DEFAULT_DELETE_BATCH_SIZE;
 	}
-	return Math.max(MIN_BATCH_SIZE, Math.min(MAX_BATCH_SIZE, raw));
+
+	const clamped = Math.max(MIN_BATCH_SIZE, Math.min(MAX_BATCH_SIZE, raw));
+	if (clamped !== raw) {
+		console.warn(
+			`[TokenCleanup] TOKEN_CLEANUP_BATCH_SIZE=${raw} out of range (${MIN_BATCH_SIZE}-${MAX_BATCH_SIZE}). Using: ${clamped}`,
+		);
+	}
+	return clamped;
 }
 
 /**
@@ -36,14 +47,25 @@ function getDeleteBatchSize(): number {
  * @returns Max batches clamped between MIN_MAX_BATCHES and MAX_MAX_BATCHES
  */
 function getMaxCleanupBatches(): number {
-	const raw = parseInt(process.env['TOKEN_CLEANUP_MAX_BATCHES'] ?? '', 10);
-	if (isNaN(raw)) {
-		console.warn(
-			`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCHES not set or invalid, using default: ${DEFAULT_MAX_CLEANUP_BATCHES}`,
-		);
+	const envValue = process.env['TOKEN_CLEANUP_MAX_BATCHES'];
+	const raw = parseInt(envValue ?? '', 10);
+
+	if (!Number.isFinite(raw)) {
+		if (envValue) {
+			console.warn(
+				`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCHES="${envValue}" is invalid. Using default: ${DEFAULT_MAX_CLEANUP_BATCHES}`,
+			);
+		}
 		return DEFAULT_MAX_CLEANUP_BATCHES;
 	}
-	return Math.max(MIN_MAX_BATCHES, Math.min(MAX_MAX_BATCHES, raw));
+
+	const clamped = Math.max(MIN_MAX_BATCHES, Math.min(MAX_MAX_BATCHES, raw));
+	if (clamped !== raw) {
+		console.warn(
+			`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCHES=${raw} out of range (${MIN_MAX_BATCHES}-${MAX_MAX_BATCHES}). Using: ${clamped}`,
+		);
+	}
+	return clamped;
 }
 
 // Advisory lock key for token cleanup
