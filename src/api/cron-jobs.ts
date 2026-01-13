@@ -1,5 +1,6 @@
 import { MIN_CRON_SECRET_LENGTH } from './constants/auth.constants';
 import { container } from './container';
+import { isServerless } from './utils/environment';
 
 let cleanupInterval: NodeJS.Timeout | null = null;
 
@@ -58,8 +59,8 @@ export function startCronJobs(): void {
 	// Validate CRON_SECRET once at startup
 	validateCronSecret();
 
-	// Skip cron jobs in serverless environments (IS_SERVERLESS env var defaults to false)
-	if (process.env['IS_SERVERLESS'] === 'true') {
+	// Skip cron jobs in serverless environments
+	if (isServerless()) {
 		console.log(
 			'[CronJobs] Skipped - serverless environment. Use scheduled triggers with GET /api/auth/cleanup-tokens',
 		);
