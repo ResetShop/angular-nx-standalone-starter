@@ -11,9 +11,18 @@ import { join } from 'node:path';
 // DI Container - imported to ensure initialization at startup
 import { verifyContainer } from './api/container';
 
+/**
+ * Max-age for static asset caching (1 year in seconds).
+ * Used for immutable static files served from /browser.
+ */
+const STATIC_CACHE_MAX_AGE_SECONDS = 31536000;
+
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
+
+// Cron jobs
+import { startCronJobs, stopCronJobs } from './api/cron-jobs';
 
 /**
  * Initialize Hono and export the app instance
@@ -67,7 +76,7 @@ app.use(
 	serveStatic({
 		root: join(import.meta.dirname, '../browser'),
 		onFound: (path, c) => {
-			c.header('Cache-Control', `public, immutable, max-age=31536000`);
+			c.header('Cache-Control', `public, immutable, max-age=${STATIC_CACHE_MAX_AGE_SECONDS}`);
 		},
 		onNotFound: () => {
 			// Optionally log or handle the case where a static file is not found
@@ -119,15 +128,40 @@ if (isMainModule(import.meta.url)) {
 	}
 
 	const port = Number(process.env['PORT'] || 4000);
-	serve(
+	const server = serve(
 		{
 			fetch: app.fetch,
 			port,
 		},
 		(info) => {
 			console.log(`Hono server listening on http://localhost:${info.port}`);
+
+			// Start cron jobs
+			startCronJobs();
 		},
 	);
+
+	// Graceful shutdown handler with timeout
+	const SHUTDOWN_TIMEOUT_MS = 10000; // 10 seconds
+	const gracefulShutdown = (signal: string) => {
+		console.log(`\n${signal} received. Starting graceful shutdown...`);
+		stopCronJobs();
+
+		// Force exit if graceful shutdown takes too long
+		const forceExitTimeout = setTimeout(() => {
+			console.error('Graceful shutdown timed out. Forcing exit...');
+			process.exit(1);
+		}, SHUTDOWN_TIMEOUT_MS);
+
+		server.close(() => {
+			clearTimeout(forceExitTimeout);
+			console.log('Server closed');
+			process.exit(0);
+		});
+	};
+
+	process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+	process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 /**

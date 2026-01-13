@@ -1,5 +1,6 @@
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
+import { vi } from 'vitest';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
 import { MockUserRepository } from '../user/user.repository.mock';
 import { AUTH_ERRORS, AuthService } from './auth.service';
@@ -280,6 +281,72 @@ describe('AuthService', () => {
 			await authService.logout(testUser.id);
 
 			expect(mockRefreshTokenRepo.deletedExpiredForUsers).toContain(testUser.id);
+		});
+	});
+
+	describe('cleanupExpiredTokens', () => {
+		it('should acquire lock and delete all expired tokens', async () => {
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(false); // Lock released after cleanup
+			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(true);
+			expect(result).not.toBeNull();
+			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
+			expect(result?.incomplete).toBe(false);
+		});
+
+		it('should return null when lock cannot be acquired', async () => {
+			// Simulate another process holding the lock
+			mockRefreshTokenRepo.cleanupLockAcquired = true;
+
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(result).toBeNull();
+			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(false);
+		});
+
+		it('should release lock after successful cleanup', async () => {
+			await authService.cleanupExpiredTokens();
+
+			// Lock should be released
+			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(false);
+		});
+
+		it('should delete expired tokens and return count', async () => {
+			// Add some expired tokens
+			mockRefreshTokenRepo.addToken('expired-1', {
+				userId: 1,
+				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+			});
+			mockRefreshTokenRepo.addToken('expired-2', {
+				userId: 2,
+				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+			});
+			mockRefreshTokenRepo.addToken('valid', {
+				userId: 3,
+				expiresAt: new Date(Date.now() + 86400000), // 1 day from now
+			});
+
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(result?.deletedCount).toBe(2);
+			expect(result?.incomplete).toBe(false);
+		});
+
+		it('should return cleanup result even when lock release fails', async () => {
+			// Make releaseCleanupLock throw an error
+			const releaseSpy = vi
+				.spyOn(mockRefreshTokenRepo, 'releaseCleanupLock')
+				.mockRejectedValue(new Error('Connection lost'));
+
+			// Cleanup should still succeed and return results
+			const result = await authService.cleanupExpiredTokens();
+
+			expect(result).not.toBeNull();
+			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
+			expect(releaseSpy).toHaveBeenCalled();
+
+			releaseSpy.mockRestore();
 		});
 	});
 });

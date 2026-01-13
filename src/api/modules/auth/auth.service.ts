@@ -4,7 +4,7 @@ import { createHash } from 'crypto';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
 import { type IUserRepository } from '../user/interfaces';
-import { type IAuthenticationRepository, type IRefreshTokenRepository } from './interfaces';
+import { type CleanupResult, type IAuthenticationRepository, type IRefreshTokenRepository } from './interfaces';
 
 interface LoginParams {
 	email: string;
@@ -204,5 +204,65 @@ export class AuthService {
 
 		// Delete all expired tokens for this user
 		await this.refreshTokenRepository.deleteExpiredTokensForUser(userId);
+	}
+
+	/**
+	 * Delete all expired refresh tokens from the database.
+	 * Used by the cron job and manual cleanup endpoint.
+	 * Uses PostgreSQL advisory lock to prevent concurrent executions across multiple server instances.
+	 * @returns CleanupResult with count and incomplete flag, or null if skipped due to concurrent execution or lock error
+	 */
+	async cleanupExpiredTokens(): Promise<CleanupResult | null> {
+		// Try to acquire database-level lock (works across multiple server instances)
+		let lockAcquired = false;
+		try {
+			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock();
+		} catch (error) {
+			console.error('[TokenCleanup] Failed to acquire advisory lock:', error);
+			return null;
+		}
+
+		if (!lockAcquired) {
+			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)');
+			return null;
+		}
+
+		try {
+			const startTime = Date.now();
+			const result = await this.refreshTokenRepository.deleteAllExpiredTokens();
+			const durationMs = Date.now() - startTime;
+
+			// Structured logging for monitoring/metrics collection
+			console.log(
+				JSON.stringify({
+					event: 'token_cleanup',
+					deletedCount: result.deletedCount,
+					durationMs,
+					incomplete: result.incomplete,
+					timestamp: new Date().toISOString(),
+				}),
+			);
+
+			// Human-readable summary
+			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`);
+			if (result.incomplete) {
+				console.warn('[TokenCleanup] Cleanup was incomplete - more expired tokens may remain');
+			}
+			return result;
+		} finally {
+			try {
+				await this.refreshTokenRepository.releaseCleanupLock();
+			} catch (error) {
+				// PostgreSQL session advisory locks (pg_advisory_lock) are automatically
+				// released when the database session/connection ends. This is a safety net
+				// - the lock won't persist indefinitely even if explicit release fails.
+				// In serverless with connection pooling, the lock releases when the
+				// pooled connection is recycled or the pool closes.
+				console.error(
+					'[TokenCleanup] Failed to release advisory lock. Lock will auto-release when DB session ends:',
+					error,
+				);
+			}
+		}
 	}
 }
