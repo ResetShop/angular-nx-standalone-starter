@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { permission } from './permission';
 import { userRole } from './user';
 
@@ -13,16 +13,22 @@ export const role = pgTable('role', {
 	updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const rolePermission = pgTable('role_permission', {
-	id: serial('id').primaryKey(),
-	roleId: integer('role_id')
-		.notNull()
-		.references(() => role.id, { onDelete: 'restrict' }),
-	permissionId: integer('permission_id')
-		.notNull()
-		.references(() => permission.id, { onDelete: 'restrict' }),
-	createdAt: timestamp('created_at').defaultNow(),
-});
+export const rolePermission = pgTable(
+	'role_permission',
+	{
+		id: serial('id').primaryKey(),
+		roleId: integer('role_id')
+			.notNull()
+			.references(() => role.id, { onDelete: 'restrict' }),
+		permissionId: integer('permission_id')
+			.notNull()
+			.references(() => permission.id, { onDelete: 'restrict' }),
+		createdAt: timestamp('created_at').defaultNow(),
+	},
+	(table) => ({
+		rolePermissionUnique: unique().on(table.roleId, table.permissionId),
+	}),
+);
 
 export const roleRelations = relations(role, ({ many }) => ({
 	permissions: many(rolePermission),
