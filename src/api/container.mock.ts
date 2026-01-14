@@ -22,6 +22,8 @@ export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> 
 	mockRejectedValue: (error: unknown) => MockFn<TArgs, TReturn>;
 	/** Set a direct return value */
 	mockReturnValue: (value: TReturn) => MockFn<TArgs, TReturn>;
+	/** Set a custom implementation function */
+	mockImplementation: (impl: (...args: TArgs) => TReturn) => MockFn<TArgs, TReturn>;
 	/** Clear all recorded calls */
 	mockClear: () => void;
 }
@@ -44,26 +46,39 @@ const mockRegistry: Set<MockFn> = new Set();
  */
 export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): MockFn<TArgs, TReturn> {
 	let returnValue: TReturn | undefined;
+	let implementation: ((...args: TArgs) => TReturn) | undefined;
 
 	const mockFn = ((...args: TArgs): TReturn => {
 		mockFn.calls.push(args);
+		if (implementation) {
+			return implementation(...args);
+		}
 		return returnValue as TReturn;
 	}) as MockFn<TArgs, TReturn>;
 
 	mockFn.calls = [];
 
 	mockFn.mockResolvedValue = (value: Awaited<TReturn>) => {
+		implementation = undefined;
 		returnValue = Promise.resolve(value) as TReturn;
 		return mockFn;
 	};
 
 	mockFn.mockRejectedValue = (error: unknown) => {
+		implementation = undefined;
 		returnValue = Promise.reject(error) as TReturn;
 		return mockFn;
 	};
 
 	mockFn.mockReturnValue = (value: TReturn) => {
+		implementation = undefined;
 		returnValue = value;
+		return mockFn;
+	};
+
+	mockFn.mockImplementation = (impl: (...args: TArgs) => TReturn) => {
+		implementation = impl;
+		returnValue = undefined;
 		return mockFn;
 	};
 

@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { environment } from '../api/helpers/environment';
+import { ADMIN_PERMISSIONS_SEED_DATA } from '../api/modules/role/permissions.constants';
 import { authentication } from './schema/authentication';
 import { permission } from './schema/permission';
 import { role, rolePermission } from './schema/role';
@@ -12,40 +13,6 @@ const pool = new Pool({
 });
 
 const db = drizzle(pool);
-
-/**
- * Permission naming convention: module:resource:action
- * - module: Domain/area of the application (admin, billing, reports, etc.)
- * - resource: The entity being accessed (users, roles, invoices, etc.)
- * - action: The operation being performed (create, read, update, delete, etc.)
- *
- * This format allows:
- * - Hierarchical grouping for UI display
- * - Wildcard matching (e.g., admin:users:* for all user operations)
- * - Clear mapping to API endpoints
- */
-const ADMIN_PERMISSIONS = [
-	// User management permissions
-	{ name: 'admin:users:create', description: 'Create new users', resource: 'users', action: 'create' },
-	{ name: 'admin:users:read', description: 'View user details', resource: 'users', action: 'read' },
-	{ name: 'admin:users:update', description: 'Update user information', resource: 'users', action: 'update' },
-	{ name: 'admin:users:delete', description: 'Delete users', resource: 'users', action: 'delete' },
-	{
-		name: 'admin:users:reset_password',
-		description: 'Reset user passwords',
-		resource: 'users',
-		action: 'reset_password',
-	},
-	{ name: 'admin:users:disable', description: 'Disable user accounts', resource: 'users', action: 'disable' },
-	// Role management permissions
-	{ name: 'admin:roles:create', description: 'Create new roles', resource: 'roles', action: 'create' },
-	{ name: 'admin:roles:read', description: 'View role details', resource: 'roles', action: 'read' },
-	{ name: 'admin:roles:update', description: 'Update roles', resource: 'roles', action: 'update' },
-	{ name: 'admin:roles:delete', description: 'Delete roles', resource: 'roles', action: 'delete' },
-	// User-role assignment permissions
-	{ name: 'admin:user_roles:assign', description: 'Assign roles to users', resource: 'user_roles', action: 'assign' },
-	{ name: 'admin:user_roles:remove', description: 'Remove roles from users', resource: 'user_roles', action: 'remove' },
-] as const;
 
 /**
  * Seeds the database with initial data in a transaction.
@@ -128,7 +95,7 @@ async function seed() {
 
 			// Step 5: Create permissions
 			const permissionIds: number[] = [];
-			for (const perm of ADMIN_PERMISSIONS) {
+			for (const perm of ADMIN_PERMISSIONS_SEED_DATA) {
 				const existingPerm = await tx
 					.select({ id: permission.id })
 					.from(permission)
@@ -143,7 +110,7 @@ async function seed() {
 					}
 				}
 			}
-			console.log(`✅ ${ADMIN_PERMISSIONS.length} permissions created/verified`);
+			console.log(`✅ ${ADMIN_PERMISSIONS_SEED_DATA.length} permissions created/verified`);
 
 			// Step 6: Assign all permissions to Administrator role
 			for (const permId of permissionIds) {

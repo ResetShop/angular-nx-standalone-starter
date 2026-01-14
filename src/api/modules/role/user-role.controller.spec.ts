@@ -1,19 +1,21 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
+import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PaginatedResponse, PermissionData, RoleData } from './interfaces';
+import { ADMIN_USER_ROLE_PERMISSIONS } from './permissions.constants';
 import userRoleController from './user-role.controller';
 import { USER_ROLE_ERRORS } from './user-role.service';
 
 describe('User Role Controller', () => {
-	const app = new Hono();
-	app.route('/users', userRoleController);
-
 	// Create mock functions
 	const mockGetUserRoles = fn<[number, { offset?: number; limit?: number }?], Promise<PaginatedResponse<RoleData>>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 	const mockAssignRoleToUser = fn<[number, number], Promise<void>>();
 	const mockRemoveRoleFromUser = fn<[number, number], Promise<void>>();
+
+	// Create app with auth middleware that simulates authenticated user
+	let app: Hono;
 
 	// Test data
 	const testRole: RoleData = {
@@ -30,8 +32,49 @@ describe('User Role Controller', () => {
 		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
 	];
 
+	// All admin:user_roles:* permissions for testing (for authenticated user ID 999)
+	const allUserRolePermissions: PermissionData[] = [
+		{
+			id: 1,
+			name: ADMIN_USER_ROLE_PERMISSIONS.READ,
+			description: 'Read user roles',
+			resource: 'user_roles',
+			action: 'read',
+		},
+		{
+			id: 2,
+			name: ADMIN_USER_ROLE_PERMISSIONS.ASSIGN,
+			description: 'Assign roles',
+			resource: 'user_roles',
+			action: 'assign',
+		},
+		{
+			id: 3,
+			name: ADMIN_USER_ROLE_PERMISSIONS.REMOVE,
+			description: 'Remove roles',
+			resource: 'user_roles',
+			action: 'remove',
+		},
+	];
+
+	// The authenticated admin user ID
+	const ADMIN_USER_ID = 999;
+
 	beforeEach(() => {
 		clearAllMocks();
+
+		// Mock getUserPermissions to return different results based on user ID:
+		// - For the authenticated admin user (ID 999): return all user_role permissions
+		// - For other users: return the test permissions or error as needed
+		mockGetUserPermissions.mockImplementation((userId: number) => {
+			if (userId === ADMIN_USER_ID) {
+				// This is the permission check for the authenticated user
+				return Promise.resolve(allUserRolePermissions);
+			}
+			// This is the actual endpoint call for the target user
+			return Promise.resolve(testPermissions);
+		});
+
 		setTestCradle({
 			userRoleService: {
 				getUserRoles: mockGetUserRoles,
@@ -40,6 +83,19 @@ describe('User Role Controller', () => {
 				removeRoleFromUser: mockRemoveRoleFromUser,
 			},
 		});
+
+		// Create app with simulated authenticated user
+		app = new Hono();
+		app.use('*', async (c, next) => {
+			(c as AuthenticatedContext).user = {
+				sub: String(ADMIN_USER_ID),
+				email: 'admin@example.com',
+				firstName: 'Admin',
+				lastName: 'User',
+			};
+			await next();
+		});
+		app.route('/users', userRoleController);
 	});
 
 	afterEach(() => {
@@ -101,7 +157,9 @@ describe('User Role Controller', () => {
 
 	describe('GET /users/:userId/permissions', () => {
 		it('should return user permissions', async () => {
-			mockGetUserPermissions.mockResolvedValue(testPermissions);
+			// mockGetUserPermissions is already set up via mockImplementation in beforeEach
+			// - Returns allUserRolePermissions for admin user (ID 999) - for permission check
+			// - Returns testPermissions for other users - for the actual endpoint
 
 			const res = await app.request('/users/1/permissions');
 
@@ -109,13 +167,20 @@ describe('User Role Controller', () => {
 			const data = await res.json();
 			expect(data.data).toHaveLength(1);
 			expect(data.data[0].name).toBe('can_create_users');
-			expect(mockGetUserPermissions.calls).toEqual([[1]]);
+			// First call is from permission middleware (user 999), second is from endpoint (user 1)
+			expect(mockGetUserPermissions.calls).toEqual([[ADMIN_USER_ID], [1]]);
 		});
 
 		it('should return 404 when user not found', async () => {
-			mockGetUserPermissions.mockRejectedValue(new Error(USER_ROLE_ERRORS.USER_NOT_FOUND));
+			// Override mockImplementation to throw for non-admin users
+			mockGetUserPermissions.mockImplementation((userId: number) => {
+				if (userId === ADMIN_USER_ID) {
+					return Promise.resolve(allUserRolePermissions);
+				}
+				return Promise.reject(new Error(USER_ROLE_ERRORS.USER_NOT_FOUND));
+			});
 
-			const res = await app.request('/users/999/permissions');
+			const res = await app.request('/users/888/permissions');
 
 			expect(res.status).toBe(404);
 			const data = await res.json();

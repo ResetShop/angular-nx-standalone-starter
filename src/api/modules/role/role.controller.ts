@@ -2,6 +2,8 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { container } from '../../container';
+import { requirePermission } from '../../middlewares/verify-permissions.middleware';
+import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 import { ROLE_ERRORS } from './role.service';
 
 const app = new Hono();
@@ -12,6 +14,7 @@ const app = new Hono();
  */
 app.get(
 	'/',
+	requirePermission(ADMIN_ROLE_PERMISSIONS.READ),
 	zValidator(
 		'query',
 		z.object({
@@ -31,7 +34,7 @@ app.get(
  * GET /api/roles/:id
  * Get a role by ID
  */
-app.get('/:id', async (c) => {
+app.get('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.READ), async (c) => {
 	const { roleService } = container.cradle;
 	const id = parseInt(c.req.param('id'), 10);
 
@@ -54,6 +57,7 @@ app.get('/:id', async (c) => {
  */
 app.post(
 	'/',
+	requirePermission(ADMIN_ROLE_PERMISSIONS.CREATE),
 	zValidator(
 		'json',
 		z.object({
@@ -90,6 +94,7 @@ app.post(
  */
 app.put(
 	'/:id',
+	requirePermission(ADMIN_ROLE_PERMISSIONS.UPDATE),
 	zValidator(
 		'json',
 		z.object({
@@ -128,7 +133,7 @@ app.put(
  * DELETE /api/roles/:id
  * Delete a role
  */
-app.delete('/:id', async (c) => {
+app.delete('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.DELETE), async (c) => {
 	const { roleService } = container.cradle;
 	const id = parseInt(c.req.param('id'), 10);
 
@@ -158,6 +163,7 @@ app.delete('/:id', async (c) => {
  */
 app.get(
 	'/:id/permissions',
+	requirePermission(ADMIN_ROLE_PERMISSIONS.READ),
 	zValidator(
 		'query',
 		z.object({
@@ -193,6 +199,7 @@ app.get(
  */
 app.post(
 	'/:id/permissions',
+	requirePermission(ADMIN_ROLE_PERMISSIONS.UPDATE),
 	zValidator(
 		'json',
 		z.object({
