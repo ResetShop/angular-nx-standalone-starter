@@ -357,6 +357,101 @@ routeType: "api"
 5. **Auditability**: Timestamps on all creation events
 6. **Data Integrity**: Cascade deletes for user/role cleanup, restrict deletes for permission changes
 
+## Management Architecture: Roles vs Permissions
+
+### Roles - User-Managed
+
+Roles are **user-managed entities** that can be created, updated, and deleted via the API/dashboard:
+
+| Operation         | API Endpoint                              | Description                        |
+| ----------------- | ----------------------------------------- | ---------------------------------- |
+| Create            | `POST /api/roles`                         | Create a new role                  |
+| Read              | `GET /api/roles`                          | List all roles (paginated)         |
+| Read              | `GET /api/roles/:id`                      | Get role by ID                     |
+| Update            | `PUT /api/roles/:id`                      | Update role description            |
+| Delete            | `DELETE /api/roles/:id`                   | Delete role (if `removable: true`) |
+| Assign to user    | `POST /api/users/:userId/roles`           | Assign role to a user              |
+| Remove from user  | `DELETE /api/users/:userId/roles/:roleId` | Remove role from user              |
+| Get user's roles  | `GET /api/users/:userId/roles`            | Get roles assigned to user         |
+| Assign permission | `POST /api/roles/:id/permissions`         | Assign existing permission to role |
+| Get permissions   | `GET /api/roles/:id/permissions`          | Get permissions for a role         |
+
+**Key characteristics:**
+
+- Administrators can create custom roles for their organization
+- Roles group permissions for easier user management
+- System roles (like "Administrator") have `removable: false` to prevent accidental deletion
+- Role names and codes must be unique
+
+### Permissions - System-Defined
+
+Permissions are **system-defined entities** that are created through migrations and seed scripts:
+
+| Aspect       | Description                                                 |
+| ------------ | ----------------------------------------------------------- |
+| Creation     | Defined in code via seed scripts or migrations              |
+| Modification | Requires code changes and redeployment                      |
+| Deletion     | Requires migration (must remove all role assignments first) |
+| API Access   | **Read-only** - no create/update/delete endpoints           |
+
+**Why permissions are not user-managed:**
+
+1. **Security**: Permissions define the capability boundary of the system. Allowing runtime creation could introduce security vulnerabilities.
+
+2. **Code coupling**: Each permission typically corresponds to middleware checks in code. Creating a permission without the corresponding code implementation provides no value.
+
+3. **Consistency**: Permissions represent system capabilities that should be consistent across environments (dev, staging, production).
+
+4. **Audit trail**: Permission changes should be tracked in version control, not database logs.
+
+**How permissions are added:**
+
+When a new module/feature is developed:
+
+1. Create a Drizzle migration to insert the required permissions:
+
+   ```bash
+   pnpm drizzle-kit generate --custom
+   ```
+
+   Then in the generated migration file:
+
+   ```sql
+   INSERT INTO "permission" ("name", "description", "resource", "action")
+   VALUES
+     ('billing:invoices:create', 'Create invoices', 'invoices', 'create'),
+     ('billing:invoices:read', 'View invoices', 'invoices', 'read');
+   ```
+
+2. Apply the migration:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+3. Add middleware checks in the controller:
+
+   ```typescript
+   app.post('/invoices', requirePermission(permission('billing:invoices:create')), async (c) => { ... });
+   ```
+
+4. Assign permissions to appropriate roles via the API
+
+> **Note:** The seed script (`src/db/seed.ts`) is only used for initial database setup and should not be modified for new permissions. All subsequent permissions are added via migrations to ensure proper versioning and rollback capabilities.
+
+### Summary
+
+| Entity     | Created By     | Managed Via   | Lifecycle                          |
+| ---------- | -------------- | ------------- | ---------------------------------- |
+| Role       | Administrators | API/Dashboard | Runtime - create, assign, delete   |
+| Permission | Developers     | Code/Seeds    | Deploy-time - tied to code changes |
+
+This separation ensures that:
+
+- **Administrators** have flexibility to organize users into roles
+- **Developers** maintain control over what actions the system supports
+- **Security** is enforced at the code level, not just configuration
+
 ## Query Examples
 
 ### Get all permissions for a user
