@@ -6,6 +6,8 @@ import { AuthenticationRepository } from './modules/auth/authentication.reposito
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
 import { RoleRepository } from './modules/role/role.repository';
 import { RoleService } from './modules/role/role.service';
+import { UserRoleRepository } from './modules/user-role/user-role.repository';
+import { UserRoleService } from './modules/user-role/user-role.service';
 import { UserRepository } from './modules/user/user.repository';
 import { PasetoService } from './services/paseto/paseto.service';
 
@@ -54,10 +56,12 @@ export interface Cradle {
 	authRepository: AuthenticationRepository;
 	refreshTokenRepository: RefreshTokenRepository;
 	roleRepository: RoleRepository;
+	userRoleRepository: UserRoleRepository;
 
 	// Application Services
 	authService: AuthService;
 	roleService: RoleService;
+	userRoleService: UserRoleService;
 }
 
 /**
@@ -95,10 +99,12 @@ realContainer.register({
 	authRepository: asClass(AuthenticationRepository).singleton(),
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
 	roleRepository: asClass(RoleRepository).singleton(),
+	userRoleRepository: asClass(UserRoleRepository).singleton(),
 
 	// Services that depend on repositories
 	authService: asClass(AuthService).singleton(),
 	roleService: asClass(RoleService).singleton(),
+	userRoleService: asClass(UserRoleService).singleton(),
 });
 
 /**
