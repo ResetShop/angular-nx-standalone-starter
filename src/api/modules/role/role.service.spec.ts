@@ -136,6 +136,17 @@ describe('RoleService', () => {
 			).rejects.toThrow(ROLE_ERRORS.CODE_EXISTS);
 		});
 
+		it('should throw NAME_EXISTS when name already exists', async () => {
+			mockRoleRepo.addRole(testRole);
+
+			await expect(
+				roleService.createRole({
+					name: testRole.name,
+					code: 'different_code',
+				}),
+			).rejects.toThrow(ROLE_ERRORS.NAME_EXISTS);
+		});
+
 		it('should create role without description', async () => {
 			const params = {
 				name: 'Minimal Role',
@@ -160,12 +171,45 @@ describe('RoleService', () => {
 			expect(result.description).toBe('Updated description');
 		});
 
+		it('should update role name', async () => {
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.updateRole(removableRole.id, {
+				name: 'Updated Name',
+			});
+
+			expect(result.name).toBe('Updated Name');
+		});
+
 		it('should throw NOT_FOUND when role does not exist', async () => {
 			await expect(
 				roleService.updateRole(999, {
 					description: 'New description',
 				}),
 			).rejects.toThrow(ROLE_ERRORS.NOT_FOUND);
+		});
+
+		it('should throw NAME_EXISTS when updating to existing name', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			await expect(
+				roleService.updateRole(removableRole.id, {
+					name: testRole.name,
+				}),
+			).rejects.toThrow(ROLE_ERRORS.NAME_EXISTS);
+		});
+
+		it('should allow updating to same name (no change)', async () => {
+			mockRoleRepo.addRole(testRole);
+
+			const result = await roleService.updateRole(testRole.id, {
+				name: testRole.name,
+				description: 'New description',
+			});
+
+			expect(result.name).toBe(testRole.name);
+			expect(result.description).toBe('New description');
 		});
 	});
 

@@ -21,10 +21,11 @@ export interface CreateRoleParams {
 }
 
 /**
- * Parameters for updating a role (description only)
+ * Parameters for updating a role
  */
 export interface UpdateRoleParams {
-	description: string;
+	name?: string;
+	description?: string;
 }
 
 /**
@@ -62,6 +63,7 @@ export interface PaginatedResponse<T> {
 export interface IRoleRepository {
 	findById(id: number): Promise<RoleData | null>;
 	findByCode(code: string): Promise<RoleData | null>;
+	findByName(name: string): Promise<RoleData | null>;
 	findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>>;
 	create(params: CreateRoleParams): Promise<RoleData>;
 	update(id: number, params: UpdateRoleParams): Promise<RoleData | null>;

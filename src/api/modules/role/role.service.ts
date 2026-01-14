@@ -12,6 +12,7 @@ import type {
 export const ROLE_ERRORS = {
 	NOT_FOUND: 'Role not found',
 	CODE_EXISTS: 'A role with this code already exists',
+	NAME_EXISTS: 'A role with this name already exists',
 	NOT_REMOVABLE: 'This role cannot be deleted',
 } as const;
 
@@ -49,23 +50,43 @@ export class RoleService implements IRoleService {
 
 	/**
 	 * Create a new role
-	 * @throws Error if code already exists
+	 * @throws Error if code or name already exists
 	 */
 	async createRole(params: CreateRoleParams): Promise<RoleData> {
 		// Check if code already exists
-		const existingRole = await this.roleRepository.findByCode(params.code);
-		if (existingRole) {
+		const existingByCode = await this.roleRepository.findByCode(params.code);
+		if (existingByCode) {
 			throw new Error(ROLE_ERRORS.CODE_EXISTS);
+		}
+
+		// Check if name already exists
+		const existingByName = await this.roleRepository.findByName(params.name);
+		if (existingByName) {
+			throw new Error(ROLE_ERRORS.NAME_EXISTS);
 		}
 
 		return this.roleRepository.create(params);
 	}
 
 	/**
-	 * Update a role's description
-	 * @throws Error if role not found
+	 * Update a role
+	 * @throws Error if role not found or name already exists
 	 */
 	async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
+		// Check if role exists
+		const existingRole = await this.roleRepository.findById(id);
+		if (!existingRole) {
+			throw new Error(ROLE_ERRORS.NOT_FOUND);
+		}
+
+		// Check if name already exists (if updating name)
+		if (params.name !== undefined && params.name !== existingRole.name) {
+			const roleWithName = await this.roleRepository.findByName(params.name);
+			if (roleWithName) {
+				throw new Error(ROLE_ERRORS.NAME_EXISTS);
+			}
+		}
+
 		const updatedRole = await this.roleRepository.update(id, params);
 
 		if (!updatedRole) {

@@ -74,8 +74,10 @@ app.post(
 			const role = await roleService.createRole(body);
 			return c.json(role, 201);
 		} catch (error) {
-			if (error instanceof Error && error.message === ROLE_ERRORS.CODE_EXISTS) {
-				return c.json({ error: error.message }, 409);
+			if (error instanceof Error) {
+				if (error.message === ROLE_ERRORS.CODE_EXISTS || error.message === ROLE_ERRORS.NAME_EXISTS) {
+					return c.json({ error: error.message }, 409);
+				}
 			}
 			throw error;
 		}
@@ -84,14 +86,15 @@ app.post(
 
 /**
  * PUT /api/roles/:id
- * Update a role's description
+ * Update a role
  */
 app.put(
 	'/:id',
 	zValidator(
 		'json',
 		z.object({
-			description: z.string().max(500),
+			name: z.string().min(1).max(100).optional(),
+			description: z.string().max(500).optional(),
 		}),
 	),
 	async (c) => {
@@ -108,8 +111,13 @@ app.put(
 			const role = await roleService.updateRole(id, body);
 			return c.json(role);
 		} catch (error) {
-			if (error instanceof Error && error.message === ROLE_ERRORS.NOT_FOUND) {
-				return c.json({ error: error.message }, 404);
+			if (error instanceof Error) {
+				if (error.message === ROLE_ERRORS.NOT_FOUND) {
+					return c.json({ error: error.message }, 404);
+				}
+				if (error.message === ROLE_ERRORS.NAME_EXISTS) {
+					return c.json({ error: error.message }, 409);
+				}
 			}
 			throw error;
 		}

@@ -59,6 +59,27 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	}
 
 	/**
+	 * Find a role by its name
+	 */
+	async findByName(name: string): Promise<RoleData | null> {
+		const result = await this.db
+			.select({
+				id: role.id,
+				name: role.name,
+				code: role.code,
+				description: role.description,
+				removable: role.removable,
+				createdAt: role.createdAt,
+				updatedAt: role.updatedAt,
+			})
+			.from(role)
+			.where(eq(role.name, name))
+			.limit(1);
+
+		return result.length > 0 ? result[0] : null;
+	}
+
+	/**
 	 * Get all roles with pagination
 	 */
 	async findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
@@ -115,25 +136,27 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	}
 
 	/**
-	 * Update a role's description
+	 * Update a role
 	 */
 	async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
-		const result = await this.db
-			.update(role)
-			.set({
-				description: params.description,
-				updatedAt: new Date(),
-			})
-			.where(eq(role.id, id))
-			.returning({
-				id: role.id,
-				name: role.name,
-				code: role.code,
-				description: role.description,
-				removable: role.removable,
-				createdAt: role.createdAt,
-				updatedAt: role.updatedAt,
-			});
+		const updateData: Record<string, unknown> = { updatedAt: new Date() };
+
+		if (params.name !== undefined) {
+			updateData['name'] = params.name;
+		}
+		if (params.description !== undefined) {
+			updateData['description'] = params.description;
+		}
+
+		const result = await this.db.update(role).set(updateData).where(eq(role.id, id)).returning({
+			id: role.id,
+			name: role.name,
+			code: role.code,
+			description: role.description,
+			removable: role.removable,
+			createdAt: role.createdAt,
+			updatedAt: role.updatedAt,
+		});
 
 		return result.length > 0 ? result[0] : null;
 	}
