@@ -1,6 +1,6 @@
-import type { IRoleRepository } from '../role/interfaces';
 import type { IUserRepository } from '../user/interfaces';
 import type {
+	IRoleRepository,
 	IUserRoleRepository,
 	IUserRoleService,
 	PaginatedResponse,

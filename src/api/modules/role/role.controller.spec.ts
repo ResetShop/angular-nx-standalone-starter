@@ -1,14 +1,13 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
+import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PaginatedResponse, PermissionData, RoleData } from './interfaces';
+import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 import roleController from './role.controller';
 import { ROLE_ERRORS } from './role.service';
 
 describe('Role Controller', () => {
-	const app = new Hono();
-	app.route('/roles', roleController);
-
 	// Create mock functions
 	const mockGetAllRoles = fn<[{ offset?: number; limit?: number }], Promise<PaginatedResponse<RoleData>>>();
 	const mockGetRole = fn<[number], Promise<RoleData | null>>();
@@ -20,6 +19,10 @@ describe('Role Controller', () => {
 		Promise<PaginatedResponse<PermissionData>>
 	>();
 	const mockAssignPermissionsToRole = fn<[number, number[]], Promise<void>>();
+	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
+
+	// Create app with auth middleware that simulates authenticated user
+	let app: Hono;
 
 	// Test data
 	const testRole: RoleData = {
@@ -36,8 +39,20 @@ describe('Role Controller', () => {
 		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
 	];
 
+	// All admin:roles:* permissions for testing
+	const allRolePermissions: PermissionData[] = [
+		{ id: 1, name: ADMIN_ROLE_PERMISSIONS.READ, description: 'Read roles', resource: 'roles', action: 'read' },
+		{ id: 2, name: ADMIN_ROLE_PERMISSIONS.CREATE, description: 'Create roles', resource: 'roles', action: 'create' },
+		{ id: 3, name: ADMIN_ROLE_PERMISSIONS.UPDATE, description: 'Update roles', resource: 'roles', action: 'update' },
+		{ id: 4, name: ADMIN_ROLE_PERMISSIONS.DELETE, description: 'Delete roles', resource: 'roles', action: 'delete' },
+	];
+
 	beforeEach(() => {
 		clearAllMocks();
+
+		// Mock getUserPermissions to return all role permissions
+		mockGetUserPermissions.mockResolvedValue(allRolePermissions);
+
 		setTestCradle({
 			roleService: {
 				getAllRoles: mockGetAllRoles,
@@ -48,7 +63,23 @@ describe('Role Controller', () => {
 				getRolePermissions: mockGetRolePermissions,
 				assignPermissionsToRole: mockAssignPermissionsToRole,
 			},
+			userRoleService: {
+				getUserPermissions: mockGetUserPermissions,
+			},
 		});
+
+		// Create app with simulated authenticated user
+		app = new Hono();
+		app.use('*', async (c, next) => {
+			(c as AuthenticatedContext).user = {
+				sub: '1',
+				email: 'admin@example.com',
+				firstName: 'Admin',
+				lastName: 'User',
+			};
+			await next();
+		});
+		app.route('/roles', roleController);
 	});
 
 	afterEach(() => {
