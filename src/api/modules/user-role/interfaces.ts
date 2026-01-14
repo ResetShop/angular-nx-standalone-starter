@@ -73,6 +73,3 @@ export interface IUserRoleService {
 	 */
 	removeRoleFromUser(userId: number, roleId: number): Promise<void>;
 }
-
-// Re-export common types for convenience
-export type { PaginatedResponse, PaginationParams, PermissionData, RoleData };
