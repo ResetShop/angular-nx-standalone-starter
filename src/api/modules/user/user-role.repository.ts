@@ -3,7 +3,8 @@ import { permission } from '../../../db/schema/permission';
 import { role, rolePermission } from '../../../db/schema/role';
 import { userRole } from '../../../db/schema/user';
 import { BaseRepository } from '../../helpers/base.repository';
-import type { IUserRoleRepository, PaginatedResponse, PaginationParams, PermissionData, RoleData } from './interfaces';
+import type { PermissionData, RoleData } from '../role/interfaces';
+import type { IUserRoleRepository, PaginatedResponse, PaginationParams } from './interfaces';
 
 const DEFAULT_LIMIT = 10;
 const DEFAULT_OFFSET = 0;

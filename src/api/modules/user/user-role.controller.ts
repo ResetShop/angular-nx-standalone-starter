@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { container } from '../../container';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { ADMIN_USER_ROLE_PERMISSIONS } from './permissions.constants';
+import { ADMIN_USER_ROLE_PERMISSIONS } from '../role/permissions.constants';
 import { USER_ROLE_ERRORS } from './user-role.service';
 
 const app = new Hono();

@@ -1,7 +1,7 @@
 import authController from './modules/auth/auth.controller';
 import healthController from './modules/health/health.controller';
 import roleController from './modules/role/role.controller';
-import userRoleController from './modules/role/user-role.controller';
+import userRoleController from './modules/user/user-role.controller';
 
 // Define public paths that don't require authentication
 // Logout is public because it uses the refresh token from cookie to identify user
