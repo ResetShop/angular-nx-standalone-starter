@@ -25,6 +25,7 @@ const db = drizzle(pool);
  * - Clear mapping to API endpoints
  */
 const ADMIN_PERMISSIONS = [
+	// User management permissions
 	{ name: 'admin:users:create', description: 'Create new users', resource: 'users', action: 'create' },
 	{ name: 'admin:users:read', description: 'View user details', resource: 'users', action: 'read' },
 	{ name: 'admin:users:update', description: 'Update user information', resource: 'users', action: 'update' },
@@ -36,10 +37,12 @@ const ADMIN_PERMISSIONS = [
 		action: 'reset_password',
 	},
 	{ name: 'admin:users:disable', description: 'Disable user accounts', resource: 'users', action: 'disable' },
+	// Role management permissions
 	{ name: 'admin:roles:create', description: 'Create new roles', resource: 'roles', action: 'create' },
 	{ name: 'admin:roles:read', description: 'View role details', resource: 'roles', action: 'read' },
 	{ name: 'admin:roles:update', description: 'Update roles', resource: 'roles', action: 'update' },
 	{ name: 'admin:roles:delete', description: 'Delete roles', resource: 'roles', action: 'delete' },
+	// User-role assignment permissions
 	{ name: 'admin:user_roles:assign', description: 'Assign roles to users', resource: 'user_roles', action: 'assign' },
 	{ name: 'admin:user_roles:remove', description: 'Remove roles from users', resource: 'user_roles', action: 'remove' },
 ] as const;
