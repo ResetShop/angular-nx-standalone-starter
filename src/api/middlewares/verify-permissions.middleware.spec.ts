@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../container.mock';
-import type { PermissionData } from '../modules/user-role/interfaces';
+import type { PermissionData } from '../modules/role/interfaces';
+import type { AuthenticatedContext } from './verify-access-token.middleware';
 import {
 	permission,
 	requireAllPermissions,
@@ -94,7 +95,7 @@ describe('Permissions Middleware', () => {
 			const app = new Hono();
 			// Simulate authenticated user
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
 			app.use('*', requirePermission(permission('admin:users:create')));
@@ -112,7 +113,7 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
 			app.use('*', requirePermission(permission('admin:users:create')));
@@ -130,7 +131,7 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
 			app.use('*', requirePermission(permission('admin:users:create')));
@@ -148,7 +149,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '999', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = {
+					sub: '999',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				};
 				await next();
 			});
 			app.use('*', requirePermission(permission('admin:users:create')));
@@ -178,7 +184,7 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
 			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]));
@@ -194,7 +200,7 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
 			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]));
@@ -222,7 +228,7 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
 			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]));
@@ -238,7 +244,7 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
-				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
+				(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
 			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]));

@@ -1,4 +1,4 @@
-import { container, verifyContainer } from './container';
+import { container, type Cradle, verifyContainer } from './container';
 import { resetTestCradle, setTestCradle } from './container.mock';
 
 /**
@@ -68,9 +68,9 @@ describe('DI Container', () => {
 		});
 
 		it('should return mocked service when test cradle is set', () => {
-			const mockRoleService = { getAllRoles: () => Promise.resolve([]) };
+			const mockRoleService = { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'];
 			setTestCradle({
-				roleService: mockRoleService as any,
+				roleService: mockRoleService,
 			});
 
 			expect(container.cradle.roleService).toBe(mockRoleService);
@@ -78,7 +78,7 @@ describe('DI Container', () => {
 
 		it('should throw when accessing unmocked service in test mode', () => {
 			setTestCradle({
-				roleService: { getAllRoles: () => Promise.resolve([]) } as any,
+				roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
 			});
 
 			// authService wasn't mocked, so accessing it should throw
@@ -87,7 +87,7 @@ describe('DI Container', () => {
 
 		it('should return real service after test cradle is reset', () => {
 			setTestCradle({
-				roleService: { getAllRoles: () => Promise.resolve([]) } as any,
+				roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
 			});
 
 			resetTestCradle();
