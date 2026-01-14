@@ -3,19 +3,34 @@ import { container } from '../container';
 import { AuthenticatedContext } from './verify-access-token.middleware';
 
 /**
- * Branded type for snake_case permission names.
+ * Branded type for permission names in module:resource:action format.
  * Use the `permission()` helper to create validated instances.
+ *
+ * Format: module:resource:action
+ * - module: Domain/area (admin, billing, reports)
+ * - resource: Entity (users, roles, invoices)
+ * - action: Operation (create, read, update, delete)
+ *
+ * Examples: 'admin:users:create', 'billing:invoices:read'
  */
 export type PermissionName = string & { readonly __brand: 'PermissionName' };
 
 /**
+ * Regex pattern for module:resource:action permission format.
+ * Each segment must be snake_case starting with a letter.
+ */
+const PERMISSION_PATTERN = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/;
+
+/**
  * Validates and creates a type-safe permission name.
- * @param name - Permission name in snake_case format (e.g., 'can_create_users')
+ * @param name - Permission in module:resource:action format (e.g., 'admin:users:create')
  * @throws Error if format is invalid
  */
 export function permission(name: string): PermissionName {
-	if (!/^[a-z][a-z0-9_]*$/.test(name)) {
-		throw new Error(`Invalid permission name: "${name}". Must be snake_case (e.g., 'can_create_users')`);
+	if (!PERMISSION_PATTERN.test(name)) {
+		throw new Error(
+			`Invalid permission name: "${name}". Must be in module:resource:action format (e.g., 'admin:users:create')`,
+		);
 	}
 	return name as PermissionName;
 }
@@ -29,8 +44,8 @@ export function permission(name: string): PermissionName {
  *
  * @example
  * ```typescript
- * app.post('/users', requirePermission(permission('can_create_users')), async (c) => {
- *   // Only users with 'can_create_users' permission reach here
+ * app.post('/users', requirePermission(permission('admin:users:create')), async (c) => {
+ *   // Only users with 'admin:users:create' permission reach here
  * });
  * ```
  */
