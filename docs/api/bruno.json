@@ -1,0 +1,6 @@
+{
+	"version": "1",
+	"name": "Angular NX Starter API",
+	"type": "collection",
+	"ignore": ["node_modules", ".git"]
+}

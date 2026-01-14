@@ -1,0 +1,36 @@
+meta {
+  name: Get Role by ID - Invalid ID
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/roles/invalid
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get Role by ID - Invalid ID Test
+
+  Tests that 400 is returned for invalid role ID format.
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: eq Invalid role ID
+}
+
+tests {
+  test("should return 400 for invalid ID", function() {
+    expect(res.status).to.equal(400);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.equal("Invalid role ID");
+  });
+}

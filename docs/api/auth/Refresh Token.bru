@@ -1,0 +1,64 @@
+meta {
+  name: Refresh Token
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/refresh
+  body: none
+  auth: none
+}
+
+docs {
+  # Refresh Token Endpoint
+
+  Exchanges the refresh token (from HttpOnly cookie) for a new access token.
+
+  ## Prerequisites
+
+  - Must have a valid refresh token cookie set (from login)
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | token | string | New JWT access token |
+
+  ## Notes
+
+  - Refresh token is read from HttpOnly cookie
+  - New refresh token is set as HttpOnly cookie (token rotation)
+  - Old refresh token is invalidated
+}
+
+assert {
+  res.status: eq 200
+  res.body.token: isDefined
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.token) {
+    bru.setEnvVar("accessToken", res.body.token);
+  }
+}
+
+tests {
+  test("should return 200 on successful refresh", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return new access token", function() {
+    expect(res.body.token).to.be.a("string");
+    expect(res.body.token.length).to.be.greaterThan(0);
+  });
+
+  test("should set new refresh token cookie", function() {
+    const cookies = res.headers['set-cookie'];
+    expect(cookies).to.exist;
+    const hasRefreshToken = Array.isArray(cookies)
+      ? cookies.some(c => c.includes('refresh_token'))
+      : cookies.includes('refresh_token');
+    expect(hasRefreshToken).to.be.true;
+  });
+}

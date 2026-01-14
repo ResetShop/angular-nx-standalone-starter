@@ -1,0 +1,73 @@
+meta {
+  name: Assign Permissions
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/roles/1/permissions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "permissionIds": [1, 2, 3]
+  }
+}
+
+docs {
+  # Assign Permissions to Role
+
+  Assigns permissions to a role, replacing any existing permission assignments.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | id | number | Role ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | permissionIds | number[] | Yes | Array of permission IDs to assign |
+
+  ## Notes
+
+  - This operation replaces all existing permissions for the role
+  - Pass an empty array to remove all permissions
+  - Permission IDs must be positive integers
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | message | string | Success message |
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Validation error | Invalid input (missing or invalid permissionIds) |
+  | 404 | Role not found | Role ID doesn't exist |
+}
+
+assert {
+  res.status: eq 200
+  res.body.message: eq Permissions assigned successfully
+}
+
+tests {
+  test("should return 200 on successful assignment", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return success message", function() {
+    expect(res.body.message).to.equal("Permissions assigned successfully");
+  });
+}

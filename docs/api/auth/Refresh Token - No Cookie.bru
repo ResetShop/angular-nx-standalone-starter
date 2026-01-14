@@ -1,0 +1,36 @@
+meta {
+  name: Refresh Token - No Cookie
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/auth/refresh
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie:
+}
+
+docs {
+  # Refresh Token - No Cookie Test
+
+  Tests that refresh fails when no refresh token cookie is present.
+}
+
+assert {
+  res.status: eq 401
+  res.body.error: eq No refresh token provided
+}
+
+tests {
+  test("should return 401 when no refresh token", function() {
+    expect(res.status).to.equal(401);
+  });
+
+  test("should return appropriate error message", function() {
+    expect(res.body.error).to.equal("No refresh token provided");
+  });
+}

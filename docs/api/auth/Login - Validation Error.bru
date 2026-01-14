@@ -1,0 +1,34 @@
+meta {
+  name: Login - Validation Error
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "not-an-email",
+    "password": ""
+  }
+}
+
+docs {
+  # Login - Validation Error Test
+
+  Tests that login fails with invalid input format.
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should return 400 for validation errors", function() {
+    expect(res.status).to.equal(400);
+  });
+}

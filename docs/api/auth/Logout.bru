@@ -1,0 +1,50 @@
+meta {
+  name: Logout
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/auth/logout
+  body: none
+  auth: none
+}
+
+docs {
+  # Logout Endpoint
+
+  Logs out the current user by revoking all refresh tokens and clearing the cookie.
+
+  ## Notes
+
+  - Uses refresh token from cookie to identify user
+  - Does not require access token
+  - Always succeeds from client perspective
+  - Cleans up what it can, even if token is invalid
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | message | string | Success message |
+}
+
+assert {
+  res.status: eq 200
+  res.body.message: eq Logged out successfully
+}
+
+script:post-response {
+  // Clear the access token after logout
+  bru.setEnvVar("accessToken", "");
+}
+
+tests {
+  test("should return 200 on logout", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return success message", function() {
+    expect(res.body.message).to.equal("Logged out successfully");
+  });
+}
