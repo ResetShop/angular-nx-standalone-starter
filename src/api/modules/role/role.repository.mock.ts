@@ -14,6 +14,7 @@ const DEFAULT_OFFSET = 0;
 export class MockRoleRepository implements IRoleRepository {
 	private roles: Map<number, RoleData> = new Map();
 	private rolesByCode: Map<string, RoleData> = new Map();
+	private rolesByName: Map<string, RoleData> = new Map();
 	private rolePermissions: Map<number, PermissionData[]> = new Map();
 	private nextId = 1;
 
@@ -23,6 +24,7 @@ export class MockRoleRepository implements IRoleRepository {
 	addRole(role: RoleData): void {
 		this.roles.set(role.id, role);
 		this.rolesByCode.set(role.code, role);
+		this.rolesByName.set(role.name, role);
 	}
 
 	/**
@@ -38,6 +40,7 @@ export class MockRoleRepository implements IRoleRepository {
 	clear(): void {
 		this.roles.clear();
 		this.rolesByCode.clear();
+		this.rolesByName.clear();
 		this.rolePermissions.clear();
 		this.nextId = 1;
 	}
@@ -48,6 +51,10 @@ export class MockRoleRepository implements IRoleRepository {
 
 	async findByCode(code: string): Promise<RoleData | null> {
 		return this.rolesByCode.get(code) ?? null;
+	}
+
+	async findByName(name: string): Promise<RoleData | null> {
+		return this.rolesByName.get(name) ?? null;
 	}
 
 	async findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
@@ -79,6 +86,7 @@ export class MockRoleRepository implements IRoleRepository {
 
 		this.roles.set(role.id, role);
 		this.rolesByCode.set(role.code, role);
+		this.rolesByName.set(role.name, role);
 
 		return role;
 	}
@@ -89,14 +97,21 @@ export class MockRoleRepository implements IRoleRepository {
 			return null;
 		}
 
+		// Remove old name from index if name is being updated
+		if (params.name !== undefined && params.name !== existing.name) {
+			this.rolesByName.delete(existing.name);
+		}
+
 		const updated: RoleData = {
 			...existing,
-			description: params.description,
+			name: params.name ?? existing.name,
+			description: params.description ?? existing.description,
 			updatedAt: new Date(),
 		};
 
 		this.roles.set(id, updated);
 		this.rolesByCode.set(updated.code, updated);
+		this.rolesByName.set(updated.name, updated);
 
 		return updated;
 	}
