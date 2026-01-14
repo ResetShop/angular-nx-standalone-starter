@@ -27,7 +27,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 
 	/**
 	 * Finds a user by their provided userId
-	 * @param id Email address to search for
+	 * @param id User ID to search for
 	 */
 	async findById(id: number): Promise<UserData | null> {
 		const result = await this.db

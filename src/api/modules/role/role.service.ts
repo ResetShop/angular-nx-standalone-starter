@@ -12,7 +12,6 @@ import type {
 export const ROLE_ERRORS = {
 	NOT_FOUND: 'Role not found',
 	CODE_EXISTS: 'A role with this code already exists',
-	NAME_EXISTS: 'A role with this name already exists',
 	NOT_REMOVABLE: 'This role cannot be deleted',
 } as const;
 
