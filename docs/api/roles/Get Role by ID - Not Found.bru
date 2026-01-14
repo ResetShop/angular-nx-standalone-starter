@@ -1,0 +1,36 @@
+meta {
+  name: Get Role by ID - Not Found
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/roles/99999
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get Role by ID - Not Found Test
+
+  Tests that 404 is returned for non-existent role.
+}
+
+assert {
+  res.status: eq 404
+  res.body.error: eq Role not found
+}
+
+tests {
+  test("should return 404 for non-existent role", function() {
+    expect(res.status).to.equal(404);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.equal("Role not found");
+  });
+}
