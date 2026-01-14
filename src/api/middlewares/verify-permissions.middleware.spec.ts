@@ -10,31 +10,45 @@ import {
 } from './verify-permissions.middleware';
 
 describe('permission helper', () => {
-	it('should accept valid snake_case permission names', () => {
-		expect(() => permission('can_create_users')).not.toThrow();
-		expect(() => permission('view_reports')).not.toThrow();
-		expect(() => permission('admin')).not.toThrow();
-		expect(() => permission('a')).not.toThrow();
-		expect(() => permission('can_do_something_123')).not.toThrow();
+	it('should accept valid module:resource:action permission names', () => {
+		expect(() => permission('admin:users:create')).not.toThrow();
+		expect(() => permission('billing:invoices:read')).not.toThrow();
+		expect(() => permission('reports:sales:export')).not.toThrow();
+		expect(() => permission('admin:user_roles:assign')).not.toThrow();
+		expect(() => permission('api:endpoints123:call')).not.toThrow();
 	});
 
-	it('should reject permission names starting with uppercase', () => {
-		expect(() => permission('Can_create_users')).toThrow(/Invalid permission name/);
-		expect(() => permission('ADMIN')).toThrow(/Invalid permission name/);
+	it('should reject permission names with uppercase letters', () => {
+		expect(() => permission('Admin:users:create')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin:Users:create')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin:users:CREATE')).toThrow(/Invalid permission name/);
 	});
 
 	it('should reject permission names starting with numbers', () => {
-		expect(() => permission('123_permission')).toThrow(/Invalid permission name/);
+		expect(() => permission('123:users:create')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin:123users:create')).toThrow(/Invalid permission name/);
+	});
+
+	it('should reject permission names with wrong number of segments', () => {
+		expect(() => permission('admin')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin:users')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin:users:create:extra')).toThrow(/Invalid permission name/);
 	});
 
 	it('should reject permission names with invalid characters', () => {
-		expect(() => permission('can-create-users')).toThrow(/Invalid permission name/);
-		expect(() => permission('can create users')).toThrow(/Invalid permission name/);
-		expect(() => permission('can.create.users')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin-module:users:create')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin:users:create action')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin.module:users:create')).toThrow(/Invalid permission name/);
 	});
 
 	it('should reject empty strings', () => {
 		expect(() => permission('')).toThrow(/Invalid permission name/);
+	});
+
+	it('should reject empty segments', () => {
+		expect(() => permission(':users:create')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin::create')).toThrow(/Invalid permission name/);
+		expect(() => permission('admin:users:')).toThrow(/Invalid permission name/);
 	});
 });
 
@@ -44,8 +58,8 @@ describe('Permissions Middleware', () => {
 
 	// Test permissions
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'can_delete_users', description: 'Delete users', resource: 'users', action: 'delete' },
+		{ id: 1, name: 'admin:users:create', description: 'Create users', resource: 'users', action: 'create' },
+		{ id: 2, name: 'admin:users:delete', description: 'Delete users', resource: 'users', action: 'delete' },
 	];
 
 	beforeEach(() => {
@@ -64,7 +78,7 @@ describe('Permissions Middleware', () => {
 	describe('requirePermission', () => {
 		it('should return 401 if user is not authenticated', async () => {
 			const app = new Hono();
-			app.use('*', requirePermission(permission('can_create_users')));
+			app.use('*', requirePermission(permission('admin:users:create')));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -83,7 +97,7 @@ describe('Permissions Middleware', () => {
 				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requirePermission(permission('can_create_users')));
+			app.use('*', requirePermission(permission('admin:users:create')));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -101,7 +115,7 @@ describe('Permissions Middleware', () => {
 				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requirePermission(permission('can_create_users')));
+			app.use('*', requirePermission(permission('admin:users:create')));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -119,8 +133,8 @@ describe('Permissions Middleware', () => {
 				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requirePermission(permission('can_create_users')));
-			app.use('*', requirePermission(permission('can_delete_users')));
+			app.use('*', requirePermission(permission('admin:users:create')));
+			app.use('*', requirePermission(permission('admin:users:delete')));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			await app.request('/test');
@@ -137,7 +151,7 @@ describe('Permissions Middleware', () => {
 				(c as any).user = { sub: '999', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requirePermission(permission('can_create_users')));
+			app.use('*', requirePermission(permission('admin:users:create')));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -151,7 +165,7 @@ describe('Permissions Middleware', () => {
 	describe('requireAnyPermission', () => {
 		it('should return 401 if user is not authenticated', async () => {
 			const app = new Hono();
-			app.use('*', requireAnyPermission([permission('can_create_users'), permission('can_delete_users')]));
+			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -167,7 +181,7 @@ describe('Permissions Middleware', () => {
 				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requireAnyPermission([permission('can_create_users'), permission('can_delete_users')]));
+			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -176,14 +190,14 @@ describe('Permissions Middleware', () => {
 		});
 
 		it('should allow access if user has at least one of the required permissions', async () => {
-			mockGetUserPermissions.mockResolvedValue([testPermissions[0]]); // Only can_create_users
+			mockGetUserPermissions.mockResolvedValue([testPermissions[0]]); // Only admin:users:create
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
 				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requireAnyPermission([permission('can_create_users'), permission('can_delete_users')]));
+			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -195,7 +209,7 @@ describe('Permissions Middleware', () => {
 	describe('requireAllPermissions', () => {
 		it('should return 401 if user is not authenticated', async () => {
 			const app = new Hono();
-			app.use('*', requireAllPermissions([permission('can_create_users'), permission('can_delete_users')]));
+			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -204,14 +218,14 @@ describe('Permissions Middleware', () => {
 		});
 
 		it('should return 403 if user is missing any required permission', async () => {
-			mockGetUserPermissions.mockResolvedValue([testPermissions[0]]); // Only can_create_users
+			mockGetUserPermissions.mockResolvedValue([testPermissions[0]]); // Only admin:users:create
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
 				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requireAllPermissions([permission('can_create_users'), permission('can_delete_users')]));
+			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');
@@ -227,7 +241,7 @@ describe('Permissions Middleware', () => {
 				(c as any).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' };
 				await next();
 			});
-			app.use('*', requireAllPermissions([permission('can_create_users'), permission('can_delete_users')]));
+			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]));
 			app.get('/test', (c) => c.json({ success: true }));
 
 			const res = await app.request('/test');

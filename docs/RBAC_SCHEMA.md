@@ -49,9 +49,16 @@ Defines role names and descriptions.
 | ----------- | --------- | ---------------- |
 | id          | serial    | PRIMARY KEY      |
 | name        | text      | NOT NULL, UNIQUE |
+| code        | text      | NOT NULL, UNIQUE |
 | description | text      | optional         |
+| removable   | boolean   | DEFAULT true     |
 | createdAt   | timestamp | DEFAULT NOW()    |
 | updatedAt   | timestamp | DEFAULT NOW()    |
+
+**Field Notes:**
+
+- `code`: Programmatic identifier for the role (e.g., 'admin', 'editor'). Used in code to reference roles.
+- `removable`: When false, prevents deletion of system-critical roles (e.g., Administrator).
 
 **Relations:**
 
@@ -61,7 +68,7 @@ Defines role names and descriptions.
 
 ### 3. Permission
 
-Defines granular permissions using resource-action model.
+Defines granular permissions using module-resource-action model.
 
 | Column      | Type      | Constraints      |
 | ----------- | --------- | ---------------- |
@@ -72,6 +79,43 @@ Defines granular permissions using resource-action model.
 | action      | text      | NOT NULL         |
 | createdAt   | timestamp | DEFAULT NOW()    |
 | updatedAt   | timestamp | DEFAULT NOW()    |
+
+#### Permission Naming Convention
+
+Permissions follow the `module:resource:action` format:
+
+```
+module:resource:action
+```
+
+| Segment    | Description                    | Examples                             |
+| ---------- | ------------------------------ | ------------------------------------ |
+| `module`   | Domain/area of the application | `admin`, `billing`, `reports`        |
+| `resource` | The entity being accessed      | `users`, `roles`, `invoices`         |
+| `action`   | The operation being performed  | `create`, `read`, `update`, `delete` |
+
+**Examples:**
+
+| Permission Name              | Description             |
+| ---------------------------- | ----------------------- |
+| `admin:users:create`         | Create new users        |
+| `admin:users:read`           | View user details       |
+| `admin:users:update`         | Update user information |
+| `admin:users:delete`         | Delete users            |
+| `admin:users:reset_password` | Reset user passwords    |
+| `admin:roles:create`         | Create new roles        |
+| `admin:user_roles:assign`    | Assign roles to users   |
+| `billing:invoices:read`      | View invoices           |
+| `reports:sales:export`       | Export sales reports    |
+
+**Benefits of this format:**
+
+1. **Hierarchical grouping**: Easy to display in UI grouped by module
+2. **Wildcard matching**: Support for patterns like `admin:users:*` (future)
+3. **Clear API mapping**: Permission names map directly to endpoints
+4. **Namespace collision prevention**: Modules prevent name conflicts
+
+**Validation regex:** `^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$`
 
 **Relations:**
 
@@ -176,35 +220,39 @@ lockedUntil: null
 
 ```
 id: 1
-name: "admin"
+name: "Administrator"
+code: "admin"
 description: "Administrator with full access"
+removable: false
 
 id: 2
-name: "editor"
+name: "Editor"
+code: "editor"
 description: "Content editor"
+removable: true
 ```
 
 #### Permission Table
 
 ```
 id: 1
-name: "create_post"
-resource: "post"
+name: "content:posts:create"
+resource: "posts"
 action: "create"
 
 id: 2
-name: "delete_post"
-resource: "post"
+name: "content:posts:delete"
+resource: "posts"
 action: "delete"
 
 id: 3
-name: "view_dashboard"
+name: "admin:dashboard:view"
 resource: "dashboard"
 action: "view"
 
 id: 4
-name: "manage_users"
-resource: "user"
+name: "admin:users:manage"
+resource: "users"
 action: "manage"
 ```
 
@@ -225,59 +273,59 @@ roleId: 2  (editor role)
 ```
 id: 1
 roleId: 1  (admin)
-permissionId: 1  (create_post)
+permissionId: 1  (content:posts:create)
 
 id: 2
 roleId: 1  (admin)
-permissionId: 2  (delete_post)
+permissionId: 2  (content:posts:delete)
 
 id: 3
 roleId: 1  (admin)
-permissionId: 3  (view_dashboard)
+permissionId: 3  (admin:dashboard:view)
 
 id: 4
 roleId: 1  (admin)
-permissionId: 4  (manage_users)
+permissionId: 4  (admin:users:manage)
 
 id: 5
 roleId: 2  (editor)
-permissionId: 1  (create_post)
+permissionId: 1  (content:posts:create)
 
 id: 6
 roleId: 2  (editor)
-permissionId: 3  (view_dashboard)
+permissionId: 3  (admin:dashboard:view)
 ```
 
 #### PermissionRoute Table
 
 ```
 id: 1
-permissionId: 3  (view_dashboard)
+permissionId: 3  (admin:dashboard:view)
 route: "/dashboard"
 routeType: "frontend"
 
 id: 2
-permissionId: 3  (view_dashboard)
+permissionId: 3  (admin:dashboard:view)
 route: "GET /api/dashboard"
 routeType: "api"
 
 id: 3
-permissionId: 4  (manage_users)
+permissionId: 4  (admin:users:manage)
 route: "/admin/users"
 routeType: "frontend"
 
 id: 4
-permissionId: 4  (manage_users)
+permissionId: 4  (admin:users:manage)
 route: "POST /api/users"
 routeType: "api"
 
 id: 5
-permissionId: 4  (manage_users)
+permissionId: 4  (admin:users:manage)
 route: "DELETE /api/users/:id"
 routeType: "api"
 
 id: 6
-permissionId: 1  (create_post)
+permissionId: 1  (content:posts:create)
 route: "POST /api/posts"
 routeType: "api"
 ```
@@ -297,8 +345,8 @@ routeType: "api"
 **Answer:** John can access "/dashboard" because:
 
 - John has admin role (and editor role)
-- Admin role has "view_dashboard" permission
-- "view_dashboard" permission protects "/dashboard" route
+- Admin role has "admin:dashboard:view" permission
+- "admin:dashboard:view" permission protects "/dashboard" route
 
 ## Key Design Benefits
 
