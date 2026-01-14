@@ -1,12 +1,10 @@
-import type { IUserRepository } from '../user/interfaces';
+import type { IRoleRepository, PermissionData, RoleData } from '../role/interfaces';
 import type {
-	IRoleRepository,
+	IUserRepository,
 	IUserRoleRepository,
 	IUserRoleService,
 	PaginatedResponse,
 	PaginationParams,
-	PermissionData,
-	RoleData,
 } from './interfaces';
 
 export const USER_ROLE_ERRORS = {

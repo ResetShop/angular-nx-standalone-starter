@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fn } from '../../container.mock';
-import type { UserData } from '../user/interfaces';
-import type { IUserRoleRepository, PaginatedResponse, PermissionData, RoleData } from './interfaces';
+import type { PermissionData, RoleData } from '../role/interfaces';
+import type { IUserRoleRepository, PaginatedResponse, UserData } from './interfaces';
 import { USER_ROLE_ERRORS, UserRoleService } from './user-role.service';
 
 describe('UserRoleService', () => {

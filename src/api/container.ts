@@ -6,8 +6,8 @@ import { AuthenticationRepository } from './modules/auth/authentication.reposito
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
 import { RoleRepository } from './modules/role/role.repository';
 import { RoleService } from './modules/role/role.service';
-import { UserRoleRepository } from './modules/role/user-role.repository';
-import { UserRoleService } from './modules/role/user-role.service';
+import { UserRoleRepository } from './modules/user/user-role.repository';
+import { UserRoleService } from './modules/user/user-role.service';
 import { UserRepository } from './modules/user/user.repository';
 import { PasetoService } from './services/paseto/paseto.service';
 

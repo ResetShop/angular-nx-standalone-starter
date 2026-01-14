@@ -2,8 +2,9 @@ import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import type { PaginatedResponse, PermissionData, RoleData } from './interfaces';
-import { ADMIN_USER_ROLE_PERMISSIONS } from './permissions.constants';
+import type { PermissionData, RoleData } from '../role/interfaces';
+import { ADMIN_USER_ROLE_PERMISSIONS } from '../role/permissions.constants';
+import type { PaginatedResponse } from './interfaces';
 import userRoleController from './user-role.controller';
 import { USER_ROLE_ERRORS } from './user-role.service';
 
