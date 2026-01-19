@@ -18,6 +18,17 @@ export const ROLE_ERRORS = {
 } as const;
 
 /**
+ * Error factory functions that include entity IDs for better debugging.
+ * The error messages start with the base error constant for easy matching in tests.
+ */
+export const roleErrors = {
+	notFound: (id: number) => new Error(`${ROLE_ERRORS.NOT_FOUND} (id: ${id})`),
+	codeExists: (code: string) => new Error(`${ROLE_ERRORS.CODE_EXISTS} (code: ${code})`),
+	nameExists: (name: string) => new Error(`${ROLE_ERRORS.NAME_EXISTS} (name: ${name})`),
+	notRemovable: (id: number) => new Error(`${ROLE_ERRORS.NOT_REMOVABLE} (id: ${id})`),
+};
+
+/**
  * Error thrown when invalid permission IDs are provided
  */
 export class InvalidPermissionIdsError extends Error {
@@ -70,13 +81,13 @@ export class RoleService implements IRoleService {
 		// Check if code already exists
 		const existingByCode = await this.roleRepository.findByCode(params.code);
 		if (existingByCode) {
-			throw new Error(ROLE_ERRORS.CODE_EXISTS);
+			throw roleErrors.codeExists(params.code);
 		}
 
 		// Check if name already exists
 		const existingByName = await this.roleRepository.findByName(params.name);
 		if (existingByName) {
-			throw new Error(ROLE_ERRORS.NAME_EXISTS);
+			throw roleErrors.nameExists(params.name);
 		}
 
 		return this.roleRepository.create(params);
@@ -90,21 +101,21 @@ export class RoleService implements IRoleService {
 		// Check if role exists
 		const existingRole = await this.roleRepository.findById(id);
 		if (!existingRole) {
-			throw new Error(ROLE_ERRORS.NOT_FOUND);
+			throw roleErrors.notFound(id);
 		}
 
 		// Check if name already exists (if updating name)
 		if (params.name !== undefined && params.name !== existingRole.name) {
 			const roleWithName = await this.roleRepository.findByName(params.name);
 			if (roleWithName) {
-				throw new Error(ROLE_ERRORS.NAME_EXISTS);
+				throw roleErrors.nameExists(params.name);
 			}
 		}
 
 		const updatedRole = await this.roleRepository.update(id, params);
 
 		if (!updatedRole) {
-			throw new Error(ROLE_ERRORS.NOT_FOUND);
+			throw roleErrors.notFound(id);
 		}
 
 		return updatedRole;
@@ -118,11 +129,11 @@ export class RoleService implements IRoleService {
 		const existingRole = await this.roleRepository.findById(id);
 
 		if (!existingRole) {
-			throw new Error(ROLE_ERRORS.NOT_FOUND);
+			throw roleErrors.notFound(id);
 		}
 
 		if (!existingRole.removable) {
-			throw new Error(ROLE_ERRORS.NOT_REMOVABLE);
+			throw roleErrors.notRemovable(id);
 		}
 
 		await this.roleRepository.delete(id);
@@ -135,7 +146,7 @@ export class RoleService implements IRoleService {
 		const existingRole = await this.roleRepository.findById(roleId);
 
 		if (!existingRole) {
-			throw new Error(ROLE_ERRORS.NOT_FOUND);
+			throw roleErrors.notFound(roleId);
 		}
 
 		return this.roleRepository.getPermissionsForRole(roleId, pagination);
@@ -150,7 +161,7 @@ export class RoleService implements IRoleService {
 		const existingRole = await this.roleRepository.findById(roleId);
 
 		if (!existingRole) {
-			throw new Error(ROLE_ERRORS.NOT_FOUND);
+			throw roleErrors.notFound(roleId);
 		}
 
 		// Validate permission IDs exist

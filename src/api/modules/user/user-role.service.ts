@@ -14,6 +14,19 @@ export const USER_ROLE_ERRORS = {
 	ROLE_NOT_ASSIGNED: 'Role is not assigned to this user',
 } as const;
 
+/**
+ * Error factory functions that include entity IDs for better debugging.
+ * The error messages start with the base error constant for easy matching in tests.
+ */
+export const userRoleErrors = {
+	userNotFound: (userId: number) => new Error(`${USER_ROLE_ERRORS.USER_NOT_FOUND} (userId: ${userId})`),
+	roleNotFound: (roleId: number) => new Error(`${USER_ROLE_ERRORS.ROLE_NOT_FOUND} (roleId: ${roleId})`),
+	roleAlreadyAssigned: (userId: number, roleId: number) =>
+		new Error(`${USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED} (userId: ${userId}, roleId: ${roleId})`),
+	roleNotAssigned: (userId: number, roleId: number) =>
+		new Error(`${USER_ROLE_ERRORS.ROLE_NOT_ASSIGNED} (userId: ${userId}, roleId: ${roleId})`),
+};
+
 interface UserRoleServiceDeps {
 	userRoleRepository: IUserRoleRepository;
 	userRepository: IUserRepository;
@@ -38,7 +51,7 @@ export class UserRoleService implements IUserRoleService {
 	async getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
 		const user = await this.userRepository.findById(userId);
 		if (!user) {
-			throw new Error(USER_ROLE_ERRORS.USER_NOT_FOUND);
+			throw userRoleErrors.userNotFound(userId);
 		}
 
 		return this.userRoleRepository.getUserRoles(userId, pagination);
@@ -51,7 +64,7 @@ export class UserRoleService implements IUserRoleService {
 	async getUserPermissions(userId: number): Promise<PermissionData[]> {
 		const user = await this.userRepository.findById(userId);
 		if (!user) {
-			throw new Error(USER_ROLE_ERRORS.USER_NOT_FOUND);
+			throw userRoleErrors.userNotFound(userId);
 		}
 
 		return this.userRoleRepository.getUserPermissions(userId);
@@ -65,19 +78,19 @@ export class UserRoleService implements IUserRoleService {
 		// Verify user exists
 		const user = await this.userRepository.findById(userId);
 		if (!user) {
-			throw new Error(USER_ROLE_ERRORS.USER_NOT_FOUND);
+			throw userRoleErrors.userNotFound(userId);
 		}
 
 		// Verify role exists
 		const role = await this.roleRepository.findById(roleId);
 		if (!role) {
-			throw new Error(USER_ROLE_ERRORS.ROLE_NOT_FOUND);
+			throw userRoleErrors.roleNotFound(roleId);
 		}
 
 		// Check if role is already assigned
 		const hasRole = await this.userRoleRepository.userHasRole(userId, roleId);
 		if (hasRole) {
-			throw new Error(USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED);
+			throw userRoleErrors.roleAlreadyAssigned(userId, roleId);
 		}
 
 		await this.userRoleRepository.assignRoleToUser(userId, roleId);
@@ -91,12 +104,12 @@ export class UserRoleService implements IUserRoleService {
 		// Verify user exists
 		const user = await this.userRepository.findById(userId);
 		if (!user) {
-			throw new Error(USER_ROLE_ERRORS.USER_NOT_FOUND);
+			throw userRoleErrors.userNotFound(userId);
 		}
 
 		const removed = await this.userRoleRepository.removeRoleFromUser(userId, roleId);
 		if (!removed) {
-			throw new Error(USER_ROLE_ERRORS.ROLE_NOT_ASSIGNED);
+			throw userRoleErrors.roleNotAssigned(userId, roleId);
 		}
 	}
 }
