@@ -5,7 +5,7 @@ import type { AuthenticatedContext } from '../../middlewares/verify-access-token
 import type { PaginatedResponse, PermissionData, RoleData } from './interfaces';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 import roleController from './role.controller';
-import { ROLE_ERRORS } from './role.service';
+import { InvalidPermissionIdsError, ROLE_ERRORS } from './role.service';
 
 describe('Role Controller', () => {
 	// Create mock functions
@@ -477,6 +477,23 @@ describe('Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
+		});
+
+		it('should return 400 with invalid IDs when permission IDs do not exist', async () => {
+			mockAssignPermissionsToRole.mockRejectedValue(new InvalidPermissionIdsError([999, 1000]));
+
+			const res = await app.request('/roles/1/permissions', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					permissionIds: [1, 999, 1000],
+				}),
+			});
+
+			expect(res.status).toBe(400);
+			const data = await res.json();
+			expect(data.error).toBe(ROLE_ERRORS.INVALID_PERMISSION_IDS);
+			expect(data.invalidIds).toEqual([999, 1000]);
 		});
 	});
 });

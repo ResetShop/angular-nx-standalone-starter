@@ -14,7 +14,21 @@ export const ROLE_ERRORS = {
 	CODE_EXISTS: 'A role with this code already exists',
 	NAME_EXISTS: 'A role with this name already exists',
 	NOT_REMOVABLE: 'This role cannot be deleted',
+	INVALID_PERMISSION_IDS: 'Invalid permission IDs',
 } as const;
+
+/**
+ * Error thrown when invalid permission IDs are provided
+ */
+export class InvalidPermissionIdsError extends Error {
+	public readonly invalidIds: number[];
+
+	constructor(invalidIds: number[]) {
+		super(ROLE_ERRORS.INVALID_PERMISSION_IDS);
+		this.name = 'InvalidPermissionIdsError';
+		this.invalidIds = invalidIds;
+	}
+}
 
 interface RoleServiceDeps {
 	roleRepository: IRoleRepository;
@@ -130,12 +144,24 @@ export class RoleService implements IRoleService {
 	/**
 	 * Assign permissions to a role (replaces existing assignments)
 	 * @throws Error if role not found
+	 * @throws InvalidPermissionIdsError if any permission IDs don't exist
 	 */
 	async assignPermissionsToRole(roleId: number, permissionIds: number[]): Promise<void> {
 		const existingRole = await this.roleRepository.findById(roleId);
 
 		if (!existingRole) {
 			throw new Error(ROLE_ERRORS.NOT_FOUND);
+		}
+
+		// Validate permission IDs exist
+		if (permissionIds.length > 0) {
+			const foundPermissions = await this.roleRepository.findPermissionsByIds(permissionIds);
+			const foundIds = new Set(foundPermissions.map((p) => p.id));
+			const invalidIds = permissionIds.filter((id) => !foundIds.has(id));
+
+			if (invalidIds.length > 0) {
+				throw new InvalidPermissionIdsError(invalidIds);
+			}
 		}
 
 		await this.roleRepository.assignPermissions(roleId, permissionIds);
