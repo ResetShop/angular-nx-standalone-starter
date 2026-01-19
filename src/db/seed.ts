@@ -96,18 +96,25 @@ async function seed() {
 			// Step 5: Create permissions
 			const permissionIds: number[] = [];
 			for (const perm of ADMIN_PERMISSIONS_SEED_DATA) {
-				const existingPerm = await tx
-					.select({ id: permission.id })
-					.from(permission)
-					.where(eq(permission.name, perm.name));
+				try {
+					const existingPerm = await tx
+						.select({ id: permission.id })
+						.from(permission)
+						.where(eq(permission.name, perm.name));
 
-				if (existingPerm.length > 0) {
-					permissionIds.push(existingPerm[0].id);
-				} else {
-					const result = await tx.insert(permission).values(perm).returning({ id: permission.id });
-					if (result.length > 0) {
-						permissionIds.push(result[0].id);
+					if (existingPerm.length > 0) {
+						permissionIds.push(existingPerm[0].id);
+					} else {
+						const result = await tx.insert(permission).values(perm).returning({ id: permission.id });
+						if (result.length > 0) {
+							permissionIds.push(result[0].id);
+						} else {
+							throw new Error(`Failed to insert permission: ${perm.name}`);
+						}
 					}
+				} catch (error) {
+					const message = error instanceof Error ? error.message : 'Unknown error';
+					throw new Error(`Failed to create/verify permission "${perm.name}": ${message}`);
 				}
 			}
 			console.log(`✅ ${ADMIN_PERMISSIONS_SEED_DATA.length} permissions created/verified`);
