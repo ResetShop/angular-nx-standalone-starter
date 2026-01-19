@@ -230,20 +230,24 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 
 	/**
 	 * Assign permissions to a role (replaces existing assignments)
+	 * Uses a transaction to prevent race conditions where the role
+	 * temporarily has no permissions between delete and insert.
 	 */
 	async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
-		// Remove existing permissions
-		await this.removeAllPermissions(roleId);
+		await this.db.transaction(async (tx) => {
+			// Remove existing permissions
+			await tx.delete(rolePermission).where(eq(rolePermission.roleId, roleId));
 
-		// Add new permissions
-		if (permissionIds.length > 0) {
-			const values = permissionIds.map((permissionId) => ({
-				roleId,
-				permissionId,
-			}));
+			// Add new permissions
+			if (permissionIds.length > 0) {
+				const values = permissionIds.map((permissionId) => ({
+					roleId,
+					permissionId,
+				}));
 
-			await this.db.insert(rolePermission).values(values).onConflictDoNothing();
-		}
+				await tx.insert(rolePermission).values(values).onConflictDoNothing();
+			}
+		});
 	}
 
 	/**
