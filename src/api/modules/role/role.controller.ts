@@ -194,10 +194,12 @@ app.get(
 );
 
 /**
- * POST /api/roles/:id/permissions
- * Assign permissions to a role (replaces existing)
+ * PUT /api/roles/:id/permissions
+ * Replace all permissions for a role.
+ * This is a full replacement operation - existing permissions are removed
+ * and replaced with the provided list.
  */
-app.post(
+app.put(
 	'/:id/permissions',
 	requirePermission(ADMIN_ROLE_PERMISSIONS.UPDATE),
 	zValidator(

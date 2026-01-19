@@ -409,12 +409,12 @@ describe('Role Controller', () => {
 		});
 	});
 
-	describe('POST /roles/:id/permissions', () => {
+	describe('PUT /roles/:id/permissions', () => {
 		it('should assign permissions to role', async () => {
 			mockAssignPermissionsToRole.mockResolvedValue(undefined);
 
 			const res = await app.request('/roles/1/permissions', {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					permissionIds: [1, 2, 3],
@@ -431,7 +431,7 @@ describe('Role Controller', () => {
 			mockAssignPermissionsToRole.mockRejectedValue(new Error(ROLE_ERRORS.NOT_FOUND));
 
 			const res = await app.request('/roles/999/permissions', {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					permissionIds: [1],
@@ -445,7 +445,7 @@ describe('Role Controller', () => {
 
 		it('should return 400 for invalid ID', async () => {
 			const res = await app.request('/roles/invalid/permissions', {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					permissionIds: [1],
@@ -459,7 +459,7 @@ describe('Role Controller', () => {
 
 		it('should validate permissionIds is an array of positive integers', async () => {
 			const res = await app.request('/roles/1/permissions', {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					permissionIds: [-1, 0],
@@ -471,7 +471,7 @@ describe('Role Controller', () => {
 
 		it('should validate permissionIds is required', async () => {
 			const res = await app.request('/roles/1/permissions', {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({}),
 			});
@@ -483,7 +483,7 @@ describe('Role Controller', () => {
 			mockAssignPermissionsToRole.mockRejectedValue(new InvalidPermissionIdsError([999, 1000]));
 
 			const res = await app.request('/roles/1/permissions', {
-				method: 'POST',
+				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					permissionIds: [1, 999, 1000],
