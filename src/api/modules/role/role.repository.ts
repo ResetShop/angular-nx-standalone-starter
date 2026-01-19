@@ -139,13 +139,13 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 * Update a role
 	 */
 	async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
-		const updateData: Record<string, unknown> = { updatedAt: new Date() };
+		const updateData: Partial<typeof role.$inferInsert> = { updatedAt: new Date() };
 
 		if (params.name !== undefined) {
-			updateData['name'] = params.name;
+			updateData.name = params.name;
 		}
 		if (params.description !== undefined) {
-			updateData['description'] = params.description;
+			updateData.description = params.description;
 		}
 
 		const result = await this.db.update(role).set(updateData).where(eq(role.id, id)).returning({
