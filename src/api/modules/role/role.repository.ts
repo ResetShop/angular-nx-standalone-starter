@@ -1,6 +1,7 @@
 import { count, eq, inArray } from 'drizzle-orm';
 import { permission } from '../../../db/schema/permission';
 import { role, rolePermission } from '../../../db/schema/role';
+import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import type {
 	CreateRoleParams,
@@ -11,9 +12,6 @@ import type {
 	RoleData,
 	UpdateRoleParams,
 } from './interfaces';
-
-const DEFAULT_LIMIT = 10;
-const DEFAULT_OFFSET = 0;
 
 export class RoleRepository extends BaseRepository implements IRoleRepository {
 	/**
@@ -83,8 +81,8 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 * Get all roles with pagination
 	 */
 	async findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
-		const limit = pagination?.limit ?? DEFAULT_LIMIT;
-		const offset = pagination?.offset ?? DEFAULT_OFFSET;
+		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
 		const [data, totalResult] = await Promise.all([
 			this.db
@@ -180,8 +178,8 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 		roleId: number,
 		pagination?: PaginationParams,
 	): Promise<PaginatedResponse<PermissionData>> {
-		const limit = pagination?.limit ?? DEFAULT_LIMIT;
-		const offset = pagination?.offset ?? DEFAULT_OFFSET;
+		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
 		const [data, totalResult] = await Promise.all([
 			this.db

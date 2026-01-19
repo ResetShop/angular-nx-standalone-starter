@@ -2,20 +2,18 @@ import { and, count, eq } from 'drizzle-orm';
 import { permission } from '../../../db/schema/permission';
 import { role, rolePermission } from '../../../db/schema/role';
 import { userRole } from '../../../db/schema/user';
+import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import type { PermissionData, RoleData } from '../role/interfaces';
 import type { IUserRoleRepository, PaginatedResponse, PaginationParams } from './interfaces';
-
-const DEFAULT_LIMIT = 10;
-const DEFAULT_OFFSET = 0;
 
 export class UserRoleRepository extends BaseRepository implements IUserRoleRepository {
 	/**
 	 * Get all roles assigned to a user with pagination
 	 */
 	async getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
-		const limit = pagination?.limit ?? DEFAULT_LIMIT;
-		const offset = pagination?.offset ?? DEFAULT_OFFSET;
+		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
 		const [data, totalResult] = await Promise.all([
 			this.db

@@ -1,3 +1,4 @@
+import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import type {
 	CreateRoleParams,
 	IRoleRepository,
@@ -7,9 +8,6 @@ import type {
 	RoleData,
 	UpdateRoleParams,
 } from './interfaces';
-
-const DEFAULT_LIMIT = 10;
-const DEFAULT_OFFSET = 0;
 
 export class MockRoleRepository implements IRoleRepository {
 	private roles: Map<number, RoleData> = new Map();
@@ -67,8 +65,8 @@ export class MockRoleRepository implements IRoleRepository {
 	}
 
 	async findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
-		const limit = pagination?.limit ?? DEFAULT_LIMIT;
-		const offset = pagination?.offset ?? DEFAULT_OFFSET;
+		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
 		const allRoles = Array.from(this.roles.values());
 		const data = allRoles.slice(offset, offset + limit);
@@ -138,8 +136,8 @@ export class MockRoleRepository implements IRoleRepository {
 		roleId: number,
 		pagination?: PaginationParams,
 	): Promise<PaginatedResponse<PermissionData>> {
-		const limit = pagination?.limit ?? DEFAULT_LIMIT;
-		const offset = pagination?.offset ?? DEFAULT_OFFSET;
+		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
 		const allPermissions = this.rolePermissions.get(roleId) ?? [];
 		const data = allPermissions.slice(offset, offset + limit);
