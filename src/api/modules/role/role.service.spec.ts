@@ -133,7 +133,7 @@ describe('RoleService', () => {
 					name: 'Another Admin',
 					code: testRole.code,
 				}),
-			).rejects.toThrow(ROLE_ERRORS.CODE_EXISTS);
+			).rejects.toThrow(new RegExp(ROLE_ERRORS.CODE_EXISTS));
 		});
 
 		it('should throw NAME_EXISTS when name already exists', async () => {
@@ -144,7 +144,7 @@ describe('RoleService', () => {
 					name: testRole.name,
 					code: 'different_code',
 				}),
-			).rejects.toThrow(ROLE_ERRORS.NAME_EXISTS);
+			).rejects.toThrow(new RegExp(ROLE_ERRORS.NAME_EXISTS));
 		});
 
 		it('should create role without description', async () => {
@@ -186,7 +186,7 @@ describe('RoleService', () => {
 				roleService.updateRole(999, {
 					description: 'New description',
 				}),
-			).rejects.toThrow(ROLE_ERRORS.NOT_FOUND);
+			).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND));
 		});
 
 		it('should throw NAME_EXISTS when updating to existing name', async () => {
@@ -197,7 +197,7 @@ describe('RoleService', () => {
 				roleService.updateRole(removableRole.id, {
 					name: testRole.name,
 				}),
-			).rejects.toThrow(ROLE_ERRORS.NAME_EXISTS);
+			).rejects.toThrow(new RegExp(ROLE_ERRORS.NAME_EXISTS));
 		});
 
 		it('should allow updating to same name (no change)', async () => {
@@ -224,13 +224,13 @@ describe('RoleService', () => {
 		});
 
 		it('should throw NOT_FOUND when role does not exist', async () => {
-			await expect(roleService.deleteRole(999)).rejects.toThrow(ROLE_ERRORS.NOT_FOUND);
+			await expect(roleService.deleteRole(999)).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND));
 		});
 
 		it('should throw NOT_REMOVABLE when role is not removable', async () => {
 			mockRoleRepo.addRole(testRole); // testRole has removable: false
 
-			await expect(roleService.deleteRole(testRole.id)).rejects.toThrow(ROLE_ERRORS.NOT_REMOVABLE);
+			await expect(roleService.deleteRole(testRole.id)).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_REMOVABLE));
 		});
 	});
 
@@ -247,7 +247,7 @@ describe('RoleService', () => {
 		});
 
 		it('should throw NOT_FOUND when role does not exist', async () => {
-			await expect(roleService.getRolePermissions(999)).rejects.toThrow(ROLE_ERRORS.NOT_FOUND);
+			await expect(roleService.getRolePermissions(999)).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND));
 		});
 
 		it('should return empty permissions when role has none', async () => {
@@ -295,7 +295,7 @@ describe('RoleService', () => {
 		});
 
 		it('should throw NOT_FOUND when role does not exist', async () => {
-			await expect(roleService.assignPermissionsToRole(999, [1, 2])).rejects.toThrow(ROLE_ERRORS.NOT_FOUND);
+			await expect(roleService.assignPermissionsToRole(999, [1, 2])).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND));
 		});
 
 		it('should replace existing permissions', async () => {

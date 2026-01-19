@@ -157,7 +157,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.NOT_FOUND);
+			expect(data.error).toContain(ROLE_ERRORS.NOT_FOUND);
 		});
 
 		it('should return 400 for invalid ID', async () => {
@@ -203,7 +203,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(409);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.CODE_EXISTS);
+			expect(data.error).toContain(ROLE_ERRORS.CODE_EXISTS);
 		});
 
 		it('should validate required fields', async () => {
@@ -279,7 +279,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.NOT_FOUND);
+			expect(data.error).toContain(ROLE_ERRORS.NOT_FOUND);
 		});
 
 		it('should return 400 for invalid ID', async () => {
@@ -331,7 +331,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.NOT_FOUND);
+			expect(data.error).toContain(ROLE_ERRORS.NOT_FOUND);
 		});
 
 		it('should return 403 when role is not removable', async () => {
@@ -343,7 +343,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(403);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.NOT_REMOVABLE);
+			expect(data.error).toContain(ROLE_ERRORS.NOT_REMOVABLE);
 		});
 
 		it('should return 400 for invalid ID', async () => {
@@ -397,7 +397,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.NOT_FOUND);
+			expect(data.error).toContain(ROLE_ERRORS.NOT_FOUND);
 		});
 
 		it('should return 400 for invalid ID', async () => {
@@ -440,7 +440,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.NOT_FOUND);
+			expect(data.error).toContain(ROLE_ERRORS.NOT_FOUND);
 		});
 
 		it('should return 400 for invalid ID', async () => {
@@ -492,7 +492,7 @@ describe('Role Controller', () => {
 
 			expect(res.status).toBe(400);
 			const data = await res.json();
-			expect(data.error).toBe(ROLE_ERRORS.INVALID_PERMISSION_IDS);
+			expect(data.error).toContain(ROLE_ERRORS.INVALID_PERMISSION_IDS);
 			expect(data.invalidIds).toEqual([999, 1000]);
 		});
 	});

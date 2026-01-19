@@ -79,7 +79,7 @@ app.post(
 			return c.json(role, 201);
 		} catch (error) {
 			if (error instanceof Error) {
-				if (error.message === ROLE_ERRORS.CODE_EXISTS || error.message === ROLE_ERRORS.NAME_EXISTS) {
+				if (error.message.startsWith(ROLE_ERRORS.CODE_EXISTS) || error.message.startsWith(ROLE_ERRORS.NAME_EXISTS)) {
 					return c.json({ error: error.message }, 409);
 				}
 			}
@@ -117,10 +117,10 @@ app.put(
 			return c.json(role);
 		} catch (error) {
 			if (error instanceof Error) {
-				if (error.message === ROLE_ERRORS.NOT_FOUND) {
+				if (error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
 					return c.json({ error: error.message }, 404);
 				}
-				if (error.message === ROLE_ERRORS.NAME_EXISTS) {
+				if (error.message.startsWith(ROLE_ERRORS.NAME_EXISTS)) {
 					return c.json({ error: error.message }, 409);
 				}
 			}
@@ -146,10 +146,10 @@ app.delete('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.DELETE), async (c) =
 		return c.json({ message: 'Role deleted successfully' });
 	} catch (error) {
 		if (error instanceof Error) {
-			if (error.message === ROLE_ERRORS.NOT_FOUND) {
+			if (error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
 				return c.json({ error: error.message }, 404);
 			}
-			if (error.message === ROLE_ERRORS.NOT_REMOVABLE) {
+			if (error.message.startsWith(ROLE_ERRORS.NOT_REMOVABLE)) {
 				return c.json({ error: error.message }, 403);
 			}
 		}
@@ -185,7 +185,7 @@ app.get(
 			const permissions = await roleService.getRolePermissions(id, { offset, limit });
 			return c.json(permissions);
 		} catch (error) {
-			if (error instanceof Error && error.message === ROLE_ERRORS.NOT_FOUND) {
+			if (error instanceof Error && error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
 				return c.json({ error: error.message }, 404);
 			}
 			throw error;
@@ -225,7 +225,7 @@ app.put(
 			if (error instanceof InvalidPermissionIdsError) {
 				return c.json({ error: error.message, invalidIds: error.invalidIds }, 400);
 			}
-			if (error instanceof Error && error.message === ROLE_ERRORS.NOT_FOUND) {
+			if (error instanceof Error && error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
 				return c.json({ error: error.message }, 404);
 			}
 			throw error;
