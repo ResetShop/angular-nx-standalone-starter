@@ -3,6 +3,31 @@ import { container } from '../container';
 import { AuthenticatedContext } from './verify-access-token.middleware';
 
 /**
+ * Permission verification middleware for RBAC.
+ *
+ * ## Caching Strategy
+ * Permissions are cached at the request level (stored in `c.permissions`).
+ * This means:
+ * - First permission check in a request fetches from database
+ * - Subsequent checks in the same request use cached permissions
+ * - No cross-request caching (each request fetches fresh permissions)
+ *
+ * This approach is acceptable for most use cases because:
+ * - Multiple permission checks per request don't cause extra DB queries
+ * - Permission changes take effect on the next request
+ * - No stale cache invalidation complexity
+ *
+ * ## Future Optimization
+ * If profiling shows permission fetching is a bottleneck for high-traffic
+ * endpoints, consider:
+ * - Redis caching with short TTL (e.g., 60 seconds)
+ * - Including permissions in JWT claims (requires token refresh on changes)
+ * - Background refresh pattern with stale-while-revalidate
+ *
+ * @module verify-permissions.middleware
+ */
+
+/**
  * Branded type for permission names in module:resource:action format.
  * Use the `permission()` helper to create validated instances.
  *
