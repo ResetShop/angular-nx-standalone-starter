@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { container } from '../../container';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
-import { ROLE_ERRORS } from './role.service';
+import { InvalidPermissionIdsError, ROLE_ERRORS } from './role.service';
 
 const app = new Hono();
 
@@ -220,6 +220,9 @@ app.post(
 			await roleService.assignPermissionsToRole(id, permissionIds);
 			return c.json({ message: 'Permissions assigned successfully' });
 		} catch (error) {
+			if (error instanceof InvalidPermissionIdsError) {
+				return c.json({ error: error.message, invalidIds: error.invalidIds }, 400);
+			}
 			if (error instanceof Error && error.message === ROLE_ERRORS.NOT_FOUND) {
 				return c.json({ error: error.message }, 404);
 			}

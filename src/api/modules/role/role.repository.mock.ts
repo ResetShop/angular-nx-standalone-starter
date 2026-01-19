@@ -16,6 +16,7 @@ export class MockRoleRepository implements IRoleRepository {
 	private rolesByCode: Map<string, RoleData> = new Map();
 	private rolesByName: Map<string, RoleData> = new Map();
 	private rolePermissions: Map<number, PermissionData[]> = new Map();
+	private availablePermissions: Map<number, PermissionData> = new Map();
 	private nextId = 1;
 
 	/**
@@ -35,6 +36,13 @@ export class MockRoleRepository implements IRoleRepository {
 	}
 
 	/**
+	 * Add available permissions that can be assigned to roles.
+	 */
+	addAvailablePermission(permission: PermissionData): void {
+		this.availablePermissions.set(permission.id, permission);
+	}
+
+	/**
 	 * Clear all data from the mock repository.
 	 */
 	clear(): void {
@@ -42,6 +50,7 @@ export class MockRoleRepository implements IRoleRepository {
 		this.rolesByCode.clear();
 		this.rolesByName.clear();
 		this.rolePermissions.clear();
+		this.availablePermissions.clear();
 		this.nextId = 1;
 	}
 
@@ -143,16 +152,17 @@ export class MockRoleRepository implements IRoleRepository {
 		};
 	}
 
-	async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
-		// Create mock permissions from IDs
-		const permissions: PermissionData[] = permissionIds.map((id) => ({
-			id,
-			name: `permission_${id}`,
-			description: `Permission ${id}`,
-			resource: 'resource',
-			action: 'action',
-		}));
+	async findPermissionsByIds(ids: number[]): Promise<PermissionData[]> {
+		if (ids.length === 0) {
+			return [];
+		}
 
+		return ids.map((id) => this.availablePermissions.get(id)).filter((p): p is PermissionData => p !== undefined);
+	}
+
+	async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
+		// Get permissions from available permissions
+		const permissions = await this.findPermissionsByIds(permissionIds);
 		this.rolePermissions.set(roleId, permissions);
 	}
 

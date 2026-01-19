@@ -1,4 +1,4 @@
-import { count, eq } from 'drizzle-orm';
+import { count, eq, inArray } from 'drizzle-orm';
 import { permission } from '../../../db/schema/permission';
 import { role, rolePermission } from '../../../db/schema/role';
 import { BaseRepository } from '../../helpers/base.repository';
@@ -206,6 +206,26 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 			offset,
 			limit,
 		};
+	}
+
+	/**
+	 * Find permissions by their IDs
+	 */
+	async findPermissionsByIds(ids: number[]): Promise<PermissionData[]> {
+		if (ids.length === 0) {
+			return [];
+		}
+
+		return this.db
+			.select({
+				id: permission.id,
+				name: permission.name,
+				description: permission.description,
+				resource: permission.resource,
+				action: permission.action,
+			})
+			.from(permission)
+			.where(inArray(permission.id, ids));
 	}
 
 	/**

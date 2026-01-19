@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { PermissionData, RoleData } from './interfaces';
 import { MockRoleRepository } from './role.repository.mock';
-import { ROLE_ERRORS, RoleService } from './role.service';
+import { InvalidPermissionIdsError, ROLE_ERRORS, RoleService } from './role.service';
 
 describe('RoleService', () => {
 	let roleService: RoleService;
@@ -273,6 +273,18 @@ describe('RoleService', () => {
 	});
 
 	describe('assignPermissionsToRole', () => {
+		const availablePermissions: PermissionData[] = [
+			{ id: 1, name: 'perm_1', description: 'Permission 1', resource: 'resource', action: 'action' },
+			{ id: 2, name: 'perm_2', description: 'Permission 2', resource: 'resource', action: 'action' },
+			{ id: 3, name: 'perm_3', description: 'Permission 3', resource: 'resource', action: 'action' },
+			{ id: 5, name: 'perm_5', description: 'Permission 5', resource: 'resource', action: 'action' },
+		];
+
+		beforeEach(() => {
+			// Add available permissions to the mock repository
+			availablePermissions.forEach((p) => mockRoleRepo.addAvailablePermission(p));
+		});
+
 		it('should assign permissions to role', async () => {
 			mockRoleRepo.addRole(testRole);
 
@@ -295,6 +307,38 @@ describe('RoleService', () => {
 			const result = await roleService.getRolePermissions(testRole.id);
 			expect(result.data).toHaveLength(1);
 			expect(result.data[0].id).toBe(5);
+		});
+
+		it('should throw InvalidPermissionIdsError when permission IDs do not exist', async () => {
+			mockRoleRepo.addRole(testRole);
+
+			await expect(roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000])).rejects.toThrow(
+				InvalidPermissionIdsError,
+			);
+		});
+
+		it('should include invalid IDs in the error', async () => {
+			mockRoleRepo.addRole(testRole);
+
+			try {
+				await roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000]);
+				expect.fail('Expected error to be thrown');
+			} catch (error) {
+				expect(error).toBeInstanceOf(InvalidPermissionIdsError);
+				const invalidError = error as InvalidPermissionIdsError;
+				expect(invalidError.invalidIds).toEqual([999, 1000]);
+				expect(invalidError.message).toBe(ROLE_ERRORS.INVALID_PERMISSION_IDS);
+			}
+		});
+
+		it('should allow assigning empty permissions array', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addPermissionsForRole(testRole.id, testPermissions);
+
+			await roleService.assignPermissionsToRole(testRole.id, []);
+
+			const result = await roleService.getRolePermissions(testRole.id);
+			expect(result.data).toHaveLength(0);
 		});
 	});
 });
