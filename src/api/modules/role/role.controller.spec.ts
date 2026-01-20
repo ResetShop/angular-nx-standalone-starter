@@ -18,7 +18,7 @@ describe('Role Controller', () => {
 		[number, { offset?: number; limit?: number }],
 		Promise<PaginatedResponse<PermissionData>>
 	>();
-	const mockAssignPermissionsToRole = fn<[number, number[]], Promise<void>>();
+	const mockAssignPermissionsToRole = fn<[number, number[], number?], Promise<void>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 
 	// Create app with auth middleware that simulates authenticated user
@@ -424,7 +424,7 @@ describe('Role Controller', () => {
 			expect(res.status).toBe(200);
 			const data = await res.json();
 			expect(data.message).toBe('Permissions assigned successfully');
-			expect(mockAssignPermissionsToRole.calls).toEqual([[1, [1, 2, 3]]]);
+			expect(mockAssignPermissionsToRole.calls).toEqual([[1, [1, 2, 3], 1]]);
 		});
 
 		it('should return 404 when role not found', async () => {

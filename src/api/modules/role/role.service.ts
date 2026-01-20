@@ -1,3 +1,4 @@
+import type { IUserRoleRepository } from '../user/interfaces';
 import type {
 	CreateRoleParams,
 	IRoleRepository,
@@ -8,6 +9,7 @@ import type {
 	RoleData,
 	UpdateRoleParams,
 } from './interfaces';
+import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 
 export const ROLE_ERRORS = {
 	NOT_FOUND: 'Role not found',
@@ -15,6 +17,7 @@ export const ROLE_ERRORS = {
 	NAME_EXISTS: 'A role with this name already exists',
 	NOT_REMOVABLE: 'This role cannot be deleted',
 	INVALID_PERMISSION_IDS: 'Invalid permission IDs',
+	SELF_LOCKOUT: 'Cannot remove role management permission from your own role',
 } as const;
 
 /**
@@ -41,8 +44,19 @@ export class InvalidPermissionIdsError extends Error {
 	}
 }
 
+/**
+ * Error thrown when user attempts to remove role management permission from their own role
+ */
+export class SelfLockoutError extends Error {
+	constructor() {
+		super(ROLE_ERRORS.SELF_LOCKOUT);
+		this.name = 'SelfLockoutError';
+	}
+}
+
 interface RoleServiceDeps {
 	roleRepository: IRoleRepository;
+	userRoleRepository: IUserRoleRepository;
 }
 
 /**
@@ -52,9 +66,11 @@ interface RoleServiceDeps {
  */
 export class RoleService implements IRoleService {
 	private roleRepository: IRoleRepository;
+	private userRoleRepository: IUserRoleRepository;
 
-	constructor({ roleRepository }: RoleServiceDeps) {
+	constructor({ roleRepository, userRoleRepository }: RoleServiceDeps) {
 		this.roleRepository = roleRepository;
+		this.userRoleRepository = userRoleRepository;
 	}
 
 	/**
@@ -186,27 +202,57 @@ export class RoleService implements IRoleService {
 	/**
 	 * Assigns permissions to a role, replacing all existing assignments.
 	 * Validates that all permission IDs exist before making changes.
+	 * Prevents self-lockout by checking if the user would lose role management permissions.
 	 *
 	 * @param roleId - The role's primary key
 	 * @param permissionIds - Array of permission IDs to assign (replaces existing)
+	 * @param userId - Optional user ID for self-lockout prevention check
 	 * @throws Error if role not found
 	 * @throws InvalidPermissionIdsError if any permission IDs don't exist in database
+	 * @throws SelfLockoutError if update would remove user's ability to manage roles
 	 */
-	async assignPermissionsToRole(roleId: number, permissionIds: number[]): Promise<void> {
+	async assignPermissionsToRole(roleId: number, permissionIds: number[], userId?: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(roleId);
 
 		if (!existingRole) {
 			throw roleErrors.notFound(roleId);
 		}
 
-		// Validate permission IDs exist
+		// Validate permission IDs exist and get permission data
+		let foundPermissions: PermissionData[] = [];
 		if (permissionIds.length > 0) {
-			const foundPermissions = await this.roleRepository.findPermissionsByIds(permissionIds);
+			foundPermissions = await this.roleRepository.findPermissionsByIds(permissionIds);
 			const foundIds = new Set(foundPermissions.map((p) => p.id));
 			const invalidIds = permissionIds.filter((id) => !foundIds.has(id));
 
 			if (invalidIds.length > 0) {
 				throw new InvalidPermissionIdsError(invalidIds);
+			}
+		}
+
+		// Self-lockout prevention check
+		if (userId !== undefined) {
+			// Fetch user's current permissions and role assignment in parallel
+			const [userPermissions, userHasRole, currentRolePermissions] = await Promise.all([
+				this.userRoleRepository.getUserPermissions(userId),
+				this.userRoleRepository.userHasRole(userId, roleId),
+				this.roleRepository.getPermissionsForRole(roleId, { limit: 1000 }),
+			]);
+
+			// Only need to check for lockout if the user is assigned to the role being modified
+			if (userHasRole) {
+				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === ADMIN_ROLE_PERMISSIONS.UPDATE);
+
+				if (!newPermissionsIncludeUpdate) {
+					// Check if user has UPDATE permission from other roles
+					const currentRolePermissionNames = new Set(currentRolePermissions.data.map((p) => p.name));
+					const otherRolePermissions = userPermissions.filter((p) => !currentRolePermissionNames.has(p.name));
+					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === ADMIN_ROLE_PERMISSIONS.UPDATE);
+
+					if (!hasUpdateFromOtherRole) {
+						throw new SelfLockoutError();
+					}
+				}
 			}
 		}
 

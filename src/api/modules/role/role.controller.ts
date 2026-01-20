@@ -3,9 +3,10 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { container } from '../../container';
+import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
-import { InvalidPermissionIdsError, ROLE_ERRORS } from './role.service';
+import { InvalidPermissionIdsError, ROLE_ERRORS, SelfLockoutError } from './role.service';
 
 const app = new Hono();
 
@@ -218,11 +219,15 @@ app.put(
 		}
 
 		const { permissionIds } = c.req.valid('json');
+		const userId = Number((c as AuthenticatedContext).user.sub);
 
 		try {
-			await roleService.assignPermissionsToRole(id, permissionIds);
+			await roleService.assignPermissionsToRole(id, permissionIds, userId);
 			return c.json({ message: 'Permissions assigned successfully' });
 		} catch (error) {
+			if (error instanceof SelfLockoutError) {
+				return c.json({ error: error.message }, 403);
+			}
 			if (error instanceof InvalidPermissionIdsError) {
 				return c.json({ error: error.message, details: { invalidIds: error.invalidIds } }, 400);
 			}
