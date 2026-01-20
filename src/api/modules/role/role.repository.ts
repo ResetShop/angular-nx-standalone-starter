@@ -193,18 +193,20 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	}
 
 	/**
-	 * Deletes a role and its permission assignments.
+	 * Deletes a role and its permission assignments in a transaction.
 	 * User-role associations are automatically deleted via CASCADE constraint.
 	 *
 	 * @param id - The role's primary key
 	 * @throws Will throw if role doesn't exist (no rows affected)
 	 */
 	async delete(id: number): Promise<void> {
-		// Delete role_permission entries first (no CASCADE on this FK)
-		await this.db.delete(rolePermission).where(eq(rolePermission.roleId, id));
+		await this.db.transaction(async (tx) => {
+			// Delete role_permission entries first (no CASCADE on this FK)
+			await tx.delete(rolePermission).where(eq(rolePermission.roleId, id));
 
-		// Delete the role
-		await this.db.delete(role).where(eq(role.id, id));
+			// Delete the role
+			await tx.delete(role).where(eq(role.id, id));
+		});
 	}
 
 	/**
