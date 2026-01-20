@@ -1,4 +1,4 @@
-import { permission } from '../../middlewares/verify-permissions.middleware';
+import { permission } from '../user/permission-types';
 
 /**
  * Admin module permissions for user management.
