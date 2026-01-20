@@ -1,17 +1,21 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { permission } from './permission';
 import { userRole } from './user';
 
-export const role = pgTable('role', {
-	id: serial('id').primaryKey(),
-	name: text('name').notNull().unique(),
-	code: text('code').notNull().unique(),
-	description: text('description'),
-	removable: boolean('removable').notNull().default(true),
-	createdAt: timestamp('created_at').defaultNow(),
-	updatedAt: timestamp('updated_at').defaultNow(),
-});
+export const role = pgTable(
+	'role',
+	{
+		id: serial('id').primaryKey(),
+		name: text('name').notNull().unique(),
+		code: text('code').notNull().unique(),
+		description: text('description'),
+		removable: boolean('removable').notNull().default(true),
+		createdAt: timestamp('created_at').defaultNow(),
+		updatedAt: timestamp('updated_at').defaultNow(),
+	},
+	(table) => [index('idx_role_code').on(table.name)],
+);
 
 export const rolePermission = pgTable(
 	'role_permission',
@@ -22,7 +26,7 @@ export const rolePermission = pgTable(
 			.references(() => role.id, { onDelete: 'restrict' }),
 		permissionId: integer('permission_id')
 			.notNull()
-			.references(() => permission.id, { onDelete: 'restrict' }),
+			.references(() => permission.id, { onDelete: 'cascade' }),
 		createdAt: timestamp('created_at').defaultNow(),
 	},
 	(table) => ({
