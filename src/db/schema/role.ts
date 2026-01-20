@@ -23,7 +23,7 @@ export const rolePermission = pgTable(
 		id: serial('id').primaryKey(),
 		roleId: integer('role_id')
 			.notNull()
-			.references(() => role.id, { onDelete: 'restrict' }),
+			.references(() => role.id, { onDelete: 'cascade' }),
 		permissionId: integer('permission_id')
 			.notNull()
 			.references(() => permission.id, { onDelete: 'cascade' }),
