@@ -1,0 +1,44 @@
+meta {
+  name: Assign Role - Already Assigned
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/users/1/roles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "roleId": 1
+  }
+}
+
+docs {
+  # Assign Role - Already Assigned Test
+
+  Tests that assigning a role that is already assigned to a user returns 409.
+
+  Note: This test assumes user 1 already has role 1 assigned (typically the admin role).
+}
+
+assert {
+  res.status: eq 409
+  res.body.error: contains already assigned
+}
+
+tests {
+  test("should return 409 for already assigned role", function() {
+    expect(res.status).to.equal(409);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.include("already assigned");
+  });
+}
