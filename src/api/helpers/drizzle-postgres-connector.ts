@@ -1,13 +1,35 @@
-// TODO: Uncomment if using Drizzle's Postgres connector. To set the connector to work, you need to add the Postgres connection string to your environment variables.
-// TODO: Install drizzle-orm, drizzle-kit and postgres packages to use this connector.
-
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { authentication, authenticationRelations } from '../../db/schema/authentication';
+import { permission, permissionRelations } from '../../db/schema/permission';
+import { permissionRoute, permissionRouteRelations } from '../../db/schema/permission-route';
+import { refreshToken } from '../../db/schema/refresh-token';
+import { role, rolePermission, rolePermissionRelations, roleRelations } from '../../db/schema/role';
+import { user, userRelations, userRole, userRoleRelations } from '../../db/schema/user';
 import { environment } from './environment';
 
 const { connectionString } = environment.database.pg;
 
-// Disable prefetch as it is not supported for "Transaction" pool mode
-export const drizzlePgConnector = drizzle(connectionString);
+// Schema object for Drizzle's relational query API
+const schema = {
+	authentication,
+	authenticationRelations,
+	permission,
+	permissionRelations,
+	permissionRoute,
+	permissionRouteRelations,
+	refreshToken,
+	role,
+	rolePermission,
+	roleRelations,
+	rolePermissionRelations,
+	user,
+	userRole,
+	userRelations,
+	userRoleRelations,
+};
+
+// Initialize Drizzle with schema for relational query API support
+export const drizzlePgConnector = drizzle(connectionString, { schema });
 
 // Type export for DI container
 export type DrizzlePgConnector = typeof drizzlePgConnector;
