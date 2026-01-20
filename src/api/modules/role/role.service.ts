@@ -1,10 +1,9 @@
+import { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { IUserRoleRepository } from '../user/interfaces';
 import type {
 	CreateRoleParams,
 	IRoleRepository,
 	IRoleService,
-	PaginatedResponse,
-	PaginationParams,
 	PermissionData,
 	RoleData,
 	UpdateRoleParams,

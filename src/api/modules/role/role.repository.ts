@@ -3,15 +3,8 @@ import { permission } from '../../../db/schema/permission';
 import { role, rolePermission } from '../../../db/schema/role';
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { BaseRepository } from '../../helpers/base.repository';
-import type {
-	CreateRoleParams,
-	IRoleRepository,
-	PaginatedResponse,
-	PaginationParams,
-	PermissionData,
-	RoleData,
-	UpdateRoleParams,
-} from './interfaces';
+import { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { CreateRoleParams, IRoleRepository, PermissionData, RoleData, UpdateRoleParams } from './interfaces';
 
 /**
  * Repository for role-related database operations.

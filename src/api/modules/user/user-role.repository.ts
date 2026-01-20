@@ -4,8 +4,9 @@ import { role, rolePermission } from '../../../db/schema/role';
 import { userRole } from '../../../db/schema/user';
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { BaseRepository } from '../../helpers/base.repository';
+import { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { PermissionData, RoleData } from '../role/interfaces';
-import type { IUserRoleRepository, PaginatedResponse, PaginationParams } from './interfaces';
+import type { IUserRoleRepository } from './interfaces';
 
 /**
  * Repository for user-role relationship database operations.

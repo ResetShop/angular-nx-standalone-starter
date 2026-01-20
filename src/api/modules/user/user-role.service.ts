@@ -1,11 +1,6 @@
+import { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { IRoleRepository, PermissionData, RoleData } from '../role/interfaces';
-import type {
-	IUserRepository,
-	IUserRoleRepository,
-	IUserRoleService,
-	PaginatedResponse,
-	PaginationParams,
-} from './interfaces';
+import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './interfaces';
 
 export const USER_ROLE_ERRORS = {
 	USER_NOT_FOUND: 'User not found',
