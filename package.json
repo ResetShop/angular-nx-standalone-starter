@@ -23,7 +23,8 @@
 		"test:e2e": "nx run app:e2e",
 		"drizzle:create-migrations": "drizzle-kit generate",
 		"drizzle:push-migrations": "drizzle-kit push",
-		"drizzle:seed": "tsx ./src/db/seed.ts"
+		"drizzle:seed": "tsx ./src/db/seed.ts",
+		"drizzle:seed:local": "node --env-file=.env --import tsx ./src/db/seed.ts"
 	},
 	"private": true,
 	"dependencies": {

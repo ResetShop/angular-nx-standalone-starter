@@ -1,0 +1,1 @@
+CREATE INDEX "user_role_user_id_idx" ON "user_role" USING btree ("user_id");
