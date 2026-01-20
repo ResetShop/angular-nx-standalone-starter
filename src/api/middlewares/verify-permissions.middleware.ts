@@ -89,8 +89,8 @@ export function requirePermission(permissionName: PermissionName) {
 			try {
 				const permissions = await userRoleService.getUserPermissions(Number(user.sub));
 				c.permissions = permissions.map((p) => p.name);
-			} catch {
-				// User not found or other error - deny access
+			} catch (error) {
+				console.error('[Auth] Failed to fetch user permissions:', error);
 				return c.json({ error: 'Forbidden' }, 403);
 			}
 		}
