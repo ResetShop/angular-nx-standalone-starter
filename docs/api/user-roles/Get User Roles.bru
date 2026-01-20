@@ -1,0 +1,71 @@
+meta {
+  name: Get User Roles
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/users/1/roles
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get User Roles
+
+  Retrieves all roles assigned to a specific user with pagination support.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | userId | number | User ID |
+
+  ## Query Parameters
+
+  | Parameter | Type | Required | Default | Description |
+  |-----------|------|----------|---------|-------------|
+  | offset | number | No | 0 | Number of records to skip |
+  | limit | number | No | 10 | Maximum records to return (1-100) |
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | data | Role[] | Array of role objects |
+  | pagination | object | Pagination metadata |
+  | pagination.total | number | Total number of roles |
+  | pagination.offset | number | Current offset |
+  | pagination.limit | number | Current limit |
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Invalid user ID | User ID is not a valid number |
+  | 404 | User not found | User ID doesn't exist |
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isDefined
+  res.body.pagination: isDefined
+}
+
+tests {
+  test("should return 200 with roles", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return data array", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+
+  test("should return pagination object", function() {
+    expect(res.body.pagination).to.be.an('object');
+  });
+}

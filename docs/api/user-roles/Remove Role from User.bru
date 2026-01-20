@@ -1,0 +1,58 @@
+meta {
+  name: Remove Role from User
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{baseUrl}}/users/1/roles/2
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Remove Role from User
+
+  Removes a role assignment from a user.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | userId | number | User ID |
+  | roleId | number | Role ID to remove |
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | message | string | Success message |
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Invalid user ID | User ID is not a valid number |
+  | 400 | Invalid role ID | Role ID is not a valid number |
+  | 404 | User not found | User ID doesn't exist |
+  | 404 | Role not assigned | Role is not assigned to this user |
+}
+
+assert {
+  res.status: eq 200
+  res.body.message: eq Role removed successfully
+}
+
+tests {
+  test("should return 200 on successful removal", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return success message", function() {
+    expect(res.body.message).to.equal("Role removed successfully");
+  });
+}

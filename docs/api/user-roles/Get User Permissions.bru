@@ -1,0 +1,61 @@
+meta {
+  name: Get User Permissions
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/users/1/permissions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get User Permissions
+
+  Retrieves all permissions for a user, aggregated from all their assigned roles.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | userId | number | User ID |
+
+  ## Response
+
+  Returns an array of permission objects representing all unique permissions
+  the user has through their role assignments.
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | [] | Permission[] | Array of permission objects |
+  | [].id | number | Permission ID |
+  | [].code | string | Permission code (e.g., "users:read") |
+  | [].name | string | Human-readable permission name |
+  | [].description | string | Permission description |
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Invalid user ID | User ID is not a valid number |
+  | 404 | User not found | User ID doesn't exist |
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 with permissions", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+}

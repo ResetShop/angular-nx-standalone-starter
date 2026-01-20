@@ -1,0 +1,27 @@
+meta {
+  name: Get Current User - Unauthorized
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/auth/me
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Current User - Unauthorized Test
+
+  Tests that the endpoint returns 401 when no access token is provided.
+}
+
+assert {
+  res.status: eq 401
+}
+
+tests {
+  test("should return 401 when not authenticated", function() {
+    expect(res.status).to.equal(401);
+  });
+}

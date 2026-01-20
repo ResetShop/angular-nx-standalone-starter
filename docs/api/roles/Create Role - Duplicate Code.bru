@@ -1,0 +1,43 @@
+meta {
+  name: Create Role - Duplicate Code
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/roles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "Admin Duplicate",
+    "code": "admin"
+  }
+}
+
+docs {
+  # Create Role - Duplicate Code Test
+
+  Tests that creating a role with an existing code returns 409.
+}
+
+assert {
+  res.status: eq 409
+  res.body.error: eq A role with this code already exists
+}
+
+tests {
+  test("should return 409 for duplicate code", function() {
+    expect(res.status).to.equal(409);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.equal("A role with this code already exists");
+  });
+}
