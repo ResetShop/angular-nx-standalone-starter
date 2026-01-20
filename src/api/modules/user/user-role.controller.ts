@@ -1,6 +1,7 @@
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { container } from '../../container';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../role/permissions.constants';
@@ -18,8 +19,8 @@ app.get(
 	zValidator(
 		'query',
 		z.object({
-			offset: z.coerce.number().int().min(0).optional(),
-			limit: z.coerce.number().int().min(1).max(100).optional(),
+			offset: z.coerce.number().int().min(PAGINATION_DEFAULTS.OFFSET).optional(),
+			limit: z.coerce.number().int().min(PAGINATION_DEFAULTS.MIN_LIMIT).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
 		}),
 	),
 	async (c) => {
