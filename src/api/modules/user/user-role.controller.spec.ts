@@ -166,8 +166,8 @@ describe('User Role Controller', () => {
 
 			expect(res.status).toBe(200);
 			const data = await res.json();
-			expect(data.data).toHaveLength(1);
-			expect(data.data[0].name).toBe('can_create_users');
+			expect(data).toHaveLength(1);
+			expect(data[0].name).toBe('can_create_users');
 			// First call is from permission middleware (user 999), second is from endpoint (user 1)
 			expect(mockGetUserPermissions.calls).toEqual([[ADMIN_USER_ID], [1]]);
 		});
