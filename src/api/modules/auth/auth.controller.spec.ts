@@ -1,42 +1,33 @@
 import { Hono } from 'hono';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-// Create mock function that can be referenced
-const mockCleanupExpiredTokens = vi.fn();
-
-// Mock the container
-vi.mock('../../container', () => {
-	return {
-		container: {
-			cradle: {
-				get authService() {
-					return {
-						cleanupExpiredTokens: mockCleanupExpiredTokens,
-					};
-				},
-			},
-		},
-	};
-});
-
-// Import controller after mocking
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
 import authController from './auth.controller';
 
 describe('Auth Controller - cleanup-tokens endpoint', () => {
 	const app = new Hono();
 	app.route('/auth', authController);
 
+	// Create mock function
+	const mockCleanupExpiredTokens = fn<[], Promise<{ deletedCount: number; incomplete: boolean } | null>>();
+
 	const originalEnv = process.env;
 
 	beforeEach(() => {
-		vi.clearAllMocks();
+		clearAllMocks();
 		// Reset env vars
 		process.env = { ...originalEnv };
 		delete process.env['CRON_SECRET'];
+
+		setTestCradle({
+			authService: {
+				cleanupExpiredTokens: mockCleanupExpiredTokens,
+			},
+		});
 	});
 
 	afterEach(() => {
 		process.env = originalEnv;
+		resetTestCradle();
 	});
 
 	describe('Authorization', () => {
