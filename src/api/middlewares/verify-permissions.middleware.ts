@@ -61,6 +61,29 @@ export function permission(name: string): PermissionName {
 }
 
 /**
+ * Ensures user permissions are loaded and cached in the request context.
+ * Fetches from database on first call, returns cached value on subsequent calls.
+ *
+ * @param c - The authenticated context
+ * @returns Array of permission names, or null if fetch failed
+ */
+async function ensurePermissionsLoaded(c: AuthenticatedContext): Promise<string[] | null> {
+	if (c.permissions) {
+		return c.permissions;
+	}
+
+	const { userRoleService } = container.cradle;
+	try {
+		const permissions = await userRoleService.getUserPermissions(Number(c.user.sub));
+		c.permissions = permissions.map((p) => p.name);
+		return c.permissions;
+	} catch (error) {
+		console.error('[Auth] Failed to fetch user permissions:', error);
+		return null;
+	}
+}
+
+/**
  * Middleware factory that creates a permission check middleware.
  * Verifies the authenticated user has the specified permission.
  *
@@ -76,27 +99,16 @@ export function permission(name: string): PermissionName {
  */
 export function requirePermission(permissionName: PermissionName) {
 	return async (c: AuthenticatedContext, next: Next) => {
-		const user = c.user;
-
-		// User must be authenticated (verifyAccessToken should run first)
-		if (!user) {
+		if (!c.user) {
 			return c.json({ error: 'Unauthorized' }, 401);
 		}
 
-		// Fetch and cache permissions if not already loaded
-		if (!c.permissions) {
-			const { userRoleService } = container.cradle;
-			try {
-				const permissions = await userRoleService.getUserPermissions(Number(user.sub));
-				c.permissions = permissions.map((p) => p.name);
-			} catch (error) {
-				console.error('[Auth] Failed to fetch user permissions:', error);
-				return c.json({ error: 'Forbidden' }, 403);
-			}
+		const permissions = await ensurePermissionsLoaded(c);
+		if (!permissions) {
+			return c.json({ error: 'Forbidden' }, 403);
 		}
 
-		// Check if user has the required permission
-		if (!c.permissions.includes(permissionName)) {
+		if (!permissions.includes(permissionName)) {
 			return c.json({ error: 'Forbidden' }, 403);
 		}
 
@@ -112,24 +124,16 @@ export function requirePermission(permissionName: PermissionName) {
  */
 export function requireAnyPermission(permissionNames: PermissionName[]) {
 	return async (c: AuthenticatedContext, next: Next) => {
-		const user = c.user;
-
-		if (!user) {
+		if (!c.user) {
 			return c.json({ error: 'Unauthorized' }, 401);
 		}
 
-		if (!c.permissions) {
-			const { userRoleService } = container.cradle;
-			try {
-				const permissions = await userRoleService.getUserPermissions(Number(user.sub));
-				c.permissions = permissions.map((p) => p.name);
-			} catch {
-				return c.json({ error: 'Forbidden' }, 403);
-			}
+		const permissions = await ensurePermissionsLoaded(c);
+		if (!permissions) {
+			return c.json({ error: 'Forbidden' }, 403);
 		}
 
-		const userPermissions = c.permissions;
-		const hasAnyPermission = permissionNames.some((perm) => userPermissions.includes(perm));
+		const hasAnyPermission = permissionNames.some((perm) => permissions.includes(perm));
 		if (!hasAnyPermission) {
 			return c.json({ error: 'Forbidden' }, 403);
 		}
@@ -146,24 +150,16 @@ export function requireAnyPermission(permissionNames: PermissionName[]) {
  */
 export function requireAllPermissions(permissionNames: PermissionName[]) {
 	return async (c: AuthenticatedContext, next: Next) => {
-		const user = c.user;
-
-		if (!user) {
+		if (!c.user) {
 			return c.json({ error: 'Unauthorized' }, 401);
 		}
 
-		if (!c.permissions) {
-			const { userRoleService } = container.cradle;
-			try {
-				const permissions = await userRoleService.getUserPermissions(Number(user.sub));
-				c.permissions = permissions.map((p) => p.name);
-			} catch {
-				return c.json({ error: 'Forbidden' }, 403);
-			}
+		const permissions = await ensurePermissionsLoaded(c);
+		if (!permissions) {
+			return c.json({ error: 'Forbidden' }, 403);
 		}
 
-		const userPermissions = c.permissions;
-		const hasAllPermissions = permissionNames.every((perm) => userPermissions.includes(perm));
+		const hasAllPermissions = permissionNames.every((perm) => permissions.includes(perm));
 		if (!hasAllPermissions) {
 			return c.json({ error: 'Forbidden' }, 403);
 		}
