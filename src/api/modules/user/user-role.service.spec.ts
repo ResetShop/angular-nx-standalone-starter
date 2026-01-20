@@ -8,7 +8,7 @@ describe('UserRoleService', () => {
 	// Mock functions
 	const mockGetUserRoles = fn<[number, { offset?: number; limit?: number }?], Promise<PaginatedResponse<RoleData>>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
-	const mockAssignRoleToUser = fn<[number, number], Promise<void>>();
+	const mockAssignRoleToUser = fn<[number, number], Promise<boolean>>();
 	const mockRemoveRoleFromUser = fn<[number, number], Promise<boolean>>();
 	const mockUserHasRole = fn<[number, number], Promise<boolean>>();
 	const mockFindUserById = fn<[number], Promise<UserData | null>>();
@@ -146,14 +146,12 @@ describe('UserRoleService', () => {
 		it('should assign role to user', async () => {
 			mockFindUserById.mockResolvedValue(testUser);
 			mockFindRoleById.mockResolvedValue(testRole);
-			mockUserHasRole.mockResolvedValue(false);
-			mockAssignRoleToUser.mockResolvedValue(undefined);
+			mockAssignRoleToUser.mockResolvedValue(true);
 
 			await service.assignRoleToUser(1, 1);
 
 			expect(mockFindUserById.calls).toEqual([[1]]);
 			expect(mockFindRoleById.calls).toEqual([[1]]);
-			expect(mockUserHasRole.calls).toEqual([[1, 1]]);
 			expect(mockAssignRoleToUser.calls).toEqual([[1, 1]]);
 		});
 
@@ -173,7 +171,7 @@ describe('UserRoleService', () => {
 		it('should throw ROLE_ALREADY_ASSIGNED when role is already assigned', async () => {
 			mockFindUserById.mockResolvedValue(testUser);
 			mockFindRoleById.mockResolvedValue(testRole);
-			mockUserHasRole.mockResolvedValue(true);
+			mockAssignRoleToUser.mockResolvedValue(false);
 
 			await expect(service.assignRoleToUser(1, 1)).rejects.toThrow(USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED);
 		});
