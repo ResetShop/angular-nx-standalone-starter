@@ -59,7 +59,7 @@ app.get('/:userId/permissions', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.RE
 
 	try {
 		const permissions = await userRoleService.getUserPermissions(userId);
-		return c.json({ data: permissions });
+		return c.json(permissions);
 	} catch (error) {
 		if (error instanceof Error && error.message === USER_ROLE_ERRORS.USER_NOT_FOUND) {
 			return c.json({ error: error.message }, 404);
