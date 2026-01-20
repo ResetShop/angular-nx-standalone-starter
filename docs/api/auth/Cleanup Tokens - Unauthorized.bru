@@ -1,0 +1,32 @@
+meta {
+  name: Cleanup Tokens - Unauthorized
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/auth/cleanup-tokens
+  body: none
+  auth: none
+}
+
+docs {
+  # Cleanup Tokens - Unauthorized Test
+
+  Tests that the cleanup endpoint requires authentication.
+}
+
+assert {
+  res.status: eq 401
+  res.body.error: eq Unauthorized
+}
+
+tests {
+  test("should return 401 when not authenticated", function() {
+    expect(res.status).to.equal(401);
+  });
+
+  test("should return unauthorized error", function() {
+    expect(res.body.error).to.equal("Unauthorized");
+  });
+}

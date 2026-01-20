@@ -1,0 +1,70 @@
+meta {
+  name: Assign Role to User
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/users/1/roles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "roleId": 2
+  }
+}
+
+docs {
+  # Assign Role to User
+
+  Assigns a role to a user.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | userId | number | User ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | roleId | number | Yes | ID of the role to assign (must be positive integer) |
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | message | string | Success message |
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Invalid user ID | User ID is not a valid number |
+  | 400 | Validation error | Invalid roleId in request body |
+  | 404 | User not found | User ID doesn't exist |
+  | 404 | Role not found | Role ID doesn't exist |
+  | 409 | Role already assigned | Role is already assigned to this user |
+}
+
+assert {
+  res.status: eq 201
+  res.body.message: eq Role assigned successfully
+}
+
+tests {
+  test("should return 201 on successful assignment", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("should return success message", function() {
+    expect(res.body.message).to.equal("Role assigned successfully");
+  });
+}

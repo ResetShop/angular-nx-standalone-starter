@@ -1,0 +1,72 @@
+meta {
+  name: Update Role
+  type: http
+  seq: 9
+}
+
+put {
+  url: {{baseUrl}}/roles/{{testRoleId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "description": "Updated description for test role"
+  }
+}
+
+docs {
+  # Update Role
+
+  Updates a role's description.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | id | number | Role ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | description | string | Yes | New description (max 500 chars) |
+
+  ## Notes
+
+  - Only the description can be updated
+  - Name and code are immutable after creation
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Validation error | Invalid input |
+  | 404 | Role not found | Role ID doesn't exist |
+}
+
+assert {
+  res.status: eq 200
+  res.body.description: eq Updated description for test role
+}
+
+tests {
+  test("should return 200 on successful update", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return updated description", function() {
+    expect(res.body.description).to.equal("Updated description for test role");
+  });
+
+  test("should preserve other fields", function() {
+    expect(res.body.id).to.be.a("number");
+    expect(res.body.name).to.be.a("string");
+    expect(res.body.code).to.be.a("string");
+  });
+}

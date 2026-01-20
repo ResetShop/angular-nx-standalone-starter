@@ -1,0 +1,40 @@
+meta {
+  name: Create Role - Invalid Code
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/roles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "Invalid Code Role",
+    "code": "Invalid-Code"
+  }
+}
+
+docs {
+  # Create Role - Invalid Code Test
+
+  Tests that creating a role with an invalid code format returns 400.
+
+  Code must be lowercase with only letters, numbers, and underscores.
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should return 400 for invalid code format", function() {
+    expect(res.status).to.equal(400);
+  });
+}

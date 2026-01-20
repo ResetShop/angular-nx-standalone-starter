@@ -1,0 +1,66 @@
+meta {
+  name: Cleanup Tokens
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/auth/cleanup-tokens
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Cleanup Expired Tokens Endpoint
+
+  Manually triggers cleanup of expired refresh tokens from the database.
+
+  ## Authorization
+
+  One of the following:
+  - Valid access token (for authenticated users)
+  - CRON_SECRET header (for scheduled jobs)
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | message | string | Status message |
+  | deletedCount | number | Number of tokens deleted |
+  | incomplete | boolean | Whether more tokens remain to be deleted |
+
+  ## Notes
+
+  - Primarily used by Vercel Cron Jobs
+  - Can be called by authenticated users manually
+  - Uses advisory lock to prevent concurrent execution
+  - Returns "Cleanup already in progress" if another cleanup is running
+}
+
+assert {
+  res.status: eq 200
+  res.body.deletedCount: isDefined
+  res.body.incomplete: isDefined
+}
+
+tests {
+  test("should return 200 when authenticated", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return deletedCount", function() {
+    expect(res.body.deletedCount).to.be.a("number");
+  });
+
+  test("should return incomplete flag", function() {
+    expect(res.body.incomplete).to.be.a("boolean");
+  });
+
+  test("should return message", function() {
+    expect(res.body.message).to.be.a("string");
+  });
+}
