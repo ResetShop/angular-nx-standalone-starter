@@ -1,9 +1,6 @@
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { PermissionData, RoleData } from '../role/interfaces';
 
-// Re-export shared interfaces for convenience
-export type { PaginatedResponse, PaginationParams };
-
 // ============================================================================
 // User Data Types
 // ============================================================================

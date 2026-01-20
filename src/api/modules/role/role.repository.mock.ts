@@ -1,13 +1,6 @@
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
-import type {
-	CreateRoleParams,
-	IRoleRepository,
-	PaginatedResponse,
-	PaginationParams,
-	PermissionData,
-	RoleData,
-	UpdateRoleParams,
-} from './interfaces';
+import { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { CreateRoleParams, IRoleRepository, PermissionData, RoleData, UpdateRoleParams } from './interfaces';
 
 export class MockRoleRepository implements IRoleRepository {
 	private roles: Map<number, RoleData> = new Map();
