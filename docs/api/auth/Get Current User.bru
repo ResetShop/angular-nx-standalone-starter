@@ -17,7 +17,8 @@ auth:bearer {
 docs {
   # Get Current User (Token Introspection)
 
-  Returns information about the currently authenticated user based on the access token.
+  Returns information about the currently authenticated user based on the access token,
+  including their assigned roles with nested permissions and token timing information.
 
   ## Headers
 
@@ -33,17 +34,65 @@ docs {
   | email | string | User email |
   | firstName | string | User's first name |
   | lastName | string | User's last name |
+  | tokenIssuedAt | string | ISO 8601 timestamp when the token was issued |
+  | tokenExpiresAt | string | ISO 8601 timestamp when the token expires |
+  | roles | Role[] | Array of roles assigned to the user |
+  | roles[].id | number | Role ID |
+  | roles[].code | string | Role code (e.g., "admin") |
+  | roles[].name | string | Role display name |
+  | roles[].description | string | Role description |
+  | roles[].permissions | Permission[] | Permissions assigned to this role |
+  | roles[].permissions[].id | number | Permission ID |
+  | roles[].permissions[].name | string | Permission display name |
+  | roles[].permissions[].description | string | Permission description |
+  | roles[].permissions[].resource | string | Resource name (e.g., "users") |
+  | roles[].permissions[].action | string | Action name (e.g., "read", "write") |
+
+  ## Example Response
+
+  ```json
+  {
+    "id": 1,
+    "email": "admin@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "tokenIssuedAt": "2026-01-20T10:00:00.000Z",
+    "tokenExpiresAt": "2026-01-20T10:15:00.000Z",
+    "roles": [
+      {
+        "id": 1,
+        "code": "admin",
+        "name": "Administrator",
+        "description": "Full system access",
+        "permissions": [
+          {
+            "id": 1,
+            "name": "Read Users",
+            "description": "View user information",
+            "resource": "users",
+            "action": "read"
+          }
+        ]
+      }
+    ]
+  }
+  ```
 
   ## Notes
 
   - Requires valid access token
   - Useful for verifying token validity and getting user data
+  - Frontend can use `tokenExpiresAt` for proactive token refresh
+  - Roles and permissions enable client-side authorization decisions
 }
 
 assert {
   res.status: eq 200
   res.body.id: isDefined
   res.body.email: isDefined
+  res.body.roles: isDefined
+  res.body.tokenIssuedAt: isDefined
+  res.body.tokenExpiresAt: isDefined
 }
 
 tests {
@@ -65,5 +114,24 @@ tests {
 
   test("should return user last name", function() {
     expect(res.body.lastName).to.be.a("string");
+  });
+
+  test("should return token timing information", function() {
+    expect(res.body.tokenIssuedAt).to.be.a("string");
+    expect(res.body.tokenExpiresAt).to.be.a("string");
+  });
+
+  test("should return roles array", function() {
+    expect(res.body.roles).to.be.an("array");
+  });
+
+  test("should return roles with permissions", function() {
+    if (res.body.roles.length > 0) {
+      const role = res.body.roles[0];
+      expect(role.id).to.be.a("number");
+      expect(role.code).to.be.a("string");
+      expect(role.name).to.be.a("string");
+      expect(role.permissions).to.be.an("array");
+    }
   });
 }
