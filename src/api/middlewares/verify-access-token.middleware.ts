@@ -8,6 +8,7 @@ export interface AuthenticatedContext extends Context {
 		firstName: string;
 		lastName: string;
 	};
+	permissions?: string[];
 }
 
 /**

@@ -15,6 +15,48 @@
 			"when": 1767385613844,
 			"tag": "0001_breezy_reaper",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1768325176967,
+			"tag": "0002_wakeful_turbo",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1768326558119,
+			"tag": "0003_sticky_human_robot",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1768352839325,
+			"tag": "0004_whole_james_howlett",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1768882182596,
+			"tag": "0005_opposite_marvel_apes",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1768882249554,
+			"tag": "0006_messy_rockslide",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1768886306739,
+			"tag": "0007_closed_mojo",
+			"breakpoints": true
 		}
 	]
 }
