@@ -144,8 +144,8 @@ describe('Permissions Middleware', () => {
 			expect(mockGetUserPermissions.calls).toHaveLength(1);
 		});
 
-		it('should return 403 if getUserPermissions throws an error', async () => {
-			mockGetUserPermissions.mockRejectedValue(new Error('User not found'));
+		it('should return 500 if getUserPermissions throws an error', async () => {
+			mockGetUserPermissions.mockRejectedValue(new Error('Database connection failed'));
 
 			const app = new Hono();
 			app.use('*', async (c, next) => {
@@ -162,9 +162,9 @@ describe('Permissions Middleware', () => {
 
 			const res = await app.request('/test');
 
-			expect(res.status).toBe(403);
+			expect(res.status).toBe(500);
 			const data = await res.json();
-			expect(data.error).toBe('Forbidden');
+			expect(data.error).toBe('Internal server error');
 		});
 	});
 
