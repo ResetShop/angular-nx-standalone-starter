@@ -72,9 +72,9 @@ export interface IUserRoleRepository {
 
 	/**
 	 * Assign a role to a user
-	 * @throws Error if assignment already exists
+	 * @returns true if role was assigned, false if already assigned
 	 */
-	assignRoleToUser(userId: number, roleId: number): Promise<void>;
+	assignRoleToUser(userId: number, roleId: number): Promise<boolean>;
 
 	/**
 	 * Remove a role from a user

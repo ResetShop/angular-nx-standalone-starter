@@ -82,9 +82,16 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 *
 	 * @param userId - The user's primary key
 	 * @param roleId - The role's primary key to assign
+	 * @returns true if the role was assigned, false if already assigned
 	 */
-	async assignRoleToUser(userId: number, roleId: number): Promise<void> {
-		await this.db.insert(userRole).values({ userId, roleId }).onConflictDoNothing();
+	async assignRoleToUser(userId: number, roleId: number): Promise<boolean> {
+		const result = await this.db
+			.insert(userRole)
+			.values({ userId, roleId })
+			.onConflictDoNothing()
+			.returning({ id: userRole.id });
+
+		return result.length > 0;
 	}
 
 	/**

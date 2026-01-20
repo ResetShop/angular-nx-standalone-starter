@@ -107,13 +107,11 @@ export class UserRoleService implements IUserRoleService {
 			throw userRoleErrors.roleNotFound(roleId);
 		}
 
-		// Check if role is already assigned
-		const hasRole = await this.userRoleRepository.userHasRole(userId, roleId);
-		if (hasRole) {
+		// Attempt to assign role - database constraint handles duplicates atomically
+		const assigned = await this.userRoleRepository.assignRoleToUser(userId, roleId);
+		if (!assigned) {
 			throw userRoleErrors.roleAlreadyAssigned(userId, roleId);
 		}
-
-		await this.userRoleRepository.assignRoleToUser(userId, roleId);
 	}
 
 	/**
