@@ -5,7 +5,7 @@ import { userRole } from '../../../db/schema/user';
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { PermissionData, RoleData } from '../role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../role/interfaces';
 import type { IUserRoleRepository } from './interfaces';
 
 /**
@@ -51,6 +51,44 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 			offset,
 			limit,
 		};
+	}
+
+	/**
+	 * Retrieves all roles assigned to a user with their permissions nested.
+	 * Uses Drizzle's relational query API for cleaner data fetching.
+	 *
+	 * @param userId - The user's primary key
+	 * @returns Array of roles with nested permissions
+	 */
+	async getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]> {
+		const userRolesWithData = await this.db.query.userRole.findMany({
+			where: eq(userRole.userId, userId),
+			with: {
+				role: {
+					with: {
+						permissions: {
+							with: {
+								permission: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		return userRolesWithData.map((ur) => ({
+			id: ur.role.id,
+			code: ur.role.code,
+			name: ur.role.name,
+			description: ur.role.description,
+			permissions: ur.role.permissions.map((rp) => ({
+				id: rp.permission.id,
+				name: rp.permission.name,
+				description: rp.permission.description,
+				resource: rp.permission.resource,
+				action: rp.permission.action,
+			})),
+		}));
 	}
 
 	/**
