@@ -14,7 +14,7 @@ export const role = pgTable(
 		createdAt: timestamp('created_at').defaultNow(),
 		updatedAt: timestamp('updated_at').defaultNow(),
 	},
-	(table) => [index('idx_role_code').on(table.name)],
+	(table) => [index('idx_role_code').on(table.code)],
 );
 
 export const rolePermission = pgTable(
