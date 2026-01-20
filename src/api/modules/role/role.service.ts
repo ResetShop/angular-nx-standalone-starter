@@ -45,6 +45,11 @@ interface RoleServiceDeps {
 	roleRepository: IRoleRepository;
 }
 
+/**
+ * Service for role management operations.
+ * Handles CRUD operations for roles and role-permission assignments.
+ * Enforces business rules like unique codes/names and non-removable system roles.
+ */
 export class RoleService implements IRoleService {
 	private roleRepository: IRoleRepository;
 
@@ -53,29 +58,42 @@ export class RoleService implements IRoleService {
 	}
 
 	/**
-	 * Get a role by ID
+	 * Retrieves a role by its unique identifier.
+	 *
+	 * @param id - The role's primary key
+	 * @returns The role data if found, null otherwise
 	 */
 	async getRole(id: number): Promise<RoleData | null> {
 		return this.roleRepository.findById(id);
 	}
 
 	/**
-	 * Get a role by code
+	 * Retrieves a role by its unique code.
+	 *
+	 * @param code - The role's unique code (e.g., 'admin', 'editor')
+	 * @returns The role data if found, null otherwise
 	 */
 	async getRoleByCode(code: string): Promise<RoleData | null> {
 		return this.roleRepository.findByCode(code);
 	}
 
 	/**
-	 * Get all roles with pagination
+	 * Retrieves all roles with pagination support.
+	 *
+	 * @param pagination - Optional pagination parameters (offset, limit)
+	 * @returns Paginated response containing roles and metadata
 	 */
 	async getAllRoles(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
 		return this.roleRepository.findAll(pagination);
 	}
 
 	/**
-	 * Create a new role
-	 * @throws Error if code or name already exists
+	 * Creates a new role with the specified properties.
+	 * Validates that both code and name are unique.
+	 *
+	 * @param params - Role creation parameters (name, code, description)
+	 * @returns The newly created role data
+	 * @throws Error if a role with the same code or name already exists
 	 */
 	async createRole(params: CreateRoleParams): Promise<RoleData> {
 		// Check if code already exists
@@ -94,8 +112,13 @@ export class RoleService implements IRoleService {
 	}
 
 	/**
-	 * Update a role
-	 * @throws Error if role not found or name already exists
+	 * Updates an existing role's properties.
+	 * Only name and description can be updated; code is immutable.
+	 *
+	 * @param id - The role's primary key
+	 * @param params - Fields to update (name, description)
+	 * @returns The updated role data
+	 * @throws Error if role not found or new name conflicts with existing role
 	 */
 	async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
 		// Check if role exists
@@ -122,8 +145,11 @@ export class RoleService implements IRoleService {
 	}
 
 	/**
-	 * Delete a role
-	 * @throws Error if role not found or not removable
+	 * Deletes a role and its permission assignments.
+	 * System roles (removable=false) cannot be deleted.
+	 *
+	 * @param id - The role's primary key
+	 * @throws Error if role not found or is a non-removable system role
 	 */
 	async deleteRole(id: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(id);
@@ -140,7 +166,12 @@ export class RoleService implements IRoleService {
 	}
 
 	/**
-	 * Get all permissions assigned to a role with pagination
+	 * Retrieves all permissions assigned to a role with pagination.
+	 *
+	 * @param roleId - The role's primary key
+	 * @param pagination - Optional pagination parameters (offset, limit)
+	 * @returns Paginated response containing permissions and metadata
+	 * @throws Error if role not found
 	 */
 	async getRolePermissions(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>> {
 		const existingRole = await this.roleRepository.findById(roleId);
@@ -153,9 +184,13 @@ export class RoleService implements IRoleService {
 	}
 
 	/**
-	 * Assign permissions to a role (replaces existing assignments)
+	 * Assigns permissions to a role, replacing all existing assignments.
+	 * Validates that all permission IDs exist before making changes.
+	 *
+	 * @param roleId - The role's primary key
+	 * @param permissionIds - Array of permission IDs to assign (replaces existing)
 	 * @throws Error if role not found
-	 * @throws InvalidPermissionIdsError if any permission IDs don't exist
+	 * @throws InvalidPermissionIdsError if any permission IDs don't exist in database
 	 */
 	async assignPermissionsToRole(roleId: number, permissionIds: number[]): Promise<void> {
 		const existingRole = await this.roleRepository.findById(roleId);

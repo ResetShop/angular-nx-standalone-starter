@@ -33,6 +33,11 @@ interface UserRoleServiceDeps {
 	roleRepository: IRoleRepository;
 }
 
+/**
+ * Service for managing user-role assignments.
+ * Handles role assignment, removal, and permission aggregation for users.
+ * Validates entity existence before performing operations.
+ */
 export class UserRoleService implements IUserRoleService {
 	private userRoleRepository: IUserRoleRepository;
 	private userRepository: IUserRepository;
@@ -45,7 +50,11 @@ export class UserRoleService implements IUserRoleService {
 	}
 
 	/**
-	 * Get all roles for a user with pagination
+	 * Retrieves all roles assigned to a user with pagination.
+	 *
+	 * @param userId - The user's primary key
+	 * @param pagination - Optional pagination parameters (offset, limit)
+	 * @returns Paginated response containing roles and metadata
 	 * @throws Error if user not found
 	 */
 	async getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
@@ -58,7 +67,11 @@ export class UserRoleService implements IUserRoleService {
 	}
 
 	/**
-	 * Get all permissions for a user (aggregated from all their roles)
+	 * Retrieves all permissions for a user aggregated from all their assigned roles.
+	 * Returns distinct permissions to avoid duplicates when multiple roles share permissions.
+	 *
+	 * @param userId - The user's primary key
+	 * @returns Array of unique permissions across all user's roles
 	 * @throws Error if user not found
 	 */
 	async getUserPermissions(userId: number): Promise<PermissionData[]> {
@@ -71,8 +84,15 @@ export class UserRoleService implements IUserRoleService {
 	}
 
 	/**
-	 * Assign a role to a user
-	 * @throws Error if user or role not found, or role already assigned
+	 * Assigns a role to a user.
+	 * Validates that both user and role exist before assignment.
+	 * Prevents duplicate role assignments.
+	 *
+	 * @param userId - The user's primary key
+	 * @param roleId - The role's primary key to assign
+	 * @throws Error if user not found
+	 * @throws Error if role not found
+	 * @throws Error if role is already assigned to the user
 	 */
 	async assignRoleToUser(userId: number, roleId: number): Promise<void> {
 		// Verify user exists
@@ -97,8 +117,13 @@ export class UserRoleService implements IUserRoleService {
 	}
 
 	/**
-	 * Remove a role from a user
-	 * @throws Error if user not found or role not assigned
+	 * Removes a role assignment from a user.
+	 * Validates that the user exists before attempting removal.
+	 *
+	 * @param userId - The user's primary key
+	 * @param roleId - The role's primary key to remove
+	 * @throws Error if user not found
+	 * @throws Error if role is not assigned to the user
 	 */
 	async removeRoleFromUser(userId: number, roleId: number): Promise<void> {
 		// Verify user exists

@@ -39,6 +39,11 @@ interface AuthServiceDeps {
 	pasetoService: IPasetoService;
 }
 
+/**
+ * Service for user authentication and token management.
+ * Handles login, logout, token refresh, and expired token cleanup.
+ * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
+ */
 export class AuthService {
 	private userRepository: IUserRepository;
 	private authRepository: IAuthenticationRepository;
@@ -53,8 +58,9 @@ export class AuthService {
 	}
 
 	/**
-	 * Get refresh token expiry date based on environment variable
-	 * @returns Date object representing expiry time
+	 * Calculates refresh token expiry date based on PASETO_REFRESH_TOKEN_EXPIRY env variable.
+	 *
+	 * @returns Date object representing the token expiration time
 	 */
 	private getRefreshTokenExpiry(): Date {
 		// duration is read directly from env vars to allow changing the generated refresh token expiration time at runtime
@@ -64,10 +70,13 @@ export class AuthService {
 	}
 
 	/**
-	 * Authenticate user and generate Paseto tokens.
-	 * If authentication succeeds, a refresh token is also generated and stored in the database.
-	 * @param credentials - Login credentials (email and password)
-	 * @returns LoginResponse object containing user data, access token, and refresh token.
+	 * Authenticates a user and generates PASETO tokens.
+	 * Validates credentials, checks account status, and creates a new token pair.
+	 * Uses timing-safe comparison to prevent email enumeration attacks.
+	 *
+	 * @param credentials - Login credentials containing email and password
+	 * @returns AuthResult containing user data, access token, and refresh token
+	 * @throws Error with INVALID_CREDENTIALS message if authentication fails
 	 */
 	async authenticate(credentials: LoginParams): Promise<AuthResult> {
 		const foundUser = await this.userRepository.findByEmail(credentials.email);
@@ -125,10 +134,13 @@ export class AuthService {
 	}
 
 	/**
-	 * Refresh access token using a refresh token.
-	 * This method checks if the refresh token is valid, and if so, generates a new access token and returns it.
-	 * @param token - Refresh token to use for token refresh
-	 * @returns AuthResponse object containing user data, access token, and refresh token.
+	 * Exchanges a refresh token for a new access/refresh token pair.
+	 * Implements token rotation: the old refresh token is revoked and a new one is issued.
+	 * Validates token signature, expiration, revocation status, and user account status.
+	 *
+	 * @param token - The refresh token to exchange
+	 * @returns RefreshTokenResponse containing new access token and refresh token
+	 * @throws Error if token is invalid, expired, revoked, or user account is disabled
 	 */
 	async refreshToken(token: string): Promise<RefreshTokenResponse> {
 		// 1. Verify refresh token
@@ -194,9 +206,10 @@ export class AuthService {
 	}
 
 	/**
-	 * Revoke all refresh tokens for a user.
-	 * This method is called when a user logs out, to ensure that no stale refresh tokens remain in the database.
-	 * @param userId
+	 * Logs out a user by revoking all their refresh tokens.
+	 * Also cleans up any expired tokens for the user.
+	 *
+	 * @param userId - The user's primary key
 	 */
 	async logout(userId: number): Promise<void> {
 		// Revoke all refresh tokens for this user
@@ -207,10 +220,12 @@ export class AuthService {
 	}
 
 	/**
-	 * Delete all expired refresh tokens from the database.
-	 * Used by the cron job and manual cleanup endpoint.
+	 * Deletes all expired refresh tokens from the database.
 	 * Uses PostgreSQL advisory lock to prevent concurrent executions across multiple server instances.
-	 * @returns CleanupResult with count and incomplete flag, or null if skipped due to concurrent execution or lock error
+	 * Called by cron jobs and the manual cleanup endpoint.
+	 *
+	 * @returns CleanupResult with deleted count and incomplete flag, or null if skipped
+	 *          due to concurrent execution or lock acquisition failure
 	 */
 	async cleanupExpiredTokens(): Promise<CleanupResult | null> {
 		// Try to acquire database-level lock (works across multiple server instances)

@@ -7,9 +7,19 @@ import { BaseRepository } from '../../helpers/base.repository';
 import type { PermissionData, RoleData } from '../role/interfaces';
 import type { IUserRoleRepository, PaginatedResponse, PaginationParams } from './interfaces';
 
+/**
+ * Repository for user-role relationship database operations.
+ * Handles role assignments, permission aggregation, and role membership checks.
+ */
 export class UserRoleRepository extends BaseRepository implements IUserRoleRepository {
 	/**
-	 * Get all roles assigned to a user with pagination
+	 * Retrieves all roles assigned to a user with pagination.
+	 *
+	 * @param userId - The user's primary key
+	 * @param pagination - Optional pagination parameters
+	 * @param pagination.offset - Number of records to skip (default: 0)
+	 * @param pagination.limit - Maximum records to return (default: 10)
+	 * @returns Paginated response containing roles and metadata
 	 */
 	async getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
 		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
@@ -43,8 +53,11 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	}
 
 	/**
-	 * Get all permissions for a user (aggregated from all their roles)
-	 * Returns distinct permissions across all roles
+	 * Retrieves all permissions for a user aggregated from all their assigned roles.
+	 * Returns distinct permissions to avoid duplicates when multiple roles share permissions.
+	 *
+	 * @param userId - The user's primary key
+	 * @returns Array of unique permissions across all user's roles
 	 */
 	async getUserPermissions(userId: number): Promise<PermissionData[]> {
 		const result = await this.db
@@ -64,16 +77,22 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	}
 
 	/**
-	 * Assign a role to a user
-	 * Uses onConflictDoNothing to handle duplicate assignments gracefully
+	 * Assigns a role to a user.
+	 * Uses onConflictDoNothing to handle duplicate assignments gracefully.
+	 *
+	 * @param userId - The user's primary key
+	 * @param roleId - The role's primary key to assign
 	 */
 	async assignRoleToUser(userId: number, roleId: number): Promise<void> {
 		await this.db.insert(userRole).values({ userId, roleId }).onConflictDoNothing();
 	}
 
 	/**
-	 * Remove a role from a user
-	 * @returns true if a role was removed, false if it wasn't assigned
+	 * Removes a role assignment from a user.
+	 *
+	 * @param userId - The user's primary key
+	 * @param roleId - The role's primary key to remove
+	 * @returns true if the role was removed, false if it wasn't assigned
 	 */
 	async removeRoleFromUser(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
@@ -85,7 +104,11 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	}
 
 	/**
-	 * Check if a user has a specific role
+	 * Checks if a user has a specific role assigned.
+	 *
+	 * @param userId - The user's primary key
+	 * @param roleId - The role's primary key to check
+	 * @returns true if the user has the role, false otherwise
 	 */
 	async userHasRole(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db

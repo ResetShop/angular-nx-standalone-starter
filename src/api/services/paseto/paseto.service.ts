@@ -34,8 +34,11 @@ export class PasetoService implements IPasetoService {
 	}
 
 	/**
-	 * Generate access token (short-lived)
-	 * @param payload Token payload
+	 * Generates a short-lived access token for API authentication.
+	 * Expiry is configurable via PASETO_ACCESS_TOKEN_EXPIRY env variable (default: 15m).
+	 *
+	 * @param payload - Token payload containing user information (sub, email, firstName, lastName)
+	 * @returns Encrypted PASETO v3.local token string
 	 */
 	async generateAccessToken(payload: TokenPayload): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
@@ -58,9 +61,12 @@ export class PasetoService implements IPasetoService {
 	}
 
 	/**
-	 * Generate refresh token (long-lived)
-	 * @param userId User ID
-	 * @param tokenFamily Optional token family. If not provided, a random UUID will be generated. This is used to rotate refresh tokens, e.g. when the user changes their password.
+	 * Generates a long-lived refresh token for token rotation.
+	 * Expiry is configurable via PASETO_REFRESH_TOKEN_EXPIRY env variable (default: 7d).
+	 *
+	 * @param userId - The user's ID as a string
+	 * @param tokenFamily - Token family UUID for rotation tracking. If not provided, a new UUID is generated.
+	 * @returns Encrypted PASETO v3.local token string
 	 */
 	async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
@@ -81,7 +87,12 @@ export class PasetoService implements IPasetoService {
 	}
 
 	/**
-	 * Verify and decode access token
+	 * Verifies and decodes an access token.
+	 * Validates signature, expiration, and issuer claims.
+	 *
+	 * @param token - The PASETO token string to verify
+	 * @returns Decoded token payload with user information
+	 * @throws Error if token is invalid, expired, or has wrong issuer
 	 */
 	async verifyAccessToken(token: string): Promise<TokenPayload> {
 		try {
@@ -97,7 +108,12 @@ export class PasetoService implements IPasetoService {
 	}
 
 	/**
-	 * Verify and decode refresh token
+	 * Verifies and decodes a refresh token.
+	 * Validates signature, expiration, and issuer claims.
+	 *
+	 * @param token - The PASETO refresh token string to verify
+	 * @returns Decoded token payload with user ID and token family
+	 * @throws Error if token is invalid, expired, or has wrong issuer
 	 */
 	async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
 		try {

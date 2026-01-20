@@ -3,10 +3,17 @@ import { user } from '../../../db/schema/user';
 import { BaseRepository } from '../../helpers/base.repository';
 import { type IUserRepository, type UserData } from './interfaces';
 
+/**
+ * Repository for user-related database operations.
+ * Handles user lookup by email and ID for authentication and profile management.
+ */
 export class UserRepository extends BaseRepository implements IUserRepository {
 	/**
-	 * Finds a user by their email address
-	 * @param email Email address to search for
+	 * Finds a user by their email address.
+	 * Used during login to retrieve user data for authentication.
+	 *
+	 * @param email - Email address to search for
+	 * @returns User data if found, null otherwise
 	 */
 	async findByEmail(email: string): Promise<UserData | null> {
 		const result = await this.db
@@ -26,8 +33,11 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 	}
 
 	/**
-	 * Finds a user by their provided userId
-	 * @param id User ID to search for
+	 * Finds a user by their unique identifier.
+	 * Used for profile lookups and authorization checks.
+	 *
+	 * @param id - The user's primary key
+	 * @returns User data if found, null otherwise
 	 */
 	async findById(id: number): Promise<UserData | null> {
 		const result = await this.db
