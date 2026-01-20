@@ -37,7 +37,7 @@ app.get(
 			const roles = await userRoleService.getUserRoles(userId, { offset, limit });
 			return c.json(roles);
 		} catch (error) {
-			if (error instanceof Error && error.message === USER_ROLE_ERRORS.USER_NOT_FOUND) {
+			if (error instanceof Error && error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
 				return c.json({ error: error.message }, 404);
 			}
 			throw error;
@@ -61,7 +61,7 @@ app.get('/:userId/permissions', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.RE
 		const permissions = await userRoleService.getUserPermissions(userId);
 		return c.json(permissions);
 	} catch (error) {
-		if (error instanceof Error && error.message === USER_ROLE_ERRORS.USER_NOT_FOUND) {
+		if (error instanceof Error && error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
 			return c.json({ error: error.message }, 404);
 		}
 		throw error;
@@ -96,13 +96,13 @@ app.post(
 			return c.json({ message: 'Role assigned successfully' }, 201);
 		} catch (error) {
 			if (error instanceof Error) {
-				if (error.message === USER_ROLE_ERRORS.USER_NOT_FOUND) {
+				if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
 					return c.json({ error: error.message }, 404);
 				}
-				if (error.message === USER_ROLE_ERRORS.ROLE_NOT_FOUND) {
+				if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_NOT_FOUND)) {
 					return c.json({ error: error.message }, 404);
 				}
-				if (error.message === USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED) {
+				if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED)) {
 					return c.json({ error: error.message }, 409);
 				}
 			}
@@ -133,10 +133,10 @@ app.delete('/:userId/roles/:roleId', requirePermission(ADMIN_USER_ROLE_PERMISSIO
 		return c.json({ message: 'Role removed successfully' });
 	} catch (error) {
 		if (error instanceof Error) {
-			if (error.message === USER_ROLE_ERRORS.USER_NOT_FOUND) {
+			if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
 				return c.json({ error: error.message }, 404);
 			}
-			if (error.message === USER_ROLE_ERRORS.ROLE_NOT_ASSIGNED) {
+			if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_NOT_ASSIGNED)) {
 				return c.json({ error: error.message }, 404);
 			}
 		}
