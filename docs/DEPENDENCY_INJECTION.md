@@ -130,32 +130,123 @@ Then add to `Cradle` and register as `asClass(MyRepository).singleton()`.
 
 ## Testing with Mocked Dependencies
 
-### Unit Testing Services
+This project uses a custom test cradle system that avoids `vi.mock` and `vi.fn()`, providing framework-agnostic testing utilities.
 
-Create a mock container or pass mocked dependencies directly:
+### Test Utilities Overview
+
+The `container.mock.ts` file provides:
+
+- **`fn<TArgs, TReturn>()`** - Creates a type-safe mock function with call tracking
+- **`setTestCradle()`** - Sets mock services for tests
+- **`resetTestCradle()`** - Clears mock services after tests
+- **`clearAllMocks()`** - Clears call history from all mock functions
+
+### Unit Testing Controllers
+
+Use `setTestCradle()` to provide mock services without `vi.mock`:
 
 ```typescript
-import { MyService } from './my.service';
+import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
 
-describe('MyService', () => {
-	it('should do something', async () => {
-		// Create mocks
-		const mockUserRepo = {
-			findById: vi.fn().mockResolvedValue({ id: 1, name: 'Test' }),
-		};
+describe('MyController', () => {
+	// Create typed mock functions
+	const mockGetAll = fn<[{ offset?: number; limit?: number }], Promise<MyData[]>>();
+	const mockCreate = fn<[CreateParams], Promise<MyData>>();
 
-		// Instantiate with mocks
-		const service = new MyService({
-			userRepository: mockUserRepo as any,
-			someOtherService: {} as any,
+	beforeEach(() => {
+		clearAllMocks();
+		setTestCradle({
+			myService: {
+				getAll: mockGetAll,
+				create: mockCreate,
+			},
 		});
+	});
 
-		await service.doSomething();
+	afterEach(() => {
+		resetTestCradle();
+	});
 
-		expect(mockUserRepo.findById).toHaveBeenCalled();
+	it('should return data', async () => {
+		mockGetAll.mockResolvedValue([{ id: 1, name: 'Test' }]);
+
+		const res = await app.request('/my-endpoint');
+
+		expect(res.status).toBe(200);
+		expect(mockGetAll.calls).toEqual([[{ offset: undefined, limit: undefined }]]);
+	});
+
+	it('should handle errors', async () => {
+		mockCreate.mockRejectedValue(new Error('Validation failed'));
+
+		const res = await app.request('/my-endpoint', { method: 'POST', body: '{}' });
+
+		expect(res.status).toBe(400);
 	});
 });
 ```
+
+### Mock Function API
+
+The `fn()` function creates mock functions with these methods:
+
+```typescript
+const mockFn = fn<[number, string], Promise<Result>>();
+
+// Set return values
+mockFn.mockResolvedValue(result); // Returns Promise.resolve(result)
+mockFn.mockRejectedValue(error); // Returns Promise.reject(error)
+mockFn.mockReturnValue(value); // Returns value directly
+
+// Track calls
+mockFn.calls; // Array of all call arguments
+mockFn.mockClear(); // Clear call history
+
+// Example assertion
+expect(mockFn.calls).toEqual([
+	[1, 'test'],
+	[2, 'other'],
+]);
+```
+
+### Unit Testing Services
+
+For service tests, you can inject mocks directly via the constructor:
+
+```typescript
+import { MyService } from './my.service';
+import { fn } from '../../container.mock';
+
+describe('MyService', () => {
+	const mockFindById = fn<[number], Promise<MyData | null>>();
+
+	beforeEach(() => {
+		mockFindById.mockClear();
+	});
+
+	it('should do something', async () => {
+		mockFindById.mockResolvedValue({ id: 1, name: 'Test' });
+
+		const service = new MyService({
+			myRepository: { findById: mockFindById } as any,
+		});
+
+		const result = await service.getById(1);
+
+		expect(result).toEqual({ id: 1, name: 'Test' });
+		expect(mockFindById.calls).toEqual([[1]]);
+	});
+});
+```
+
+### Why Not vi.mock or vi.fn?
+
+This project avoids Vitest-specific mocking utilities for:
+
+1. **Framework independence** - Tests work with any test runner
+2. **Explicit dependency injection** - Clear which services are mocked
+3. **Type safety** - `fn<TArgs, TReturn>()` provides full type inference
+4. **Predictable behavior** - No global module mocking side effects
 
 ### Integration Testing
 

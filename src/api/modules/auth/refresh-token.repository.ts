@@ -74,6 +74,11 @@ function getMaxCleanupBatches(): number {
 // with other advisory locks in the same database
 const TOKEN_CLEANUP_LOCK_KEY = 0x5246544b; // "RFTK" in hex (Refresh Token Cleanup Key)
 
+/**
+ * Repository for refresh token database operations.
+ * Handles token lifecycle including creation, validation, revocation, and cleanup.
+ * Supports both traditional and serverless environments with appropriate locking strategies.
+ */
 export class RefreshTokenRepository extends BaseRepository implements IRefreshTokenRepository {
 	/**
 	 * Try to acquire a PostgreSQL advisory lock for token cleanup.
