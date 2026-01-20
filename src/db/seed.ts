@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { environment } from '../api/helpers/environment';
@@ -93,36 +93,32 @@ async function seed() {
 			await tx.insert(userRole).values({ userId: adminUserId, roleId: adminRoleId }).onConflictDoNothing();
 			console.log('✅ Administrator role assigned to admin user');
 
-			// Step 5: Create permissions
-			const permissionIds: number[] = [];
-			for (const perm of ADMIN_PERMISSIONS_SEED_DATA) {
-				try {
-					const existingPerm = await tx
-						.select({ id: permission.id })
-						.from(permission)
-						.where(eq(permission.name, perm.name));
+			// Step 5: Create permissions (batch insert)
+			await tx
+				.insert(permission)
+				.values([...ADMIN_PERMISSIONS_SEED_DATA])
+				.onConflictDoNothing();
 
-					if (existingPerm.length > 0) {
-						permissionIds.push(existingPerm[0].id);
-					} else {
-						const result = await tx.insert(permission).values(perm).returning({ id: permission.id });
-						if (result.length > 0) {
-							permissionIds.push(result[0].id);
-						} else {
-							throw new Error(`Failed to insert permission: ${perm.name}`);
-						}
-					}
-				} catch (error) {
-					const message = error instanceof Error ? error.message : 'Unknown error';
-					throw new Error(`Failed to create/verify permission "${perm.name}": ${message}`);
-				}
+			// Get all permission IDs by name
+			const permissionNames = ADMIN_PERMISSIONS_SEED_DATA.map((p) => p.name);
+			const createdPermissions = await tx
+				.select({ id: permission.id })
+				.from(permission)
+				.where(inArray(permission.name, permissionNames));
+
+			if (createdPermissions.length !== ADMIN_PERMISSIONS_SEED_DATA.length) {
+				throw new Error(
+					`Permission count mismatch: expected ${ADMIN_PERMISSIONS_SEED_DATA.length}, got ${createdPermissions.length}`,
+				);
 			}
 			console.log(`✅ ${ADMIN_PERMISSIONS_SEED_DATA.length} permissions created/verified`);
 
-			// Step 6: Assign all permissions to Administrator role
-			for (const permId of permissionIds) {
-				await tx.insert(rolePermission).values({ roleId: adminRoleId, permissionId: permId }).onConflictDoNothing();
-			}
+			// Step 6: Assign all permissions to Administrator role (batch insert)
+			const rolePermissionValues = createdPermissions.map((p) => ({
+				roleId: adminRoleId,
+				permissionId: p.id,
+			}));
+			await tx.insert(rolePermission).values(rolePermissionValues).onConflictDoNothing();
 			console.log('✅ Permissions assigned to Administrator role');
 		});
 
