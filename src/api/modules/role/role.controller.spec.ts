@@ -133,7 +133,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should validate limit max value', async () => {
-			const res = await app.request('/roles?limit=101');
+			const res = await app.request('/roles?limit=501');
 
 			expect(res.status).toBe(400);
 		});
@@ -493,7 +493,7 @@ describe('Role Controller', () => {
 			expect(res.status).toBe(400);
 			const data = await res.json();
 			expect(data.error).toContain(ROLE_ERRORS.INVALID_PERMISSION_IDS);
-			expect(data.invalidIds).toEqual([999, 1000]);
+			expect(data.details.invalidIds).toEqual([999, 1000]);
 		});
 	});
 });

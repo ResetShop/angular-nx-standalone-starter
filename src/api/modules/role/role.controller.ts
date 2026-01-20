@@ -224,7 +224,7 @@ app.put(
 			return c.json({ message: 'Permissions assigned successfully' });
 		} catch (error) {
 			if (error instanceof InvalidPermissionIdsError) {
-				return c.json({ error: error.message, invalidIds: error.invalidIds }, 400);
+				return c.json({ error: error.message, details: { invalidIds: error.invalidIds } }, 400);
 			}
 			if (error instanceof Error && error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
 				return c.json({ error: error.message }, 404);

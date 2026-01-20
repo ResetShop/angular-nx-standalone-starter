@@ -19,3 +19,30 @@ export interface PaginatedResponse<T> {
 	offset: number;
 	limit: number;
 }
+
+// ============================================================================
+// Error Response Interfaces
+// ============================================================================
+
+/**
+ * Standardized error response format for all API endpoints.
+ *
+ * @example
+ * // Simple error
+ * { error: "User not found" }
+ *
+ * @example
+ * // Error with details
+ * { error: "Invalid permission IDs", details: { invalidIds: [999, 1000] } }
+ */
+export interface ErrorResponse {
+	error: string;
+	details?: Record<string, unknown>;
+}
+
+/**
+ * Success message response for operations that don't return data
+ */
+export interface SuccessResponse {
+	message: string;
+}
