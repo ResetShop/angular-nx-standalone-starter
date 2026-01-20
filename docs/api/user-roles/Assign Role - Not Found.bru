@@ -1,0 +1,42 @@
+meta {
+  name: Assign Role - Not Found
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/users/99999/roles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "roleId": 1
+  }
+}
+
+docs {
+  # Assign Role - Not Found Test
+
+  Tests that assigning a role to a non-existent user returns 404.
+}
+
+assert {
+  res.status: eq 404
+  res.body.error: contains not found
+}
+
+tests {
+  test("should return 404 for non-existent user", function() {
+    expect(res.status).to.equal(404);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.include("not found");
+  });
+}

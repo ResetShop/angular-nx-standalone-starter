@@ -4,7 +4,7 @@ meta {
   seq: 16
 }
 
-post {
+put {
   url: {{baseUrl}}/roles/1/permissions
   body: json
   auth: bearer
@@ -53,7 +53,8 @@ docs {
 
   | Status | Error | Description |
   |--------|-------|-------------|
-  | 400 | Validation error | Invalid input (missing or invalid permissionIds) |
+  | 400 | Validation error | Invalid input (missing or invalid permissionIds). Response includes `details.invalidIds` for non-existent permission IDs |
+  | 403 | Self-lockout prevention | Cannot remove role management permission from your own role |
   | 404 | Role not found | Role ID doesn't exist |
 }
 
