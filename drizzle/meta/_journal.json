@@ -43,6 +43,13 @@
 			"when": 1768882182596,
 			"tag": "0005_opposite_marvel_apes",
 			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1768882249554,
+			"tag": "0006_messy_rockslide",
+			"breakpoints": true
 		}
 	]
 }
