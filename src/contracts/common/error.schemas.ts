@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 export const errorResponseSchema = z.object({
 	error: z.string(),
-	details: z.record(z.unknown()).optional(),
+	details: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**
