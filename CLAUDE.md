@@ -30,8 +30,24 @@
 | **Framework**        | Angular 17+ (standalone components)    |
 | **Language**         | TypeScript (strict mode)               |
 | **Monorepo Tool**    | Nx                                     |
-| **Testing**          | Jest + Angular Testing Library         |
+| **Package Manager**  | pnpm                                   |
+| **Testing**          | Vitest + Angular Testing Library       |
 | **State Management** | <!-- e.g., NgRx, Signals, Services --> |
+
+### Common Commands
+
+Use `pnpm` for all package management and script execution:
+
+| Command             | Description              |
+| ------------------- | ------------------------ |
+| `pnpm install`      | Install dependencies     |
+| `pnpm run test`     | Run all tests            |
+| `pnpm run build`    | Build the project        |
+| `pnpm run lint`     | Run linting              |
+| `pnpm run dev`      | Start development server |
+| `pnpm add <pkg>`    | Add a dependency         |
+| `pnpm add -D <pkg>` | Add a dev dependency     |
+| `pnpm add -g <pkg>` | Add a global dependency  |
 
 ### Folder Structure Conventions
 
