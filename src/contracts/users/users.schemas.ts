@@ -9,7 +9,7 @@ import { z } from 'zod';
  */
 export const userDataSchema = z.object({
 	id: z.number(),
-	email: z.string().email(),
+	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
 	enabled: z.boolean(),
@@ -22,7 +22,7 @@ export const userDataSchema = z.object({
  */
 export const authUserSchema = z.object({
 	id: z.number(),
-	email: z.string().email(),
+	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
 	enabled: z.boolean(),

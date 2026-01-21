@@ -47,26 +47,17 @@ export const roleWithPermissionsSchema = z.object({
 // Request Schemas
 // ============================================================================
 
-/**
- * Create role request body schema.
- */
 export const createRoleRequestSchema = z.object({
 	name: z.string().min(1),
 	code: z.string().min(1),
 	description: z.string().optional(),
 });
 
-/**
- * Update role request body schema.
- */
 export const updateRoleRequestSchema = z.object({
 	name: z.string().min(1).optional(),
 	description: z.string().optional(),
 });
 
-/**
- * Assign permissions request body schema.
- */
 export const assignPermissionsRequestSchema = z.object({
 	permissionIds: z.array(z.number()),
 });
