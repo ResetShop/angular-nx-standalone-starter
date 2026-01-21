@@ -87,20 +87,27 @@ app.post('/refresh', async (c) => {
 });
 
 // GET /api/auth/me - Token introspection endpoint
-// Returns the current authenticated user's information from the token
-// Useful for verifying token validity and getting user data
-app.get('/me', (c) => {
+// Returns the current authenticated user's information with roles and permissions
+// Useful for verifying token validity, getting user data, and frontend authorization
+app.get('/me', async (c) => {
+	const { userRoleService } = container.cradle;
 	const user = (c as AuthenticatedContext).user;
 
 	if (!user) {
 		return c.json({ error: 'Unauthorized' }, 401);
 	}
 
+	const userId = Number(user.sub);
+
+	// Fetch roles with their nested permissions
+	const roles = await userRoleService.getUserRolesWithPermissions(userId);
+
 	return c.json({
-		id: user.sub,
+		id: userId,
 		email: user.email,
 		firstName: user.firstName,
 		lastName: user.lastName,
+		roles,
 	});
 });
 

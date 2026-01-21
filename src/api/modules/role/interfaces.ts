@@ -49,6 +49,17 @@ export interface PermissionData {
 	action: string;
 }
 
+/**
+ * Role data with nested permissions for introspection responses
+ */
+export interface RoleWithPermissions {
+	id: number;
+	code: string;
+	name: string;
+	description: string | null;
+	permissions: PermissionData[];
+}
+
 // ============================================================================
 // Role Repository & Service Interfaces
 // ============================================================================
