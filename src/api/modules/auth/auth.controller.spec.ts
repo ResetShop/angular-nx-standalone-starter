@@ -17,8 +17,6 @@ describe('Auth Controller - /me endpoint', () => {
 				email: 'test@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
-				iat: '2026-01-20T10:00:00.000Z',
-				exp: '2026-01-20T10:15:00.000Z',
 			};
 		}
 		await next();
@@ -49,7 +47,7 @@ describe('Auth Controller - /me endpoint', () => {
 		expect(data.error).toBe('Unauthorized');
 	});
 
-	it('should return user info with roles and token timing', async () => {
+	it('should return user info with roles', async () => {
 		const mockRoles: RoleWithPermissions[] = [
 			{
 				id: 1,
@@ -75,8 +73,6 @@ describe('Auth Controller - /me endpoint', () => {
 		expect(data.email).toBe('test@example.com');
 		expect(data.firstName).toBe('John');
 		expect(data.lastName).toBe('Doe');
-		expect(data.tokenIssuedAt).toBe('2026-01-20T10:00:00.000Z');
-		expect(data.tokenExpiresAt).toBe('2026-01-20T10:15:00.000Z');
 		expect(data.roles).toHaveLength(1);
 		expect(data.roles[0].code).toBe('admin');
 		expect(data.roles[0].permissions).toHaveLength(2);
