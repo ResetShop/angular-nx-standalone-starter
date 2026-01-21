@@ -23,7 +23,17 @@
 			"Bash(gh issue edit:*)",
 			"Bash(gh pr list:*)",
 			"Bash(gh issue list:*)",
-			"Bash(npx nx:*)"
+			"Bash(npx nx:*)",
+			"Bash(pnpm test:*)",
+			"Bash(pnpm vitest run:*)",
+			"Bash(pnpm nx lint:*)",
+			"Bash(ls:*)",
+			"Bash(pnpm nx test:*)",
+			"Bash(pnpm nx show:*)",
+			"Bash(npx eslint:*)",
+			"Bash(git add:*)",
+			"Bash(npx tsc:*)",
+			"Bash(git checkout:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,

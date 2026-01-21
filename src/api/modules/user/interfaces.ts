@@ -1,5 +1,5 @@
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { PermissionData, RoleData } from '../role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../role/interfaces';
 
 // ============================================================================
 // User Data Types
@@ -63,6 +63,11 @@ export interface IUserRoleRepository {
 	getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>>;
 
 	/**
+	 * Get all roles assigned to a user with their permissions nested
+	 */
+	getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]>;
+
+	/**
 	 * Get all permissions for a user (aggregated from all their roles)
 	 */
 	getUserPermissions(userId: number): Promise<PermissionData[]>;
@@ -92,6 +97,11 @@ export interface IUserRoleService {
 	 * Get all roles for a user with pagination
 	 */
 	getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>>;
+
+	/**
+	 * Get all roles for a user with their permissions nested
+	 */
+	getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]>;
 
 	/**
 	 * Get all permissions for a user (aggregated from all their roles)

@@ -1,5 +1,5 @@
 import { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { IRoleRepository, PermissionData, RoleData } from '../role/interfaces';
+import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../role/interfaces';
 import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './interfaces';
 
 export const USER_ROLE_ERRORS = {
@@ -59,6 +59,17 @@ export class UserRoleService implements IUserRoleService {
 		}
 
 		return this.userRoleRepository.getUserRoles(userId, pagination);
+	}
+
+	/**
+	 * Retrieves all roles for a user with their permissions nested.
+	 * Each role includes its full permission list.
+	 *
+	 * @param userId - The user's primary key
+	 * @returns Array of roles with nested permissions (empty if user has no roles)
+	 */
+	async getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]> {
+		return this.userRoleRepository.getUserRolesWithPermissions(userId);
 	}
 
 	/**

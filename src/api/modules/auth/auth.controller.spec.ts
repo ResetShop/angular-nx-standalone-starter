@@ -1,7 +1,99 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
+import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
+import type { RoleWithPermissions } from '../role/interfaces';
 import authController from './auth.controller';
+
+describe('Auth Controller - /me endpoint', () => {
+	const app = new Hono();
+
+	// Mock middleware that sets user context
+	app.use('/auth/*', async (c, next) => {
+		const authHeader = c.req.header('Authorization');
+		if (authHeader?.startsWith('Bearer valid-token')) {
+			(c as AuthenticatedContext).user = {
+				sub: '1',
+				email: 'test@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+			};
+		}
+		await next();
+	});
+
+	app.route('/auth', authController);
+
+	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>();
+
+	beforeEach(() => {
+		clearAllMocks();
+		setTestCradle({
+			userRoleService: {
+				getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
+			},
+		});
+	});
+
+	afterEach(() => {
+		resetTestCradle();
+	});
+
+	it('should return 401 when no authorization provided', async () => {
+		const res = await app.request('/auth/me');
+
+		expect(res.status).toBe(401);
+		const data = await res.json();
+		expect(data.error).toBe('Unauthorized');
+	});
+
+	it('should return user info with roles', async () => {
+		const mockRoles: RoleWithPermissions[] = [
+			{
+				id: 1,
+				code: 'admin',
+				name: 'Administrator',
+				description: 'Full system access',
+				permissions: [
+					{ id: 1, name: 'Read Users', description: 'View users', resource: 'users', action: 'read' },
+					{ id: 2, name: 'Write Users', description: 'Create/update users', resource: 'users', action: 'write' },
+				],
+			},
+		];
+		mockGetUserRolesWithPermissions.mockResolvedValue(mockRoles);
+
+		const res = await app.request('/auth/me', {
+			headers: { Authorization: 'Bearer valid-token' },
+		});
+
+		expect(res.status).toBe(200);
+		const data = await res.json();
+
+		expect(data.id).toBe(1);
+		expect(data.email).toBe('test@example.com');
+		expect(data.firstName).toBe('John');
+		expect(data.lastName).toBe('Doe');
+		expect(data.roles).toHaveLength(1);
+		expect(data.roles[0].code).toBe('admin');
+		expect(data.roles[0].permissions).toHaveLength(2);
+		expect(data.roles[0].permissions[0].resource).toBe('users');
+		expect(data.roles[0].permissions[0].action).toBe('read');
+	});
+
+	it('should return empty roles array when user has no roles', async () => {
+		mockGetUserRolesWithPermissions.mockResolvedValue([]);
+
+		const res = await app.request('/auth/me', {
+			headers: { Authorization: 'Bearer valid-token' },
+		});
+
+		expect(res.status).toBe(200);
+		const data = await res.json();
+
+		expect(data.id).toBe(1);
+		expect(data.roles).toEqual([]);
+	});
+});
 
 describe('Auth Controller - cleanup-tokens endpoint', () => {
 	const app = new Hono();
