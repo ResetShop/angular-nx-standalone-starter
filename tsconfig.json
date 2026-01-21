@@ -6,6 +6,7 @@
 		"module": "preserve",
 		"lib": ["dom", "es2022"],
 		"paths": {
+			"@contracts/*": ["src/contracts/*"],
 			"@components/*": ["src/app/components/*"],
 			"@configs/*": ["src/app/configs/*"],
 			"@guards/*": ["src/app/guards/*"],
