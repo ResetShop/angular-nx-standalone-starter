@@ -18,14 +18,13 @@ export const userDataSchema = z.object({
 
 /**
  * Auth user schema (subset of user data for authentication responses).
- * Excludes the `deleted` field which is internal.
+ * Excludes `enabled` and `deleted` fields which are internal.
  */
 export const authUserSchema = z.object({
 	id: z.number(),
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
-	enabled: z.boolean(),
 });
 
 // ============================================================================
