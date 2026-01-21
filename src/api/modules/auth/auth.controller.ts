@@ -107,8 +107,6 @@ app.get('/me', async (c) => {
 		email: user.email,
 		firstName: user.firstName,
 		lastName: user.lastName,
-		tokenIssuedAt: user.iat,
-		tokenExpiresAt: user.exp,
 		roles,
 	});
 });

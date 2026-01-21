@@ -7,8 +7,6 @@ export interface AuthenticatedContext extends Context {
 		email: string;
 		firstName: string;
 		lastName: string;
-		iat?: string; // issued at, date in ISO string value
-		exp?: string; // expires at, date in ISO string value
 	};
 	permissions?: string[];
 }
@@ -35,8 +33,6 @@ export default async function verifyAccessToken(c: Context, next: Next) {
 			email: payload.email,
 			firstName: payload.firstName,
 			lastName: payload.lastName,
-			iat: payload.iat,
-			exp: payload.exp,
 		};
 
 		await next();

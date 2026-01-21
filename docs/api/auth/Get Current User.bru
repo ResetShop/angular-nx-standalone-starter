@@ -18,7 +18,7 @@ docs {
   # Get Current User (Token Introspection)
 
   Returns information about the currently authenticated user based on the access token,
-  including their assigned roles with nested permissions and token timing information.
+  including their assigned roles with nested permissions.
 
   ## Headers
 
@@ -34,8 +34,6 @@ docs {
   | email | string | User email |
   | firstName | string | User's first name |
   | lastName | string | User's last name |
-  | tokenIssuedAt | string | ISO 8601 timestamp when the token was issued |
-  | tokenExpiresAt | string | ISO 8601 timestamp when the token expires |
   | roles | Role[] | Array of roles assigned to the user |
   | roles[].id | number | Role ID |
   | roles[].code | string | Role code (e.g., "admin") |
@@ -56,8 +54,6 @@ docs {
     "email": "admin@example.com",
     "firstName": "John",
     "lastName": "Doe",
-    "tokenIssuedAt": "2026-01-20T10:00:00.000Z",
-    "tokenExpiresAt": "2026-01-20T10:15:00.000Z",
     "roles": [
       {
         "id": 1,
@@ -82,7 +78,6 @@ docs {
 
   - Requires valid access token
   - Useful for verifying token validity and getting user data
-  - Frontend can use `tokenExpiresAt` for proactive token refresh
   - Roles and permissions enable client-side authorization decisions
 }
 
@@ -91,8 +86,6 @@ assert {
   res.body.id: isDefined
   res.body.email: isDefined
   res.body.roles: isDefined
-  res.body.tokenIssuedAt: isDefined
-  res.body.tokenExpiresAt: isDefined
 }
 
 tests {
@@ -114,11 +107,6 @@ tests {
 
   test("should return user last name", function() {
     expect(res.body.lastName).to.be.a("string");
-  });
-
-  test("should return token timing information", function() {
-    expect(res.body.tokenIssuedAt).to.be.a("string");
-    expect(res.body.tokenExpiresAt).to.be.a("string");
   });
 
   test("should return roles array", function() {
