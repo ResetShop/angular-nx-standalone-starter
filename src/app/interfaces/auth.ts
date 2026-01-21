@@ -1,36 +1,10 @@
 import { FormControl } from '@angular/forms';
 
-export interface RefreshTokenResponse {
-	token: string;
-	refreshToken: string;
-}
-
+/**
+ * Angular reactive form interface for login form.
+ * This is Angular-specific (uses FormControl) and cannot be shared with backend.
+ */
 export interface LoginForm {
 	email: FormControl<string>;
 	password: FormControl<string>;
-}
-
-export interface LoginFormParams {
-	email: string;
-	password: string;
-}
-
-export interface LoginResponse {
-	user: AuthUser;
-	token: string;
-}
-
-export interface AuthUser {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	enabled: boolean;
-}
-
-export interface TokenIntrospectionResponse {
-	id: string;
-	email: string;
-	firstName: string;
-	lastName: string;
 }
