@@ -19,6 +19,7 @@
 
 6. [Principles Cross-Reference](#principles-cross-reference)
 7. [Domain Model Guidelines](#domain-model-guidelines)
+8. [Automated Code Review](#automated-code-review)
 
 ---
 
@@ -746,4 +747,77 @@ Mappers should use factory functions internally for consistency.
 
 ---
 
-\_Last updated: 2026-01-16
+## Automated Code Review
+
+### Proactive Review Directive
+
+**IMPORTANT:** After completing implementation work on any issue or feature branch, Claude MUST automatically delegate to the `code-reviewer` agent before considering the work complete.
+
+This is a mandatory step in the workflow:
+
+1. Complete implementation (code changes, tests, commits)
+2. **Automatically run code review** using the `code-reviewer` agent
+3. Provide a report to the user, with a prioritization of all the found issues, plus the recommendations and suggestions to address them. The report must be in form of a table, that will be used to track the pending work while addressing the issues, recommendations and suggestions.
+4. Save the Proactive Review results to the `.claude/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
+
+### When to Trigger
+
+Claude should proactively invoke the code-reviewer agent when:
+
+- All planned commits for an issue are complete
+- User says "done", "finished", "ready for review", or similar
+- User asks to create a PR (review first, then PR)
+- Implementation phase of plan mode is complete
+
+### How to Invoke
+
+Use the Task tool to delegate to the code-reviewer agent:
+
+```
+Use the code-reviewer agent to review the changes on this branch
+```
+
+### Review Scope
+
+The code-reviewer agent checks:
+
+- **Hard constraints** — Function/file length, complexity, no console.log, no untyped any
+- **SOLID principles** — Single responsibility, dependency inversion, etc.
+- **CUPID principles** — Composable, predictable, idiomatic code
+- **Domain patterns** — Immutability, factory functions, Zod validation
+- **Test coverage** — Tests exist for new code, follow Angular Testing Library patterns
+
+### Workflow Integration
+
+```
+┌─────────────────┐
+│  Implementation │
+│   (commits)     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Code Review    │ ◄── Automatic delegation to code-reviewer agent
+│   (mandatory)   │
+└────────┬────────┘
+         │
+         ▼
+┌───────────────────────────┐
+│  Prioritization and       │ ◄── User manually decides what to do based on review report
+│  manual mandatory review  │
+└────────┬──────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Fix Issues     │ (if any critical/warnings)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Ready for PR   │
+└─────────────────┘
+```
+
+---
+
+_Last updated: 2026-01-22_

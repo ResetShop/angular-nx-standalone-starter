@@ -35,7 +35,8 @@
 			"Bash(pnpm run stylelint:*)",
 			"Bash(pnpm run test:*)",
 			"Bash(pnpm run test:e2e:*)",
-			"Bash(gh pr diff:*)"
+			"Bash(gh pr diff:*)",
+			"Bash(grep:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
