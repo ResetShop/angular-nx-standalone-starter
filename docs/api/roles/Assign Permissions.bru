@@ -25,6 +25,12 @@ docs {
 
   Assigns permissions to a role, replacing any existing permission assignments.
 
+  ## Contract Types
+
+  - Request: `AssignPermissionsRequest` from `@contracts/roles/roles.types`
+  - Response: `SuccessMessage` from `@contracts/common/error.types`
+  - Error (400): `PermissionAssignmentError` from `@contracts/roles/roles.types`
+
   ## Path Parameters
 
   | Parameter | Type | Description |

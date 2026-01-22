@@ -60,29 +60,34 @@ tests {
 
 docs {
   # Login Endpoint
-  
+
   Authenticates a user with email and password credentials.
-  
+
+  ## Contract Types
+
+  - Request: `LoginRequest` from `@contracts/auth/auth.types`
+  - Response: `LoginResponse` from `@contracts/auth/auth.types`
+
   ## Request Body
-  
+
   | Field | Type | Required | Description |
   |-------|------|----------|-------------|
   | email | string | Yes | User's email address |
   | password | string | Yes | User's password |
-  
+
   ## Response
-  
+
   | Field | Type | Description |
   |-------|------|-------------|
-  | user | object | User information |
+  | user | AuthUser | User information |
   | user.id | number | User ID |
   | user.email | string | User email |
   | user.firstName | string | User's first name |
   | user.lastName | string | User's last name |
   | token | string | JWT access token |
-  
+
   ## Notes
-  
+
   - Refresh token is set as an HttpOnly cookie
   - Access token should be stored in memory and sent in Authorization header
 }
