@@ -4,7 +4,7 @@ import type { Cradle } from './container';
  * Type that allows partial implementations of each service in the Cradle.
  * Useful for tests where you only need to mock specific methods.
  */
-export type MockCradle = {
+type MockCradle = {
 	[K in keyof Cradle]?: Partial<Cradle[K]>;
 };
 

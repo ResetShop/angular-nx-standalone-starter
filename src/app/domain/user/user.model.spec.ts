@@ -1,0 +1,280 @@
+import { createPermission } from '../access/permission.mapper';
+import { createRole } from '../access/role.mapper';
+import { createUser } from './user.mapper';
+
+describe('User', () => {
+	const createTestRoles = () => {
+		const adminPermissions = [
+			createPermission({ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }),
+			createPermission({ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' }),
+		];
+		const editorPermissions = [
+			createPermission({ id: 3, name: 'Read Posts', description: null, resource: 'posts', action: 'read' }),
+			createPermission({ id: 4, name: 'Write Posts', description: null, resource: 'posts', action: 'write' }),
+		];
+
+		return [
+			createRole({ id: 1, code: 'admin', name: 'Administrator', description: null, permissions: adminPermissions }),
+			createRole({ id: 2, code: 'editor', name: 'Editor', description: null, permissions: editorPermissions }),
+		];
+	};
+
+	describe('createUser', () => {
+		it('should create a user with all properties', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.id).toBe(1);
+			expect(user.email).toBe('john@example.com');
+			expect(user.firstName).toBe('John');
+			expect(user.lastName).toBe('Doe');
+			expect(user.roles).toEqual(roles);
+			expect(user.token).toBe('token123');
+		});
+
+		it('should allow empty roles array', () => {
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles: [],
+				token: 'token123',
+			});
+
+			expect(user.roles).toEqual([]);
+		});
+	});
+
+	describe('fullName', () => {
+		it('should return firstName and lastName concatenated', () => {
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles: [],
+				token: 'token123',
+			});
+
+			expect(user.fullName).toBe('John Doe');
+		});
+
+		it('should handle single-word names without trailing space', () => {
+			const user = createUser({
+				id: 1,
+				email: 'prince@example.com',
+				firstName: 'Prince',
+				lastName: '',
+				roles: [],
+				token: 'token123',
+			});
+
+			expect(user.fullName).toBe('Prince');
+		});
+	});
+
+	describe('permissions', () => {
+		it('should aggregate permissions from all roles', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.permissions.length).toBe(4);
+		});
+
+		it('should deduplicate permissions across roles', () => {
+			const sharedPermission = createPermission({
+				id: 1,
+				name: 'Read Users',
+				description: null,
+				resource: 'users',
+				action: 'read',
+			});
+			const role1 = createRole({
+				id: 1,
+				code: 'admin',
+				name: 'Administrator',
+				description: null,
+				permissions: [sharedPermission],
+			});
+			const role2 = createRole({
+				id: 2,
+				code: 'viewer',
+				name: 'Viewer',
+				description: null,
+				permissions: [sharedPermission],
+			});
+
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles: [role1, role2],
+				token: 'token123',
+			});
+
+			expect(user.permissions.length).toBe(1);
+			expect(user.permissions[0].identifier).toBe('users:read');
+		});
+
+		it('should return empty array for user with no roles', () => {
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles: [],
+				token: 'token123',
+			});
+
+			expect(user.permissions).toEqual([]);
+		});
+	});
+
+	describe('hasPermission', () => {
+		it('should return true when user has permission', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.hasPermission('users', 'read')).toBe(true);
+			expect(user.hasPermission('posts', 'write')).toBe(true);
+		});
+
+		it('should return false when user does not have permission', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.hasPermission('settings', 'read')).toBe(false);
+		});
+
+		it('should return false for user with no roles', () => {
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles: [],
+				token: 'token123',
+			});
+
+			expect(user.hasPermission('users', 'read')).toBe(false);
+		});
+	});
+
+	describe('hasPermissionByIdentifier', () => {
+		it('should return true when user has permission by identifier', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.hasPermissionByIdentifier('users:read')).toBe(true);
+			expect(user.hasPermissionByIdentifier('posts:write')).toBe(true);
+		});
+
+		it('should return false when user does not have permission', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.hasPermissionByIdentifier('settings:read')).toBe(false);
+		});
+
+		it('should return false for user with no roles', () => {
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles: [],
+				token: 'token123',
+			});
+
+			expect(user.hasPermissionByIdentifier('users:read')).toBe(false);
+		});
+	});
+
+	describe('hasRole', () => {
+		it('should return true when user has role', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.hasRole('admin')).toBe(true);
+			expect(user.hasRole('editor')).toBe(true);
+		});
+
+		it('should return false when user does not have role', () => {
+			const roles = createTestRoles();
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles,
+				token: 'token123',
+			});
+
+			expect(user.hasRole('superadmin')).toBe(false);
+		});
+
+		it('should return false for user with no roles', () => {
+			const user = createUser({
+				id: 1,
+				email: 'john@example.com',
+				firstName: 'John',
+				lastName: 'Doe',
+				roles: [],
+				token: 'token123',
+			});
+
+			expect(user.hasRole('admin')).toBe(false);
+		});
+	});
+});
