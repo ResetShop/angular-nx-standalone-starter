@@ -1,5 +1,6 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
@@ -85,6 +86,15 @@ import { first } from 'rxjs';
 							</div>
 						</div>
 					</div>
+
+					@if (errorMessage()) {
+						<div
+							class="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
+							role="alert"
+						>
+							{{ errorMessage() }}
+						</div>
+					}
 				</ng-template>
 
 				<ng-template #cardFooter>
@@ -106,10 +116,11 @@ import { first } from 'rxjs';
 	`,
 })
 export default class Login {
-	auth = inject(Auth);
-	router = inject(Router);
+	private auth = inject(Auth);
+	private router = inject(Router);
 
 	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password']);
+	readonly errorMessage = signal<string | null>(null);
 
 	readonly loginForm = new FormGroup<LoginForm>({
 		email: new FormControl('', {
@@ -137,7 +148,31 @@ export default class Login {
 			return;
 		}
 
+		// Clear previous error
+		this.errorMessage.set(null);
+
 		const { email, password } = this.loginForm.value;
-		this.auth.login({ email, password }).pipe(first()).subscribe();
+		this.auth
+			.login({ email, password })
+			.pipe(first())
+			.subscribe({
+				error: (error: HttpErrorResponse) => {
+					this.handleLoginError(error);
+				},
+			});
+	}
+
+	private handleLoginError(error: HttpErrorResponse): void {
+		const message = error.error?.error ?? 'Error de autenticación';
+
+		if (message.includes('locked')) {
+			this.errorMessage.set(
+				'Tu cuenta ha sido bloqueada temporalmente debido a múltiples intentos fallidos. Por favor, intenta de nuevo más tarde.',
+			);
+		} else if (message.includes('Invalid credentials')) {
+			this.errorMessage.set('Email o contraseña incorrectos');
+		} else {
+			this.errorMessage.set('Error al iniciar sesión. Por favor, intenta de nuevo.');
+		}
 	}
 }
