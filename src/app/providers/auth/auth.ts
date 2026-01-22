@@ -3,7 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { authStorageDataSchema } from '@domain/auth/auth-storage.type';
+import { mapLoginResponseToUser, mapStorageDataToUser, mapUserToStorageData } from '@domain/auth/auth.mapper';
+import type { IUser } from '@domain/user/user.interface';
+import { createUser } from '@domain/user/user.mapper';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class Auth implements OnDestroy {
@@ -25,7 +29,7 @@ export class Auth implements OnDestroy {
 		() => this.isInitialized() && this.isGuardValidated() && this.minLoadingTimeElapsed(),
 	);
 
-	private readonly _currentUser = signal<null | LoginResponse>(null);
+	private readonly _currentUser = signal<IUser | null>(null);
 
 	ngOnDestroy() {
 		this.refreshTokenSubject.complete();
@@ -33,9 +37,11 @@ export class Auth implements OnDestroy {
 
 	login(params: LoginRequest) {
 		return this.http.post<LoginResponse>('/api/auth/login', params, { withCredentials: true }).pipe(
-			tap((response) => {
-				localStorage.setItem('auth_user', JSON.stringify(response));
-				this._currentUser.set(response);
+			map((response) => mapLoginResponseToUser(response)),
+			tap((user) => {
+				const storageData = mapUserToStorageData(user);
+				localStorage.setItem('auth_user', JSON.stringify(storageData));
+				this._currentUser.set(user);
 			}),
 		);
 	}
@@ -56,13 +62,17 @@ export class Auth implements OnDestroy {
 					// Update stored access token
 					const currentUser = this._currentUser();
 					if (currentUser) {
-						const updatedUser = {
-							...currentUser,
-							token: response.token,
-							// Refresh token updated automatically via cookie
-						};
+						const updatedUser = createUser(
+							currentUser.id,
+							currentUser.email,
+							currentUser.firstName,
+							currentUser.lastName,
+							[...currentUser.roles],
+							response.token,
+						);
 						this._currentUser.set(updatedUser);
-						localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+						const storageData = mapUserToStorageData(updatedUser);
+						localStorage.setItem('auth_user', JSON.stringify(storageData));
 					}
 				}),
 			);
@@ -75,7 +85,13 @@ export class Auth implements OnDestroy {
 		}
 		const storedUser = localStorage.getItem('auth_user');
 		if (storedUser) {
-			this._currentUser.set(JSON.parse(storedUser));
+			const result = authStorageDataSchema.safeParse(JSON.parse(storedUser));
+			if (result.success) {
+				const user = mapStorageDataToUser(result.data);
+				this._currentUser.set(user);
+			} else {
+				localStorage.removeItem('auth_user');
+			}
 		}
 		this.isInitialized.set(true);
 
@@ -109,7 +125,7 @@ export class Auth implements OnDestroy {
 				this.router.navigate(['..', 'auth', 'login']);
 			},
 			error: (error) => {
-				console.error('Logout error:', error);
+				console.error('[Auth] Logout error:', error);
 				this.router.navigate(['..', 'auth', 'login']);
 			},
 		});
