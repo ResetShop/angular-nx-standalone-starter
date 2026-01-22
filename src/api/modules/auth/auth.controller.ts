@@ -1,8 +1,9 @@
+import { loginRequestSchema } from '@contracts/auth/auth.schemas';
+import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import { zValidator } from '@hono/zod-validator';
 import { timingSafeEqual } from 'crypto';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { z } from 'zod';
 import { MIN_CRON_SECRET_LENGTH } from '../../constants/auth.constants';
 import { container } from '../../container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
@@ -21,40 +22,30 @@ const COOKIE_OPTIONS = {
 };
 
 // POST /api/auth/login - Authenticate user
-app.post(
-	'/login',
-	zValidator(
-		'json',
-		z.object({
-			email: z.email('Invalid email format'),
-			password: z.string().min(1, 'Password is required'),
-		}),
-	),
-	async (c) => {
-		const { authService } = container.cradle;
+app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
+	const { authService } = container.cradle;
 
-		try {
-			const { email, password } = c.req.valid('json');
+	try {
+		const { email, password } = c.req.valid('json');
 
-			const response = await authService.authenticate({ email, password });
+		const response = await authService.authenticate({ email, password });
 
-			// Set refresh token as HttpOnly cookie
-			setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
+		// Set refresh token as HttpOnly cookie
+		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
 
-			// Return only access token and user info (refresh token is in cookie)
-			return c.json(
-				{
-					user: response.user,
-					token: response.token,
-				},
-				200,
-			);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Authentication failed';
-			return c.json({ error: message }, 401);
-		}
-	},
-);
+		// Return only access token and user info (refresh token is in cookie)
+		return c.json<LoginResponse>(
+			{
+				user: response.user,
+				token: response.token,
+			},
+			200,
+		);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Authentication failed';
+		return c.json({ error: message }, 401);
+	}
+});
 
 // POST /api/auth/refresh - Exchange refresh token for new access + refresh tokens
 app.post('/refresh', async (c) => {
@@ -74,12 +65,7 @@ app.post('/refresh', async (c) => {
 		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
 
 		// Return only new access token (refresh token is in cookie)
-		return c.json(
-			{
-				token: response.token,
-			},
-			200,
-		);
+		return c.json<RefreshResponse>({ token: response.token }, 200);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : 'Token refresh failed';
 		return c.json({ error: message }, 401);
@@ -102,7 +88,7 @@ app.get('/me', async (c) => {
 	// Fetch roles with their nested permissions
 	const roles = await userRoleService.getUserRolesWithPermissions(userId);
 
-	return c.json({
+	return c.json<MeResponse>({
 		id: userId,
 		email: user.email,
 		firstName: user.firstName,

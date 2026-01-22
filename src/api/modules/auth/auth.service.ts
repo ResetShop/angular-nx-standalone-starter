@@ -1,4 +1,4 @@
-import { AuthUser, RefreshTokenResponse } from '@interfaces/auth';
+import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
 import { createHash } from 'crypto';
 import { type IPasetoService } from '../../services/paseto/interfaces';
@@ -9,6 +9,15 @@ import { type CleanupResult, type IAuthenticationRepository, type IRefreshTokenR
 interface LoginParams {
 	email: string;
 	password: string;
+}
+
+/**
+ * Internal refresh token response from service layer.
+ * Includes refreshToken which the controller extracts for HttpOnly cookie.
+ */
+interface InternalRefreshResponse {
+	token: string;
+	refreshToken: string;
 }
 
 /**
@@ -139,10 +148,10 @@ export class AuthService {
 	 * Validates token signature, expiration, revocation status, and user account status.
 	 *
 	 * @param token - The refresh token to exchange
-	 * @returns RefreshTokenResponse containing new access token and refresh token
+	 * @returns InternalRefreshResponse containing new access token and refresh token
 	 * @throws Error if token is invalid, expired, revoked, or user account is disabled
 	 */
-	async refreshToken(token: string): Promise<RefreshTokenResponse> {
+	async refreshToken(token: string): Promise<InternalRefreshResponse> {
 		// 1. Verify refresh token
 		const payload = await this.pasetoService.verifyRefreshToken(token);
 

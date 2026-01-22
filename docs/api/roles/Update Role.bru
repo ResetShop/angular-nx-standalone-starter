@@ -23,7 +23,12 @@ body:json {
 docs {
   # Update Role
 
-  Updates a role's description.
+  Updates a role's name and/or description.
+
+  ## Contract Types
+
+  - Request: `UpdateRoleRequest` from `@contracts/roles/roles.types`
+  - Response: `RoleData` from `@contracts/roles/roles.types`
 
   ## Path Parameters
 
@@ -35,12 +40,13 @@ docs {
 
   | Field | Type | Required | Description |
   |-------|------|----------|-------------|
-  | description | string | Yes | New description (max 500 chars) |
+  | name | string | No | New display name (1-100 chars) |
+  | description | string | No | New description (max 500 chars) |
 
   ## Notes
 
-  - Only the description can be updated
-  - Name and code are immutable after creation
+  - Code is immutable after creation
+  - At least one field must be provided
 
   ## Errors
 
@@ -48,6 +54,7 @@ docs {
   |--------|-------|-------------|
   | 400 | Validation error | Invalid input |
   | 404 | Role not found | Role ID doesn't exist |
+  | 409 | Name already exists | Another role has this name |
 }
 
 assert {
