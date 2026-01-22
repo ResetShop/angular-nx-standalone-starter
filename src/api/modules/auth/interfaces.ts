@@ -1,9 +1,16 @@
 export interface AuthenticationData {
+	id: number;
+	userId: number;
 	passwordHash: string;
+	failedLoginAttempts: number;
+	lockedUntil: Date | null;
 }
 
 export interface IAuthenticationRepository {
 	findByUserId(userId: number): Promise<AuthenticationData | null>;
+	incrementFailedAttempts(userId: number): Promise<number>;
+	lockAccount(userId: number, lockedUntil: Date): Promise<void>;
+	resetFailedAttempts(userId: number): Promise<void>;
 }
 
 export interface RefreshTokenData {
