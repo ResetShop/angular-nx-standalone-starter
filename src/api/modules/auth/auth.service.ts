@@ -124,8 +124,15 @@ export class AuthService {
 
 		// Check if account is locked (only if user and auth record exist)
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
-			console.error(AUTH_ERRORS.ACCOUNT_LOCKED);
-			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS); // Don't reveal lockout status
+			console.log(
+				JSON.stringify({
+					event: 'login_blocked_account_locked',
+					userId: foundUser?.id,
+					lockedUntil: authRecord.lockedUntil.toISOString(),
+					timestamp: new Date().toISOString(),
+				}),
+			);
+			throw new Error(AUTH_ERRORS.ACCOUNT_LOCKED);
 		}
 
 		// Compare with dummy hash if hash is not set, so to avoid creating timing differences in auth endpoint

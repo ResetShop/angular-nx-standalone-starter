@@ -209,7 +209,7 @@ describe('AuthService', () => {
 			expect(mockAuthRepo.lockedUsers[0].userId).toBe(testUser.id);
 		});
 
-		it('should throw INVALID_CREDENTIALS when account is locked', async () => {
+		it('should throw ACCOUNT_LOCKED when account is locked', async () => {
 			// Set up user with active lockout
 			mockAuthRepo.clear();
 			mockAuthRepo.addAuthRecord(testUser.id, {
@@ -223,7 +223,7 @@ describe('AuthService', () => {
 					email: testUser.email,
 					password: testPassword, // Even correct password should fail
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(AUTH_ERRORS.ACCOUNT_LOCKED);
 		});
 
 		it('should allow login after lockout expires', async () => {
