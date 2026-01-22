@@ -6,6 +6,10 @@ import { z } from 'zod';
 
 /**
  * Permission data schema for role-permission relationships.
+ *
+ * The frontend domain model computes an `identifier` field as
+ * `${resource}:${action}` for permission matching. This is intentionally
+ * not part of the API contract to avoid redundant data transfer.
  */
 export const permissionDataSchema = z.object({
 	id: z.number(),
