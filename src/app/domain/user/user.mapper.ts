@@ -2,7 +2,7 @@ import type { IRole } from '../access/role.interface';
 import type { IUser } from './user.interface';
 import { User } from './user.model';
 
-export interface CreateUserOptions {
+interface CreateUserOptions {
 	id: number;
 	email: string;
 	firstName: string;

@@ -14,7 +14,7 @@ export function mapPermission(data: PermissionData): IPermission {
 	});
 }
 
-export interface CreateRoleOptions {
+interface CreateRoleOptions {
 	id: number;
 	code: string;
 	name: string;

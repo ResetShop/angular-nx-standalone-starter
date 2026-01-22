@@ -1,7 +1,7 @@
 import type { IPermission } from './permission.interface';
 import { Permission } from './permission.model';
 
-export interface CreatePermissionOptions {
+interface CreatePermissionOptions {
 	id: number;
 	name: string;
 	description: string | null;
