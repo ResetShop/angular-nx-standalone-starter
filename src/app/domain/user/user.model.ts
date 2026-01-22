@@ -11,6 +11,7 @@ export class User implements IUser {
 	readonly token: string;
 
 	private readonly _permissions: readonly IPermission[];
+	private readonly _permissionIdentifiers: ReadonlySet<string>;
 
 	constructor(id: number, email: string, firstName: string, lastName: string, roles: IRole[], token: string) {
 		this.id = id;
@@ -22,18 +23,19 @@ export class User implements IUser {
 
 		const allPermissions = roles.flatMap((role) => role.permissions);
 		this._permissions = [...new Map(allPermissions.map((p) => [p.identifier, p])).values()];
+		this._permissionIdentifiers = new Set(this._permissions.map((p) => p.identifier));
 	}
 
 	get fullName(): string {
-		return `${this.firstName} ${this.lastName}`;
+		return `${this.firstName} ${this.lastName}`.trim();
 	}
 
 	hasPermission(resource: string, action: string): boolean {
-		return this._permissions.some((p) => p.matches(resource, action));
+		return this._permissionIdentifiers.has(`${resource}:${action}`);
 	}
 
 	hasPermissionByIdentifier(identifier: string): boolean {
-		return this._permissions.some((p) => p.identifier === identifier);
+		return this._permissionIdentifiers.has(identifier);
 	}
 
 	hasRole(code: string): boolean {
