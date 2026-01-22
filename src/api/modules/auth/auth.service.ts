@@ -1,6 +1,7 @@
 import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
 import { createHash } from 'crypto';
+import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
 import { type IUserRepository } from '../user/interfaces';
@@ -37,6 +38,7 @@ export const AUTH_ERRORS = {
 	TOKEN_INVALID: 'Invalid token',
 	ACCOUNT_DISABLED: 'Account is disabled',
 	ACCOUNT_DELETED: 'Account is deleted',
+	ACCOUNT_LOCKED: 'Account is temporarily locked due to too many failed login attempts',
 	USER_NOT_FOUND: 'User not found',
 	AUTH_RECORD_NOT_FOUND: 'Authentication record not found',
 } as const;
@@ -79,17 +81,52 @@ export class AuthService {
 	}
 
 	/**
+	 * Gets the maximum number of failed login attempts before account lockout.
+	 * Configurable via AUTH_MAX_FAILED_ATTEMPTS environment variable.
+	 *
+	 * @returns Maximum failed attempts threshold
+	 */
+	private getMaxFailedAttempts(): number {
+		const envValue = process.env['AUTH_MAX_FAILED_ATTEMPTS'];
+		const parsed = parseInt(envValue ?? '', 10);
+		return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_FAILED_ATTEMPTS;
+	}
+
+	/**
+	 * Gets the account lockout duration in milliseconds.
+	 * Configurable via AUTH_LOCKOUT_DURATION environment variable.
+	 *
+	 * @returns Lockout duration in milliseconds
+	 */
+	private getLockoutDuration(): number {
+		const duration = process.env['AUTH_LOCKOUT_DURATION'] ?? DEFAULT_LOCKOUT_DURATION;
+		try {
+			return parseDurationToMs(duration);
+		} catch {
+			return parseDurationToMs(DEFAULT_LOCKOUT_DURATION);
+		}
+	}
+
+	/**
 	 * Authenticates a user and generates PASETO tokens.
-	 * Validates credentials, checks account status, and creates a new token pair.
+	 * Validates credentials, checks account status and lockout, and creates a new token pair.
 	 * Uses timing-safe comparison to prevent email enumeration attacks.
+	 * Implements failed login tracking with automatic account lockout.
 	 *
 	 * @param credentials - Login credentials containing email and password
 	 * @returns AuthResult containing user data, access token, and refresh token
 	 * @throws Error with INVALID_CREDENTIALS message if authentication fails
+	 * @throws Error with ACCOUNT_LOCKED message if account is locked due to failed attempts
 	 */
 	async authenticate(credentials: LoginParams): Promise<AuthResult> {
 		const foundUser = await this.userRepository.findByEmail(credentials.email);
 		const authRecord = foundUser ? await this.authRepository.findByUserId(foundUser.id) : null;
+
+		// Check if account is locked (only if user and auth record exist)
+		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
+			console.error(AUTH_ERRORS.ACCOUNT_LOCKED);
+			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS); // Don't reveal lockout status
+		}
 
 		// Compare with dummy hash if hash is not set, so to avoid creating timing differences in auth endpoint
 		// responses that could be used to allow attackers to enumerate valid email addresses
@@ -97,6 +134,28 @@ export class AuthService {
 		const passwordMatch = await compare(credentials.password, hashToCompare);
 
 		if (!foundUser || !authRecord || !passwordMatch || foundUser.deleted || !foundUser.enabled) {
+			// Track failed login attempt (only if user exists with valid auth record)
+			if (foundUser && authRecord && !passwordMatch) {
+				const newAttemptCount = await this.authRepository.incrementFailedAttempts(foundUser.id);
+
+				// Check if we should lock the account
+				const maxAttempts = this.getMaxFailedAttempts();
+				if (newAttemptCount >= maxAttempts) {
+					const lockDuration = this.getLockoutDuration();
+					const lockedUntil = new Date(Date.now() + lockDuration);
+					await this.authRepository.lockAccount(foundUser.id, lockedUntil);
+					console.log(
+						JSON.stringify({
+							event: 'account_locked',
+							userId: foundUser.id,
+							failedAttempts: newAttemptCount,
+							lockedUntil: lockedUntil.toISOString(),
+							timestamp: new Date().toISOString(),
+						}),
+					);
+				}
+			}
+
 			if (!foundUser) {
 				console.error(AUTH_ERRORS.USER_NOT_FOUND);
 			} else if (!authRecord) {
@@ -110,6 +169,11 @@ export class AuthService {
 			}
 
 			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS); // Don't reveal that account exists but is disabled/deleted
+		}
+
+		// Reset failed attempts on successful login
+		if (authRecord.failedLoginAttempts > 0) {
+			await this.authRepository.resetFailedAttempts(foundUser.id);
 		}
 
 		// Cleanup expired tokens for this user
