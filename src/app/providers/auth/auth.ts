@@ -2,7 +2,7 @@ import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { LoginFormParams, LoginResponse, RefreshTokenResponse, TokenIntrospectionResponse } from '@interfaces/auth';
+import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -31,7 +31,7 @@ export class Auth implements OnDestroy {
 		this.refreshTokenSubject.complete();
 	}
 
-	login(params: LoginFormParams) {
+	login(params: LoginRequest) {
 		return this.http.post<LoginResponse>('/api/auth/login', params, { withCredentials: true }).pipe(
 			tap((response) => {
 				localStorage.setItem('auth_user', JSON.stringify(response));
@@ -43,10 +43,10 @@ export class Auth implements OnDestroy {
 	/**
 	 * Refresh access token using refresh token from HttpOnly cookie
 	 */
-	refreshToken(): Observable<RefreshTokenResponse> {
+	refreshToken(): Observable<RefreshResponse> {
 		// No need to send refresh token - it's in the HttpOnly cookie
 		return this.http
-			.post<RefreshTokenResponse>(
+			.post<RefreshResponse>(
 				'/api/auth/refresh',
 				{}, // Empty body - token is in cookie
 				{ withCredentials: true }, // Send cookies with request
@@ -89,8 +89,8 @@ export class Auth implements OnDestroy {
 	 * Token introspection - verifies current token and returns user data.
 	 * Useful for checking token validity and refreshing user info from server.
 	 */
-	getMe(): Observable<TokenIntrospectionResponse> {
-		return this.http.get<TokenIntrospectionResponse>('/api/auth/me', { withCredentials: true });
+	getMe(): Observable<MeResponse> {
+		return this.http.get<MeResponse>('/api/auth/me', { withCredentials: true });
 	}
 
 	/**

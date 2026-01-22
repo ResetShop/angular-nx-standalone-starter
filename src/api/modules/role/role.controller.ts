@@ -1,3 +1,6 @@
+import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
+import type { PaginatedResponse } from '@contracts/common/pagination.types';
+import type { PermissionAssignmentError, PermissionData, RoleData } from '@contracts/roles/roles.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -28,7 +31,7 @@ app.get(
 		const { roleService } = container.cradle;
 		const { offset, limit } = c.req.valid('query');
 		const roles = await roleService.getAllRoles({ offset, limit });
-		return c.json(roles);
+		return c.json<PaginatedResponse<RoleData>>(roles);
 	},
 );
 
@@ -41,16 +44,16 @@ app.get('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.READ), async (c) => {
 	const id = parseInt(c.req.param('id'), 10);
 
 	if (isNaN(id)) {
-		return c.json({ error: 'Invalid role ID' }, 400);
+		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
 	}
 
 	const role = await roleService.getRole(id);
 
 	if (!role) {
-		return c.json({ error: ROLE_ERRORS.NOT_FOUND }, 404);
+		return c.json<ErrorResponse>({ error: ROLE_ERRORS.NOT_FOUND }, 404);
 	}
 
-	return c.json(role);
+	return c.json<RoleData>(role);
 });
 
 /**
@@ -78,11 +81,11 @@ app.post(
 
 		try {
 			const role = await roleService.createRole(body);
-			return c.json(role, 201);
+			return c.json<RoleData>(role, 201);
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.message.startsWith(ROLE_ERRORS.CODE_EXISTS) || error.message.startsWith(ROLE_ERRORS.NAME_EXISTS)) {
-					return c.json({ error: error.message }, 409);
+					return c.json<ErrorResponse>({ error: error.message }, 409);
 				}
 			}
 			throw error;
@@ -109,21 +112,21 @@ app.put(
 		const id = parseInt(c.req.param('id'), 10);
 
 		if (isNaN(id)) {
-			return c.json({ error: 'Invalid role ID' }, 400);
+			return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
 		}
 
 		const body = c.req.valid('json');
 
 		try {
 			const role = await roleService.updateRole(id, body);
-			return c.json(role);
+			return c.json<RoleData>(role);
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
-					return c.json({ error: error.message }, 404);
+					return c.json<ErrorResponse>({ error: error.message }, 404);
 				}
 				if (error.message.startsWith(ROLE_ERRORS.NAME_EXISTS)) {
-					return c.json({ error: error.message }, 409);
+					return c.json<ErrorResponse>({ error: error.message }, 409);
 				}
 			}
 			throw error;
@@ -140,19 +143,19 @@ app.delete('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.DELETE), async (c) =
 	const id = parseInt(c.req.param('id'), 10);
 
 	if (isNaN(id)) {
-		return c.json({ error: 'Invalid role ID' }, 400);
+		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
 	}
 
 	try {
 		await roleService.deleteRole(id);
-		return c.json({ message: 'Role deleted successfully' });
+		return c.json<SuccessMessage>({ message: 'Role deleted successfully' });
 	} catch (error) {
 		if (error instanceof Error) {
 			if (error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
-				return c.json({ error: error.message }, 404);
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
 			if (error.message.startsWith(ROLE_ERRORS.NOT_REMOVABLE)) {
-				return c.json({ error: error.message }, 403);
+				return c.json<ErrorResponse>({ error: error.message }, 403);
 			}
 		}
 		throw error;
@@ -178,17 +181,17 @@ app.get(
 		const id = parseInt(c.req.param('id'), 10);
 
 		if (isNaN(id)) {
-			return c.json({ error: 'Invalid role ID' }, 400);
+			return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
 		}
 
 		const { offset, limit } = c.req.valid('query');
 
 		try {
 			const permissions = await roleService.getRolePermissions(id, { offset, limit });
-			return c.json(permissions);
+			return c.json<PaginatedResponse<PermissionData>>(permissions);
 		} catch (error) {
 			if (error instanceof Error && error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
-				return c.json({ error: error.message }, 404);
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
 			throw error;
 		}
@@ -215,7 +218,7 @@ app.put(
 		const id = parseInt(c.req.param('id'), 10);
 
 		if (isNaN(id)) {
-			return c.json({ error: 'Invalid role ID' }, 400);
+			return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
 		}
 
 		const { permissionIds } = c.req.valid('json');
@@ -223,16 +226,19 @@ app.put(
 
 		try {
 			await roleService.assignPermissionsToRole(id, permissionIds, userId);
-			return c.json({ message: 'Permissions assigned successfully' });
+			return c.json<SuccessMessage>({ message: 'Permissions assigned successfully' });
 		} catch (error) {
 			if (error instanceof SelfLockoutError) {
-				return c.json({ error: error.message }, 403);
+				return c.json<ErrorResponse>({ error: error.message }, 403);
 			}
 			if (error instanceof InvalidPermissionIdsError) {
-				return c.json({ error: error.message, details: { invalidIds: error.invalidIds } }, 400);
+				return c.json<PermissionAssignmentError>(
+					{ error: error.message, details: { invalidIds: error.invalidIds } },
+					400,
+				);
 			}
 			if (error instanceof Error && error.message.startsWith(ROLE_ERRORS.NOT_FOUND)) {
-				return c.json({ error: error.message }, 404);
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
 			throw error;
 		}

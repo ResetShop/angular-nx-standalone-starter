@@ -19,6 +19,10 @@ docs {
 
   Retrieves all permissions for a user, aggregated from all their assigned roles.
 
+  ## Contract Types
+
+  - Response: `PermissionData[]` from `@contracts/roles/roles.types`
+
   ## Path Parameters
 
   | Parameter | Type | Description |
@@ -32,11 +36,12 @@ docs {
 
   | Field | Type | Description |
   |-------|------|-------------|
-  | [] | Permission[] | Array of permission objects |
+  | [] | PermissionData[] | Array of permission objects |
   | [].id | number | Permission ID |
-  | [].code | string | Permission code (e.g., "users:read") |
   | [].name | string | Human-readable permission name |
-  | [].description | string | Permission description |
+  | [].description | string \| null | Permission description |
+  | [].resource | string | Resource being accessed (e.g., "users") |
+  | [].action | string | Action being performed (e.g., "read") |
 
   ## Errors
 
@@ -57,5 +62,15 @@ tests {
 
   test("should return an array", function() {
     expect(res.body).to.be.an('array');
+  });
+
+  test("permissions should have required fields", function() {
+    if (res.body.length > 0) {
+      const permission = res.body[0];
+      expect(permission.id).to.be.a('number');
+      expect(permission.name).to.be.a('string');
+      expect(permission.resource).to.be.a('string');
+      expect(permission.action).to.be.a('string');
+    }
   });
 }

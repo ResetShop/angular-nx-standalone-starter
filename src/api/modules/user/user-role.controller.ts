@@ -1,3 +1,6 @@
+import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
+import type { PaginatedResponse } from '@contracts/common/pagination.types';
+import type { PermissionData, RoleData } from '@contracts/roles/roles.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -28,17 +31,17 @@ app.get(
 		const userId = parseInt(c.req.param('userId'), 10);
 
 		if (isNaN(userId)) {
-			return c.json({ error: 'Invalid user ID' }, 400);
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 		}
 
 		const { offset, limit } = c.req.valid('query');
 
 		try {
 			const roles = await userRoleService.getUserRoles(userId, { offset, limit });
-			return c.json(roles);
+			return c.json<PaginatedResponse<RoleData>>(roles);
 		} catch (error) {
 			if (error instanceof Error && error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
-				return c.json({ error: error.message }, 404);
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
 			throw error;
 		}
@@ -54,15 +57,15 @@ app.get('/:userId/permissions', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.RE
 	const userId = parseInt(c.req.param('userId'), 10);
 
 	if (isNaN(userId)) {
-		return c.json({ error: 'Invalid user ID' }, 400);
+		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 	}
 
 	try {
 		const permissions = await userRoleService.getUserPermissions(userId);
-		return c.json(permissions);
+		return c.json<PermissionData[]>(permissions);
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
-			return c.json({ error: error.message }, 404);
+			return c.json<ErrorResponse>({ error: error.message }, 404);
 		}
 		throw error;
 	}
@@ -86,24 +89,24 @@ app.post(
 		const userId = parseInt(c.req.param('userId'), 10);
 
 		if (isNaN(userId)) {
-			return c.json({ error: 'Invalid user ID' }, 400);
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 		}
 
 		const { roleId } = c.req.valid('json');
 
 		try {
 			await userRoleService.assignRoleToUser(userId, roleId);
-			return c.json({ message: 'Role assigned successfully' }, 201);
+			return c.json<SuccessMessage>({ message: 'Role assigned successfully' }, 201);
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
-					return c.json({ error: error.message }, 404);
+					return c.json<ErrorResponse>({ error: error.message }, 404);
 				}
 				if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_NOT_FOUND)) {
-					return c.json({ error: error.message }, 404);
+					return c.json<ErrorResponse>({ error: error.message }, 404);
 				}
 				if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED)) {
-					return c.json({ error: error.message }, 409);
+					return c.json<ErrorResponse>({ error: error.message }, 409);
 				}
 			}
 			throw error;
@@ -121,23 +124,23 @@ app.delete('/:userId/roles/:roleId', requirePermission(ADMIN_USER_ROLE_PERMISSIO
 	const roleId = parseInt(c.req.param('roleId'), 10);
 
 	if (isNaN(userId)) {
-		return c.json({ error: 'Invalid user ID' }, 400);
+		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 	}
 
 	if (isNaN(roleId)) {
-		return c.json({ error: 'Invalid role ID' }, 400);
+		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
 	}
 
 	try {
 		await userRoleService.removeRoleFromUser(userId, roleId);
-		return c.json({ message: 'Role removed successfully' });
+		return c.json<SuccessMessage>({ message: 'Role removed successfully' });
 	} catch (error) {
 		if (error instanceof Error) {
 			if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
-				return c.json({ error: error.message }, 404);
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
 			if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_NOT_ASSIGNED)) {
-				return c.json({ error: error.message }, 404);
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
 		}
 		throw error;
