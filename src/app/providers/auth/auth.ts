@@ -62,14 +62,14 @@ export class Auth implements OnDestroy {
 					// Update stored access token
 					const currentUser = this._currentUser();
 					if (currentUser) {
-						const updatedUser = createUser(
-							currentUser.id,
-							currentUser.email,
-							currentUser.firstName,
-							currentUser.lastName,
-							[...currentUser.roles],
-							response.token,
-						);
+						const updatedUser = createUser({
+							id: currentUser.id,
+							email: currentUser.email,
+							firstName: currentUser.firstName,
+							lastName: currentUser.lastName,
+							roles: [...currentUser.roles],
+							token: response.token,
+						});
 						this._currentUser.set(updatedUser);
 						const storageData = mapUserToStorageData(updatedUser);
 						localStorage.setItem('auth_user', JSON.stringify(storageData));
