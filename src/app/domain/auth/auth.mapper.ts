@@ -5,24 +5,38 @@ import { createUser } from '../user/user.mapper';
 import type { AuthStorageData } from './auth-storage.type';
 
 export function mapLoginResponseToUser(response: LoginResponse): IUser {
-	return createUser(
-		response.user.id,
-		response.user.email,
-		response.user.firstName,
-		response.user.lastName,
-		[],
-		response.token,
-	);
+	return createUser({
+		id: response.user.id,
+		email: response.user.email,
+		firstName: response.user.firstName,
+		lastName: response.user.lastName,
+		roles: [],
+		token: response.token,
+	});
 }
 
 export function mapMeResponseToUser(response: MeResponse, token: string): IUser {
 	const roles = response.roles.map(mapRole);
-	return createUser(response.id, response.email, response.firstName, response.lastName, roles, token);
+	return createUser({
+		id: response.id,
+		email: response.email,
+		firstName: response.firstName,
+		lastName: response.lastName,
+		roles,
+		token,
+	});
 }
 
 export function mapStorageDataToUser(data: AuthStorageData): IUser {
 	const roles = data.roles.map(mapRole);
-	return createUser(data.id, data.email, data.firstName, data.lastName, roles, data.token);
+	return createUser({
+		id: data.id,
+		email: data.email,
+		firstName: data.firstName,
+		lastName: data.lastName,
+		roles,
+		token: data.token,
+	});
 }
 
 export function mapUserToStorageData(user: IUser): AuthStorageData {
