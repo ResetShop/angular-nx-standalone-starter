@@ -55,6 +55,27 @@ Use `pnpm` for all package management and script execution:
 | `pnpm add -D <pkg>`        | Add a dev dependency     |
 | `pnpm add -g <pkg>`        | Add a global dependency  |
 
+#### CRITICAL: Command Execution Policy
+
+**Claude MUST follow these rules when executing commands:**
+
+1. **Use ONLY the exact patterns listed above** - No variants, no construction, no "helpful" alternatives
+2. **Check `.claude/settings.local.json` before running ANY command** to verify the pattern is allowed
+3. **NEVER use direct `nx` commands** - Always use `pnpm run <task>` instead
+4. **NEVER construct variants** like:
+   - ❌ `pnpm test -- <args>`
+   - ❌ `pnpm nx test <project>`
+   - ❌ `nx test <project>`
+   - ❌ `nx run <project>:<task>`
+5. **If a correction is given, apply the pattern to ALL related commands immediately** (test → build → lint → dev)
+
+**Example: Running tests**
+
+- ✅ Correct: `pnpm run test`
+- ❌ Wrong: `nx test app`, `pnpm test --`, `pnpm nx test`
+
+This is a hard constraint. Violations break the workflow and require user intervention.
+
 ### Folder Structure Conventions
 
 ```
@@ -141,9 +162,10 @@ import { User, IUserRepository } from './user.types';
 
 ### General Rules
 
-- **Always use Nx to run tasks** (build, lint, test, e2e) instead of underlying tooling directly
-- Use `nx run`, `nx run-many`, or `nx affected` for all task execution
-- You have access to the Nx MCP server and its tools—use them
+- **CRITICAL: Always use `pnpm run <task>` for all task execution** (build, lint, test, e2e, dev)
+- ❌ Do NOT use direct `nx` commands (`nx run`, `nx run-many`, `nx affected`)
+- ✅ Use patterns from Common Commands section above and `.claude/settings.local.json`
+- You have access to the Nx MCP server and its tools—use them for workspace analysis, NOT for running tasks
 
 ### MCP Tool Usage
 
@@ -160,7 +182,7 @@ import { User, IUserRepository } from './user.types';
 1. Retrieve current CI Pipeline Executions using `nx_cloud_cipe_details`
 2. If errors exist, use `nx_cloud_fix_cipe_failure` to get task logs
 3. Analyze logs and help fix the problem using appropriate tools
-4. Verify the fix by running the failing task locally
+4. Verify the fix by running the failing task locally using `pnpm run <task>` (e.g., `pnpm run test`, `pnpm run build`)
 
 ### Nx Conventions
 
