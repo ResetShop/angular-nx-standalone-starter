@@ -1,4 +1,4 @@
-import { type AuthenticationData, type IAuthenticationRepository } from './interfaces';
+import { type AuthenticationData, type IAuthenticationRepository, type IncrementAttemptsResult } from './interfaces';
 
 interface MockAuthRecord {
 	passwordHash: string;
@@ -74,5 +74,41 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 			record.failedLoginAttempts = 0;
 			record.lockedUntil = null;
 		}
+	}
+
+	async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
+		// Mock uses hardcoded values for simplicity
+		const maxAttempts = 5;
+		const lockDuration = 900000; // 15 minutes
+
+		this.incrementedUsers.push(userId);
+		const record = this.authRecords.get(userId);
+
+		if (!record) {
+			return {
+				failedAttempts: 1,
+				wasLocked: false,
+			};
+		}
+
+		record.failedLoginAttempts = (record.failedLoginAttempts ?? 0) + 1;
+		const newAttemptCount = record.failedLoginAttempts;
+
+		if (newAttemptCount >= maxAttempts) {
+			const lockedUntil = new Date(Date.now() + lockDuration);
+			record.lockedUntil = lockedUntil;
+			this.lockedUsers.push({ userId, lockedUntil });
+
+			return {
+				failedAttempts: newAttemptCount,
+				wasLocked: true,
+				lockedUntil,
+			};
+		}
+
+		return {
+			failedAttempts: newAttemptCount,
+			wasLocked: false,
+		};
 	}
 }

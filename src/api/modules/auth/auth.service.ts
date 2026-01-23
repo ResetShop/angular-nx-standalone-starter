@@ -1,7 +1,6 @@
 import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
-import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
 import { type IUserRepository, type UserData } from '../user/interfaces';
@@ -83,33 +82,6 @@ export class AuthService {
 		const duration = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d';
 		const expiryMs = parseDurationToMs(duration);
 		return new Date(Date.now() + expiryMs);
-	}
-
-	/**
-	 * Gets the maximum number of failed login attempts before account lockout.
-	 * Configurable via AUTH_MAX_FAILED_ATTEMPTS environment variable.
-	 *
-	 * @returns Maximum failed attempts threshold
-	 */
-	private getMaxFailedAttempts(): number {
-		const envValue = process.env['AUTH_MAX_FAILED_ATTEMPTS'];
-		const parsed = parseInt(envValue ?? '', 10);
-		return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_FAILED_ATTEMPTS;
-	}
-
-	/**
-	 * Gets the account lockout duration in milliseconds.
-	 * Configurable via AUTH_LOCKOUT_DURATION environment variable.
-	 *
-	 * @returns Lockout duration in milliseconds
-	 */
-	private getLockoutDuration(): number {
-		const duration = process.env['AUTH_LOCKOUT_DURATION'] ?? DEFAULT_LOCKOUT_DURATION;
-		try {
-			return parseDurationToMs(duration);
-		} catch {
-			return parseDurationToMs(DEFAULT_LOCKOUT_DURATION);
-		}
 	}
 
 	/**
@@ -216,42 +188,26 @@ export class AuthService {
 	 * @param authRecord - Authentication record or null
 	 */
 	private async handleFailedLogin(user: UserData | null, authRecord: AuthenticationData | null): Promise<void> {
-		// Only track if user exists with valid auth record and password was wrong
 		if (!user || !authRecord) {
 			this.logAuthFailure(user, authRecord);
 			return;
 		}
 
-		const newAttemptCount = await this.authRepository.incrementFailedAttempts(user.id);
+		const result = await this.authRepository.incrementAndLockIfNeeded(user.id);
 
-		if (newAttemptCount >= this.getMaxFailedAttempts()) {
-			await this.lockUserAccount(user.id, newAttemptCount);
+		if (result.wasLocked && result.lockedUntil) {
+			console.log(
+				JSON.stringify({
+					event: 'account_locked',
+					userId: user.id,
+					failedAttempts: result.failedAttempts,
+					lockedUntil: result.lockedUntil.toISOString(),
+					timestamp: new Date().toISOString(),
+				}),
+			);
 		}
 
 		this.logAuthFailure(user, authRecord);
-	}
-
-	/**
-	 * Locks user account after max failed attempts.
-	 *
-	 * @param userId - User ID to lock
-	 * @param attemptCount - Number of failed attempts
-	 */
-	private async lockUserAccount(userId: number, attemptCount: number): Promise<void> {
-		const lockDuration = this.getLockoutDuration();
-		const lockedUntil = new Date(Date.now() + lockDuration);
-
-		await this.authRepository.lockAccount(userId, lockedUntil);
-
-		console.log(
-			JSON.stringify({
-				event: 'account_locked',
-				userId,
-				failedAttempts: attemptCount,
-				lockedUntil: lockedUntil.toISOString(),
-				timestamp: new Date().toISOString(),
-			}),
-		);
 	}
 
 	/**
