@@ -21,7 +21,32 @@ const COOKIE_OPTIONS = {
 	maxAge: parseDurationToSeconds(process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d'), // Default of 7 days
 };
 
-// POST /api/auth/login - Authenticate user
+/**
+ * POST /api/auth/login - Authenticate user
+ *
+ * Authenticates a user with email and password. Implements account lockout
+ * protection after multiple failed login attempts.
+ *
+ * @route POST /api/auth/login
+ * @body {LoginRequest} - Email and password
+ *
+ * @returns {200} LoginResponse - Successfully authenticated
+ * @returns {401} Error - Authentication failed
+ *
+ * Error responses (401):
+ * - "Invalid credentials" - Email/password combination is incorrect
+ * - "Account is temporarily locked due to too many failed login attempts" - Account locked after max failed attempts (default: 5)
+ * - "Account is disabled" - User account has been disabled by an administrator
+ * - "Account is deleted" - User account has been soft-deleted
+ *
+ * Security features:
+ * - Failed login attempt tracking
+ * - Automatic account lockout after configurable threshold (AUTH_MAX_FAILED_ATTEMPTS, default: 5)
+ * - Configurable lockout duration (AUTH_LOCKOUT_DURATION, default: 15m)
+ * - Timing-safe password comparison (prevents timing attacks)
+ * - Constant-time response for invalid emails (prevents user enumeration)
+ * - Refresh token set as HttpOnly, Secure, SameSite=Strict cookie
+ */
 app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 	const { authService } = container.cradle;
 
