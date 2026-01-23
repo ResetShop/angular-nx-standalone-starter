@@ -83,8 +83,8 @@ These are non-negotiable rules. Violations require explicit justification.
 
 | Constraint             | Limit                                  | Rationale                    |
 | ---------------------- | -------------------------------------- | ---------------------------- |
-| Function length        | ≤ 30 lines                             | Readability, SRP             |
-| File length            | ≤ 300 lines                            | Maintainability              |
+| Function length        | ≤ 50 lines                             | Readability, SRP             |
+| File length            | ≤ 500 lines                            | Maintainability              |
 | Cyclomatic complexity  | ≤ 10                                   | Testability                  |
 | Nesting depth          | ≤ 3 levels                             | Readability                  |
 | Barrel imports/exports | Not allowed in any part of the project | Maintainability, Performance |
