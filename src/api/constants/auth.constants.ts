@@ -3,3 +3,16 @@
  * 32 characters = 256 bits of entropy when hex-encoded.
  */
 export const MIN_CRON_SECRET_LENGTH = 32;
+
+/**
+ * Default maximum failed login attempts before account lockout.
+ * Configurable via AUTH_MAX_FAILED_ATTEMPTS environment variable.
+ */
+export const DEFAULT_MAX_FAILED_ATTEMPTS = 5;
+
+/**
+ * Default account lockout duration after max failed attempts.
+ * Configurable via AUTH_LOCKOUT_DURATION environment variable.
+ * Supports duration formats: "15m", "1h", "30s", "1d"
+ */
+export const DEFAULT_LOCKOUT_DURATION = '15m';

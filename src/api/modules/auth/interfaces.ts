@@ -1,9 +1,29 @@
 export interface AuthenticationData {
+	id: number;
+	userId: number;
 	passwordHash: string;
+	failedLoginAttempts: number;
+	lockedUntil: Date | null;
+}
+
+/**
+ * Result from incrementing failed attempts and optionally locking account.
+ */
+export interface IncrementAttemptsResult {
+	/** The new failed attempts count after incrementing */
+	failedAttempts: number;
+	/** True if account was locked due to reaching threshold */
+	wasLocked: boolean;
+	/** Timestamp when lockout expires (only set if wasLocked is true) */
+	lockedUntil?: Date;
 }
 
 export interface IAuthenticationRepository {
 	findByUserId(userId: number): Promise<AuthenticationData | null>;
+	incrementFailedAttempts(userId: number): Promise<number>;
+	lockAccount(userId: number, lockedUntil: Date): Promise<void>;
+	resetFailedAttempts(userId: number): Promise<void>;
+	incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult>;
 }
 
 export interface RefreshTokenData {
