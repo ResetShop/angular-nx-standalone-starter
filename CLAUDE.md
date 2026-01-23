@@ -81,16 +81,50 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint             | Limit                                  | Rationale                    |
-| ---------------------- | -------------------------------------- | ---------------------------- |
-| Function length        | ≤ 50 lines                             | Readability, SRP             |
-| File length            | ≤ 500 lines                            | Maintainability              |
-| Cyclomatic complexity  | ≤ 10                                   | Testability                  |
-| Nesting depth          | ≤ 3 levels                             | Readability                  |
-| Barrel imports/exports | Not allowed in any part of the project | Maintainability, Performance |
-| `any` type             | Forbidden without `// REASON:` comment | Type safety                  |
-| `// @ts-ignore`        | Forbidden without linked issue         | Technical debt tracking      |
-| `console.log`          | Remove before commit                   | Clean code                   |
+| Constraint             | Limit                                                                                     | Rationale                    |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ---------------------------- |
+| Function length        | ≤ 50 lines                                                                                | Readability, SRP             |
+| File length            | ≤ 500 lines                                                                               | Maintainability              |
+| Cyclomatic complexity  | ≤ 10                                                                                      | Testability                  |
+| Nesting depth          | ≤ 3 levels                                                                                | Readability                  |
+| Barrel imports/exports | Not allowed in any part of the project                                                    | Maintainability, Performance |
+| `any` type             | Forbidden without `// REASON:` comment                                                    | Type safety                  |
+| `// @ts-ignore`        | Forbidden without linked issue                                                            | Technical debt tracking      |
+| `console.log`          | Remove before commit                                                                      | Clean code                   |
+| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations | Bundle size, clarity         |
+
+### Type-Only Imports
+
+Always use the `type` keyword when importing types, interfaces, or type aliases that are only used for type annotations:
+
+```typescript
+// ✅ Correct - using type keyword
+import type { User } from './user.interface';
+import { type IUserRepository, type UserDTO } from './user.types';
+import { UserService } from './user.service'; // No type keyword - used at runtime
+
+// ❌ Incorrect - missing type keyword for type-only imports
+import { User, IUserRepository } from './user.types';
+```
+
+**Benefits:**
+
+- Smaller bundle size (type imports are completely removed from compiled output)
+- Clear intent (immediately visible that import is only for type checking)
+- Required for TypeScript's `isolatedModules` compiler option
+- Better tree-shaking by bundlers
+
+**When to use:**
+
+- Interfaces, type aliases, or types used only in type annotations
+- Classes used only as types (e.g., `user: User` but never `new User()`)
+
+**When NOT to use:**
+
+- Classes used at runtime (constructors, static methods)
+- Enums (compiled to runtime objects)
+- Functions or constants
+- Anything used in expressions or statements
 
 ### Scope Rules for Constants
 
