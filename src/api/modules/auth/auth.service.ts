@@ -177,7 +177,14 @@ export class AuthService {
 
 	/**
 	 * Validates user credentials with timing-safe comparison.
-	 * Uses dummy hash when user not found to prevent timing attacks.
+	 *
+	 * SECURITY: Accepts nullable parameters to maintain timing-safety. Even when user
+	 * or authRecord is null (invalid email), we MUST perform the expensive bcrypt
+	 * password comparison using a dummy hash. Skipping bcrypt for invalid cases would
+	 * create a timing vulnerability: valid emails take ~200ms (DB + bcrypt), invalid
+	 * emails take ~50ms (DB only), allowing attackers to enumerate valid emails by
+	 * measuring response times. The cost is intentional and necessary for security.
+	 *
 	 * Handles failed login tracking before throwing.
 	 *
 	 * @param user - User object or null
