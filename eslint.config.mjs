@@ -81,6 +81,10 @@ export default [
 					selector: 'MemberExpression[object.name="exports"]',
 					message: 'Use ES modules (export) instead of CommonJS (exports)',
 				},
+				{
+					selector: 'TSEnumDeclaration',
+					message: 'Enums are forbidden. Use Object.freeze() instead for key/value references',
+				},
 			],
 			'@stylistic/js/no-extra-semi': 'off',
 			'vitest/no-focused-tests': 'error',
