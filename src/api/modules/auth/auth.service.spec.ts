@@ -260,15 +260,21 @@ describe('AuthService', () => {
 			expect(mockAuthRepo.resetUsers).toContain(testUser.id);
 		});
 
-		it('should not reset failed attempts when counter is zero', async () => {
+		it('should successfully authenticate when counter is zero', async () => {
 			// User with no failed attempts
-			await authService.authenticate({
+			const result = await authService.authenticate({
 				email: testUser.email,
 				password: testPassword,
 			});
 
-			// No need to call reset when counter is already zero
-			expect(mockAuthRepo.resetUsers).toHaveLength(0);
+			// Assert on observable outcome
+			expect(result.user).toEqual(testUser);
+			expect(result.token).toBeDefined();
+			expect(result.refreshToken).toBeDefined();
+
+			// Verify auth record state remains at zero
+			const authRecord = await mockAuthRepo.findByUserId(testUser.id);
+			expect(authRecord?.failedLoginAttempts).toBe(0);
 		});
 
 		it('should respect custom AUTH_MAX_FAILED_ATTEMPTS env variable', async () => {

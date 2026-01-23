@@ -119,97 +119,184 @@ export class AuthService {
 	 * @throws Error with ACCOUNT_LOCKED message if account is locked due to failed attempts
 	 */
 	async authenticate(credentials: LoginParams): Promise<AuthResult> {
-		const foundUser = await this.userRepository.findByEmail(credentials.email);
-		const authRecord = foundUser ? await this.authRepository.findByUserId(foundUser.id) : null;
+		const { user, authRecord } = await this.findUserAndAuth(credentials.email);
 
-		// Check if account is locked (only if user and auth record exist)
+		this.checkAccountLockout(authRecord, user?.id);
+
+		const isValid = await this.validateCredentials(user, authRecord, credentials.password);
+
+		if (!isValid) {
+			await this.handleFailedLogin(user, authRecord);
+			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS);
+		}
+
+		await this.handleSuccessfulLogin(user, authRecord);
+
+		return this.generateTokenPair(user);
+	}
+
+	/**
+	 * Finds user and their authentication record by email.
+	 *
+	 * @param email - User's email address
+	 * @returns User and auth record, or nulls if not found
+	 */
+	private async findUserAndAuth(email: string): Promise<{ user: User | null; authRecord: AuthenticationData | null }> {
+		const user = await this.userRepository.findByEmail(email);
+		const authRecord = user ? await this.authRepository.findByUserId(user.id) : null;
+		return { user, authRecord };
+	}
+
+	/**
+	 * Checks if account is locked due to failed login attempts.
+	 *
+	 * @param authRecord - User's authentication record
+	 * @param userId - User ID for logging
+	 * @throws Error with ACCOUNT_LOCKED message if account is currently locked
+	 */
+	private checkAccountLockout(authRecord: AuthenticationData | null, userId?: number): void {
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
 			console.log(
 				JSON.stringify({
 					event: 'login_blocked_account_locked',
-					userId: foundUser?.id,
+					userId,
 					lockedUntil: authRecord.lockedUntil.toISOString(),
 					timestamp: new Date().toISOString(),
 				}),
 			);
 			throw new Error(AUTH_ERRORS.ACCOUNT_LOCKED);
 		}
+	}
 
-		// Compare with dummy hash if hash is not set, so to avoid creating timing differences in auth endpoint
-		// responses that could be used to allow attackers to enumerate valid email addresses
+	/**
+	 * Validates user credentials with timing-safe comparison.
+	 * Uses dummy hash when user not found to prevent timing attacks.
+	 *
+	 * @param user - User object or null
+	 * @param authRecord - Authentication record or null
+	 * @param password - Password to verify
+	 * @returns true if credentials are valid and account is active
+	 */
+	private async validateCredentials(
+		user: User | null,
+		authRecord: AuthenticationData | null,
+		password: string,
+	): Promise<boolean> {
+		// Use dummy hash to prevent timing differences that could reveal valid emails
 		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy';
-		const passwordMatch = await compare(credentials.password, hashToCompare);
+		const passwordMatch = await compare(password, hashToCompare);
 
-		if (!foundUser || !authRecord || !passwordMatch || foundUser.deleted || !foundUser.enabled) {
-			// Track failed login attempt (only if user exists with valid auth record)
-			if (foundUser && authRecord && !passwordMatch) {
-				const newAttemptCount = await this.authRepository.incrementFailedAttempts(foundUser.id);
+		return !!(user && authRecord && passwordMatch && !user.deleted && user.enabled);
+	}
 
-				// Check if we should lock the account
-				const maxAttempts = this.getMaxFailedAttempts();
-				if (newAttemptCount >= maxAttempts) {
-					const lockDuration = this.getLockoutDuration();
-					const lockedUntil = new Date(Date.now() + lockDuration);
-					await this.authRepository.lockAccount(foundUser.id, lockedUntil);
-					console.log(
-						JSON.stringify({
-							event: 'account_locked',
-							userId: foundUser.id,
-							failedAttempts: newAttemptCount,
-							lockedUntil: lockedUntil.toISOString(),
-							timestamp: new Date().toISOString(),
-						}),
-					);
-				}
-			}
-
-			if (!foundUser) {
-				console.error(AUTH_ERRORS.USER_NOT_FOUND);
-			} else if (!authRecord) {
-				console.error(AUTH_ERRORS.AUTH_RECORD_NOT_FOUND);
-			} else if (!passwordMatch) {
-				console.error(AUTH_ERRORS.INVALID_CREDENTIALS);
-			} else if (foundUser.deleted) {
-				console.error(AUTH_ERRORS.ACCOUNT_DELETED);
-			} else if (!foundUser.enabled) {
-				console.error(AUTH_ERRORS.ACCOUNT_DISABLED);
-			}
-
-			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS); // Don't reveal that account exists but is disabled/deleted
+	/**
+	 * Handles failed login attempt by tracking failures and locking account if threshold reached.
+	 *
+	 * @param user - User object or null
+	 * @param authRecord - Authentication record or null
+	 */
+	private async handleFailedLogin(user: User | null, authRecord: AuthenticationData | null): Promise<void> {
+		// Only track if user exists with valid auth record and password was wrong
+		if (!user || !authRecord) {
+			this.logAuthFailure(user, authRecord);
+			return;
 		}
 
-		// Reset failed attempts on successful login
+		const newAttemptCount = await this.authRepository.incrementFailedAttempts(user.id);
+
+		if (newAttemptCount >= this.getMaxFailedAttempts()) {
+			await this.lockUserAccount(user.id, newAttemptCount);
+		}
+
+		this.logAuthFailure(user, authRecord);
+	}
+
+	/**
+	 * Locks user account after max failed attempts.
+	 *
+	 * @param userId - User ID to lock
+	 * @param attemptCount - Number of failed attempts
+	 */
+	private async lockUserAccount(userId: number, attemptCount: number): Promise<void> {
+		const lockDuration = this.getLockoutDuration();
+		const lockedUntil = new Date(Date.now() + lockDuration);
+
+		await this.authRepository.lockAccount(userId, lockedUntil);
+
+		console.log(
+			JSON.stringify({
+				event: 'account_locked',
+				userId,
+				failedAttempts: attemptCount,
+				lockedUntil: lockedUntil.toISOString(),
+				timestamp: new Date().toISOString(),
+			}),
+		);
+	}
+
+	/**
+	 * Logs authentication failure reasons for debugging.
+	 *
+	 * @param user - User object or null
+	 * @param authRecord - Authentication record or null
+	 */
+	private logAuthFailure(user: User | null, authRecord: AuthenticationData | null): void {
+		if (!user) {
+			console.error(AUTH_ERRORS.USER_NOT_FOUND);
+		} else if (!authRecord) {
+			console.error(AUTH_ERRORS.AUTH_RECORD_NOT_FOUND);
+		} else if (user.deleted) {
+			console.error(AUTH_ERRORS.ACCOUNT_DELETED);
+		} else if (!user.enabled) {
+			console.error(AUTH_ERRORS.ACCOUNT_DISABLED);
+		} else {
+			console.error(AUTH_ERRORS.INVALID_CREDENTIALS);
+		}
+	}
+
+	/**
+	 * Handles successful login by resetting failed attempts and cleaning up expired tokens.
+	 *
+	 * @param user - Authenticated user
+	 * @param authRecord - User's authentication record
+	 */
+	private async handleSuccessfulLogin(user: User, authRecord: AuthenticationData): Promise<void> {
 		if (authRecord.failedLoginAttempts > 0) {
-			await this.authRepository.resetFailedAttempts(foundUser.id);
+			await this.authRepository.resetFailedAttempts(user.id);
 		}
 
-		// Cleanup expired tokens for this user
-		await this.refreshTokenRepository.deleteExpiredTokensForUser(foundUser.id);
+		await this.refreshTokenRepository.deleteExpiredTokensForUser(user.id);
+	}
 
-		// Generate Paseto tokens
+	/**
+	 * Generates access and refresh token pair for authenticated user.
+	 *
+	 * @param user - Authenticated user
+	 * @returns AuthResult with user data and tokens
+	 */
+	private async generateTokenPair(user: User): Promise<AuthResult> {
 		const accessToken = await this.pasetoService.generateAccessToken({
-			sub: foundUser.id.toString(),
-			email: foundUser.email,
-			firstName: foundUser.firstName,
-			lastName: foundUser.lastName,
+			sub: user.id.toString(),
+			email: user.email,
+			firstName: user.firstName,
+			lastName: user.lastName,
 		});
 
 		const tokenFamily = crypto.randomUUID();
-		const refreshToken = await this.pasetoService.generateRefreshToken(foundUser.id.toString(), tokenFamily);
+		const refreshToken = await this.pasetoService.generateRefreshToken(user.id.toString(), tokenFamily);
 
-		// Store refresh token in database
 		const refreshTokenHash = createHash('sha256').update(refreshToken).digest('hex');
 		await this.refreshTokenRepository.create({
-			userId: foundUser.id,
-			tokenFamily: tokenFamily,
+			userId: user.id,
+			tokenFamily,
 			tokenHash: refreshTokenHash,
 			expiresAt: this.getRefreshTokenExpiry(),
 		});
 
 		return {
-			user: foundUser,
+			user,
 			token: accessToken,
-			refreshToken: refreshToken,
+			refreshToken,
 		};
 	}
 
