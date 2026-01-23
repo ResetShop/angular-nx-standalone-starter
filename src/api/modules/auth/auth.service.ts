@@ -4,7 +4,7 @@ import crypto, { createHash } from 'crypto';
 import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
-import { type IUserRepository, type User } from '../user/interfaces';
+import { type IUserRepository, type UserData } from '../user/interfaces';
 import {
 	type AuthenticationData,
 	type CleanupResult,
@@ -146,7 +146,9 @@ export class AuthService {
 	 * @param email - User's email address
 	 * @returns User and auth record, or nulls if not found
 	 */
-	private async findUserAndAuth(email: string): Promise<{ user: User | null; authRecord: AuthenticationData | null }> {
+	private async findUserAndAuth(
+		email: string,
+	): Promise<{ user: UserData | null; authRecord: AuthenticationData | null }> {
 		const user = await this.userRepository.findByEmail(email);
 		const authRecord = user ? await this.authRepository.findByUserId(user.id) : null;
 		return { user, authRecord };
@@ -183,7 +185,7 @@ export class AuthService {
 	 * @returns true if credentials are valid and account is active
 	 */
 	private async validateCredentials(
-		user: User | null,
+		user: UserData | null,
 		authRecord: AuthenticationData | null,
 		password: string,
 	): Promise<boolean> {
@@ -200,7 +202,7 @@ export class AuthService {
 	 * @param user - User object or null
 	 * @param authRecord - Authentication record or null
 	 */
-	private async handleFailedLogin(user: User | null, authRecord: AuthenticationData | null): Promise<void> {
+	private async handleFailedLogin(user: UserData | null, authRecord: AuthenticationData | null): Promise<void> {
 		// Only track if user exists with valid auth record and password was wrong
 		if (!user || !authRecord) {
 			this.logAuthFailure(user, authRecord);
@@ -245,7 +247,7 @@ export class AuthService {
 	 * @param user - User object or null
 	 * @param authRecord - Authentication record or null
 	 */
-	private logAuthFailure(user: User | null, authRecord: AuthenticationData | null): void {
+	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
 		if (!user) {
 			console.error(AUTH_ERRORS.USER_NOT_FOUND);
 		} else if (!authRecord) {
@@ -265,7 +267,7 @@ export class AuthService {
 	 * @param user - Authenticated user
 	 * @param authRecord - User's authentication record
 	 */
-	private async handleSuccessfulLogin(user: User, authRecord: AuthenticationData): Promise<void> {
+	private async handleSuccessfulLogin(user: UserData, authRecord: AuthenticationData): Promise<void> {
 		if (authRecord.failedLoginAttempts > 0) {
 			await this.authRepository.resetFailedAttempts(user.id);
 		}
@@ -279,7 +281,7 @@ export class AuthService {
 	 * @param user - Authenticated user
 	 * @returns AuthResult with user data and tokens
 	 */
-	private async generateTokenPair(user: User): Promise<AuthResult> {
+	private async generateTokenPair(user: UserData): Promise<AuthResult> {
 		const accessToken = await this.pasetoService.generateAccessToken({
 			sub: user.id.toString(),
 			email: user.email,
