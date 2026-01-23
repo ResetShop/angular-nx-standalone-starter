@@ -124,24 +124,24 @@ export class AuthService {
 	 * @throws Error with ACCOUNT_LOCKED message if account is locked due to failed attempts
 	 */
 	async authenticate(credentials: LoginParams): Promise<AuthResult> {
-		const { user, authRecord } = await this.findUserAndAuth(credentials.email);
-
-		this.checkAccountLockout(authRecord, user?.id);
-
-		const isValid = await this.validateCredentials(user, authRecord, credentials.password);
-
-		if (!isValid) {
-			await this.handleFailedLogin(user, authRecord);
-			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS);
-		}
-
-		await this.handleSuccessfulLogin(user, authRecord);
-
-		return this.generateTokenPair(user);
+		return this.findUserAndAuth(credentials.email)
+			.then(({ user, authRecord }) => {
+				this.checkAccountLockout(authRecord, user?.id);
+				return this.validateCredentials(user, authRecord, credentials.password);
+			})
+			.then(({ user, authRecord }) => this.handleSuccessfulLogin(user, authRecord).then(() => user))
+			.then((user) => this.generateTokenPair(user));
 	}
 
 	/**
 	 * Finds user and their authentication record by email.
+	 *
+	 * SECURITY: Returns nullable values instead of throwing to prevent timing attacks.
+	 * If this method threw on user-not-found, attackers could enumerate valid emails
+	 * by measuring response times. By always returning (with nulls when not found),
+	 * we ensure validateCredentials() always performs password comparison (using a
+	 * dummy hash for non-existent users), making all authentication attempts take
+	 * similar time regardless of whether the email exists.
 	 *
 	 * @param email - User's email address
 	 * @returns User and auth record, or nulls if not found
@@ -178,22 +178,28 @@ export class AuthService {
 	/**
 	 * Validates user credentials with timing-safe comparison.
 	 * Uses dummy hash when user not found to prevent timing attacks.
+	 * Handles failed login tracking before throwing.
 	 *
 	 * @param user - User object or null
 	 * @param authRecord - Authentication record or null
 	 * @param password - Password to verify
-	 * @returns true if credentials are valid and account is active
+	 * @returns Validated user and auth record
+	 * @throws Error with INVALID_CREDENTIALS if validation fails
 	 */
 	private async validateCredentials(
 		user: UserData | null,
 		authRecord: AuthenticationData | null,
 		password: string,
-	): Promise<boolean> {
-		// Use dummy hash to prevent timing differences that could reveal valid emails
+	): Promise<{ user: UserData; authRecord: AuthenticationData }> {
 		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy';
 		const passwordMatch = await compare(password, hashToCompare);
 
-		return !!(user && authRecord && passwordMatch && !user.deleted && user.enabled);
+		if (!user || !authRecord || !passwordMatch || user.deleted || !user.enabled) {
+			await this.handleFailedLogin(user, authRecord);
+			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS);
+		}
+
+		return { user, authRecord };
 	}
 
 	/**
