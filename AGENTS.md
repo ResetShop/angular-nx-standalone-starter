@@ -3,7 +3,25 @@
 
 # General Guidelines for working with Nx
 
-- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
+## Running Tasks
+
+**CRITICAL: Always use `pnpm run <task>` for these task executions in this project.**
+
+- ✅ `pnpm run build` - Build the project
+- ✅ `pnpm run dev` - Start dev server
+- ✅ `pnpm run lint` - Run linting
+- ✅ `pnpm run stylelint` - Run style linting
+- ✅ `pnpm run test` - Run tests
+- ✅ `pnpm run test:e2e` - Run e2e tests
+- ❌ `nx test`, `nx run` - Do NOT use direct nx commands
+- ❌ `pnpm test --`, `pnpm nx test` - Do NOT construct variants
+
+For other task executions relative to Nx itself, you can run nx commands.
+
+**Before running ANY command, check `.claude/settings.local.json` for the exact allowed patterns.**
+
+## Nx MCP Tools
+
 - You have access to the Nx MCP server and its tools, use them to help the user
 - When answering questions about the repository, use the `nx_workspace` tool first to gain an understanding of the workspace architecture where applicable.
 - When working in individual projects, use the `nx_project_details` mcp tool to analyze and understand the specific project structure and dependencies

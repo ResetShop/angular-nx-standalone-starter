@@ -1,10 +1,15 @@
 import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
-import { type IUserRepository } from '../user/interfaces';
-import { type CleanupResult, type IAuthenticationRepository, type IRefreshTokenRepository } from './interfaces';
+import { type IUserRepository, type UserData } from '../user/interfaces';
+import {
+	type AuthenticationData,
+	type CleanupResult,
+	type IAuthenticationRepository,
+	type IRefreshTokenRepository,
+} from './interfaces';
 
 interface LoginParams {
 	email: string;
@@ -37,6 +42,7 @@ export const AUTH_ERRORS = {
 	TOKEN_INVALID: 'Invalid token',
 	ACCOUNT_DISABLED: 'Account is disabled',
 	ACCOUNT_DELETED: 'Account is deleted',
+	ACCOUNT_LOCKED: 'Account is temporarily locked due to too many failed login attempts',
 	USER_NOT_FOUND: 'User not found',
 	AUTH_RECORD_NOT_FOUND: 'Authentication record not found',
 } as const;
@@ -80,65 +86,193 @@ export class AuthService {
 
 	/**
 	 * Authenticates a user and generates PASETO tokens.
-	 * Validates credentials, checks account status, and creates a new token pair.
+	 * Validates credentials, checks account status and lockout, and creates a new token pair.
 	 * Uses timing-safe comparison to prevent email enumeration attacks.
+	 * Implements failed login tracking with automatic account lockout.
 	 *
 	 * @param credentials - Login credentials containing email and password
 	 * @returns AuthResult containing user data, access token, and refresh token
 	 * @throws Error with INVALID_CREDENTIALS message if authentication fails
+	 * @throws Error with ACCOUNT_LOCKED message if account is locked due to failed attempts
 	 */
 	async authenticate(credentials: LoginParams): Promise<AuthResult> {
-		const foundUser = await this.userRepository.findByEmail(credentials.email);
-		const authRecord = foundUser ? await this.authRepository.findByUserId(foundUser.id) : null;
+		return this.findUserAndAuth(credentials.email)
+			.then(({ user, authRecord }) => {
+				this.checkAccountLockout(authRecord, user?.id);
+				return this.validateCredentials(user, authRecord, credentials.password);
+			})
+			.then(({ user, authRecord }) => this.handleSuccessfulLogin(user, authRecord).then(() => user))
+			.then((user) => this.generateTokenPair(user));
+	}
 
-		// Compare with dummy hash if hash is not set, so to avoid creating timing differences in auth endpoint
-		// responses that could be used to allow attackers to enumerate valid email addresses
+	/**
+	 * Finds user and their authentication record by email.
+	 *
+	 * SECURITY: Returns nullable values instead of throwing to prevent timing attacks.
+	 * If this method threw on user-not-found, attackers could enumerate valid emails
+	 * by measuring response times. By always returning (with nulls when not found),
+	 * we ensure validateCredentials() always performs password comparison (using a
+	 * dummy hash for non-existent users), making all authentication attempts take
+	 * similar time regardless of whether the email exists.
+	 *
+	 * @param email - User's email address
+	 * @returns User and auth record, or nulls if not found
+	 */
+	private async findUserAndAuth(
+		email: string,
+	): Promise<{ user: UserData | null; authRecord: AuthenticationData | null }> {
+		const user = await this.userRepository.findByEmail(email);
+		const authRecord = user ? await this.authRepository.findByUserId(user.id) : null;
+		return { user, authRecord };
+	}
+
+	/**
+	 * Checks if account is locked due to failed login attempts.
+	 *
+	 * @param authRecord - User's authentication record
+	 * @param userId - User ID for logging
+	 * @throws Error with ACCOUNT_LOCKED message if account is currently locked
+	 */
+	private checkAccountLockout(authRecord: AuthenticationData | null, userId?: number): void {
+		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
+			console.log(
+				JSON.stringify({
+					event: 'login_blocked_account_locked',
+					userId,
+					lockedUntil: authRecord.lockedUntil.toISOString(),
+					timestamp: new Date().toISOString(),
+				}),
+			);
+			throw new Error(AUTH_ERRORS.ACCOUNT_LOCKED);
+		}
+	}
+
+	/**
+	 * Validates user credentials with timing-safe comparison.
+	 *
+	 * SECURITY: Accepts nullable parameters to maintain timing-safety. Even when user
+	 * or authRecord is null (invalid email), we MUST perform the expensive bcrypt
+	 * password comparison using a dummy hash. Skipping bcrypt for invalid cases would
+	 * create a timing vulnerability: valid emails take ~200ms (DB + bcrypt), invalid
+	 * emails take ~50ms (DB only), allowing attackers to enumerate valid emails by
+	 * measuring response times. The cost is intentional and necessary for security.
+	 *
+	 * Handles failed login tracking before throwing.
+	 *
+	 * @param user - User object or null
+	 * @param authRecord - Authentication record or null
+	 * @param password - Password to verify
+	 * @returns Validated user and auth record
+	 * @throws Error with INVALID_CREDENTIALS if validation fails
+	 */
+	private async validateCredentials(
+		user: UserData | null,
+		authRecord: AuthenticationData | null,
+		password: string,
+	): Promise<{ user: UserData; authRecord: AuthenticationData }> {
 		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy';
-		const passwordMatch = await compare(credentials.password, hashToCompare);
+		const passwordMatch = await compare(password, hashToCompare);
 
-		if (!foundUser || !authRecord || !passwordMatch || foundUser.deleted || !foundUser.enabled) {
-			if (!foundUser) {
-				console.error(AUTH_ERRORS.USER_NOT_FOUND);
-			} else if (!authRecord) {
-				console.error(AUTH_ERRORS.AUTH_RECORD_NOT_FOUND);
-			} else if (!passwordMatch) {
-				console.error(AUTH_ERRORS.INVALID_CREDENTIALS);
-			} else if (foundUser.deleted) {
-				console.error(AUTH_ERRORS.ACCOUNT_DELETED);
-			} else if (!foundUser.enabled) {
-				console.error(AUTH_ERRORS.ACCOUNT_DISABLED);
-			}
-
-			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS); // Don't reveal that account exists but is disabled/deleted
+		if (!user || !authRecord || !passwordMatch || user.deleted || !user.enabled) {
+			await this.handleFailedLogin(user, authRecord);
+			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS);
 		}
 
-		// Cleanup expired tokens for this user
-		await this.refreshTokenRepository.deleteExpiredTokensForUser(foundUser.id);
+		return { user, authRecord };
+	}
 
-		// Generate Paseto tokens
+	/**
+	 * Handles failed login attempt by tracking failures and locking account if threshold reached.
+	 *
+	 * @param user - User object or null
+	 * @param authRecord - Authentication record or null
+	 */
+	private async handleFailedLogin(user: UserData | null, authRecord: AuthenticationData | null): Promise<void> {
+		if (!user || !authRecord) {
+			this.logAuthFailure(user, authRecord);
+			return;
+		}
+
+		const result = await this.authRepository.incrementAndLockIfNeeded(user.id);
+
+		if (result.wasLocked && result.lockedUntil) {
+			console.log(
+				JSON.stringify({
+					event: 'account_locked',
+					userId: user.id,
+					failedAttempts: result.failedAttempts,
+					lockedUntil: result.lockedUntil.toISOString(),
+					timestamp: new Date().toISOString(),
+				}),
+			);
+		}
+
+		this.logAuthFailure(user, authRecord);
+	}
+
+	/**
+	 * Logs authentication failure reasons for debugging.
+	 *
+	 * @param user - User object or null
+	 * @param authRecord - Authentication record or null
+	 */
+	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
+		if (!user) {
+			console.error(AUTH_ERRORS.USER_NOT_FOUND);
+		} else if (!authRecord) {
+			console.error(AUTH_ERRORS.AUTH_RECORD_NOT_FOUND);
+		} else if (user.deleted) {
+			console.error(AUTH_ERRORS.ACCOUNT_DELETED);
+		} else if (!user.enabled) {
+			console.error(AUTH_ERRORS.ACCOUNT_DISABLED);
+		} else {
+			console.error(AUTH_ERRORS.INVALID_CREDENTIALS);
+		}
+	}
+
+	/**
+	 * Handles successful login by resetting failed attempts and cleaning up expired tokens.
+	 *
+	 * @param user - Authenticated user
+	 * @param authRecord - User's authentication record
+	 */
+	private async handleSuccessfulLogin(user: UserData, authRecord: AuthenticationData): Promise<void> {
+		if (authRecord.failedLoginAttempts > 0) {
+			await this.authRepository.resetFailedAttempts(user.id);
+		}
+
+		await this.refreshTokenRepository.deleteExpiredTokensForUser(user.id);
+	}
+
+	/**
+	 * Generates access and refresh token pair for authenticated user.
+	 *
+	 * @param user - Authenticated user
+	 * @returns AuthResult with user data and tokens
+	 */
+	private async generateTokenPair(user: UserData): Promise<AuthResult> {
 		const accessToken = await this.pasetoService.generateAccessToken({
-			sub: foundUser.id.toString(),
-			email: foundUser.email,
-			firstName: foundUser.firstName,
-			lastName: foundUser.lastName,
+			sub: user.id.toString(),
+			email: user.email,
+			firstName: user.firstName,
+			lastName: user.lastName,
 		});
 
-		const tokenFamily = crypto.randomUUID();
-		const refreshToken = await this.pasetoService.generateRefreshToken(foundUser.id.toString(), tokenFamily);
+		const tokenFamily = randomUUID();
+		const refreshToken = await this.pasetoService.generateRefreshToken(user.id.toString(), tokenFamily);
 
-		// Store refresh token in database
 		const refreshTokenHash = createHash('sha256').update(refreshToken).digest('hex');
 		await this.refreshTokenRepository.create({
-			userId: foundUser.id,
-			tokenFamily: tokenFamily,
+			userId: user.id,
+			tokenFamily,
 			tokenHash: refreshTokenHash,
 			expiresAt: this.getRefreshTokenExpiry(),
 		});
 
 		return {
-			user: foundUser,
+			user,
 			token: accessToken,
-			refreshToken: refreshToken,
+			refreshToken,
 		};
 	}
 

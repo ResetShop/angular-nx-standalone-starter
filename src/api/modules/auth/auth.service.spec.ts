@@ -159,6 +159,155 @@ describe('AuthService', () => {
 		});
 	});
 
+	describe('account lockout', () => {
+		beforeEach(() => {
+			mockUserRepo.addUser(testUser);
+			mockAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash });
+		});
+
+		it('should increment failed attempts on wrong password', async () => {
+			await expect(
+				authService.authenticate({
+					email: testUser.email,
+					password: 'wrongpassword',
+				}),
+			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+
+			expect(mockAuthRepo.incrementedUsers).toContain(testUser.id);
+		});
+
+		it('should not increment failed attempts when user not found', async () => {
+			await expect(
+				authService.authenticate({
+					email: 'nonexistent@example.com',
+					password: 'anypassword',
+				}),
+			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+
+			// Should not increment for non-existent users (timing attack prevention)
+			expect(mockAuthRepo.incrementedUsers).not.toContain(testUser.id);
+			expect(mockAuthRepo.incrementedUsers).toHaveLength(0);
+		});
+
+		it('should lock account after max failed attempts', async () => {
+			// Set up user with 4 failed attempts (one below threshold)
+			mockAuthRepo.clear();
+			mockAuthRepo.addAuthRecord(testUser.id, {
+				passwordHash: testPasswordHash,
+				failedLoginAttempts: 4,
+			});
+
+			// This should be the 5th attempt, triggering lockout
+			await expect(
+				authService.authenticate({
+					email: testUser.email,
+					password: 'wrongpassword',
+				}),
+			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+
+			expect(mockAuthRepo.lockedUsers).toHaveLength(1);
+			expect(mockAuthRepo.lockedUsers[0].userId).toBe(testUser.id);
+		});
+
+		it('should throw ACCOUNT_LOCKED when account is locked', async () => {
+			// Set up user with active lockout
+			mockAuthRepo.clear();
+			mockAuthRepo.addAuthRecord(testUser.id, {
+				passwordHash: testPasswordHash,
+				failedLoginAttempts: 5,
+				lockedUntil: new Date(Date.now() + 900000), // 15 minutes from now
+			});
+
+			await expect(
+				authService.authenticate({
+					email: testUser.email,
+					password: testPassword, // Even correct password should fail
+				}),
+			).rejects.toThrow(AUTH_ERRORS.ACCOUNT_LOCKED);
+		});
+
+		it('should allow login after lockout expires', async () => {
+			// Set up user with expired lockout
+			mockAuthRepo.clear();
+			mockAuthRepo.addAuthRecord(testUser.id, {
+				passwordHash: testPasswordHash,
+				failedLoginAttempts: 5,
+				lockedUntil: new Date(Date.now() - 1000), // 1 second ago (expired)
+			});
+
+			const result = await authService.authenticate({
+				email: testUser.email,
+				password: testPassword,
+			});
+
+			expect(result.user).toEqual(testUser);
+			expect(result.token).toBeDefined();
+		});
+
+		it('should reset failed attempts on successful login', async () => {
+			// Set up user with some failed attempts (but not locked)
+			mockAuthRepo.clear();
+			mockAuthRepo.addAuthRecord(testUser.id, {
+				passwordHash: testPasswordHash,
+				failedLoginAttempts: 3,
+			});
+
+			await authService.authenticate({
+				email: testUser.email,
+				password: testPassword,
+			});
+
+			expect(mockAuthRepo.resetUsers).toContain(testUser.id);
+		});
+
+		it('should successfully authenticate when counter is zero', async () => {
+			// User with no failed attempts
+			const result = await authService.authenticate({
+				email: testUser.email,
+				password: testPassword,
+			});
+
+			// Assert on observable outcome
+			expect(result.user).toEqual(testUser);
+			expect(result.token).toBeDefined();
+			expect(result.refreshToken).toBeDefined();
+
+			// Verify auth record state remains at zero
+			const authRecord = await mockAuthRepo.findByUserId(testUser.id);
+			expect(authRecord?.failedLoginAttempts).toBe(0);
+		});
+
+		it('should respect custom AUTH_MAX_FAILED_ATTEMPTS env variable', async () => {
+			const originalEnv = process.env['AUTH_MAX_FAILED_ATTEMPTS'];
+			process.env['AUTH_MAX_FAILED_ATTEMPTS'] = '3';
+
+			try {
+				// Set up user with 2 failed attempts
+				mockAuthRepo.clear();
+				mockAuthRepo.addAuthRecord(testUser.id, {
+					passwordHash: testPasswordHash,
+					failedLoginAttempts: 2,
+				});
+
+				// This should be the 3rd attempt, triggering lockout with custom threshold
+				await expect(
+					authService.authenticate({
+						email: testUser.email,
+						password: 'wrongpassword',
+					}),
+				).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+
+				expect(mockAuthRepo.lockedUsers).toHaveLength(1);
+			} finally {
+				if (originalEnv === undefined) {
+					delete process.env['AUTH_MAX_FAILED_ATTEMPTS'];
+				} else {
+					process.env['AUTH_MAX_FAILED_ATTEMPTS'] = originalEnv;
+				}
+			}
+		});
+	});
+
 	describe('refreshToken', () => {
 		const existingRefreshToken = 'existing-refresh-token';
 		const tokenFamily = 'test-token-family';

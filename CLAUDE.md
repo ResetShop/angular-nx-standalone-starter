@@ -19,6 +19,7 @@
 
 6. [Principles Cross-Reference](#principles-cross-reference)
 7. [Domain Model Guidelines](#domain-model-guidelines)
+8. [Automated Code Review](#automated-code-review)
 
 ---
 
@@ -54,6 +55,27 @@ Use `pnpm` for all package management and script execution:
 | `pnpm add -D <pkg>`        | Add a dev dependency     |
 | `pnpm add -g <pkg>`        | Add a global dependency  |
 
+#### CRITICAL: Command Execution Policy
+
+**Claude MUST follow these rules when executing commands:**
+
+1. **Use ONLY the exact patterns listed above** - No variants, no construction, no "helpful" alternatives
+2. **Check `.claude/settings.local.json` before running ANY command** to verify the pattern is allowed
+3. **NEVER use direct `nx` commands** - Always use `pnpm run <task>` instead
+4. **NEVER construct variants** like:
+   - ❌ `pnpm test -- <args>`
+   - ❌ `pnpm nx test <project>`
+   - ❌ `nx test <project>`
+   - ❌ `nx run <project>:<task>`
+5. **If a correction is given, apply the pattern to ALL related commands immediately** (test → build → lint → dev)
+
+**Example: Running tests**
+
+- ✅ Correct: `pnpm run test`
+- ❌ Wrong: `nx test app`, `pnpm test --`, `pnpm nx test`
+
+This is a hard constraint. Violations break the workflow and require user intervention.
+
 ### Folder Structure Conventions
 
 ```
@@ -80,16 +102,50 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint             | Limit                                  | Rationale                    |
-| ---------------------- | -------------------------------------- | ---------------------------- |
-| Function length        | ≤ 30 lines                             | Readability, SRP             |
-| File length            | ≤ 300 lines                            | Maintainability              |
-| Cyclomatic complexity  | ≤ 10                                   | Testability                  |
-| Nesting depth          | ≤ 3 levels                             | Readability                  |
-| Barrel imports/exports | Not allowed in any part of the project | Maintainability, Performance |
-| `any` type             | Forbidden without `// REASON:` comment | Type safety                  |
-| `// @ts-ignore`        | Forbidden without linked issue         | Technical debt tracking      |
-| `console.log`          | Remove before commit                   | Clean code                   |
+| Constraint             | Limit                                                                                     | Rationale                    |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ---------------------------- |
+| Function length        | ≤ 50 lines                                                                                | Readability, SRP             |
+| File length            | ≤ 500 lines                                                                               | Maintainability              |
+| Cyclomatic complexity  | ≤ 10                                                                                      | Testability                  |
+| Nesting depth          | ≤ 3 levels                                                                                | Readability                  |
+| Barrel imports/exports | Not allowed in any part of the project                                                    | Maintainability, Performance |
+| `any` type             | Forbidden without `// REASON:` comment                                                    | Type safety                  |
+| `// @ts-ignore`        | Forbidden without linked issue                                                            | Technical debt tracking      |
+| `console.log`          | Remove before commit                                                                      | Clean code                   |
+| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations | Bundle size, clarity         |
+
+### Type-Only Imports
+
+Always use the `type` keyword when importing types, interfaces, or type aliases that are only used for type annotations:
+
+```typescript
+// ✅ Correct - using type keyword
+import type { User } from './user.interface';
+import { type IUserRepository, type UserDTO } from './user.types';
+import { UserService } from './user.service'; // No type keyword - used at runtime
+
+// ❌ Incorrect - missing type keyword for type-only imports
+import { User, IUserRepository } from './user.types';
+```
+
+**Benefits:**
+
+- Smaller bundle size (type imports are completely removed from compiled output)
+- Clear intent (immediately visible that import is only for type checking)
+- Required for TypeScript's `isolatedModules` compiler option
+- Better tree-shaking by bundlers
+
+**When to use:**
+
+- Interfaces, type aliases, or types used only in type annotations
+- Classes used only as types (e.g., `user: User` but never `new User()`)
+
+**When NOT to use:**
+
+- Classes used at runtime (constructors, static methods)
+- Enums (compiled to runtime objects)
+- Functions or constants
+- Anything used in expressions or statements
 
 ### Scope Rules for Constants
 
@@ -106,9 +162,10 @@ These are non-negotiable rules. Violations require explicit justification.
 
 ### General Rules
 
-- **Always use Nx to run tasks** (build, lint, test, e2e) instead of underlying tooling directly
-- Use `nx run`, `nx run-many`, or `nx affected` for all task execution
-- You have access to the Nx MCP server and its tools—use them
+- **CRITICAL: Always use `pnpm run <task>` for all task execution** (build, lint, test, e2e, dev)
+- ❌ Do NOT use direct `nx` commands (`nx run`, `nx run-many`, `nx affected`)
+- ✅ Use patterns from Common Commands section above and `.claude/settings.local.json`
+- You have access to the Nx MCP server and its tools—use them for workspace analysis, NOT for running tasks
 
 ### MCP Tool Usage
 
@@ -125,7 +182,7 @@ These are non-negotiable rules. Violations require explicit justification.
 1. Retrieve current CI Pipeline Executions using `nx_cloud_cipe_details`
 2. If errors exist, use `nx_cloud_fix_cipe_failure` to get task logs
 3. Analyze logs and help fix the problem using appropriate tools
-4. Verify the fix by running the failing task locally
+4. Verify the fix by running the failing task locally using `pnpm run <task>` (e.g., `pnpm run test`, `pnpm run build`)
 
 ### Nx Conventions
 
@@ -746,4 +803,77 @@ Mappers should use factory functions internally for consistency.
 
 ---
 
-\_Last updated: 2026-01-16
+## Automated Code Review
+
+### Proactive Review Directive
+
+**IMPORTANT:** After completing implementation work on any issue or feature branch, Claude MUST automatically delegate to the `code-reviewer` agent before considering the work complete.
+
+This is a mandatory step in the workflow:
+
+1. Complete implementation (code changes, tests, commits)
+2. **Automatically run code review** using the `code-reviewer` agent
+3. Provide a report to the user, with a prioritization of all the found issues, plus the recommendations and suggestions to address them. The report must be in form of a table, that will be used to track the pending work while addressing the issues, recommendations and suggestions.
+4. Save the Proactive Review results to the `.claude/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
+
+### When to Trigger
+
+Claude should proactively invoke the code-reviewer agent when:
+
+- All planned commits for an issue are complete
+- User says "done", "finished", "ready for review", or similar
+- User asks to create a PR (review first, then PR)
+- Implementation phase of plan mode is complete
+
+### How to Invoke
+
+Use the Task tool to delegate to the code-reviewer agent:
+
+```
+Use the code-reviewer agent to review the changes on this branch
+```
+
+### Review Scope
+
+The code-reviewer agent checks:
+
+- **Hard constraints** — Function/file length, complexity, no console.log, no untyped any
+- **SOLID principles** — Single responsibility, dependency inversion, etc.
+- **CUPID principles** — Composable, predictable, idiomatic code
+- **Domain patterns** — Immutability, factory functions, Zod validation
+- **Test coverage** — Tests exist for new code, follow Angular Testing Library patterns
+
+### Workflow Integration
+
+```
+┌─────────────────┐
+│  Implementation │
+│   (commits)     │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Code Review    │ ◄── Automatic delegation to code-reviewer agent
+│   (mandatory)   │
+└────────┬────────┘
+         │
+         ▼
+┌───────────────────────────┐
+│  Prioritization and       │ ◄── User manually decides what to do based on review report
+│  manual mandatory review  │
+└────────┬──────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Fix Issues     │ (if any critical/warnings)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Ready for PR   │
+└─────────────────┘
+```
+
+---
+
+_Last updated: 2026-01-22_
