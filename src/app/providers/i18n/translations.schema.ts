@@ -5,8 +5,12 @@
 export interface TranslationSchema {
 	AUTH: {
 		ERRORS: {
-			ACCOUNT_LOCKED: string;
 			INVALID_CREDENTIALS: string;
+			ACCOUNT_LOCKED: string;
+			ACCOUNT_DISABLED: string;
+			ACCOUNT_DELETED: string;
+			TOKEN_EXPIRED: string;
+			TOKEN_INVALID: string;
 			GENERIC: string;
 		};
 	};
@@ -31,6 +35,6 @@ type PathsToStringProps<T, Prefix extends string = ''> = T extends string
  *
  * @example
  * type Result = TranslationKey;
- * // Result = 'AUTH.ERRORS.ACCOUNT_LOCKED' | 'AUTH.ERRORS.INVALID_CREDENTIALS' | 'AUTH.ERRORS.GENERIC'
+ * // Result = 'AUTH.ERRORS.INVALID_CREDENTIALS' | 'AUTH.ERRORS.ACCOUNT_LOCKED' | ...
  */
 export type TranslationKey = PathsToStringProps<TranslationSchema>;

@@ -5,8 +5,10 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
+import type { AuthErrorResponse } from '@contracts/auth/auth.errors';
 import { LoginForm } from '@interfaces/auth';
 import { Auth } from '@providers/auth/auth';
+import { Translation } from '@providers/i18n/translation';
 import { first } from 'rxjs';
 
 @Component({
@@ -118,6 +120,7 @@ import { first } from 'rxjs';
 export default class Login {
 	private auth = inject(Auth);
 	private router = inject(Router);
+	private translation = inject(Translation);
 
 	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password']);
 	readonly errorMessage = signal<string | null>(null);
@@ -163,16 +166,19 @@ export default class Login {
 	}
 
 	private handleLoginError(error: HttpErrorResponse): void {
-		const message = error.error?.error ?? 'Error de autenticación';
+		const authError = error.error as AuthErrorResponse;
 
-		if (message.includes('locked')) {
-			this.errorMessage.set(
-				'Tu cuenta ha sido bloqueada temporalmente debido a múltiples intentos fallidos. Por favor, intenta de nuevo más tarde.',
-			);
-		} else if (message.includes('Invalid credentials')) {
-			this.errorMessage.set('Email o contraseña incorrectos');
-		} else {
-			this.errorMessage.set('Error al iniciar sesión. Por favor, intenta de nuevo.');
+		switch (authError.code) {
+			case 'ACCOUNT_LOCKED':
+				this.errorMessage.set(this.translation.instant('AUTH.ERRORS.ACCOUNT_LOCKED'));
+				break;
+
+			case 'INVALID_CREDENTIALS':
+				this.errorMessage.set(this.translation.instant('AUTH.ERRORS.INVALID_CREDENTIALS'));
+				break;
+
+			default:
+				this.errorMessage.set(this.translation.instant('AUTH.ERRORS.GENERIC'));
 		}
 	}
 }
