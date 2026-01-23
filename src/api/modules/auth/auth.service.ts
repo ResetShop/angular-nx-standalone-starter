@@ -1,11 +1,16 @@
 import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
-import { createHash } from 'crypto';
+import crypto, { createHash } from 'crypto';
 import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
-import { type IUserRepository } from '../user/interfaces';
-import { type CleanupResult, type IAuthenticationRepository, type IRefreshTokenRepository } from './interfaces';
+import { type IUserRepository, type User } from '../user/interfaces';
+import {
+	type AuthenticationData,
+	type CleanupResult,
+	type IAuthenticationRepository,
+	type IRefreshTokenRepository,
+} from './interfaces';
 
 interface LoginParams {
 	email: string;
