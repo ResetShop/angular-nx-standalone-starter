@@ -1,6 +1,6 @@
 import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
-import crypto, { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
@@ -289,7 +289,7 @@ export class AuthService {
 			lastName: user.lastName,
 		});
 
-		const tokenFamily = crypto.randomUUID();
+		const tokenFamily = randomUUID();
 		const refreshToken = await this.pasetoService.generateRefreshToken(user.id.toString(), tokenFamily);
 
 		const refreshTokenHash = createHash('sha256').update(refreshToken).digest('hex');
