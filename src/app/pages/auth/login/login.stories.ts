@@ -1,14 +1,22 @@
 import { NgOptimizedImage } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
+import { LoginErrorCode } from '@contracts/auth/auth.errors';
+import { type Language, Translation } from '@providers/i18n/translation';
 import type { Meta, StoryObj } from '@storybook/angular';
-import { moduleMetadata } from '@storybook/angular';
+import { applicationConfig, moduleMetadata } from '@storybook/angular';
+
+/**
+ * Error code options for the story.
+ * null represents no error state.
+ */
+type ErrorCodeOption = LoginErrorCode | null;
 
 /**
  * Standalone presentational component for Storybook that mirrors the Login page UI.
- * This allows us to demonstrate different error states without needing Auth/Router services.
+ * Uses the Translation service to display localized error messages.
  */
 @Component({
 	selector: 'app-login-story',
@@ -80,7 +88,34 @@ import { moduleMetadata } from '@storybook/angular';
 	`,
 })
 class LoginStoryComponent {
-	readonly errorMessage = input<string | null>(null);
+	private readonly translation = inject(Translation);
+
+	readonly errorCode = input<ErrorCodeOption>(null);
+	readonly language = input<Language>('es');
+
+	/**
+	 * Tracks when translations are loaded and ready for use.
+	 * This signal triggers re-computation of errorMessage when language changes.
+	 */
+	private readonly isReady = signal(false);
+
+	readonly errorMessage = computed(() => {
+		const code = this.errorCode();
+		const ready = this.isReady();
+		if (!code || !ready) return null;
+		return this.translation.instant(`AUTH.ERRORS.${code}`);
+	});
+
+	constructor() {
+		// Load language when it changes
+		effect(() => {
+			const lang = this.language();
+			this.isReady.set(false);
+			this.translation.setLanguage(lang).then(() => {
+				this.isReady.set(true);
+			});
+		});
+	}
 }
 
 const meta: Meta<LoginStoryComponent> = {
@@ -90,6 +125,9 @@ const meta: Meta<LoginStoryComponent> = {
 	decorators: [
 		moduleMetadata({
 			imports: [Card, Button, NgOptimizedImage, ReactiveFormsModule],
+		}),
+		applicationConfig({
+			providers: [Translation],
 		}),
 	],
 	parameters: {
@@ -105,24 +143,53 @@ Login page component with error message handling for various authentication stat
 - Error message display for authentication failures
 - Account lockout message for security
 - Responsive design with dark mode support
+- **i18n Support**: Error messages are localized using the Translation service
 
 ## Error States
 
-The login page handles several error conditions:
-- **Account Locked**: Displayed when too many failed login attempts occur
-- **Invalid Credentials**: Displayed when email/password combination is incorrect
-- **Generic Error**: Displayed for unexpected server errors
+The login page handles several error conditions (using \`LoginErrorCode\`):
+- **INVALID_CREDENTIALS**: Displayed when email/password combination is incorrect
+- **ACCOUNT_LOCKED**: Displayed when too many failed login attempts occur
+- **GENERIC**: Displayed for unexpected server errors
+
+## Language Support
+
+Use the **language** control to switch between:
+- **es** (Spanish) - Default
+- **en** (English)
+
+Error messages will automatically update to the selected language.
 				`,
 			},
 		},
 	},
 	argTypes: {
-		errorMessage: {
-			control: 'text',
-			description: 'Error message to display',
+		errorCode: {
+			control: 'select',
+			options: [null, LoginErrorCode.INVALID_CREDENTIALS, LoginErrorCode.ACCOUNT_LOCKED, LoginErrorCode.GENERIC],
+			description: 'Error code to display (uses Translation service for localized message)',
 			table: {
-				type: { summary: 'string | null' },
+				type: { summary: 'LoginErrorCode | null' },
 				defaultValue: { summary: 'null' },
+			},
+			labels: {
+				null: 'No Error',
+				[LoginErrorCode.INVALID_CREDENTIALS]: 'Invalid Credentials',
+				[LoginErrorCode.ACCOUNT_LOCKED]: 'Account Locked',
+				[LoginErrorCode.GENERIC]: 'Generic Error',
+			},
+		},
+		language: {
+			control: 'select',
+			options: ['es', 'en'],
+			description: 'Language for error messages',
+			table: {
+				type: { summary: 'Language' },
+				defaultValue: { summary: 'es' },
+			},
+			labels: {
+				es: 'Español',
+				en: 'English',
 			},
 		},
 	},
@@ -137,37 +204,7 @@ type Story = StoryObj<LoginStoryComponent>;
  */
 export const Default: Story = {
 	args: {
-		errorMessage: null,
-	},
-};
-
-/**
- * Login page showing account lockout error.
- * This is displayed when a user has exceeded the maximum number of failed login attempts.
- */
-export const AccountLocked: Story = {
-	args: {
-		errorMessage:
-			'Tu cuenta ha sido bloqueada temporalmente debido a múltiples intentos fallidos. Por favor, intenta de nuevo más tarde.',
-	},
-};
-
-/**
- * Login page showing invalid credentials error.
- * This is displayed when the email/password combination is incorrect.
- */
-export const InvalidCredentials: Story = {
-	args: {
-		errorMessage: 'Email o contraseña incorrectos',
-	},
-};
-
-/**
- * Login page showing a generic error.
- * This is displayed for unexpected server errors.
- */
-export const GenericError: Story = {
-	args: {
-		errorMessage: 'Error al iniciar sesión. Por favor, intenta de nuevo.',
+		errorCode: null,
+		language: 'es',
 	},
 };
