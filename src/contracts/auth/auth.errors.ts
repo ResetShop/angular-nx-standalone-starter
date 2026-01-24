@@ -98,13 +98,6 @@ export const InternalToPublicErrorMap = Object.freeze({
 } as const) satisfies Record<InternalAuthErrorCode, PublicAuthErrorCode>;
 
 /**
- * Converts an internal error code to its public-facing equivalent.
- */
-export function toPublicErrorCode(internalCode: InternalAuthErrorCode): PublicAuthErrorCode {
-	return InternalToPublicErrorMap[internalCode];
-}
-
-/**
  * Gets the internal error message for logging purposes.
  */
 export function getInternalErrorMessage(internalCode: InternalAuthErrorCode): string {
@@ -181,22 +174,7 @@ export interface LoginErrorResponse {
  * Use this to validate error codes before sending them in login responses.
  */
 export function isLoginErrorCode(code: PublicAuthErrorCode): code is LoginErrorCode {
-	return (
-		code === LoginErrorCode.INVALID_CREDENTIALS ||
-		code === LoginErrorCode.ACCOUNT_LOCKED ||
-		code === LoginErrorCode.GENERIC
-	);
-}
-
-/**
- * Converts any PublicAuthErrorCode to a valid LoginErrorCode.
- * Non-login error codes are mapped to GENERIC for security.
- *
- * This ensures that even if an unexpected error occurs during login,
- * no sensitive information is leaked through the error code.
- */
-export function toLoginErrorCode(code: PublicAuthErrorCode): LoginErrorCode {
-	return isLoginErrorCode(code) ? code : LoginErrorCode.GENERIC;
+	return (Object.values(LoginErrorCode) as string[]).includes(code);
 }
 
 /**
@@ -207,7 +185,7 @@ export function toLoginErrorCode(code: PublicAuthErrorCode): LoginErrorCode {
  * - All other codes are mapped to GENERIC with a safe message
  */
 export function toLoginErrorResponse(error: AuthError): LoginErrorResponse {
-	const code = toLoginErrorCode(error.publicCode);
+	const code = isLoginErrorCode(error.publicCode) ? error.publicCode : LoginErrorCode.GENERIC;
 	return {
 		code,
 		message: isLoginErrorCode(error.publicCode) ? error.message : 'Authentication failed',
