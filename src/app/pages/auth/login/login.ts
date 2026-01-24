@@ -166,19 +166,9 @@ export default class Login {
 	}
 
 	private handleLoginError(error: HttpErrorResponse): void {
-		const authError = error.error as AuthErrorResponse;
-
-		switch (authError.code) {
-			case 'ACCOUNT_LOCKED':
-				this.errorMessage.set(this.translation.instant('AUTH.ERRORS.ACCOUNT_LOCKED'));
-				break;
-
-			case 'INVALID_CREDENTIALS':
-				this.errorMessage.set(this.translation.instant('AUTH.ERRORS.INVALID_CREDENTIALS'));
-				break;
-
-			default:
-				this.errorMessage.set(this.translation.instant('AUTH.ERRORS.GENERIC'));
-		}
+		const authError = error.error as AuthErrorResponse | undefined;
+		this.errorMessage.set(
+			this.translation.instant(authError?.code ? `AUTH.ERRORS.${authError.code}` : 'AUTH.ERRORS.GENERIC'),
+		);
 	}
 }
