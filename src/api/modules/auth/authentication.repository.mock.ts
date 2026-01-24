@@ -77,8 +77,8 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 	}
 
 	async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
-		// Mock uses hardcoded values for simplicity
-		const maxAttempts = 5;
+		// Read from env vars to match production behavior
+		const maxAttempts = Number(process.env['AUTH_MAX_FAILED_ATTEMPTS'] ?? '5');
 		const lockDuration = 900000; // 15 minutes
 
 		this.incrementedUsers.push(userId);

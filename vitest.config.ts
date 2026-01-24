@@ -39,12 +39,15 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
+			'@contracts': '/src/contracts',
 			'@components': '/src/app/components',
 			'@configs': '/src/app/configs',
+			'@domain': '/src/app/domain',
 			'@guards': '/src/app/guards',
 			'@interfaces': '/src/app/interfaces',
 			'@mocks': '/src/app/mocks',
 			'@models': '/src/app/models',
+			'@pages': '/src/app/pages',
 			'@providers': '/src/app/providers',
 			'@utils': '/src/app/utils',
 		},

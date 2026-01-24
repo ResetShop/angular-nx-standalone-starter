@@ -1,9 +1,10 @@
+import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
 import { vi } from 'vitest';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
 import { MockUserRepository } from '../user/user.repository.mock';
-import { AUTH_ERRORS, AuthService } from './auth.service';
+import { AuthService } from './auth.service';
 import { MockAuthenticationRepository } from './authentication.repository.mock';
 import { MockRefreshTokenRepository } from './refresh-token.repository.mock';
 
@@ -105,16 +106,16 @@ describe('AuthService', () => {
 			expect(mockRefreshTokenRepo.deletedExpiredForUsers).toContain(testUser.id);
 		});
 
-		it('should throw INVALID_CREDENTIALS when user not found', async () => {
+		it('should throw INVALID_CREDENTIALS error when user not found', async () => {
 			await expect(
 				authService.authenticate({
 					email: 'nonexistent@example.com',
 					password: testPassword,
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
 
-		it('should throw INVALID_CREDENTIALS when user is deleted', async () => {
+		it('should throw INVALID_CREDENTIALS error when user is deleted', async () => {
 			mockUserRepo.clear();
 			mockUserRepo.addUser({ ...testUser, deleted: true });
 
@@ -123,10 +124,10 @@ describe('AuthService', () => {
 					email: testUser.email,
 					password: testPassword,
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
 
-		it('should throw INVALID_CREDENTIALS when user is disabled', async () => {
+		it('should throw INVALID_CREDENTIALS error when user is disabled', async () => {
 			mockUserRepo.clear();
 			mockUserRepo.addUser({ ...testUser, enabled: false });
 
@@ -135,10 +136,10 @@ describe('AuthService', () => {
 					email: testUser.email,
 					password: testPassword,
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
 
-		it('should throw INVALID_CREDENTIALS when auth record not found', async () => {
+		it('should throw INVALID_CREDENTIALS error when auth record not found', async () => {
 			mockAuthRepo.clear();
 
 			await expect(
@@ -146,16 +147,16 @@ describe('AuthService', () => {
 					email: testUser.email,
 					password: testPassword,
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
 
-		it('should throw INVALID_CREDENTIALS when password does not match', async () => {
+		it('should throw INVALID_CREDENTIALS error when password does not match', async () => {
 			await expect(
 				authService.authenticate({
 					email: testUser.email,
 					password: 'wrongpassword',
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
 	});
 
@@ -171,7 +172,7 @@ describe('AuthService', () => {
 					email: testUser.email,
 					password: 'wrongpassword',
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 
 			expect(mockAuthRepo.incrementedUsers).toContain(testUser.id);
 		});
@@ -182,7 +183,7 @@ describe('AuthService', () => {
 					email: 'nonexistent@example.com',
 					password: 'anypassword',
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 
 			// Should not increment for non-existent users (timing attack prevention)
 			expect(mockAuthRepo.incrementedUsers).not.toContain(testUser.id);
@@ -203,13 +204,13 @@ describe('AuthService', () => {
 					email: testUser.email,
 					password: 'wrongpassword',
 				}),
-			).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 
 			expect(mockAuthRepo.lockedUsers).toHaveLength(1);
 			expect(mockAuthRepo.lockedUsers[0].userId).toBe(testUser.id);
 		});
 
-		it('should throw ACCOUNT_LOCKED when account is locked', async () => {
+		it('should throw ACCOUNT_LOCKED error when account is locked', async () => {
 			// Set up user with active lockout
 			mockAuthRepo.clear();
 			mockAuthRepo.addAuthRecord(testUser.id, {
@@ -223,7 +224,7 @@ describe('AuthService', () => {
 					email: testUser.email,
 					password: testPassword, // Even correct password should fail
 				}),
-			).rejects.toThrow(AUTH_ERRORS.ACCOUNT_LOCKED);
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_LOCKED));
 		});
 
 		it('should allow login after lockout expires', async () => {
@@ -295,7 +296,7 @@ describe('AuthService', () => {
 						email: testUser.email,
 						password: 'wrongpassword',
 					}),
-				).rejects.toThrow(AUTH_ERRORS.INVALID_CREDENTIALS);
+				).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 
 				expect(mockAuthRepo.lockedUsers).toHaveLength(1);
 			} finally {
@@ -355,18 +356,18 @@ describe('AuthService', () => {
 			expect(mockPasetoService.generatedRefreshTokens[0].tokenFamily).toBe(tokenFamily);
 		});
 
-		it('should throw when token family is missing', async () => {
+		it('should throw TOKEN_MISSING_FAMILY error when token family is missing', async () => {
 			mockPasetoService.setRefreshTokenPayload(existingRefreshToken, {
 				sub: testUser.id.toString(),
 				// No tokenFamily
 			});
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
-				'Invalid refresh token: missing token family',
+				getInternalErrorMessage(InternalAuthErrorCode.TOKEN_MISSING_FAMILY),
 			);
 		});
 
-		it('should throw when token is revoked', async () => {
+		it('should throw TOKEN_REVOKED error when token is revoked', async () => {
 			// Clear and add a revoked token
 			mockRefreshTokenRepo.clear();
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex');
@@ -377,10 +378,12 @@ describe('AuthService', () => {
 				expiresAt: new Date(Date.now() + 86400000),
 			});
 
-			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow('Invalid refresh token');
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.TOKEN_REVOKED),
+			);
 		});
 
-		it('should throw when token is expired', async () => {
+		it('should throw REFRESH_TOKEN_EXPIRED error when token is expired', async () => {
 			// Clear and add an expired token
 			mockRefreshTokenRepo.clear();
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex');
@@ -391,27 +394,35 @@ describe('AuthService', () => {
 				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
 			});
 
-			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow('Refresh token expired');
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED),
+			);
 		});
 
-		it('should throw when user not found', async () => {
+		it('should throw USER_NOT_FOUND error when user not found', async () => {
 			mockUserRepo.clear();
 
-			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow('User not found');
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
+			);
 		});
 
-		it('should throw when user is deleted', async () => {
+		it('should throw USER_NOT_FOUND error when user is deleted', async () => {
 			mockUserRepo.clear();
 			mockUserRepo.addUser({ ...testUser, deleted: true });
 
-			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow('User not found');
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
+			);
 		});
 
-		it('should throw when user is disabled', async () => {
+		it('should throw ACCOUNT_DISABLED error when user is disabled', async () => {
 			mockUserRepo.clear();
 			mockUserRepo.addUser({ ...testUser, enabled: false });
 
-			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow('Account is disabled');
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED),
+			);
 		});
 
 		it('should throw when token verification fails', async () => {

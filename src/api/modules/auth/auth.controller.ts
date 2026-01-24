@@ -1,3 +1,11 @@
+import {
+	type AuthErrorResponse,
+	isAuthError,
+	LoginErrorCode,
+	type LoginErrorResponse,
+	PublicAuthErrorCode,
+	toLoginErrorResponse,
+} from '@contracts/auth/auth.errors';
 import { loginRequestSchema } from '@contracts/auth/auth.schemas';
 import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import { zValidator } from '@hono/zod-validator';
@@ -67,8 +75,12 @@ app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 			200,
 		);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Authentication failed';
-		return c.json({ error: message }, 401);
+		if (isAuthError(error)) {
+			return c.json<LoginErrorResponse>(toLoginErrorResponse(error), 401);
+		}
+
+		// Unknown error - use generic response
+		return c.json<LoginErrorResponse>({ code: LoginErrorCode.GENERIC, message: 'Authentication failed' }, 401);
 	}
 });
 
@@ -81,7 +93,10 @@ app.post('/refresh', async (c) => {
 		const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
 
 		if (!refreshToken) {
-			return c.json({ error: 'No refresh token provided' }, 401);
+			return c.json<AuthErrorResponse>(
+				{ code: PublicAuthErrorCode.TOKEN_INVALID, message: 'No refresh token provided' },
+				401,
+			);
 		}
 
 		const response = await authService.refreshToken(refreshToken);
@@ -92,8 +107,12 @@ app.post('/refresh', async (c) => {
 		// Return only new access token (refresh token is in cookie)
 		return c.json<RefreshResponse>({ token: response.token }, 200);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : 'Token refresh failed';
-		return c.json({ error: message }, 401);
+		if (isAuthError(error)) {
+			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 401);
+		}
+
+		// Unknown error (e.g., PASETO verification failure)
+		return c.json<AuthErrorResponse>({ code: PublicAuthErrorCode.TOKEN_INVALID, message: 'Token refresh failed' }, 401);
 	}
 });
 

@@ -112,7 +112,51 @@ These are non-negotiable rules. Violations require explicit justification.
 | `any` type             | Forbidden without `// REASON:` comment                                                    | Type safety                  |
 | `// @ts-ignore`        | Forbidden without linked issue                                                            | Technical debt tracking      |
 | `console.log`          | Remove before commit                                                                      | Clean code                   |
+| TypeScript enums       | Forbidden - use `Object.freeze()` instead                                                 | Consistency, type safety     |
 | Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations | Bundle size, clarity         |
+
+### Object.freeze() Instead of Enums
+
+TypeScript enums are forbidden in this project. Use `Object.freeze()` with `as const` for key/value references instead.
+
+```typescript
+// ✅ Correct - using Object.freeze()
+export const AuthErrorCode = Object.freeze({
+	INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+	ACCOUNT_LOCKED: 'ACCOUNT_LOCKED',
+	ACCOUNT_DISABLED: 'ACCOUNT_DISABLED',
+} as const);
+
+export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode];
+
+// ❌ Incorrect - using enum
+export enum AuthErrorCode {
+	INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+	ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
+}
+```
+
+**Benefits:**
+
+- Consistent with JavaScript idioms (plain objects)
+- Better tree-shaking by bundlers
+- More flexible (can be extended, merged, or computed)
+- No TypeScript-specific runtime overhead
+- Works seamlessly with `typeof` and `keyof` for type extraction
+
+**Usage:**
+
+```typescript
+// Type-safe usage
+function handleError(code: AuthErrorCode) {
+	if (code === AuthErrorCode.ACCOUNT_LOCKED) {
+		// ...
+	}
+}
+
+// The type is a union of literal types:
+// type AuthErrorCode = 'INVALID_CREDENTIALS' | 'ACCOUNT_LOCKED' | 'ACCOUNT_DISABLED'
+```
 
 ### Type-Only Imports
 

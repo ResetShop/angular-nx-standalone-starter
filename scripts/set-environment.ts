@@ -31,6 +31,7 @@ const targetPath = `${dirPath}/environment.ts`;
 // Include your shareable default values for .env files, if any
 const defaultEnvVariables = {
 	NODE_ENV: 'development',
+	DEFAULT_LANGUAGE: 'en',
 };
 
 // Creates an .env with default variables if it doesn't exist yet
@@ -104,6 +105,7 @@ const exportedEnvironment = {
 	website: `${apiUrl ?? ''}`, // TODO: Include production domain here, if exists
 	apiUrl: `${apiUrl}`,
 	clarityProjectId: '',
+	defaultLanguage: (process.env['DEFAULT_LANGUAGE'] as 'en' | 'es') ?? 'en',
 };
 
 // Checks if the environment variable for Microsoft Clarity analytics exists
