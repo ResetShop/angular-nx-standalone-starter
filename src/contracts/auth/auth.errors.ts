@@ -1,3 +1,5 @@
+// region Constants and Types
+
 /**
  * Internal authentication error codes for logging and debugging.
  * Includes all error conditions, including security-sensitive ones
@@ -60,6 +62,24 @@ export const PublicAuthErrorCode = Object.freeze({
 export type PublicAuthErrorCode = (typeof PublicAuthErrorCode)[keyof typeof PublicAuthErrorCode];
 
 /**
+ * Error codes that can be returned from the login endpoint.
+ * This is a strict subset of PublicAuthErrorCode for security reasons:
+ * - INVALID_CREDENTIALS: Generic auth failure (also used for deleted accounts, user enumeration prevention)
+ * - ACCOUNT_LOCKED: Account temporarily locked due to failed attempts
+ * - GENERIC: Fallback for unexpected errors that don't match the above
+ *
+ * Other error codes (TOKEN_*, ACCOUNT_DISABLED, etc.) should NEVER be returned
+ * from the login flow as they leak information about account state.
+ */
+export const LoginErrorCode = Object.freeze({
+	INVALID_CREDENTIALS: PublicAuthErrorCode.INVALID_CREDENTIALS,
+	ACCOUNT_LOCKED: PublicAuthErrorCode.ACCOUNT_LOCKED,
+	GENERIC: PublicAuthErrorCode.GENERIC,
+} as const);
+
+export type LoginErrorCode = (typeof LoginErrorCode)[keyof typeof LoginErrorCode];
+
+/**
  * Internal error messages for logging service.
  * These provide detailed messages for debugging without exposing sensitive info to users.
  */
@@ -97,12 +117,33 @@ export const InternalToPublicErrorMap = Object.freeze({
 	[InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED]: PublicAuthErrorCode.TOKEN_EXPIRED,
 } as const) satisfies Record<InternalAuthErrorCode, PublicAuthErrorCode>;
 
+// endregion
+
+// region Interfaces
+
 /**
- * Gets the internal error message for logging purposes.
+ * Standard error response structure for auth endpoints.
  */
-export function getInternalErrorMessage(internalCode: InternalAuthErrorCode): string {
-	return InternalAuthErrorMessage[internalCode];
+export interface AuthErrorResponse {
+	/** Machine-readable error code for type-safe handling */
+	code: PublicAuthErrorCode;
+	/** Human-readable error message (primarily for debugging) */
+	message: string;
 }
+
+/**
+ * Error response structure specifically for the login endpoint.
+ * Uses the restricted LoginErrorCode type to enforce at compile-time
+ * that only valid login errors can be returned.
+ */
+export interface LoginErrorResponse {
+	code: LoginErrorCode;
+	message: string;
+}
+
+// endregion
+
+// region Classes
 
 /**
  * Custom error class for authentication errors.
@@ -120,6 +161,10 @@ export class AuthError extends Error {
 	}
 }
 
+// endregion
+
+// region Functions and Type Guards
+
 /**
  * Type guard to check if an error is an AuthError instance.
  */
@@ -128,45 +173,10 @@ export function isAuthError(error: unknown): error is AuthError {
 }
 
 /**
- * Standard error response structure for auth endpoints.
+ * Gets the internal error message for logging purposes.
  */
-export interface AuthErrorResponse {
-	/** Machine-readable error code for type-safe handling */
-	code: PublicAuthErrorCode;
-	/** Human-readable error message (primarily for debugging) */
-	message: string;
-}
-
-// ============================================================================
-// Login-Specific Error Types
-// ============================================================================
-
-/**
- * Error codes that can be returned from the login endpoint.
- * This is a strict subset of PublicAuthErrorCode for security reasons:
- * - INVALID_CREDENTIALS: Generic auth failure (also used for deleted accounts, user enumeration prevention)
- * - ACCOUNT_LOCKED: Account temporarily locked due to failed attempts
- * - GENERIC: Fallback for unexpected errors that don't match the above
- *
- * Other error codes (TOKEN_*, ACCOUNT_DISABLED, etc.) should NEVER be returned
- * from the login flow as they leak information about account state.
- */
-export const LoginErrorCode = Object.freeze({
-	INVALID_CREDENTIALS: PublicAuthErrorCode.INVALID_CREDENTIALS,
-	ACCOUNT_LOCKED: PublicAuthErrorCode.ACCOUNT_LOCKED,
-	GENERIC: PublicAuthErrorCode.GENERIC,
-} as const);
-
-export type LoginErrorCode = (typeof LoginErrorCode)[keyof typeof LoginErrorCode];
-
-/**
- * Error response structure specifically for the login endpoint.
- * Uses the restricted LoginErrorCode type to enforce at compile-time
- * that only valid login errors can be returned.
- */
-export interface LoginErrorResponse {
-	code: LoginErrorCode;
-	message: string;
+export function getInternalErrorMessage(internalCode: InternalAuthErrorCode): string {
+	return InternalAuthErrorMessage[internalCode];
 }
 
 /**
@@ -181,7 +191,7 @@ export function isLoginErrorCode(code: PublicAuthErrorCode): code is LoginErrorC
  * Converts an AuthError to a safe LoginErrorResponse.
  * Maps both the code and message to prevent information leakage.
  *
- * - Valid login codes (INVALID_CREDENTIALS, ACCOUNT_LOCKED) preserve the original message
+ * - Valid login codes preserve the original message
  * - All other codes are mapped to GENERIC with a safe message
  */
 export function toLoginErrorResponse(error: AuthError): LoginErrorResponse {
@@ -191,3 +201,5 @@ export function toLoginErrorResponse(error: AuthError): LoginErrorResponse {
 		message: isLoginErrorCode(error.publicCode) ? error.message : 'Authentication failed',
 	};
 }
+
+// endregion
