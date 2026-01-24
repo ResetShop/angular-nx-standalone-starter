@@ -8,9 +8,7 @@ import {
 	isLoginErrorCode,
 	LoginErrorCode,
 	PublicAuthErrorCode,
-	toLoginErrorCode,
 	toLoginErrorResponse,
-	toPublicErrorCode,
 } from './auth.errors';
 
 describe('Auth Errors', () => {
@@ -125,22 +123,6 @@ describe('Auth Errors', () => {
 		it('should map REFRESH_TOKEN_EXPIRED to TOKEN_EXPIRED', () => {
 			expect(InternalToPublicErrorMap[InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED]).toBe(
 				PublicAuthErrorCode.TOKEN_EXPIRED,
-			);
-		});
-	});
-
-	describe('toPublicErrorCode()', () => {
-		it('should convert internal code to public code', () => {
-			expect(toPublicErrorCode(InternalAuthErrorCode.INVALID_CREDENTIALS)).toBe(
-				PublicAuthErrorCode.INVALID_CREDENTIALS,
-			);
-			expect(toPublicErrorCode(InternalAuthErrorCode.ACCOUNT_LOCKED)).toBe(PublicAuthErrorCode.ACCOUNT_LOCKED);
-		});
-
-		it('should apply security mappings', () => {
-			expect(toPublicErrorCode(InternalAuthErrorCode.USER_NOT_FOUND)).toBe(PublicAuthErrorCode.INVALID_CREDENTIALS);
-			expect(toPublicErrorCode(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND)).toBe(
-				PublicAuthErrorCode.INVALID_CREDENTIALS,
 			);
 		});
 	});
@@ -276,36 +258,6 @@ describe('Auth Errors', () => {
 
 		it('should return false for ACCOUNT_DELETED', () => {
 			expect(isLoginErrorCode(PublicAuthErrorCode.ACCOUNT_DELETED)).toBe(false);
-		});
-	});
-
-	describe('toLoginErrorCode()', () => {
-		it('should return INVALID_CREDENTIALS as-is', () => {
-			expect(toLoginErrorCode(PublicAuthErrorCode.INVALID_CREDENTIALS)).toBe(LoginErrorCode.INVALID_CREDENTIALS);
-		});
-
-		it('should return ACCOUNT_LOCKED as-is', () => {
-			expect(toLoginErrorCode(PublicAuthErrorCode.ACCOUNT_LOCKED)).toBe(LoginErrorCode.ACCOUNT_LOCKED);
-		});
-
-		it('should return GENERIC as-is', () => {
-			expect(toLoginErrorCode(PublicAuthErrorCode.GENERIC)).toBe(LoginErrorCode.GENERIC);
-		});
-
-		it('should convert TOKEN_EXPIRED to GENERIC', () => {
-			expect(toLoginErrorCode(PublicAuthErrorCode.TOKEN_EXPIRED)).toBe(LoginErrorCode.GENERIC);
-		});
-
-		it('should convert TOKEN_INVALID to GENERIC', () => {
-			expect(toLoginErrorCode(PublicAuthErrorCode.TOKEN_INVALID)).toBe(LoginErrorCode.GENERIC);
-		});
-
-		it('should convert ACCOUNT_DISABLED to GENERIC', () => {
-			expect(toLoginErrorCode(PublicAuthErrorCode.ACCOUNT_DISABLED)).toBe(LoginErrorCode.GENERIC);
-		});
-
-		it('should convert ACCOUNT_DELETED to GENERIC', () => {
-			expect(toLoginErrorCode(PublicAuthErrorCode.ACCOUNT_DELETED)).toBe(LoginErrorCode.GENERIC);
 		});
 	});
 
