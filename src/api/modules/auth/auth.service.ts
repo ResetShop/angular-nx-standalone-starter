@@ -1,3 +1,4 @@
+import { AuthError, getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
 import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
@@ -35,17 +36,6 @@ interface AuthResult {
 	token: string;
 	refreshToken: string;
 }
-
-export const AUTH_ERRORS = {
-	INVALID_CREDENTIALS: 'Invalid credentials',
-	TOKEN_EXPIRED: 'Token has expired',
-	TOKEN_INVALID: 'Invalid token',
-	ACCOUNT_DISABLED: 'Account is disabled',
-	ACCOUNT_DELETED: 'Account is deleted',
-	ACCOUNT_LOCKED: 'Account is temporarily locked due to too many failed login attempts',
-	USER_NOT_FOUND: 'User not found',
-	AUTH_RECORD_NOT_FOUND: 'Authentication record not found',
-} as const;
 
 interface AuthServiceDeps {
 	userRepository: IUserRepository;
@@ -92,8 +82,8 @@ export class AuthService {
 	 *
 	 * @param credentials - Login credentials containing email and password
 	 * @returns AuthResult containing user data, access token, and refresh token
-	 * @throws Error with INVALID_CREDENTIALS message if authentication fails
-	 * @throws Error with ACCOUNT_LOCKED message if account is locked due to failed attempts
+	 * @throws AuthError with INVALID_CREDENTIALS code if authentication fails
+	 * @throws AuthError with ACCOUNT_LOCKED code if account is locked due to failed attempts
 	 */
 	async authenticate(credentials: LoginParams): Promise<AuthResult> {
 		return this.findUserAndAuth(credentials.email)
@@ -131,7 +121,7 @@ export class AuthService {
 	 *
 	 * @param authRecord - User's authentication record
 	 * @param userId - User ID for logging
-	 * @throws Error with ACCOUNT_LOCKED message if account is currently locked
+	 * @throws AuthError with ACCOUNT_LOCKED code if account is currently locked
 	 */
 	private checkAccountLockout(authRecord: AuthenticationData | null, userId?: number): void {
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
@@ -143,7 +133,7 @@ export class AuthService {
 					timestamp: new Date().toISOString(),
 				}),
 			);
-			throw new Error(AUTH_ERRORS.ACCOUNT_LOCKED);
+			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED);
 		}
 	}
 
@@ -163,7 +153,7 @@ export class AuthService {
 	 * @param authRecord - Authentication record or null
 	 * @param password - Password to verify
 	 * @returns Validated user and auth record
-	 * @throws Error with INVALID_CREDENTIALS if validation fails
+	 * @throws AuthError with INVALID_CREDENTIALS code if validation fails
 	 */
 	private async validateCredentials(
 		user: UserData | null,
@@ -175,7 +165,7 @@ export class AuthService {
 
 		if (!user || !authRecord || !passwordMatch || user.deleted || !user.enabled) {
 			await this.handleFailedLogin(user, authRecord);
-			throw new Error(AUTH_ERRORS.INVALID_CREDENTIALS);
+			throw new AuthError(InternalAuthErrorCode.INVALID_CREDENTIALS);
 		}
 
 		return { user, authRecord };
@@ -218,15 +208,15 @@ export class AuthService {
 	 */
 	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
 		if (!user) {
-			console.error(AUTH_ERRORS.USER_NOT_FOUND);
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND));
 		} else if (!authRecord) {
-			console.error(AUTH_ERRORS.AUTH_RECORD_NOT_FOUND);
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND));
 		} else if (user.deleted) {
-			console.error(AUTH_ERRORS.ACCOUNT_DELETED);
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED));
 		} else if (!user.enabled) {
-			console.error(AUTH_ERRORS.ACCOUNT_DISABLED);
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED));
 		} else {
-			console.error(AUTH_ERRORS.INVALID_CREDENTIALS);
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		}
 	}
 
@@ -283,7 +273,7 @@ export class AuthService {
 	 *
 	 * @param token - The refresh token to exchange
 	 * @returns InternalRefreshResponse containing new access token and refresh token
-	 * @throws Error if token is invalid, expired, revoked, or user account is disabled
+	 * @throws AuthError if token is invalid, expired, revoked, or user account is disabled
 	 */
 	async refreshToken(token: string): Promise<InternalRefreshResponse> {
 		// 1. Verify refresh token
@@ -291,7 +281,7 @@ export class AuthService {
 
 		// 2. Validate token family exists (required for rotation tracking)
 		if (!payload.tokenFamily) {
-			throw new Error('Invalid refresh token: missing token family');
+			throw new AuthError(InternalAuthErrorCode.TOKEN_MISSING_FAMILY);
 		}
 
 		// 3. Check if token is revoked in database
@@ -299,22 +289,22 @@ export class AuthService {
 		const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash);
 
 		if (!storedToken || storedToken.isRevoked) {
-			throw new Error('Invalid refresh token');
+			throw new AuthError(InternalAuthErrorCode.TOKEN_REVOKED);
 		}
 
 		// 4. Check if token is expired
 		if (storedToken.expiresAt < new Date()) {
-			throw new Error('Refresh token expired');
+			throw new AuthError(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED);
 		}
 
 		// 5. Get user data and validate account status
 		const user = await this.userRepository.findById(Number(payload.sub));
 		if (!user || user.deleted) {
-			throw new Error('User not found');
+			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND);
 		}
 
 		if (!user.enabled) {
-			throw new Error('Account is disabled');
+			throw new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED);
 		}
 
 		// 6. Generate new tokens
