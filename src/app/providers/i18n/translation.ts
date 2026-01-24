@@ -45,9 +45,12 @@ export class Translation {
 		es: null,
 	};
 
-	constructor() {
-		// Load default language on initialization
-		this.loadTranslation(this.currentLang());
+	/**
+	 * Loads the default language translations.
+	 * Called by the app initializer to ensure translations are ready before app starts.
+	 */
+	async loadDefaultLanguage(): Promise<void> {
+		await this.loadTranslation(this.currentLang());
 	}
 
 	/**
