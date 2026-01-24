@@ -5,7 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
-import type { AuthErrorResponse } from '@contracts/auth/auth.errors';
+import type { LoginErrorResponse } from '@contracts/auth/auth.errors';
 import { LoginForm } from '@interfaces/auth';
 import { Auth } from '@providers/auth/auth';
 import { Translation } from '@providers/i18n/translation';
@@ -165,10 +165,8 @@ export default class Login {
 			});
 	}
 
-	private handleLoginError(error: HttpErrorResponse): void {
-		const authError = error.error as AuthErrorResponse | undefined;
-		this.errorMessage.set(
-			this.translation.instant(authError?.code ? `AUTH.ERRORS.${authError.code}` : 'AUTH.ERRORS.GENERIC'),
-		);
+	private handleLoginError(response: HttpErrorResponse): void {
+		const error = response.error as LoginErrorResponse | undefined;
+		this.errorMessage.set(this.translation.instant(error?.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'));
 	}
 }

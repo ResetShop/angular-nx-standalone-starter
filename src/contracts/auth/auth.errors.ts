@@ -54,6 +54,7 @@ export const PublicAuthErrorCode = Object.freeze({
 	ACCOUNT_DELETED: 'ACCOUNT_DELETED',
 	TOKEN_EXPIRED: 'TOKEN_EXPIRED',
 	TOKEN_INVALID: 'TOKEN_INVALID',
+	GENERIC: 'GENERIC',
 } as const);
 
 export type PublicAuthErrorCode = (typeof PublicAuthErrorCode)[keyof typeof PublicAuthErrorCode];
@@ -85,12 +86,12 @@ export const InternalToPublicErrorMap = Object.freeze({
 	[InternalAuthErrorCode.INVALID_CREDENTIALS]: PublicAuthErrorCode.INVALID_CREDENTIALS,
 	[InternalAuthErrorCode.ACCOUNT_LOCKED]: PublicAuthErrorCode.ACCOUNT_LOCKED,
 	[InternalAuthErrorCode.ACCOUNT_DISABLED]: PublicAuthErrorCode.ACCOUNT_DISABLED,
-	[InternalAuthErrorCode.ACCOUNT_DELETED]: PublicAuthErrorCode.ACCOUNT_DELETED,
 	[InternalAuthErrorCode.TOKEN_EXPIRED]: PublicAuthErrorCode.TOKEN_EXPIRED,
 	[InternalAuthErrorCode.TOKEN_INVALID]: PublicAuthErrorCode.TOKEN_INVALID,
 	// Security mappings (hide sensitive details)
 	[InternalAuthErrorCode.USER_NOT_FOUND]: PublicAuthErrorCode.INVALID_CREDENTIALS,
 	[InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND]: PublicAuthErrorCode.INVALID_CREDENTIALS,
+	[InternalAuthErrorCode.ACCOUNT_DELETED]: PublicAuthErrorCode.INVALID_CREDENTIALS,
 	[InternalAuthErrorCode.TOKEN_MISSING_FAMILY]: PublicAuthErrorCode.TOKEN_INVALID,
 	[InternalAuthErrorCode.TOKEN_REVOKED]: PublicAuthErrorCode.TOKEN_INVALID,
 	[InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED]: PublicAuthErrorCode.TOKEN_EXPIRED,
@@ -141,4 +142,74 @@ export interface AuthErrorResponse {
 	code: PublicAuthErrorCode;
 	/** Human-readable error message (primarily for debugging) */
 	message: string;
+}
+
+// ============================================================================
+// Login-Specific Error Types
+// ============================================================================
+
+/**
+ * Error codes that can be returned from the login endpoint.
+ * This is a strict subset of PublicAuthErrorCode for security reasons:
+ * - INVALID_CREDENTIALS: Generic auth failure (also used for deleted accounts, user enumeration prevention)
+ * - ACCOUNT_LOCKED: Account temporarily locked due to failed attempts
+ * - GENERIC: Fallback for unexpected errors that don't match the above
+ *
+ * Other error codes (TOKEN_*, ACCOUNT_DISABLED, etc.) should NEVER be returned
+ * from the login flow as they leak information about account state.
+ */
+export const LoginErrorCode = Object.freeze({
+	INVALID_CREDENTIALS: PublicAuthErrorCode.INVALID_CREDENTIALS,
+	ACCOUNT_LOCKED: PublicAuthErrorCode.ACCOUNT_LOCKED,
+	GENERIC: PublicAuthErrorCode.GENERIC,
+} as const);
+
+export type LoginErrorCode = (typeof LoginErrorCode)[keyof typeof LoginErrorCode];
+
+/**
+ * Error response structure specifically for the login endpoint.
+ * Uses the restricted LoginErrorCode type to enforce at compile-time
+ * that only valid login errors can be returned.
+ */
+export interface LoginErrorResponse {
+	code: LoginErrorCode;
+	message: string;
+}
+
+/**
+ * Type guard to check if a PublicAuthErrorCode is a valid LoginErrorCode.
+ * Use this to validate error codes before sending them in login responses.
+ */
+export function isLoginErrorCode(code: PublicAuthErrorCode): code is LoginErrorCode {
+	return (
+		code === LoginErrorCode.INVALID_CREDENTIALS ||
+		code === LoginErrorCode.ACCOUNT_LOCKED ||
+		code === LoginErrorCode.GENERIC
+	);
+}
+
+/**
+ * Converts any PublicAuthErrorCode to a valid LoginErrorCode.
+ * Non-login error codes are mapped to GENERIC for security.
+ *
+ * This ensures that even if an unexpected error occurs during login,
+ * no sensitive information is leaked through the error code.
+ */
+export function toLoginErrorCode(code: PublicAuthErrorCode): LoginErrorCode {
+	return isLoginErrorCode(code) ? code : LoginErrorCode.GENERIC;
+}
+
+/**
+ * Converts an AuthError to a safe LoginErrorResponse.
+ * Maps both the code and message to prevent information leakage.
+ *
+ * - Valid login codes (INVALID_CREDENTIALS, ACCOUNT_LOCKED) preserve the original message
+ * - All other codes are mapped to GENERIC with a safe message
+ */
+export function toLoginErrorResponse(error: AuthError): LoginErrorResponse {
+	const code = toLoginErrorCode(error.publicCode);
+	return {
+		code,
+		message: isLoginErrorCode(error.publicCode) ? error.message : 'Authentication failed',
+	};
 }
