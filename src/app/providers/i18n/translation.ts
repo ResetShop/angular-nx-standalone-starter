@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { environment } from '../../environments/environment';
 import type { TranslationKey, TranslationSchema } from './translations.schema';
 
 /**
@@ -33,9 +34,9 @@ export type Language = 'en' | 'es';
 export class Translation {
 	/**
 	 * Current active language.
-	 * Defaults to Spanish ('es').
+	 * Defaults to the value set in environment.defaultLanguage, or 'en' if not set.
 	 */
-	private readonly currentLang = signal<Language>('es');
+	private readonly currentLang = signal<Language>((environment.defaultLanguage as Language) ?? 'en');
 
 	/**
 	 * In-memory cache of loaded translations.
