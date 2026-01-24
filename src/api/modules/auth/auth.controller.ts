@@ -1,4 +1,11 @@
-import { type AuthErrorResponse, isAuthError, PublicAuthErrorCode } from '@contracts/auth/auth.errors';
+import {
+	type AuthErrorResponse,
+	isAuthError,
+	LoginErrorCode,
+	type LoginErrorResponse,
+	PublicAuthErrorCode,
+	toLoginErrorResponse,
+} from '@contracts/auth/auth.errors';
 import { loginRequestSchema } from '@contracts/auth/auth.schemas';
 import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import { zValidator } from '@hono/zod-validator';
@@ -69,14 +76,11 @@ app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 		);
 	} catch (error) {
 		if (isAuthError(error)) {
-			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 401);
+			return c.json<LoginErrorResponse>(toLoginErrorResponse(error), 401);
 		}
 
 		// Unknown error - use generic response
-		return c.json<AuthErrorResponse>(
-			{ code: PublicAuthErrorCode.INVALID_CREDENTIALS, message: 'Authentication failed' },
-			401,
-		);
+		return c.json<LoginErrorResponse>({ code: LoginErrorCode.GENERIC, message: 'Authentication failed' }, 401);
 	}
 });
 

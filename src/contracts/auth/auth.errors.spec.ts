@@ -5,7 +5,11 @@ import {
 	InternalAuthErrorMessage,
 	InternalToPublicErrorMap,
 	isAuthError,
+	isLoginErrorCode,
+	LoginErrorCode,
 	PublicAuthErrorCode,
+	toLoginErrorCode,
+	toLoginErrorResponse,
 	toPublicErrorCode,
 } from './auth.errors';
 
@@ -46,10 +50,11 @@ describe('Auth Errors', () => {
 			expect(PublicAuthErrorCode.ACCOUNT_DELETED).toBe('ACCOUNT_DELETED');
 			expect(PublicAuthErrorCode.TOKEN_EXPIRED).toBe('TOKEN_EXPIRED');
 			expect(PublicAuthErrorCode.TOKEN_INVALID).toBe('TOKEN_INVALID');
+			expect(PublicAuthErrorCode.GENERIC).toBe('GENERIC');
 		});
 
-		it('should have 6 error codes (subset of internal)', () => {
-			expect(Object.keys(PublicAuthErrorCode)).toHaveLength(6);
+		it('should have 7 error codes (subset of internal plus GENERIC)', () => {
+			expect(Object.keys(PublicAuthErrorCode)).toHaveLength(7);
 		});
 
 		it('should NOT contain security-sensitive codes', () => {
@@ -220,6 +225,155 @@ describe('Auth Errors', () => {
 
 		it('should return false for strings', () => {
 			expect(isAuthError('INVALID_CREDENTIALS')).toBe(false);
+		});
+	});
+
+	describe('LoginErrorCode', () => {
+		it('should be frozen (immutable)', () => {
+			expect(Object.isFrozen(LoginErrorCode)).toBe(true);
+		});
+
+		it('should only contain INVALID_CREDENTIALS, ACCOUNT_LOCKED, and GENERIC', () => {
+			expect(Object.keys(LoginErrorCode)).toHaveLength(3);
+			expect(LoginErrorCode.INVALID_CREDENTIALS).toBe('INVALID_CREDENTIALS');
+			expect(LoginErrorCode.ACCOUNT_LOCKED).toBe('ACCOUNT_LOCKED');
+			expect(LoginErrorCode.GENERIC).toBe('GENERIC');
+		});
+
+		it('should NOT contain token or account status errors', () => {
+			const loginCodes = Object.values(LoginErrorCode);
+			expect(loginCodes).not.toContain('TOKEN_EXPIRED');
+			expect(loginCodes).not.toContain('TOKEN_INVALID');
+			expect(loginCodes).not.toContain('ACCOUNT_DISABLED');
+			expect(loginCodes).not.toContain('ACCOUNT_DELETED');
+		});
+	});
+
+	describe('isLoginErrorCode()', () => {
+		it('should return true for INVALID_CREDENTIALS', () => {
+			expect(isLoginErrorCode(PublicAuthErrorCode.INVALID_CREDENTIALS)).toBe(true);
+		});
+
+		it('should return true for ACCOUNT_LOCKED', () => {
+			expect(isLoginErrorCode(PublicAuthErrorCode.ACCOUNT_LOCKED)).toBe(true);
+		});
+
+		it('should return true for GENERIC', () => {
+			expect(isLoginErrorCode(PublicAuthErrorCode.GENERIC)).toBe(true);
+		});
+
+		it('should return false for TOKEN_EXPIRED', () => {
+			expect(isLoginErrorCode(PublicAuthErrorCode.TOKEN_EXPIRED)).toBe(false);
+		});
+
+		it('should return false for TOKEN_INVALID', () => {
+			expect(isLoginErrorCode(PublicAuthErrorCode.TOKEN_INVALID)).toBe(false);
+		});
+
+		it('should return false for ACCOUNT_DISABLED', () => {
+			expect(isLoginErrorCode(PublicAuthErrorCode.ACCOUNT_DISABLED)).toBe(false);
+		});
+
+		it('should return false for ACCOUNT_DELETED', () => {
+			expect(isLoginErrorCode(PublicAuthErrorCode.ACCOUNT_DELETED)).toBe(false);
+		});
+	});
+
+	describe('toLoginErrorCode()', () => {
+		it('should return INVALID_CREDENTIALS as-is', () => {
+			expect(toLoginErrorCode(PublicAuthErrorCode.INVALID_CREDENTIALS)).toBe(LoginErrorCode.INVALID_CREDENTIALS);
+		});
+
+		it('should return ACCOUNT_LOCKED as-is', () => {
+			expect(toLoginErrorCode(PublicAuthErrorCode.ACCOUNT_LOCKED)).toBe(LoginErrorCode.ACCOUNT_LOCKED);
+		});
+
+		it('should return GENERIC as-is', () => {
+			expect(toLoginErrorCode(PublicAuthErrorCode.GENERIC)).toBe(LoginErrorCode.GENERIC);
+		});
+
+		it('should convert TOKEN_EXPIRED to GENERIC', () => {
+			expect(toLoginErrorCode(PublicAuthErrorCode.TOKEN_EXPIRED)).toBe(LoginErrorCode.GENERIC);
+		});
+
+		it('should convert TOKEN_INVALID to GENERIC', () => {
+			expect(toLoginErrorCode(PublicAuthErrorCode.TOKEN_INVALID)).toBe(LoginErrorCode.GENERIC);
+		});
+
+		it('should convert ACCOUNT_DISABLED to GENERIC', () => {
+			expect(toLoginErrorCode(PublicAuthErrorCode.ACCOUNT_DISABLED)).toBe(LoginErrorCode.GENERIC);
+		});
+
+		it('should convert ACCOUNT_DELETED to GENERIC', () => {
+			expect(toLoginErrorCode(PublicAuthErrorCode.ACCOUNT_DELETED)).toBe(LoginErrorCode.GENERIC);
+		});
+	});
+
+	describe('Security: ACCOUNT_DELETED Mapping', () => {
+		it('should map ACCOUNT_DELETED to INVALID_CREDENTIALS in InternalToPublicErrorMap', () => {
+			expect(InternalToPublicErrorMap[InternalAuthErrorCode.ACCOUNT_DELETED]).toBe(
+				PublicAuthErrorCode.INVALID_CREDENTIALS,
+			);
+		});
+
+		it('should create AuthError with INVALID_CREDENTIALS public code for ACCOUNT_DELETED', () => {
+			const error = new AuthError(InternalAuthErrorCode.ACCOUNT_DELETED);
+
+			expect(error.internalCode).toBe(InternalAuthErrorCode.ACCOUNT_DELETED);
+			expect(error.publicCode).toBe(PublicAuthErrorCode.INVALID_CREDENTIALS);
+		});
+	});
+
+	describe('toLoginErrorResponse()', () => {
+		it('should preserve message for INVALID_CREDENTIALS errors', () => {
+			const error = new AuthError(InternalAuthErrorCode.INVALID_CREDENTIALS);
+			const response = toLoginErrorResponse(error);
+
+			expect(response.code).toBe(LoginErrorCode.INVALID_CREDENTIALS);
+			expect(response.message).toBe(error.message);
+		});
+
+		it('should preserve message for ACCOUNT_LOCKED errors', () => {
+			const error = new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED);
+			const response = toLoginErrorResponse(error);
+
+			expect(response.code).toBe(LoginErrorCode.ACCOUNT_LOCKED);
+			expect(response.message).toBe(error.message);
+		});
+
+		it('should use generic message for TOKEN_EXPIRED errors', () => {
+			const error = new AuthError(InternalAuthErrorCode.TOKEN_EXPIRED);
+			const response = toLoginErrorResponse(error);
+
+			expect(response.code).toBe(LoginErrorCode.GENERIC);
+			expect(response.message).toBe('Authentication failed');
+			expect(response.message).not.toBe(error.message);
+		});
+
+		it('should use generic message for ACCOUNT_DISABLED errors', () => {
+			const error = new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED);
+			const response = toLoginErrorResponse(error);
+
+			expect(response.code).toBe(LoginErrorCode.GENERIC);
+			expect(response.message).toBe('Authentication failed');
+		});
+
+		it('should NOT leak internal message for non-login error codes', () => {
+			const sensitiveErrors = [
+				InternalAuthErrorCode.TOKEN_EXPIRED,
+				InternalAuthErrorCode.TOKEN_INVALID,
+				InternalAuthErrorCode.TOKEN_REVOKED,
+				InternalAuthErrorCode.ACCOUNT_DISABLED,
+			];
+
+			for (const code of sensitiveErrors) {
+				const error = new AuthError(code);
+				const response = toLoginErrorResponse(error);
+
+				expect(response.message).toBe('Authentication failed');
+				expect(response.message).not.toContain('Token');
+				expect(response.message).not.toContain('disabled');
+			}
 		});
 	});
 });
