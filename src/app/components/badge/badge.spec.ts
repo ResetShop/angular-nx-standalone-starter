@@ -63,6 +63,6 @@ describe('Badge', () => {
 		});
 
 		const badge = screen.getByText('Outline');
-		expect(badge).toHaveClass('border', 'border-gray-300', 'text-gray-700', 'bg-transparent', 'dark:border-gray-600', 'dark:text-gray-300');
+		expect(badge).toHaveClass('border', 'border-solid', 'border-gray-300', 'text-gray-700', 'bg-transparent', 'dark:border-gray-600', 'dark:text-gray-300');
 	});
 });
