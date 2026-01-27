@@ -4,6 +4,11 @@ export const tags = ['autodocs'];
 
 const preview: Preview = {
 	parameters: {
+		options: {
+			storySort: {
+				method: 'alphabetical',
+			},
+		},
 		backgrounds: {
 			options: {
 				light: { name: 'light', value: '#ffffff' },
