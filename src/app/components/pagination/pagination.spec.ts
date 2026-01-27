@@ -107,4 +107,43 @@ describe('Pagination', () => {
 
 		expect(screen.getByText(/showing 0 to 0 of 0 results/i)).toBeInTheDocument();
 	});
+
+	it('should not emit pageChange when clicking disabled previous button', async () => {
+		const user = userEvent.setup();
+		const pageChangeSpy = vi.fn();
+
+		await render(Pagination, {
+			inputs: { currentPage: 1, totalPages: 5, totalItems: 50, pageSize: 10 },
+			on: { pageChange: pageChangeSpy },
+		});
+
+		const prevButton = screen.getByRole('button', { name: /go to previous page/i });
+		await user.click(prevButton);
+
+		expect(pageChangeSpy).not.toHaveBeenCalled();
+	});
+
+	it('should not emit pageChange when clicking disabled next button', async () => {
+		const user = userEvent.setup();
+		const pageChangeSpy = vi.fn();
+
+		await render(Pagination, {
+			inputs: { currentPage: 5, totalPages: 5, totalItems: 50, pageSize: 10 },
+			on: { pageChange: pageChangeSpy },
+		});
+
+		const nextButton = screen.getByRole('button', { name: /go to next page/i });
+		await user.click(nextButton);
+
+		expect(pageChangeSpy).not.toHaveBeenCalled();
+	});
+
+	it('should disable both buttons when there is only one page', async () => {
+		await render(Pagination, {
+			inputs: { currentPage: 1, totalPages: 1, totalItems: 5, pageSize: 10 },
+		});
+
+		expect(screen.getByRole('button', { name: /go to previous page/i })).toHaveAttribute('aria-disabled', 'true');
+		expect(screen.getByRole('button', { name: /go to next page/i })).toHaveAttribute('aria-disabled', 'true');
+	});
 });
