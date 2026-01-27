@@ -1,0 +1,38 @@
+<dialog
+	(cancel)="onCancel($event)"
+	(click)="onBackdropClick($event)"
+	(keydown)="$event"
+	[class]="panelClasses()"
+	[attr.aria-labelledby]="title() ? titleId : null"
+	[attr.aria-describedby]="description() ? descriptionId : null"
+	tabindex="-1"
+	#drawerRef
+	class="m-0 flex max-h-full flex-col bg-white shadow-xl dark:bg-gray-900"
+>
+	<!-- Header -->
+	<div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+		@if (headerTemplate()) {
+		<ng-container *ngTemplateOutlet="headerTemplate()!.templateRef" />
+		} @else {
+		<div>
+			@if (title()) {
+			<h2 [id]="titleId" class="text-lg font-semibold text-gray-900 dark:text-white">{{ title() }}</h2>
+			} @if (description()) {
+			<p [id]="descriptionId" class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ description() }}</p>
+			}
+		</div>
+		}
+	</div>
+
+	<!-- Body -->
+	<div class="flex-1 overflow-y-auto px-6 py-4">
+		<ng-content />
+	</div>
+
+	<!-- Footer -->
+	@if (footerTemplate()) {
+	<div class="border-t border-gray-200 px-6 py-4 dark:border-gray-700">
+		<ng-container *ngTemplateOutlet="footerTemplate()!.templateRef" />
+	</div>
+	}
+</dialog>
