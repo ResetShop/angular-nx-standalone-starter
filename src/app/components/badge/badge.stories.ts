@@ -57,34 +57,22 @@ export const Default: Story = {
 	},
 	render: (args) => ({
 		props: args,
-		template: `<span appBadge [variant]="variant">Badge</span>`,
-	}),
-};
-
-/**
- * Secondary variant with subtle gray styling.
- */
-export const Secondary: Story = {
-	render: () => ({
-		template: `<span appBadge variant="secondary">Secondary</span>`,
-	}),
-};
-
-/**
- * Destructive variant using danger colors.
- */
-export const Destructive: Story = {
-	render: () => ({
-		template: `<span appBadge variant="destructive">Error</span>`,
-	}),
-};
-
-/**
- * Outline variant with border and transparent background.
- */
-export const Outline: Story = {
-	render: () => ({
-		template: `<span appBadge variant="outline">Outline</span>`,
+		template: `
+			<div class="space-y-4">
+				<div>
+					<h3 class="text-sm font-semibold text-gray-900 mb-2">Light</h3>
+					<div class="bg-white p-4 rounded border border-gray-200">
+						<span appBadge [variant]="variant">Badge</span>
+					</div>
+				</div>
+				<div>
+					<h3 class="text-sm font-semibold text-gray-900 mb-2">Dark</h3>
+					<div class="dark bg-black p-4 rounded border border-gray-800">
+						<span appBadge [variant]="variant">Badge</span>
+					</div>
+				</div>
+			</div>
+		`,
 	}),
 };
 
@@ -94,11 +82,29 @@ export const Outline: Story = {
 export const AllVariants: Story = {
 	render: () => ({
 		template: `
-			<div class="flex gap-3 flex-wrap items-center">
-				<span appBadge variant="default">Default</span>
-				<span appBadge variant="secondary">Secondary</span>
-				<span appBadge variant="destructive">Error</span>
-				<span appBadge variant="outline">Outline</span>
+			<div class="space-y-4">
+				<div>
+					<h3 class="text-sm font-semibold text-gray-900 mb-2">Light</h3>
+					<div class="bg-white p-4 rounded border border-gray-200">
+						<div class="flex gap-3 flex-wrap items-center">
+							<span appBadge variant="default">Default</span>
+							<span appBadge variant="secondary">Secondary</span>
+							<span appBadge variant="destructive">Error</span>
+							<span appBadge variant="outline">Outline</span>
+						</div>
+					</div>
+				</div>
+				<div>
+					<h3 class="text-sm font-semibold text-gray-900 mb-2">Dark</h3>
+					<div class="dark bg-black p-4 rounded border border-gray-800">
+						<div class="flex gap-3 flex-wrap items-center">
+							<span appBadge variant="default">Default</span>
+							<span appBadge variant="secondary">Secondary</span>
+							<span appBadge variant="destructive">Error</span>
+							<span appBadge variant="outline">Outline</span>
+						</div>
+					</div>
+				</div>
 			</div>
 		`,
 	}),
