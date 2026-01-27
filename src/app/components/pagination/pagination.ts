@@ -65,14 +65,14 @@ export class Pagination {
 	/** Emits new page number when user navigates */
 	readonly pageChange = output<number>();
 
-	/** First item number on current page */
+	/** First item number on current page (clamped to 0 minimum) */
 	readonly showingFrom = computed(() => {
-		if (this.totalItems() === 0) return 0;
-		return (this.currentPage() - 1) * this.pageSize() + 1;
+		if (this.totalItems() <= 0) return 0;
+		return Math.max(1, (this.currentPage() - 1) * this.pageSize() + 1);
 	});
 
-	/** Last item number on current page */
-	readonly showingTo = computed(() => Math.min(this.currentPage() * this.pageSize(), this.totalItems()));
+	/** Last item number on current page (clamped to 0 minimum) */
+	readonly showingTo = computed(() => Math.max(0, Math.min(this.currentPage() * this.pageSize(), this.totalItems())));
 
 	/** Whether current page is the first page */
 	readonly isFirstPage = computed(() => this.currentPage() <= 1);
