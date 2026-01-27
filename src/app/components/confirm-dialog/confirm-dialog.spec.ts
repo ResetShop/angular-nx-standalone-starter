@@ -160,5 +160,30 @@ describe('ConfirmDialog', () => {
 			expect(cancelledSpy).toHaveBeenCalled();
 			expect(cancelEvent.defaultPrevented).toBe(true);
 		});
+
+		it('should not open twice when show() is called while already open', async () => {
+			const view = await render(ConfirmDialogTestHost, {
+				inputs: { title: 'Test' },
+			});
+
+			const dialog = view.fixture.componentInstance.dialog();
+			dialog.show();
+			dialog.show();
+			view.fixture.detectChanges();
+
+			expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalledTimes(1);
+		});
+
+		it('should not close when dialog is already closed', async () => {
+			const view = await render(ConfirmDialogTestHost, {
+				inputs: { title: 'Test' },
+			});
+
+			const dialog = view.fixture.componentInstance.dialog();
+			dialog.close();
+			view.fixture.detectChanges();
+
+			expect(HTMLDialogElement.prototype.close).not.toHaveBeenCalled();
+		});
 	});
 });
