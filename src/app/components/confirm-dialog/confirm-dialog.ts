@@ -2,7 +2,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	ElementRef,
+	type ElementRef,
 	input,
 	output,
 	viewChild,
