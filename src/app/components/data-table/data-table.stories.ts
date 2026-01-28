@@ -81,6 +81,7 @@ class DataTableStoryComponent {
 	/** Per-language custom empty messages. When empty, the translated default is used. */
 	readonly emptyMessages = input<Partial<Record<Language, string>>>({});
 
+	// --- Pagination state ---
 	readonly currentPage = signal(1);
 	readonly currentPageSize = signal(0);
 
@@ -138,6 +139,7 @@ class DataTableStoryComponent {
 		});
 	}
 
+	// --- Pagination handlers ---
 	onPageChange(page: number): void {
 		this.currentPage.set(page);
 	}
