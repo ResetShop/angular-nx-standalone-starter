@@ -22,6 +22,11 @@ import { Spinner } from '@components/spinner/spinner';
 import { Translation } from '@providers/i18n/translation';
 import { DataTableCellDef } from './data-table-cell-def';
 
+export interface DataTableSortEvent {
+	id: string;
+	direction: 'asc' | 'desc';
+}
+
 @Component({
 	selector: 'app-data-table',
 	standalone: true,
@@ -46,17 +51,28 @@ export class DataTable<T> {
 	/** Whether data is loading */
 	readonly loading = input<boolean>(false);
 
-	/** Message shown when data is empty */
+	/**
+	 * Message shown when data is empty.
+	 *
+	 * Defaults to the translated `DATA_TABLE.EMPTY` key, resolved once at construction.
+	 * The translation is not reactive — if the application language changes at runtime,
+	 * the component must be re-created to pick up the new locale.
+	 */
 	readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'));
 
 	/** Accessible table caption */
 	readonly caption = input<string>('');
 
-	/** Translated loading message */
+	/**
+	 * Translated loading message, resolved once at construction.
+	 *
+	 * Uses the `DATA_TABLE.LOADING` translation key. Not reactive to language changes —
+	 * the component must be re-created to pick up a new locale.
+	 */
 	readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING');
 
 	/** Emits when sort changes */
-	readonly sortChange = output<{ id: string; direction: 'asc' | 'desc' }>();
+	readonly sortChange = output<DataTableSortEvent>();
 
 	/** Internal sorting state */
 	readonly sorting = signal<SortingState>([]);
