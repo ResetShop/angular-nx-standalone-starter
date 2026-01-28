@@ -1,4 +1,5 @@
 import { and, count, eq, ilike, or } from 'drizzle-orm';
+import { authentication } from '../../../db/schema/authentication';
 import { role } from '../../../db/schema/role';
 import { user, userRole } from '../../../db/schema/user';
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
@@ -122,9 +123,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	}
 
 	/**
-	 * Creates a new user in the database.
+	 * Creates a new user and their authentication record in a single transaction.
+	 * The user record stores profile data, the authentication record stores the password hash.
 	 *
-	 * @param params - User creation parameters
+	 * @param params - User creation parameters including password hash
 	 * @returns The newly created user data
 	 */
 	async create(params: {
@@ -133,23 +135,32 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		lastName: string;
 		passwordHash: string;
 	}): Promise<UserData> {
-		const result = await this.db
-			.insert(user)
-			.values({
-				email: params.email,
-				firstName: params.firstName,
-				lastName: params.lastName,
-			})
-			.returning({
-				id: user.id,
-				email: user.email,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+		return this.db.transaction(async (tx) => {
+			const userResult = await tx
+				.insert(user)
+				.values({
+					email: params.email,
+					firstName: params.firstName,
+					lastName: params.lastName,
+				})
+				.returning({
+					id: user.id,
+					email: user.email,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					enabled: user.enabled,
+					deleted: user.deleted,
+				});
+
+			const newUser = userResult[0];
+
+			await tx.insert(authentication).values({
+				userId: newUser.id,
+				passwordHash: params.passwordHash,
 			});
 
-		return result[0];
+			return newUser;
+		});
 	}
 
 	/**
