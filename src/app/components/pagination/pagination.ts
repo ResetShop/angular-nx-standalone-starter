@@ -3,6 +3,7 @@ import { Button } from '@components/button/button';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons';
 import { Translation } from '@providers/i18n/translation';
+import { PaginationTracker } from './pagination-tracker';
 
 /** Represents a page item in the pagination: a page number or an ellipsis */
 interface PageItem {
@@ -97,10 +98,10 @@ const PAGINATION_KEYS = Object.freeze({
 })
 export class Pagination {
 	private readonly translation = inject(Translation);
-	private static instanceCount = 0;
+	private readonly paginationTracker = inject(PaginationTracker);
 
 	/** Unique ID for the select element */
-	readonly selectId = `pagination-select-${++Pagination.instanceCount}`;
+	readonly selectId = `pagination-select-${this.paginationTracker.nextId()}`;
 
 	/** Current page number (1-based) */
 	readonly currentPage = input<number>(1);
