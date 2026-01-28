@@ -19,12 +19,10 @@ const es: TranslationSchema = {
 	},
 	PAGINATION: {
 		LABEL: 'Paginación',
-		SHOWING_RESULTS: 'Mostrando {from} a {to} de {total} resultados',
-		PREVIOUS: 'Anterior',
-		NEXT: 'Siguiente',
-		PAGE_OF: 'Página {page} de {total}',
+		ROWS_PER_PAGE: 'Filas por página',
 		GO_TO_PREVIOUS: 'Ir a la página anterior',
 		GO_TO_NEXT: 'Ir a la página siguiente',
+		GO_TO_PAGE: 'Ir a la página {page}',
 	},
 };
 

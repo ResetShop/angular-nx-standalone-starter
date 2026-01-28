@@ -49,10 +49,11 @@ const sampleData: User[] = [
 				<div class="mt-4">
 					<app-pagination
 						(pageChange)="onPageChange($event)"
+						(pageSizeChange)="onPageSizeChange($event)"
 						[currentPage]="currentPage()"
 						[totalPages]="totalPages()"
-						[totalItems]="totalItems()"
 						[pageSize]="pageSize()"
+						[pageSizeOptions]="pageSizeOptions()"
 					/>
 				</div>
 			}
@@ -74,23 +75,35 @@ class DataTableStoryComponent {
 	 */
 	readonly pageSize = input(0);
 
+	/** Available page size options for the pagination selector */
+	readonly pageSizeOptions = input<number[]>([25, 50, 100]);
+
 	/** Per-language custom empty messages. When empty, the translated default is used. */
 	readonly emptyMessages = input<Partial<Record<Language, string>>>({});
 
 	readonly currentPage = signal(1);
+	readonly currentPageSize = signal(0);
 
 	readonly totalItems = computed(() => this.data().length);
 
+	readonly effectivePageSize = computed(() => {
+		const inputSize = this.pageSize();
+		const stateSize = this.currentPageSize();
+		return stateSize > 0 ? stateSize : inputSize;
+	});
+
 	readonly totalPages = computed(() => {
-		if (this.pageSize() <= 0) return 1;
-		return Math.max(1, Math.ceil(this.totalItems() / this.pageSize()));
+		const size = this.effectivePageSize();
+		if (size <= 0) return 1;
+		return Math.max(1, Math.ceil(this.totalItems() / size));
 	});
 
 	/** Data sliced by current page when pagination is active, or all data otherwise. */
 	readonly pagedData = computed(() => {
-		if (this.pageSize() <= 0) return this.data();
-		const start = (this.currentPage() - 1) * this.pageSize();
-		return this.data().slice(start, start + this.pageSize());
+		const size = this.effectivePageSize();
+		if (size <= 0) return this.data();
+		const start = (this.currentPage() - 1) * size;
+		return this.data().slice(start, start + size);
 	});
 
 	/** Data passed to the DataTable — paged when pagination is active. */
@@ -116,6 +129,8 @@ class DataTableStoryComponent {
 	constructor() {
 		effect(() => {
 			const lang = this.language();
+			const initialPageSize = this.pageSize();
+			this.currentPageSize.set(initialPageSize);
 			this.isReady.set(false);
 			this.translation.setLanguage(lang).then(() => {
 				this.isReady.set(true);
@@ -125,6 +140,11 @@ class DataTableStoryComponent {
 
 	onPageChange(page: number): void {
 		this.currentPage.set(page);
+	}
+
+	onPageSizeChange(size: number): void {
+		this.currentPageSize.set(size);
+		this.currentPage.set(1); // Reset to first page when page size changes
 	}
 }
 

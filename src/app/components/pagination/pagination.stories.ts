@@ -5,7 +5,7 @@ import { applicationConfig } from '@storybook/angular';
 import { Pagination } from './pagination';
 
 /**
- * Wrapper component that manages language loading for Pagination stories.
+ * Wrapper component that manages language loading and interactive state for Pagination stories.
  * Destroys and re-creates the Pagination when language changes so that
  * translated defaults pick up the new locale.
  */
@@ -16,11 +16,12 @@ import { Pagination } from './pagination';
 	template: `
 		@if (isReady()) {
 			<app-pagination
-				(pageChange)="pageChange.emit($event)"
-				[currentPage]="currentPage()"
+				(pageChange)="onPageChange($event)"
+				(pageSizeChange)="onPageSizeChange($event)"
+				[currentPage]="currentPageState()"
 				[totalPages]="totalPages()"
-				[totalItems]="totalItems()"
-				[pageSize]="pageSize()"
+				[pageSize]="pageSizeState()"
+				[pageSizeOptions]="pageSizeOptions()"
 			/>
 		}
 	`,
@@ -28,12 +29,19 @@ import { Pagination } from './pagination';
 class PaginationStoryComponent {
 	private readonly translation = inject(Translation);
 
-	readonly currentPage = input(1);
-	readonly totalPages = input(1);
-	readonly totalItems = input(0);
-	readonly pageSize = input(10);
+	readonly totalPages = input(10);
+	readonly initialPage = input(1);
+	readonly initialPageSize = input(25);
+	readonly pageSizeOptions = input<number[]>([25, 50, 100]);
 	readonly language = input<Language>('en');
 	readonly pageChange = output<number>();
+	readonly pageSizeChange = output<number>();
+
+	/** Internal state for current page (allows interactive navigation in stories) */
+	readonly currentPageState = signal(1);
+
+	/** Internal state for page size (allows interactive changes in stories) */
+	readonly pageSizeState = signal(25);
 
 	/**
 	 * Tracks when translations are loaded and ready for use.
@@ -42,13 +50,29 @@ class PaginationStoryComponent {
 	readonly isReady = signal(false);
 
 	constructor() {
+		// Initialize state from inputs and handle language changes
 		effect(() => {
+			this.currentPageState.set(this.initialPage());
+			this.pageSizeState.set(this.initialPageSize());
+
 			const lang = this.language();
 			this.isReady.set(false);
 			this.translation.setLanguage(lang).then(() => {
 				this.isReady.set(true);
 			});
 		});
+	}
+
+	onPageChange(page: number): void {
+		this.currentPageState.set(page);
+		this.pageChange.emit(page);
+	}
+
+	onPageSizeChange(size: number): void {
+		this.pageSizeState.set(size);
+		// Reset to page 1 when page size changes (common UX pattern)
+		this.currentPageState.set(1);
+		this.pageSizeChange.emit(size);
 	}
 }
 
@@ -65,17 +89,24 @@ const meta: Meta<PaginationStoryComponent> = {
 		docs: {
 			description: {
 				component: `
-A pagination component for navigating through paged data.
+A pagination component following shadcn/ui patterns for navigating through paged data.
 
 ## Features
 
-- **Previous/Next Navigation**: Simple page-by-page navigation
-- **Item Count Display**: Shows "Showing X to Y of Z results"
-- **Page Indicator**: Shows "Page X of Y"
-- **Disabled States**: Automatically disables at boundaries
-- **Accessible**: Uses nav element, aria-labels, aria-live for announcements
-- **Reuses Button Component**: Consistent styling via appButton directive
+- **Rows Per Page Selector**: Left-aligned dropdown to select 25, 50, or 100 rows per page
+- **Page Number Buttons**: Direct navigation to specific pages with intelligent ellipsis
+- **Previous/Next Navigation**: Ghost variant buttons for sequential navigation
+- **Accessible**: Proper ARIA labels, keyboard navigation, and screen reader support
 - **i18n Support**: All labels are localized using the Translation service
+
+## Page Number Logic
+
+The component intelligently displays page numbers:
+- **4 or fewer pages**: Shows all page numbers
+- **5+ pages**: Shows first page, ellipsis, middle pages around current, ellipsis, last page
+- **At start (page 1-3)**: Shows 1, 2, 3, ..., last
+- **In middle**: Shows 1, ..., prev, current, next, ..., last
+- **At end**: Shows 1, ..., last-2, last-1, last
 
 ## Language Support
 
@@ -83,17 +114,16 @@ Use the **language** control to switch between:
 - **en** (English) - Default
 - **es** (Spanish)
 
-All labels and messages will automatically update to the selected language.
-
 ## Usage
 
 \`\`\`html
 <app-pagination
-  [currentPage]="page"
+  [currentPage]="currentPage"
   [totalPages]="totalPages"
-  [totalItems]="totalItems"
   [pageSize]="pageSize"
+  [pageSizeOptions]="[25, 50, 100]"
   (pageChange)="onPageChange($event)"
+  (pageSizeChange)="onPageSizeChange($event)"
 />
 \`\`\`
 				`,
@@ -109,30 +139,21 @@ All labels and messages will automatically update to the selected language.
 				type: { summary: 'Language' },
 				defaultValue: { summary: 'en' },
 			},
-			labels: {
-				en: 'English',
-				es: 'Español',
-			},
-		},
-		currentPage: {
-			control: { type: 'number', min: 1 },
-			description: 'Current page number (1-based)',
-			table: { defaultValue: { summary: '1' } },
 		},
 		totalPages: {
 			control: { type: 'number', min: 1 },
 			description: 'Total number of pages',
+			table: { defaultValue: { summary: '10' } },
+		},
+		initialPage: {
+			control: { type: 'number', min: 1 },
+			description: 'Initial page number (1-based)',
 			table: { defaultValue: { summary: '1' } },
 		},
-		totalItems: {
-			control: { type: 'number', min: 0 },
-			description: 'Total number of items',
-			table: { defaultValue: { summary: '0' } },
-		},
-		pageSize: {
+		initialPageSize: {
 			control: { type: 'number', min: 1 },
-			description: 'Items per page',
-			table: { defaultValue: { summary: '10' } },
+			description: 'Initial page size',
+			table: { defaultValue: { summary: '25' } },
 		},
 	},
 };
@@ -142,66 +163,105 @@ export default meta;
 type Story = StoryObj<PaginationStoryComponent>;
 
 /**
- * Default pagination on the first page.
+ * Default pagination at page 1 with 10 total pages.
+ * Shows: [1] [2] [3] ... [10]
  */
 export const Default: Story = {
 	args: {
-		currentPage: 1,
 		totalPages: 10,
-		totalItems: 100,
-		pageSize: 10,
+		initialPage: 1,
+		initialPageSize: 25,
 		language: 'en',
 	},
 };
 
 /**
- * Pagination on a middle page with both buttons enabled.
+ * Pagination in the middle of a large dataset.
+ * Shows ellipsis on both sides: [1] ... [4] [5] [6] ... [10]
  */
 export const MiddlePage: Story = {
 	args: {
-		currentPage: 5,
 		totalPages: 10,
-		totalItems: 100,
-		pageSize: 10,
+		initialPage: 5,
+		initialPageSize: 25,
 		language: 'en',
 	},
 };
 
 /**
- * Pagination on the last page with partial item count.
+ * Pagination at the last page.
+ * Shows: [1] ... [8] [9] [10]
  */
 export const LastPage: Story = {
 	args: {
-		currentPage: 10,
 		totalPages: 10,
-		totalItems: 95,
-		pageSize: 10,
+		initialPage: 10,
+		initialPageSize: 25,
 		language: 'en',
 	},
 };
 
 /**
- * Single page — both buttons disabled.
+ * Small dataset with 4 or fewer pages (no ellipsis needed).
+ * Shows all page numbers: [1] [2] [3] [4]
+ */
+export const FewPages: Story = {
+	args: {
+		totalPages: 4,
+		initialPage: 2,
+		initialPageSize: 25,
+		language: 'en',
+	},
+};
+
+/**
+ * Single page — both navigation buttons disabled.
  */
 export const SinglePage: Story = {
 	args: {
-		currentPage: 1,
 		totalPages: 1,
-		totalItems: 5,
-		pageSize: 10,
+		initialPage: 1,
+		initialPageSize: 25,
 		language: 'en',
 	},
 };
 
 /**
- * Empty state with no items.
+ * Large dataset with many pages.
+ * Demonstrates the ellipsis behavior with 100 pages.
  */
-export const Empty: Story = {
+export const ManyPages: Story = {
 	args: {
-		currentPage: 1,
-		totalPages: 1,
-		totalItems: 0,
-		pageSize: 10,
+		totalPages: 100,
+		initialPage: 50,
+		initialPageSize: 25,
 		language: 'en',
+	},
+};
+
+/**
+ * Custom page size options.
+ * Demonstrates different rows per page choices.
+ */
+export const CustomPageSizeOptions: Story = {
+	args: {
+		totalPages: 20,
+		initialPage: 1,
+		initialPageSize: 10,
+		pageSizeOptions: [10, 20, 50, 100],
+		language: 'en',
+	},
+};
+
+/**
+ * Spanish language variant.
+ * All labels are translated to Spanish.
+ */
+export const SpanishLanguage: Story = {
+	args: {
+		totalPages: 10,
+		initialPage: 5,
+		initialPageSize: 25,
+		language: 'es',
 	},
 };
