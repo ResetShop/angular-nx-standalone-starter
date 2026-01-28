@@ -15,7 +15,7 @@ const app = new Hono();
 
 /**
  * GET /api/roles
- * Get all roles with pagination
+ * Get all roles with pagination and optional search
  */
 app.get(
 	'/',
@@ -25,12 +25,13 @@ app.get(
 		z.object({
 			offset: z.coerce.number().int().min(PAGINATION_DEFAULTS.OFFSET).optional(),
 			limit: z.coerce.number().int().min(PAGINATION_DEFAULTS.MIN_LIMIT).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
+			search: z.string().max(100).optional(),
 		}),
 	),
 	async (c) => {
 		const { roleService } = container.cradle;
-		const { offset, limit } = c.req.valid('query');
-		const roles = await roleService.getAllRoles({ offset, limit });
+		const { offset, limit, search } = c.req.valid('query');
+		const roles = await roleService.getAllRoles({ offset, limit, search });
 		return c.json<PaginatedResponse<RoleData>>(roles);
 	},
 );
