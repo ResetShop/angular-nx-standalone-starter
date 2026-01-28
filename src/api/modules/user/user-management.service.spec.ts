@@ -122,7 +122,6 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null);
 
-			// eslint-disable-next-line testing-library/no-await-sync-queries -- service method, not DOM query
 			await expect(service.getById(999)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
 		});
 	});
@@ -181,7 +180,7 @@ describe('UserManagementService', () => {
 	describe('update', () => {
 		it('should update user details', async () => {
 			const updatedUser = { ...testManagedUser, firstName: 'Updated' };
-			mockFindByIdWithRoles.mockImplementation((_id: number) => {
+			mockFindByIdWithRoles.mockImplementation(() => {
 				if (mockFindByIdWithRoles.calls.length <= 1) {
 					return Promise.resolve(testManagedUser);
 				}
@@ -208,7 +207,7 @@ describe('UserManagementService', () => {
 
 		it('should allow disabling another user', async () => {
 			const disabledUser = { ...testManagedUser, enabled: false };
-			mockFindByIdWithRoles.mockImplementation((_id: number) => {
+			mockFindByIdWithRoles.mockImplementation(() => {
 				if (mockFindByIdWithRoles.calls.length <= 1) {
 					return Promise.resolve(testManagedUser);
 				}
