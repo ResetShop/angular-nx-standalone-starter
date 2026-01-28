@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Pagination } from '@components/pagination/pagination';
 import { type Language, Translation } from '@providers/i18n/translation';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
@@ -34,16 +35,28 @@ const sampleData: User[] = [
 @Component({
 	selector: 'app-data-table-story',
 	standalone: true,
-	imports: [DataTable],
+	imports: [DataTable, Pagination],
 	template: `
 		@if (isReady()) {
 			<app-data-table
 				[columns]="columns()"
-				[data]="data()"
+				[data]="displayData()"
 				[loading]="loading()"
 				[caption]="caption()"
 				[emptyMessage]="resolvedEmptyMessage()"
 			/>
+			@if (pageSize() > 0) {
+				<div class="mt-4">
+					<app-pagination
+						(pageChange)="onPageChange($event)"
+						(pageSizeChange)="onPageSizeChange($event)"
+						[currentPage]="currentPage()"
+						[totalPages]="totalPages()"
+						[pageSize]="pageSize()"
+						[pageSizeOptions]="pageSizeOptions()"
+					/>
+				</div>
+			}
 		}
 	`,
 })
@@ -56,8 +69,46 @@ class DataTableStoryComponent {
 	readonly caption = input('');
 	readonly language = input<Language>('en');
 
+	/**
+	 * Items per page. Set to 0 to disable pagination and show all data.
+	 * When > 0, data is sliced by page and the Pagination component is shown.
+	 */
+	readonly pageSize = input(0);
+
+	/** Available page size options for the pagination selector */
+	readonly pageSizeOptions = input<number[]>([25, 50, 100]);
+
 	/** Per-language custom empty messages. When empty, the translated default is used. */
 	readonly emptyMessages = input<Partial<Record<Language, string>>>({});
+
+	// --- Pagination state ---
+	readonly currentPage = signal(1);
+	readonly currentPageSize = signal(0);
+
+	readonly totalItems = computed(() => this.data().length);
+
+	readonly effectivePageSize = computed(() => {
+		const inputSize = this.pageSize();
+		const stateSize = this.currentPageSize();
+		return stateSize > 0 ? stateSize : inputSize;
+	});
+
+	readonly totalPages = computed(() => {
+		const size = this.effectivePageSize();
+		if (size <= 0) return 1;
+		return Math.max(1, Math.ceil(this.totalItems() / size));
+	});
+
+	/** Data sliced by current page when pagination is active, or all data otherwise. */
+	readonly pagedData = computed(() => {
+		const size = this.effectivePageSize();
+		if (size <= 0) return this.data();
+		const start = (this.currentPage() - 1) * size;
+		return this.data().slice(start, start + size);
+	});
+
+	/** Data passed to the DataTable — paged when pagination is active. */
+	readonly displayData = computed(() => this.pagedData());
 
 	/**
 	 * Resolves the empty message for the current language.
@@ -79,11 +130,23 @@ class DataTableStoryComponent {
 	constructor() {
 		effect(() => {
 			const lang = this.language();
+			const initialPageSize = this.pageSize();
+			this.currentPageSize.set(initialPageSize);
 			this.isReady.set(false);
 			this.translation.setLanguage(lang).then(() => {
 				this.isReady.set(true);
 			});
 		});
+	}
+
+	// --- Pagination handlers ---
+	onPageChange(page: number): void {
+		this.currentPage.set(page);
+	}
+
+	onPageSizeChange(size: number): void {
+		this.currentPageSize.set(size);
+		this.currentPage.set(1); // Reset to first page when page size changes
 	}
 }
 
@@ -193,6 +256,14 @@ export class UserListComponent {
 				defaultValue: { summary: 'false' },
 			},
 		},
+		pageSize: {
+			control: { type: 'number', min: 0 },
+			description: 'Items per page (0 to disable pagination)',
+			table: {
+				type: { summary: 'number' },
+				defaultValue: { summary: '0' },
+			},
+		},
 	},
 };
 
@@ -263,6 +334,22 @@ export const WithCaption: Story = {
 		columns: sampleColumns,
 		data: sampleData,
 		caption: 'Team Members',
+		language: 'en',
+	},
+};
+
+/**
+ * Data table with pagination enabled (3 items per page).
+ * Navigate between pages using the Previous/Next buttons.
+ * Switch **language** to see translated pagination labels.
+ */
+export const WithPagination: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		caption: 'Users table',
+		loading: false,
+		pageSize: 3,
 		language: 'en',
 	},
 };
