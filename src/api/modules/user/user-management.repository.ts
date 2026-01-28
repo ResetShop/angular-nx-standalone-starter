@@ -1,4 +1,4 @@
-import { and, count, eq, ilike, or } from 'drizzle-orm';
+import { and, count, eq, ilike, inArray, or } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { role } from '../../../db/schema/role';
 import { user, userRole } from '../../../db/schema/user';
@@ -25,19 +25,18 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
 		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
-		const whereConditions = [eq(user.deleted, false)];
-		if (search) {
-			const searchPattern = `%${search}%`;
-			whereConditions.push(
-				or(
-					ilike(user.email, searchPattern),
-					ilike(user.firstName, searchPattern),
-					ilike(user.lastName, searchPattern),
-				)!,
-			);
-		}
+		const baseCondition = eq(user.deleted, false);
 
-		const whereClause = and(...whereConditions);
+		const whereClause = search
+			? and(
+					baseCondition,
+					or(
+						ilike(user.email, `%${search}%`),
+						ilike(user.firstName, `%${search}%`),
+						ilike(user.lastName, `%${search}%`),
+					),
+				)
+			: baseCondition;
 
 		const [users, totalResult] = await Promise.all([
 			this.db
@@ -275,9 +274,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			})
 			.from(userRole)
 			.innerJoin(role, eq(userRole.roleId, role.id))
-			.where(
-				userIds.length === 1 ? eq(userRole.userId, userIds[0]) : or(...userIds.map((id) => eq(userRole.userId, id)))!,
-			);
+			.where(inArray(userRole.userId, userIds));
 
 		const rolesByUserId = new Map<number, RoleData[]>();
 		for (const ra of roleAssignments) {
