@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
 import { type ColumnDef } from '@tanstack/angular-table';
 import { DataTable } from './data-table';
+import { DataTableCellDef } from './data-table-cell-def';
 
 interface User {
 	name: string;
@@ -263,5 +264,48 @@ export const WithCaption: Story = {
 		data: sampleData,
 		caption: 'Team Members',
 		language: 'en',
+	},
+};
+
+/**
+ * Wrapper component demonstrating custom cell templates via content projection.
+ * Renders the 'role' column with a colored badge and 'email' as a mailto link.
+ */
+@Component({
+	selector: 'app-data-table-custom-cells-story',
+	standalone: true,
+	imports: [DataTable, DataTableCellDef],
+	template: `
+		<app-data-table [columns]="columns()" [data]="data()">
+			<ng-template appDataTableCellDef="role" let-value>
+				<span
+					class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+				>
+					{{ value }}
+				</span>
+			</ng-template>
+			<ng-template appDataTableCellDef="email" let-value>
+				<a class="text-blue-600 underline dark:text-blue-400">{{ value }}</a>
+			</ng-template>
+		</app-data-table>
+	`,
+})
+class DataTableCustomCellsStoryComponent {
+	readonly columns = input<ColumnDef<User, unknown>[]>([]);
+	readonly data = input<User[]>([]);
+}
+
+/**
+ * Table with custom cell templates for 'role' (badge) and 'email' (link).
+ * Demonstrates content projection via `appDataTableCellDef`.
+ */
+export const CustomCellTemplates: StoryObj<DataTableCustomCellsStoryComponent> = {
+	render: (args) => ({
+		props: args,
+		component: DataTableCustomCellsStoryComponent,
+	}),
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
 	},
 };
