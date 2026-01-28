@@ -1,6 +1,13 @@
 import { permission } from '../user/permission-types';
 
 /**
+ * Admin module permissions for permission management.
+ */
+export const ADMIN_PERMISSION_PERMISSIONS = {
+	READ: permission('admin:permissions:read'),
+} as const;
+
+/**
  * Admin module permissions for user management.
  */
 export const ADMIN_USER_PERMISSIONS = {
@@ -36,6 +43,13 @@ export const ADMIN_USER_ROLE_PERMISSIONS = {
  * Each entry contains the full permission data needed for database insertion.
  */
 export const ADMIN_PERMISSIONS_SEED_DATA = [
+	// Permission management permissions
+	{
+		name: ADMIN_PERMISSION_PERMISSIONS.READ,
+		description: 'View all system permissions',
+		resource: 'permissions',
+		action: 'read',
+	},
 	// User management permissions
 	{
 		name: ADMIN_USER_PERMISSIONS.CREATE,
