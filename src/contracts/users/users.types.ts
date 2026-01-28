@@ -1,5 +1,12 @@
 import type { z } from 'zod';
-import type { assignRoleToUserRequestSchema, authUserSchema, userDataSchema } from './users.schemas';
+import type {
+	assignRoleToUserRequestSchema,
+	authUserSchema,
+	createUserRequestSchema,
+	managedUserSchema,
+	updateUserRequestSchema,
+	userDataSchema,
+} from './users.schemas';
 
 // ============================================================================
 // User Data Types
@@ -7,6 +14,14 @@ import type { assignRoleToUserRequestSchema, authUserSchema, userDataSchema } fr
 
 export type UserData = z.infer<typeof userDataSchema>;
 export type AuthUser = z.infer<typeof authUserSchema>;
+
+// ============================================================================
+// Managed User Types (User Management API)
+// ============================================================================
+
+export type ManagedUser = z.infer<typeof managedUserSchema>;
+export type CreateUserRequest = z.infer<typeof createUserRequestSchema>;
+export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>;
 
 // ============================================================================
 // User Role Request Types

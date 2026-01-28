@@ -6,6 +6,8 @@ import { AuthenticationRepository } from './modules/auth/authentication.reposito
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
 import { RoleRepository } from './modules/role/role.repository';
 import { RoleService } from './modules/role/role.service';
+import { UserManagementRepository } from './modules/user/user-management.repository';
+import { UserManagementService } from './modules/user/user-management.service';
 import { UserRoleRepository } from './modules/user/user-role.repository';
 import { UserRoleService } from './modules/user/user-role.service';
 import { UserRepository } from './modules/user/user.repository';
@@ -41,6 +43,9 @@ validateEnvironment();
  *   ├── RefreshTokenRepository ► db
  *   └── PasetoService (no deps)
  *
+ * UserManagementService
+ *   └── UserManagementRepository ► db
+ *
  * Middleware/Controllers resolve services lazily at runtime.
  * All services are registered as singletons.
  */
@@ -57,11 +62,13 @@ export interface Cradle {
 	refreshTokenRepository: RefreshTokenRepository;
 	roleRepository: RoleRepository;
 	userRoleRepository: UserRoleRepository;
+	userManagementRepository: UserManagementRepository;
 
 	// Application Services
 	authService: AuthService;
 	roleService: RoleService;
 	userRoleService: UserRoleService;
+	userManagementService: UserManagementService;
 }
 
 /**
@@ -100,11 +107,13 @@ realContainer.register({
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
 	roleRepository: asClass(RoleRepository).singleton(),
 	userRoleRepository: asClass(UserRoleRepository).singleton(),
+	userManagementRepository: asClass(UserManagementRepository).singleton(),
 
 	// Services that depend on repositories
 	authService: asClass(AuthService).singleton(),
 	roleService: asClass(RoleService).singleton(),
 	userRoleService: asClass(UserRoleService).singleton(),
+	userManagementService: asClass(UserManagementService).singleton(),
 });
 
 /**
