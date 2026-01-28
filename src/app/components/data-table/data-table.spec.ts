@@ -256,6 +256,16 @@ describe('DataTable', () => {
 		expect(screen.getByText('Jane Smith (jane@example.com)')).toBeInTheDocument();
 	});
 
+	it('should handle empty columns array', async () => {
+		await render(DataTable<TestData>, {
+			inputs: { columns: [], data: [] },
+			providers: [{ provide: Translation, useValue: mockTranslation }],
+		});
+
+		expect(screen.getByRole('table')).toBeInTheDocument();
+		expect(screen.queryAllByRole('columnheader')).toHaveLength(0);
+	});
+
 	it('should render function headers', async () => {
 		const fnColumns: ColumnDef<TestData, unknown>[] = [
 			{ accessorKey: 'name', header: () => 'Full Name', enableSorting: false },
