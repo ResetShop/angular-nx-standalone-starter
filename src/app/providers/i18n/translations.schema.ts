@@ -20,12 +20,10 @@ export interface TranslationSchema {
 	};
 	PAGINATION: {
 		LABEL: string;
-		SHOWING_RESULTS: string;
-		PREVIOUS: string;
-		NEXT: string;
-		PAGE_OF: string;
+		ROWS_PER_PAGE: string;
 		GO_TO_PREVIOUS: string;
 		GO_TO_NEXT: string;
+		GO_TO_PAGE: string;
 	};
 }
 
