@@ -111,6 +111,13 @@ export class DataTable<T> {
 		return null;
 	}
 
+	/** Resolve sort direction to a visual indicator character (↑, ↓, or ↕) */
+	resolveSortIndicator(direction: false | 'asc' | 'desc'): string {
+		if (direction === 'asc') return '↑';
+		if (direction === 'desc') return '↓';
+		return '↕';
+	}
+
 	/**
 	 * Resolve header definition to a display string.
 	 *
