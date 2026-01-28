@@ -77,6 +77,14 @@ function computePageItems(currentPage: number, totalPages: number): PageItem[] {
 	return items;
 }
 
+const PAGINATION_KEYS = Object.freeze({
+	LABEL: 'PAGINATION.LABEL',
+	ROWS_PER_PAGE: 'PAGINATION.ROWS_PER_PAGE',
+	GO_TO_PREVIOUS: 'PAGINATION.GO_TO_PREVIOUS',
+	GO_TO_NEXT: 'PAGINATION.GO_TO_NEXT',
+	GO_TO_PAGE: 'PAGINATION.GO_TO_PAGE',
+} as const);
+
 @Component({
 	selector: 'app-pagination',
 	standalone: true,
@@ -183,31 +191,31 @@ export class Pagination {
 	 * Translated nav aria-label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly paginationLabel = this.translation.instant('PAGINATION.LABEL');
+	readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL);
 
 	/**
 	 * Translated "Rows per page" label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly rowsPerPageLabel = this.translation.instant('PAGINATION.ROWS_PER_PAGE');
+	readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE);
 
 	/**
 	 * Translated aria-label for the previous button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly goToPreviousLabel = this.translation.instant('PAGINATION.GO_TO_PREVIOUS');
+	readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS);
 
 	/**
 	 * Translated aria-label for the next button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly goToNextLabel = this.translation.instant('PAGINATION.GO_TO_NEXT');
+	readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT);
 
 	/**
 	 * Translated template for page button aria-label, resolved once at construction.
 	 * Contains `{page}` placeholder interpolated by `getPageLabel`.
 	 */
-	private readonly goToPageTemplate = this.translation.instant('PAGINATION.GO_TO_PAGE');
+	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE);
 
 	/** Whether current page is the first page */
 	readonly isFirstPage = computed(() => this.currentPage() <= 1);
