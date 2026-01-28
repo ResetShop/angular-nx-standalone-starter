@@ -17,6 +17,13 @@ const es: TranslationSchema = {
 		EMPTY: 'No hay datos disponibles',
 		LOADING: 'Cargando...',
 	},
+	PAGINATION: {
+		LABEL: 'Paginación',
+		ROWS_PER_PAGE: 'Filas por página',
+		GO_TO_PREVIOUS: 'Ir a la página anterior',
+		GO_TO_NEXT: 'Ir a la página siguiente',
+		GO_TO_PAGE: 'Ir a la página {page}',
+	},
 };
 
 export default es;

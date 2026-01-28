@@ -18,6 +18,13 @@ export interface TranslationSchema {
 		EMPTY: string;
 		LOADING: string;
 	};
+	PAGINATION: {
+		LABEL: string;
+		ROWS_PER_PAGE: string;
+		GO_TO_PREVIOUS: string;
+		GO_TO_NEXT: string;
+		GO_TO_PAGE: string;
+	};
 }
 
 /**
