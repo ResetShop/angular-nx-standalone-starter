@@ -13,6 +13,10 @@ const en: TranslationSchema = {
 			GENERIC: 'Login error. Please try again.',
 		},
 	},
+	DATA_TABLE: {
+		EMPTY: 'No data available',
+		LOADING: 'Loading...',
+	},
 };
 
 export default en;
