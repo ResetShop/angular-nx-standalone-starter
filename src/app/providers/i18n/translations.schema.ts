@@ -14,6 +14,10 @@ export interface TranslationSchema {
 			GENERIC: string;
 		};
 	};
+	DATA_TABLE: {
+		EMPTY: string;
+		LOADING: string;
+	};
 }
 
 /**
