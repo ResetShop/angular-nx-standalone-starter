@@ -85,6 +85,34 @@ export default [
 					selector: 'TSEnumDeclaration',
 					message: 'Enums are forbidden. Use Object.freeze() instead for key/value references',
 				},
+				{
+					selector: 'TSClassImplements > Identifier[name="OnInit"]',
+					message: 'OnInit is forbidden. Use constructor initialization and signals instead.',
+				},
+				{
+					selector: 'TSClassImplements > Identifier[name="OnChanges"]',
+					message: 'OnChanges is forbidden. Use computed() or effect() to react to input changes.',
+				},
+				{
+					selector: 'TSClassImplements > Identifier[name="DoCheck"]',
+					message: 'DoCheck is forbidden. Use computed() or effect() instead.',
+				},
+				{
+					selector: 'TSClassImplements > Identifier[name="AfterContentInit"]',
+					message: 'AfterContentInit is forbidden. Use contentChild() signals and effect() instead.',
+				},
+				{
+					selector: 'TSClassImplements > Identifier[name="AfterContentChecked"]',
+					message: 'AfterContentChecked is forbidden. Use computed() or effect() instead.',
+				},
+				{
+					selector: 'TSClassImplements > Identifier[name="AfterViewInit"]',
+					message: 'AfterViewInit is forbidden. Use viewChild() signals and effect() instead.',
+				},
+				{
+					selector: 'TSClassImplements > Identifier[name="AfterViewChecked"]',
+					message: 'AfterViewChecked is forbidden. Use computed() or effect() instead.',
+				},
 			],
 			'@stylistic/js/no-extra-semi': 'off',
 			'vitest/no-focused-tests': 'error',
