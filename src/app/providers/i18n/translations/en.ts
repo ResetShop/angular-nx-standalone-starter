@@ -17,6 +17,15 @@ const en: TranslationSchema = {
 		EMPTY: 'No data available',
 		LOADING: 'Loading...',
 	},
+	PAGINATION: {
+		LABEL: 'Pagination',
+		SHOWING_RESULTS: 'Showing {from} to {to} of {total} results',
+		PREVIOUS: 'Previous',
+		NEXT: 'Next',
+		PAGE_OF: 'Page {page} of {total}',
+		GO_TO_PREVIOUS: 'Go to previous page',
+		GO_TO_NEXT: 'Go to next page',
+	},
 };
 
 export default en;
