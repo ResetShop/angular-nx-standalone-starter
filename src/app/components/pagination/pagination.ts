@@ -11,7 +11,7 @@ import { Translation } from '@providers/i18n/translation';
 	viewProviders: [provideIcons({ featherChevronLeft, featherChevronRight })],
 	template: `
 		<nav [attr.aria-label]="paginationLabel" class="flex items-center justify-between gap-4">
-			<p class="text-sm text-gray-600 dark:text-gray-400" role="status" aria-live="polite">
+			<p class="text-sm text-gray-500 dark:text-gray-400" role="status" aria-live="polite">
 				{{ showingResultsText() }}
 			</p>
 
@@ -29,7 +29,7 @@ import { Translation } from '@providers/i18n/translation';
 					<span class="ml-1">{{ previousLabel }}</span>
 				</button>
 
-				<span class="text-sm text-gray-600 dark:text-gray-400">
+				<span class="text-sm text-gray-500 dark:text-gray-400">
 					{{ pageOfText() }}
 				</span>
 
