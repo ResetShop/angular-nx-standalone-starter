@@ -10,6 +10,73 @@ interface PageItem {
 	value: number;
 }
 
+/** Creates an array of numbers from start to end (inclusive) */
+function range(start: number, end: number): number[] {
+	return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+}
+
+/**
+ * Computes the page items to display (numbers and ellipses).
+ *
+ * Logic:
+ * - If totalPages <= 4: show all pages
+ * - If totalPages > 4:
+ *   - Always show first page
+ *   - Show ellipsis if gap exists after first
+ *   - Show pages around current
+ *   - Show ellipsis if gap exists before last
+ *   - Always show last page
+ */
+function computePageItems(currentPage: number, totalPages: number): PageItem[] {
+	if (totalPages <= 4) {
+		return range(1, totalPages).map((n) => ({ type: 'page' as const, value: n }));
+	}
+
+	const items: PageItem[] = [];
+	const showLeftEllipsis = currentPage > 3;
+	const showRightEllipsis = currentPage < totalPages - 2;
+
+	// Always show first page
+	items.push({ type: 'page', value: 1 });
+
+	if (showLeftEllipsis) {
+		items.push({ type: 'ellipsis', value: -1 });
+	}
+
+	// Calculate middle pages to show
+	let start: number;
+	let end: number;
+
+	if (currentPage <= 3) {
+		// Near the start: show 2, 3
+		start = 2;
+		end = 3;
+	} else if (currentPage >= totalPages - 2) {
+		// Near the end: show last-2, last-1
+		start = totalPages - 2;
+		end = totalPages - 1;
+	} else {
+		// In the middle: show current-1, current, current+1
+		start = currentPage - 1;
+		end = currentPage + 1;
+	}
+
+	for (let i = start; i <= end; i++) {
+		if (i > 1 && i < totalPages) {
+			items.push({ type: 'page', value: i });
+		}
+	}
+
+	if (showRightEllipsis) {
+		items.push({ type: 'ellipsis', value: -2 });
+	}
+
+	// Always show last page
+	items.push({ type: 'page', value: totalPages });
+
+	return items;
+}
+
 @Component({
 	selector: 'app-pagination',
 	standalone: true,
@@ -148,75 +215,8 @@ export class Pagination {
 	/** Whether current page is the last page */
 	readonly isLastPage = computed(() => this.currentPage() >= this.totalPages());
 
-	/**
-	 * Computes the page items to display (numbers and ellipses).
-	 *
-	 * Logic:
-	 * - If totalPages <= 4: show all pages
-	 * - If totalPages > 4:
-	 *   - Always show first page
-	 *   - Show ellipsis if gap exists after first
-	 *   - Show pages around current
-	 *   - Show ellipsis if gap exists before last
-	 *   - Always show last page
-	 */
-	readonly pageItems = computed<PageItem[]>(() => {
-		const total = this.totalPages();
-		const current = this.currentPage();
-
-		if (total <= 4) {
-			return this.range(1, total).map((n) => ({ type: 'page' as const, value: n }));
-		}
-
-		const items: PageItem[] = [];
-		const showLeftEllipsis = current > 3;
-		const showRightEllipsis = current < total - 2;
-
-		// Always show first page
-		items.push({ type: 'page', value: 1 });
-
-		if (showLeftEllipsis) {
-			items.push({ type: 'ellipsis', value: -1 });
-		}
-
-		// Calculate middle pages to show
-		let start: number;
-		let end: number;
-
-		if (current <= 3) {
-			// Near the start: show 2, 3
-			start = 2;
-			end = 3;
-		} else if (current >= total - 2) {
-			// Near the end: show last-2, last-1
-			start = total - 2;
-			end = total - 1;
-		} else {
-			// In the middle: show current-1, current, current+1
-			start = current - 1;
-			end = current + 1;
-		}
-
-		for (let i = start; i <= end; i++) {
-			if (i > 1 && i < total) {
-				items.push({ type: 'page', value: i });
-			}
-		}
-
-		if (showRightEllipsis) {
-			items.push({ type: 'ellipsis', value: -2 });
-		}
-
-		// Always show last page
-		items.push({ type: 'page', value: total });
-
-		return items;
-	});
-
-	/** Creates an array of numbers from start to end (inclusive) */
-	private range(start: number, end: number): number[] {
-		return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-	}
+	/** Page items (numbers and ellipses) derived from current page and total pages */
+	readonly pageItems = computed<PageItem[]>(() => computePageItems(this.currentPage(), this.totalPages()));
 
 	/** Gets the aria-label for a page button */
 	getPageLabel(page: number): string {
