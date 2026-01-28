@@ -113,6 +113,10 @@ export default [
 					selector: 'TSClassImplements > Identifier[name="AfterViewChecked"]',
 					message: 'AfterViewChecked is forbidden. Use computed() or effect() instead.',
 				},
+				{
+					selector: 'PropertyDefinition[static=true]',
+					message: 'Static properties are forbidden. Use a singleton service with providedIn: root instead.',
+				},
 			],
 			'@stylistic/js/no-extra-semi': 'off',
 			'vitest/no-focused-tests': 'error',
