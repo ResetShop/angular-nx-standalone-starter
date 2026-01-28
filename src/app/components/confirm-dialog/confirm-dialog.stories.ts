@@ -26,6 +26,7 @@ A confirmation dialog component using the native \`<dialog>\` element with \`sho
 - **Configurable**: Custom title, message, button text, and confirm variant
 - **Destructive Actions**: Supports destructive confirm variant for delete operations
 - **Accessible**: aria-labelledby, aria-describedby, focus management
+- **Keyboard Support**: Press ESC to cancel and close the dialog
 - **Animated**: Fade + scale animation with reduced-motion support
 
 ## Usage
