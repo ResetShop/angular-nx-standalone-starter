@@ -1,4 +1,4 @@
-import { hash } from 'bcrypt';
+import { hash } from 'bcryptjs';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type {
 	CreateUserParams,
