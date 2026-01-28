@@ -1,0 +1,31 @@
+<dialog
+	(cancel)="onDialogCancel($event)"
+	[attr.aria-labelledby]="title() ? titleId : null"
+	[attr.aria-describedby]="message() ? messageId : null"
+	role="alertdialog"
+	#dialogRef
+	class="confirm-dialog m-auto rounded-lg bg-white p-0 shadow-xl dark:bg-gray-900"
+>
+	<div class="w-full max-w-md p-6">
+		@if (title()) {
+		<h2 [id]="titleId" class="text-lg font-semibold text-gray-900 dark:text-white">
+			{{ title() }}
+		</h2>
+		}
+
+		@if (message()) {
+		<p [id]="messageId" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+			{{ message() }}
+		</p>
+		}
+
+		<div class="mt-6 flex justify-end gap-3">
+			<button appButton variant="secondary" (click)="onCancel()">
+				{{ cancelText() }}
+			</button>
+			<button appButton [variant]="confirmVariant()" (click)="onConfirm()">
+				{{ confirmText() }}
+			</button>
+		</div>
+	</div>
+</dialog>

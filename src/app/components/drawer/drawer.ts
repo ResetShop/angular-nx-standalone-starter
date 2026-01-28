@@ -57,9 +57,13 @@ export class Drawer implements OnDestroy {
 
 	private readonly drawerTracker = inject(DrawerTracker);
 	private readonly closeTransition$ = new Subject<void>();
+	private readonly instanceId = this.drawerTracker.nextId();
 
-	readonly titleId = 'drawer-title';
-	readonly descriptionId = 'drawer-desc';
+	/** Unique ID for aria-labelledby */
+	readonly titleId = `drawer-title-${this.instanceId}`;
+
+	/** Unique ID for aria-describedby */
+	readonly descriptionId = `drawer-desc-${this.instanceId}`;
 
 	private readonly drawerRef = viewChild.required<ElementRef<HTMLDialogElement>>('drawerRef');
 	private readonly drawerElement = computed(() => this.drawerRef().nativeElement);
