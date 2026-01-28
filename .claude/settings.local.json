@@ -7,6 +7,7 @@
 			"Bash(find:*)",
 			"Bash(findstr:*)",
 			"Bash(gh api:*)",
+			"Bash(git fetch:*)",
 			"Bash(gh issue create:*)",
 			"Bash(gh issue edit:*)",
 			"Bash(gh issue list:*)",
