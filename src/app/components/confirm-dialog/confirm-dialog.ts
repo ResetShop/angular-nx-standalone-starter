@@ -10,8 +10,8 @@ import {
 	viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
 import { Button } from '@components/button/button';
+import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
 import { ConfirmDialogTracker } from './confirm-dialog-tracker';
 
 @Component({
@@ -44,10 +44,14 @@ export class ConfirmDialog implements OnDestroy {
 	/** Emits when user cancels */
 	readonly cancelled = output<void>();
 
-	readonly titleId = 'confirm-dialog-title';
-	readonly messageId = 'confirm-dialog-message';
-
 	private readonly confirmDialogTracker = inject(ConfirmDialogTracker);
+	private readonly instanceId = this.confirmDialogTracker.nextId();
+
+	/** Unique ID for aria-labelledby */
+	readonly titleId = `confirm-dialog-title-${this.instanceId}`;
+
+	/** Unique ID for aria-describedby */
+	readonly messageId = `confirm-dialog-message-${this.instanceId}`;
 	private readonly closeTransition$ = new Subject<void>();
 	private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dialogRef');
 	private readonly dialogElement = computed(() => this.dialogRef().nativeElement);

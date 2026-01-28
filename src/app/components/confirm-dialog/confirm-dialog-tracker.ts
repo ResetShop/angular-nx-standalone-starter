@@ -16,6 +16,12 @@ import type { ConfirmDialog } from './confirm-dialog';
 @Injectable({ providedIn: 'root' })
 export class ConfirmDialogTracker {
 	private activeInstance: ConfirmDialog | null = null;
+	private instanceCount = 0;
+
+	/** Generates a unique instance ID for aria attributes. */
+	nextId(): number {
+		return ++this.instanceCount;
+	}
 
 	/** Registers a dialog as the active instance. Throws if another dialog is already active. */
 	register(dialog: ConfirmDialog): void {
