@@ -1,10 +1,17 @@
-import { count, eq, inArray } from 'drizzle-orm';
+import { type SQL, count, eq, ilike, inArray, or } from 'drizzle-orm';
 import { permission } from '../../../db/schema/permission';
 import { role, rolePermission } from '../../../db/schema/role';
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
 import { BaseRepository } from '../../helpers/base.repository';
-import { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { CreateRoleParams, IRoleRepository, PermissionData, RoleData, UpdateRoleParams } from './interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type {
+	CreateRoleParams,
+	IRoleRepository,
+	ListRolesParams,
+	PermissionData,
+	RoleData,
+	UpdateRoleParams,
+} from './interfaces';
 
 /**
  * Repository for role-related database operations.
@@ -84,16 +91,19 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	}
 
 	/**
-	 * Retrieves all roles with pagination support.
+	 * Retrieves all roles with pagination and optional search filtering.
+	 * Search is case-insensitive and matches against name, code, or description.
 	 *
-	 * @param pagination - Optional pagination parameters
-	 * @param pagination.offset - Number of records to skip (default: 0)
-	 * @param pagination.limit - Maximum records to return (default: 10)
+	 * @param params - Optional list parameters
+	 * @param params.offset - Number of records to skip (default: 0)
+	 * @param params.limit - Maximum records to return (default: 10)
+	 * @param params.search - Optional search term to filter by name, code, or description
 	 * @returns Paginated response containing roles and metadata
 	 */
-	async findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
-		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
-		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
+	async findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
+		const limit = params?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = params?.offset ?? PAGINATION_DEFAULTS.OFFSET;
+		const searchCondition = this.buildSearchCondition(params?.search);
 
 		const [data, totalResult] = await Promise.all([
 			this.db
@@ -107,9 +117,10 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 					updatedAt: role.updatedAt,
 				})
 				.from(role)
+				.where(searchCondition)
 				.limit(limit)
 				.offset(offset),
-			this.db.select({ count: count() }).from(role),
+			this.db.select({ count: count() }).from(role).where(searchCondition),
 		]);
 
 		return {
@@ -118,6 +129,22 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 			offset,
 			limit,
 		};
+	}
+
+	/**
+	 * Builds a case-insensitive search condition for filtering roles
+	 * by name, code, or description.
+	 *
+	 * @param search - The search term to filter by
+	 * @returns A SQL condition or undefined if no search term provided
+	 */
+	private buildSearchCondition(search?: string): SQL | undefined {
+		if (!search || search.trim().length === 0) {
+			return undefined;
+		}
+
+		const pattern = `%${search.trim()}%`;
+		return or(ilike(role.name, pattern), ilike(role.code, pattern), ilike(role.description, pattern));
 	}
 
 	/**
