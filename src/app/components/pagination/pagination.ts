@@ -223,24 +223,28 @@ export class Pagination {
 		return this.goToPageTemplate.replace('{page}', String(page));
 	}
 
+	/** Navigates to the previous page. No-op on the first page. */
 	onPrevious(): void {
 		if (!this.isFirstPage()) {
 			this.pageChange.emit(this.currentPage() - 1);
 		}
 	}
 
+	/** Navigates to the next page. No-op on the last page. */
 	onNext(): void {
 		if (!this.isLastPage()) {
 			this.pageChange.emit(this.currentPage() + 1);
 		}
 	}
 
+	/** Navigates to the specified page. No-op if it equals the current page. */
 	onPageClick(page: number): void {
 		if (page !== this.currentPage()) {
 			this.pageChange.emit(page);
 		}
 	}
 
+	/** Handles the page size select change and emits the new size. */
 	onPageSizeChange(event: Event): void {
 		const select = event.target as HTMLSelectElement;
 		const newSize = parseInt(select.value, 10);
