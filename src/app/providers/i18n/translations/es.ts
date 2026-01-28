@@ -13,6 +13,10 @@ const es: TranslationSchema = {
 			GENERIC: 'Error al iniciar sesión. Por favor, intenta de nuevo.',
 		},
 	},
+	DATA_TABLE: {
+		EMPTY: 'No hay datos disponibles',
+		LOADING: 'Cargando...',
+	},
 };
 
 export default es;
