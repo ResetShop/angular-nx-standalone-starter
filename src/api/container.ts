@@ -4,6 +4,8 @@ import { drizzlePgConnector, type DrizzlePgConnector } from './helpers/drizzle-p
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
+import { PermissionRepository } from './modules/permission/permission.repository';
+import { PermissionService } from './modules/permission/permission.service';
 import { RoleRepository } from './modules/role/role.repository';
 import { RoleService } from './modules/role/role.service';
 import { UserRoleRepository } from './modules/user/user-role.repository';
@@ -56,11 +58,13 @@ export interface Cradle {
 	authRepository: AuthenticationRepository;
 	refreshTokenRepository: RefreshTokenRepository;
 	roleRepository: RoleRepository;
+	permissionRepository: PermissionRepository;
 	userRoleRepository: UserRoleRepository;
 
 	// Application Services
 	authService: AuthService;
 	roleService: RoleService;
+	permissionService: PermissionService;
 	userRoleService: UserRoleService;
 }
 
@@ -99,11 +103,13 @@ realContainer.register({
 	authRepository: asClass(AuthenticationRepository).singleton(),
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
 	roleRepository: asClass(RoleRepository).singleton(),
+	permissionRepository: asClass(PermissionRepository).singleton(),
 	userRoleRepository: asClass(UserRoleRepository).singleton(),
 
 	// Services that depend on repositories
 	authService: asClass(AuthService).singleton(),
 	roleService: asClass(RoleService).singleton(),
+	permissionService: asClass(PermissionService).singleton(),
 	userRoleService: asClass(UserRoleService).singleton(),
 });
 
