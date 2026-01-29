@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { roleDataSchema } from '../roles/roles.schemas';
 
 // ============================================================================
 // User Data Schemas
@@ -25,6 +26,54 @@ export const authUserSchema = z.object({
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
+});
+
+// ============================================================================
+// Managed User Schemas (User Management API)
+// ============================================================================
+
+/**
+ * Managed user schema with roles array for user management responses.
+ * Includes user data with their assigned roles.
+ */
+export const managedUserSchema = z.object({
+	id: z.number(),
+	email: z.email(),
+	firstName: z.string(),
+	lastName: z.string(),
+	enabled: z.boolean(),
+	deleted: z.boolean(),
+	createdAt: z.coerce.date().nullable(),
+	updatedAt: z.coerce.date().nullable(),
+	roles: z.array(roleDataSchema),
+});
+
+// ============================================================================
+// User Management Request Schemas
+// ============================================================================
+
+/**
+ * Create user request body schema.
+ * Requires email, password, first/last name, and optional role IDs.
+ */
+export const createUserRequestSchema = z.object({
+	email: z.email(),
+	password: z.string().min(8).max(128),
+	firstName: z.string().min(1).max(100),
+	lastName: z.string().min(1).max(100),
+	roleIds: z.array(z.number().int().positive()).optional(),
+});
+
+/**
+ * Update user request body schema.
+ * All fields are optional - only provided fields are updated.
+ */
+export const updateUserRequestSchema = z.object({
+	email: z.email().optional(),
+	firstName: z.string().min(1).max(100).optional(),
+	lastName: z.string().min(1).max(100).optional(),
+	enabled: z.boolean().optional(),
+	roleIds: z.array(z.number().int().positive()).optional(),
 });
 
 // ============================================================================
