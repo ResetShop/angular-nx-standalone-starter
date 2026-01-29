@@ -1,4 +1,5 @@
 import { hash } from 'bcryptjs';
+import { BCRYPT_SALT_ROUNDS } from '../../constants/auth.constants';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type {
 	CreateUserParams,
@@ -7,8 +8,6 @@ import type {
 	ManagedUserData,
 	UpdateUserParams,
 } from './interfaces';
-
-const BCRYPT_SALT_ROUNDS = 12;
 
 export const USER_MANAGEMENT_ERRORS = {
 	NOT_FOUND: 'User not found',
