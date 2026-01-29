@@ -1,9 +1,10 @@
-import { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { IUserRoleRepository } from '../user/interfaces';
 import type {
 	CreateRoleParams,
 	IRoleRepository,
 	IRoleService,
+	ListRolesParams,
 	PermissionData,
 	RoleData,
 	UpdateRoleParams,
@@ -93,13 +94,13 @@ export class RoleService implements IRoleService {
 	}
 
 	/**
-	 * Retrieves all roles with pagination support.
+	 * Retrieves all roles with pagination and optional search filtering.
 	 *
-	 * @param pagination - Optional pagination parameters (offset, limit)
+	 * @param params - Optional parameters (offset, limit, search)
 	 * @returns Paginated response containing roles and metadata
 	 */
-	async getAllRoles(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
-		return this.roleRepository.findAll(pagination);
+	async getAllRoles(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
+		return this.roleRepository.findAll(params);
 	}
 
 	/**

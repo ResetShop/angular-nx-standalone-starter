@@ -107,6 +107,98 @@ describe('RoleService', () => {
 			expect(result.data).toHaveLength(0);
 			expect(result.total).toBe(1);
 		});
+
+		it('should filter roles by name when search is provided', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: 'admin' });
+
+			expect(result.data).toHaveLength(1);
+			expect(result.data[0].name).toBe('Administrator');
+			expect(result.total).toBe(1);
+		});
+
+		it('should filter roles by code when search is provided', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: 'editor' });
+
+			expect(result.data).toHaveLength(1);
+			expect(result.data[0].code).toBe('editor');
+			expect(result.total).toBe(1);
+		});
+
+		it('should filter roles by description when search is provided', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: 'Content' });
+
+			expect(result.data).toHaveLength(1);
+			expect(result.data[0].description).toBe('Content editor');
+			expect(result.total).toBe(1);
+		});
+
+		it('should perform case-insensitive search', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: 'ADMIN' });
+
+			expect(result.data).toHaveLength(1);
+			expect(result.data[0].name).toBe('Administrator');
+		});
+
+		it('should return all roles when search is empty string', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: '' });
+
+			expect(result.data).toHaveLength(2);
+			expect(result.total).toBe(2);
+		});
+
+		it('should return no roles when search matches nothing', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: 'nonexistent' });
+
+			expect(result.data).toHaveLength(0);
+			expect(result.total).toBe(0);
+		});
+
+		it('should ignore leading and trailing whitespace in search', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: '  admin  ' });
+
+			expect(result.data).toHaveLength(1);
+			expect(result.data[0].name).toBe('Administrator');
+		});
+
+		it('should combine search with pagination', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+			mockRoleRepo.addRole({
+				id: 3,
+				name: 'Admin Viewer',
+				code: 'admin_viewer',
+				description: 'Can view admin pages',
+				removable: true,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			});
+
+			const result = await roleService.getAllRoles({ search: 'admin', offset: 0, limit: 1 });
+
+			expect(result.data).toHaveLength(1);
+			expect(result.total).toBe(2);
+		});
 	});
 
 	describe('createRole', () => {
