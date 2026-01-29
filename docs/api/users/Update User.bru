@@ -1,0 +1,65 @@
+meta {
+  name: Update User
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/users/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "firstName": "Updated",
+    "lastName": "Name"
+  }
+}
+
+docs {
+  # Update User
+
+  Updates user details, roles, or status. All fields are optional.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | id | number | User ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | email | string | No | New email address |
+  | firstName | string | No | New first name (1-100 characters) |
+  | lastName | string | No | New last name (1-100 characters) |
+  | enabled | boolean | No | Enable or disable the user |
+  | roleIds | number[] | No | Replace all role assignments |
+
+  ## Business Rules
+
+  - Cannot disable your own account (returns 403)
+  - Email must be unique (returns 409 if taken)
+  - Returns 404 if user not found
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isDefined
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return updated user", function() {
+    expect(res.body.id).to.be.a("number");
+  });
+}

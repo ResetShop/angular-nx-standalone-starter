@@ -1,0 +1,50 @@
+meta {
+  name: Get User by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/users/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get User by ID
+
+  Returns a single user with their assigned roles.
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | id | number | User ID |
+
+  ## Response
+
+  Returns a user object with roles (same shape as items in the list response).
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isDefined
+  res.body.email: isDefined
+  res.body.roles: isDefined
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return user with roles", function() {
+    expect(res.body.id).to.be.a("number");
+    expect(res.body.email).to.be.a("string");
+    expect(res.body.roles).to.be.an("array");
+  });
+}
