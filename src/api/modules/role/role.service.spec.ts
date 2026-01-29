@@ -171,6 +171,16 @@ describe('RoleService', () => {
 			expect(result.total).toBe(0);
 		});
 
+		it('should ignore leading and trailing whitespace in search', async () => {
+			mockRoleRepo.addRole(testRole);
+			mockRoleRepo.addRole(removableRole);
+
+			const result = await roleService.getAllRoles({ search: '  admin  ' });
+
+			expect(result.data).toHaveLength(1);
+			expect(result.data[0].name).toBe('Administrator');
+		});
+
 		it('should combine search with pagination', async () => {
 			mockRoleRepo.addRole(testRole);
 			mockRoleRepo.addRole(removableRole);
