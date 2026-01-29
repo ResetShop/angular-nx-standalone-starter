@@ -52,24 +52,25 @@ app.get(
  * GET /api/users/:id
  * Get user details with roles
  */
-app.get('/:id', requirePermission(ADMIN_USER_PERMISSIONS.READ), async (c) => {
-	const { userManagementService } = container.cradle;
-	const id = parseIdParam(c.req.param('id'));
+app.get(
+	'/:id',
+	requirePermission(ADMIN_USER_PERMISSIONS.READ),
+	zValidator('param', z.object({ id: z.coerce.number().int().positive() })),
+	async (c) => {
+		const { userManagementService } = container.cradle;
+		const { id } = c.req.valid('param');
 
-	if (id === null) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
-
-	try {
-		const userData = await userManagementService.getById(id);
-		return c.json<ManagedUser>(userData);
-	} catch (error) {
-		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {
-			return c.json<ErrorResponse>({ error: error.message }, 404);
+		try {
+			const userData = await userManagementService.getById(id);
+			return c.json<ManagedUser>(userData);
+		} catch (error) {
+			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 404);
+			}
+			throw error;
 		}
-		throw error;
-	}
-});
+	},
+);
 
 /**
  * POST /api/users
