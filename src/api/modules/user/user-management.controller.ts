@@ -112,6 +112,7 @@ app.post(
 app.patch(
 	'/:id',
 	requirePermission(ADMIN_USER_PERMISSIONS.UPDATE),
+	zValidator('param', z.object({ id: z.coerce.number().int().positive() })),
 	zValidator(
 		'json',
 		z.object({
@@ -124,12 +125,7 @@ app.patch(
 	),
 	async (c) => {
 		const { userManagementService } = container.cradle;
-		const id = parseIdParam(c.req.param('id'));
-
-		if (id === null) {
-			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-		}
-
+		const { id } = c.req.valid('param');
 		const body = c.req.valid('json');
 		const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
