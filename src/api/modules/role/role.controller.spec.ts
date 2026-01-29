@@ -2,17 +2,14 @@ import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import type { PaginatedResponse, PermissionData, RoleData } from './interfaces';
+import type { ListRolesParams, PaginatedResponse, PermissionData, RoleData } from './interfaces';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 import roleController from './role.controller';
 import { InvalidPermissionIdsError, ROLE_ERRORS } from './role.service';
 
 describe('Role Controller', () => {
 	// Create mock functions
-	const mockGetAllRoles = fn<
-		[{ offset?: number; limit?: number; search?: string }],
-		Promise<PaginatedResponse<RoleData>>
-	>();
+	const mockGetAllRoles = fn<[ListRolesParams], Promise<PaginatedResponse<RoleData>>>();
 	const mockGetRole = fn<[number], Promise<RoleData | null>>();
 	const mockCreateRole = fn<[{ name: string; code: string; description?: string }], Promise<RoleData>>();
 	const mockUpdateRole = fn<[number, { description: string }], Promise<RoleData>>();
