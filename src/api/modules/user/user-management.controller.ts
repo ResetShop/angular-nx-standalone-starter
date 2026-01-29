@@ -11,6 +11,17 @@ import { requirePermission } from '../../middlewares/verify-permissions.middlewa
 import { ADMIN_USER_PERMISSIONS } from '../role/permissions.constants';
 import { USER_MANAGEMENT_ERRORS } from './user-management.service';
 
+const ERROR_STATUS_MAP: ReadonlyArray<[string, number]> = [
+	[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
+	[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
+	[USER_MANAGEMENT_ERRORS.SELF_DISABLE, 403],
+];
+
+function parseIdParam(value: string): number | null {
+	const id = parseInt(value, 10);
+	return isNaN(id) ? null : id;
+}
+
 const app = new Hono();
 
 /**
@@ -43,9 +54,9 @@ app.get(
  */
 app.get('/:id', requirePermission(ADMIN_USER_PERMISSIONS.READ), async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
+	const id = parseIdParam(c.req.param('id'));
 
-	if (isNaN(id)) {
+	if (id === null) {
 		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 	}
 
@@ -112,9 +123,9 @@ app.patch(
 	),
 	async (c) => {
 		const { userManagementService } = container.cradle;
-		const id = parseInt(c.req.param('id'), 10);
+		const id = parseIdParam(c.req.param('id'));
 
-		if (isNaN(id)) {
+		if (id === null) {
 			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 		}
 
@@ -126,14 +137,10 @@ app.patch(
 			return c.json<ManagedUser>(userData);
 		} catch (error) {
 			if (error instanceof Error) {
-				if (error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {
-					return c.json<ErrorResponse>({ error: error.message }, 404);
-				}
-				if (error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
-					return c.json<ErrorResponse>({ error: error.message }, 409);
-				}
-				if (error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_DISABLE)) {
-					return c.json<ErrorResponse>({ error: error.message }, 403);
+				for (const [prefix, status] of ERROR_STATUS_MAP) {
+					if (error.message.startsWith(prefix)) {
+						return c.json<ErrorResponse>({ error: error.message }, status);
+					}
 				}
 			}
 			throw error;
@@ -147,9 +154,9 @@ app.patch(
  */
 app.delete('/:id', requirePermission(ADMIN_USER_PERMISSIONS.DELETE), async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
+	const id = parseIdParam(c.req.param('id'));
 
-	if (isNaN(id)) {
+	if (id === null) {
 		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 	}
 
