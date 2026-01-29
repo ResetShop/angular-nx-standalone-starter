@@ -72,14 +72,4 @@ export class PermissionRepository extends BaseRepository implements IPermissionR
 			ilike(permission.action, pattern),
 		);
 	}
-
-	/**
-	 * Returns the total number of permissions in the system.
-	 *
-	 * @returns Total permission count
-	 */
-	async count(): Promise<number> {
-		const result = await this.db.select({ count: count() }).from(permission);
-		return result[0].count;
-	}
 }
