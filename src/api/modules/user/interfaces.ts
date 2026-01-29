@@ -17,6 +17,43 @@ export interface UserData {
 	deleted: boolean;
 }
 
+/**
+ * Extended user data with timestamps for management responses
+ */
+export interface UserWithTimestamps extends UserData {
+	createdAt: Date | null;
+	updatedAt: Date | null;
+}
+
+/**
+ * Managed user data with roles array for user management responses
+ */
+export interface ManagedUserData extends UserWithTimestamps {
+	roles: RoleData[];
+}
+
+/**
+ * Parameters for creating a new user
+ */
+export interface CreateUserParams {
+	email: string;
+	password: string;
+	firstName: string;
+	lastName: string;
+	roleIds?: number[];
+}
+
+/**
+ * Parameters for updating an existing user
+ */
+export interface UpdateUserParams {
+	email?: string;
+	firstName?: string;
+	lastName?: string;
+	enabled?: boolean;
+	roleIds?: number[];
+}
+
 // ============================================================================
 // User Repository Interface
 // ============================================================================
@@ -27,6 +64,22 @@ export interface UserData {
 export interface IUserRepository {
 	findByEmail(email: string): Promise<UserData | null>;
 	findById(id: number): Promise<UserData | null>;
+}
+
+/**
+ * User management repository interface for CRUD operations
+ */
+export interface IUserManagementRepository {
+	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
+	findByIdWithRoles(id: number): Promise<ManagedUserData | null>;
+	findByEmail(email: string): Promise<UserData | null>;
+	create(params: { email: string; firstName: string; lastName: string; passwordHash: string }): Promise<UserData>;
+	update(
+		id: number,
+		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },
+	): Promise<UserData | null>;
+	softDelete(id: number): Promise<boolean>;
+	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>;
 }
 
 // ============================================================================
@@ -119,4 +172,15 @@ export interface IUserRoleService {
 	 * @throws Error if user not found or role not assigned
 	 */
 	removeRoleFromUser(userId: number, roleId: number): Promise<void>;
+}
+
+/**
+ * User management service interface for CRUD operations
+ */
+export interface IUserManagementService {
+	list(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
+	getById(id: number): Promise<ManagedUserData>;
+	create(params: CreateUserParams): Promise<ManagedUserData>;
+	update(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
+	delete(id: number): Promise<void>;
 }
