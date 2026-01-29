@@ -46,8 +46,4 @@ export class MockPermissionRepository implements IPermissionRepository {
 			limit,
 		};
 	}
-
-	async count(): Promise<number> {
-		return this.permissions.length;
-	}
 }

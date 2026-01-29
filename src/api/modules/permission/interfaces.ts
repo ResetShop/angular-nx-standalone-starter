@@ -13,7 +13,6 @@ export interface ListPermissionsParams extends PaginationParams {
  */
 export interface IPermissionRepository {
 	findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>;
-	count(): Promise<number>;
 }
 
 /**
