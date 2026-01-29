@@ -143,7 +143,8 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 			return undefined;
 		}
 
-		const pattern = `%${search.trim()}%`;
+		const escaped = search.trim().replace(/[%_]/g, '\\$&');
+		const pattern = `%${escaped}%`;
 		return or(ilike(role.name, pattern), ilike(role.code, pattern), ilike(role.description, pattern));
 	}
 

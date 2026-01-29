@@ -25,7 +25,7 @@ app.get(
 		z.object({
 			offset: z.coerce.number().int().min(PAGINATION_DEFAULTS.OFFSET).optional(),
 			limit: z.coerce.number().int().min(PAGINATION_DEFAULTS.MIN_LIMIT).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
-			search: z.string().max(100).optional(),
+			search: z.string().trim().min(1).max(100).optional(),
 		}),
 	),
 	async (c) => {
