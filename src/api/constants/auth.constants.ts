@@ -16,3 +16,9 @@ export const DEFAULT_MAX_FAILED_ATTEMPTS = 5;
  * Supports duration formats: "15m", "1h", "30s", "1d"
  */
 export const DEFAULT_LOCKOUT_DURATION = '15m';
+
+/**
+ * Number of salt rounds used for bcrypt password hashing.
+ * Higher values increase security but also computation time.
+ */
+export const BCRYPT_SALT_ROUNDS = 12;

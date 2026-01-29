@@ -32,7 +32,7 @@ export default [
 		controller: roleController,
 	},
 	{
-		path: '/users',
+		path: '/user',
 		controller: userRoutes,
 	},
 ];
