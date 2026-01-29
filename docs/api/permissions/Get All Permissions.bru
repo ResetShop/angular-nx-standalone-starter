@@ -13,6 +13,7 @@ get {
 params:query {
   ~offset: 0
   ~limit: 10
+  ~search: read
 }
 
 auth:bearer {
@@ -34,6 +35,7 @@ docs {
   |-----------|------|----------|---------|-------------|
   | offset | number | No | 0 | Number of items to skip |
   | limit | number | No | 10 | Maximum items to return (1-500) |
+  | search | string | No | - | Case-insensitive search across name, description, resource, and action (1-100 chars, trimmed) |
 
   ## Response
 
