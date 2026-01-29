@@ -50,7 +50,11 @@ app.get(
 app.get(
 	'/:id',
 	requirePermission(ADMIN_USER_PERMISSIONS.READ),
-	zValidator('param', z.object({ id: z.coerce.number().int().positive() })),
+	zValidator('param', z.object({ id: z.coerce.number().int().positive() }), (result, c) => {
+		if (!result.success) {
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
+		}
+	}),
 	async (c) => {
 		const { userManagementService } = container.cradle;
 		const { id } = c.req.valid('param');
@@ -107,7 +111,11 @@ app.post(
 app.patch(
 	'/:id',
 	requirePermission(ADMIN_USER_PERMISSIONS.UPDATE),
-	zValidator('param', z.object({ id: z.coerce.number().int().positive() })),
+	zValidator('param', z.object({ id: z.coerce.number().int().positive() }), (result, c) => {
+		if (!result.success) {
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
+		}
+	}),
 	zValidator(
 		'json',
 		z.object({
@@ -147,7 +155,11 @@ app.patch(
 app.delete(
 	'/:id',
 	requirePermission(ADMIN_USER_PERMISSIONS.DELETE),
-	zValidator('param', z.object({ id: z.coerce.number().int().positive() })),
+	zValidator('param', z.object({ id: z.coerce.number().int().positive() }), (result, c) => {
+		if (!result.success) {
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
+		}
+	}),
 	async (c) => {
 		const { userManagementService } = container.cradle;
 		const { id } = c.req.valid('param');
