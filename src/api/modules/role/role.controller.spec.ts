@@ -2,14 +2,14 @@ import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import type { PaginatedResponse, PermissionData, RoleData } from './interfaces';
+import type { ListRolesParams, PaginatedResponse, PermissionData, RoleData } from './interfaces';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 import roleController from './role.controller';
 import { InvalidPermissionIdsError, ROLE_ERRORS } from './role.service';
 
 describe('Role Controller', () => {
 	// Create mock functions
-	const mockGetAllRoles = fn<[{ offset?: number; limit?: number }], Promise<PaginatedResponse<RoleData>>>();
+	const mockGetAllRoles = fn<[ListRolesParams], Promise<PaginatedResponse<RoleData>>>();
 	const mockGetRole = fn<[number], Promise<RoleData | null>>();
 	const mockCreateRole = fn<[{ name: string; code: string; description?: string }], Promise<RoleData>>();
 	const mockUpdateRole = fn<[number, { description: string }], Promise<RoleData>>();
@@ -102,7 +102,7 @@ describe('Role Controller', () => {
 			const data = await res.json();
 			expect(data.data).toHaveLength(1);
 			expect(data.total).toBe(1);
-			expect(mockGetAllRoles.calls).toEqual([[{ offset: undefined, limit: undefined }]]);
+			expect(mockGetAllRoles.calls).toEqual([[{ offset: undefined, limit: undefined, search: undefined }]]);
 		});
 
 		it('should pass pagination parameters', async () => {
@@ -117,7 +117,37 @@ describe('Role Controller', () => {
 			const res = await app.request('/roles?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
-			expect(mockGetAllRoles.calls).toEqual([[{ offset: 5, limit: 5 }]]);
+			expect(mockGetAllRoles.calls).toEqual([[{ offset: 5, limit: 5, search: undefined }]]);
+		});
+
+		it('should pass search parameter to service', async () => {
+			const paginatedResponse: PaginatedResponse<RoleData> = {
+				data: [testRole],
+				total: 1,
+				offset: 0,
+				limit: 10,
+			};
+			mockGetAllRoles.mockResolvedValue(paginatedResponse);
+
+			const res = await app.request('/roles?search=admin');
+
+			expect(res.status).toBe(200);
+			expect(mockGetAllRoles.calls).toEqual([[{ offset: undefined, limit: undefined, search: 'admin' }]]);
+		});
+
+		it('should pass search with pagination parameters', async () => {
+			const paginatedResponse: PaginatedResponse<RoleData> = {
+				data: [testRole],
+				total: 5,
+				offset: 2,
+				limit: 3,
+			};
+			mockGetAllRoles.mockResolvedValue(paginatedResponse);
+
+			const res = await app.request('/roles?search=admin&offset=2&limit=3');
+
+			expect(res.status).toBe(200);
+			expect(mockGetAllRoles.calls).toEqual([[{ offset: 2, limit: 3, search: 'admin' }]]);
 		});
 
 		it('should validate offset is non-negative', async () => {
