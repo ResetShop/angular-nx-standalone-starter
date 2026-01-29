@@ -13,7 +13,7 @@ import { USER_ROLE_ERRORS } from './user-role.service';
 const app = new Hono();
 
 /**
- * GET /api/users/:userId/roles
+ * GET /api/user/:userId/roles
  * Get all roles assigned to a user with pagination
  */
 app.get(
@@ -49,7 +49,7 @@ app.get(
 );
 
 /**
- * GET /api/users/:userId/permissions
+ * GET /api/user/:userId/permissions
  * Get all permissions for a user (aggregated from all their roles)
  */
 app.get('/:userId/permissions', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ), async (c) => {
@@ -72,7 +72,7 @@ app.get('/:userId/permissions', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.RE
 });
 
 /**
- * POST /api/users/:userId/roles
+ * POST /api/user/:userId/roles
  * Assign a role to a user
  */
 app.post(
@@ -115,7 +115,7 @@ app.post(
 );
 
 /**
- * DELETE /api/users/:userId/roles/:roleId
+ * DELETE /api/user/:userId/roles/:roleId
  * Remove a role from a user
  */
 app.delete('/:userId/roles/:roleId', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.REMOVE), async (c) => {
