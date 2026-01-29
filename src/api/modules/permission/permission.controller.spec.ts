@@ -5,10 +5,11 @@ import type { PaginatedResponse } from '../../interfaces';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PermissionData } from '../role/interfaces';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
+import type { ListPermissionsParams } from './interfaces';
 import permissionController from './permission.controller';
 
 describe('Permission Controller', () => {
-	const mockList = fn<[{ offset?: number; limit?: number }], Promise<PaginatedResponse<PermissionData>>>();
+	const mockList = fn<[ListPermissionsParams], Promise<PaginatedResponse<PermissionData>>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 
 	let app: Hono;
@@ -74,7 +75,7 @@ describe('Permission Controller', () => {
 			const data = await res.json();
 			expect(data.data).toHaveLength(2);
 			expect(data.total).toBe(2);
-			expect(mockList.calls).toEqual([[{ offset: undefined, limit: undefined }]]);
+			expect(mockList.calls).toEqual([[{ offset: undefined, limit: undefined, search: undefined }]]);
 		});
 
 		it('should pass pagination parameters', async () => {
@@ -89,7 +90,37 @@ describe('Permission Controller', () => {
 			const res = await app.request('/permissions?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
-			expect(mockList.calls).toEqual([[{ offset: 5, limit: 5 }]]);
+			expect(mockList.calls).toEqual([[{ offset: 5, limit: 5, search: undefined }]]);
+		});
+
+		it('should pass search parameter to service', async () => {
+			const paginatedResponse: PaginatedResponse<PermissionData> = {
+				data: testPermissions,
+				total: 2,
+				offset: 0,
+				limit: 10,
+			};
+			mockList.mockResolvedValue(paginatedResponse);
+
+			const res = await app.request('/permissions?search=users');
+
+			expect(res.status).toBe(200);
+			expect(mockList.calls).toEqual([[{ offset: undefined, limit: undefined, search: 'users' }]]);
+		});
+
+		it('should pass search with pagination parameters', async () => {
+			const paginatedResponse: PaginatedResponse<PermissionData> = {
+				data: [testPermissions[0]],
+				total: 2,
+				offset: 0,
+				limit: 1,
+			};
+			mockList.mockResolvedValue(paginatedResponse);
+
+			const res = await app.request('/permissions?search=users&offset=0&limit=1');
+
+			expect(res.status).toBe(200);
+			expect(mockList.calls).toEqual([[{ offset: 0, limit: 1, search: 'users' }]]);
 		});
 
 		it('should validate offset is non-negative', async () => {
