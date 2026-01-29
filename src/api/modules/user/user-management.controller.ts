@@ -11,11 +11,11 @@ import { requirePermission } from '../../middlewares/verify-permissions.middlewa
 import { ADMIN_USER_PERMISSIONS } from '../role/permissions.constants';
 import { USER_MANAGEMENT_ERRORS } from './user-management.service';
 
-const ERROR_STATUS_MAP: ReadonlyArray<[string, number]> = [
+const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
 	[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
 	[USER_MANAGEMENT_ERRORS.SELF_DISABLE, 403],
-];
+] as const;
 
 function parseIdParam(value: string): number | null {
 	const id = parseInt(value, 10);
@@ -36,7 +36,7 @@ app.get(
 		z.object({
 			offset: z.coerce.number().int().min(PAGINATION_DEFAULTS.OFFSET).optional(),
 			limit: z.coerce.number().int().min(PAGINATION_DEFAULTS.MIN_LIMIT).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
-			search: z.string().optional(),
+			search: z.string().trim().min(1).max(100).optional(),
 		}),
 	),
 	async (c) => {
