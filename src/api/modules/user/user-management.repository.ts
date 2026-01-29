@@ -8,6 +8,28 @@ import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { RoleData } from '../role/interfaces';
 import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
 
+interface UserProjection {
+	id: number;
+	email: string;
+	firstName: string;
+	lastName: string;
+	enabled: boolean | null;
+	deleted: boolean | null;
+	createdAt: Date | null;
+	updatedAt: Date | null;
+}
+
+interface RoleAssignmentProjection {
+	userId: number;
+	roleId: number;
+	roleName: string;
+	roleCode: string;
+	roleDescription: string | null;
+	roleRemovable: boolean;
+	roleCreatedAt: Date | null;
+	roleUpdatedAt: Date | null;
+}
+
 /**
  * Repository for user management CRUD operations.
  * Handles user listing, creation, updates, and soft deletion.
@@ -243,18 +265,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * Attaches roles to an array of user records.
 	 * Fetches all role assignments in a single query for efficiency.
 	 */
-	private async attachRolesToUsers(
-		users: Array<{
-			id: number;
-			email: string;
-			firstName: string;
-			lastName: string;
-			enabled: boolean | null;
-			deleted: boolean | null;
-			createdAt: Date | null;
-			updatedAt: Date | null;
-		}>,
-	): Promise<ManagedUserData[]> {
+	private async attachRolesToUsers(users: UserProjection[]): Promise<ManagedUserData[]> {
 		if (users.length === 0) {
 			return [];
 		}
@@ -276,6 +287,20 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			.innerJoin(role, eq(userRole.roleId, role.id))
 			.where(inArray(userRole.userId, userIds));
 
+		const rolesByUserId = this.groupRolesByUserId(roleAssignments);
+
+		return users.map((u) => ({
+			...u,
+			enabled: u.enabled ?? true,
+			deleted: u.deleted ?? false,
+			roles: rolesByUserId.get(u.id) ?? [],
+		}));
+	}
+
+	/**
+	 * Groups role assignment rows into a map keyed by user ID.
+	 */
+	private groupRolesByUserId(roleAssignments: RoleAssignmentProjection[]): Map<number, RoleData[]> {
 		const rolesByUserId = new Map<number, RoleData[]>();
 		for (const ra of roleAssignments) {
 			const roles = rolesByUserId.get(ra.userId) ?? [];
@@ -290,17 +315,6 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			});
 			rolesByUserId.set(ra.userId, roles);
 		}
-
-		return users.map((u) => ({
-			id: u.id,
-			email: u.email,
-			firstName: u.firstName,
-			lastName: u.lastName,
-			enabled: u.enabled ?? true,
-			deleted: u.deleted ?? false,
-			createdAt: u.createdAt,
-			updatedAt: u.updatedAt,
-			roles: rolesByUserId.get(u.id) ?? [],
-		}));
+		return rolesByUserId;
 	}
 }
