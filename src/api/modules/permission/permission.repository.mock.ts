@@ -1,7 +1,7 @@
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
-import type { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { PaginatedResponse } from '../../interfaces';
 import type { PermissionData } from '../role/interfaces';
-import type { IPermissionRepository } from './interfaces';
+import type { IPermissionRepository, ListPermissionsParams } from './interfaces';
 
 export class MockPermissionRepository implements IPermissionRepository {
 	private permissions: PermissionData[] = [];
@@ -20,15 +20,28 @@ export class MockPermissionRepository implements IPermissionRepository {
 		this.permissions = [];
 	}
 
-	async findAll(pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>> {
-		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
-		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
+	async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
+		const limit = params?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = params?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
-		const data = this.permissions.slice(offset, offset + limit);
+		let filtered = this.permissions;
+
+		if (params?.search && params.search.trim().length > 0) {
+			const searchLower = params.search.trim().toLowerCase();
+			filtered = filtered.filter(
+				(p) =>
+					p.name.toLowerCase().includes(searchLower) ||
+					(p.description?.toLowerCase().includes(searchLower) ?? false) ||
+					p.resource.toLowerCase().includes(searchLower) ||
+					p.action.toLowerCase().includes(searchLower),
+			);
+		}
+
+		const data = filtered.slice(offset, offset + limit);
 
 		return {
 			data,
-			total: this.permissions.length,
+			total: filtered.length,
 			offset,
 			limit,
 		};
