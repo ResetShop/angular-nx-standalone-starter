@@ -17,11 +17,6 @@ const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.SELF_DISABLE, 403],
 ] as const;
 
-function parseIdParam(value: string): number | null {
-	const id = parseInt(value, 10);
-	return isNaN(id) ? null : id;
-}
-
 const app = new Hono();
 
 /**
@@ -149,23 +144,24 @@ app.patch(
  * DELETE /api/users/:id
  * Soft delete a user
  */
-app.delete('/:id', requirePermission(ADMIN_USER_PERMISSIONS.DELETE), async (c) => {
-	const { userManagementService } = container.cradle;
-	const id = parseIdParam(c.req.param('id'));
+app.delete(
+	'/:id',
+	requirePermission(ADMIN_USER_PERMISSIONS.DELETE),
+	zValidator('param', z.object({ id: z.coerce.number().int().positive() })),
+	async (c) => {
+		const { userManagementService } = container.cradle;
+		const { id } = c.req.valid('param');
 
-	if (id === null) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
-
-	try {
-		await userManagementService.delete(id);
-		return c.json<SuccessMessage>({ message: 'User deleted successfully' });
-	} catch (error) {
-		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {
-			return c.json<ErrorResponse>({ error: error.message }, 404);
+		try {
+			await userManagementService.delete(id);
+			return c.json<SuccessMessage>({ message: 'User deleted successfully' });
+		} catch (error) {
+			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 404);
+			}
+			throw error;
 		}
-		throw error;
-	}
-});
+	},
+);
 
 export default app;
