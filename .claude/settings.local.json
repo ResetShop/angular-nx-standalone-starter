@@ -8,6 +8,7 @@
 			"Bash(findstr:*)",
 			"Bash(gh api:*)",
 			"Bash(git fetch:*)",
+			"Bash(git worktree:*)",
 			"Bash(gh issue create:*)",
 			"Bash(gh issue edit:*)",
 			"Bash(gh issue list:*)",
