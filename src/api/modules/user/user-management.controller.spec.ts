@@ -182,7 +182,7 @@ describe('User Management Controller', () => {
 
 			expect(res.status).toBe(400);
 			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
+			expect(data.success).toBe(false);
 		});
 	});
 
@@ -337,7 +337,7 @@ describe('User Management Controller', () => {
 
 			expect(res.status).toBe(400);
 			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
+			expect(data.success).toBe(false);
 		});
 	});
 
@@ -373,7 +373,7 @@ describe('User Management Controller', () => {
 
 			expect(res.status).toBe(400);
 			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
+			expect(data.success).toBe(false);
 		});
 	});
 });

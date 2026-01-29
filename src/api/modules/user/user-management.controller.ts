@@ -20,7 +20,7 @@ const ERROR_STATUS_MAP = [
 const app = new Hono();
 
 /**
- * GET /api/users
+ * GET /api/user
  * List users with pagination and optional search
  */
 app.get(
@@ -44,7 +44,7 @@ app.get(
 );
 
 /**
- * GET /api/users/:id
+ * GET /api/user/:id
  * Get user details with roles
  */
 app.get(
@@ -68,7 +68,7 @@ app.get(
 );
 
 /**
- * POST /api/users
+ * POST /api/user
  * Create a new user with optional role assignments
  */
 app.post(
@@ -101,7 +101,7 @@ app.post(
 );
 
 /**
- * PATCH /api/users/:id
+ * PATCH /api/user/:id
  * Update user details, roles, or status
  */
 app.patch(
@@ -141,7 +141,7 @@ app.patch(
 );
 
 /**
- * DELETE /api/users/:id
+ * DELETE /api/user/:id
  * Soft delete a user
  */
 app.delete(
