@@ -1,6 +1,13 @@
 import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
-import { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { CreateRoleParams, IRoleRepository, PermissionData, RoleData, UpdateRoleParams } from './interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type {
+	CreateRoleParams,
+	IRoleRepository,
+	ListRolesParams,
+	PermissionData,
+	RoleData,
+	UpdateRoleParams,
+} from './interfaces';
 
 export class MockRoleRepository implements IRoleRepository {
 	private roles: Map<number, RoleData> = new Map();
@@ -57,11 +64,22 @@ export class MockRoleRepository implements IRoleRepository {
 		return this.rolesByName.get(name) ?? null;
 	}
 
-	async findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
-		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
-		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
+	async findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
+		const limit = params?.limit ?? PAGINATION_DEFAULTS.LIMIT;
+		const offset = params?.offset ?? PAGINATION_DEFAULTS.OFFSET;
 
-		const allRoles = Array.from(this.roles.values());
+		let allRoles = Array.from(this.roles.values());
+
+		if (params?.search && params.search.trim().length > 0) {
+			const searchLower = params.search.trim().toLowerCase();
+			allRoles = allRoles.filter(
+				(r) =>
+					r.name.toLowerCase().includes(searchLower) ||
+					r.code.toLowerCase().includes(searchLower) ||
+					(r.description?.toLowerCase().includes(searchLower) ?? false),
+			);
+		}
+
 		const data = allRoles.slice(offset, offset + limit);
 
 		return {

@@ -1,6 +1,17 @@
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 
 // ============================================================================
+// Query Parameter Types
+// ============================================================================
+
+/**
+ * Parameters for listing roles with optional search filtering
+ */
+export interface ListRolesParams extends PaginationParams {
+	search?: string;
+}
+
+// ============================================================================
 // Role Data Types
 // ============================================================================
 
@@ -71,7 +82,7 @@ export interface IRoleRepository {
 	findById(id: number): Promise<RoleData | null>;
 	findByCode(code: string): Promise<RoleData | null>;
 	findByName(name: string): Promise<RoleData | null>;
-	findAll(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>>;
+	findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>>;
 	create(params: CreateRoleParams): Promise<RoleData>;
 	update(id: number, params: UpdateRoleParams): Promise<RoleData | null>;
 	delete(id: number): Promise<void>;
@@ -87,7 +98,7 @@ export interface IRoleRepository {
 export interface IRoleService {
 	getRole(id: number): Promise<RoleData | null>;
 	getRoleByCode(code: string): Promise<RoleData | null>;
-	getAllRoles(pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>>;
+	getAllRoles(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>>;
 	createRole(params: CreateRoleParams): Promise<RoleData>;
 	updateRole(id: number, params: UpdateRoleParams): Promise<RoleData>;
 	deleteRole(id: number): Promise<void>;
