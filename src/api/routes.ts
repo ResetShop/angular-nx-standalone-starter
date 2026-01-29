@@ -1,5 +1,6 @@
 import authController from './modules/auth/auth.controller';
 import healthController from './modules/health/health.controller';
+import permissionController from './modules/permission/permission.controller';
 import roleController from './modules/role/role.controller';
 import userRoutes from './modules/user';
 
@@ -21,6 +22,10 @@ export default [
 	{
 		path: '/auth',
 		controller: authController,
+	},
+	{
+		path: '/permissions',
+		controller: permissionController,
 	},
 	{
 		path: '/roles',
