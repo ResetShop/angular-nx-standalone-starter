@@ -1,0 +1,36 @@
+meta {
+  name: Get User - Not Found
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/user/99999
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get User - Not Found
+
+  Demonstrates the error response when requesting a user that doesn't exist.
+}
+
+assert {
+  res.status: eq 404
+  res.body.error: isDefined
+}
+
+tests {
+  test("should return 404", function() {
+    expect(res.status).to.equal(404);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.include("User not found");
+  });
+}
