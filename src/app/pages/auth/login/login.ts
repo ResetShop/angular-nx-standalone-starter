@@ -134,18 +134,17 @@ export default class Login {
 	});
 
 	constructor() {
-		// Navigate to dashboard on successful login
+		// Handle login state changes: navigation on success, error display on failure
 		effect(() => {
 			const user = this.authStore.currentUser();
-			if (user) {
-				this.router.navigate(['/dashboard']);
-			}
-		});
-
-		// Handle login errors from store
-		effect(() => {
 			const error = this.authStore.loginError();
-			if (error) {
+
+			if (user) {
+				// Clear any previous error and navigate to dashboard
+				this.errorMessage.set(null);
+				this.router.navigate(['/dashboard']);
+			} else if (error) {
+				// Display translated error message
 				this.errorMessage.set(
 					this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'),
 				);
