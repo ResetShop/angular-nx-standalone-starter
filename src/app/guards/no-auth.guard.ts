@@ -1,18 +1,18 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
-import { Auth } from '@providers/auth/auth';
+import { AuthStore } from '@store/auth/auth.store';
 
 export const noAuthGuard: CanActivateFn = () => {
-	const auth = inject(Auth);
+	const authStore = inject(AuthStore);
 	const router = inject(Router);
 
 	// If auth is not initialized yet, defer the guard decision until initialization is complete
-	if (!auth.isInitialized()) {
+	if (!authStore.isInitialized()) {
 		return new Promise<boolean | UrlTree>((resolve) => {
 			const checkAuth = () => {
-				if (auth.isInitialized()) {
-					const result = auth.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
-					auth.isGuardValidated.set(true);
+				if (authStore.isInitialized()) {
+					const result = authStore.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
+					authStore.setGuardValidated(true);
 					resolve(result);
 				} else {
 					setTimeout(checkAuth, 50);
@@ -22,7 +22,7 @@ export const noAuthGuard: CanActivateFn = () => {
 		});
 	}
 
-	const result = auth.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
-	auth.isGuardValidated.set(true);
+	const result = authStore.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
+	authStore.setGuardValidated(true);
 	return result;
 };

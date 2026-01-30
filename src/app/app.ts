@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component';
-import { Auth } from '@providers/auth/auth';
+import { AuthStore } from '@store/auth/auth.store';
 
 @Component({
 	imports: [RouterModule, LoadingSpinnerComponent],
@@ -50,6 +50,6 @@ import { Auth } from '@providers/auth/auth';
 	`,
 })
 export class App {
-	readonly auth = inject(Auth);
-	readonly isLoading = computed(() => !this.auth.isLoadingComplete());
+	readonly authStore = inject(AuthStore);
+	readonly isLoading = computed(() => !this.authStore.isLoadingComplete());
 }

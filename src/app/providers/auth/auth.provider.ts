@@ -1,6 +1,10 @@
 import { Provider } from '@angular/core';
-import { Auth } from '@providers/auth/auth';
+import { AuthApiService } from '@providers/auth/auth';
 
+/**
+ * Provides auth-related services
+ * Note: AuthStore is providedIn: 'root' so doesn't need explicit provider
+ */
 export function provideAuth(): Provider[] {
-	return [Auth];
+	return [AuthApiService];
 }
