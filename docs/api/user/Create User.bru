@@ -17,7 +17,6 @@ auth:bearer {
 body:json {
   {
     "email": "newuser@example.com",
-    "password": "securePassword123",
     "firstName": "New",
     "lastName": "User",
     "roleIds": [1]
@@ -34,7 +33,6 @@ docs {
   | Field | Type | Required | Description |
   |-------|------|----------|-------------|
   | email | string | Yes | Valid email address |
-  | password | string | Yes | Password (8-128 characters) |
   | firstName | string | Yes | First name (1-100 characters) |
   | lastName | string | Yes | Last name (1-100 characters) |
   | roleIds | number[] | No | Array of role IDs to assign |
@@ -42,6 +40,10 @@ docs {
   ## Response (201)
 
   Returns the created user with their assigned roles.
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | passwordEmailSent | boolean | Whether the welcome email was sent successfully |
 }
 
 assert {
@@ -60,5 +62,6 @@ tests {
     expect(res.body.email).to.equal("newuser@example.com");
     expect(res.body.firstName).to.equal("New");
     expect(res.body.lastName).to.equal("User");
+    expect(res.body.passwordEmailSent).to.be.a("boolean");
   });
 }
