@@ -51,6 +51,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 				passwordHash: authentication.passwordHash,
 				failedLoginAttempts: authentication.failedLoginAttempts,
 				lockedUntil: authentication.lockedUntil,
+				mustChangePassword: authentication.mustChangePassword,
 			})
 			.from(authentication)
 			.where(eq(authentication.userId, userId))
@@ -66,6 +67,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 			passwordHash: result[0].passwordHash,
 			failedLoginAttempts: result[0].failedLoginAttempts ?? 0,
 			lockedUntil: result[0].lockedUntil,
+			mustChangePassword: result[0].mustChangePassword,
 		};
 	}
 

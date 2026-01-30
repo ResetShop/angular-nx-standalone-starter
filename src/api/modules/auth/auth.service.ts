@@ -35,6 +35,7 @@ interface AuthResult {
 	user: AuthUser;
 	token: string;
 	refreshToken: string;
+	mustChangePassword: boolean;
 }
 
 interface AuthServiceDeps {
@@ -91,8 +92,15 @@ export class AuthService {
 				this.checkAccountLockout(authRecord, user?.id);
 				return this.validateCredentials(user, authRecord, credentials.password);
 			})
-			.then(({ user, authRecord }) => this.handleSuccessfulLogin(user, authRecord).then(() => user))
-			.then((user) => this.generateTokenPair(user));
+			.then(({ user, authRecord }) =>
+				this.handleSuccessfulLogin(user, authRecord).then(() => ({
+					user,
+					mustChangePassword: authRecord.mustChangePassword,
+				})),
+			)
+			.then(({ user, mustChangePassword }) =>
+				this.generateTokenPair(user).then((result) => ({ ...result, mustChangePassword })),
+			);
 	}
 
 	/**

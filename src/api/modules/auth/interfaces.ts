@@ -4,6 +4,7 @@ export interface AuthenticationData {
 	passwordHash: string;
 	failedLoginAttempts: number;
 	lockedUntil: Date | null;
+	mustChangePassword: boolean;
 }
 
 /**
