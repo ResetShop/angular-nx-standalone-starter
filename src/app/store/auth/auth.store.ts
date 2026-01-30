@@ -9,7 +9,7 @@ import { createUser } from '@domain/user/user.mapper';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { AuthApiService } from '@providers/auth/auth';
-import { pipe, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
 import { initialAuthState } from './auth.types';
 
 const MIN_LOADING_SCREEN_DURATION = 1000;
@@ -190,7 +190,6 @@ export const AuthStore = signalStore(
 									});
 								},
 								error: (error: HttpErrorResponse) => {
-									// Distinguish between auth errors and network errors
 									const isNetworkError = error.status === 0 || error.status >= 500;
 									patchState(store, {
 										isLoggingIn: false,
@@ -199,6 +198,7 @@ export const AuthStore = signalStore(
 									});
 								},
 							}),
+							catchError(() => EMPTY),
 						),
 					),
 				),
@@ -260,7 +260,7 @@ export const AuthStore = signalStore(
 			 *     return next(retryReq);
 			 *   }),
 			 *   catchError((refreshError) => {
-			 *     authStore.completeTokenRefresh();
+			 *     authStore.failTokenRefresh();
 			 *     authStore.logout();
 			 *     return throwError(() => refreshError);
 			 *   }),
@@ -312,6 +312,17 @@ export const AuthStore = signalStore(
 			},
 
 			/**
+			 * Handle token refresh failure - atomically resets refresh state
+			 *
+			 * Clears both isTokenRefreshing and pendingRefreshToken in a single
+			 * state update. Use this instead of calling completeTokenRefresh()
+			 * and clearPendingRefreshToken() separately on error paths.
+			 */
+			failTokenRefresh() {
+				patchState(store, { isTokenRefreshing: false, pendingRefreshToken: null });
+			},
+
+			/**
 			 * Restore user from localStorage
 			 *
 			 * Called during application initialization to restore authenticated session.
@@ -344,11 +355,15 @@ export const AuthStore = signalStore(
 
 				const storedUser = localStorage.getItem('auth_user');
 				if (storedUser) {
-					const result = authStorageDataSchema.safeParse(JSON.parse(storedUser));
-					if (result.success) {
-						const user = mapStorageDataToUser(result.data);
-						patchState(store, { currentUser: user });
-					} else {
+					try {
+						const result = authStorageDataSchema.safeParse(JSON.parse(storedUser));
+						if (result.success) {
+							const user = mapStorageDataToUser(result.data);
+							patchState(store, { currentUser: user });
+						} else {
+							localStorage.removeItem('auth_user');
+						}
+					} catch {
 						localStorage.removeItem('auth_user');
 					}
 				}
