@@ -12,6 +12,7 @@ export interface AuthState {
 	isLoggingIn: boolean;
 	isLoggingOut: boolean;
 	loginError: LoginErrorResponse | null;
+	networkError: boolean;
 	minLoadingTimeElapsed: boolean;
 	pendingRefreshToken: string | null;
 }
@@ -27,6 +28,7 @@ export const initialAuthState: AuthState = {
 	isLoggingIn: false,
 	isLoggingOut: false,
 	loginError: null,
+	networkError: false,
 	minLoadingTimeElapsed: false,
 	pendingRefreshToken: null,
 };

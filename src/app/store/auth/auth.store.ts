@@ -49,7 +49,7 @@ export const AuthStore = signalStore(
 			 */
 			login: rxMethod<{ email: string; password: string }>(
 				pipe(
-					tap(() => patchState(store, { isLoggingIn: true, loginError: null })),
+					tap(() => patchState(store, { isLoggingIn: true, loginError: null, networkError: false })),
 					switchMap((params) =>
 						authApi.login(params).pipe(
 							tap({
@@ -61,12 +61,16 @@ export const AuthStore = signalStore(
 										currentUser: user,
 										isLoggingIn: false,
 										loginError: null,
+										networkError: false,
 									});
 								},
 								error: (error: HttpErrorResponse) => {
+									// Distinguish between auth errors and network errors
+									const isNetworkError = error.status === 0 || error.status >= 500;
 									patchState(store, {
 										isLoggingIn: false,
-										loginError: error.error,
+										loginError: isNetworkError ? null : error.error,
+										networkError: isNetworkError,
 									});
 								},
 							}),
