@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Brand } from '@components/brand/brand';
 import { Button } from '@components/button/button';
@@ -37,8 +37,20 @@ export class Sidebar {
 	router = inject(Router);
 	readonly sections = computed(() => this.navigation.sections());
 
+	constructor() {
+		// React to logout: navigate when user becomes null and logout is complete
+		effect(() => {
+			const user = this.authStore.currentUser();
+			const isLoggingOut = this.authStore.isLoggingOut();
+
+			// Only navigate after logout completes (user is null and no longer logging out)
+			if (!user && !isLoggingOut) {
+				this.router.navigate(['/auth/login']);
+			}
+		});
+	}
+
 	logout() {
 		this.authStore.logout();
-		this.router.navigate(['/auth/login']);
 	}
 }
