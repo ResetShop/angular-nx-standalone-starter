@@ -20,6 +20,102 @@ const MIN_LOADING_SCREEN_DURATION = 1000;
  * Manages authentication state using NgRx Signal Store.
  * Components inject this store directly for all auth operations.
  * Uses AuthApiService for HTTP calls.
+ *
+ * @example
+ * // Basic usage in a component
+ * import { inject } from '@angular/core';
+ * import { AuthStore } from '@store/auth/auth.store';
+ *
+ * export class MyComponent {
+ *   private authStore = inject(AuthStore);
+ *
+ *   // Read signals in template or code
+ *   isAuthenticated = this.authStore.isAuthenticated;
+ *   currentUser = this.authStore.currentUser;
+ *   userPermissions = this.authStore.userPermissions;
+ * }
+ *
+ * @example
+ * // Login flow with error handling
+ * import { effect, inject, signal } from '@angular/core';
+ * import { Router } from '@angular/router';
+ * import { AuthStore } from '@store/auth/auth.store';
+ *
+ * export class LoginComponent {
+ *   private authStore = inject(AuthStore);
+ *   private router = inject(Router);
+ *   readonly errorMessage = signal<string | null>(null);
+ *
+ *   constructor() {
+ *     // React to login state changes
+ *     effect(() => {
+ *       const user = this.authStore.currentUser();
+ *       const error = this.authStore.loginError();
+ *
+ *       if (user) {
+ *         this.errorMessage.set(null);
+ *         this.router.navigate(['/dashboard']);
+ *       } else if (error) {
+ *         this.errorMessage.set(error.message);
+ *       }
+ *     });
+ *   }
+ *
+ *   onSubmit(email: string, password: string) {
+ *     this.authStore.login({ email, password });
+ *   }
+ * }
+ *
+ * @example
+ * // Logout flow with navigation
+ * import { effect, inject } from '@angular/core';
+ * import { Router } from '@angular/router';
+ * import { AuthStore } from '@store/auth/auth.store';
+ *
+ * export class SidebarComponent {
+ *   private authStore = inject(AuthStore);
+ *   private router = inject(Router);
+ *
+ *   constructor() {
+ *     // React to logout completion
+ *     effect(() => {
+ *       const user = this.authStore.currentUser();
+ *       const isLoggingOut = this.authStore.isLoggingOut();
+ *
+ *       if (!user && !isLoggingOut) {
+ *         this.router.navigate(['/auth/login']);
+ *       }
+ *     });
+ *   }
+ *
+ *   logout() {
+ *     this.authStore.logout();
+ *   }
+ * }
+ *
+ * @example
+ * // Using in templates
+ * // In component:
+ * export class DashboardComponent {
+ *   authStore = inject(AuthStore);
+ * }
+ *
+ * // In template:
+ * @if (authStore.isAuthenticated()) {
+ *   <h1>Welcome {{ authStore.currentUser()?.firstName }}!</h1>
+ *   <p>Roles: {{ authStore.userRoles().join(', ') }}</p>
+ * }
+ *
+ * @example
+ * // Permission checking
+ * export class FeatureComponent {
+ *   private authStore = inject(AuthStore);
+ *
+ *   canEdit = computed(() => {
+ *     const user = this.authStore.currentUser();
+ *     return user?.hasPermission('articles', 'update') ?? false;
+ *   });
+ * }
  */
 export const AuthStore = signalStore(
 	{ providedIn: 'root' },
@@ -39,6 +135,24 @@ export const AuthStore = signalStore(
 		return {
 			/**
 			 * Get observable stream of pending refresh token for interceptor coordination
+			 *
+			 * Used by token refresh interceptor to coordinate multiple concurrent requests
+			 * that receive 401 errors during a token refresh operation.
+			 *
+			 * @example
+			 * // In an HTTP interceptor
+			 * if (authStore.isTokenRefreshing()) {
+			 *   return authStore.getPendingRefreshToken$().pipe(
+			 *     filter((token): token is string => token !== null),
+			 *     take(1),
+			 *     switchMap((token) => {
+			 *       const retryReq = req.clone({
+			 *         setHeaders: { Authorization: `Bearer ${token}` },
+			 *       });
+			 *       return next(retryReq);
+			 *     }),
+			 *   );
+			 * }
 			 */
 			getPendingRefreshToken$() {
 				return toObservable(store.pendingRefreshToken);
@@ -46,6 +160,17 @@ export const AuthStore = signalStore(
 
 			/**
 			 * Login with email and password
+			 *
+			 * Initiates login flow and updates state with result.
+			 * Watch loginError() and currentUser() signals to react to success/failure.
+			 *
+			 * @example
+			 * // In a component
+			 * onLoginSubmit() {
+			 *   const email = this.loginForm.get('email')?.value;
+			 *   const password = this.loginForm.get('password')?.value;
+			 *   this.authStore.login({ email, password });
+			 * }
 			 */
 			login: rxMethod<{ email: string; password: string }>(
 				pipe(
@@ -84,6 +209,23 @@ export const AuthStore = signalStore(
 			 *
 			 * Note: Navigation should be handled by the caller (component/interceptor).
 			 * Components can listen to currentUser() === null to trigger navigation.
+			 *
+			 * @example
+			 * // In a component with navigation effect
+			 * constructor() {
+			 *   effect(() => {
+			 *     const user = this.authStore.currentUser();
+			 *     const isLoggingOut = this.authStore.isLoggingOut();
+			 *
+			 *     if (!user && !isLoggingOut) {
+			 *       this.router.navigate(['/auth/login']);
+			 *     }
+			 *   });
+			 * }
+			 *
+			 * logout() {
+			 *   this.authStore.logout();
+			 * }
 			 */
 			logout() {
 				patchState(store, { currentUser: null, isLoggingOut: true });
@@ -101,6 +243,28 @@ export const AuthStore = signalStore(
 
 			/**
 			 * Refresh access token
+			 *
+			 * Called by the token refresh interceptor when a 401 response is received.
+			 * Updates currentUser with new token and stores in localStorage.
+			 *
+			 * @example
+			 * // In an HTTP interceptor
+			 * authStore.startTokenRefresh();
+			 *
+			 * return authStore.refreshToken().pipe(
+			 *   switchMap((newTokens) => {
+			 *     authStore.completeTokenRefresh();
+			 *     const retryReq = req.clone({
+			 *       setHeaders: { Authorization: `Bearer ${newTokens.token}` },
+			 *     });
+			 *     return next(retryReq);
+			 *   }),
+			 *   catchError((refreshError) => {
+			 *     authStore.completeTokenRefresh();
+			 *     authStore.logout();
+			 *     return throwError(() => refreshError);
+			 *   }),
+			 * );
 			 */
 			refreshToken() {
 				return authApi.refreshToken().pipe(
@@ -149,6 +313,28 @@ export const AuthStore = signalStore(
 
 			/**
 			 * Restore user from localStorage
+			 *
+			 * Called during application initialization to restore authenticated session.
+			 * Validates stored data with Zod schema before restoring.
+			 * Sets isInitialized to true once complete.
+			 *
+			 * @example
+			 * // In an APP_INITIALIZER
+			 * export function initializeAuth() {
+			 *   const authStore = inject(AuthStore);
+			 *   return () => {
+			 *     authStore.restoreFromStorage();
+			 *   };
+			 * }
+			 *
+			 * // In app.config.ts
+			 * providers: [
+			 *   {
+			 *     provide: APP_INITIALIZER,
+			 *     useFactory: initializeAuth,
+			 *     multi: true,
+			 *   },
+			 * ]
 			 */
 			restoreFromStorage() {
 				if (isPlatformServer(platformId)) {
