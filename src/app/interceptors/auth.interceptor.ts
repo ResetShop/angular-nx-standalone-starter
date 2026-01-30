@@ -1,14 +1,14 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Auth } from '@providers/auth/auth';
+import { AuthStore } from '@store/auth/auth.store';
 
 /**
  * Intercepts outgoing HTTP requests to attach Paseto access token
  * and include credentials (cookies) for all API requests
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-	const authService = inject(Auth);
-	const currentUser = authService.currentUser();
+	const authStore = inject(AuthStore);
+	const currentUser = authStore.currentUser();
 
 	// For API requests, always include credentials to send cookies
 	if (req.url.includes('/api/')) {

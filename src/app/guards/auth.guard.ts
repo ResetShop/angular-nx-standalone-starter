@@ -1,11 +1,11 @@
 import { isPlatformServer } from '@angular/common';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router, UrlTree } from '@angular/router';
-import { Auth } from '@providers/auth/auth';
+import { AuthStore } from '@store/auth/auth.store';
 
 export const authGuard: CanActivateFn = () => {
 	const platformId = inject(PLATFORM_ID);
-	const auth = inject(Auth);
+	const authStore = inject(AuthStore);
 	const router = inject(Router);
 
 	// On the server, allow the route to be rendered
@@ -15,12 +15,12 @@ export const authGuard: CanActivateFn = () => {
 	}
 
 	// If auth is not initialized yet, defer the guard decision until initialization is complete
-	if (!auth.isInitialized()) {
+	if (!authStore.isInitialized()) {
 		return new Promise<boolean | UrlTree>((resolve) => {
 			const checkAuth = () => {
-				if (auth.isInitialized()) {
-					const result = !auth.isAuthenticated() ? router.createUrlTree(['/auth/login']) : true;
-					auth.isGuardValidated.set(true);
+				if (authStore.isInitialized()) {
+					const result = !authStore.isAuthenticated() ? router.createUrlTree(['/auth/login']) : true;
+					authStore.setGuardValidated(true);
 					resolve(result);
 				} else {
 					setTimeout(checkAuth, 50);
@@ -30,7 +30,7 @@ export const authGuard: CanActivateFn = () => {
 		});
 	}
 
-	const result = !auth.isAuthenticated() ? router.createUrlTree(['/auth/login']) : true;
-	auth.isGuardValidated.set(true);
+	const result = !authStore.isAuthenticated() ? router.createUrlTree(['/auth/login']) : true;
+	authStore.setGuardValidated(true);
 	return result;
 };

@@ -1,6 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Auth } from '@providers/auth/auth';
+import { Router } from '@angular/router';
+import { AuthStore } from '@store/auth/auth.store';
 import { catchError, filter, switchMap, take, throwError } from 'rxjs';
 
 /**
@@ -8,26 +9,26 @@ import { catchError, filter, switchMap, take, throwError } from 'rxjs';
  * Implements a mutex pattern to prevent multiple concurrent refresh attempts.
  */
 export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
-	const authService = inject(Auth);
+	const authStore = inject(AuthStore);
+	const router = inject(Router);
 
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			// Only handle 401 Unauthorized errors
 			if (error.status !== 401) {
-				return throwError(() => {
-					return error;
-				});
+				return throwError(() => error);
 			}
 
 			// Don't retry if already on refresh endpoint
 			if (req.url.includes('/api/auth/refresh')) {
-				authService.logout();
+				authStore.logout();
+				router.navigate(['/auth/login']);
 				return throwError(() => error);
 			}
 
 			// If a refresh is already in progress, wait for it
-			if (authService.isTokenRefreshing()) {
-				return authService.refreshTokenSubject.pipe(
+			if (authStore.isTokenRefreshing()) {
+				return authStore.refreshTokenSubject.pipe(
 					filter((token): token is string => token !== null),
 					take(1),
 					switchMap((token) => {
@@ -40,13 +41,12 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			}
 
 			// Start a new refresh
-			authService.isTokenRefreshing.set(true);
-			authService.refreshTokenSubject.next(null);
+			authStore.setTokenRefreshing(true);
+			authStore.refreshTokenSubject.next(null);
 
-			return authService.refreshToken().pipe(
+			return authStore.refreshToken().pipe(
 				switchMap((newTokens) => {
-					authService.isTokenRefreshing.set(false);
-					authService.refreshTokenSubject.next(newTokens.token);
+					authStore.setTokenRefreshing(false);
 
 					// Retry original request with new token
 					const retryReq = req.clone({
@@ -57,11 +57,12 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 					return next(retryReq);
 				}),
 				catchError((refreshError) => {
-					authService.isTokenRefreshing.set(false);
-					authService.refreshTokenSubject.next(null);
+					authStore.setTokenRefreshing(false);
+					authStore.refreshTokenSubject.next(null);
 
 					// Refresh failed - logout user
-					authService.logout();
+					authStore.logout();
+					router.navigate(['/auth/login']);
 					return throwError(() => refreshError);
 				}),
 			);

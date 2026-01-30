@@ -1,9 +1,9 @@
 import { inject } from '@angular/core';
-import { Auth } from '@providers/auth/auth';
+import { AuthStore } from '@store/auth/auth.store';
 
 export function initializeAuth() {
 	return () => {
-		const auth = inject(Auth);
-		auth.retrieveFromStorage();
+		const authStore = inject(AuthStore);
+		authStore.restoreFromStorage();
 	};
 }
