@@ -56,8 +56,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 					return next(retryReq);
 				}),
 				catchError((refreshError) => {
-					authStore.completeTokenRefresh();
-					authStore.clearPendingRefreshToken();
+					authStore.failTokenRefresh();
 
 					// Refresh failed - logout user
 					authStore.logout();

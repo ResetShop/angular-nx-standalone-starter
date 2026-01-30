@@ -1,15 +1,31 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
 import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
+import { IPermission } from '@domain/access/permission.interface';
 import type { IUser } from '@domain/user/user.interface';
 import { AuthApiService } from '@providers/auth/auth';
-import { of, throwError } from 'rxjs';
+import { firstValueFrom, NEVER, of, throwError } from 'rxjs';
 import { AuthStore } from './auth.store';
+
+function createMockUser(overrides: Partial<IUser> = {}): IUser {
+	return {
+		id: 1,
+		email: 'test@example.com',
+		firstName: 'Test',
+		lastName: 'User',
+		fullName: 'Test User',
+		roles: [],
+		permissions: [],
+		token: 'mock-token',
+		hasPermission: () => false,
+		hasPermissionByIdentifier: () => false,
+		hasRole: () => false,
+		...overrides,
+	};
+}
 
 describe('AuthStore', () => {
 	let store: InstanceType<typeof AuthStore>;
-	let authApiService: jasmine.SpyObj<AuthApiService>;
-	let router: jasmine.SpyObj<Router>;
+	let authApiMock: Record<'login' | 'logout' | 'refreshToken' | 'getMe', ReturnType<typeof vi.fn>>;
 
 	const mockLoginResponse: LoginResponse = {
 		user: {
@@ -17,7 +33,6 @@ describe('AuthStore', () => {
 			email: 'test@example.com',
 			firstName: 'Test',
 			lastName: 'User',
-			roles: [],
 		},
 		token: 'mock-token',
 	};
@@ -27,26 +42,24 @@ describe('AuthStore', () => {
 	};
 
 	beforeEach(() => {
-		const authApiSpy = jasmine.createSpyObj('AuthApiService', ['login', 'logout', 'refreshToken', 'getMe']);
-		const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+		authApiMock = {
+			login: vi.fn(),
+			logout: vi.fn(),
+			refreshToken: vi.fn(),
+			getMe: vi.fn(),
+		};
 
 		TestBed.configureTestingModule({
-			providers: [
-				AuthStore,
-				{ provide: AuthApiService, useValue: authApiSpy },
-				{ provide: Router, useValue: routerSpy },
-			],
+			providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
 		});
 
 		store = TestBed.inject(AuthStore);
-		authApiService = TestBed.inject(AuthApiService) as jasmine.SpyObj<AuthApiService>;
-		router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
 
-		// Clear localStorage before each test
 		localStorage.clear();
 	});
 
 	afterEach(() => {
+		vi.restoreAllMocks();
 		localStorage.clear();
 	});
 
@@ -73,76 +86,53 @@ describe('AuthStore', () => {
 
 	describe('login', () => {
 		it('should set isLoggingIn to true when login starts', () => {
-			authApiService.login.and.returnValue(of(mockLoginResponse));
+			authApiMock.login.mockReturnValue(NEVER);
 			store.login({ email: 'test@example.com', password: 'password' });
 
 			expect(store.isLoggingIn()).toBe(true);
 		});
 
-		it('should update state on successful login', (done) => {
-			authApiService.login.and.returnValue(of(mockLoginResponse));
+		it('should update state on successful login', () => {
+			authApiMock.login.mockReturnValue(of(mockLoginResponse));
 
 			store.login({ email: 'test@example.com', password: 'password' });
 
-			setTimeout(() => {
-				expect(store.currentUser()).toBeTruthy();
-				expect(store.currentUser()?.email).toBe('test@example.com');
-				expect(store.isLoggingIn()).toBe(false);
-				expect(store.loginError()).toBeNull();
-				done();
-			}, 100);
+			expect(store.currentUser()).toBeTruthy();
+			expect(store.currentUser()?.email).toBe('test@example.com');
+			expect(store.isLoggingIn()).toBe(false);
+			expect(store.loginError()).toBeNull();
 		});
 
-		it('should persist user to localStorage on successful login', (done) => {
-			authApiService.login.and.returnValue(of(mockLoginResponse));
+		it('should persist user to localStorage on successful login', () => {
+			authApiMock.login.mockReturnValue(of(mockLoginResponse));
 
 			store.login({ email: 'test@example.com', password: 'password' });
 
-			setTimeout(() => {
-				const stored = localStorage.getItem('auth_user');
-				expect(stored).toBeTruthy();
-				const parsed = JSON.parse(stored!);
-				expect(parsed.email).toBe('test@example.com');
-				done();
-			}, 100);
+			const stored = localStorage.getItem('auth_user');
+			expect(stored).toBeTruthy();
+			const parsed = JSON.parse(stored as string);
+			expect(parsed.email).toBe('test@example.com');
 		});
 
-		it('should set loginError on failed login', (done) => {
+		it('should set loginError on failed login', () => {
 			const errorResponse = { error: { code: 'INVALID_CREDENTIALS' } };
-			authApiService.login.and.returnValue(throwError(() => errorResponse));
+			authApiMock.login.mockReturnValue(throwError(() => errorResponse));
 
 			store.login({ email: 'test@example.com', password: 'wrong' });
 
-			setTimeout(() => {
-				expect(store.isLoggingIn()).toBe(false);
-				expect(store.loginError()).toEqual({ code: 'INVALID_CREDENTIALS' });
-				expect(store.currentUser()).toBeNull();
-				done();
-			}, 100);
+			expect(store.isLoggingIn()).toBe(false);
+			expect(store.loginError()).toEqual({ code: 'INVALID_CREDENTIALS' });
+			expect(store.currentUser()).toBeNull();
 		});
 	});
 
 	describe('logout', () => {
 		beforeEach(() => {
-			// Set up authenticated state
-			const mockUser: IUser = {
-				id: 1,
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				fullName: 'Test User',
-				roles: [],
-				permissions: [],
-				token: 'mock-token',
-				hasPermission: () => false,
-				hasPermissionByIdentifier: () => false,
-				hasRole: () => false,
-			};
-			store.updateCurrentUser(mockUser);
+			store.updateCurrentUser(createMockUser());
 		});
 
 		it('should clear current user immediately', () => {
-			authApiService.logout.and.returnValue(of(undefined));
+			authApiMock.logout.mockReturnValue(of(undefined));
 
 			store.logout();
 
@@ -150,7 +140,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should set isLoggingOut to true', () => {
-			authApiService.logout.and.returnValue(of(undefined));
+			authApiMock.logout.mockReturnValue(NEVER);
 
 			store.logout();
 
@@ -158,7 +148,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should clear localStorage', () => {
-			authApiService.logout.and.returnValue(of(undefined));
+			authApiMock.logout.mockReturnValue(of(undefined));
 			localStorage.setItem('auth_user', '{"email":"test"}');
 
 			store.logout();
@@ -166,74 +156,52 @@ describe('AuthStore', () => {
 			expect(localStorage.getItem('auth_user')).toBeNull();
 		});
 
-		it('should set isLoggingOut to false on success', (done) => {
-			authApiService.logout.and.returnValue(of(undefined));
+		it('should set isLoggingOut to false on success', () => {
+			authApiMock.logout.mockReturnValue(of(undefined));
 
 			store.logout();
 
-			setTimeout(() => {
-				expect(store.isLoggingOut()).toBe(false);
-				done();
-			}, 100);
+			expect(store.isLoggingOut()).toBe(false);
 		});
 
-		it('should set isLoggingOut to false on error', (done) => {
-			authApiService.logout.and.returnValue(throwError(() => new Error('Network error')));
+		it('should set isLoggingOut to false on error', () => {
+			authApiMock.logout.mockReturnValue(throwError(() => new Error('Network error')));
 
 			store.logout();
 
-			setTimeout(() => {
-				expect(store.isLoggingOut()).toBe(false);
-				done();
-			}, 100);
+			expect(store.isLoggingOut()).toBe(false);
 		});
 	});
 
 	describe('refreshToken', () => {
 		beforeEach(() => {
-			const mockUser: IUser = {
-				id: 1,
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				fullName: 'Test User',
-				roles: [],
-				permissions: [],
-				token: 'old-token',
-				hasPermission: () => false,
-				hasPermissionByIdentifier: () => false,
-				hasRole: () => false,
-			};
-			store.updateCurrentUser(mockUser);
+			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
 		});
 
-		it('should update user token on successful refresh', (done) => {
-			authApiService.refreshToken.and.returnValue(of(mockRefreshResponse));
+		it('should update user token on successful refresh', () => {
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
 
-			store.refreshToken().subscribe(() => {
-				expect(store.currentUser()?.token).toBe('new-mock-token');
-				done();
-			});
+			store.refreshToken().subscribe();
+
+			expect(store.currentUser()?.token).toBe('new-mock-token');
 		});
 
-		it('should update pendingRefreshToken for interceptor coordination', (done) => {
-			authApiService.refreshToken.and.returnValue(of(mockRefreshResponse));
+		it('should update pendingRefreshToken for interceptor coordination', () => {
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
 
-			store.refreshToken().subscribe(() => {
-				expect(store.pendingRefreshToken()).toBe('new-mock-token');
-				done();
-			});
+			store.refreshToken().subscribe();
+
+			expect(store.pendingRefreshToken()).toBe('new-mock-token');
 		});
 
-		it('should persist updated user to localStorage', (done) => {
-			authApiService.refreshToken.and.returnValue(of(mockRefreshResponse));
+		it('should persist updated user to localStorage', () => {
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
 
-			store.refreshToken().subscribe(() => {
-				const stored = localStorage.getItem('auth_user');
-				const parsed = JSON.parse(stored!);
-				expect(parsed.token).toBe('new-mock-token');
-				done();
-			});
+			store.refreshToken().subscribe();
+
+			const stored = localStorage.getItem('auth_user');
+			const parsed = JSON.parse(stored as string);
+			expect(parsed.token).toBe('new-mock-token');
 		});
 	});
 
@@ -272,15 +240,18 @@ describe('AuthStore', () => {
 			expect(store.isInitialized()).toBe(true);
 		});
 
-		it('should set minLoadingTimeElapsed after timeout', (done) => {
+		it('should set minLoadingTimeElapsed after timeout', () => {
+			vi.useFakeTimers();
+
 			store.restoreFromStorage();
 
 			expect(store.minLoadingTimeElapsed()).toBe(false);
 
-			setTimeout(() => {
-				expect(store.minLoadingTimeElapsed()).toBe(true);
-				done();
-			}, 1100);
+			vi.advanceTimersByTime(1000);
+
+			expect(store.minLoadingTimeElapsed()).toBe(true);
+
+			vi.useRealTimers();
 		});
 	});
 
@@ -288,25 +259,14 @@ describe('AuthStore', () => {
 		it('should compute isAuthenticated based on currentUser', () => {
 			expect(store.isAuthenticated()).toBe(false);
 
-			const mockUser: IUser = {
-				id: 1,
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				fullName: 'Test User',
-				roles: [],
-				permissions: [],
-				token: 'mock-token',
-				hasPermission: () => false,
-				hasPermissionByIdentifier: () => false,
-				hasRole: () => false,
-			};
-			store.updateCurrentUser(mockUser);
+			store.updateCurrentUser(createMockUser());
 
 			expect(store.isAuthenticated()).toBe(true);
 		});
 
 		it('should compute isLoadingComplete based on flags', () => {
+			vi.useFakeTimers();
+
 			expect(store.isLoadingComplete()).toBe(false);
 
 			store.restoreFromStorage();
@@ -315,35 +275,24 @@ describe('AuthStore', () => {
 			store.setGuardValidated(true);
 			expect(store.isLoadingComplete()).toBe(false);
 
-			// Wait for minLoadingTimeElapsed
-			setTimeout(() => {
-				expect(store.isLoadingComplete()).toBe(true);
-			}, 1100);
+			vi.advanceTimersByTime(1000);
+			expect(store.isLoadingComplete()).toBe(true);
+
+			vi.useRealTimers();
 		});
 
 		it('should compute userPermissions from currentUser', () => {
-			const mockPermission = {
+			const mockPermission: IPermission = {
 				id: 1,
 				resource: 'users',
+				name: 'users:read',
+				description: 'Read users',
 				action: 'read',
 				identifier: 'users:read',
 				matches: () => true,
 			};
 
-			const mockUser: IUser = {
-				id: 1,
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				fullName: 'Test User',
-				roles: [],
-				permissions: [mockPermission],
-				token: 'mock-token',
-				hasPermission: () => false,
-				hasPermissionByIdentifier: () => false,
-				hasRole: () => false,
-			};
-			store.updateCurrentUser(mockUser);
+			store.updateCurrentUser(createMockUser({ permissions: [mockPermission] }));
 
 			expect(store.userPermissions()).toEqual([mockPermission]);
 		});
@@ -367,26 +316,38 @@ describe('AuthStore', () => {
 		});
 
 		it('should clear pending refresh token', () => {
-			authApiService.refreshToken.and.returnValue(of(mockRefreshResponse));
+			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
 
-			store.refreshToken().subscribe(() => {
-				expect(store.pendingRefreshToken()).toBe('new-mock-token');
+			store.refreshToken().subscribe();
+			expect(store.pendingRefreshToken()).toBe('new-mock-token');
 
-				store.clearPendingRefreshToken();
+			store.clearPendingRefreshToken();
 
-				expect(store.pendingRefreshToken()).toBeNull();
-			});
+			expect(store.pendingRefreshToken()).toBeNull();
+		});
+
+		it('should atomically reset refresh state on failTokenRefresh', () => {
+			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
+
+			store.startTokenRefresh();
+			store.refreshToken().subscribe();
+			expect(store.pendingRefreshToken()).toBe('new-mock-token');
+			expect(store.isTokenRefreshing()).toBe(true);
+
+			store.failTokenRefresh();
+
+			expect(store.isTokenRefreshing()).toBe(false);
+			expect(store.pendingRefreshToken()).toBeNull();
 		});
 	});
 
 	describe('getPendingRefreshToken$', () => {
-		it('should return observable of pendingRefreshToken signal', (done) => {
-			const refreshToken$ = store.getPendingRefreshToken$();
+		it('should return observable of pendingRefreshToken signal', async () => {
+			const token = await TestBed.runInInjectionContext(() => firstValueFrom(store.getPendingRefreshToken$()));
 
-			refreshToken$.subscribe((token) => {
-				expect(token).toBeNull();
-				done();
-			});
+			expect(token).toBeNull();
 		});
 	});
 });
