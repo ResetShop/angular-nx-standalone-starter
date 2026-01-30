@@ -81,6 +81,9 @@ export const AuthStore = signalStore(
 
 			/**
 			 * Logout user - clear state and revoke tokens
+			 *
+			 * Note: Navigation should be handled by the caller (component/interceptor).
+			 * Components can listen to currentUser() === null to trigger navigation.
 			 */
 			logout() {
 				patchState(store, { currentUser: null, isLoggingOut: true });
@@ -89,6 +92,7 @@ export const AuthStore = signalStore(
 				authApi.logout().subscribe({
 					complete: () => patchState(store, { isLoggingOut: false }),
 					error: (error) => {
+						// TODO: Replace with security event logging (see issue #66)
 						console.error('[AuthStore] Logout error:', error);
 						patchState(store, { isLoggingOut: false });
 					},
