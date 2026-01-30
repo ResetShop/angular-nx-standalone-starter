@@ -18,6 +18,7 @@ export const loginRequestSchema = z.object({
 export const loginResponseSchema = z.object({
 	user: authUserSchema,
 	token: z.string(),
+	mustChangePassword: z.boolean().optional(),
 });
 
 export const refreshResponseSchema = z.object({
