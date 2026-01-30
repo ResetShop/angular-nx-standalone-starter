@@ -15,6 +15,10 @@ describe('DI Container', () => {
 			expect(container.cradle.db).toBeDefined();
 		});
 
+		it('should resolve emailService', () => {
+			expect(container.cradle.emailService).toBeDefined();
+		});
+
 		it('should resolve pasetoService', () => {
 			expect(container.cradle.pasetoService).toBeDefined();
 		});
@@ -40,6 +44,12 @@ describe('DI Container', () => {
 		it('should return the same authService instance', () => {
 			const service1 = container.cradle.authService;
 			const service2 = container.cradle.authService;
+			expect(service1).toBe(service2);
+		});
+
+		it('should return the same emailService instance', () => {
+			const service1 = container.cradle.emailService;
+			const service2 = container.cradle.emailService;
 			expect(service1).toBe(service2);
 		});
 

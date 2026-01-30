@@ -13,6 +13,7 @@ import { UserManagementService } from './modules/user/user-management.service';
 import { UserRoleRepository } from './modules/user/user-role.repository';
 import { UserRoleService } from './modules/user/user-role.service';
 import { UserRepository } from './modules/user/user.repository';
+import { EmailService } from './services/email/email.service';
 import { PasetoService } from './services/paseto/paseto.service';
 
 /**
@@ -48,6 +49,9 @@ validateEnvironment();
  * UserManagementService
  *   └── UserManagementRepository ► db
  *
+ * EmailService (no deps)
+ * PasetoService (no deps)
+ *
  * Middleware/Controllers resolve services lazily at runtime.
  * All services are registered as singletons.
  */
@@ -56,6 +60,7 @@ export interface Cradle {
 	db: DrizzlePgConnector;
 
 	// Services
+	emailService: EmailService;
 	pasetoService: PasetoService;
 
 	// Repositories
@@ -103,6 +108,7 @@ realContainer.register({
 	db: asValue(drizzlePgConnector),
 
 	// Services (singletons - stateless, hold config)
+	emailService: asClass(EmailService).singleton(),
 	pasetoService: asClass(PasetoService).singleton(),
 
 	// Repositories (singletons - stateless, share db connection)
