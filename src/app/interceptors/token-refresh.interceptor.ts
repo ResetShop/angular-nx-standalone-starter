@@ -28,7 +28,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
 			// If a refresh is already in progress, wait for it
 			if (authStore.isTokenRefreshing()) {
-				return authStore.refreshTokenSubject.pipe(
+				return authStore.getPendingRefreshToken$().pipe(
 					filter((token): token is string => token !== null),
 					take(1),
 					switchMap((token) => {
@@ -42,7 +42,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
 			// Start a new refresh
 			authStore.setTokenRefreshing(true);
-			authStore.refreshTokenSubject.next(null);
+			authStore.clearPendingRefreshToken();
 
 			return authStore.refreshToken().pipe(
 				switchMap((newTokens) => {
@@ -58,7 +58,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				}),
 				catchError((refreshError) => {
 					authStore.setTokenRefreshing(false);
-					authStore.refreshTokenSubject.next(null);
+					authStore.clearPendingRefreshToken();
 
 					// Refresh failed - logout user
 					authStore.logout();
