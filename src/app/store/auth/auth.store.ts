@@ -126,6 +126,20 @@ export const AuthStore = signalStore(
 			},
 
 			/**
+			 * Start token refresh - sets refreshing flag and clears pending token
+			 */
+			startTokenRefresh() {
+				patchState(store, { isTokenRefreshing: true, pendingRefreshToken: null });
+			},
+
+			/**
+			 * Complete token refresh - clears refreshing flag
+			 */
+			completeTokenRefresh() {
+				patchState(store, { isTokenRefreshing: false });
+			},
+
+			/**
 			 * Restore user from localStorage
 			 */
 			restoreFromStorage() {

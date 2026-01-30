@@ -41,12 +41,11 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			}
 
 			// Start a new refresh
-			authStore.setTokenRefreshing(true);
-			authStore.clearPendingRefreshToken();
+			authStore.startTokenRefresh();
 
 			return authStore.refreshToken().pipe(
 				switchMap((newTokens) => {
-					authStore.setTokenRefreshing(false);
+					authStore.completeTokenRefresh();
 
 					// Retry original request with new token
 					const retryReq = req.clone({
@@ -57,7 +56,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 					return next(retryReq);
 				}),
 				catchError((refreshError) => {
-					authStore.setTokenRefreshing(false);
+					authStore.completeTokenRefresh();
 					authStore.clearPendingRefreshToken();
 
 					// Refresh failed - logout user
