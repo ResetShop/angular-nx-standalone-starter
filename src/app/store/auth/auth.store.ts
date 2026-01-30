@@ -160,7 +160,7 @@ export const AuthStore = signalStore(
 				}
 				patchState(store, { isInitialized: true });
 
-				// Minimum loading screen duration
+				// Ensure loading screen visible for minimum duration (MIN_LOADING_SCREEN_DURATION = 1000ms)
 				setTimeout(() => {
 					patchState(store, { minLoadingTimeElapsed: true });
 				}, MIN_LOADING_SCREEN_DURATION);
