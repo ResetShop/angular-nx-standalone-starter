@@ -5,7 +5,7 @@ import { user, userRole } from '../../../db/schema/user';
 import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { RoleData } from '../role/interfaces';
+import type { RoleData } from '../access/role/interfaces';
 import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
 
 interface UserProjection {

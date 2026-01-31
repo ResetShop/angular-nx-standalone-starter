@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fn } from '../../container.mock';
-import type { RoleData } from '../role/interfaces';
+import type { RoleData } from '../access/role/interfaces';
 import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service';
 
