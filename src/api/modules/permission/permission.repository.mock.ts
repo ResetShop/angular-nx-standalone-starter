@@ -1,4 +1,4 @@
-import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
+import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import type { PaginatedResponse } from '../../interfaces';
 import type { PermissionData } from '../role/interfaces';
 import type { IPermissionRepository, ListPermissionsParams } from './interfaces';
@@ -21,8 +21,8 @@ export class MockPermissionRepository implements IPermissionRepository {
 	}
 
 	async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
-		const limit = params?.limit ?? PAGINATION_DEFAULTS.LIMIT;
-		const offset = params?.offset ?? PAGINATION_DEFAULTS.OFFSET;
+		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT;
+		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET;
 
 		let filtered = this.permissions;
 

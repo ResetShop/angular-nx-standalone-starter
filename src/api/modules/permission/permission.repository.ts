@@ -1,6 +1,6 @@
 import { type SQL, count, ilike, or } from 'drizzle-orm';
 import { permission } from '../../../db/schema/permission';
-import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
+import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import type { PaginatedResponse } from '../../interfaces';
 import type { PermissionData } from '../role/interfaces';
@@ -22,8 +22,8 @@ export class PermissionRepository extends BaseRepository implements IPermissionR
 	 * @returns Paginated response containing permissions and metadata
 	 */
 	async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
-		const limit = params?.limit ?? PAGINATION_DEFAULTS.LIMIT;
-		const offset = params?.offset ?? PAGINATION_DEFAULTS.OFFSET;
+		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT;
+		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET;
 		const searchCondition = this.buildSearchCondition(params?.search);
 
 		const [data, totalResult] = await Promise.all([
