@@ -1,4 +1,4 @@
-import { permission } from '../user/permission-types';
+import { permission } from '../../user/permission-types';
 
 /**
  * Admin module permissions for permission management.

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
+import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../../container.mock';
+import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
 import type { ListRolesParams, PaginatedResponse, PermissionData, RoleData } from './interfaces';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 import roleController from './role.controller';
@@ -79,14 +79,14 @@ describe('Role Controller', () => {
 			};
 			await next();
 		});
-		app.route('/roles', roleController);
+		app.route('/access/roles', roleController);
 	});
 
 	afterEach(() => {
 		resetTestCradle();
 	});
 
-	describe('GET /roles', () => {
+	describe('GET /access/roles', () => {
 		it('should return paginated roles', async () => {
 			const paginatedResponse: PaginatedResponse<RoleData> = {
 				data: [testRole],
@@ -96,7 +96,7 @@ describe('Role Controller', () => {
 			};
 			mockGetAllRoles.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/roles');
+			const res = await app.request('/access/roles');
 
 			expect(res.status).toBe(200);
 			const data = await res.json();
@@ -114,7 +114,7 @@ describe('Role Controller', () => {
 			};
 			mockGetAllRoles.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/roles?offset=5&limit=5');
+			const res = await app.request('/access/roles?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
 			expect(mockGetAllRoles.calls).toEqual([[{ offset: 5, limit: 5, search: undefined }]]);
@@ -129,7 +129,7 @@ describe('Role Controller', () => {
 			};
 			mockGetAllRoles.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/roles?search=admin');
+			const res = await app.request('/access/roles?search=admin');
 
 			expect(res.status).toBe(200);
 			expect(mockGetAllRoles.calls).toEqual([[{ offset: undefined, limit: undefined, search: 'admin' }]]);
@@ -144,36 +144,36 @@ describe('Role Controller', () => {
 			};
 			mockGetAllRoles.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/roles?search=admin&offset=2&limit=3');
+			const res = await app.request('/access/roles?search=admin&offset=2&limit=3');
 
 			expect(res.status).toBe(200);
 			expect(mockGetAllRoles.calls).toEqual([[{ offset: 2, limit: 3, search: 'admin' }]]);
 		});
 
 		it('should validate offset is non-negative', async () => {
-			const res = await app.request('/roles?offset=-1');
+			const res = await app.request('/access/roles?offset=-1');
 
 			expect(res.status).toBe(400);
 		});
 
 		it('should validate limit is positive', async () => {
-			const res = await app.request('/roles?limit=0');
+			const res = await app.request('/access/roles?limit=0');
 
 			expect(res.status).toBe(400);
 		});
 
 		it('should validate limit max value', async () => {
-			const res = await app.request('/roles?limit=501');
+			const res = await app.request('/access/roles?limit=501');
 
 			expect(res.status).toBe(400);
 		});
 	});
 
-	describe('GET /roles/:id', () => {
+	describe('GET /access/roles/:id', () => {
 		it('should return role when found', async () => {
 			mockGetRole.mockResolvedValue(testRole);
 
-			const res = await app.request('/roles/1');
+			const res = await app.request('/access/roles/1');
 
 			expect(res.status).toBe(200);
 			const data = await res.json();
@@ -183,7 +183,7 @@ describe('Role Controller', () => {
 		it('should return 404 when role not found', async () => {
 			mockGetRole.mockResolvedValue(null);
 
-			const res = await app.request('/roles/999');
+			const res = await app.request('/access/roles/999');
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
@@ -191,7 +191,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should return 400 for invalid ID', async () => {
-			const res = await app.request('/roles/invalid');
+			const res = await app.request('/access/roles/invalid');
 
 			expect(res.status).toBe(400);
 			const data = await res.json();
@@ -199,12 +199,12 @@ describe('Role Controller', () => {
 		});
 	});
 
-	describe('POST /roles', () => {
+	describe('POST /access/roles', () => {
 		it('should create a new role', async () => {
 			const newRole = { ...testRole, id: 2, code: 'editor', name: 'Editor' };
 			mockCreateRole.mockResolvedValue(newRole);
 
-			const res = await app.request('/roles', {
+			const res = await app.request('/access/roles', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -222,7 +222,7 @@ describe('Role Controller', () => {
 		it('should return 409 when code already exists', async () => {
 			mockCreateRole.mockRejectedValue(new Error(ROLE_ERRORS.CODE_EXISTS));
 
-			const res = await app.request('/roles', {
+			const res = await app.request('/access/roles', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -237,7 +237,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should validate required fields', async () => {
-			const res = await app.request('/roles', {
+			const res = await app.request('/access/roles', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -250,7 +250,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should validate code format', async () => {
-			const res = await app.request('/roles', {
+			const res = await app.request('/access/roles', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -265,7 +265,7 @@ describe('Role Controller', () => {
 		it('should allow code starting with letter and containing underscores', async () => {
 			mockCreateRole.mockResolvedValue({ ...testRole, code: 'my_role_123' });
 
-			const res = await app.request('/roles', {
+			const res = await app.request('/access/roles', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -278,12 +278,12 @@ describe('Role Controller', () => {
 		});
 	});
 
-	describe('PUT /roles/:id', () => {
+	describe('PUT /access/roles/:id', () => {
 		it('should update role description', async () => {
 			const updatedRole = { ...testRole, description: 'Updated description' };
 			mockUpdateRole.mockResolvedValue(updatedRole);
 
-			const res = await app.request('/roles/1', {
+			const res = await app.request('/access/roles/1', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -299,7 +299,7 @@ describe('Role Controller', () => {
 		it('should return 404 when role not found', async () => {
 			mockUpdateRole.mockRejectedValue(new Error(ROLE_ERRORS.NOT_FOUND));
 
-			const res = await app.request('/roles/999', {
+			const res = await app.request('/access/roles/999', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -313,7 +313,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should return 400 for invalid ID', async () => {
-			const res = await app.request('/roles/invalid', {
+			const res = await app.request('/access/roles/invalid', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -327,7 +327,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should validate description max length', async () => {
-			const res = await app.request('/roles/1', {
+			const res = await app.request('/access/roles/1', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -339,11 +339,11 @@ describe('Role Controller', () => {
 		});
 	});
 
-	describe('DELETE /roles/:id', () => {
+	describe('DELETE /access/roles/:id', () => {
 		it('should delete role successfully', async () => {
 			mockDeleteRole.mockResolvedValue(undefined);
 
-			const res = await app.request('/roles/2', {
+			const res = await app.request('/access/roles/2', {
 				method: 'DELETE',
 			});
 
@@ -355,7 +355,7 @@ describe('Role Controller', () => {
 		it('should return 404 when role not found', async () => {
 			mockDeleteRole.mockRejectedValue(new Error(ROLE_ERRORS.NOT_FOUND));
 
-			const res = await app.request('/roles/999', {
+			const res = await app.request('/access/roles/999', {
 				method: 'DELETE',
 			});
 
@@ -367,7 +367,7 @@ describe('Role Controller', () => {
 		it('should return 403 when role is not removable', async () => {
 			mockDeleteRole.mockRejectedValue(new Error(ROLE_ERRORS.NOT_REMOVABLE));
 
-			const res = await app.request('/roles/1', {
+			const res = await app.request('/access/roles/1', {
 				method: 'DELETE',
 			});
 
@@ -377,7 +377,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should return 400 for invalid ID', async () => {
-			const res = await app.request('/roles/invalid', {
+			const res = await app.request('/access/roles/invalid', {
 				method: 'DELETE',
 			});
 
@@ -387,7 +387,7 @@ describe('Role Controller', () => {
 		});
 	});
 
-	describe('GET /roles/:id/permissions', () => {
+	describe('GET /access/roles/:id/permissions', () => {
 		it('should return paginated permissions', async () => {
 			const paginatedResponse: PaginatedResponse<PermissionData> = {
 				data: testPermissions,
@@ -397,7 +397,7 @@ describe('Role Controller', () => {
 			};
 			mockGetRolePermissions.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/roles/1/permissions');
+			const res = await app.request('/access/roles/1/permissions');
 
 			expect(res.status).toBe(200);
 			const data = await res.json();
@@ -414,7 +414,7 @@ describe('Role Controller', () => {
 			};
 			mockGetRolePermissions.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/roles/1/permissions?offset=5&limit=5');
+			const res = await app.request('/access/roles/1/permissions?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
 			expect(mockGetRolePermissions.calls).toEqual([[1, { offset: 5, limit: 5 }]]);
@@ -423,7 +423,7 @@ describe('Role Controller', () => {
 		it('should return 404 when role not found', async () => {
 			mockGetRolePermissions.mockRejectedValue(new Error(ROLE_ERRORS.NOT_FOUND));
 
-			const res = await app.request('/roles/999/permissions');
+			const res = await app.request('/access/roles/999/permissions');
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
@@ -431,7 +431,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should return 400 for invalid ID', async () => {
-			const res = await app.request('/roles/invalid/permissions');
+			const res = await app.request('/access/roles/invalid/permissions');
 
 			expect(res.status).toBe(400);
 			const data = await res.json();
@@ -439,11 +439,11 @@ describe('Role Controller', () => {
 		});
 	});
 
-	describe('PUT /roles/:id/permissions', () => {
+	describe('PUT /access/roles/:id/permissions', () => {
 		it('should assign permissions to role', async () => {
 			mockAssignPermissionsToRole.mockResolvedValue(undefined);
 
-			const res = await app.request('/roles/1/permissions', {
+			const res = await app.request('/access/roles/1/permissions', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -460,7 +460,7 @@ describe('Role Controller', () => {
 		it('should return 404 when role not found', async () => {
 			mockAssignPermissionsToRole.mockRejectedValue(new Error(ROLE_ERRORS.NOT_FOUND));
 
-			const res = await app.request('/roles/999/permissions', {
+			const res = await app.request('/access/roles/999/permissions', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -474,7 +474,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should return 400 for invalid ID', async () => {
-			const res = await app.request('/roles/invalid/permissions', {
+			const res = await app.request('/access/roles/invalid/permissions', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -488,7 +488,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should validate permissionIds is an array of positive integers', async () => {
-			const res = await app.request('/roles/1/permissions', {
+			const res = await app.request('/access/roles/1/permissions', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -500,7 +500,7 @@ describe('Role Controller', () => {
 		});
 
 		it('should validate permissionIds is required', async () => {
-			const res = await app.request('/roles/1/permissions', {
+			const res = await app.request('/access/roles/1/permissions', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({}),
@@ -512,7 +512,7 @@ describe('Role Controller', () => {
 		it('should return 400 with invalid IDs when permission IDs do not exist', async () => {
 			mockAssignPermissionsToRole.mockRejectedValue(new InvalidPermissionIdsError([999, 1000]));
 
-			const res = await app.request('/roles/1/permissions', {
+			const res = await app.request('/access/roles/1/permissions', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

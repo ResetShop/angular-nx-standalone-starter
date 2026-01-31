@@ -4,17 +4,17 @@ import type { PermissionAssignmentError, PermissionData, RoleData } from '@contr
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { QUERY_DEFAULTS } from '../../constants/query.constants';
-import { container } from '../../container';
-import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import { requirePermission } from '../../middlewares/verify-permissions.middleware';
+import { QUERY_DEFAULTS } from '../../../constants/query.constants';
+import { container } from '../../../container';
+import { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
+import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 import { InvalidPermissionIdsError, ROLE_ERRORS, SelfLockoutError } from './role.service';
 
 const app = new Hono();
 
 /**
- * GET /api/roles
+ * GET /api/access/roles
  * Get all roles with pagination and optional search
  */
 app.get(
@@ -37,7 +37,7 @@ app.get(
 );
 
 /**
- * GET /api/roles/:id
+ * GET /api/access/roles/:id
  * Get a role by ID
  */
 app.get('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.READ), async (c) => {
@@ -58,7 +58,7 @@ app.get('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.READ), async (c) => {
 });
 
 /**
- * POST /api/roles
+ * POST /api/access/roles
  * Create a new role
  */
 app.post(
@@ -95,7 +95,7 @@ app.post(
 );
 
 /**
- * PUT /api/roles/:id
+ * PUT /api/access/roles/:id
  * Update a role
  */
 app.put(
@@ -136,7 +136,7 @@ app.put(
 );
 
 /**
- * DELETE /api/roles/:id
+ * DELETE /api/access/roles/:id
  * Delete a role
  */
 app.delete('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.DELETE), async (c) => {
@@ -164,7 +164,7 @@ app.delete('/:id', requirePermission(ADMIN_ROLE_PERMISSIONS.DELETE), async (c) =
 });
 
 /**
- * GET /api/roles/:id/permissions
+ * GET /api/access/roles/:id/permissions
  * Get all permissions assigned to a role with pagination
  */
 app.get(
@@ -200,7 +200,7 @@ app.get(
 );
 
 /**
- * PUT /api/roles/:id/permissions
+ * PUT /api/access/roles/:id/permissions
  * Replace all permissions for a role.
  * This is a full replacement operation - existing permissions are removed
  * and replaced with the provided list.

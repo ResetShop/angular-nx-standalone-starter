@@ -1,5 +1,5 @@
-import type { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { IUserRoleRepository } from '../user/interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
+import type { IUserRoleRepository } from '../../user/interfaces';
 import type {
 	CreateRoleParams,
 	IRoleRepository,

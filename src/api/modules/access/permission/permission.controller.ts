@@ -3,15 +3,15 @@ import type { PermissionData } from '@contracts/roles/roles.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { QUERY_DEFAULTS } from '../../constants/query.constants';
-import { container } from '../../container';
-import { requirePermission } from '../../middlewares/verify-permissions.middleware';
+import { QUERY_DEFAULTS } from '../../../constants/query.constants';
+import { container } from '../../../container';
+import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
 
 const app = new Hono();
 
 /**
- * GET /api/permissions
+ * GET /api/access/permissions
  * List all system permissions with pagination and optional search
  */
 app.get(
