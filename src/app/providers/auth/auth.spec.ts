@@ -74,7 +74,7 @@ describe('AuthApiService', () => {
 			expect(req.request.body).toEqual({});
 			expect(req.request.withCredentials).toBe(true);
 
-			req.flush(undefined);
+			req.flush(null);
 		});
 
 		it('should include credentials in request', () => {
@@ -82,7 +82,7 @@ describe('AuthApiService', () => {
 
 			const req = httpMock.expectOne('/api/auth/logout');
 			expect(req.request.withCredentials).toBe(true);
-			req.flush(undefined);
+			req.flush(null);
 		});
 	});
 

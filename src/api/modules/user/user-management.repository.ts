@@ -2,7 +2,7 @@ import { and, count, eq, ilike, inArray, or } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { role } from '../../../db/schema/role';
 import { user, userRole } from '../../../db/schema/user';
-import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
+import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { RoleData } from '../role/interfaces';
@@ -44,8 +44,8 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @returns Paginated response containing users with roles
 	 */
 	async findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
-		const limit = pagination?.limit ?? PAGINATION_DEFAULTS.LIMIT;
-		const offset = pagination?.offset ?? PAGINATION_DEFAULTS.OFFSET;
+		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
+		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
 
 		const baseCondition = eq(user.deleted, false);
 
