@@ -12,7 +12,7 @@ import { NgIcon } from '@ng-icons/core';
 			[routerLink]="item().route"
 			[routerLinkActiveOptions]="{ exact: false }"
 			routerLinkActive="active"
-			class="flex items-center gap-2 p-2 dark:text-gray-50"
+			class="[&.active]:bg-primary/10 [&.active]:text-primary [&.active]:dark:bg-primary/20 flex items-center gap-2 p-2 dark:text-gray-50 [&.active]:font-medium"
 		>
 			@if (iconName(); as iconName) {
 				<ng-icon [name]="iconName" data-testid="item-icon" />
@@ -24,10 +24,6 @@ import { NgIcon } from '@ng-icons/core';
 		@reference "tailwindcss";
 		:host {
 			@apply rounded-md text-sm hover:cursor-pointer hover:bg-black/5 dark:hover:bg-white/5;
-
-			& a.active {
-				@apply bg-primary/10 text-primary dark:bg-primary/20 font-medium;
-			}
 		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
