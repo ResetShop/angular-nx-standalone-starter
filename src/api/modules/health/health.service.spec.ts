@@ -41,9 +41,12 @@ describe('HealthService', () => {
 		it('should return unhealthy status with timeout error when database hangs', async () => {
 			vi.useFakeTimers();
 
-			mockExecute.mockImplementation(
-				() => new Promise(() => {}) as Promise<unknown>, // Never resolves
-			);
+			mockExecute.mockImplementation(() => {
+				// Return a promise that never resolves to simulate a hanging database
+				return new Promise<unknown>((resolve) => {
+					void resolve;
+				});
+			});
 
 			const healthPromise = healthService.checkHealth();
 
