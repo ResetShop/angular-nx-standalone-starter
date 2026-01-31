@@ -1,0 +1,93 @@
+meta {
+  name: Create Role
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/access/roles
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "Test Role",
+    "code": "test_role",
+    "description": "A test role for API documentation"
+  }
+}
+
+docs {
+  # Create Role
+
+  Creates a new role in the system.
+
+  ## Contract Types
+
+  - Request: `CreateRoleRequest` from `@contracts/roles/roles.types`
+  - Response: `RoleData` from `@contracts/roles/roles.types`
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | name | string | Yes | Display name (1-100 chars) |
+  | code | string | Yes | Unique code (1-50 chars, lowercase, underscores allowed) |
+  | description | string | No | Role description (max 500 chars) |
+
+  ## Code Format
+
+  - Must start with a letter
+  - Only lowercase letters, numbers, and underscores
+  - Example: `content_editor`, `admin`, `user_manager`
+
+  ## Response
+
+  Returns the created role object with status 201.
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Validation error | Invalid input format |
+  | 409 | A role with this code already exists | Code must be unique |
+}
+
+assert {
+  res.status: eq 201
+  res.body.id: isDefined
+  res.body.code: eq test_role
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.id) {
+    bru.setEnvVar("testRoleId", res.body.id);
+  }
+}
+
+tests {
+  test("should return 201 on successful creation", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("should return created role with ID", function() {
+    expect(res.body.id).to.be.a("number");
+  });
+
+  test("should return role with correct code", function() {
+    expect(res.body.code).to.equal("test_role");
+  });
+
+  test("should return role with correct name", function() {
+    expect(res.body.name).to.equal("Test Role");
+  });
+
+  test("should set removable to true by default", function() {
+    expect(res.body.removable).to.be.true;
+  });
+}

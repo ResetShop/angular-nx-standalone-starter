@@ -1,0 +1,43 @@
+meta {
+  name: Get All Roles - Search
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/access/roles?search=admin
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get All Roles - Search Test
+
+  Tests that the search parameter filters roles by name, code, or description (case-insensitive).
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isDefined
+  res.body.total: isDefined
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return filtered results", function() {
+    expect(res.body.data).to.be.an("array");
+    res.body.data.forEach(role => {
+      const matchesName = role.name.toLowerCase().includes("admin");
+      const matchesCode = role.code.toLowerCase().includes("admin");
+      const matchesDesc = role.description && role.description.toLowerCase().includes("admin");
+      expect(matchesName || matchesCode || matchesDesc).to.be.true;
+    });
+  });
+}

@@ -1,0 +1,42 @@
+meta {
+  name: Assign Permissions - Not Found
+  type: http
+  seq: 17
+}
+
+put {
+  url: {{baseUrl}}/access/roles/99999/permissions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "permissionIds": [1]
+  }
+}
+
+docs {
+  # Assign Permissions - Not Found Test
+
+  Tests that assigning permissions to a non-existent role returns 404.
+}
+
+assert {
+  res.status: eq 404
+  res.body.error: eq Role not found
+}
+
+tests {
+  test("should return 404 for non-existent role", function() {
+    expect(res.status).to.equal(404);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.equal("Role not found");
+  });
+}
