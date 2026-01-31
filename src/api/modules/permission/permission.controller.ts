@@ -3,7 +3,7 @@ import type { PermissionData } from '@contracts/roles/roles.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { PAGINATION_DEFAULTS } from '../../constants/pagination.constants';
+import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { container } from '../../container';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
@@ -20,9 +20,9 @@ app.get(
 	zValidator(
 		'query',
 		z.object({
-			offset: z.coerce.number().int().min(PAGINATION_DEFAULTS.OFFSET).optional(),
-			limit: z.coerce.number().int().min(PAGINATION_DEFAULTS.MIN_LIMIT).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
-			search: z.string().trim().min(1).max(100).optional(),
+			offset: z.coerce.number().int().min(QUERY_DEFAULTS.OFFSET).optional(),
+			limit: z.coerce.number().int().min(QUERY_DEFAULTS.MIN_LIMIT).max(QUERY_DEFAULTS.MAX_LIMIT).optional(),
+			search: z.string().trim().min(QUERY_DEFAULTS.SEARCH_MIN_LENGTH).max(QUERY_DEFAULTS.SEARCH_MAX_LENGTH).optional(),
 		}),
 	),
 	async (c) => {
