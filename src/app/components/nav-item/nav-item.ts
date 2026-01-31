@@ -1,14 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { NgIcon } from '@ng-icons/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
+import { NgIcon } from '@ng-icons/core';
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appNavItem]',
-	imports: [NgIcon, RouterLink],
+	imports: [NgIcon, RouterLink, RouterLinkActive],
 	template: `
-		<a [routerLink]="item().route" class="flex items-center gap-2 p-2 dark:text-gray-50">
+		<a
+			[routerLink]="item().route"
+			[routerLinkActiveOptions]="{ exact: false }"
+			routerLinkActive="active"
+			class="flex items-center gap-2 p-2 dark:text-gray-50"
+		>
 			@if (iconName(); as iconName) {
 				<ng-icon [name]="iconName" data-testid="item-icon" />
 			}
@@ -18,7 +23,11 @@ import { NavigationRoute } from '@interfaces/navigation';
 	styles: `
 		@reference "tailwindcss";
 		:host {
-			@apply rounded-md text-sm hover:cursor-pointer hover:bg-black/5;
+			@apply rounded-md text-sm hover:cursor-pointer hover:bg-black/5 dark:hover:bg-white/5;
+
+			& a.active {
+				@apply bg-primary/10 text-primary dark:bg-primary/20 font-medium;
+			}
 		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
