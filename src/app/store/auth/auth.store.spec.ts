@@ -1,0 +1,353 @@
+import { TestBed } from '@angular/core/testing';
+import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
+import { IPermission } from '@domain/access/permission.interface';
+import type { IUser } from '@domain/user/user.interface';
+import { AuthApiService } from '@providers/auth/auth';
+import { firstValueFrom, NEVER, of, throwError } from 'rxjs';
+import { AuthStore } from './auth.store';
+
+function createMockUser(overrides: Partial<IUser> = {}): IUser {
+	return {
+		id: 1,
+		email: 'test@example.com',
+		firstName: 'Test',
+		lastName: 'User',
+		fullName: 'Test User',
+		roles: [],
+		permissions: [],
+		token: 'mock-token',
+		hasPermission: () => false,
+		hasPermissionByIdentifier: () => false,
+		hasRole: () => false,
+		...overrides,
+	};
+}
+
+describe('AuthStore', () => {
+	let store: InstanceType<typeof AuthStore>;
+	let authApiMock: Record<'login' | 'logout' | 'refreshToken' | 'getMe', ReturnType<typeof vi.fn>>;
+
+	const mockLoginResponse: LoginResponse = {
+		user: {
+			id: 1,
+			email: 'test@example.com',
+			firstName: 'Test',
+			lastName: 'User',
+		},
+		token: 'mock-token',
+	};
+
+	const mockRefreshResponse: RefreshResponse = {
+		token: 'new-mock-token',
+	};
+
+	beforeEach(() => {
+		authApiMock = {
+			login: vi.fn(),
+			logout: vi.fn(),
+			refreshToken: vi.fn(),
+			getMe: vi.fn(),
+		};
+
+		TestBed.configureTestingModule({
+			providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
+		});
+
+		store = TestBed.inject(AuthStore);
+
+		localStorage.clear();
+	});
+
+	afterEach(() => {
+		vi.restoreAllMocks();
+		localStorage.clear();
+	});
+
+	describe('initial state', () => {
+		it('should have correct initial state', () => {
+			expect(store.currentUser()).toBeNull();
+			expect(store.isInitialized()).toBe(false);
+			expect(store.isGuardValidated()).toBe(false);
+			expect(store.isTokenRefreshing()).toBe(false);
+			expect(store.isLoggingIn()).toBe(false);
+			expect(store.isLoggingOut()).toBe(false);
+			expect(store.loginError()).toBeNull();
+			expect(store.minLoadingTimeElapsed()).toBe(false);
+			expect(store.pendingRefreshToken()).toBeNull();
+		});
+
+		it('should have correct computed signals', () => {
+			expect(store.isAuthenticated()).toBe(false);
+			expect(store.isLoadingComplete()).toBe(false);
+			expect(store.userPermissions()).toEqual([]);
+			expect(store.userRoles()).toEqual([]);
+		});
+	});
+
+	describe('login', () => {
+		it('should set isLoggingIn to true when login starts', () => {
+			authApiMock.login.mockReturnValue(NEVER);
+			store.login({ email: 'test@example.com', password: 'password' });
+
+			expect(store.isLoggingIn()).toBe(true);
+		});
+
+		it('should update state on successful login', () => {
+			authApiMock.login.mockReturnValue(of(mockLoginResponse));
+
+			store.login({ email: 'test@example.com', password: 'password' });
+
+			expect(store.currentUser()).toBeTruthy();
+			expect(store.currentUser()?.email).toBe('test@example.com');
+			expect(store.isLoggingIn()).toBe(false);
+			expect(store.loginError()).toBeNull();
+		});
+
+		it('should persist user to localStorage on successful login', () => {
+			authApiMock.login.mockReturnValue(of(mockLoginResponse));
+
+			store.login({ email: 'test@example.com', password: 'password' });
+
+			const stored = localStorage.getItem('auth_user');
+			expect(stored).toBeTruthy();
+			const parsed = JSON.parse(stored as string);
+			expect(parsed.email).toBe('test@example.com');
+		});
+
+		it('should set loginError on failed login', () => {
+			const errorResponse = { error: { code: 'INVALID_CREDENTIALS' } };
+			authApiMock.login.mockReturnValue(throwError(() => errorResponse));
+
+			store.login({ email: 'test@example.com', password: 'wrong' });
+
+			expect(store.isLoggingIn()).toBe(false);
+			expect(store.loginError()).toEqual({ code: 'INVALID_CREDENTIALS' });
+			expect(store.currentUser()).toBeNull();
+		});
+	});
+
+	describe('logout', () => {
+		beforeEach(() => {
+			store.updateCurrentUser(createMockUser());
+		});
+
+		it('should clear current user immediately', () => {
+			authApiMock.logout.mockReturnValue(of(undefined));
+
+			store.logout();
+
+			expect(store.currentUser()).toBeNull();
+		});
+
+		it('should set isLoggingOut to true', () => {
+			authApiMock.logout.mockReturnValue(NEVER);
+
+			store.logout();
+
+			expect(store.isLoggingOut()).toBe(true);
+		});
+
+		it('should clear localStorage', () => {
+			authApiMock.logout.mockReturnValue(of(undefined));
+			localStorage.setItem('auth_user', '{"email":"test"}');
+
+			store.logout();
+
+			expect(localStorage.getItem('auth_user')).toBeNull();
+		});
+
+		it('should set isLoggingOut to false on success', () => {
+			authApiMock.logout.mockReturnValue(of(undefined));
+
+			store.logout();
+
+			expect(store.isLoggingOut()).toBe(false);
+		});
+
+		it('should set isLoggingOut to false on error', () => {
+			authApiMock.logout.mockReturnValue(throwError(() => new Error('Network error')));
+
+			store.logout();
+
+			expect(store.isLoggingOut()).toBe(false);
+		});
+	});
+
+	describe('refreshToken', () => {
+		beforeEach(() => {
+			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
+		});
+
+		it('should update user token on successful refresh', () => {
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
+
+			store.refreshToken().subscribe();
+
+			expect(store.currentUser()?.token).toBe('new-mock-token');
+		});
+
+		it('should update pendingRefreshToken for interceptor coordination', () => {
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
+
+			store.refreshToken().subscribe();
+
+			expect(store.pendingRefreshToken()).toBe('new-mock-token');
+		});
+
+		it('should persist updated user to localStorage', () => {
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
+
+			store.refreshToken().subscribe();
+
+			const stored = localStorage.getItem('auth_user');
+			const parsed = JSON.parse(stored as string);
+			expect(parsed.token).toBe('new-mock-token');
+		});
+	});
+
+	describe('restoreFromStorage', () => {
+		it('should restore user from valid localStorage data', () => {
+			const validData = {
+				id: 1,
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+				roles: [],
+				token: 'stored-token',
+			};
+			localStorage.setItem('auth_user', JSON.stringify(validData));
+
+			store.restoreFromStorage();
+
+			expect(store.currentUser()).toBeTruthy();
+			expect(store.currentUser()?.email).toBe('test@example.com');
+			expect(store.isInitialized()).toBe(true);
+		});
+
+		it('should clear invalid localStorage data', () => {
+			localStorage.setItem('auth_user', 'invalid-json');
+
+			store.restoreFromStorage();
+
+			expect(store.currentUser()).toBeNull();
+			expect(localStorage.getItem('auth_user')).toBeNull();
+		});
+
+		it('should handle missing localStorage data', () => {
+			store.restoreFromStorage();
+
+			expect(store.currentUser()).toBeNull();
+			expect(store.isInitialized()).toBe(true);
+		});
+
+		it('should set minLoadingTimeElapsed after timeout', () => {
+			vi.useFakeTimers();
+
+			store.restoreFromStorage();
+
+			expect(store.minLoadingTimeElapsed()).toBe(false);
+
+			vi.advanceTimersByTime(1000);
+
+			expect(store.minLoadingTimeElapsed()).toBe(true);
+
+			vi.useRealTimers();
+		});
+	});
+
+	describe('computed signals', () => {
+		it('should compute isAuthenticated based on currentUser', () => {
+			expect(store.isAuthenticated()).toBe(false);
+
+			store.updateCurrentUser(createMockUser());
+
+			expect(store.isAuthenticated()).toBe(true);
+		});
+
+		it('should compute isLoadingComplete based on flags', () => {
+			vi.useFakeTimers();
+
+			expect(store.isLoadingComplete()).toBe(false);
+
+			store.restoreFromStorage();
+			expect(store.isLoadingComplete()).toBe(false);
+
+			store.setGuardValidated(true);
+			expect(store.isLoadingComplete()).toBe(false);
+
+			vi.advanceTimersByTime(1000);
+			expect(store.isLoadingComplete()).toBe(true);
+
+			vi.useRealTimers();
+		});
+
+		it('should compute userPermissions from currentUser', () => {
+			const mockPermission: IPermission = {
+				id: 1,
+				resource: 'users',
+				name: 'users:read',
+				description: 'Read users',
+				action: 'read',
+				identifier: 'users:read',
+				matches: () => true,
+			};
+
+			store.updateCurrentUser(createMockUser({ permissions: [mockPermission] }));
+
+			expect(store.userPermissions()).toEqual([mockPermission]);
+		});
+	});
+
+	describe('state management methods', () => {
+		it('should update guard validation status', () => {
+			expect(store.isGuardValidated()).toBe(false);
+
+			store.setGuardValidated(true);
+
+			expect(store.isGuardValidated()).toBe(true);
+		});
+
+		it('should update token refreshing status', () => {
+			expect(store.isTokenRefreshing()).toBe(false);
+
+			store.setTokenRefreshing(true);
+
+			expect(store.isTokenRefreshing()).toBe(true);
+		});
+
+		it('should clear pending refresh token', () => {
+			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
+
+			store.refreshToken().subscribe();
+			expect(store.pendingRefreshToken()).toBe('new-mock-token');
+
+			store.clearPendingRefreshToken();
+
+			expect(store.pendingRefreshToken()).toBeNull();
+		});
+
+		it('should atomically reset refresh state on failTokenRefresh', () => {
+			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
+			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
+
+			store.startTokenRefresh();
+			store.refreshToken().subscribe();
+			expect(store.pendingRefreshToken()).toBe('new-mock-token');
+			expect(store.isTokenRefreshing()).toBe(true);
+
+			store.failTokenRefresh();
+
+			expect(store.isTokenRefreshing()).toBe(false);
+			expect(store.pendingRefreshToken()).toBeNull();
+		});
+	});
+
+	describe('getPendingRefreshToken$', () => {
+		it('should return observable of pendingRefreshToken signal', async () => {
+			const token = await TestBed.runInInjectionContext(() => firstValueFrom(store.getPendingRefreshToken$()));
+
+			expect(token).toBeNull();
+		});
+	});
+});

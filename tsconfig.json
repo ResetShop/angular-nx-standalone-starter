@@ -14,7 +14,8 @@
 			"@interfaces/*": ["src/app/interfaces/*"],
 			"@mocks/*": ["src/app/mocks/*"],
 			"@pages/*": ["src/app/pages/*"],
-			"@providers/*": ["src/app/providers/*"]
+			"@providers/*": ["src/app/providers/*"],
+			"@store/*": ["src/app/store/*"]
 		},
 		"baseUrl": ".",
 		"isolatedModules": true,

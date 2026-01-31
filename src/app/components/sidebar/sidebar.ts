@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Brand } from '@components/brand/brand';
 import { Button } from '@components/button/button';
 import NavSection from '@components/nav-section/nav-section';
-import { Auth } from '@providers/auth/auth';
 import { Navigation } from '@providers/navigation/navigation';
+import { AuthStore } from '@store/auth/auth.store';
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -32,12 +32,25 @@ import { Navigation } from '@providers/navigation/navigation';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
-	auth = inject(Auth);
+	authStore = inject(AuthStore);
 	navigation = inject(Navigation);
 	router = inject(Router);
 	readonly sections = computed(() => this.navigation.sections());
 
+	constructor() {
+		// React to logout: navigate when user becomes null and logout is complete
+		effect(() => {
+			const user = this.authStore.currentUser();
+			const isLoggingOut = this.authStore.isLoggingOut();
+
+			// Only navigate after logout completes (user is null and no longer logging out)
+			if (!user && !isLoggingOut) {
+				this.router.navigate(['/auth/login']);
+			}
+		});
+	}
+
 	logout() {
-		this.auth.logout();
+		this.authStore.logout();
 	}
 }
