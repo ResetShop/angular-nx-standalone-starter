@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
-import type { PaginatedResponse } from '../../interfaces';
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
+import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../../container.mock';
+import type { PaginatedResponse } from '../../../interfaces';
+import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
 import type { PermissionData } from '../role/interfaces';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
 import type { ListPermissionsParams } from './interfaces';
@@ -52,14 +52,14 @@ describe('Permission Controller', () => {
 			};
 			await next();
 		});
-		app.route('/permissions', permissionController);
+		app.route('/access/permissions', permissionController);
 	});
 
 	afterEach(() => {
 		resetTestCradle();
 	});
 
-	describe('GET /permissions', () => {
+	describe('GET /access/permissions', () => {
 		it('should return paginated permissions', async () => {
 			const paginatedResponse: PaginatedResponse<PermissionData> = {
 				data: testPermissions,
@@ -69,7 +69,7 @@ describe('Permission Controller', () => {
 			};
 			mockList.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/permissions');
+			const res = await app.request('/access/permissions');
 
 			expect(res.status).toBe(200);
 			const data = await res.json();
@@ -87,7 +87,7 @@ describe('Permission Controller', () => {
 			};
 			mockList.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/permissions?offset=5&limit=5');
+			const res = await app.request('/access/permissions?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
 			expect(mockList.calls).toEqual([[{ offset: 5, limit: 5, search: undefined }]]);
@@ -102,7 +102,7 @@ describe('Permission Controller', () => {
 			};
 			mockList.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/permissions?search=users');
+			const res = await app.request('/access/permissions?search=users');
 
 			expect(res.status).toBe(200);
 			expect(mockList.calls).toEqual([[{ offset: undefined, limit: undefined, search: 'users' }]]);
@@ -117,26 +117,26 @@ describe('Permission Controller', () => {
 			};
 			mockList.mockResolvedValue(paginatedResponse);
 
-			const res = await app.request('/permissions?search=users&offset=0&limit=1');
+			const res = await app.request('/access/permissions?search=users&offset=0&limit=1');
 
 			expect(res.status).toBe(200);
 			expect(mockList.calls).toEqual([[{ offset: 0, limit: 1, search: 'users' }]]);
 		});
 
 		it('should validate offset is non-negative', async () => {
-			const res = await app.request('/permissions?offset=-1');
+			const res = await app.request('/access/permissions?offset=-1');
 
 			expect(res.status).toBe(400);
 		});
 
 		it('should validate limit is positive', async () => {
-			const res = await app.request('/permissions?limit=0');
+			const res = await app.request('/access/permissions?limit=0');
 
 			expect(res.status).toBe(400);
 		});
 
 		it('should validate limit max value', async () => {
-			const res = await app.request('/permissions?limit=501');
+			const res = await app.request('/access/permissions?limit=501');
 
 			expect(res.status).toBe(400);
 		});
@@ -145,7 +145,7 @@ describe('Permission Controller', () => {
 			// Override to return no permissions
 			mockGetUserPermissions.mockResolvedValue([]);
 
-			const res = await app.request('/permissions');
+			const res = await app.request('/access/permissions');
 
 			expect(res.status).toBe(403);
 		});

@@ -1,4 +1,4 @@
-import type { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
 
 // ============================================================================
 // Query Parameter Types

@@ -1,8 +1,8 @@
 import { type SQL, count, ilike, or } from 'drizzle-orm';
-import { permission } from '../../../db/schema/permission';
-import { QUERY_DEFAULTS } from '../../constants/query.constants';
-import { BaseRepository } from '../../helpers/base.repository';
-import type { PaginatedResponse } from '../../interfaces';
+import { permission } from '../../../../db/schema/permission';
+import { QUERY_DEFAULTS } from '../../../constants/query.constants';
+import { BaseRepository } from '../../../helpers/base.repository';
+import type { PaginatedResponse } from '../../../interfaces';
 import type { PermissionData } from '../role/interfaces';
 import type { IPermissionRepository, ListPermissionsParams } from './interfaces';
 

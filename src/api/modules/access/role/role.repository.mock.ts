@@ -1,5 +1,5 @@
-import { QUERY_DEFAULTS } from '../../constants/query.constants';
-import type { PaginatedResponse, PaginationParams } from '../../interfaces';
+import { QUERY_DEFAULTS } from '../../../constants/query.constants';
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
 import type {
 	CreateRoleParams,
 	IRoleRepository,

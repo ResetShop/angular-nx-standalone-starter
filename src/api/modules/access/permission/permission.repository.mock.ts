@@ -1,5 +1,5 @@
-import { QUERY_DEFAULTS } from '../../constants/query.constants';
-import type { PaginatedResponse } from '../../interfaces';
+import { QUERY_DEFAULTS } from '../../../constants/query.constants';
+import type { PaginatedResponse } from '../../../interfaces';
 import type { PermissionData } from '../role/interfaces';
 import type { IPermissionRepository, ListPermissionsParams } from './interfaces';
 

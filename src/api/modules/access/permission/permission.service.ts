@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from '../../interfaces';
+import type { PaginatedResponse } from '../../../interfaces';
 import type { PermissionData } from '../role/interfaces';
 import type { IPermissionRepository, IPermissionService, ListPermissionsParams } from './interfaces';
 
