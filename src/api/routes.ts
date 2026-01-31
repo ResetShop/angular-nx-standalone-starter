@@ -1,7 +1,6 @@
+import accessRoutes from './modules/access';
 import authController from './modules/auth/auth.controller';
 import healthController from './modules/health/health.controller';
-import permissionController from './modules/permission/permission.controller';
-import roleController from './modules/role/role.controller';
 import userRoutes from './modules/user';
 
 // Define public paths that don't require authentication
@@ -24,12 +23,8 @@ export default [
 		controller: authController,
 	},
 	{
-		path: '/permissions',
-		controller: permissionController,
-	},
-	{
-		path: '/roles',
-		controller: roleController,
+		path: '/access',
+		controller: accessRoutes,
 	},
 	{
 		path: '/user',

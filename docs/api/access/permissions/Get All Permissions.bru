@@ -1,0 +1,96 @@
+meta {
+  name: Get All Permissions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/access/permissions
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~offset: 0
+  ~limit: 10
+  ~search: read
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  # Get All Permissions
+
+  Returns a paginated list of all system permissions.
+
+  ## Contract Types
+
+  - Response: `PaginatedResponse<PermissionData>` from `@contracts/common/pagination.types` and `@contracts/roles/roles.types`
+
+  ## Query Parameters
+
+  | Parameter | Type | Required | Default | Description |
+  |-----------|------|----------|---------|-------------|
+  | offset | number | No | 0 | Number of items to skip |
+  | limit | number | No | 10 | Maximum items to return (1-500) |
+  | search | string | No | - | Case-insensitive search across name, description, resource, and action (1-100 chars, trimmed) |
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | data | array | Array of permission objects |
+  | total | number | Total number of permissions |
+  | offset | number | Current offset |
+  | limit | number | Current limit |
+
+  ## Permission Object
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | id | number | Permission ID |
+  | name | string | Permission name |
+  | description | string | Permission description |
+  | resource | string | Resource this permission applies to |
+  | action | string | Action this permission grants |
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isDefined
+  res.body.total: isDefined
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return data array", function() {
+    expect(res.body.data).to.be.an("array");
+  });
+
+  test("should return total count", function() {
+    expect(res.body.total).to.be.a("number");
+  });
+
+  test("should return offset", function() {
+    expect(res.body.offset).to.be.a("number");
+  });
+
+  test("should return limit", function() {
+    expect(res.body.limit).to.be.a("number");
+  });
+
+  test("permissions should have required fields", function() {
+    if (res.body.data.length > 0) {
+      const perm = res.body.data[0];
+      expect(perm.id).to.be.a("number");
+      expect(perm.name).to.be.a("string");
+      expect(perm.resource).to.be.a("string");
+      expect(perm.action).to.be.a("string");
+    }
+  });
+}

@@ -1,5 +1,5 @@
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { PermissionData, RoleData, RoleWithPermissions } from '../role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 
 // ============================================================================
 // User Data Types

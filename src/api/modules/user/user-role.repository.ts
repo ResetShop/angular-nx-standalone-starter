@@ -5,7 +5,7 @@ import { userRole } from '../../../db/schema/user';
 import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { PermissionData, RoleData, RoleWithPermissions } from '../role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRoleRepository } from './interfaces';
 
 /**
