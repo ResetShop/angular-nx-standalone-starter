@@ -1,0 +1,76 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fn } from '../../container.mock';
+import { HealthStatus } from './health.constants';
+import { HealthService } from './health.service';
+
+describe('HealthService', () => {
+	let healthService: HealthService;
+	const mockExecute = fn<[unknown], Promise<unknown>>();
+
+	beforeEach(() => {
+		healthService = new HealthService({ db: { execute: mockExecute } as never });
+	});
+
+	afterEach(() => {
+		mockExecute.mockClear();
+		vi.useRealTimers();
+	});
+
+	describe('checkHealth', () => {
+		it('should return healthy status when database responds', async () => {
+			mockExecute.mockResolvedValue([{ '?column?': 1 }]);
+
+			const result = await healthService.checkHealth();
+
+			expect(result.status).toBe(HealthStatus.HEALTHY);
+			expect(result.checks.database.status).toBe(HealthStatus.HEALTHY);
+			expect(result.checks.database.responseTimeMs).toBeGreaterThanOrEqual(0);
+			expect(new Date(result.timestamp).toString()).not.toBe('Invalid Date');
+		});
+
+		it('should return unhealthy status when database throws', async () => {
+			mockExecute.mockRejectedValue(new Error('Connection refused'));
+
+			const result = await healthService.checkHealth();
+
+			expect(result.status).toBe(HealthStatus.UNHEALTHY);
+			expect(result.checks.database.status).toBe(HealthStatus.UNHEALTHY);
+			expect(result.checks.database).toHaveProperty('error', 'Connection refused');
+		});
+
+		it('should return unhealthy status with timeout error when database hangs', async () => {
+			vi.useFakeTimers();
+
+			mockExecute.mockImplementation(
+				() => new Promise(() => {}) as Promise<unknown>, // Never resolves
+			);
+
+			const healthPromise = healthService.checkHealth();
+
+			await vi.advanceTimersByTimeAsync(5000);
+
+			const result = await healthPromise;
+
+			expect(result.status).toBe(HealthStatus.UNHEALTHY);
+			expect(result.checks.database.status).toBe(HealthStatus.UNHEALTHY);
+			expect(result.checks.database).toHaveProperty('error', 'Database health check timed out');
+		});
+
+		it('should include responseTimeMs in healthy result', async () => {
+			mockExecute.mockResolvedValue([{ '?column?': 1 }]);
+
+			const result = await healthService.checkHealth();
+
+			expect(typeof result.checks.database.responseTimeMs).toBe('number');
+			expect(result.checks.database.responseTimeMs).toBeGreaterThanOrEqual(0);
+		});
+
+		it('should include a valid ISO timestamp', async () => {
+			mockExecute.mockResolvedValue([{ '?column?': 1 }]);
+
+			const result = await healthService.checkHealth();
+
+			expect(result.timestamp).toBe(new Date(result.timestamp).toISOString());
+		});
+	});
+});
