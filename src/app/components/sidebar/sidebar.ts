@@ -4,12 +4,14 @@ import { Brand } from '@components/brand/brand';
 import { Button } from '@components/button/button';
 import NavSection from '@components/nav-section/nav-section';
 import { Navigation } from '@providers/navigation/navigation';
+import { NavigationStateService } from '@services/navigation-state.service';
 import { AuthStore } from '@store/auth/auth.store';
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appSidebar]',
 	imports: [Button, NavSection, Brand],
+	providers: [NavigationStateService],
 	template: `
 		<div class="p-2">
 			<app-brand />
