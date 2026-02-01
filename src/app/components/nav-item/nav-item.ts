@@ -20,16 +20,16 @@ import { NgIcon } from '@ng-icons/core';
 					[attr.aria-controls]="'nav-children-' + item().id"
 					class="flex w-full items-center gap-2 p-2 text-left dark:text-gray-50"
 				>
-					<ng-icon
-						[class.rotate-90]="isExpanded()"
-						name="featherChevronRight"
-						class="transition-transform duration-200"
-						aria-hidden="true"
-					/>
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
 					}
 					<span class="truncate">{{ item().name }}</span>
+					<ng-icon
+						[class.rotate-90]="isExpanded()"
+						name="featherChevronRight"
+						class="ml-auto transition-transform duration-200"
+						aria-hidden="true"
+					/>
 				</button>
 
 				<!-- Children container -->
