@@ -33,8 +33,8 @@ import { NavigationStateService } from '@services/navigation-state.service';
 			overflow: hidden;
 			opacity: 0;
 			transition:
-				max-height 200ms ease-out,
-				opacity 200ms ease-out;
+				max-height var(--transition-duration, 200ms) ease-out,
+				opacity var(--transition-duration, 200ms) ease-out;
 		}
 
 		.nav-children[data-expanded] {
@@ -83,6 +83,7 @@ import { NavigationStateService } from '@services/navigation-state.service';
 					[id]="'nav-children-' + item().id"
 					[attr.aria-hidden]="!isExpanded()"
 					[attr.data-expanded]="isExpanded() || null"
+					[style.--transition-duration.ms]="transitionDuration()"
 					class="nav-children"
 				>
 					@for (child of item().children; track child.id) {
@@ -104,6 +105,13 @@ import { NavigationStateService } from '@services/navigation-state.service';
 })
 export default class NavItem {
 	readonly item = input.required<NavigationRoute>();
+
+	/**
+	 * Transition duration in milliseconds for expand/collapse animations.
+	 * @default 200
+	 */
+	readonly transitionDuration = input<number>(200);
+
 	private readonly router = inject(Router);
 	private readonly navState = inject(NavigationStateService);
 
