@@ -90,7 +90,19 @@ const meta: Meta<Sidebar> = {
 	decorators: [
 		applicationConfig({
 			providers: [
-				provideRouter([{ path: '**', component: DummyComponent }]),
+				provideRouter([
+					{ path: 'dashboard', component: DummyComponent },
+					{ path: 'activity', component: DummyComponent },
+					{ path: 'users', component: DummyComponent },
+					{ path: 'users/list', component: DummyComponent },
+					{ path: 'users/create', component: DummyComponent },
+					{ path: 'users/roles', component: DummyComponent },
+					{ path: 'settings', component: DummyComponent },
+					{ path: 'settings/profile', component: DummyComponent },
+					{ path: 'settings/security', component: DummyComponent },
+					{ path: 'settings/notifications', component: DummyComponent },
+					{ path: '**', redirectTo: 'dashboard' },
+				]),
 				provideIcons({
 					featherHome,
 					featherActivity,
