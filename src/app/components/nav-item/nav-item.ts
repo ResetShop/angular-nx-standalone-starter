@@ -74,6 +74,7 @@ import { NavigationStateService } from '@services/navigation-state.service';
 						name="featherChevronRight"
 						class="ml-auto transition-transform duration-200"
 						aria-hidden="true"
+						data-testid="chevron-icon"
 					/>
 				</button>
 
