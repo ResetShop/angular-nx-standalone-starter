@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { isParentRoute, NavigationRoute } from '@interfaces/navigation';
+import { isParentRoute, type NavigationRoute } from '@interfaces/navigation';
 import { NgIcon } from '@ng-icons/core';
 import { NavigationState } from '@providers/navigation/navigation-state';
 
@@ -86,7 +86,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 					[style.--transition-duration.ms]="transitionDuration()"
 					class="nav-children"
 				>
-					@for (child of item().children; track child.id) {
+					@for (child of children(); track child.id) {
 						<li [item]="child" appNavItem class="pl-6"></li>
 					}
 				</ul>
@@ -120,6 +120,18 @@ export default class NavItem {
 	 * @returns True if the item has at least one child route
 	 */
 	readonly hasChildren = computed(() => isParentRoute(this.item()));
+
+	/**
+	 * Returns the children navigation routes for parent routes
+	 * @returns An array of NavigationRoute, which can be empty
+	 */
+	readonly children = computed((): NavigationRoute[] => {
+		const route = this.item();
+		if (isParentRoute(route)) {
+			return route.children;
+		}
+		return [];
+	});
 
 	/**
 	 * Checks if this navigation item is currently expanded.
