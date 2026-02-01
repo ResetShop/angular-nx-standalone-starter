@@ -136,7 +136,7 @@ export const mockMixedSection: NavigationSection = {
 // ============================================================================
 
 // For Sidebar stories - uses /dashboard instead of /home
-export const mockSidebarNavigationConfig: NavigationConfig = {
+export const mockSidebarNavigationConfig = {
 	sections: [
 		{
 			id: 'main',
@@ -145,15 +145,15 @@ export const mockSidebarNavigationConfig: NavigationConfig = {
 		},
 		mockManagementSection,
 	],
-};
+} as const satisfies NavigationConfig;
 
 // General purpose navigation config
-export const mockNavigationConfig: NavigationConfig = {
+export const mockNavigationConfig = {
 	sections: [mockMainSection, mockManagementSection],
-};
+} as const satisfies NavigationConfig;
 
 // Full navigation with all sections
-export const mockFullNavigationConfig: NavigationConfig = {
+export const mockFullNavigationConfig = {
 	sections: [
 		mockMainMenuSection,
 		mockManagementSection,
@@ -163,4 +163,4 @@ export const mockFullNavigationConfig: NavigationConfig = {
 			routes: [mockDocumentsRoute, mockHelpRoute],
 		},
 	],
-};
+} as const satisfies NavigationConfig;
