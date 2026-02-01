@@ -4,7 +4,6 @@ import { Brand } from '@components/brand/brand';
 import { Button } from '@components/button/button';
 import NavItem from '@components/nav-item/nav-item';
 import NavSection from '@components/nav-section/nav-section';
-import type { NavigationConfig } from '@interfaces/navigation';
 import { NAVIGATION_CONFIG } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
 import {
@@ -19,6 +18,7 @@ import { Navigation } from '@providers/navigation/navigation';
 import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
+import { mockSidebarNavigationConfig } from '@testing/mocks/navigation.mock';
 import { Sidebar } from './sidebar';
 
 @Component({
@@ -27,61 +27,6 @@ import { Sidebar } from './sidebar';
 	template: '<div>Dummy Component</div>',
 })
 class DummyComponent {}
-
-/**
- * Mock navigation configuration for Storybook stories.
- * Demonstrates the full Sidebar experience with various navigation patterns.
- */
-const mockNavigationConfig: NavigationConfig = {
-	sections: [
-		{
-			id: 'main',
-			name: 'Main Navigation',
-			routes: [
-				{
-					id: 'home',
-					name: 'Home',
-					route: '/dashboard',
-					icon: { featherHome },
-				},
-				{
-					id: 'activity',
-					name: 'Activity',
-					route: '/activity',
-					icon: { featherActivity },
-				},
-			],
-		},
-		{
-			id: 'management',
-			name: 'Management',
-			routes: [
-				{
-					id: 'users',
-					name: 'Users',
-					route: '/users',
-					icon: { featherUser },
-					children: [
-						{ id: 'users-list', name: 'All Users', route: '/users/list' },
-						{ id: 'users-create', name: 'Create User', route: '/users/create' },
-						{ id: 'users-roles', name: 'User Roles', route: '/users/roles' },
-					],
-				},
-				{
-					id: 'settings',
-					name: 'Settings',
-					route: '/settings',
-					icon: { featherSettings },
-					children: [
-						{ id: 'settings-profile', name: 'Profile', route: '/settings/profile' },
-						{ id: 'settings-security', name: 'Security', route: '/settings/security' },
-						{ id: 'settings-notifications', name: 'Notifications', route: '/settings/notifications' },
-					],
-				},
-			],
-		},
-	],
-};
 
 const meta: Meta<Sidebar> = {
 	component: Sidebar,
@@ -111,7 +56,7 @@ const meta: Meta<Sidebar> = {
 					featherUser,
 					featherChevronRight,
 				}),
-				{ provide: NAVIGATION_CONFIG, useValue: mockNavigationConfig },
+				{ provide: NAVIGATION_CONFIG, useValue: mockSidebarNavigationConfig },
 				Navigation,
 				NavigationState,
 			],
