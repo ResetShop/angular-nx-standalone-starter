@@ -15,6 +15,15 @@ import {
 import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
+import {
+	mockDocumentsRoute,
+	mockHelpRoute,
+	mockMainMenuSection,
+	mockMainSection,
+	mockMixedSection,
+	mockSettingsRouteSimple,
+	mockUsersRoute,
+} from '@testing/mocks/navigation.mock';
 import NavSection from './nav-section';
 
 @Component({
@@ -101,34 +110,12 @@ type Story = StoryObj<typeof NavSection>;
  */
 export const Default: Story = {
 	render: () => ({
+		props: { mockMainSection },
 		template: `
 			<div class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
 				<app-nav-section
 					[showTitle]="true"
-					[section]="{
-						id: 'main',
-						name: 'Main Navigation',
-						routes: [
-							{
-								id: 'home',
-								name: 'Home',
-								route: '/home',
-								icon: { featherHome }
-							},
-							{
-								id: 'activity',
-								name: 'Activity',
-								route: '/activity',
-								icon: { featherActivity }
-							},
-							{
-								id: 'settings',
-								name: 'Settings',
-								route: '/settings',
-								icon: { featherSettings }
-							}
-						]
-					}"
+					[section]="mockMainSection"
 				/>
 			</div>
 		`,
@@ -142,49 +129,10 @@ export const Default: Story = {
  */
 export const WithExpandableItems: Story = {
 	render: () => ({
+		props: { mockMixedSection },
 		template: `
 			<div class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
-				<app-nav-section
-					[section]="{
-						id: 'main',
-						name: 'Main Navigation',
-						routes: [
-							{
-								id: 'home',
-								name: 'Home',
-								route: '/home',
-								icon: { featherHome }
-							},
-							{
-								id: 'users',
-								name: 'Users',
-								route: '/users',
-								icon: { featherUser },
-								children: [
-									{ id: 'all-users', name: 'All Users', route: '/users/list' },
-									{ id: 'create-user', name: 'Create User', route: '/users/create' },
-									{ id: 'roles', name: 'User Roles', route: '/users/roles' }
-								]
-							},
-							{
-								id: 'settings',
-								name: 'Settings',
-								route: '/settings',
-								icon: { featherSettings },
-								children: [
-									{ id: 'profile', name: 'Profile', route: '/settings/profile' },
-									{ id: 'security', name: 'Security', route: '/settings/security' }
-								]
-							},
-							{
-								id: 'help',
-								name: 'Help',
-								route: '/help',
-								icon: { featherHelpCircle }
-							}
-						]
-					}"
-				/>
+				<app-nav-section [section]="mockMixedSection" />
 			</div>
 		`,
 	}),
@@ -197,93 +145,33 @@ export const WithExpandableItems: Story = {
  */
 export const MultipleSections: Story = {
 	render: () => ({
+		props: {
+			mockMainMenuSection,
+			mockUsersRoute,
+			mockDocumentsRoute,
+			mockSettingsRouteSimple,
+			mockHelpRoute,
+			managementSection: {
+				id: 'management',
+				name: 'Management',
+				routes: [mockUsersRoute, mockDocumentsRoute],
+			},
+			settingsSection: {
+				id: 'settings',
+				name: 'Settings & Support',
+				routes: [mockSettingsRouteSimple, mockHelpRoute],
+			},
+		},
 		template: `
 			<div class="w-64 rounded-lg border border-gray-200 p-2 flex flex-col gap-4 dark:border-gray-700 dark:bg-gray-800">
 				<!-- Main Menu -->
-				<app-nav-section
-					[section]="{
-						id: 'main',
-						name: 'Main Menu',
-						routes: [
-							{
-								id: 'home',
-								name: 'Home',
-								route: '/home',
-								icon: { featherHome }
-							},
-							{
-								id: 'activity',
-								name: 'Activity',
-								route: '/activity',
-								icon: { featherActivity }
-							},
-							{
-								id: 'messages',
-								name: 'Messages',
-								route: '/messages',
-								icon: { featherMail }
-							},
-							{
-								id: 'calendar',
-								name: 'Calendar',
-								route: '/calendar',
-								icon: { featherCalendar }
-							}
-						]
-					}"
-				/>
+				<app-nav-section [section]="mockMainMenuSection" />
 
 				<!-- Management Section -->
-				<app-nav-section
-					[section]="{
-						id: 'management',
-						name: 'Management',
-						routes: [
-							{
-								id: 'users',
-								name: 'Users',
-								route: '/users',
-								icon: { featherUser },
-								children: [
-									{ id: 'all-users', name: 'All Users', route: '/users/list' },
-									{ id: 'create-user', name: 'Create User', route: '/users/create' }
-								]
-							},
-							{
-								id: 'documents',
-								name: 'Documents',
-								route: '/documents',
-								icon: { featherFileText }
-							}
-						]
-					}"
-				/>
+				<app-nav-section [section]="managementSection" />
 
 				<!-- Settings & Help -->
-				<app-nav-section
-					[section]="{
-						id: 'settings',
-						name: 'Settings & Support',
-						routes: [
-							{
-								id: 'preferences',
-								name: 'Preferences',
-								route: '/preferences',
-								icon: { featherSettings },
-								children: [
-									{ id: 'profile', name: 'Profile', route: '/settings/profile' },
-									{ id: 'security', name: 'Security', route: '/settings/security' }
-								]
-							},
-							{
-								id: 'help',
-								name: 'Help Center',
-								route: '/help',
-								icon: { featherHelpCircle }
-							}
-						]
-					}"
-				/>
+				<app-nav-section [section]="settingsSection" />
 
 				<!-- Section without title -->
 				<app-nav-section

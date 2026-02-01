@@ -11,6 +11,13 @@ import {
 import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
+import {
+	mockActivityRoute,
+	mockHelpRoute,
+	mockHomeRoute,
+	mockSettingsRouteSimple,
+	mockUsersRoute,
+} from '@testing/mocks/navigation.mock';
 import NavItem from './nav-item';
 
 const meta: Meta<typeof NavItem> = {
@@ -105,14 +112,10 @@ type Story = StoryObj<typeof NavItem>;
  */
 export const Default: Story = {
 	render: () => ({
+		props: { mockHomeRoute },
 		template: `
 			<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
-				<li [item]="{
-					id: 'home',
-					name: 'Home',
-					route: '/home',
-					icon: { featherHome }
-				}" appNavItem></li>
+				<li [item]="mockHomeRoute" appNavItem></li>
 			</ul>
 		`,
 	}),
@@ -125,19 +128,10 @@ export const Default: Story = {
  */
 export const WithChildren: Story = {
 	render: () => ({
+		props: { mockUsersRoute },
 		template: `
 			<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
-				<li [item]="{
-					id: 'users',
-					name: 'Users',
-					route: '/users',
-					icon: { featherUser },
-					children: [
-						{ id: 'users-list', name: 'All Users', route: '/users/list' },
-						{ id: 'users-create', name: 'Create User', route: '/users/create' },
-						{ id: 'users-roles', name: 'User Roles', route: '/users/roles' }
-					]
-				}" appNavItem></li>
+				<li [item]="mockUsersRoute" appNavItem></li>
 			</ul>
 		`,
 	}),
@@ -155,40 +149,13 @@ export const WithChildren: Story = {
  */
 export const Playground: Story = {
 	render: () => ({
+		props: { mockHomeRoute, mockSettingsRouteSimple, mockActivityRoute, mockHelpRoute },
 		template: `
 			<ul class="w-64 rounded-lg border border-gray-200 p-2 space-y-1 dark:border-gray-700 dark:bg-gray-800">
-				<li [item]="{
-					id: 'home',
-					name: 'Home',
-					route: '/home',
-					icon: { featherHome }
-				}" appNavItem></li>
-
-				<li [item]="{
-					id: 'settings',
-					name: 'Settings',
-					route: '/settings',
-					icon: { featherSettings },
-					children: [
-						{ id: 'profile', name: 'Profile', route: '/settings/profile' },
-						{ id: 'security', name: 'Security', route: '/settings/security' },
-						{ id: 'notifications', name: 'Notifications', route: '/settings/notifications' }
-					]
-				}" appNavItem></li>
-
-				<li [item]="{
-					id: 'activity',
-					name: 'Activity',
-					route: '/activity',
-					icon: { featherActivity }
-				}" appNavItem></li>
-
-				<li [item]="{
-					id: 'help',
-					name: 'Help',
-					route: '/help',
-					icon: { featherHelpCircle }
-				}" appNavItem></li>
+				<li [item]="mockHomeRoute" appNavItem></li>
+				<li [item]="mockSettingsRouteSimple" appNavItem></li>
+				<li [item]="mockActivityRoute" appNavItem></li>
+				<li [item]="mockHelpRoute" appNavItem></li>
 			</ul>
 		`,
 	}),
