@@ -68,7 +68,7 @@ import { NavigationStateService } from '@services/navigation-state.service';
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
 					}
-					<span class="truncate">{{ item().name }}</span>
+					<span [title]="item().name" class="truncate">{{ item().name }}</span>
 					<ng-icon
 						[class.rotate-90]="isExpanded()"
 						name="featherChevronRight"
@@ -97,7 +97,7 @@ import { NavigationStateService } from '@services/navigation-state.service';
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
 				}
-				<span class="truncate">{{ item().name }}</span>
+				<span [title]="item().name" class="truncate">{{ item().name }}</span>
 			</a>
 		}
 	`,
