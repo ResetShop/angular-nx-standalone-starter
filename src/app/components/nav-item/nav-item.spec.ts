@@ -1,31 +1,34 @@
-import { render, screen } from '@testing-library/angular';
 import { provideRouter } from '@angular/router';
-import { provideIcons } from '@ng-icons/core';
-import { featherHome, featherActivity } from '@ng-icons/feather-icons';
-import NavItem from './nav-item';
 import { NavigationRoute } from '@interfaces/navigation';
+import { provideIcons } from '@ng-icons/core';
+import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons';
+import { NavigationState } from '@providers/navigation/navigation-state';
+import { render, screen } from '@testing-library/angular';
+import userEvent from '@testing-library/user-event';
+import NavItem from './nav-item';
 
 describe('NavItem', () => {
 	const mockRoute: NavigationRoute = {
 		id: 'test-route',
 		name: 'Test Route',
 		route: '/test',
-		icon: 'featherHome',
-		children: [],
+		icon: { featherHome },
 	};
 
 	const mockRouteWithoutIcon: NavigationRoute = {
 		id: 'no-icon-route',
 		name: 'No Icon Route',
 		route: '/no-icon',
-		icon: '',
-		children: [],
 	};
 
 	it('should create the nav item component', async () => {
 		const { fixture } = await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		expect(fixture.componentInstance).toBeTruthy();
@@ -34,7 +37,11 @@ describe('NavItem', () => {
 	it('should render the navigation item name', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		expect(screen.getByText('Test Route')).toBeInTheDocument();
@@ -43,7 +50,11 @@ describe('NavItem', () => {
 	it('should render as a link with correct routerLink', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		const link = screen.getByRole('link', { name: /test route/i });
@@ -54,7 +65,11 @@ describe('NavItem', () => {
 	it('should render icon when icon is provided', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		const icon = screen.getByTestId('item-icon');
@@ -64,7 +79,11 @@ describe('NavItem', () => {
 	it('should not render icon when icon is empty', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRouteWithoutIcon },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		const icon = screen.queryByTestId('item-icon');
@@ -76,13 +95,16 @@ describe('NavItem', () => {
 			id: 'custom',
 			name: 'Custom Page',
 			route: '/custom/path',
-			icon: 'featherActivity',
-			children: [],
+			icon: { featherActivity },
 		};
 
 		await render(NavItem, {
 			inputs: { item: customRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		const link = screen.getByRole('link', { name: /custom page/i });
@@ -94,7 +116,11 @@ describe('NavItem', () => {
 	it('should apply correct CSS classes to the link', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		const link = screen.getByRole('link');
@@ -109,20 +135,24 @@ describe('NavItem', () => {
 			id: 'parent',
 			name: 'Parent Route',
 			route: '/parent',
-			icon: 'featherHome',
+			icon: { featherHome },
 			children: [
 				{
 					id: 'child1',
 					name: 'Child 1',
 					route: '/parent/child1',
-					icon: 'featherActivity',
+					icon: { featherActivity },
 				},
 			],
 		};
 
 		await render(NavItem, {
 			inputs: { item: routeWithChildren },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		expect(screen.getByText('Parent Route')).toBeInTheDocument();
@@ -133,21 +163,23 @@ describe('NavItem', () => {
 			id: 'route1',
 			name: 'Route 1',
 			route: '/route1',
-			icon: 'featherHome',
-			children: [],
+			icon: { featherHome },
 		};
 
 		const route2: NavigationRoute = {
 			id: 'route2',
 			name: 'Route 2',
 			route: '/route2',
-			icon: 'featherActivity',
-			children: [],
+			icon: { featherActivity },
 		};
 
 		const { rerender } = await render(NavItem, {
 			inputs: { item: route1 },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		let icon = screen.getByTestId('item-icon');
@@ -162,9 +194,166 @@ describe('NavItem', () => {
 	it('should have OnPush change detection strategy', async () => {
 		const { fixture } = await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
 		});
 
 		expect(fixture.componentRef.changeDetectorRef).toBeDefined();
+	});
+});
+
+describe('NavItem - Expandable Behavior', () => {
+	const parentRoute: NavigationRoute = {
+		id: 'parent',
+		name: 'Parent Route',
+		route: '/parent',
+		icon: { featherHome },
+		children: [
+			{
+				id: 'child1',
+				name: 'Child 1',
+				route: '/parent/child1',
+			},
+			{
+				id: 'child2',
+				name: 'Child 2',
+				route: '/parent/child2',
+			},
+		],
+	};
+
+	it('should render expand button when item has children', async () => {
+		await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		});
+
+		const button = screen.getByRole('button', { name: /parent route/i });
+		expect(button).toBeInTheDocument();
+		expect(button).toHaveAttribute('aria-expanded', 'false');
+	});
+
+	it('should expand and show children when button is clicked', async () => {
+		const user = userEvent.setup();
+		await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		});
+
+		const button = screen.getByRole('button', { name: /parent route/i });
+		await user.click(button);
+
+		expect(button).toHaveAttribute('aria-expanded', 'true');
+		expect(screen.getByText('Child 1')).toBeInTheDocument();
+		expect(screen.getByText('Child 2')).toBeInTheDocument();
+	});
+
+	it('should collapse children when clicked again', async () => {
+		const user = userEvent.setup();
+		await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		});
+
+		const button = screen.getByRole('button');
+		await user.click(button); // Expand
+		await user.click(button); // Collapse
+
+		expect(button).toHaveAttribute('aria-expanded', 'false');
+	});
+
+	it('should support keyboard navigation with Enter key', async () => {
+		const user = userEvent.setup();
+		await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		});
+
+		const button = screen.getByRole('button');
+		button.focus();
+		await user.keyboard('{Enter}');
+
+		expect(button).toHaveAttribute('aria-expanded', 'true');
+	});
+
+	it('should support keyboard navigation with Space key', async () => {
+		const user = userEvent.setup();
+		await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		});
+
+		const button = screen.getByRole('button');
+		button.focus();
+		await user.keyboard(' ');
+
+		expect(button).toHaveAttribute('aria-expanded', 'true');
+	});
+
+	it('should have chevron icon that rotates when expanded', async () => {
+		const user = userEvent.setup();
+		await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		});
+
+		const button = screen.getByRole('button');
+		const chevron = screen.getByTestId('chevron-icon');
+
+		expect(chevron).not.toHaveClass('rotate-90');
+
+		await user.click(button);
+		expect(chevron).toHaveClass('rotate-90');
+	});
+
+	it('should render leaf items as links', async () => {
+		const leafRoute: NavigationRoute = {
+			id: 'leaf',
+			name: 'Leaf Route',
+			route: '/leaf',
+		};
+
+		await render(NavItem, {
+			inputs: { item: leafRoute },
+			providers: [provideRouter([]), NavigationState],
+		});
+
+		const link = screen.getByRole('link', { name: /leaf route/i });
+		expect(link).toBeInTheDocument();
+	});
+
+	it('should indent child navigation items', async () => {
+		const user = userEvent.setup();
+		await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		});
+
+		const button = screen.getByRole('button');
+		await user.click(button);
+
+		// Check that children container has proper structure
+		const childrenContainer = screen.getByRole('list', { hidden: true });
+		expect(childrenContainer).toHaveAttribute('id', 'nav-children-parent');
+	});
+
+	it('should treat empty children array as leaf node', async () => {
+		const emptyChildrenRoute: NavigationRoute = {
+			id: 'empty',
+			name: 'Empty Children',
+			route: '/empty',
+			children: [],
+		};
+
+		await render(NavItem, {
+			inputs: { item: emptyChildrenRoute },
+			providers: [provideRouter([]), NavigationState],
+		});
+
+		const link = screen.getByRole('link', { name: /empty children/i });
+		expect(link).toBeInTheDocument();
 	});
 });
