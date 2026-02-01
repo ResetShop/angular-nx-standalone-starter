@@ -1,5 +1,14 @@
 import { Component } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import {
+	mockDocumentsRoute,
+	mockHelpRoute,
+	mockMainMenuSection,
+	mockMainSection,
+	mockMixedSection,
+	mockSettingsRouteSimple,
+	mockUsersRoute,
+} from '@mocks/navigation.mock';
 import { provideIcons } from '@ng-icons/core';
 import {
 	featherActivity,
@@ -15,15 +24,6 @@ import {
 import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
-import {
-	mockDocumentsRoute,
-	mockHelpRoute,
-	mockMainMenuSection,
-	mockMainSection,
-	mockMixedSection,
-	mockSettingsRouteSimple,
-	mockUsersRoute,
-} from '@testing/mocks/navigation.mock';
 import NavSection from './nav-section';
 
 @Component({
