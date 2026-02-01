@@ -45,7 +45,8 @@
 			"WebSearch",
 			"mcp__nx-mcp__nx_workspace_path",
 			"Bash(source ~/.nvm/nvm.sh)",
-			"Bash(nvm use:*)"
+			"Bash(nvm use:*)",
+			"Bash(npx vitest:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,

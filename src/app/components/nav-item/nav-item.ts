@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input } f
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
 import { NgIcon } from '@ng-icons/core';
-import { NavigationStateService } from '@services/navigation-state.service';
+import { NavigationState } from '@providers/navigation/navigation-state';
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -113,7 +113,7 @@ export default class NavItem {
 	readonly transitionDuration = input<number>(200);
 
 	private readonly router = inject(Router);
-	private readonly navState = inject(NavigationStateService);
+	private readonly navState = inject(NavigationState);
 
 	/**
 	 * Determines if this navigation item has child routes.

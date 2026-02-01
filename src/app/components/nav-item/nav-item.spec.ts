@@ -2,7 +2,7 @@ import { provideRouter } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
 import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons';
-import { NavigationStateService } from '@services/navigation-state.service';
+import { NavigationState } from '@providers/navigation/navigation-state';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import NavItem from './nav-item';
@@ -27,7 +27,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -40,7 +40,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -53,7 +53,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -68,7 +68,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -82,7 +82,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -103,7 +103,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -119,7 +119,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -151,7 +151,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -178,7 +178,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -197,7 +197,7 @@ describe('NavItem', () => {
 			providers: [
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationStateService,
+				NavigationState,
 			],
 		});
 
@@ -228,7 +228,7 @@ describe('NavItem - Expandable Behavior', () => {
 	it('should render expand button when item has children', async () => {
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
 		});
 
 		const button = screen.getByRole('button', { name: /parent route/i });
@@ -240,7 +240,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
 		});
 
 		const button = screen.getByRole('button', { name: /parent route/i });
@@ -255,7 +255,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
 		});
 
 		const button = screen.getByRole('button');
@@ -269,7 +269,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
 		});
 
 		const button = screen.getByRole('button');
@@ -283,7 +283,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
 		});
 
 		const button = screen.getByRole('button');
@@ -297,7 +297,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
 		});
 
 		const button = screen.getByRole('button');
@@ -318,7 +318,7 @@ describe('NavItem - Expandable Behavior', () => {
 
 		await render(NavItem, {
 			inputs: { item: leafRoute },
-			providers: [provideRouter([]), NavigationStateService],
+			providers: [provideRouter([]), NavigationState],
 		});
 
 		const link = screen.getByRole('link', { name: /leaf route/i });
@@ -329,7 +329,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
 		});
 
 		const button = screen.getByRole('button');
@@ -350,7 +350,7 @@ describe('NavItem - Expandable Behavior', () => {
 
 		await render(NavItem, {
 			inputs: { item: emptyChildrenRoute },
-			providers: [provideRouter([]), NavigationStateService],
+			providers: [provideRouter([]), NavigationState],
 		});
 
 		const link = screen.getByRole('link', { name: /empty children/i });
