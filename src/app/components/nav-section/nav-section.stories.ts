@@ -12,6 +12,7 @@ import {
 	featherSettings,
 	featherUser,
 } from '@ng-icons/feather-icons';
+import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
 import NavSection from './nav-section';
@@ -42,6 +43,7 @@ const meta: Meta<typeof NavSection> = {
 					featherFileText,
 					featherChevronRight,
 				}),
+				NavigationState,
 			],
 		}),
 	],
@@ -75,9 +77,7 @@ import NavSection from '@components/nav-section';
 })
 \`\`\`
 
-## Interactive Demo
-
-Try the controls below to customize the navigation section. Toggle the title visibility and see how different sections look.
+**Note**: Toggle dark mode using Storybook's toolbar (top-right).
 				`,
 			},
 			canvas: {
@@ -93,11 +93,16 @@ type Story = StoryObj<typeof NavSection>;
 
 /**
  * Default navigation section with title and multiple routes.
+ *
+ * **Variations:**
+ * - Without title: Set `[showTitle]="false"`
+ * - Without icons: Omit `icon` property from routes
+ * - Dark mode: Toggle via Storybook toolbar (top-right)
  */
 export const Default: Story = {
 	render: () => ({
 		template: `
-			<div class="w-64 rounded-lg border border-gray-200 p-2">
+			<div class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
 				<app-nav-section
 					[showTitle]="true"
 					[section]="{
@@ -108,51 +113,19 @@ export const Default: Story = {
 								id: 'home',
 								name: 'Home',
 								route: '/home',
-								icon: { featherHome },
-								children: []
+								icon: { featherHome }
 							},
 							{
 								id: 'activity',
 								name: 'Activity',
 								route: '/activity',
-								icon: { featherActivity },
-								children: []
-							}
-						]
-					}"
-				/>
-			</div>
-		`,
-	}),
-};
-
-/**
- * Navigation section without title.
- * Useful when the section context is already clear.
- */
-export const WithoutTitle: Story = {
-	render: () => ({
-		template: `
-			<div class="w-64 rounded-lg border border-gray-200 p-2">
-				<app-nav-section
-					[showTitle]="false"
-					[section]="{
-						id: 'nav',
-						name: 'Navigation',
-						routes: [
-							{
-								id: 'home',
-								name: 'Home',
-								route: '/home',
-								icon: { featherHome },
-								children: []
+								icon: { featherActivity }
 							},
 							{
 								id: 'settings',
 								name: 'Settings',
 								route: '/settings',
-								icon: { featherSettings },
-								children: []
+								icon: { featherSettings }
 							}
 						]
 					}"
@@ -163,155 +136,14 @@ export const WithoutTitle: Story = {
 };
 
 /**
- * Multiple navigation sections stacked vertically.
- * Common pattern in sidebars.
- */
-export const MultipleSections: Story = {
-	render: () => ({
-		template: `
-			<div class="w-64 rounded-lg border border-gray-200 p-2 space-y-4 flex flex-col gap-2">
-				<app-nav-section
-					[section]="{
-						id: 'main',
-						name: 'Main Menu',
-						routes: [
-							{
-								id: 'home',
-								name: 'Home',
-								route: '/home',
-								icon: { featherHome },
-								children: []
-							},
-							{
-								id: 'activity',
-								name: 'Activity',
-								route: '/activity',
-								icon: { featherActivity },
-								children: []
-							}
-						]
-					}"
-				/>
-				<app-nav-section
-					[section]="{
-						id: 'settings',
-						name: 'Settings',
-						routes: [
-							{
-								id: 'profile',
-								name: 'Profile',
-								route: '/profile',
-								icon: { featherUser },
-								children: []
-							},
-							{
-								id: 'preferences',
-								name: 'Preferences',
-								route: '/preferences',
-								icon: { featherSettings },
-								children: []
-							}
-						]
-					}"
-				/>
-				<app-nav-section
-					[section]="{
-						id: 'help',
-						name: 'Help & Support',
-						routes: [
-							{
-								id: 'help',
-								name: 'Help Center',
-								route: '/help',
-								icon: { featherHelpCircle },
-								children: []
-							}
-						]
-					}"
-				/>
-			</div>
-		`,
-	}),
-};
-
-/**
- * Section with many routes to demonstrate scrolling behavior.
- */
-export const ManyRoutes: Story = {
-	render: () => ({
-		template: `
-			<div class="w-64 rounded-lg border border-gray-200 p-2">
-				<app-nav-section
-					[section]="{
-						id: 'full',
-						name: 'All Features',
-						routes: [
-							{ id: '1', name: 'Home', route: '/home', icon: { featherHome }, children: [] },
-							{ id: '2', name: 'Activity', route: '/activity', icon: { featherActivity }, children: [] },
-							{ id: '3', name: 'Settings', route: '/settings', icon: { featherSettings }, children: [] },
-							{ id: '4', name: 'Profile', route: '/profile', icon: { featherUser }, children: [] },
-							{ id: '5', name: 'Help', route: '/help', icon: { featherHelpCircle }, children: [] },
-							{ id: '6', name: 'Messages', route: '/messages', icon: { featherMail }, children: [] },
-							{ id: '7', name: 'Calendar', route: '/calendar', icon: { featherCalendar }, children: [] },
-							{ id: '8', name: 'Documents', route: '/documents', icon: { featherFileText }, children: [] }
-						]
-					}"
-				/>
-			</div>
-		`,
-	}),
-};
-
-/**
- * Section with routes that have no icons.
- */
-export const WithoutIcons: Story = {
-	render: () => ({
-		template: `
-			<div class="w-64 rounded-lg border border-gray-200 p-2">
-				<app-nav-section
-					[section]="{
-						id: 'simple',
-						name: 'Simple Menu',
-						routes: [
-							{ id: '1', name: 'Dashboard', route: '/dashboard', children: [] },
-							{ id: '2', name: 'Reports', route: '/reports', children: [] },
-							{ id: '3', name: 'Analytics', route: '/analytics', children: [] }
-						]
-					}"
-				/>
-			</div>
-		`,
-	}),
-};
-
-/**
- * Empty section with no routes.
- * Shows how the component handles edge cases.
- */
-export const EmptySection: Story = {
-	render: () => ({
-		template: `
-			<div class="w-64 rounded-lg border border-gray-200 p-2">
-				<app-nav-section
-					[section]="{
-						id: 'empty',
-						name: 'Empty Section',
-						routes: []
-					}"
-				/>
-			</div>
-		`,
-	}),
-};
-
-/**
- * Section with expandable navigation items.
+ * Navigation section with expandable parent items.
+ * Demonstrates hierarchical navigation with child routes.
+ * Click parent items to expand/collapse their children.
  */
 export const WithExpandableItems: Story = {
 	render: () => ({
 		template: `
-			<div class="w-64 rounded-lg border border-gray-200 p-2">
+			<div class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
 				<app-nav-section
 					[section]="{
 						id: 'main',
@@ -343,6 +175,12 @@ export const WithExpandableItems: Story = {
 									{ id: 'profile', name: 'Profile', route: '/settings/profile' },
 									{ id: 'security', name: 'Security', route: '/settings/security' }
 								]
+							},
+							{
+								id: 'help',
+								name: 'Help',
+								route: '/help',
+								icon: { featherHelpCircle }
 							}
 						]
 					}"
@@ -353,38 +191,113 @@ export const WithExpandableItems: Story = {
 };
 
 /**
- * Mix of expandable and simple items in dark mode.
+ * Multiple navigation sections stacked vertically.
+ * Demonstrates the typical sidebar pattern with grouped navigation.
+ * Includes sections with many routes and mixed expandable/leaf items.
  */
-export const DarkModeWithExpandable: Story = {
+export const MultipleSections: Story = {
 	render: () => ({
 		template: `
-			<div class="dark bg-gray-900 p-4">
-				<div class="w-64 rounded-lg border border-gray-700 p-2 bg-gray-800">
-					<app-nav-section
-						[section]="{
-							id: 'nav',
-							name: 'Navigation',
-							routes: [
-								{
-									id: 'home',
-									name: 'Home',
-									route: '/home',
-									icon: { featherHome }
-								},
-								{
-									id: 'settings',
-									name: 'Settings',
-									route: '/settings',
-									icon: { featherSettings },
-									children: [
-										{ id: 'profile', name: 'Profile', route: '/settings/profile' },
-										{ id: 'security', name: 'Security', route: '/settings/security' }
-									]
-								}
-							]
-						}"
-					/>
-				</div>
+			<div class="w-64 rounded-lg border border-gray-200 p-2 flex flex-col gap-4 dark:border-gray-700 dark:bg-gray-800">
+				<!-- Main Menu -->
+				<app-nav-section
+					[section]="{
+						id: 'main',
+						name: 'Main Menu',
+						routes: [
+							{
+								id: 'home',
+								name: 'Home',
+								route: '/home',
+								icon: { featherHome }
+							},
+							{
+								id: 'activity',
+								name: 'Activity',
+								route: '/activity',
+								icon: { featherActivity }
+							},
+							{
+								id: 'messages',
+								name: 'Messages',
+								route: '/messages',
+								icon: { featherMail }
+							},
+							{
+								id: 'calendar',
+								name: 'Calendar',
+								route: '/calendar',
+								icon: { featherCalendar }
+							}
+						]
+					}"
+				/>
+
+				<!-- Management Section -->
+				<app-nav-section
+					[section]="{
+						id: 'management',
+						name: 'Management',
+						routes: [
+							{
+								id: 'users',
+								name: 'Users',
+								route: '/users',
+								icon: { featherUser },
+								children: [
+									{ id: 'all-users', name: 'All Users', route: '/users/list' },
+									{ id: 'create-user', name: 'Create User', route: '/users/create' }
+								]
+							},
+							{
+								id: 'documents',
+								name: 'Documents',
+								route: '/documents',
+								icon: { featherFileText }
+							}
+						]
+					}"
+				/>
+
+				<!-- Settings & Help -->
+				<app-nav-section
+					[section]="{
+						id: 'settings',
+						name: 'Settings & Support',
+						routes: [
+							{
+								id: 'preferences',
+								name: 'Preferences',
+								route: '/preferences',
+								icon: { featherSettings },
+								children: [
+									{ id: 'profile', name: 'Profile', route: '/settings/profile' },
+									{ id: 'security', name: 'Security', route: '/settings/security' }
+								]
+							},
+							{
+								id: 'help',
+								name: 'Help Center',
+								route: '/help',
+								icon: { featherHelpCircle }
+							}
+						]
+					}"
+				/>
+
+				<!-- Section without title -->
+				<app-nav-section
+					[showTitle]="false"
+					[section]="{
+						id: 'quick-actions',
+						name: 'Quick Actions',
+						routes: [
+							{ id: 'action1', name: 'Dashboard', route: '/dashboard' },
+							{ id: 'action2', name: 'Reports', route: '/reports' },
+							{ id: 'action3', name: 'Analytics', route: '/analytics' }
+						]
+					}"
+				/>
 			</div>
 		`,
 	}),
