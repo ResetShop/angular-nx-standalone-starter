@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { NavigationRoute } from '@interfaces/navigation';
+import { isParentRoute, NavigationRoute } from '@interfaces/navigation';
 import { NgIcon } from '@ng-icons/core';
 import { NavigationState } from '@providers/navigation/navigation-state';
 
@@ -20,12 +20,12 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 		}
 
 		a.active {
-			@apply bg-primary/10 text-primary dark:bg-primary/20 font-medium;
+			@apply bg-blue-50 font-medium text-blue-600 dark:bg-blue-950 dark:text-blue-400;
 		}
 
 		a:hover,
 		a.active:hover {
-			@apply bg-primary/10 text-primary dark:bg-primary/20;
+			@apply bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400;
 		}
 
 		.nav-children {
@@ -119,7 +119,7 @@ export default class NavItem {
 	 * Determines if this navigation item has child routes.
 	 * @returns True if the item has at least one child route
 	 */
-	readonly hasChildren = computed(() => (this.item().children?.length ?? 0) > 0);
+	readonly hasChildren = computed(() => isParentRoute(this.item()));
 
 	/**
 	 * Checks if this navigation item is currently expanded.
@@ -142,7 +142,7 @@ export default class NavItem {
 		effect(
 			() => {
 				const item = this.item();
-				if (!item.children || item.children.length === 0) return;
+				if (!isParentRoute(item)) return;
 
 				const hasActiveChild = item.children.some((child) =>
 					this.router.isActive(child.route, {

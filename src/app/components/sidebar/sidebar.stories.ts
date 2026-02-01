@@ -1,10 +1,24 @@
 import { Component } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { Brand } from '@components/brand/brand';
+import { Button } from '@components/button/button';
+import NavItem from '@components/nav-item/nav-item';
+import NavSection from '@components/nav-section/nav-section';
+import type { NavigationConfig } from '@interfaces/navigation';
+import { NAVIGATION_CONFIG } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
-import { featherActivity, featherHome, featherRefreshCw } from '@ng-icons/feather-icons';
+import {
+	featherActivity,
+	featherChevronRight,
+	featherHome,
+	featherRefreshCw,
+	featherSettings,
+	featherUser,
+} from '@ng-icons/feather-icons';
 import { Navigation } from '@providers/navigation/navigation';
+import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
+import { applicationConfig, moduleMetadata } from '@storybook/angular';
 import { Sidebar } from './sidebar';
 
 @Component({
@@ -14,6 +28,61 @@ import { Sidebar } from './sidebar';
 })
 class DummyComponent {}
 
+/**
+ * Mock navigation configuration for Storybook stories.
+ * Demonstrates the full Sidebar experience with various navigation patterns.
+ */
+const mockNavigationConfig: NavigationConfig = {
+	sections: [
+		{
+			id: 'main',
+			name: 'Main Navigation',
+			routes: [
+				{
+					id: 'home',
+					name: 'Home',
+					route: '/dashboard',
+					icon: { featherHome },
+				},
+				{
+					id: 'activity',
+					name: 'Activity',
+					route: '/activity',
+					icon: { featherActivity },
+				},
+			],
+		},
+		{
+			id: 'management',
+			name: 'Management',
+			routes: [
+				{
+					id: 'users',
+					name: 'Users',
+					route: '/users',
+					icon: { featherUser },
+					children: [
+						{ id: 'users-list', name: 'All Users', route: '/users/list' },
+						{ id: 'users-create', name: 'Create User', route: '/users/create' },
+						{ id: 'users-roles', name: 'User Roles', route: '/users/roles' },
+					],
+				},
+				{
+					id: 'settings',
+					name: 'Settings',
+					route: '/settings',
+					icon: { featherSettings },
+					children: [
+						{ id: 'settings-profile', name: 'Profile', route: '/settings/profile' },
+						{ id: 'settings-security', name: 'Security', route: '/settings/security' },
+						{ id: 'settings-notifications', name: 'Notifications', route: '/settings/notifications' },
+					],
+				},
+			],
+		},
+	],
+};
+
 const meta: Meta<Sidebar> = {
 	component: Sidebar,
 	title: 'Navigation/Sidebar',
@@ -22,9 +91,21 @@ const meta: Meta<Sidebar> = {
 		applicationConfig({
 			providers: [
 				provideRouter([{ path: '**', component: DummyComponent }]),
-				provideIcons({ featherHome, featherActivity, featherRefreshCw }),
+				provideIcons({
+					featherHome,
+					featherActivity,
+					featherRefreshCw,
+					featherSettings,
+					featherUser,
+					featherChevronRight,
+				}),
+				{ provide: NAVIGATION_CONFIG, useValue: mockNavigationConfig },
 				Navigation,
+				NavigationState,
 			],
+		}),
+		moduleMetadata({
+			imports: [Sidebar, NavSection, NavItem, Brand, Button],
 		}),
 	],
 	parameters: {
@@ -43,12 +124,13 @@ A complete sidebar navigation component for application layouts.
 - **Sign Out Section**: Bottom section for authentication actions
 - **Responsive**: Adapts to different screen sizes
 - **OnPush Change Detection**: Optimized performance
+- **Expandable Navigation**: Supports hierarchical routes with expand/collapse
 
 ## Layout Structure
 
 The sidebar is divided into three main sections:
 1. **Header (64px)**: Branding and home link
-2. **Navigation (1fr)**: Scrollable navigation sections
+2. **Navigation (1fr)**: Scrollable navigation sections with expandable items
 3. **Footer (64px)**: User actions like sign out
 
 ## Usage
@@ -60,9 +142,7 @@ import { Sidebar } from '@components/sidebar';
   imports: [Sidebar],
   template: \`
     <div class="flex h-screen">
-    	<aside>
-    		<app-sidebar />
-    	</aside>
+    	<aside class="w-64" appSidebar></aside>
     	<main class="flex-1">
     	<!-- Your content here -->
     	</main>
@@ -88,7 +168,15 @@ export class MyComponent {
 }
 \`\`\`
 
-## Interactive Demo
+## Interactive Features
+
+- **Expandable Items**: Click parent items to expand/collapse child routes
+- **Auto-Expand**: Parent items automatically expand when child route is active
+- **Keyboard Support**: Full keyboard navigation (Enter/Space to toggle, Tab to navigate)
+- **ARIA Support**: Screen reader friendly with proper ARIA attributes
+- **Dark Mode**: Full dark mode support via CSS classes
+
+**Note**: Toggle dark mode using Storybook's toolbar (top-right).
 
 The sidebar below shows the full component in action with navigation sections from the Navigation service.
 				`,
@@ -106,19 +194,52 @@ export default meta;
 type Story = StoryObj<Sidebar>;
 
 /**
- * Default sidebar with all navigation sections from the Navigation service.
- * Shows the complete layout with header, navigation, and footer.
+ * Complete sidebar with all navigation features.
+ * The sidebar uses the Navigation service for dynamic navigation data.
+ *
+ * **Try these interactions:**
+ * - Click parent navigation items to expand/collapse children
+ * - Navigate to different routes
+ * - Use keyboard (Enter/Space to toggle, Tab to navigate)
+ * - Toggle dark mode via Storybook toolbar (top-right)
  */
 export const Default: Story = {
 	render: () => ({
 		template: `
-			<div class="flex h-screen bg-gray-50">
-				<div class="w-64 border-r border-gray-200 bg-white">
-					<app-sidebar />
+			<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+				<div class="w-64 border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+					<aside appSidebar></aside>
 				</div>
 				<main class="flex-1 p-8">
-					<h1 class="text-2xl font-bold text-gray-900 mb-4">Main Content Area</h1>
-					<p class="text-gray-600">This is where your page content would appear. The sidebar navigation is on the left.</p>
+					<h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+						Application Layout
+					</h1>
+					<div class="space-y-4 text-gray-600 dark:text-gray-400">
+						<p>This is your main content area. The sidebar navigation is on the left.</p>
+
+						<div class="space-y-2">
+							<p class="font-semibold">Try these interactions:</p>
+							<ul class="list-disc list-inside space-y-1 text-sm">
+								<li>Click parent navigation items to expand/collapse</li>
+								<li>Use Enter or Space to toggle expansion</li>
+								<li>Navigate between routes using Tab</li>
+								<li>Parent items auto-expand when child is active</li>
+								<li>Toggle dark mode via Storybook toolbar</li>
+							</ul>
+						</div>
+
+						<div class="mt-6 p-4 rounded-lg bg-gray-100 dark:bg-gray-800">
+							<h3 class="font-semibold mb-2">Features Demonstrated</h3>
+							<ul class="text-sm space-y-1">
+								<li>✅ Full-height layout with header/nav/footer</li>
+								<li>✅ Dynamic navigation from Navigation service</li>
+								<li>✅ Expandable/collapsible hierarchical routes</li>
+								<li>✅ Complete keyboard navigation</li>
+								<li>✅ ARIA attributes for accessibility</li>
+								<li>✅ Dark mode support</li>
+							</ul>
+						</div>
+					</div>
 				</main>
 			</div>
 		`,
@@ -126,116 +247,91 @@ export const Default: Story = {
 };
 
 /**
- * Sidebar in a narrow container to demonstrate responsive behavior.
+ * Realistic application layout showing sidebar in context.
+ * Demonstrates how the sidebar integrates into a complete application.
+ * Includes multiple sections with expandable navigation and realistic content.
  */
-export const Narrow: Story = {
+export const Playground: Story = {
 	render: () => ({
 		template: `
-			<div class="flex h-screen bg-gray-50">
-				<div class="w-56 border-r border-gray-200 bg-white">
-					<app-sidebar />
+			<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+				<!-- Sidebar -->
+				<div class="w-64 border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+					<aside appSidebar></aside>
 				</div>
-				<main class="flex-1 p-8">
-					<h1 class="text-2xl font-bold text-gray-900 mb-4">Narrow Sidebar</h1>
-					<p class="text-gray-600">Sidebar width reduced to 224px (w-56)</p>
-				</main>
-			</div>
-		`,
-	}),
-};
 
-/**
- * Sidebar in a dark theme layout.
- */
-export const DarkTheme: Story = {
-	render: () => ({
-		template: `
-			<div class="flex h-screen bg-gray-900">
-				<div class="w-64 border-r border-gray-700 bg-gray-800 dark">
-					<app-sidebar />
-				</div>
-				<main class="flex-1 p-8 bg-gray-900">
-					<h1 class="text-2xl font-bold text-gray-100 mb-4">Dark Theme Layout</h1>
-					<p class="text-gray-400">The sidebar adapts to dark mode when wrapped in a dark theme.</p>
-				</main>
-			</div>
-		`,
-	}),
-};
+				<!-- Main Content -->
+				<main class="flex-1 overflow-auto">
+					<div class="p-8">
+						<!-- Page Header -->
+						<div class="mb-8">
+							<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Dashboard</h1>
+							<p class="text-gray-600 dark:text-gray-400">Welcome to your application dashboard</p>
+						</div>
 
-/**
- * Sidebar only, without the main content area.
- * Useful for inspecting the component in isolation.
- */
-export const SidebarOnly: Story = {
-	render: () => ({
-		template: `
-			<div class="w-64 h-screen border border-gray-200 bg-white">
-				<app-sidebar />
-			</div>
-		`,
-	}),
-};
+						<!-- Content Grid -->
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+							<!-- Card 1 -->
+							<div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+								<h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Navigation Features</h3>
+								<p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+									The sidebar demonstrates expandable navigation with parent/child routes.
+								</p>
+								<ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+									<li>• Click to expand/collapse</li>
+									<li>• Auto-expand on active route</li>
+									<li>• Keyboard navigation support</li>
+								</ul>
+							</div>
 
-/**
- * Sidebar with custom width to show flexibility.
- */
-export const CustomWidth: Story = {
-	render: () => ({
-		template: `
-			<div class="flex h-screen bg-gray-50">
-				<div class="w-72 border-r border-gray-200 bg-white">
-					<app-sidebar />
-				</div>
-				<main class="flex-1 p-8">
-					<h1 class="text-2xl font-bold text-gray-900 mb-4">Wide Sidebar</h1>
-					<p class="text-gray-600">Sidebar width increased to 288px (w-72)</p>
-				</main>
-			</div>
-		`,
-	}),
-};
+							<!-- Card 2 -->
+							<div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+								<h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Responsive Design</h3>
+								<p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+									The layout adapts to different screen sizes and supports dark mode.
+								</p>
+								<ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+									<li>• Fixed width sidebar (256px)</li>
+									<li>• Flexible main content area</li>
+									<li>• Dark mode ready</li>
+								</ul>
+							</div>
 
-/**
- * Mobile-like view showing how the sidebar appears in a smaller viewport.
- */
-export const MobileView: Story = {
-	render: () => ({
-		template: `
-			<div class="w-full max-w-md mx-auto h-screen bg-gray-50">
-				<app-sidebar />
-			</div>
-		`,
-	}),
-	parameters: {
-		viewport: {
-			defaultViewport: 'mobile1',
-		},
-	},
-};
+							<!-- Card 3 -->
+							<div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+								<h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Accessibility</h3>
+								<p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+									Full ARIA support and keyboard navigation for screen readers.
+								</p>
+								<ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+									<li>• ARIA labels and roles</li>
+									<li>• Keyboard shortcuts</li>
+									<li>• Screen reader friendly</li>
+								</ul>
+							</div>
+						</div>
 
-/**
- * Sidebar with expandable navigation sections.
- * The Navigation service provides the section data including nested routes.
- */
-export const WithExpandableNavigation: Story = {
-	render: () => ({
-		template: `
-			<div class="flex h-screen bg-gray-50">
-				<div class="w-64 border-r border-gray-200 bg-white">
-					<app-sidebar />
-				</div>
-				<main class="flex-1 p-8">
-					<h1 class="text-2xl font-bold text-gray-900 mb-4">Expandable Navigation</h1>
-					<p class="text-gray-600 mb-4">
-						Click on parent navigation items to expand/collapse child routes.
-					</p>
-					<ul class="text-sm text-gray-600 space-y-2">
-						<li>• Parent items show a chevron icon</li>
-						<li>• Click or press Enter/Space to toggle expansion</li>
-						<li>• Child routes are indented for visual hierarchy</li>
-						<li>• Parent auto-expands when child route is active</li>
-					</ul>
+						<!-- Additional Content Section -->
+						<div class="mt-8 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+							<h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Integration Example</h2>
+							<p class="text-gray-600 dark:text-gray-400 mb-4">
+								This is a complete example showing how the sidebar integrates into a real application layout.
+								The Navigation service provides dynamic navigation data, making it easy to update menu items
+								throughout your application.
+							</p>
+							<div class="bg-gray-50 dark:bg-gray-900 rounded p-4 border border-gray-200 dark:border-gray-700">
+								<code class="text-sm text-gray-800 dark:text-gray-200">
+									<pre class="whitespace-pre-wrap">
+&lt;div class="flex h-screen"&gt;
+  &lt;aside class="w-64" appSidebar&gt;&lt;/aside&gt;
+  &lt;main class="flex-1"&gt;
+    &lt;!-- Your content --&gt;
+  &lt;/main&gt;
+&lt;/div&gt;</pre>
+								</code>
+							</div>
+						</div>
+					</div>
 				</main>
 			</div>
 		`,

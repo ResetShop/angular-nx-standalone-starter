@@ -8,6 +8,7 @@ import {
 	featherSettings,
 	featherUser,
 } from '@ng-icons/feather-icons';
+import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
 import NavItem from './nav-item';
@@ -28,6 +29,7 @@ const meta: Meta<typeof NavItem> = {
 					featherHelpCircle,
 					featherChevronRight,
 				}),
+				NavigationState,
 			],
 		}),
 	],
@@ -48,7 +50,7 @@ Supports hierarchical navigation with expandable/collapsible child routes.
 - **Keyboard Navigation**: Full keyboard support (Enter/Space to toggle)
 - **Accessibility**: ARIA attributes for screen readers
 - **Active State**: Highlights active route with primary color
-- **Dark Mode**: Full dark mode support
+- **Dark Mode**: Full dark mode support (toggle in Storybook toolbar)
 
 ## Usage
 
@@ -58,17 +60,27 @@ import NavItem from '@components/nav-item';
 // Simple nav item
 <li [item]="{ id: '1', name: 'Home', route: '/home' }" appNavItem></li>
 
-// Nav item with children
+// Nav item with icon
 <li [item]="{
   id: '2',
   name: 'Settings',
   route: '/settings',
+  icon: { featherSettings }
+}" appNavItem></li>
+
+// Nav item with children
+<li [item]="{
+  id: '3',
+  name: 'Users',
+  route: '/users',
   children: [
-    { id: '2a', name: 'Profile', route: '/settings/profile' },
-    { id: '2b', name: 'Security', route: '/settings/security' }
+    { id: '3a', name: 'All Users', route: '/users/list' },
+    { id: '3b', name: 'Create User', route: '/users/create' }
   ]
 }" appNavItem></li>
 \`\`\`
+
+**Note**: Toggle dark mode using Storybook's toolbar (top-right).
 				`,
 			},
 			canvas: {
@@ -83,19 +95,23 @@ export default meta;
 type Story = StoryObj<typeof NavItem>;
 
 /**
- * Default navigation item with icon and text.
+ * Default navigation item with icon.
  * Most common use case for navigation menus.
+ *
+ * **Variations:**
+ * - Without icon: Simply omit the `icon` property
+ * - Different icons: Use any icon from `@ng-icons/feather-icons`
+ * - Dark mode: Toggle via Storybook toolbar (top-right)
  */
 export const Default: Story = {
 	render: () => ({
 		template: `
-			<ul class="w-64 rounded-lg border border-gray-200 p-2">
+			<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
 				<li [item]="{
 					id: 'home',
 					name: 'Home',
 					route: '/home',
-					icon: { featherHome },
-					children: []
+					icon: { featherHome }
 				}" appNavItem></li>
 			</ul>
 		`,
@@ -103,118 +119,14 @@ export const Default: Story = {
 };
 
 /**
- * Navigation item without an icon.
- * Use when icons are not needed or unavailable.
- */
-export const WithoutIcon: Story = {
-	render: () => ({
-		template: `
-			<ul class="w-64 rounded-lg border border-gray-200 p-2">
-				<li [item]="{
-					id: 'settings',
-					name: 'Settings',
-					route: '/settings',
-					children: []
-				}" appNavItem></li>
-			</ul>
-		`,
-	}),
-};
-
-/**
- * Multiple navigation items showing a typical menu structure.
- */
-export const MultipleItems: Story = {
-	render: () => ({
-		template: `
-			<ul class="w-64 rounded-lg border border-gray-200 p-2 space-y-1">
-				<li [item]="{
-					id: 'home',
-					name: 'Home',
-					route: '/home',
-					icon: { featherHome },
-					children: []
-				}" appNavItem></li>
-				<li [item]="{
-					id: 'activity',
-					name: 'Activity',
-					route: '/activity',
-					icon: { featherActivity },
-					children: []
-				}" appNavItem></li>
-				<li [item]="{
-					id: 'settings',
-					name: 'Settings',
-					route: '/settings',
-					icon: { featherSettings },
-					children: []
-				}" appNavItem></li>
-				<li [item]="{
-					id: 'profile',
-					name: 'Profile',
-					route: '/profile',
-					icon: { featherUser },
-					children: []
-				}" appNavItem></li>
-			</ul>
-		`,
-	}),
-};
-
-/**
- * Navigation items with different icon types.
- */
-export const DifferentIcons: Story = {
-	render: () => ({
-		template: `
-			<div class="flex gap-4">
-				<ul class="w-64 rounded-lg border border-gray-200 p-2 space-y-1">
-					<li [item]="{
-						id: 'home',
-						name: 'Home',
-						route: '/home',
-						icon: { featherHome },
-						children: []
-					}" appNavItem></li>
-					<li [item]="{
-						id: 'help',
-						name: 'Help',
-						route: '/help',
-						icon: { featherHelpCircle },
-						children: []
-					}" appNavItem></li>
-				</ul>
-			</div>
-		`,
-	}),
-};
-
-/**
- * Long text navigation item to demonstrate text wrapping behavior.
- */
-export const LongText: Story = {
-	render: () => ({
-		template: `
-			<ul class="w-64 rounded-lg border border-gray-200 p-2">
-				<li [item]="{
-					id: 'long',
-					name: 'This is a very long navigation item name that should be truncated',
-					route: '/long-route',
-					icon: { featherSettings }
-				}" appNavItem></li>
-			</ul>
-		`,
-	}),
-};
-
-/**
- * Parent item with expandable children.
- * Click the parent to expand/collapse the child routes.
+ * Parent navigation item with expandable children.
+ * Click the parent to expand/collapse child routes.
+ * Demonstrates auto-expand when child route is active.
  */
 export const WithChildren: Story = {
 	render: () => ({
 		template: `
-			<ul class="w-64 rounded-lg border border-gray-200 p-2">
+			<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
 				<li [item]="{
 					id: 'users',
 					name: 'Users',
@@ -232,12 +144,19 @@ export const WithChildren: Story = {
 };
 
 /**
- * Multiple items with mix of parents and leaf nodes.
+ * Realistic navigation menu showing multiple items.
+ * Demonstrates a typical sidebar navigation pattern with mix of parent and leaf items.
+ *
+ * **Features shown:**
+ * - Mix of items with and without icons
+ * - Expandable parent items
+ * - Leaf items (no children)
+ * - Proper spacing between items
  */
-export const MixedNavigation: Story = {
+export const Playground: Story = {
 	render: () => ({
 		template: `
-			<ul class="w-64 rounded-lg border border-gray-200 p-2 space-y-1">
+			<ul class="w-64 rounded-lg border border-gray-200 p-2 space-y-1 dark:border-gray-700 dark:bg-gray-800">
 				<li [item]="{
 					id: 'home',
 					name: 'Home',
@@ -258,6 +177,13 @@ export const MixedNavigation: Story = {
 				}" appNavItem></li>
 
 				<li [item]="{
+					id: 'activity',
+					name: 'Activity',
+					route: '/activity',
+					icon: { featherActivity }
+				}" appNavItem></li>
+
+				<li [item]="{
 					id: 'help',
 					name: 'Help',
 					route: '/help',
@@ -269,63 +195,67 @@ export const MixedNavigation: Story = {
 };
 
 /**
- * Dark mode variant showing all navigation states.
+ * Edge cases and special scenarios.
+ * - **Long text**: Truncation with tooltip on hover
+ * - **Deep nesting**: 3 levels (not recommended - max 2-3 levels)
+ * - **Without icon**: Text-only navigation items
  */
-export const DarkMode: Story = {
+export const EdgeCases: Story = {
 	render: () => ({
 		template: `
-			<div class="dark bg-gray-900 p-4">
-				<ul class="w-64 rounded-lg border border-gray-700 p-2 space-y-1 bg-gray-800">
-					<li [item]="{
-						id: 'home',
-						name: 'Home',
-						route: '/home',
-						icon: { featherHome }
-					}" appNavItem></li>
+			<div class="space-y-8">
+				<!-- Long text truncation -->
+				<div>
+					<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Long Text Truncation</h3>
+					<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
+						<li [item]="{
+							id: 'long',
+							name: 'This is a very long navigation item name that should be truncated with ellipsis',
+							route: '/long-route',
+							icon: { featherSettings }
+						}" appNavItem></li>
+					</ul>
+					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Hover to see full text in tooltip</p>
+				</div>
 
-					<li [item]="{
-						id: 'settings',
-						name: 'Settings',
-						route: '/settings',
-						icon: { featherSettings },
-						children: [
-							{ id: 'profile', name: 'Profile', route: '/settings/profile' },
-							{ id: 'security', name: 'Security', route: '/settings/security' }
-						]
-					}" appNavItem></li>
-				</ul>
-			</div>
-		`,
-	}),
-};
+				<!-- Without icon -->
+				<div>
+					<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Without Icon</h3>
+					<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
+						<li [item]="{
+							id: 'no-icon',
+							name: 'Text Only',
+							route: '/text-only'
+						}" appNavItem></li>
+					</ul>
+				</div>
 
-/**
- * Deeply nested navigation (3 levels).
- * Note: Recommend keeping nesting to 2-3 levels max.
- */
-export const DeepNesting: Story = {
-	render: () => ({
-		template: `
-			<ul class="w-64 rounded-lg border border-gray-200 p-2">
-				<li [item]="{
-					id: 'dashboard',
-					name: 'Dashboard',
-					route: '/dashboard',
-					icon: { featherHome },
-					children: [
-						{
-							id: 'analytics',
-							name: 'Analytics',
-							route: '/dashboard/analytics',
+				<!-- Deep nesting (3 levels) -->
+				<div>
+					<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Deep Nesting</h3>
+					<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
+						<li [item]="{
+							id: 'dashboard',
+							name: 'Dashboard',
+							route: '/dashboard',
+							icon: { featherHome },
 							children: [
-								{ id: 'reports', name: 'Reports', route: '/dashboard/analytics/reports' },
-								{ id: 'charts', name: 'Charts', route: '/dashboard/analytics/charts' }
+								{
+									id: 'analytics',
+									name: 'Analytics',
+									route: '/dashboard/analytics',
+									children: [
+										{ id: 'reports', name: 'Reports', route: '/dashboard/analytics/reports' },
+										{ id: 'charts', name: 'Charts', route: '/dashboard/analytics/charts' }
+									]
+								},
+								{ id: 'overview', name: 'Overview', route: '/dashboard/overview' }
 							]
-						},
-						{ id: 'overview', name: 'Overview', route: '/dashboard/overview' }
-					]
-				}" appNavItem></li>
-			</ul>
+						}" appNavItem></li>
+					</ul>
+					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">⚠️ Recommend max 2-3 levels of nesting</p>
+				</div>
+			</div>
 		`,
 	}),
 };
