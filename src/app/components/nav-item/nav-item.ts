@@ -7,7 +7,42 @@ import { NgIcon } from '@ng-icons/core';
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink, RouterLinkActive],
-	styleUrl: './nav-item.css',
+	styles: `
+		@reference "tailwindcss";
+
+		:host {
+			@apply text-sm hover:cursor-pointer;
+		}
+
+		a {
+			@apply rounded-lg;
+		}
+
+		.nav-children {
+			max-height: 0;
+			overflow: hidden;
+			opacity: 0;
+			transition:
+				max-height 200ms ease-out,
+				opacity 200ms ease-out;
+		}
+
+		.nav-children[data-expanded] {
+			max-height: 100vh;
+			opacity: 1;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.nav-children,
+			.rotate-90 {
+				transition-duration: 0.01ms;
+			}
+		}
+
+		button {
+			@apply rounded-md hover:bg-black/5 dark:hover:bg-white/5;
+		}
+	`,
 	template: `
 		@if (hasChildren()) {
 			<!-- Parent item with expand button -->
@@ -50,7 +85,7 @@ import { NgIcon } from '@ng-icons/core';
 				[routerLink]="item().route"
 				[routerLinkActiveOptions]="{ exact: false }"
 				routerLinkActive="active"
-				class="[&.active]:bg-primary/10 [&.active]:text-primary [&.active]:dark:bg-primary/20 flex items-center gap-2 p-2 dark:text-gray-50 [&.active]:font-medium"
+				class="[&.active]:bg-primary/10 [&.active]:text-primary [&.active]:dark:bg-primary/20 [&:hover]:bg-primary/10 [&:hover]:text-primary [&:hover]:dark:bg-primary/20 flex items-center gap-2 p-2 dark:text-gray-50 [&.active]:font-medium [&.active:hover]:font-medium"
 			>
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
