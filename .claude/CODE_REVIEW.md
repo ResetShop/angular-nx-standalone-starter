@@ -17,7 +17,7 @@ Excellent consolidation work reducing Storybook stories from 27 to 9 (67% reduct
 | #     | Severity     | File                   | Line | Issue                                                         | Fix                                                        | Status             |
 | ----- | ------------ | ---------------------- | ---- | ------------------------------------------------------------- | ---------------------------------------------------------- | ------------------ |
 | **1** | **Critical** | nav-item.ts            | 89   | Template accesses `.children` without type narrowing          | Use type guard in template or cast with `$any()`           | ✅ Fixed (3c90ee8) |
-| **2** | Warning      | nav-section.stories.ts | N/A  | Mock navigation data duplicated across multiple story files   | Extract to shared mock file `@testing/mocks/navigation.ts` | ❌ Open            |
+| **2** | Warning      | nav-section.stories.ts | N/A  | Mock navigation data duplicated across multiple story files   | Extract to shared mock file `@testing/mocks/navigation.ts` | ✅ Fixed (96f5365) |
 | **3** | Warning      | sidebar.stories.ts     | 93   | Incorrect router provider - should use real route config      | Remove dummy catch-all route or clarify intent             | ✅ Fixed (a4f8b6d) |
 | **4** | Warning      | nav-item.ts            | 3    | Missing `type` keyword for NavigationRoute import             | Change to `import type { ... }`                            | ✅ Fixed (3c90ee8) |
 | **5** | Suggest      | nav-item.stories.ts    | N/A  | Story descriptions could be more concise                      | Reduce verbosity in component description                  | ❌ Open            |
@@ -358,10 +358,9 @@ providers: [
 1. **~~Fix Issue #1~~** - ✅ Added typed `children` computed property with explicit return type (commit 3c90ee8)
 2. **~~Fix Issue #4~~** - ✅ Added `type` keyword to NavigationRoute import (commit 3c90ee8)
 3. **~~Fix Issue #3~~** - ✅ Added realistic router config matching mock navigation data (commit a4f8b6d)
+4. **~~Fix Issue #2~~** - ✅ Extracted mock data to `src/testing/mocks/navigation.mock.ts` (commit 96f5365)
 
-### Before Merge (Recommended)
-
-4. **Fix Issue #2** - Extract mock data to shared file (30 minutes)
+### Before Merge (Optional)
 
 ### After Merge (Optional)
 
@@ -389,11 +388,10 @@ This is **excellent consolidation work** that significantly improves the Storybo
 ### Areas for Improvement
 
 - ✅ ~~1 critical type safety issue in template~~ (FIXED)
-- ✅ ~~2 warnings for router config and type imports~~ (FIXED)
-- ⚠️ 1 warning remaining (mock data duplication)
-- 💡 4 suggestions for enhanced documentation
+- ✅ ~~3 warnings for router config, type imports, and mock data~~ (FIXED)
+- 💡 4 suggestions remaining for enhanced documentation
 
-**Estimated effort to address remaining warning:** 30 minutes
+**All critical issues and warnings resolved!**
 
 ---
 
