@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
 import { NgIcon } from '@ng-icons/core';
+import { NavigationStateService } from '@services/navigation-state.service';
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -99,13 +100,11 @@ import { NgIcon } from '@ng-icons/core';
 export default class NavItem {
 	readonly item = input.required<NavigationRoute>();
 	private readonly router = inject(Router);
-
-	// Expansion state - using Set for O(1) lookups
-	private readonly expandedItems = signal<Set<string>>(new Set());
+	private readonly navState = inject(NavigationStateService);
 
 	readonly hasChildren = computed(() => (this.item().children?.length ?? 0) > 0);
 
-	readonly isExpanded = computed(() => this.expandedItems().has(this.item().id));
+	readonly isExpanded = computed(() => this.navState.isExpanded(this.item().id));
 
 	readonly iconName = computed(() => {
 		const icon = this.item().icon;
@@ -122,24 +121,12 @@ export default class NavItem {
 			const hasActiveChild = item.children.some((child) => currentUrl.includes(child.route));
 
 			if (hasActiveChild && !this.isExpanded()) {
-				this.expandedItems.update((items) => {
-					const newSet = new Set(items);
-					newSet.add(item.id);
-					return newSet;
-				});
+				this.navState.expand(item.id);
 			}
 		});
 	}
 
 	toggleExpanded(): void {
-		this.expandedItems.update((items) => {
-			const newSet = new Set(items);
-			if (newSet.has(this.item().id)) {
-				newSet.delete(this.item().id);
-			} else {
-				newSet.add(this.item().id);
-			}
-			return newSet;
-		});
+		this.navState.toggle(this.item().id);
 	}
 }

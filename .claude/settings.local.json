@@ -43,7 +43,9 @@
 			"WebFetch(domain:angularprimitives.com)",
 			"WebFetch(domain:ui.shadcn.com)",
 			"WebSearch",
-			"mcp__nx-mcp__nx_workspace_path"
+			"mcp__nx-mcp__nx_workspace_path",
+			"Bash(source ~/.nvm/nvm.sh)",
+			"Bash(nvm use:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,

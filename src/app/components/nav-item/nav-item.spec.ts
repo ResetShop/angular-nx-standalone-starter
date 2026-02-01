@@ -2,6 +2,7 @@ import { provideRouter } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
 import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons';
+import { NavigationStateService } from '@services/navigation-state.service';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import NavItem from './nav-item';
@@ -23,7 +24,11 @@ describe('NavItem', () => {
 	it('should create the nav item component', async () => {
 		const { fixture } = await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		expect(fixture.componentInstance).toBeTruthy();
@@ -32,7 +37,11 @@ describe('NavItem', () => {
 	it('should render the navigation item name', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		expect(screen.getByText('Test Route')).toBeInTheDocument();
@@ -41,7 +50,11 @@ describe('NavItem', () => {
 	it('should render as a link with correct routerLink', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		const link = screen.getByRole('link', { name: /test route/i });
@@ -52,7 +65,11 @@ describe('NavItem', () => {
 	it('should render icon when icon is provided', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		const icon = screen.getByTestId('item-icon');
@@ -62,7 +79,11 @@ describe('NavItem', () => {
 	it('should not render icon when icon is empty', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRouteWithoutIcon },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		const icon = screen.queryByTestId('item-icon');
@@ -79,7 +100,11 @@ describe('NavItem', () => {
 
 		await render(NavItem, {
 			inputs: { item: customRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		const link = screen.getByRole('link', { name: /custom page/i });
@@ -91,7 +116,11 @@ describe('NavItem', () => {
 	it('should apply correct CSS classes to the link', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		const link = screen.getByRole('link');
@@ -119,7 +148,11 @@ describe('NavItem', () => {
 
 		await render(NavItem, {
 			inputs: { item: routeWithChildren },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		expect(screen.getByText('Parent Route')).toBeInTheDocument();
@@ -142,7 +175,11 @@ describe('NavItem', () => {
 
 		const { rerender } = await render(NavItem, {
 			inputs: { item: route1 },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		let icon = screen.getByTestId('item-icon');
@@ -157,7 +194,11 @@ describe('NavItem', () => {
 	it('should have OnPush change detection strategy', async () => {
 		const { fixture } = await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherActivity, featherChevronRight })],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationStateService,
+			],
 		});
 
 		expect(fixture.componentRef.changeDetectorRef).toBeDefined();
@@ -187,7 +228,7 @@ describe('NavItem - Expandable Behavior', () => {
 	it('should render expand button when item has children', async () => {
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
 		});
 
 		const button = screen.getByRole('button', { name: /parent route/i });
@@ -199,7 +240,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
 		});
 
 		const button = screen.getByRole('button', { name: /parent route/i });
@@ -214,7 +255,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
 		});
 
 		const button = screen.getByRole('button');
@@ -228,7 +269,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
 		});
 
 		const button = screen.getByRole('button');
@@ -242,7 +283,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
 		});
 
 		const button = screen.getByRole('button');
@@ -256,7 +297,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
 		});
 
 		const button = screen.getByRole('button');
@@ -277,7 +318,7 @@ describe('NavItem - Expandable Behavior', () => {
 
 		await render(NavItem, {
 			inputs: { item: leafRoute },
-			providers: [provideRouter([])],
+			providers: [provideRouter([]), NavigationStateService],
 		});
 
 		const link = screen.getByRole('link', { name: /leaf route/i });
@@ -288,7 +329,7 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup();
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight })],
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationStateService],
 		});
 
 		const button = screen.getByRole('button');
@@ -309,7 +350,7 @@ describe('NavItem - Expandable Behavior', () => {
 
 		await render(NavItem, {
 			inputs: { item: emptyChildrenRoute },
-			providers: [provideRouter([])],
+			providers: [provideRouter([]), NavigationStateService],
 		});
 
 		const link = screen.getByRole('link', { name: /empty children/i });
