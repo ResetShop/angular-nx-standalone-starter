@@ -15,19 +15,37 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 				<h2 class="mb-4 text-lg font-semibold">Opciones de configuración</h2>
 				<div class="space-y-4">
 					<div class="flex items-center">
-						<input type="checkbox" id="analytics" class="text-primary h-4 w-4 rounded border-gray-300" />
+						<input
+							type="checkbox"
+							id="analytics"
+							name="analytics"
+							aria-label="Habilitar Analytics"
+							class="text-primary h-4 w-4 rounded border-gray-300"
+						/>
 						<label for="analytics" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
 							Habilitar Analytics
 						</label>
 					</div>
 					<div class="flex items-center">
-						<input type="checkbox" id="darkmode" class="text-primary h-4 w-4 rounded border-gray-300" />
+						<input
+							type="checkbox"
+							id="darkmode"
+							name="darkMode"
+							aria-label="Modo oscuro por defecto"
+							class="text-primary h-4 w-4 rounded border-gray-300"
+						/>
 						<label for="darkmode" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
 							Modo oscuro por defecto
 						</label>
 					</div>
 					<div class="flex items-center">
-						<input type="checkbox" id="notifications" class="text-primary h-4 w-4 rounded border-gray-300" />
+						<input
+							type="checkbox"
+							id="notifications"
+							name="notifications"
+							aria-label="Habilitar notificaciones"
+							class="text-primary h-4 w-4 rounded border-gray-300"
+						/>
 						<label for="notifications" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
 							Habilitar notificaciones
 						</label>
