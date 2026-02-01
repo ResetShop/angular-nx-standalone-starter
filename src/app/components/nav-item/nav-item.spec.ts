@@ -301,7 +301,7 @@ describe('NavItem - Expandable Behavior', () => {
 		});
 
 		const button = screen.getByRole('button');
-		const chevron = button.querySelector('ng-icon[name="featherChevronRight"]');
+		const chevron = screen.getByTestId('chevron-icon');
 
 		expect(chevron).not.toHaveClass('rotate-90');
 
