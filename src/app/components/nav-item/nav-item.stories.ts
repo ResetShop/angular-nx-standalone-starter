@@ -44,50 +44,9 @@ const meta: Meta<typeof NavItem> = {
 		docs: {
 			description: {
 				component: `
-A navigation item component that displays a clickable link with optional icon and label.
-Supports hierarchical navigation with expandable/collapsible child routes.
+Navigation item with RouterLink integration, optional icons, and expandable children.
 
-## Features
-
-- **RouterLink Integration**: Uses Angular Router for navigation
-- **Optional Icon**: Displays an icon from ng-icons if provided
-- **Hierarchical Navigation**: Supports nested child routes
-- **Expandable/Collapsible**: Parent items can be expanded to show children
-- **Auto-Expand**: Automatically expands when child route is active
-- **Keyboard Navigation**: Full keyboard support (Enter/Space to toggle)
-- **Accessibility**: ARIA attributes for screen readers
-- **Active State**: Highlights active route with primary color
-- **Dark Mode**: Full dark mode support (toggle in Storybook toolbar)
-
-## Usage
-
-\`\`\`typescript
-import NavItem from '@components/nav-item';
-
-// Simple nav item
-<li [item]="{ id: '1', name: 'Home', route: '/home' }" appNavItem></li>
-
-// Nav item with icon
-<li [item]="{
-  id: '2',
-  name: 'Settings',
-  route: '/settings',
-  icon: { featherSettings }
-}" appNavItem></li>
-
-// Nav item with children
-<li [item]="{
-  id: '3',
-  name: 'Users',
-  route: '/users',
-  children: [
-    { id: '3a', name: 'All Users', route: '/users/list' },
-    { id: '3b', name: 'Create User', route: '/users/create' }
-  ]
-}" appNavItem></li>
-\`\`\`
-
-**Note**: Toggle dark mode using Storybook's toolbar (top-right).
+Supports keyboard navigation (Enter/Space), ARIA attributes, auto-expand on active routes, and dark mode.
 				`,
 			},
 			canvas: {
@@ -221,6 +180,50 @@ export const EdgeCases: Story = {
 						}" appNavItem></li>
 					</ul>
 					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">⚠️ Recommend max 2-3 levels of nesting</p>
+				</div>
+			</div>
+		`,
+	}),
+};
+
+/**
+ * Accessibility features demonstration.
+ * Shows ARIA attributes and keyboard navigation support.
+ *
+ * **Try these interactions:**
+ * - **Tab**: Navigate between items
+ * - **Enter/Space**: Toggle expandable items
+ * - **Screen Reader**: Announces expanded/collapsed state
+ */
+export const Accessibility: Story = {
+	render: () => ({
+		props: { mockUsersRoute },
+		template: `
+			<div class="space-y-6">
+				<!-- Instructions -->
+				<div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+					<h3 class="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">Keyboard Navigation</h3>
+					<ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+						<li>• <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 rounded border border-blue-300 dark:border-blue-700">Tab</kbd> - Navigate between items</li>
+						<li>• <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 rounded border border-blue-300 dark:border-blue-700">Enter</kbd> or <kbd class="px-1.5 py-0.5 bg-white dark:bg-gray-800 rounded border border-blue-300 dark:border-blue-700">Space</kbd> - Toggle expandable items</li>
+						<li>• Screen readers announce "expanded" or "collapsed" state</li>
+					</ul>
+				</div>
+
+				<!-- Navigation with accessibility features -->
+				<div>
+					<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">ARIA Attributes</h3>
+					<ul class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
+						<li [item]="mockUsersRoute" appNavItem></li>
+					</ul>
+					<div class="mt-3 space-y-1 text-xs text-gray-600 dark:text-gray-400">
+						<p><strong>ARIA attributes:</strong></p>
+						<ul class="list-disc list-inside pl-2 space-y-0.5">
+							<li><code>aria-expanded</code> - Indicates expanded/collapsed state</li>
+							<li><code>aria-controls</code> - Links button to controlled element</li>
+							<li><code>aria-hidden</code> - Hides collapsed children from screen readers</li>
+						</ul>
+					</div>
 				</div>
 			</div>
 		`,

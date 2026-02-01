@@ -190,3 +190,67 @@ export const MultipleSections: Story = {
 		`,
 	}),
 };
+
+/**
+ * Edge cases and special scenarios.
+ * - **Empty section**: Section with no routes (graceful handling)
+ * - **Hidden title**: Section without visible title
+ * - **Single item**: Section with only one route
+ */
+export const EdgeCases: Story = {
+	render: () => ({
+		template: `
+			<div class="space-y-6">
+				<!-- Empty section -->
+				<div>
+					<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Empty Section</h3>
+					<div class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
+						<app-nav-section
+							[section]="{
+								id: 'empty',
+								name: 'Empty Section',
+								routes: []
+							}"
+						/>
+					</div>
+					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Section renders without errors when routes array is empty</p>
+				</div>
+
+				<!-- Section with single item -->
+				<div>
+					<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Single Item Section</h3>
+					<div class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
+						<app-nav-section
+							[section]="{
+								id: 'single',
+								name: 'Single Item',
+								routes: [
+									{ id: 'home', name: 'Home', route: '/home', icon: { featherHome } }
+								]
+							}"
+						/>
+					</div>
+				</div>
+
+				<!-- Hidden title -->
+				<div>
+					<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Hidden Title</h3>
+					<div class="w-64 rounded-lg border border-gray-200 p-2 dark:border-gray-700 dark:bg-gray-800">
+						<app-nav-section
+							[showTitle]="false"
+							[section]="{
+								id: 'notitle',
+								name: 'This title is hidden',
+								routes: [
+									{ id: 'home', name: 'Home', route: '/home', icon: { featherHome } },
+									{ id: 'settings', name: 'Settings', route: '/settings', icon: { featherSettings } }
+								]
+							}"
+						/>
+					</div>
+					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Useful for sections that don't need visual separation</p>
+				</div>
+			</div>
+		`,
+	}),
+};
