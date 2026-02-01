@@ -113,23 +113,26 @@ export default class NavItem {
 
 	constructor() {
 		// Auto-expand when child route is active
-		effect(() => {
-			const item = this.item();
-			if (!item.children || item.children.length === 0) return;
+		effect(
+			() => {
+				const item = this.item();
+				if (!item.children || item.children.length === 0) return;
 
-			const hasActiveChild = item.children.some((child) =>
-				this.router.isActive(child.route, {
-					paths: 'subset',
-					queryParams: 'ignored',
-					fragment: 'ignored',
-					matrixParams: 'ignored',
-				}),
-			);
+				const hasActiveChild = item.children.some((child) =>
+					this.router.isActive(child.route, {
+						paths: 'subset',
+						queryParams: 'ignored',
+						fragment: 'ignored',
+						matrixParams: 'ignored',
+					}),
+				);
 
-			if (hasActiveChild && !this.isExpanded()) {
-				this.navState.expand(item.id);
-			}
-		});
+				if (hasActiveChild && !this.isExpanded()) {
+					this.navState.expand(item.id);
+				}
+			},
+			{ manualCleanup: false },
+		);
 	}
 
 	toggleExpanded(): void {
