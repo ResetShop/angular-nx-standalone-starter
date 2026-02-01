@@ -1,5 +1,5 @@
-import Dashboard from '@pages/dashboard/dashboard';
 import { NamedRoute } from '@interfaces/navigation';
+import Dashboard from '@pages/dashboard/dashboard';
 
 export default [
 	{
@@ -17,6 +17,18 @@ export default [
 				path: 'welcome',
 				title: 'Configuración Inicial',
 				loadComponent: () => import('./pages/welcome/welcome'),
+				children: [
+					{
+						path: 'step1',
+						title: 'Paso 1: Datos básicos',
+						loadComponent: () => import('./pages/welcome/step1'),
+					},
+					{
+						path: 'step2',
+						title: 'Paso 2: Configuración',
+						loadComponent: () => import('./pages/welcome/step2'),
+					},
+				],
 			},
 		],
 	},
