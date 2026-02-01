@@ -16,7 +16,16 @@ import { NavigationStateService } from '@services/navigation-state.service';
 		}
 
 		a {
-			@apply rounded-lg;
+			@apply flex items-center gap-2 rounded-lg p-2 dark:text-gray-50;
+		}
+
+		a.active {
+			@apply bg-primary/10 text-primary dark:bg-primary/20 font-medium;
+		}
+
+		a:hover,
+		a.active:hover {
+			@apply bg-primary/10 text-primary dark:bg-primary/20;
 		}
 
 		.nav-children {
@@ -82,12 +91,7 @@ import { NavigationStateService } from '@services/navigation-state.service';
 			</div>
 		} @else {
 			<!-- Leaf item (no children) - original implementation -->
-			<a
-				[routerLink]="item().route"
-				[routerLinkActiveOptions]="{ exact: false }"
-				routerLinkActive="active"
-				class="[&.active]:bg-primary/10 [&.active]:text-primary [&.active]:dark:bg-primary/20 [&:hover]:bg-primary/10 [&:hover]:text-primary [&:hover]:dark:bg-primary/20 flex items-center gap-2 p-2 dark:text-gray-50 [&.active]:font-medium [&.active:hover]:font-medium"
-			>
+			<a [routerLink]="item().route" [routerLinkActiveOptions]="{ exact: false }" routerLinkActive="active">
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
 				}
