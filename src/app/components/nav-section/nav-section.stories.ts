@@ -1,18 +1,19 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
+import { Component } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { Component } from '@angular/core';
 import {
-	featherHome,
 	featherActivity,
+	featherCalendar,
+	featherChevronRight,
+	featherFileText,
+	featherHelpCircle,
+	featherHome,
+	featherMail,
 	featherSettings,
 	featherUser,
-	featherHelpCircle,
-	featherMail,
-	featherCalendar,
-	featherFileText,
 } from '@ng-icons/feather-icons';
+import type { Meta, StoryObj } from '@storybook/angular';
+import { applicationConfig } from '@storybook/angular';
 import NavSection from './nav-section';
 
 @Component({
@@ -39,6 +40,7 @@ const meta: Meta<typeof NavSection> = {
 					featherMail,
 					featherCalendar,
 					featherFileText,
+					featherChevronRight,
 				}),
 			],
 		}),
@@ -298,6 +300,91 @@ export const EmptySection: Story = {
 						routes: []
 					}"
 				/>
+			</div>
+		`,
+	}),
+};
+
+/**
+ * Section with expandable navigation items.
+ */
+export const WithExpandableItems: Story = {
+	render: () => ({
+		template: `
+			<div class="w-64 rounded-lg border border-gray-200 p-2">
+				<app-nav-section
+					[section]="{
+						id: 'main',
+						name: 'Main Navigation',
+						routes: [
+							{
+								id: 'home',
+								name: 'Home',
+								route: '/home',
+								icon: { featherHome }
+							},
+							{
+								id: 'users',
+								name: 'Users',
+								route: '/users',
+								icon: { featherUser },
+								children: [
+									{ id: 'all-users', name: 'All Users', route: '/users/list' },
+									{ id: 'create-user', name: 'Create User', route: '/users/create' },
+									{ id: 'roles', name: 'User Roles', route: '/users/roles' }
+								]
+							},
+							{
+								id: 'settings',
+								name: 'Settings',
+								route: '/settings',
+								icon: { featherSettings },
+								children: [
+									{ id: 'profile', name: 'Profile', route: '/settings/profile' },
+									{ id: 'security', name: 'Security', route: '/settings/security' }
+								]
+							}
+						]
+					}"
+				/>
+			</div>
+		`,
+	}),
+};
+
+/**
+ * Mix of expandable and simple items in dark mode.
+ */
+export const DarkModeWithExpandable: Story = {
+	render: () => ({
+		template: `
+			<div class="dark bg-gray-900 p-4">
+				<div class="w-64 rounded-lg border border-gray-700 p-2 bg-gray-800">
+					<app-nav-section
+						[section]="{
+							id: 'nav',
+							name: 'Navigation',
+							routes: [
+								{
+									id: 'home',
+									name: 'Home',
+									route: '/home',
+									icon: { featherHome }
+								},
+								{
+									id: 'settings',
+									name: 'Settings',
+									route: '/settings',
+									icon: { featherSettings },
+									children: [
+										{ id: 'profile', name: 'Profile', route: '/settings/profile' },
+										{ id: 'security', name: 'Security', route: '/settings/security' }
+									]
+								}
+							]
+						}"
+					/>
+				</div>
 			</div>
 		`,
 	}),

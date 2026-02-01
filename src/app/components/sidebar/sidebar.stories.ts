@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
+import { Component } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { Component } from '@angular/core';
-import { featherHome, featherActivity, featherRefreshCw } from '@ng-icons/feather-icons';
-import { Sidebar } from './sidebar';
+import { featherActivity, featherHome, featherRefreshCw } from '@ng-icons/feather-icons';
 import { Navigation } from '@providers/navigation/navigation';
+import type { Meta, StoryObj } from '@storybook/angular';
+import { applicationConfig } from '@storybook/angular';
+import { Sidebar } from './sidebar';
 
 @Component({
 	selector: 'app-dummy',
@@ -212,4 +212,32 @@ export const MobileView: Story = {
 			defaultViewport: 'mobile1',
 		},
 	},
+};
+
+/**
+ * Sidebar with expandable navigation sections.
+ * The Navigation service provides the section data including nested routes.
+ */
+export const WithExpandableNavigation: Story = {
+	render: () => ({
+		template: `
+			<div class="flex h-screen bg-gray-50">
+				<div class="w-64 border-r border-gray-200 bg-white">
+					<app-sidebar />
+				</div>
+				<main class="flex-1 p-8">
+					<h1 class="text-2xl font-bold text-gray-900 mb-4">Expandable Navigation</h1>
+					<p class="text-gray-600 mb-4">
+						Click on parent navigation items to expand/collapse child routes.
+					</p>
+					<ul class="text-sm text-gray-600 space-y-2">
+						<li>• Parent items show a chevron icon</li>
+						<li>• Click or press Enter/Space to toggle expansion</li>
+						<li>• Child routes are indented for visual hierarchy</li>
+						<li>• Parent auto-expands when child route is active</li>
+					</ul>
+				</main>
+			</div>
+		`,
+	}),
 };
