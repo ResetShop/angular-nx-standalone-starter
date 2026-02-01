@@ -1,8 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
 import { provideRouter } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { featherHome, featherActivity, featherSettings, featherUser, featherHelpCircle } from '@ng-icons/feather-icons';
+import {
+	featherActivity,
+	featherChevronRight,
+	featherHelpCircle,
+	featherHome,
+	featherSettings,
+	featherUser,
+} from '@ng-icons/feather-icons';
+import type { Meta, StoryObj } from '@storybook/angular';
+import { applicationConfig } from '@storybook/angular';
 import NavItem from './nav-item';
 
 const meta: Meta<typeof NavItem> = {
@@ -13,7 +20,14 @@ const meta: Meta<typeof NavItem> = {
 		applicationConfig({
 			providers: [
 				provideRouter([{ path: '**', component: NavItem }]),
-				provideIcons({ featherHome, featherActivity, featherSettings, featherUser, featherHelpCircle }),
+				provideIcons({
+					featherHome,
+					featherActivity,
+					featherSettings,
+					featherUser,
+					featherHelpCircle,
+					featherChevronRight,
+				}),
 			],
 		}),
 	],
@@ -21,32 +35,40 @@ const meta: Meta<typeof NavItem> = {
 		docs: {
 			description: {
 				component: `
-A navigation item component that displays a clickable link with an optional icon and label.
+A navigation item component that displays a clickable link with optional icon and label.
+Supports hierarchical navigation with expandable/collapsible child routes.
 
 ## Features
 
 - **RouterLink Integration**: Uses Angular Router for navigation
 - **Optional Icon**: Displays an icon from ng-icons if provided
-- **Responsive**: Adapts to different screen sizes
-- **Hover Effects**: Visual feedback on hover
-- **Accessibility**: Semantic HTML with proper link elements
+- **Hierarchical Navigation**: Supports nested child routes
+- **Expandable/Collapsible**: Parent items can be expanded to show children
+- **Auto-Expand**: Automatically expands when child route is active
+- **Keyboard Navigation**: Full keyboard support (Enter/Space to toggle)
+- **Accessibility**: ARIA attributes for screen readers
+- **Active State**: Highlights active route with primary color
+- **Dark Mode**: Full dark mode support
 
 ## Usage
 
 \`\`\`typescript
 import NavItem from '@components/nav-item';
 
-@Component({
-  imports: [NavItem],
-  template: \`
-    <li [item]="navRoute" appNavItem></li>
-  \`
-})
+// Simple nav item
+<li [item]="{ id: '1', name: 'Home', route: '/home' }" appNavItem></li>
+
+// Nav item with children
+<li [item]="{
+  id: '2',
+  name: 'Settings',
+  route: '/settings',
+  children: [
+    { id: '2a', name: 'Profile', route: '/settings/profile' },
+    { id: '2b', name: 'Security', route: '/settings/security' }
+  ]
+}" appNavItem></li>
 \`\`\`
-
-## Interactive Demo
-
-Try the examples below to see different navigation item configurations.
 				`,
 			},
 			canvas: {
@@ -176,10 +198,132 @@ export const LongText: Story = {
 			<ul class="w-64 rounded-lg border border-gray-200 p-2">
 				<li [item]="{
 					id: 'long',
-					name: 'This is a very long navigation item name that might wrap',
+					name: 'This is a very long navigation item name that should be truncated',
 					route: '/long-route',
+					icon: { featherSettings }
+				}" appNavItem></li>
+			</ul>
+		`,
+	}),
+};
+
+/**
+ * Parent item with expandable children.
+ * Click the parent to expand/collapse the child routes.
+ */
+export const WithChildren: Story = {
+	render: () => ({
+		template: `
+			<ul class="w-64 rounded-lg border border-gray-200 p-2">
+				<li [item]="{
+					id: 'users',
+					name: 'Users',
+					route: '/users',
+					icon: { featherUser },
+					children: [
+						{ id: 'users-list', name: 'All Users', route: '/users/list' },
+						{ id: 'users-create', name: 'Create User', route: '/users/create' },
+						{ id: 'users-roles', name: 'User Roles', route: '/users/roles' }
+					]
+				}" appNavItem></li>
+			</ul>
+		`,
+	}),
+};
+
+/**
+ * Multiple items with mix of parents and leaf nodes.
+ */
+export const MixedNavigation: Story = {
+	render: () => ({
+		template: `
+			<ul class="w-64 rounded-lg border border-gray-200 p-2 space-y-1">
+				<li [item]="{
+					id: 'home',
+					name: 'Home',
+					route: '/home',
+					icon: { featherHome }
+				}" appNavItem></li>
+
+				<li [item]="{
+					id: 'settings',
+					name: 'Settings',
+					route: '/settings',
 					icon: { featherSettings },
-					children: []
+					children: [
+						{ id: 'profile', name: 'Profile', route: '/settings/profile' },
+						{ id: 'security', name: 'Security', route: '/settings/security' },
+						{ id: 'notifications', name: 'Notifications', route: '/settings/notifications' }
+					]
+				}" appNavItem></li>
+
+				<li [item]="{
+					id: 'help',
+					name: 'Help',
+					route: '/help',
+					icon: { featherHelpCircle }
+				}" appNavItem></li>
+			</ul>
+		`,
+	}),
+};
+
+/**
+ * Dark mode variant showing all navigation states.
+ */
+export const DarkMode: Story = {
+	render: () => ({
+		template: `
+			<div class="dark bg-gray-900 p-4">
+				<ul class="w-64 rounded-lg border border-gray-700 p-2 space-y-1 bg-gray-800">
+					<li [item]="{
+						id: 'home',
+						name: 'Home',
+						route: '/home',
+						icon: { featherHome }
+					}" appNavItem></li>
+
+					<li [item]="{
+						id: 'settings',
+						name: 'Settings',
+						route: '/settings',
+						icon: { featherSettings },
+						children: [
+							{ id: 'profile', name: 'Profile', route: '/settings/profile' },
+							{ id: 'security', name: 'Security', route: '/settings/security' }
+						]
+					}" appNavItem></li>
+				</ul>
+			</div>
+		`,
+	}),
+};
+
+/**
+ * Deeply nested navigation (3 levels).
+ * Note: Recommend keeping nesting to 2-3 levels max.
+ */
+export const DeepNesting: Story = {
+	render: () => ({
+		template: `
+			<ul class="w-64 rounded-lg border border-gray-200 p-2">
+				<li [item]="{
+					id: 'dashboard',
+					name: 'Dashboard',
+					route: '/dashboard',
+					icon: { featherHome },
+					children: [
+						{
+							id: 'analytics',
+							name: 'Analytics',
+							route: '/dashboard/analytics',
+							children: [
+								{ id: 'reports', name: 'Reports', route: '/dashboard/analytics/reports' },
+								{ id: 'charts', name: 'Charts', route: '/dashboard/analytics/charts' }
+							]
+						},
+						{ id: 'overview', name: 'Overview', route: '/dashboard/overview' }
+					]
 				}" appNavItem></li>
 			</ul>
 		`,
