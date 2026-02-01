@@ -107,10 +107,23 @@ export default class NavItem {
 	private readonly router = inject(Router);
 	private readonly navState = inject(NavigationStateService);
 
+	/**
+	 * Determines if this navigation item has child routes.
+	 * @returns True if the item has at least one child route
+	 */
 	readonly hasChildren = computed(() => (this.item().children?.length ?? 0) > 0);
 
+	/**
+	 * Checks if this navigation item is currently expanded.
+	 * Always returns false for leaf items (items without children).
+	 * @returns True if expanded, false if collapsed or has no children
+	 */
 	readonly isExpanded = computed(() => this.navState.isExpanded(this.item().id));
 
+	/**
+	 * Extracts the icon name from the navigation route's icon object.
+	 * @returns The icon name as a string, or null if no icon is provided
+	 */
 	readonly iconName = computed(() => {
 		const icon = this.item().icon;
 		return icon ? Object.keys(icon)[0] : null; // Get the key name
@@ -140,6 +153,11 @@ export default class NavItem {
 		);
 	}
 
+	/**
+	 * Toggles the expanded state of this navigation item.
+	 * Only applicable to parent items with children. For leaf items, this method has no effect.
+	 * The expansion state is managed by the NavigationStateService at the sidebar level.
+	 */
 	toggleExpanded(): void {
 		this.navState.toggle(this.item().id);
 	}
