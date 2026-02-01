@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
 @Injectable()
-export class NavigationStateService {
+export class NavigationState {
 	private readonly expandedItems = signal<Set<string>>(new Set());
 
 	isExpanded(id: string): boolean {
