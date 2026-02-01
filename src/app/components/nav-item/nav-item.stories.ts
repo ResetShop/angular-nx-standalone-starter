@@ -1,4 +1,11 @@
 import { provideRouter } from '@angular/router';
+import {
+	mockActivityRoute,
+	mockHelpRoute,
+	mockHomeRoute,
+	mockSettingsRouteSimple,
+	mockUsersRoute,
+} from '@mocks/navigation.mock';
 import { provideIcons } from '@ng-icons/core';
 import {
 	featherActivity,
@@ -11,13 +18,6 @@ import {
 import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig } from '@storybook/angular';
-import {
-	mockActivityRoute,
-	mockHelpRoute,
-	mockHomeRoute,
-	mockSettingsRouteSimple,
-	mockUsersRoute,
-} from '@testing/mocks/navigation.mock';
 import NavItem from './nav-item';
 
 const meta: Meta<typeof NavItem> = {

@@ -5,6 +5,7 @@ import { Button } from '@components/button/button';
 import NavItem from '@components/nav-item/nav-item';
 import NavSection from '@components/nav-section/nav-section';
 import { NAVIGATION_CONFIG } from '@interfaces/navigation';
+import { mockSidebarNavigationConfig } from '@mocks/navigation.mock';
 import { provideIcons } from '@ng-icons/core';
 import {
 	featherActivity,
@@ -18,7 +19,6 @@ import { Navigation } from '@providers/navigation/navigation';
 import { NavigationState } from '@providers/navigation/navigation-state';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { applicationConfig, moduleMetadata } from '@storybook/angular';
-import { mockSidebarNavigationConfig } from '@testing/mocks/navigation.mock';
 import { Sidebar } from './sidebar';
 
 @Component({
