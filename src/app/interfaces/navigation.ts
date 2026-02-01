@@ -1,5 +1,4 @@
-import { InjectionToken } from '@angular/core';
-import { Type } from '@angular/core';
+import { InjectionToken, Type } from '@angular/core';
 import { Resolve, ResolveFn, Route } from '@angular/router';
 
 export interface BreadcrumbItem {
@@ -19,7 +18,7 @@ export interface NavigationRoute {
 	name: string;
 	route: string;
 	icon?: Record<string, string>;
-	children: Omit<NavigationRoute, 'children'>[]; // TODO: Remove Omit if navigation has more than 1 level of nesting
+	children?: NavigationRoute[];
 }
 
 export interface NamedRoute extends Route {
