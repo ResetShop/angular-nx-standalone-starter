@@ -41,12 +41,8 @@ describe('HealthService', () => {
 		it('should return unhealthy status with timeout error when database hangs', async () => {
 			vi.useFakeTimers();
 
-			mockExecute.mockImplementation(() => {
-				// Return a promise that never resolves to simulate a hanging database
-				return new Promise<unknown>((resolve) => {
-					void resolve;
-				});
-			});
+			// eslint-disable-next-line @typescript-eslint/no-empty-function
+			mockExecute.mockImplementation(() => new Promise<unknown>(() => {}));
 
 			const healthPromise = healthService.checkHealth();
 
