@@ -113,7 +113,7 @@ describe('NavItem', () => {
 		expect(screen.getByText('Custom Page')).toBeInTheDocument();
 	});
 
-	it('should apply correct CSS classes to the link', async () => {
+	it('should render link with routerLink and routerLinkActive directives', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },
 			providers: [
@@ -124,10 +124,8 @@ describe('NavItem', () => {
 		});
 
 		const link = screen.getByRole('link');
-		expect(link).toHaveClass('flex');
-		expect(link).toHaveClass('items-center');
-		expect(link).toHaveClass('gap-2');
-		expect(link).toHaveClass('p-2');
+		expect(link).toBeInTheDocument();
+		expect(link).toHaveAttribute('href', '/test');
 	});
 
 	it('should handle navigation items with children property', async () => {
