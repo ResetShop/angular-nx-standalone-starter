@@ -9,7 +9,7 @@ import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
 
 // DI Container - imported to ensure initialization at startup
-import { container, verifyContainer } from './api/container';
+import { verifyContainer } from './api/container';
 import { verifyDatabaseHealth } from './api/verify-database-health';
 
 /**
@@ -131,7 +131,7 @@ if (isMainModule(import.meta.url)) {
 
 		// Verify database connectivity before accepting traffic
 		try {
-			await verifyDatabaseHealth(container.cradle.healthService);
+			await verifyDatabaseHealth();
 		} catch (error) {
 			console.error('Database health check failed:', error);
 			process.exit(1);

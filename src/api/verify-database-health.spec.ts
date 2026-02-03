@@ -1,14 +1,20 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fn } from './container.mock';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fn, resetTestCradle, setTestCradle } from './container.mock';
 import { HealthStatus } from './modules/health/health.constants';
 import type { HealthCheckResponse } from './modules/health/interfaces';
 import { verifyDatabaseHealth } from './verify-database-health';
 
 describe('verifyDatabaseHealth', () => {
 	const mockCheckHealth = fn<[], Promise<HealthCheckResponse>>();
-	const healthService = { checkHealth: mockCheckHealth };
+
+	beforeEach(() => {
+		setTestCradle({
+			healthService: { checkHealth: mockCheckHealth },
+		});
+	});
 
 	afterEach(() => {
+		resetTestCradle();
 		mockCheckHealth.mockClear();
 	});
 
@@ -19,7 +25,7 @@ describe('verifyDatabaseHealth', () => {
 			checks: { database: { status: HealthStatus.HEALTHY, responseTimeMs: 5 } },
 		});
 
-		await expect(verifyDatabaseHealth(healthService)).resolves.toBeUndefined();
+		await expect(verifyDatabaseHealth()).resolves.toBeUndefined();
 	});
 
 	it('should throw when health check returns unhealthy status', async () => {
@@ -29,7 +35,7 @@ describe('verifyDatabaseHealth', () => {
 			checks: { database: { status: HealthStatus.UNHEALTHY, responseTimeMs: null, error: 'Connection refused' } },
 		});
 
-		await expect(verifyDatabaseHealth(healthService)).rejects.toThrow('Database health check failed');
+		await expect(verifyDatabaseHealth()).rejects.toThrow('Database health check failed');
 	});
 
 	it('should log response time on success', async () => {
@@ -41,7 +47,7 @@ describe('verifyDatabaseHealth', () => {
 			checks: { database: { status: HealthStatus.HEALTHY, responseTimeMs: 12 } },
 		});
 
-		await verifyDatabaseHealth(healthService);
+		await verifyDatabaseHealth();
 
 		expect(consoleSpy).toHaveBeenCalledWith('Database health check passed (12ms)');
 		consoleSpy.mockRestore();
@@ -56,7 +62,7 @@ describe('verifyDatabaseHealth', () => {
 			checks: { database: { status: HealthStatus.UNHEALTHY, responseTimeMs: null, error: 'timeout' } },
 		});
 
-		await expect(verifyDatabaseHealth(healthService)).rejects.toThrow();
+		await expect(verifyDatabaseHealth()).rejects.toThrow();
 		expect(consoleSpy).not.toHaveBeenCalled();
 		consoleSpy.mockRestore();
 	});
