@@ -63,7 +63,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Run Tests
-        run: npx nx test --skip-nx-cache
+        run: pnpm run test
 
   lint:
     needs: setup
@@ -111,7 +111,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Run stylelint
-        run: npx nx stylelint app --skip-nx-cache
+        run: pnpm run stylelint
 
   e2e:
     needs: setup
