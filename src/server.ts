@@ -10,7 +10,7 @@ import { join } from 'node:path';
 
 // DI Container - imported to ensure initialization at startup
 import { verifyContainer } from './api/container';
-import { verifyDatabaseHealth } from './api/verify-database-health';
+import { verifyDatabaseHealth } from './api/modules/health/verify-database-health';
 
 /**
  * Max-age for static asset caching (1 year in seconds).

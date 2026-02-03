@@ -1,5 +1,5 @@
-import { container } from './container';
-import { HealthStatus } from './modules/health/health.constants';
+import { container } from '../../container';
+import { HealthStatus } from './health.constants';
 
 /**
  * Verifies database connectivity by running a health check probe.

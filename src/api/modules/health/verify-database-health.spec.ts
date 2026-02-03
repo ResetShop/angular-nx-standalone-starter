@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fn, resetTestCradle, setTestCradle } from './container.mock';
-import { HealthStatus } from './modules/health/health.constants';
-import type { HealthCheckResponse } from './modules/health/interfaces';
+import { fn, resetTestCradle, setTestCradle } from '../../container.mock';
+import { HealthStatus } from './health.constants';
+import type { HealthCheckResponse } from './interfaces';
 import { verifyDatabaseHealth } from './verify-database-health';
 
 describe('verifyDatabaseHealth', () => {
