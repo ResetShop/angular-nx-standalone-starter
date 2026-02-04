@@ -27,33 +27,33 @@
 
 <!-- TODO: Customize this section for your specific project -->
 
-| Aspect               | Value                                  |
-| -------------------- | -------------------------------------- |
-| **Framework**        | Angular 17+ (standalone components)    |
-| **Language**         | TypeScript (strict mode)               |
-| **Monorepo Tool**    | Nx                                     |
-| **Package Manager**  | pnpm                                   |
-| **Testing**          | Vitest + Angular Testing Library       |
-| **State Management** | <!-- e.g., NgRx, Signals, Services --> |
+| Aspect               | Value                               |
+| -------------------- | ----------------------------------- |
+| **Framework**        | Angular 17+ (standalone components) |
+| **Language**         | TypeScript (strict mode)            |
+| **Monorepo Tool**    | Nx                                  |
+| **Package Manager**  | npm                                 |
+| **Testing**          | Vitest + Angular Testing Library    |
+| **State Management** | NgRx                                |
 
 ### Common Commands
 
-Use `pnpm` for all package management and script execution:
+Use `npm` for all package management and script execution:
 
-| Command                    | Description              |
-| -------------------------- | ------------------------ |
-| `pnpm install`             | Install dependencies     |
-| `pnpm run build`           | Build the project        |
-| `pnpm run dev`             | Start development server |
-| `pnpm run lint`            | Run linting              |
-| `pnpm run storybook`       | Run storybook dev server |
-| `pnpm run storybook:build` | Build storybook          |
-| `pnpm run stylelint`       | Run linting              |
-| `pnpm run test`            | Run all unit tests       |
-| `pnpm run test:e2e`        | Run all end-to-end tests |
-| `pnpm add <pkg>`           | Add a dependency         |
-| `pnpm add -D <pkg>`        | Add a dev dependency     |
-| `pnpm add -g <pkg>`        | Add a global dependency  |
+| Command                   | Description              |
+| ------------------------- | ------------------------ |
+| `npm install`             | Install dependencies     |
+| `npm run build`           | Build the project        |
+| `npm run dev`             | Start development server |
+| `npm run lint`            | Run linting              |
+| `npm run storybook`       | Run storybook dev server |
+| `npm run storybook:build` | Build storybook          |
+| `npm run stylelint`       | Run linting              |
+| `npm run test`            | Run all unit tests       |
+| `npm run test:e2e`        | Run all end-to-end tests |
+| `npm install <pkg>`       | Add a dependency         |
+| `npm install -D <pkg>`    | Add a dev dependency     |
+| `npm install -g <pkg>`    | Add a global dependency  |
 
 #### CRITICAL: Command Execution Policy
 
@@ -61,18 +61,18 @@ Use `pnpm` for all package management and script execution:
 
 1. **Use ONLY the exact patterns listed above** - No variants, no construction, no "helpful" alternatives
 2. **Check `.claude/settings.local.json` before running ANY command** to verify the pattern is allowed
-3. **NEVER use direct `nx` commands** - Always use `pnpm run <task>` instead
+3. **NEVER use direct `nx` commands** - Always use `npm run <task>` instead
 4. **NEVER construct variants** like:
-   - ❌ `pnpm test -- <args>`
-   - ❌ `pnpm nx test <project>`
+   - ❌ `npm test -- <args>`
+   - ❌ `npm exec nx test <project>`
    - ❌ `nx test <project>`
    - ❌ `nx run <project>:<task>`
 5. **If a correction is given, apply the pattern to ALL related commands immediately** (test → build → lint → dev)
 
 **Example: Running tests**
 
-- ✅ Correct: `pnpm run test`
-- ❌ Wrong: `nx test app`, `pnpm test --`, `pnpm nx test`
+- ✅ Correct: `npm run test`
+- ❌ Wrong: `nx test app`, `npm test --`, `npm exec nx test`
 
 This is a hard constraint. Violations break the workflow and require user intervention.
 
@@ -206,7 +206,7 @@ import { User, IUserRepository } from './user.types';
 
 ### General Rules
 
-- **CRITICAL: Always use `pnpm run <task>` for all task execution** (build, lint, test, e2e, dev)
+- **CRITICAL: Always use `npm run <task>` for all task execution** (build, lint, test, e2e, dev)
 - ❌ Do NOT use direct `nx` commands (`nx run`, `nx run-many`, `nx affected`)
 - ✅ Use patterns from Common Commands section above and `.claude/settings.local.json`
 - You have access to the Nx MCP server and its tools—use them for workspace analysis, NOT for running tasks
@@ -226,7 +226,7 @@ import { User, IUserRepository } from './user.types';
 1. Retrieve current CI Pipeline Executions using `nx_cloud_cipe_details`
 2. If errors exist, use `nx_cloud_fix_cipe_failure` to get task logs
 3. Analyze logs and help fix the problem using appropriate tools
-4. Verify the fix by running the failing task locally using `pnpm run <task>` (e.g., `pnpm run test`, `pnpm run build`)
+4. Verify the fix by running the failing task locally using `npm run <task>` (e.g., `npm run test`, `npm run build`)
 
 ### Nx Conventions
 
