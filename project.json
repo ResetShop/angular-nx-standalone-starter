@@ -119,7 +119,7 @@
 			"executor": "nx-stylelint:lint",
 			"outputs": ["{options.outputFile}"],
 			"options": {
-				"lintFilePatterns": ["**/*.css", "**/*.scss"]
+				"lintFilePatterns": ["**/*.css"]
 			}
 		},
 		"storybook": {

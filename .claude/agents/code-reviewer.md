@@ -124,14 +124,13 @@ The **#** column provides a sequential number across all three tables within the
 
 ### Verification Results
 
-Run all of the following commands and report results:
+Run `npm run ci` which executes all CI checks serially. Report results:
 
-| Command              | Result    |
-| -------------------- | --------- |
-| `pnpm run test`      | PASS/FAIL |
-| `pnpm run lint`      | PASS/FAIL |
-| `pnpm run stylelint` | PASS/FAIL |
-| `pnpm run build`     | PASS/FAIL |
+| Command      | Result    |
+| ------------ | --------- |
+| `npm run ci` | PASS/FAIL |
+
+If `npm run ci` fails, report which step failed (stylelint, lint, test, build, or storybook:build).
 
 ### Test Coverage
 
