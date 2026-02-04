@@ -67,7 +67,7 @@ The code follows clean architecture principles with proper separation of concern
 ### Test Commands Run
 
 ```
-pnpm run test    # PASS
+npm run test    # PASS
 ```
 
 ## Code Quality Assessment
