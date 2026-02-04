@@ -270,11 +270,11 @@ import { isParentRoute, type NavigationRoute } from '@interfaces/navigation';
 
 ```bash
 # Storybook builds successfully
-pnpm run storybook:build
+npm run storybook:build
 # ✅ Build completes without errors
 
 # Storybook dev server runs
-pnpm run storybook
+npm run storybook
 # ✅ All stories accessible
 ```
 
