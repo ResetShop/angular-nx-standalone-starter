@@ -40,20 +40,21 @@
 
 Use `npm` for all package management and script execution:
 
-| Command                   | Description              |
-| ------------------------- | ------------------------ |
-| `npm install`             | Install dependencies     |
-| `npm run build`           | Build the project        |
-| `npm run dev`             | Start development server |
-| `npm run lint`            | Run linting              |
-| `npm run storybook`       | Run storybook dev server |
-| `npm run storybook:build` | Build storybook          |
-| `npm run stylelint`       | Run linting              |
-| `npm run test`            | Run all unit tests       |
-| `npm run test:e2e`        | Run all end-to-end tests |
-| `npm install <pkg>`       | Add a dependency         |
-| `npm install -D <pkg>`    | Add a dev dependency     |
-| `npm install -g <pkg>`    | Add a global dependency  |
+| Command                   | Description                                    |
+| ------------------------- | ---------------------------------------------- |
+| `npm install`             | Install dependencies                           |
+| `npm run ci`              | Run all CI checks locally (required before PR) |
+| `npm run build`           | Build the project                              |
+| `npm run dev`             | Start development server                       |
+| `npm run lint`            | Run linting                                    |
+| `npm run storybook`       | Run storybook dev server                       |
+| `npm run storybook:build` | Build storybook                                |
+| `npm run stylelint`       | Run stylelint                                  |
+| `npm run test`            | Run all unit tests                             |
+| `npm run test:e2e`        | Run all end-to-end tests                       |
+| `npm install <pkg>`       | Add a dependency                               |
+| `npm install -D <pkg>`    | Add a dev dependency                           |
+| `npm install -g <pkg>`    | Add a global dependency                        |
 
 #### CRITICAL: Command Execution Policy
 
@@ -856,9 +857,24 @@ Mappers should use factory functions internally for consistency.
 This is a mandatory step in the workflow:
 
 1. Complete implementation (code changes, tests, commits)
-2. **Automatically run code review** using the `code-reviewer` agent
-3. Provide a report to the user, with a prioritization of all the found issues, plus the recommendations and suggestions to address them. The report must be in form of a table, that will be used to track the pending work while addressing the issues, recommendations and suggestions.
-4. Save the Proactive Review results to the `.claude/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
+2. **Run `npm run ci`** — All CI checks must pass (exit code 0) before work is considered complete
+3. **Automatically run code review** using the `code-reviewer` agent
+4. Provide a report to the user, with a prioritization of all the found issues, plus the recommendations and suggestions to address them. The report must be in form of a table, that will be used to track the pending work while addressing the issues, recommendations and suggestions.
+5. Save the Proactive Review results to the `.claude/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
+
+### Local CI Verification
+
+**CRITICAL:** Before considering any implementation work complete, `npm run ci` MUST pass with exit code 0.
+
+The `npm run ci` command runs all CI checks serially:
+
+1. `npm run stylelint` — CSS/style linting
+2. `npm run lint` — TypeScript/ESLint linting
+3. `npm run test` — Unit tests
+4. `npm run build` — Production build
+5. `npm run storybook:build` — Storybook build
+
+If any step fails, the entire command fails. Fix all issues before proceeding to code review.
 
 ### When to Trigger
 
@@ -897,6 +913,12 @@ The code-reviewer agent checks:
          │
          ▼
 ┌─────────────────┐
+│  npm run ci     │ ◄── MUST pass with exit code 0
+│   (mandatory)   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
 │  Code Review    │ ◄── Automatic delegation to code-reviewer agent
 │   (mandatory)   │
 └────────┬────────┘
@@ -920,4 +942,4 @@ The code-reviewer agent checks:
 
 ---
 
-_Last updated: 2026-01-22_
+_Last updated: 2026-02-04_
