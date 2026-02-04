@@ -59,7 +59,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 			<div class="nav-item-container">
 				<button
 					(click)="toggleExpanded()"
-					(keydown.enter)="toggleExpanded()"
+					(keydown.enter)="$event.preventDefault(); toggleExpanded()"
 					(keydown.space)="$event.preventDefault(); toggleExpanded()"
 					[attr.aria-expanded]="isExpanded()"
 					[attr.aria-controls]="'nav-children-' + item().id"

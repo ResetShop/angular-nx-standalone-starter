@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { NavigationSection } from '@interfaces/navigation';
 import { featherActivity, featherHome } from '@ng-icons/feather-icons';
 import { Navigation } from '@providers/navigation/navigation';
+import { NavigationState } from '@providers/navigation/navigation-state';
 import { provideMockTheme } from '@providers/theme/theme.mock';
 import { render, screen } from '@testing-library/angular';
 import { userEvent } from '@testing-library/user-event';
@@ -21,6 +22,7 @@ describe('Sidebar', () => {
 		provideMockTheme(false),
 		provideHttpClient(),
 		provideHttpClientTesting(),
+		NavigationState,
 	];
 
 	const createNavigationWithSections = (sections: NavigationSection[]) => ({
