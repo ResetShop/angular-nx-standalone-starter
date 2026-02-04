@@ -10,6 +10,7 @@
 		"postinstall": "npm run config && npm run drizzle:push-migrations && npm run drizzle:seed",
 		"config": "tsx ./scripts/set-environment.ts",
 		"prepare": "husky",
+		"ci": "npm run stylelint && npm run lint && npm run test && npm run build && npm run storybook:build",
 		"dev": "nx serve",
 		"build": "nx build",
 		"storybook": "nx run app:storybook",

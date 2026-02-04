@@ -33,6 +33,7 @@
 			"Bash(npm install:*)",
 			"Bash(npm exec nx show:*)",
 			"Bash(npm run build:*)",
+			"Bash(npm run ci:*)",
 			"Bash(npm run dev:*)",
 			"Bash(npm run lint:*)",
 			"Bash(npm run storybook:*)",
