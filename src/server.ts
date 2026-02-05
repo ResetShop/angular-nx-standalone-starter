@@ -8,9 +8,8 @@ import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
 
-// DI Container - imported to ensure initialization at startup
-import { verifyContainer } from './api/container';
-import { verifyDatabaseHealth } from './api/modules/health/verify-database-health';
+// Health verification - runs all startup checks (DI container, database, etc.)
+import { verifyHealth } from './api/modules/health/verify-health';
 
 /**
  * Max-age for static asset caching (1 year in seconds).
@@ -120,20 +119,11 @@ app.onError((error, c) => {
  */
 if (isMainModule(import.meta.url)) {
 	(async () => {
-		// Verify DI container initialization before starting server
+		// Run all startup health checks before accepting traffic
 		try {
-			verifyContainer();
-			console.log('DI Container initialized successfully');
+			await verifyHealth();
 		} catch (error) {
-			console.error('DI Container initialization failed:', error);
-			process.exit(1);
-		}
-
-		// Verify database connectivity before accepting traffic
-		try {
-			await verifyDatabaseHealth();
-		} catch (error) {
-			console.error('Database health check failed:', error);
+			console.error('Startup health check failed:', error);
 			process.exit(1);
 		}
 
