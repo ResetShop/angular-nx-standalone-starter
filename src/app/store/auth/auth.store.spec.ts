@@ -3,7 +3,8 @@ import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import { IPermission } from '@domain/access/permission.interface';
 import type { IUser } from '@domain/user/user.interface';
 import { AuthApiService } from '@providers/auth/auth';
-import { firstValueFrom, NEVER, of, throwError } from 'rxjs';
+import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
+import { clearAllMocks, fn, type MockFn } from '../../../api/container.mock';
 import { AuthStore } from './auth.store';
 
 function createMockUser(overrides: Partial<IUser> = {}): IUser {
@@ -25,7 +26,12 @@ function createMockUser(overrides: Partial<IUser> = {}): IUser {
 
 describe('AuthStore', () => {
 	let store: InstanceType<typeof AuthStore>;
-	let authApiMock: Record<'login' | 'logout' | 'refreshToken' | 'getMe', ReturnType<typeof vi.fn>>;
+	let authApiMock: {
+		login: MockFn<[{ email: string; password: string }], Observable<LoginResponse>>;
+		logout: MockFn<[], Observable<void>>;
+		refreshToken: MockFn<[], Observable<RefreshResponse>>;
+		getMe: MockFn<[], Observable<unknown>>;
+	};
 
 	const mockLoginResponse: LoginResponse = {
 		user: {
@@ -42,11 +48,13 @@ describe('AuthStore', () => {
 	};
 
 	beforeEach(() => {
+		clearAllMocks();
+
 		authApiMock = {
-			login: vi.fn(),
-			logout: vi.fn(),
-			refreshToken: vi.fn(),
-			getMe: vi.fn(),
+			login: fn(),
+			logout: fn(),
+			refreshToken: fn(),
+			getMe: fn(),
 		};
 
 		TestBed.configureTestingModule({
@@ -59,7 +67,6 @@ describe('AuthStore', () => {
 	});
 
 	afterEach(() => {
-		vi.restoreAllMocks();
 		localStorage.clear();
 	});
 

@@ -1,15 +1,24 @@
 import { Component, input, output, viewChild } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
+import { clearAllMocks, fn, type MockFn } from '../../../api/container.mock';
 import { ConfirmDialog } from './confirm-dialog';
 
+let mockShowModal: MockFn<[], void>;
+let mockClose: MockFn<[], void>;
+
 function mockDialog(): void {
-	HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+	mockShowModal = fn<[], void>();
+	mockShowModal.mockImplementation(function (this: HTMLDialogElement) {
 		this.setAttribute('open', '');
 	});
-	HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+	HTMLDialogElement.prototype.showModal = mockShowModal;
+
+	mockClose = fn<[], void>();
+	mockClose.mockImplementation(function (this: HTMLDialogElement) {
 		this.removeAttribute('open');
 	});
+	HTMLDialogElement.prototype.close = mockClose;
 }
 
 @Component({
@@ -49,6 +58,7 @@ async function renderAndOpen(inputs: Record<string, unknown> = {}) {
 
 describe('ConfirmDialog', () => {
 	beforeEach(() => {
+		clearAllMocks();
 		mockDialog();
 	});
 
@@ -109,7 +119,7 @@ describe('ConfirmDialog', () => {
 
 	describe('Interaction', () => {
 		it('should emit confirmed when confirm button is clicked', async () => {
-			const confirmedSpy = vi.fn();
+			const confirmedSpy = fn<[], void>();
 
 			const view = await render(ConfirmDialogTestHost, {
 				inputs: { title: 'Confirm' },
@@ -122,11 +132,11 @@ describe('ConfirmDialog', () => {
 			const user = userEvent.setup();
 			await user.click(screen.getByRole('button', { name: /confirm/i }));
 
-			expect(confirmedSpy).toHaveBeenCalled();
+			expect(confirmedSpy.calls.length).toBeGreaterThan(0);
 		});
 
 		it('should emit cancelled when cancel button is clicked', async () => {
-			const cancelledSpy = vi.fn();
+			const cancelledSpy = fn<[], void>();
 
 			const view = await render(ConfirmDialogTestHost, {
 				inputs: { title: 'Confirm' },
@@ -139,11 +149,11 @@ describe('ConfirmDialog', () => {
 			const user = userEvent.setup();
 			await user.click(screen.getByRole('button', { name: /cancel/i }));
 
-			expect(cancelledSpy).toHaveBeenCalled();
+			expect(cancelledSpy.calls.length).toBeGreaterThan(0);
 		});
 
 		it('should emit cancelled on native cancel event (ESC)', async () => {
-			const cancelledSpy = vi.fn();
+			const cancelledSpy = fn<[], void>();
 
 			const view = await render(ConfirmDialogTestHost, {
 				inputs: { title: 'Confirm' },
@@ -157,7 +167,7 @@ describe('ConfirmDialog', () => {
 			const cancelEvent = new Event('cancel', { cancelable: true, bubbles: true });
 			dialog.dispatchEvent(cancelEvent);
 
-			expect(cancelledSpy).toHaveBeenCalled();
+			expect(cancelledSpy.calls.length).toBeGreaterThan(0);
 			expect(cancelEvent.defaultPrevented).toBe(true);
 		});
 
@@ -171,7 +181,7 @@ describe('ConfirmDialog', () => {
 			dialog.show();
 			view.fixture.detectChanges();
 
-			expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalledTimes(1);
+			expect(mockShowModal.calls).toHaveLength(1);
 		});
 
 		it('should not close when dialog is already closed', async () => {
@@ -183,7 +193,7 @@ describe('ConfirmDialog', () => {
 			dialog.close();
 			view.fixture.detectChanges();
 
-			expect(HTMLDialogElement.prototype.close).not.toHaveBeenCalled();
+			expect(mockClose.calls).toHaveLength(0);
 		});
 	});
 });
