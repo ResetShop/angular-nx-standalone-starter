@@ -2,6 +2,7 @@ import { Translation } from '@providers/i18n/translation';
 import { type ColumnDef } from '@tanstack/angular-table';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
+import { fn } from '../../../api/container.mock';
 import { DataTable } from './data-table';
 import { DataTableCellDef } from './data-table-cell-def';
 
@@ -142,7 +143,7 @@ describe('DataTable', () => {
 
 	it('should emit sortChange when clicking sortable header', async () => {
 		const user = userEvent.setup();
-		const sortChangeSpy = vi.fn();
+		const sortChangeSpy = fn<[{ id: string; direction: string }], void>();
 		const sortableColumns: ColumnDef<TestData, unknown>[] = [
 			{ accessorKey: 'name', header: 'Name', enableSorting: true },
 			{ accessorKey: 'email', header: 'Email', enableSorting: false },
@@ -157,7 +158,7 @@ describe('DataTable', () => {
 		const nameHeader = screen.getByRole('columnheader', { name: /name/i });
 		await user.click(nameHeader);
 
-		expect(sortChangeSpy).toHaveBeenCalledWith({ id: 'name', direction: 'asc' });
+		expect(sortChangeSpy.calls).toContainEqual([{ id: 'name', direction: 'asc' }]);
 	});
 
 	it('should toggle sort via Enter key on sortable header', async () => {

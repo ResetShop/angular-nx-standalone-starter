@@ -1,6 +1,7 @@
 import { Translation } from '@providers/i18n/translation';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
+import { fn } from '../../../api/container.mock';
 import { Pagination } from './pagination';
 
 const TRANSLATIONS: Record<string, string> = {
@@ -160,7 +161,7 @@ describe('Pagination', () => {
 
 		it('should emit pageChange with previous page on previous click', async () => {
 			const user = userEvent.setup();
-			const pageChangeSpy = vi.fn();
+			const pageChangeSpy = fn<[number], void>();
 
 			await render(Pagination, {
 				inputs: { currentPage: 3, totalPages: 5 },
@@ -170,12 +171,12 @@ describe('Pagination', () => {
 
 			await user.click(screen.getByRole('button', { name: /go to previous page/i }));
 
-			expect(pageChangeSpy).toHaveBeenCalledWith(2);
+			expect(pageChangeSpy.calls).toContainEqual([2]);
 		});
 
 		it('should emit pageChange with next page on next click', async () => {
 			const user = userEvent.setup();
-			const pageChangeSpy = vi.fn();
+			const pageChangeSpy = fn<[number], void>();
 
 			await render(Pagination, {
 				inputs: { currentPage: 2, totalPages: 5 },
@@ -185,12 +186,12 @@ describe('Pagination', () => {
 
 			await user.click(screen.getByRole('button', { name: /go to next page/i }));
 
-			expect(pageChangeSpy).toHaveBeenCalledWith(3);
+			expect(pageChangeSpy.calls).toContainEqual([3]);
 		});
 
 		it('should emit pageChange when clicking page number', async () => {
 			const user = userEvent.setup();
-			const pageChangeSpy = vi.fn();
+			const pageChangeSpy = fn<[number], void>();
 
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 5 },
@@ -200,12 +201,12 @@ describe('Pagination', () => {
 
 			await user.click(screen.getByRole('button', { name: /go to page 3/i }));
 
-			expect(pageChangeSpy).toHaveBeenCalledWith(3);
+			expect(pageChangeSpy.calls).toContainEqual([3]);
 		});
 
 		it('should not emit pageChange when clicking current page', async () => {
 			const user = userEvent.setup();
-			const pageChangeSpy = vi.fn();
+			const pageChangeSpy = fn<[number], void>();
 
 			await render(Pagination, {
 				inputs: { currentPage: 2, totalPages: 5 },
@@ -215,12 +216,12 @@ describe('Pagination', () => {
 
 			await user.click(screen.getByRole('button', { name: /go to page 2/i }));
 
-			expect(pageChangeSpy).not.toHaveBeenCalled();
+			expect(pageChangeSpy.calls).toHaveLength(0);
 		});
 
 		it('should not emit pageChange when clicking disabled previous button', async () => {
 			const user = userEvent.setup();
-			const pageChangeSpy = vi.fn();
+			const pageChangeSpy = fn<[number], void>();
 
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 5 },
@@ -230,12 +231,12 @@ describe('Pagination', () => {
 
 			await user.click(screen.getByRole('button', { name: /go to previous page/i }));
 
-			expect(pageChangeSpy).not.toHaveBeenCalled();
+			expect(pageChangeSpy.calls).toHaveLength(0);
 		});
 
 		it('should not emit pageChange when clicking disabled next button', async () => {
 			const user = userEvent.setup();
-			const pageChangeSpy = vi.fn();
+			const pageChangeSpy = fn<[number], void>();
 
 			await render(Pagination, {
 				inputs: { currentPage: 5, totalPages: 5 },
@@ -245,14 +246,14 @@ describe('Pagination', () => {
 
 			await user.click(screen.getByRole('button', { name: /go to next page/i }));
 
-			expect(pageChangeSpy).not.toHaveBeenCalled();
+			expect(pageChangeSpy.calls).toHaveLength(0);
 		});
 	});
 
 	describe('page size selection', () => {
 		it('should emit pageSizeChange when selecting new page size', async () => {
 			const user = userEvent.setup();
-			const pageSizeChangeSpy = vi.fn();
+			const pageSizeChangeSpy = fn<[number], void>();
 
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 5, pageSize: 25 },
@@ -262,7 +263,7 @@ describe('Pagination', () => {
 
 			await user.selectOptions(screen.getByLabelText(/rows per page/i), '50');
 
-			expect(pageSizeChangeSpy).toHaveBeenCalledWith(50);
+			expect(pageSizeChangeSpy.calls).toContainEqual([50]);
 		});
 
 		it('should show current page size as selected', async () => {

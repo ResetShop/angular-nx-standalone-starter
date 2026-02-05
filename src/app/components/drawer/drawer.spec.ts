@@ -1,16 +1,25 @@
 import { Component, input, output, viewChild } from '@angular/core';
 import { render, screen } from '@testing-library/angular';
+import { clearAllMocks, fn, type MockFn } from '../../../api/container.mock';
 import { Drawer } from './drawer';
 import { DrawerFooter } from './drawer-footer';
 import { DrawerHeader } from './drawer-header';
 
+let mockShowModal: MockFn<[], void>;
+let mockClose: MockFn<[], void>;
+
 function mockDialog(): void {
-	HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+	mockShowModal = fn<[], void>();
+	mockShowModal.mockImplementation(function (this: HTMLDialogElement) {
 		this.setAttribute('open', '');
 	});
-	HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+	HTMLDialogElement.prototype.showModal = mockShowModal;
+
+	mockClose = fn<[], void>();
+	mockClose.mockImplementation(function (this: HTMLDialogElement) {
 		this.removeAttribute('open');
 	});
+	HTMLDialogElement.prototype.close = mockClose;
 }
 
 @Component({
@@ -66,6 +75,7 @@ async function renderAndOpenDrawer(inputs: Record<string, unknown> = {}) {
 
 describe('Drawer', () => {
 	beforeEach(() => {
+		clearAllMocks();
 		mockDialog();
 	});
 
@@ -137,7 +147,7 @@ describe('Drawer', () => {
 
 	describe('Interaction', () => {
 		it('should emit closed on ESC (cancel event)', async () => {
-			const closedSpy = vi.fn();
+			const closedSpy = fn<[], void>();
 
 			const view = await render(DrawerTestHost, {
 				inputs: { title: 'Test' },
@@ -150,11 +160,11 @@ describe('Drawer', () => {
 			const dialog = screen.getByRole('dialog');
 			dialog.dispatchEvent(new Event('cancel', { bubbles: true }));
 
-			expect(closedSpy).toHaveBeenCalled();
+			expect(closedSpy.calls.length).toBeGreaterThan(0);
 		});
 
 		it('should prevent close on ESC when closeOnEscape is false', async () => {
-			const closedSpy = vi.fn();
+			const closedSpy = fn<[], void>();
 
 			const view = await render(DrawerTestHost, {
 				inputs: { title: 'Test', closeOnEscape: false },
@@ -168,12 +178,12 @@ describe('Drawer', () => {
 			const cancelEvent = new Event('cancel', { cancelable: true, bubbles: true });
 			dialog.dispatchEvent(cancelEvent);
 
-			expect(closedSpy).not.toHaveBeenCalled();
+			expect(closedSpy.calls).toHaveLength(0);
 			expect(cancelEvent.defaultPrevented).toBe(true);
 		});
 
 		it('should emit opened when show() is called', async () => {
-			const openedSpy = vi.fn();
+			const openedSpy = fn<[], void>();
 
 			const view = await render(DrawerTestHost, {
 				inputs: { title: 'Test' },
@@ -183,11 +193,11 @@ describe('Drawer', () => {
 			view.fixture.componentInstance.drawer().show();
 			view.fixture.detectChanges();
 
-			expect(openedSpy).toHaveBeenCalled();
+			expect(openedSpy.calls.length).toBeGreaterThan(0);
 		});
 
 		it('should not emit opened twice when show() is called while already open', async () => {
-			const openedSpy = vi.fn();
+			const openedSpy = fn<[], void>();
 
 			const view = await render(DrawerTestHost, {
 				inputs: { title: 'Test' },
@@ -199,7 +209,7 @@ describe('Drawer', () => {
 			drawer.show();
 			view.fixture.detectChanges();
 
-			expect(openedSpy).toHaveBeenCalledTimes(1);
+			expect(openedSpy.calls).toHaveLength(1);
 		});
 	});
 

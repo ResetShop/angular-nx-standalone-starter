@@ -48,13 +48,14 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 	let returnValue: TReturn | undefined;
 	let implementation: ((...args: TArgs) => TReturn) | undefined;
 
-	const mockFn = ((...args: TArgs): TReturn => {
+	// Use a regular function to preserve `this` context when called as a method
+	const mockFn = function (this: unknown, ...args: TArgs): TReturn {
 		mockFn.calls.push(args);
 		if (implementation) {
-			return implementation(...args);
+			return implementation.apply(this, args);
 		}
 		return returnValue as TReturn;
-	}) as MockFn<TArgs, TReturn>;
+	} as MockFn<TArgs, TReturn>;
 
 	mockFn.calls = [];
 
