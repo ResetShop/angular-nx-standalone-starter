@@ -117,6 +117,14 @@ export default [
 					selector: 'PropertyDefinition[static=true]',
 					message: 'Static properties are forbidden. Use a singleton service with providedIn: root instead.',
 				},
+				{
+					selector: 'CallExpression[callee.object.name="vi"][callee.property.name="mock"]',
+					message: 'vi.mock() is forbidden. Use dependency injection and mock classes instead.',
+				},
+				{
+					selector: 'CallExpression[callee.object.name="vi"][callee.property.name="fn"]',
+					message: 'vi.fn() is forbidden. Use fn() from container.mock.ts or mock classes instead.',
+				},
 			],
 			'@stylistic/js/no-extra-semi': 'off',
 			'vitest/no-focused-tests': 'error',
