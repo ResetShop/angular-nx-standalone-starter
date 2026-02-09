@@ -1,8 +1,8 @@
 import { Translation } from '@providers/i18n/translation';
 import { type ColumnDef } from '@tanstack/angular-table';
+import { fn } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { fn } from '../../../api/container.mock';
 import { DataTable } from './data-table';
 import { DataTableCellDef } from './data-table-cell-def';
 

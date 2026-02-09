@@ -1,6 +1,7 @@
+import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
+import { resetTestCradle, setTestCradle } from '../../container.mock';
 import type { PaginatedResponse } from '../../interfaces';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PermissionData, RoleData } from '../access/role/interfaces';

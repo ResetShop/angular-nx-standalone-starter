@@ -3,8 +3,8 @@ import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import type { IPermission } from '@domain/access/permission.interface';
 import type { IUser } from '@domain/user/user.interface';
 import { AuthApiService } from '@providers/auth/auth';
+import { advanceTimersByTime, clearAllMocks, fn, useFakeTimers, useRealTimers, type MockFn } from '@test-utils';
 import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
-import { clearAllMocks, fn, type MockFn } from '../../../api/container.mock';
 import { AuthStore } from './auth.store';
 
 function createMockUser(overrides: Partial<IUser> = {}): IUser {
@@ -248,17 +248,17 @@ describe('AuthStore', () => {
 		});
 
 		it('should set minLoadingTimeElapsed after timeout', () => {
-			vi.useFakeTimers();
+			useFakeTimers();
 
 			store.restoreFromStorage();
 
 			expect(store.minLoadingTimeElapsed()).toBe(false);
 
-			vi.advanceTimersByTime(1000);
+			advanceTimersByTime(1000);
 
 			expect(store.minLoadingTimeElapsed()).toBe(true);
 
-			vi.useRealTimers();
+			useRealTimers();
 		});
 	});
 
@@ -272,7 +272,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should compute isLoadingComplete based on flags', () => {
-			vi.useFakeTimers();
+			useFakeTimers();
 
 			expect(store.isLoadingComplete()).toBe(false);
 
@@ -282,10 +282,10 @@ describe('AuthStore', () => {
 			store.setGuardValidated(true);
 			expect(store.isLoadingComplete()).toBe(false);
 
-			vi.advanceTimersByTime(1000);
+			advanceTimersByTime(1000);
 			expect(store.isLoadingComplete()).toBe(true);
 
-			vi.useRealTimers();
+			useRealTimers();
 		});
 
 		it('should compute userPermissions from currentUser', () => {

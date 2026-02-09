@@ -1,7 +1,7 @@
 import { Component, input, output, viewChild } from '@angular/core';
+import { clearAllMocks, fn, type MockFn } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { clearAllMocks, fn, type MockFn } from '../../../api/container.mock';
 import { ConfirmDialog } from './confirm-dialog';
 
 let mockShowModal: MockFn<[], void>;
