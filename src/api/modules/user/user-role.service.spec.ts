@@ -1,5 +1,5 @@
+import { fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { fn } from '../../container.mock';
 import type { PermissionData, RoleData } from '../access/role/interfaces';
 import type { IUserRoleRepository, PaginatedResponse, UserData } from './interfaces';
 import { USER_ROLE_ERRORS, UserRoleService } from './user-role.service';
