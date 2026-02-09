@@ -71,7 +71,7 @@ describe('Role Mapper', () => {
 			expect(role.code).toBe('admin');
 			expect(role.name).toBe('Administrator');
 			expect(role.description).toBe('Full access');
-			expect(role.permissions.length).toBe(2);
+			expect(role.permissions).toHaveLength(2);
 		});
 
 		it('should handle null description', () => {

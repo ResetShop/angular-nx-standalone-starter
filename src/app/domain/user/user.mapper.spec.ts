@@ -48,7 +48,7 @@ describe('User Mapper', () => {
 				token: 'token123',
 			});
 
-			expect(user.permissions.length).toBe(1);
+			expect(user.permissions).toHaveLength(1);
 			expect(user.hasPermission('users', 'read')).toBe(true);
 		});
 
