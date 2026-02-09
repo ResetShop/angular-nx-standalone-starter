@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
-import { IPermission } from '@domain/access/permission.interface';
+import type { IPermission } from '@domain/access/permission.interface';
 import type { IUser } from '@domain/user/user.interface';
 import { AuthApiService } from '@providers/auth/auth';
 import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
