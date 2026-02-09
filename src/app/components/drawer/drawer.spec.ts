@@ -160,7 +160,7 @@ describe('Drawer', () => {
 			const dialog = screen.getByRole('dialog');
 			dialog.dispatchEvent(new Event('cancel', { bubbles: true }));
 
-			expect(closedSpy.calls.length).toBeGreaterThan(0);
+			expect(closedSpy.calls).toHaveLength(1);
 		});
 
 		it('should prevent close on ESC when closeOnEscape is false', async () => {
@@ -193,7 +193,7 @@ describe('Drawer', () => {
 			view.fixture.componentInstance.drawer().show();
 			view.fixture.detectChanges();
 
-			expect(openedSpy.calls.length).toBeGreaterThan(0);
+			expect(openedSpy.calls).toHaveLength(1);
 		});
 
 		it('should not emit opened twice when show() is called while already open', async () => {

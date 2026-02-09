@@ -132,7 +132,7 @@ describe('ConfirmDialog', () => {
 			const user = userEvent.setup();
 			await user.click(screen.getByRole('button', { name: /confirm/i }));
 
-			expect(confirmedSpy.calls.length).toBeGreaterThan(0);
+			expect(confirmedSpy.calls).toHaveLength(1);
 		});
 
 		it('should emit cancelled when cancel button is clicked', async () => {
@@ -149,7 +149,7 @@ describe('ConfirmDialog', () => {
 			const user = userEvent.setup();
 			await user.click(screen.getByRole('button', { name: /cancel/i }));
 
-			expect(cancelledSpy.calls.length).toBeGreaterThan(0);
+			expect(cancelledSpy.calls).toHaveLength(1);
 		});
 
 		it('should emit cancelled on native cancel event (ESC)', async () => {
@@ -167,7 +167,7 @@ describe('ConfirmDialog', () => {
 			const cancelEvent = new Event('cancel', { cancelable: true, bubbles: true });
 			dialog.dispatchEvent(cancelEvent);
 
-			expect(cancelledSpy.calls.length).toBeGreaterThan(0);
+			expect(cancelledSpy.calls).toHaveLength(1);
 			expect(cancelEvent.defaultPrevented).toBe(true);
 		});
 
