@@ -15,6 +15,7 @@
 			"Bash(gh issue view:*)",
 			"Bash(gh label edit:*)",
 			"Bash(gh label list:*)",
+			"Bash(gh pr create:*)",
 			"Bash(gh pr diff:*)",
 			"Bash(gh pr edit:*)",
 			"Bash(gh pr list:*)",
