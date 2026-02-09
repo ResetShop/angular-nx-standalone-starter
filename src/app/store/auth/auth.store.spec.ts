@@ -1,28 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import type { IPermission } from '@domain/access/permission.interface';
-import type { IUser } from '@domain/user/user.interface';
+import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
 import { advanceTimersByTime, clearAllMocks, fn, useFakeTimers, useRealTimers, type MockFn } from '@test-utils';
 import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
 import { AuthStore } from './auth.store';
-
-function createMockUser(overrides: Partial<IUser> = {}): IUser {
-	return {
-		id: 1,
-		email: 'test@example.com',
-		firstName: 'Test',
-		lastName: 'User',
-		fullName: 'Test User',
-		roles: [],
-		permissions: [],
-		token: 'mock-token',
-		hasPermission: () => false,
-		hasPermissionByIdentifier: () => false,
-		hasRole: () => false,
-		...overrides,
-	};
-}
 
 describe('AuthStore', () => {
 	let store: InstanceType<typeof AuthStore>;
