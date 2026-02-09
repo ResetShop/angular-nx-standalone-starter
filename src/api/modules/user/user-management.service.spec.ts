@@ -143,7 +143,7 @@ describe('UserManagementService', () => {
 
 			expect(result).toEqual(testManagedUser);
 			expect(mockFindByEmail.calls).toEqual([['test@example.com']]);
-			expect(mockCreate.calls.length).toBe(1);
+			expect(mockCreate.calls).toHaveLength(1);
 			expect(mockReplaceUserRoles.calls).toEqual([[1, [1]]]);
 		});
 
@@ -160,7 +160,7 @@ describe('UserManagementService', () => {
 			});
 
 			expect(result.roles).toEqual([]);
-			expect(mockReplaceUserRoles.calls.length).toBe(0);
+			expect(mockReplaceUserRoles.calls).toHaveLength(0);
 		});
 
 		it('should throw EMAIL_EXISTS when email is taken', async () => {
