@@ -15,7 +15,7 @@ type MockCradle = {
 export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> {
 	(...args: TArgs): TReturn;
 	/** All recorded calls to this mock function */
-	calls: TArgs[];
+	readonly calls: readonly TArgs[];
 	/** Set a resolved promise as the return value */
 	mockResolvedValue: (value: Awaited<TReturn>) => MockFn<TArgs, TReturn>;
 	/** Set a rejected promise as the return value */
@@ -92,8 +92,11 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 }
 
 /**
- * Clear all calls from all mock functions created with fn().
+ * Clear all recorded calls from every mock function created with fn().
  * Call this in beforeEach to ensure clean state between tests.
+ *
+ * Only clears call history — configured return values and implementations
+ * are retained so mocks don't need to be reconfigured each test.
  */
 export function clearAllMocks(): void {
 	for (const mock of mockRegistry) {
