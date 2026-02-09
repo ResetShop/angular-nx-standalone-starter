@@ -1,26 +1,10 @@
 import { Component, input, output, viewChild } from '@angular/core';
-import { clearAllMocks, fn, type MockFn } from '@test-utils';
+import { mockDialog } from '@mocks/dialog.mock';
+import { clearAllMocks, fn } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import { Drawer } from './drawer';
 import { DrawerFooter } from './drawer-footer';
 import { DrawerHeader } from './drawer-header';
-
-let mockShowModal: MockFn<[], void>;
-let mockClose: MockFn<[], void>;
-
-function mockDialog(): void {
-	mockShowModal = fn<[], void>();
-	mockShowModal.mockImplementation(function (this: HTMLDialogElement) {
-		this.setAttribute('open', '');
-	});
-	HTMLDialogElement.prototype.showModal = mockShowModal;
-
-	mockClose = fn<[], void>();
-	mockClose.mockImplementation(function (this: HTMLDialogElement) {
-		this.removeAttribute('open');
-	});
-	HTMLDialogElement.prototype.close = mockClose;
-}
 
 @Component({
 	selector: 'app-drawer-test-host',
