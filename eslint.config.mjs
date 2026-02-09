@@ -54,6 +54,7 @@ const commonRestrictedSyntax = [
 ];
 
 const viRestrictedSyntax = [
+	// Mocking
 	{
 		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="mock"]',
 		message: 'vi.mock() is forbidden. Use dependency injection and mock classes instead.',
@@ -62,6 +63,7 @@ const viRestrictedSyntax = [
 		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="fn"]',
 		message: 'vi.fn() is forbidden. Use fn() from test-utils.ts instead.',
 	},
+	// Timers
 	{
 		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="useFakeTimers"]',
 		message: 'vi.useFakeTimers() is forbidden. Use useFakeTimers() from test-utils.ts instead.',
