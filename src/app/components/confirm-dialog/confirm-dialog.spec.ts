@@ -1,25 +1,9 @@
 import { Component, input, output, viewChild } from '@angular/core';
-import { clearAllMocks, fn, type MockFn } from '@test-utils';
+import { mockClose, mockDialog, mockShowModal } from '@mocks/dialog.mock';
+import { clearAllMocks, fn } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { ConfirmDialog } from './confirm-dialog';
-
-let mockShowModal: MockFn<[], void>;
-let mockClose: MockFn<[], void>;
-
-function mockDialog(): void {
-	mockShowModal = fn<[], void>();
-	mockShowModal.mockImplementation(function (this: HTMLDialogElement) {
-		this.setAttribute('open', '');
-	});
-	HTMLDialogElement.prototype.showModal = mockShowModal;
-
-	mockClose = fn<[], void>();
-	mockClose.mockImplementation(function (this: HTMLDialogElement) {
-		this.removeAttribute('open');
-	});
-	HTMLDialogElement.prototype.close = mockClose;
-}
 
 @Component({
 	selector: 'app-confirm-dialog-test-host',
