@@ -20,7 +20,14 @@ export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> 
 	mockClear: () => void;
 }
 
-/** Registry of all created mock functions for bulk operations */
+/**
+ * Registry of all created mock functions for bulk operations.
+ *
+ * This is module-scoped mutable state shared across all tests in a single
+ * worker thread. Vitest runs each test file in its own worker, so the
+ * registry is isolated per file. Call `resetAllMocks()` in `afterAll()`
+ * to release references after a suite completes.
+ */
 const mockRegistry: Set<MockFn> = new Set();
 
 /**
