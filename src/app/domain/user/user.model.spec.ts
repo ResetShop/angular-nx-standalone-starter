@@ -93,7 +93,7 @@ describe('User', () => {
 				token: 'token123',
 			});
 
-			expect(user.permissions.length).toBe(4);
+			expect(user.permissions).toHaveLength(4);
 		});
 
 		it('should deduplicate permissions across roles', () => {
@@ -128,7 +128,7 @@ describe('User', () => {
 				token: 'token123',
 			});
 
-			expect(user.permissions.length).toBe(1);
+			expect(user.permissions).toHaveLength(1);
 			expect(user.permissions[0].identifier).toBe('users:read');
 		});
 

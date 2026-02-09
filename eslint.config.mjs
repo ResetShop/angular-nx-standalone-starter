@@ -28,6 +28,7 @@ export default [
 			...testingLibrary.configs['flat/angular'].rules,
 			...vitest.configs.recommended.rules,
 			'vitest/expect-expect': 'off',
+			'vitest/prefer-to-have-length': 'error',
 		},
 	},
 	{
