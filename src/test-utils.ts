@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { afterAll, vi } from 'vitest';
 
 /**
  * Mock function interface - provides call tracking and return value control.
@@ -23,12 +23,16 @@ export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> 
 /**
  * Registry of all created mock functions for bulk operations.
  *
- * This is module-scoped mutable state shared across all tests in a single
- * worker thread. Vitest runs each test file in its own worker, so the
- * registry is isolated per file. Call `resetAllMocks()` in `afterAll()`
- * to release references after a suite completes.
+ * Module-scoped — Vitest runs each test file in its own worker, so
+ * the registry is isolated per file. An afterAll hook registered at
+ * module load time automatically clears the registry when the suite
+ * completes, preventing memory leaks without manual cleanup.
  */
 const mockRegistry: Set<MockFn> = new Set();
+
+afterAll(() => {
+	resetAllMocks();
+});
 
 /**
  * Create a mock function that tracks calls and supports return value configuration.
