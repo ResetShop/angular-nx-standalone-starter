@@ -105,6 +105,17 @@ export function clearAllMocks(): void {
 }
 
 /**
+ * Clear all mock call history and remove all mock references from the registry.
+ * Call this in afterAll to release mock references after a test suite completes.
+ */
+export function resetAllMocks(): void {
+	for (const mock of mockRegistry) {
+		mock.mockClear();
+	}
+	mockRegistry.clear();
+}
+
+/**
  * Test cradle holder for swapping container dependencies in tests.
  * This allows tests to provide mock services without using vi.mock.
  *
