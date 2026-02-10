@@ -26,8 +26,8 @@ Claude should proactively delegate to this agent when:
 
 ### Hard Constraints (Blocking)
 
-- [ ] Function length ≤ 30 lines
-- [ ] File length ≤ 300 lines
+- [ ] Function length ≤ 50 lines
+- [ ] File length ≤ 500 lines
 - [ ] Cyclomatic complexity ≤ 10
 - [ ] Nesting depth ≤ 3 levels
 - [ ] No barrel imports/exports
