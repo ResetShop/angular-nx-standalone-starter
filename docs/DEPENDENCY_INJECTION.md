@@ -258,6 +258,8 @@ This project avoids Vitest-specific mocking utilities. The `src/test-utils.ts` m
 4. **Predictable behavior** — No global module mocking side effects
 5. **ESLint enforcement** — `viRestrictedSyntax` rules forbid direct `vi.fn()`, `vi.mock()`, and timer calls
 
+For the full testing guidelines, see [CLAUDE.md Testing Guidelines](../CLAUDE.md#testing-guidelines).
+
 ### Integration Testing
 
 For integration tests, use the real container:
