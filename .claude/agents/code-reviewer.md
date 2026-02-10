@@ -15,10 +15,22 @@ Claude should proactively delegate to this agent when:
 - User mentions "done", "finished", "ready for review"
 - Multiple commits have been made on a feature branch
 
+## Step 0: Load Reference Files
+
+Before reviewing, read ALL reference files to have full project context:
+
+1. Read `.claude/references/testing.md`
+2. Read `.claude/references/guiding-principles.md`
+3. Read `.claude/references/cupid.md`
+4. Read `.claude/references/solid.md`
+5. Read `.claude/references/clean-architecture.md`
+6. Read `.claude/references/cross-reference.md`
+7. Read `.claude/references/domain-model.md`
+
 ## Review Process
 
 1. **Identify changes** - Run `git diff main...HEAD` to see all changes on the branch
-2. **Review against CLAUDE.md** guidelines
+2. **Review against CLAUDE.md and reference files** guidelines
 3. **Check test coverage** - Verify tests exist for new code
 4. **Run build and tests** - Ensure nothing is broken
 
