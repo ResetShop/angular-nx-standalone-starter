@@ -257,7 +257,7 @@ nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
 - Test **user behavior**, not implementation details
 - Use `fn()` from `@test-utils` for mock functions — **never** use `vi.fn()`, `vi.mock()`, or `jest.fn()` directly
 - Add an updated entry in the Bruno API client workspace for each new endpoint
-- Update the entries in the Bruno API client worskspace if an endpoint is updated
+- Update the entries in the Bruno API client workspace if an endpoint is updated
 
 ### Query Priority
 
