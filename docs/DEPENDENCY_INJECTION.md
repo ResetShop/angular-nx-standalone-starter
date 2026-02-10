@@ -134,19 +134,28 @@ This project uses a custom test cradle system that avoids `vi.mock` and `vi.fn()
 
 ### Test Utilities Overview
 
-The `container.mock.ts` file provides:
+Mock utilities are split across two modules:
 
-- **`fn<TArgs, TReturn>()`** - Creates a type-safe mock function with call tracking
-- **`setTestCradle()`** - Sets mock services for tests
-- **`resetTestCradle()`** - Clears mock services after tests
-- **`clearAllMocks()`** - Clears call history from all mock functions
+**`@test-utils` (`src/test-utils.ts`)** — General-purpose mock utilities used by all tests:
+
+- **`fn<TArgs, TReturn>()`** — Creates a type-safe mock function with call tracking
+- **`clearAllMocks()`** — Clears call history from all registered mock functions
+- **`resetAllMocks()`** — Clears call history and removes all mock references
+- **`useFakeTimers()`** / **`advanceTimersByTime(ms)`** / **`useRealTimers()`** — Timer wrappers
+
+**`container.mock.ts`** — DI-specific cradle utilities for backend tests:
+
+- **`setTestCradle()`** — Sets mock services for tests
+- **`resetTestCradle()`** — Clears mock services after tests
+- **`createMockCradle()`** — Type-safe builder for partial cradle objects
 
 ### Unit Testing Controllers
 
 Use `setTestCradle()` to provide mock services without `vi.mock`:
 
 ```typescript
-import { clearAllMocks, fn, resetTestCradle, setTestCradle } from '../../container.mock';
+import { clearAllMocks, fn } from '@test-utils';
+import { resetTestCradle, setTestCradle } from '../../container.mock';
 
 describe('MyController', () => {
 	// Create typed mock functions
@@ -215,7 +224,7 @@ For service tests, you can inject mocks directly via the constructor:
 
 ```typescript
 import { MyService } from './my.service';
-import { fn } from '../../container.mock';
+import { fn } from '@test-utils';
 
 describe('MyService', () => {
 	const mockFindById = fn<[number], Promise<MyData | null>>();
@@ -241,12 +250,13 @@ describe('MyService', () => {
 
 ### Why Not vi.mock or vi.fn?
 
-This project avoids Vitest-specific mocking utilities for:
+This project avoids Vitest-specific mocking utilities. The `src/test-utils.ts` module (imported via `@test-utils`) provides a centralized wrapper layer, and ESLint rules enforce its usage across all test files.
 
-1. **Framework independence** - Tests work with any test runner
-2. **Explicit dependency injection** - Clear which services are mocked
-3. **Type safety** - `fn<TArgs, TReturn>()` provides full type inference
-4. **Predictable behavior** - No global module mocking side effects
+1. **Framework independence** — Tests work with any test runner
+2. **Explicit dependency injection** — Clear which services are mocked
+3. **Type safety** — `fn<TArgs, TReturn>()` provides full type inference
+4. **Predictable behavior** — No global module mocking side effects
+5. **ESLint enforcement** — `viRestrictedSyntax` rules forbid direct `vi.fn()`, `vi.mock()`, and timer calls
 
 ### Integration Testing
 
