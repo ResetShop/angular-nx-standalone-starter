@@ -34,6 +34,7 @@ Claude should proactively delegate to this agent when:
 - [ ] No untyped `any` without `// REASON:` comment
 - [ ] No `// @ts-ignore` without linked issue
 - [ ] No `console.log` (remove before commit)
+- [ ] No direct `vi.fn()`, `vi.mock()`, or timer calls (use `@test-utils` wrappers)
 
 ### SOLID Principles
 
@@ -65,6 +66,9 @@ Claude should proactively delegate to this agent when:
 - [ ] Tests user behavior, not implementation
 - [ ] Query priority: getByRole > getByLabelText > getByText > getByTestId
 - [ ] Async behavior uses waitFor or findBy queries
+- [ ] Mock functions use `fn()` from `@test-utils` (not `vi.fn()` or `jest.fn()`)
+- [ ] Timer utilities imported from `@test-utils` (not `vi.useFakeTimers()` directly)
+- [ ] `clearAllMocks()` called in `beforeEach` for test isolation
 
 ## Output Format
 
