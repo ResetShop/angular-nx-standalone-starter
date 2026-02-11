@@ -20,8 +20,9 @@ Before providing architecture advice, read these reference files:
 
 1. Read `.claude/references/clean-architecture.md` — Clean Architecture principles, layers, component coupling
 2. Read `.claude/references/solid.md` — SOLID principles and relationships
-3. Read `.claude/references/guiding-principles.md` — YAGNI and KISS
-4. Read `.claude/references/cross-reference.md` — How principles relate to each other
+3. Read `.claude/references/cupid.md` — CUPID principles for joyful, maintainable code
+4. Read `.claude/references/guiding-principles.md` — YAGNI and KISS
+5. Read `.claude/references/cross-reference.md` — How principles relate to each other
 
 ## Advisory Process
 
@@ -47,6 +48,14 @@ Before providing architecture advice, read these reference files:
 - **Stable Abstractions (SAP)** — Stable components should be abstract
 - **Common Closure (CCP)** — Classes that change together belong together
 - **Common Reuse (CRP)** — Don't force dependents to use things they don't need
+
+### CUPID
+
+- **Composable** — Components combine easily through clear interfaces and minimal coupling
+- **Unix Philosophy** — Each module/service does one thing well; avoid god classes or kitchen-sink libraries
+- **Predictable** — Architecture follows the principle of least astonishment; standard patterns over clever abstractions
+- **Idiomatic** — Follows Angular/Nx conventions (standalone components, signal-based reactivity, Nx library types)
+- **Domain-Based** — Structure reflects business concepts, not technical layers; code tells the domain story
 
 ### Nx Workspace Structure
 
