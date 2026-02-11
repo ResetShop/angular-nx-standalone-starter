@@ -349,6 +349,15 @@ Use the Task tool to delegate to specialized agents at each development phase:
 | Review         | Pre-review passes                    | `code-reviewer` (reads ALL references)                                |
 | Maintenance    | On-demand                            | `refactoring-specialist`, `migration-planner`, `documentation-writer` |
 
+**Common Pipelines:**
+
+| Scenario    | Agent Sequence                                                                                                        |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- |
+| New feature | `architecture-advisor` → `domain-model-advisor` → implement → `test-generator` → `security-auditor` → `code-reviewer` |
+| Bug fix     | implement → `test-generator` → `code-reviewer`                                                                        |
+| Refactoring | `refactoring-specialist` → `test-generator` → `code-reviewer`                                                         |
+| Upgrade     | `migration-planner` → implement → `test-generator` → `code-reviewer`                                                  |
+
 **Invocation:** Use the Task tool to delegate to `<agent-name>` agent. Example:
 
 ```
