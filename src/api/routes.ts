@@ -11,6 +11,7 @@ export const PUBLIC_AUTH_ROUTES = [
 	'/api/auth/refresh',
 	'/api/auth/logout',
 	'/api/auth/cleanup-tokens',
+	'/api/health', // Health checks must be public for load balancers/monitoring
 ] as const;
 
 export default [
