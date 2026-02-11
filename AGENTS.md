@@ -1,3 +1,9 @@
+# AI Agent Guidelines
+
+> **Note:** This file is a standard AI-agent instruction file (`AGENTS.md`) auto-managed by the **Nx MCP server** between the `nx configuration` markers below. It provides Nx-specific guidelines for AI tools.
+>
+> For **Claude Code specialized agents** (code-reviewer, security-auditor, test-generator, etc.), see [`.claude/agents/`](.claude/agents/).
+
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
 
