@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class NavigationState {
 	private readonly expandedItems = signal<Set<string>>(new Set());
 

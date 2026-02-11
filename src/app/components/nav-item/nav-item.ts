@@ -8,6 +8,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink, RouterLinkActive],
+	providers: [NavigationState],
 	styles: `
 		@reference "tailwindcss";
 
