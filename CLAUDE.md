@@ -12,8 +12,9 @@
 4. [Testing Guidelines](#testing-guidelines)
 5. [Code Architecture Guidelines](#code-architecture-guidelines)
 6. [Error Handling Guidelines](#error-handling-guidelines)
-7. [Development Workflow](#development-workflow)
-8. [Automated Code Review](#automated-code-review)
+7. [Domain Model Guidelines](#domain-model-guidelines)
+8. [Development Workflow](#development-workflow)
+9. [Automated Code Review](#automated-code-review)
 
 ---
 
