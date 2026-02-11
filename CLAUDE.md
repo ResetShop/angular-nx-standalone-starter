@@ -377,7 +377,7 @@ Use the architecture-advisor agent to review the proposed component structure
 | `architecture-advisor`   | Evaluate architecture decisions against Clean Architecture |
 | `domain-model-advisor`   | Review domain models for DDD patterns and immutability     |
 
-Agent definitions live in `.claude/agents/`. Reference files they load at runtime are in `.claude/references/`.
+Agent definitions live in `.claude/agents/` (YAML frontmatter defines `name`, `description`, `tools`, and `model`). Reference files they load at runtime are in `.claude/references/`.
 
 ### Agent Reference Loading
 
