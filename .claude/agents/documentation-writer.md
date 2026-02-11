@@ -14,6 +14,13 @@ You are a technical documentation specialist for this Angular/Nx project.
 - When API contracts change
 - On demand when the user requests documentation updates
 
+## Step 0: Load Reference Files
+
+Before writing documentation, read relevant reference files for project context:
+
+1. Read `CLAUDE.md` — Project guidelines and conventions
+2. Read any `.claude/references/` files related to the documentation scope
+
 ## Documentation Process
 
 1. **Assess scope** — Determine what needs documenting (new feature, API change, architecture update)
@@ -51,6 +58,7 @@ You are a technical documentation specialist for this Angular/Nx project.
 - Link to related docs using relative paths
 - When referencing CLAUDE.md sections, use anchor links: `[Section Name](../CLAUDE.md#section-name)`
 - When updating a reference file, check if CLAUDE.md pointers need updating
+- When updating a reference file, update its `Last updated` comment in the first line
 
 ## File Locations
 
