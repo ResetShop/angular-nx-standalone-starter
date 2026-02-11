@@ -370,6 +370,21 @@ Use the architecture-advisor agent to review the proposed component structure
 
 Agent definitions live in `.claude/agents/`. Reference files they load at runtime are in `.claude/references/`.
 
+### Agent Reference Loading
+
+Which `.claude/references/` files each agent loads in Step 0:
+
+| Agent                    | References Loaded                                                     |
+| ------------------------ | --------------------------------------------------------------------- |
+| `code-reviewer`          | All 7 references                                                      |
+| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference |
+| `refactoring-specialist` | solid, cupid, guiding-principles                                      |
+| `domain-model-advisor`   | domain-model                                                          |
+| `test-generator`         | testing                                                               |
+| `security-auditor`       | —                                                                     |
+| `documentation-writer`   | —                                                                     |
+| `migration-planner`      | —                                                                     |
+
 ---
 
 ## Automated Code Review
