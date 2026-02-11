@@ -1,17 +1,26 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { rxResource } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { Badge } from '../../../../components/badge/badge';
+
+interface DatabaseCheck {
+	readonly status: 'healthy' | 'unhealthy';
+	readonly responseTimeMs: number | null;
+	readonly error?: string;
+}
 
 interface HealthApiResponse {
-	message: string;
-	timestamp: string;
-	status: string;
+	readonly status: string;
+	readonly timestamp: string;
+	readonly checks: {
+		readonly database: DatabaseCheck;
+	};
 }
 
 @Component({
 	selector: 'app-health',
-	imports: [DatePipe],
+	imports: [DatePipe, Badge],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="rounded-md border-1 border-gray-200 p-5">
@@ -23,13 +32,39 @@ interface HealthApiResponse {
 			} @else if (healthResource.error()) {
 				<p class="text-error-100">Error: {{ healthResource.error()?.message }}</p>
 			} @else if (healthResource.value(); as data) {
-				<div class="rounded-sm bg-gray-100 p-4">
-					<p class="mb-2"><strong>Message:</strong> {{ data.message }}</p>
-					<p class="mb-2"><strong>Status:</strong> {{ data.status }}</p>
+				<div class="mb-4 rounded-sm bg-gray-100 p-4">
+					<p class="mb-2 flex items-center gap-1">
+						<strong>Status:</strong>
+						<span [variant]="data.status === 'healthy' ? 'default' : 'destructive'" appBadge>
+							{{ data.status }}
+						</span>
+					</p>
 					<p class="mb-2">
 						<strong>Date & Time:</strong>
-						{{ data.timestamp | date: 'yyyy/mm/dd HH:mm (z)' }}
+						{{ data.timestamp | date: 'yyyy/MM/dd HH:mm (z)' }}
 					</p>
+				</div>
+				<h2 class="mb-2 text-base font-semibold">Checks</h2>
+				<div class="rounded-sm bg-gray-100 p-4">
+					<h3 class="mb-2 font-medium">Database</h3>
+					<p class="mb-2 flex items-center gap-1">
+						<strong>Status:</strong>
+						<span [variant]="data.checks.database.status === 'healthy' ? 'default' : 'destructive'" appBadge>
+							{{ data.checks.database.status }}
+						</span>
+					</p>
+					@if (data.checks.database.responseTimeMs !== null) {
+						<p class="mb-2">
+							<strong>Response Time:</strong>
+							{{ data.checks.database.responseTimeMs }}ms
+						</p>
+					}
+					@if (data.checks.database.error) {
+						<p class="text-error-100">
+							<strong>Error:</strong>
+							{{ data.checks.database.error }}
+						</p>
+					}
 				</div>
 			}
 		</div>
