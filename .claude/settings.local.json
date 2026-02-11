@@ -15,6 +15,7 @@
 			"Bash(gh issue view:*)",
 			"Bash(gh label edit:*)",
 			"Bash(gh label list:*)",
+			"Bash(gh pr create:*)",
 			"Bash(gh pr diff:*)",
 			"Bash(gh pr edit:*)",
 			"Bash(gh pr list:*)",
@@ -42,12 +43,14 @@
 			"Bash(npm run test:*)",
 			"Bash(npm run test:e2e:*)",
 			"Bash(npm run test:run:*)",
+			"Bash(npx eslint:*)",
 			"Bash(npx vitest:*)",
 			"WebFetch(domain:angularprimitives.com)",
 			"WebFetch(domain:ui.shadcn.com)",
 			"WebSearch",
 			"mcp__nx-mcp__nx_workspace_path",
-			"Bash(npm cache clean:*)"
+			"Bash(npm cache clean:*)",
+			"Bash(npx tsc:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,

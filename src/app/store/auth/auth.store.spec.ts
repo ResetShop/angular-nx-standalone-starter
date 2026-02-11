@@ -1,31 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
-import { IPermission } from '@domain/access/permission.interface';
-import type { IUser } from '@domain/user/user.interface';
+import type { IPermission } from '@domain/access/permission.interface';
+import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
-import { firstValueFrom, NEVER, of, throwError } from 'rxjs';
+import { advanceTimersByTime, clearAllMocks, fn, useFakeTimers, useRealTimers, type MockFn } from '@test-utils';
+import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
 import { AuthStore } from './auth.store';
-
-function createMockUser(overrides: Partial<IUser> = {}): IUser {
-	return {
-		id: 1,
-		email: 'test@example.com',
-		firstName: 'Test',
-		lastName: 'User',
-		fullName: 'Test User',
-		roles: [],
-		permissions: [],
-		token: 'mock-token',
-		hasPermission: () => false,
-		hasPermissionByIdentifier: () => false,
-		hasRole: () => false,
-		...overrides,
-	};
-}
 
 describe('AuthStore', () => {
 	let store: InstanceType<typeof AuthStore>;
-	let authApiMock: Record<'login' | 'logout' | 'refreshToken' | 'getMe', ReturnType<typeof vi.fn>>;
+	let authApiMock: {
+		login: MockFn<[{ email: string; password: string }], Observable<LoginResponse>>;
+		logout: MockFn<[], Observable<void>>;
+		refreshToken: MockFn<[], Observable<RefreshResponse>>;
+		getMe: MockFn<[], Observable<unknown>>;
+	};
 
 	const mockLoginResponse: LoginResponse = {
 		user: {
@@ -42,11 +31,13 @@ describe('AuthStore', () => {
 	};
 
 	beforeEach(() => {
+		clearAllMocks();
+
 		authApiMock = {
-			login: vi.fn(),
-			logout: vi.fn(),
-			refreshToken: vi.fn(),
-			getMe: vi.fn(),
+			login: fn(),
+			logout: fn(),
+			refreshToken: fn(),
+			getMe: fn(),
 		};
 
 		TestBed.configureTestingModule({
@@ -59,7 +50,6 @@ describe('AuthStore', () => {
 	});
 
 	afterEach(() => {
-		vi.restoreAllMocks();
 		localStorage.clear();
 	});
 
@@ -241,17 +231,17 @@ describe('AuthStore', () => {
 		});
 
 		it('should set minLoadingTimeElapsed after timeout', () => {
-			vi.useFakeTimers();
+			useFakeTimers();
 
 			store.restoreFromStorage();
 
 			expect(store.minLoadingTimeElapsed()).toBe(false);
 
-			vi.advanceTimersByTime(1000);
+			advanceTimersByTime(1000);
 
 			expect(store.minLoadingTimeElapsed()).toBe(true);
 
-			vi.useRealTimers();
+			useRealTimers();
 		});
 	});
 
@@ -265,7 +255,7 @@ describe('AuthStore', () => {
 		});
 
 		it('should compute isLoadingComplete based on flags', () => {
-			vi.useFakeTimers();
+			useFakeTimers();
 
 			expect(store.isLoadingComplete()).toBe(false);
 
@@ -275,10 +265,10 @@ describe('AuthStore', () => {
 			store.setGuardValidated(true);
 			expect(store.isLoadingComplete()).toBe(false);
 
-			vi.advanceTimersByTime(1000);
+			advanceTimersByTime(1000);
 			expect(store.isLoadingComplete()).toBe(true);
 
-			vi.useRealTimers();
+			useRealTimers();
 		});
 
 		it('should compute userPermissions from currentUser', () => {
