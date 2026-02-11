@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fn } from '../../container.mock';
+import { advanceTimersByTimeAsync, fn, useFakeTimers, useRealTimers } from '@test-utils';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { HealthStatus } from './health.constants';
 import { HealthService } from './health.service';
 
@@ -13,7 +13,7 @@ describe('HealthService', () => {
 
 	afterEach(() => {
 		mockExecute.mockClear();
-		vi.useRealTimers();
+		useRealTimers();
 	});
 
 	describe('checkHealth', () => {
@@ -39,14 +39,14 @@ describe('HealthService', () => {
 		});
 
 		it('should return unhealthy status with timeout error when database hangs', async () => {
-			vi.useFakeTimers();
+			useFakeTimers();
 
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			mockExecute.mockImplementation(() => new Promise<unknown>(() => {}));
 
 			const healthPromise = healthService.checkHealth();
 
-			await vi.advanceTimersByTimeAsync(5000);
+			await advanceTimersByTimeAsync(5000);
 
 			const result = await healthPromise;
 

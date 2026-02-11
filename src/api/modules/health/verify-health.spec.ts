@@ -1,5 +1,5 @@
+import { fn } from '@test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { fn } from '../../container.mock';
 import { HealthStatus } from './health.constants';
 import type { HealthCheckResponse } from './interfaces';
 import { verifyHealth, type VerifyHealthDependencies } from './verify-health';
