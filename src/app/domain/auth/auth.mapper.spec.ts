@@ -51,7 +51,7 @@ describe('Auth Mapper', () => {
 			expect(user.firstName).toBe('John');
 			expect(user.lastName).toBe('Doe');
 			expect(user.token).toBe('token123');
-			expect(user.roles.length).toBe(1);
+			expect(user.roles).toHaveLength(1);
 			expect(user.roles[0].code).toBe('admin');
 			expect(user.hasPermission('users', 'read')).toBe(true);
 		});
@@ -97,7 +97,7 @@ describe('Auth Mapper', () => {
 			expect(user.firstName).toBe('John');
 			expect(user.lastName).toBe('Doe');
 			expect(user.token).toBe('stored-token');
-			expect(user.roles.length).toBe(1);
+			expect(user.roles).toHaveLength(1);
 			expect(user.hasPermission('users', 'read')).toBe(true);
 		});
 	});
@@ -130,7 +130,7 @@ describe('Auth Mapper', () => {
 			expect(storageData.firstName).toBe('John');
 			expect(storageData.lastName).toBe('Doe');
 			expect(storageData.token).toBe('token123');
-			expect(storageData.roles.length).toBe(1);
+			expect(storageData.roles).toHaveLength(1);
 			expect(storageData.roles[0].code).toBe('admin');
 			expect(storageData.roles[0].permissions[0].resource).toBe('users');
 		});
@@ -181,7 +181,7 @@ describe('Auth Mapper', () => {
 			expect(restoredUser.firstName).toBe(originalUser.firstName);
 			expect(restoredUser.lastName).toBe(originalUser.lastName);
 			expect(restoredUser.token).toBe(originalUser.token);
-			expect(restoredUser.roles.length).toBe(originalUser.roles.length);
+			expect(restoredUser.roles).toHaveLength(originalUser.roles.length);
 			expect(restoredUser.hasPermission('users', 'read')).toBe(true);
 		});
 	});

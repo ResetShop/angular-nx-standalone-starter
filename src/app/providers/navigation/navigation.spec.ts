@@ -1,15 +1,15 @@
+import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { TestBed } from '@angular/core/testing';
-import { Navigation } from './navigation';
 import { NAVIGATION_CONFIG, NavigationConfig } from '@interfaces/navigation';
+import { Navigation } from './navigation';
 
 //Mocks
 import {
-	RootPageComponent,
-	WelcomePageComponent,
-	SettingsPageComponent,
 	DetailPageComponent,
+	RootPageComponent,
+	SettingsPageComponent,
+	WelcomePageComponent,
 } from '@mocks/component.mocks';
 
 describe('Navigation Provider', () => {
@@ -100,7 +100,7 @@ describe('Navigation Provider', () => {
 			const sections = service.sections();
 
 			expect(sections).toBeDefined();
-			expect(sections.length).toBe(1);
+			expect(sections).toHaveLength(1);
 			expect(sections[0].id).toBe('settings');
 			expect(sections[0].name).toBe('Ajustes y mantenimiento');
 		});
@@ -109,7 +109,7 @@ describe('Navigation Provider', () => {
 			const sections = service.sections();
 			const settingsSection = sections[0];
 
-			expect(settingsSection.routes.length).toBe(2);
+			expect(settingsSection.routes).toHaveLength(2);
 			expect(settingsSection.routes[0].id).toBe('welcome');
 			expect(settingsSection.routes[0].name).toBe('Configuración inicial');
 			expect(settingsSection.routes[0].icon).toBe('featherHome');
@@ -143,7 +143,7 @@ describe('Navigation Provider', () => {
 			await harness.navigateByUrl('/welcome', RootPageComponent);
 
 			const breadcrumbs = service.breadcrumbs();
-			expect(breadcrumbs.length).toBe(2);
+			expect(breadcrumbs).toHaveLength(2);
 			expect(breadcrumbs[0].title).toBe('Root');
 			expect(breadcrumbs[1].title).toBe('Welcome');
 			expect(breadcrumbs[1].isActive).toBe(true);
@@ -153,7 +153,7 @@ describe('Navigation Provider', () => {
 			await harness.navigateByUrl('/settings/detail', RootPageComponent);
 
 			const breadcrumbs = service.breadcrumbs();
-			expect(breadcrumbs.length).toBe(3);
+			expect(breadcrumbs).toHaveLength(3);
 			expect(breadcrumbs[0].title).toBe('Root');
 			expect(breadcrumbs[0].isActive).toBe(false);
 			expect(breadcrumbs[1].title).toBe('Settings');
