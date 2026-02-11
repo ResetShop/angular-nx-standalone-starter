@@ -8,6 +8,7 @@ import { RoleService } from './modules/access/role/role.service';
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
+import { HealthService } from './modules/health/health.service';
 import { UserManagementRepository } from './modules/user/user-management.repository';
 import { UserManagementService } from './modules/user/user-management.service';
 import { UserRoleRepository } from './modules/user/user-role.repository';
@@ -39,6 +40,8 @@ validateEnvironment();
  *
  * Dependency Graph:
  *
+ * HealthService ──────────────► db
+ *
  * AuthService
  *   ├── UserRepository ──────► db
  *   ├── AuthRepository ──────► db
@@ -56,6 +59,7 @@ export interface Cradle {
 	db: DrizzlePgConnector;
 
 	// Services
+	healthService: HealthService;
 	pasetoService: PasetoService;
 
 	// Repositories
@@ -103,6 +107,7 @@ realContainer.register({
 	db: asValue(drizzlePgConnector),
 
 	// Services (singletons - stateless, hold config)
+	healthService: asClass(HealthService).singleton(),
 	pasetoService: asClass(PasetoService).singleton(),
 
 	// Repositories (singletons - stateless, share db connection)

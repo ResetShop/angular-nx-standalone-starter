@@ -130,6 +130,14 @@ export function advanceTimersByTime(ms: number): void {
 }
 
 /**
+ * Advance all fake timers by a specified number of milliseconds asynchronously.
+ * Wraps vi.advanceTimersByTimeAsync() to centralize Vitest dependencies.
+ */
+export async function advanceTimersByTimeAsync(ms: number): Promise<void> {
+	await vi.advanceTimersByTimeAsync(ms);
+}
+
+/**
  * Restore real timers after using fake timers.
  * Wraps vi.useRealTimers() to centralize Vitest dependencies.
  */
