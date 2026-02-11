@@ -50,9 +50,9 @@ docs/api/
 
 ### Health
 
-| Method | Endpoint       | Description  |
-| ------ | -------------- | ------------ |
-| GET    | /api/health/v1 | Health check |
+| Method | Endpoint       | Description                                                                  |
+| ------ | -------------- | ---------------------------------------------------------------------------- |
+| GET    | /api/health/v1 | Health check (database connectivity). See [Health Check](../HEALTH_CHECK.md) |
 
 ### Authentication
 
