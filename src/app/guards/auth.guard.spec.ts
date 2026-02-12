@@ -54,7 +54,7 @@ describe('authGuard', () => {
 		expect((result as UrlTree).toString()).toBe('/auth/login');
 	});
 
-	it('should wait for initialization and allow authenticated user', (done) => {
+	it('should wait for initialization and allow authenticated user', () => {
 		// getMe succeeds — user is authenticated after init
 		authApiMock.getMe.mockReturnValue(
 			of({
@@ -77,6 +77,5 @@ describe('authGuard', () => {
 
 		// Store is already initialized synchronously (observable emits immediately)
 		expect(result).toBe(true);
-		done();
 	});
 });
