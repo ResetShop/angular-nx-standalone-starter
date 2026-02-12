@@ -48,6 +48,8 @@
 			"Bash(npx tsc:*)",
 			"Bash(npx vitest:*)",
 			"WebFetch(domain:angularprimitives.com)",
+			"WebFetch(domain:raw.githubusercontent.com)",
+			"WebFetch(domain:tanstack.com)",
 			"WebFetch(domain:ui.shadcn.com)",
 			"WebSearch",
 			"mcp__nx-mcp__nx_workspace_path",
