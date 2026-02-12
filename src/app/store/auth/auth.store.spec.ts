@@ -262,13 +262,24 @@ describe('AuthStore', () => {
 			expect(store.isInitialized()).toBe(true);
 		});
 
-		it('should clear invalid localStorage data', () => {
-			localStorage.setItem('auth_user', 'invalid-json');
+		it('should clear localStorage on invalid JSON', () => {
+			localStorage.setItem('auth_user', '{not valid json}');
 
 			store.restoreFromStorage();
 
 			expect(store.currentUser()).toBeNull();
 			expect(localStorage.getItem('auth_user')).toBeNull();
+			expect(store.isInitialized()).toBe(true);
+		});
+
+		it('should clear localStorage on schema validation failure', () => {
+			localStorage.setItem('auth_user', JSON.stringify({ invalid: 'schema' }));
+
+			store.restoreFromStorage();
+
+			expect(store.currentUser()).toBeNull();
+			expect(localStorage.getItem('auth_user')).toBeNull();
+			expect(store.isInitialized()).toBe(true);
 		});
 
 		it('should handle missing localStorage data', () => {
