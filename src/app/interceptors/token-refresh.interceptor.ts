@@ -1,5 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AuthStore } from '@store/auth/auth.store';
 import { catchError, filter, switchMap, take, throwError } from 'rxjs';
@@ -7,6 +8,7 @@ import { catchError, filter, switchMap, take, throwError } from 'rxjs';
 /**
  * Intercepts 401 errors and attempts to refresh token.
  * Implements a mutex pattern to prevent multiple concurrent refresh attempts.
+ * Cookies are sent automatically — no Authorization header manipulation needed.
  */
 export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	const authStore = inject(AuthStore);
@@ -14,7 +16,6 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
-			// Only handle 401 Unauthorized errors
 			if (error.status !== 401) {
 				return throwError(() => error);
 			}
@@ -26,17 +27,12 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return throwError(() => error);
 			}
 
-			// If a refresh is already in progress, wait for it
+			// If a refresh is already in progress, wait for it then retry
 			if (authStore.isTokenRefreshing()) {
-				return authStore.getPendingRefreshToken$().pipe(
-					filter((token): token is string => token !== null),
+				return toObservable(authStore.isTokenRefreshing).pipe(
+					filter((refreshing) => !refreshing),
 					take(1),
-					switchMap((token) => {
-						const retryReq = req.clone({
-							setHeaders: { Authorization: `Bearer ${token}` },
-						});
-						return next(retryReq);
-					}),
+					switchMap(() => next(req.clone({ withCredentials: true }))),
 				);
 			}
 
@@ -44,21 +40,12 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			authStore.startTokenRefresh();
 
 			return authStore.refreshToken().pipe(
-				switchMap((newTokens) => {
+				switchMap(() => {
 					authStore.completeTokenRefresh();
-
-					// Retry original request with new token
-					const retryReq = req.clone({
-						setHeaders: {
-							Authorization: `Bearer ${newTokens.token}`,
-						},
-					});
-					return next(retryReq);
+					return next(req.clone({ withCredentials: true }));
 				}),
 				catchError((refreshError) => {
 					authStore.failTokenRefresh();
-
-					// Refresh failed - logout user
 					authStore.logout();
 					router.navigate(['/auth/login']);
 					return throwError(() => refreshError);
