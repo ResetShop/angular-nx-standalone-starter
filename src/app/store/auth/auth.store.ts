@@ -1,6 +1,5 @@
-import { isPlatformServer } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, inject, PLATFORM_ID } from '@angular/core';
+import { computed, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { authStorageDataSchema } from '@domain/auth/auth-storage.type';
 import { mapLoginResponseToUser, mapStorageDataToUser, mapUserToStorageData } from '@domain/auth/auth.mapper';
@@ -130,7 +129,6 @@ export const AuthStore = signalStore(
 	})),
 	withMethods((store) => {
 		const authApi = inject(AuthApiService);
-		const platformId = inject(PLATFORM_ID);
 
 		return {
 			/**
@@ -348,11 +346,6 @@ export const AuthStore = signalStore(
 			 * ]
 			 */
 			restoreFromStorage() {
-				if (isPlatformServer(platformId)) {
-					patchState(store, { isInitialized: true });
-					return;
-				}
-
 				const storedUser = localStorage.getItem('auth_user');
 				if (storedUser) {
 					try {
