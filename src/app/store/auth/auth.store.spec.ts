@@ -3,7 +3,7 @@ import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import type { IPermission } from '@domain/access/permission.interface';
 import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
-import { advanceTimersByTime, clearAllMocks, fn, useFakeTimers, useRealTimers, type MockFn } from '@test-utils';
+import { clearAllMocks, fn, type MockFn } from '@test-utils';
 import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
 import { AuthStore } from './auth.store';
 
@@ -57,18 +57,15 @@ describe('AuthStore', () => {
 		it('should have correct initial state', () => {
 			expect(store.currentUser()).toBeNull();
 			expect(store.isInitialized()).toBe(false);
-			expect(store.isGuardValidated()).toBe(false);
 			expect(store.isTokenRefreshing()).toBe(false);
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.isLoggingOut()).toBe(false);
 			expect(store.loginError()).toBeNull();
-			expect(store.minLoadingTimeElapsed()).toBe(false);
 			expect(store.pendingRefreshToken()).toBeNull();
 		});
 
 		it('should have correct computed signals', () => {
 			expect(store.isAuthenticated()).toBe(false);
-			expect(store.isLoadingComplete()).toBe(false);
 			expect(store.userPermissions()).toEqual([]);
 			expect(store.userRoles()).toEqual([]);
 		});
@@ -229,20 +226,6 @@ describe('AuthStore', () => {
 			expect(store.currentUser()).toBeNull();
 			expect(store.isInitialized()).toBe(true);
 		});
-
-		it('should set minLoadingTimeElapsed after timeout', () => {
-			useFakeTimers();
-
-			store.restoreFromStorage();
-
-			expect(store.minLoadingTimeElapsed()).toBe(false);
-
-			advanceTimersByTime(1000);
-
-			expect(store.minLoadingTimeElapsed()).toBe(true);
-
-			useRealTimers();
-		});
 	});
 
 	describe('computed signals', () => {
@@ -252,23 +235,6 @@ describe('AuthStore', () => {
 			store.updateCurrentUser(createMockUser());
 
 			expect(store.isAuthenticated()).toBe(true);
-		});
-
-		it('should compute isLoadingComplete based on flags', () => {
-			useFakeTimers();
-
-			expect(store.isLoadingComplete()).toBe(false);
-
-			store.restoreFromStorage();
-			expect(store.isLoadingComplete()).toBe(false);
-
-			store.setGuardValidated(true);
-			expect(store.isLoadingComplete()).toBe(false);
-
-			advanceTimersByTime(1000);
-			expect(store.isLoadingComplete()).toBe(true);
-
-			useRealTimers();
 		});
 
 		it('should compute userPermissions from currentUser', () => {
@@ -289,14 +255,6 @@ describe('AuthStore', () => {
 	});
 
 	describe('state management methods', () => {
-		it('should update guard validation status', () => {
-			expect(store.isGuardValidated()).toBe(false);
-
-			store.setGuardValidated(true);
-
-			expect(store.isGuardValidated()).toBe(true);
-		});
-
 		it('should update token refreshing status', () => {
 			expect(store.isTokenRefreshing()).toBe(false);
 

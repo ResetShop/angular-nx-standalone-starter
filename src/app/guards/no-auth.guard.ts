@@ -10,7 +10,5 @@ export const noAuthGuard: CanActivateFn = () => {
 		authStore.restoreFromStorage();
 	}
 
-	const result = authStore.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
-	authStore.setGuardValidated(true);
-	return result;
+	return authStore.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
 };

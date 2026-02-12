@@ -11,9 +11,6 @@ export interface AuthState {
 	/** Whether auth state has been restored from localStorage on app startup */
 	isInitialized: boolean;
 
-	/** Whether auth guard has completed its validation check */
-	isGuardValidated: boolean;
-
 	/** Whether a token refresh operation is currently in progress */
 	isTokenRefreshing: boolean;
 
@@ -29,9 +26,6 @@ export interface AuthState {
 	/** Whether a network/server error occurred during login (5xx or connection failure) */
 	networkError: boolean;
 
-	/** Whether minimum loading screen duration has elapsed (prevents flash of loading) */
-	minLoadingTimeElapsed: boolean;
-
 	/** Token from completed refresh operation, for interceptor coordination (null when not refreshing) */
 	pendingRefreshToken: string | null;
 }
@@ -42,12 +36,10 @@ export interface AuthState {
 export const initialAuthState: AuthState = {
 	currentUser: null,
 	isInitialized: false,
-	isGuardValidated: false,
 	isTokenRefreshing: false,
 	isLoggingIn: false,
 	isLoggingOut: false,
 	loginError: null,
 	networkError: false,
-	minLoadingTimeElapsed: false,
 	pendingRefreshToken: null,
 };
