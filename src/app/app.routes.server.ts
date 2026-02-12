@@ -1,16 +1,8 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
+import { appRoutes } from './app.routes';
 
-export const serverRoutes: ServerRoute[] = [
-	{
-		path: 'auth/**',
-		renderMode: RenderMode.Client,
-	},
-	{
-		path: 'dashboard/**',
-		renderMode: RenderMode.Client,
-	},
-	{
-		path: '**',
-		renderMode: RenderMode.Server,
-	},
-];
+const clientRoutes: ServerRoute[] = appRoutes
+	.filter((route) => route.canActivate?.length)
+	.map((route) => ({ path: `${route.path}/**`, renderMode: RenderMode.Client }));
+
+export const serverRoutes: ServerRoute[] = [...clientRoutes, { path: '**', renderMode: RenderMode.Server }];
