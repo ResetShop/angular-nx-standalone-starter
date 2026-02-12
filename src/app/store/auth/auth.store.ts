@@ -233,7 +233,7 @@ export const AuthStore = signalStore(
 				authApi.logout().subscribe({
 					complete: () => patchState(store, { isLoggingOut: false }),
 					error: (error) => {
-						// TODO: Replace with security event logging (see issue #66)
+						// TODO(#66): Replace with security event logging
 						console.error('[AuthStore] Logout error:', error);
 						patchState(store, { isLoggingOut: false });
 					},
@@ -342,11 +342,11 @@ export const AuthStore = signalStore(
 							const user = mapStorageDataToUser(result.data);
 							patchState(store, { currentUser: user });
 						} else {
-							// TODO: Log invalid storage data for security monitoring (see issue #66)
+							// TODO(#66): Log invalid storage data for security monitoring
 							localStorage.removeItem('auth_user');
 						}
 					} catch {
-						// TODO: Log storage parse error for security monitoring (see issue #66)
+						// TODO(#66): Log storage parse error for security monitoring
 						localStorage.removeItem('auth_user');
 					}
 				}
