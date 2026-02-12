@@ -36,7 +36,6 @@ describe('AuthApiService', () => {
 					lastName: 'User',
 					roles: [],
 				},
-				token: 'mock-token',
 			};
 
 			service.login(loginRequest).subscribe((response) => {
@@ -88,9 +87,7 @@ describe('AuthApiService', () => {
 
 	describe('refreshToken', () => {
 		it('should make POST request to /api/auth/refresh', () => {
-			const mockResponse: RefreshResponse = {
-				token: 'new-token',
-			};
+			const mockResponse: RefreshResponse = {};
 
 			service.refreshToken().subscribe((response) => {
 				expect(response).toEqual(mockResponse);
@@ -116,13 +113,11 @@ describe('AuthApiService', () => {
 	describe('getMe', () => {
 		it('should make GET request to /api/auth/me', () => {
 			const mockResponse: MeResponse = {
-				user: {
-					id: 1,
-					email: 'test@example.com',
-					firstName: 'Test',
-					lastName: 'User',
-					roles: [],
-				},
+				id: 1,
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+				roles: [],
 			};
 
 			service.getMe().subscribe((response) => {

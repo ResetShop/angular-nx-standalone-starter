@@ -1,11 +1,10 @@
-import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
+import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import type { IPermission } from '@domain/access/permission.interface';
 import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
 import { clearAllMocks, fn, type MockFn } from '@test-utils';
-import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
+import { NEVER, of, throwError, type Observable } from 'rxjs';
 import { AuthStore } from './auth.store';
 
 describe('AuthStore', () => {
@@ -14,7 +13,7 @@ describe('AuthStore', () => {
 		login: MockFn<[{ email: string; password: string }], Observable<LoginResponse>>;
 		logout: MockFn<[], Observable<void>>;
 		refreshToken: MockFn<[], Observable<RefreshResponse>>;
-		getMe: MockFn<[], Observable<unknown>>;
+		getMe: MockFn<[], Observable<MeResponse>>;
 	};
 
 	const mockLoginResponse: LoginResponse = {
@@ -24,11 +23,14 @@ describe('AuthStore', () => {
 			firstName: 'Test',
 			lastName: 'User',
 		},
-		token: 'mock-token',
 	};
 
-	const mockRefreshResponse: RefreshResponse = {
-		token: 'new-mock-token',
+	const mockMeResponse: MeResponse = {
+		id: 1,
+		email: 'test@example.com',
+		firstName: 'Test',
+		lastName: 'User',
+		roles: [],
 	};
 
 	beforeEach(() => {
@@ -41,28 +43,24 @@ describe('AuthStore', () => {
 			getMe: fn(),
 		};
 
+		// Default: getMe fails (no session) so store initializes with null user
+		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')));
+
 		TestBed.configureTestingModule({
 			providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
 		});
 
 		store = TestBed.inject(AuthStore);
-
-		localStorage.clear();
-	});
-
-	afterEach(() => {
-		localStorage.clear();
 	});
 
 	describe('initial state', () => {
-		it('should have correct initial state', () => {
+		it('should have correct initial state after initialization', () => {
 			expect(store.currentUser()).toBeNull();
 			expect(store.isInitialized()).toBe(true);
 			expect(store.isTokenRefreshing()).toBe(false);
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.isLoggingOut()).toBe(false);
 			expect(store.loginError()).toBeNull();
-			expect(store.pendingRefreshToken()).toBeNull();
 		});
 
 		it('should have correct computed signals', () => {
@@ -70,45 +68,11 @@ describe('AuthStore', () => {
 			expect(store.userPermissions()).toEqual([]);
 			expect(store.userRoles()).toEqual([]);
 		});
+	});
 
-		it('should skip restoreFromStorage on server platform', () => {
-			localStorage.setItem(
-				'auth_user',
-				JSON.stringify({
-					id: 1,
-					email: 'server@example.com',
-					firstName: 'Server',
-					lastName: 'User',
-					roles: [],
-					token: 'server-token',
-				}),
-			);
-
-			TestBed.resetTestingModule();
-			TestBed.configureTestingModule({
-				providers: [
-					AuthStore,
-					{ provide: AuthApiService, useValue: authApiMock },
-					{ provide: PLATFORM_ID, useValue: 'server' },
-				],
-			});
-
-			const serverStore = TestBed.inject(AuthStore);
-
-			expect(serverStore.currentUser()).toBeNull();
-			expect(serverStore.isInitialized()).toBe(false);
-		});
-
-		it('should auto-initialize from localStorage on creation', () => {
-			const validData = {
-				id: 1,
-				email: 'auto@example.com',
-				firstName: 'Auto',
-				lastName: 'User',
-				roles: [],
-				token: 'auto-token',
-			};
-			localStorage.setItem('auth_user', JSON.stringify(validData));
+	describe('initialize', () => {
+		it('should restore user from getMe on successful init', () => {
+			authApiMock.getMe.mockReturnValue(of(mockMeResponse));
 
 			TestBed.resetTestingModule();
 			TestBed.configureTestingModule({
@@ -118,7 +82,21 @@ describe('AuthStore', () => {
 			const freshStore = TestBed.inject(AuthStore);
 
 			expect(freshStore.isInitialized()).toBe(true);
-			expect(freshStore.currentUser()?.email).toBe('auto@example.com');
+			expect(freshStore.currentUser()?.email).toBe('test@example.com');
+		});
+
+		it('should set currentUser to null on getMe failure', () => {
+			authApiMock.getMe.mockReturnValue(throwError(() => ({ status: 401 })));
+
+			TestBed.resetTestingModule();
+			TestBed.configureTestingModule({
+				providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
+			});
+
+			const freshStore = TestBed.inject(AuthStore);
+
+			expect(freshStore.isInitialized()).toBe(true);
+			expect(freshStore.currentUser()).toBeNull();
 		});
 	});
 
@@ -139,17 +117,6 @@ describe('AuthStore', () => {
 			expect(store.currentUser()?.email).toBe('test@example.com');
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.loginError()).toBeNull();
-		});
-
-		it('should persist user to localStorage on successful login', () => {
-			authApiMock.login.mockReturnValue(of(mockLoginResponse));
-
-			store.login({ email: 'test@example.com', password: 'password' });
-
-			const stored = localStorage.getItem('auth_user');
-			expect(stored).toBeTruthy();
-			const parsed = JSON.parse(stored as string);
-			expect(parsed.email).toBe('test@example.com');
 		});
 
 		it('should set loginError on failed login', () => {
@@ -185,15 +152,6 @@ describe('AuthStore', () => {
 			expect(store.isLoggingOut()).toBe(true);
 		});
 
-		it('should clear localStorage', () => {
-			authApiMock.logout.mockReturnValue(of(undefined));
-			localStorage.setItem('auth_user', '{"email":"test"}');
-
-			store.logout();
-
-			expect(localStorage.getItem('auth_user')).toBeNull();
-		});
-
 		it('should set isLoggingOut to false on success', () => {
 			authApiMock.logout.mockReturnValue(of(undefined));
 
@@ -212,81 +170,16 @@ describe('AuthStore', () => {
 	});
 
 	describe('refreshToken', () => {
-		beforeEach(() => {
-			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
-		});
-
-		it('should update user token on successful refresh', () => {
+		it('should return the API response observable', () => {
+			const mockRefreshResponse: RefreshResponse = {};
 			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
 
-			store.refreshToken().subscribe();
+			let emitted = false;
+			store.refreshToken().subscribe(() => {
+				emitted = true;
+			});
 
-			expect(store.currentUser()?.token).toBe('new-mock-token');
-		});
-
-		it('should update pendingRefreshToken for interceptor coordination', () => {
-			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
-
-			store.refreshToken().subscribe();
-
-			expect(store.pendingRefreshToken()).toBe('new-mock-token');
-		});
-
-		it('should persist updated user to localStorage', () => {
-			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
-
-			store.refreshToken().subscribe();
-
-			const stored = localStorage.getItem('auth_user');
-			const parsed = JSON.parse(stored as string);
-			expect(parsed.token).toBe('new-mock-token');
-		});
-	});
-
-	describe('restoreFromStorage', () => {
-		it('should restore user from valid localStorage data', () => {
-			const validData = {
-				id: 1,
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				roles: [],
-				token: 'stored-token',
-			};
-			localStorage.setItem('auth_user', JSON.stringify(validData));
-
-			store.restoreFromStorage();
-
-			expect(store.currentUser()).toBeTruthy();
-			expect(store.currentUser()?.email).toBe('test@example.com');
-			expect(store.isInitialized()).toBe(true);
-		});
-
-		it('should clear localStorage on invalid JSON', () => {
-			localStorage.setItem('auth_user', '{not valid json}');
-
-			store.restoreFromStorage();
-
-			expect(store.currentUser()).toBeNull();
-			expect(localStorage.getItem('auth_user')).toBeNull();
-			expect(store.isInitialized()).toBe(true);
-		});
-
-		it('should clear localStorage on schema validation failure', () => {
-			localStorage.setItem('auth_user', JSON.stringify({ invalid: 'schema' }));
-
-			store.restoreFromStorage();
-
-			expect(store.currentUser()).toBeNull();
-			expect(localStorage.getItem('auth_user')).toBeNull();
-			expect(store.isInitialized()).toBe(true);
-		});
-
-		it('should handle missing localStorage data', () => {
-			store.restoreFromStorage();
-
-			expect(store.currentUser()).toBeNull();
-			expect(store.isInitialized()).toBe(true);
+			expect(emitted).toBe(true);
 		});
 	});
 
@@ -316,48 +209,23 @@ describe('AuthStore', () => {
 		});
 	});
 
-	describe('state management methods', () => {
-		it('should update token refreshing status', () => {
+	describe('token refresh state management', () => {
+		it('should manage token refreshing flag', () => {
 			expect(store.isTokenRefreshing()).toBe(false);
 
-			store.setTokenRefreshing(true);
-
-			expect(store.isTokenRefreshing()).toBe(true);
-		});
-
-		it('should clear pending refresh token', () => {
-			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
-			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
-
-			store.refreshToken().subscribe();
-			expect(store.pendingRefreshToken()).toBe('new-mock-token');
-
-			store.clearPendingRefreshToken();
-
-			expect(store.pendingRefreshToken()).toBeNull();
-		});
-
-		it('should atomically reset refresh state on failTokenRefresh', () => {
-			store.updateCurrentUser(createMockUser({ token: 'old-token' }));
-			authApiMock.refreshToken.mockReturnValue(of(mockRefreshResponse));
-
 			store.startTokenRefresh();
-			store.refreshToken().subscribe();
-			expect(store.pendingRefreshToken()).toBe('new-mock-token');
+			expect(store.isTokenRefreshing()).toBe(true);
+
+			store.completeTokenRefresh();
+			expect(store.isTokenRefreshing()).toBe(false);
+		});
+
+		it('should reset refresh state on failTokenRefresh', () => {
+			store.startTokenRefresh();
 			expect(store.isTokenRefreshing()).toBe(true);
 
 			store.failTokenRefresh();
-
 			expect(store.isTokenRefreshing()).toBe(false);
-			expect(store.pendingRefreshToken()).toBeNull();
-		});
-	});
-
-	describe('getPendingRefreshToken$', () => {
-		it('should return observable of pendingRefreshToken signal', async () => {
-			const token = await TestBed.runInInjectionContext(() => firstValueFrom(store.getPendingRefreshToken$()));
-
-			expect(token).toBeNull();
 		});
 	});
 });
