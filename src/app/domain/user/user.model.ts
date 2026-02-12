@@ -8,18 +8,16 @@ export class User implements IUser {
 	readonly firstName: string;
 	readonly lastName: string;
 	readonly roles: readonly IRole[];
-	readonly token: string;
 
 	private readonly _permissions: readonly IPermission[];
 	private readonly _permissionIdentifiers: ReadonlySet<string>;
 
-	constructor(id: number, email: string, firstName: string, lastName: string, roles: IRole[], token: string) {
+	constructor(id: number, email: string, firstName: string, lastName: string, roles: IRole[]) {
 		this.id = id;
 		this.email = email;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.roles = roles;
-		this.token = token;
 
 		const allPermissions = roles.flatMap((role) => role.permissions);
 		this._permissions = [...new Map(allPermissions.map((p) => [p.identifier, p])).values()];
