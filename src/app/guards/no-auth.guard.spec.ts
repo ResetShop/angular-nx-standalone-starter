@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import type { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { provideRouter, UrlTree } from '@angular/router';
 import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
@@ -33,7 +34,9 @@ describe('noAuthGuard', () => {
 	});
 
 	it('should return true when user is not authenticated', () => {
-		const result = TestBed.runInInjectionContext(() => noAuthGuard({} as never, {} as never));
+		const result = TestBed.runInInjectionContext(() =>
+			noAuthGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+		);
 
 		expect(result).toBe(true);
 	});
@@ -41,7 +44,9 @@ describe('noAuthGuard', () => {
 	it('should redirect to /dashboard when user is authenticated', () => {
 		store.updateCurrentUser(createMockUser());
 
-		const result = TestBed.runInInjectionContext(() => noAuthGuard({} as never, {} as never));
+		const result = TestBed.runInInjectionContext(() =>
+			noAuthGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+		);
 
 		expect(result).toBeInstanceOf(UrlTree);
 		expect((result as UrlTree).toString()).toBe('/dashboard');
