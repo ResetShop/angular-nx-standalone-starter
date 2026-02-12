@@ -56,7 +56,7 @@ describe('AuthStore', () => {
 	describe('initial state', () => {
 		it('should have correct initial state', () => {
 			expect(store.currentUser()).toBeNull();
-			expect(store.isInitialized()).toBe(false);
+			expect(store.isInitialized()).toBe(true);
 			expect(store.isTokenRefreshing()).toBe(false);
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.isLoggingOut()).toBe(false);
@@ -68,6 +68,28 @@ describe('AuthStore', () => {
 			expect(store.isAuthenticated()).toBe(false);
 			expect(store.userPermissions()).toEqual([]);
 			expect(store.userRoles()).toEqual([]);
+		});
+
+		it('should auto-initialize from localStorage on creation', () => {
+			const validData = {
+				id: 1,
+				email: 'auto@example.com',
+				firstName: 'Auto',
+				lastName: 'User',
+				roles: [],
+				token: 'auto-token',
+			};
+			localStorage.setItem('auth_user', JSON.stringify(validData));
+
+			TestBed.resetTestingModule();
+			TestBed.configureTestingModule({
+				providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
+			});
+
+			const freshStore = TestBed.inject(AuthStore);
+
+			expect(freshStore.isInitialized()).toBe(true);
+			expect(freshStore.currentUser()?.email).toBe('auto@example.com');
 		});
 	});
 

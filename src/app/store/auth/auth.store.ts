@@ -1,11 +1,12 @@
+import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { computed, inject } from '@angular/core';
+import { computed, inject, PLATFORM_ID } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { authStorageDataSchema } from '@domain/auth/auth-storage.type';
 import { mapLoginResponseToUser, mapStorageDataToUser, mapUserToStorageData } from '@domain/auth/auth.mapper';
 import type { IUser } from '@domain/user/user.interface';
 import { createUser } from '@domain/user/user.mapper';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { AuthApiService } from '@providers/auth/auth';
 import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
@@ -318,7 +319,7 @@ export const AuthStore = signalStore(
 			/**
 			 * Restore user from localStorage
 			 *
-			 * Called by route guards to restore authenticated session.
+			 * Called automatically by the store's onInit hook on browser platforms.
 			 * Validates stored data with Zod schema before restoring.
 			 * Sets isInitialized to true once complete.
 			 */
@@ -363,5 +364,12 @@ export const AuthStore = signalStore(
 				patchState(store, { isTokenRefreshing: refreshing });
 			},
 		};
+	}),
+	withHooks({
+		onInit(store) {
+			if (isPlatformBrowser(inject(PLATFORM_ID))) {
+				store.restoreFromStorage();
+			}
+		},
 	}),
 );
