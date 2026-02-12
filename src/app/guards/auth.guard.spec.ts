@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import type { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { provideRouter, UrlTree } from '@angular/router';
 import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
@@ -35,13 +36,17 @@ describe('authGuard', () => {
 	it('should return true when user is authenticated', () => {
 		store.updateCurrentUser(createMockUser());
 
-		const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
+		const result = TestBed.runInInjectionContext(() =>
+			authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+		);
 
 		expect(result).toBe(true);
 	});
 
 	it('should redirect to /auth/login when user is not authenticated', () => {
-		const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
+		const result = TestBed.runInInjectionContext(() =>
+			authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
+		);
 
 		expect(result).toBeInstanceOf(UrlTree);
 		expect((result as UrlTree).toString()).toBe('/auth/login');
