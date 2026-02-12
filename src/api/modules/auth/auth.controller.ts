@@ -19,14 +19,25 @@ import { parseDurationToSeconds } from '../../utils/duration';
 
 const app = new Hono();
 
-// Cookie configuration for refresh token
+// Cookie configuration
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
-const COOKIE_OPTIONS = {
+const ACCESS_TOKEN_COOKIE_NAME = 'access_token';
+
+const BASE_COOKIE_OPTIONS = {
 	httpOnly: true, // Cannot be accessed by JavaScript (XSS protection)
 	secure: process.env['COOKIE_SECURE'] !== 'false', // HTTPS based on COOKIE_SECURE env var value
 	sameSite: 'Strict' as const, // CSRF protection
 	path: '/',
+};
+
+const REFRESH_TOKEN_COOKIE_OPTIONS = {
+	...BASE_COOKIE_OPTIONS,
 	maxAge: parseDurationToSeconds(process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d'), // Default of 7 days
+};
+
+const ACCESS_TOKEN_COOKIE_OPTIONS = {
+	...BASE_COOKIE_OPTIONS,
+	maxAge: parseDurationToSeconds(process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? '15m'), // Default of 15 minutes
 };
 
 /**
@@ -63,14 +74,14 @@ app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 
 		const response = await authService.authenticate({ email, password });
 
-		// Set refresh token as HttpOnly cookie
-		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
+		// Set tokens as HttpOnly cookies
+		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, ACCESS_TOKEN_COOKIE_OPTIONS);
 
-		// Return only access token and user info (refresh token is in cookie)
+		// Return only user info (both tokens are in cookies)
 		return c.json<LoginResponse>(
 			{
 				user: response.user,
-				token: response.token,
 			},
 			200,
 		);
@@ -101,11 +112,12 @@ app.post('/refresh', async (c) => {
 
 		const response = await authService.refreshToken(refreshToken);
 
-		// Update refresh token cookie with new token
-		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
+		// Update both token cookies
+		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, ACCESS_TOKEN_COOKIE_OPTIONS);
 
-		// Return only new access token (refresh token is in cookie)
-		return c.json<RefreshResponse>({ token: response.token }, 200);
+		// No body needed — tokens are in cookies
+		return c.json<RefreshResponse>({}, 200);
 	} catch (error) {
 		if (isAuthError(error)) {
 			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 401);
@@ -150,7 +162,8 @@ app.post('/logout', async (c) => {
 	// Get refresh token before deleting cookie
 	const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
 
-	// Always delete the cookie
+	// Always delete both cookies
+	deleteCookie(c, ACCESS_TOKEN_COOKIE_NAME, { path: '/' });
 	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, { path: '/' });
 
 	try {
