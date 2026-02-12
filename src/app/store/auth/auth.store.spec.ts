@@ -1,3 +1,4 @@
+import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import type { IPermission } from '@domain/access/permission.interface';
@@ -68,6 +69,34 @@ describe('AuthStore', () => {
 			expect(store.isAuthenticated()).toBe(false);
 			expect(store.userPermissions()).toEqual([]);
 			expect(store.userRoles()).toEqual([]);
+		});
+
+		it('should skip restoreFromStorage on server platform', () => {
+			localStorage.setItem(
+				'auth_user',
+				JSON.stringify({
+					id: 1,
+					email: 'server@example.com',
+					firstName: 'Server',
+					lastName: 'User',
+					roles: [],
+					token: 'server-token',
+				}),
+			);
+
+			TestBed.resetTestingModule();
+			TestBed.configureTestingModule({
+				providers: [
+					AuthStore,
+					{ provide: AuthApiService, useValue: authApiMock },
+					{ provide: PLATFORM_ID, useValue: 'server' },
+				],
+			});
+
+			const serverStore = TestBed.inject(AuthStore);
+
+			expect(serverStore.currentUser()).toBeNull();
+			expect(serverStore.isInitialized()).toBe(false);
 		});
 
 		it('should auto-initialize from localStorage on creation', () => {
