@@ -5,32 +5,34 @@ import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
 import { AuthStore } from '@store/auth/auth.store';
 import { clearAllMocks, fn } from '@test-utils';
+import { throwError } from 'rxjs';
 import { noAuthGuard } from './no-auth.guard';
 
 describe('noAuthGuard', () => {
 	let store: InstanceType<typeof AuthStore>;
+	let authApiMock: ReturnType<typeof createAuthApiMock>;
+
+	function createAuthApiMock() {
+		return {
+			login: fn(),
+			logout: fn(),
+			refreshToken: fn(),
+			getMe: fn(),
+		};
+	}
 
 	beforeEach(() => {
 		clearAllMocks();
 
+		authApiMock = createAuthApiMock();
+		// Default: no session — store initializes with null user
+		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')));
+
 		TestBed.configureTestingModule({
-			providers: [
-				AuthStore,
-				provideRouter([]),
-				{
-					provide: AuthApiService,
-					useValue: { login: fn(), logout: fn(), refreshToken: fn(), getMe: fn() },
-				},
-			],
+			providers: [AuthStore, provideRouter([]), { provide: AuthApiService, useValue: authApiMock }],
 		});
 
 		store = TestBed.inject(AuthStore);
-
-		localStorage.clear();
-	});
-
-	afterEach(() => {
-		localStorage.clear();
 	});
 
 	it('should return true when user is not authenticated', () => {
