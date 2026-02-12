@@ -11,8 +11,6 @@ import { AuthApiService } from '@providers/auth/auth';
 import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
 import { initialAuthState } from './auth.types';
 
-const MIN_LOADING_SCREEN_DURATION = 1000;
-
 /**
  * AuthStore - Signal Store for authentication state
  *
@@ -121,9 +119,6 @@ export const AuthStore = signalStore(
 	withState(initialAuthState),
 	withComputed((store) => ({
 		isAuthenticated: computed(() => !!store.currentUser()),
-		isLoadingComplete: computed(
-			() => store.isInitialized() && store.isGuardValidated() && store.minLoadingTimeElapsed(),
-		),
 		userPermissions: computed(() => store.currentUser()?.permissions ?? []),
 		userRoles: computed(() => store.currentUser()?.roles ?? []),
 	})),
@@ -323,27 +318,9 @@ export const AuthStore = signalStore(
 			/**
 			 * Restore user from localStorage
 			 *
-			 * Called during application initialization to restore authenticated session.
+			 * Called by route guards to restore authenticated session.
 			 * Validates stored data with Zod schema before restoring.
 			 * Sets isInitialized to true once complete.
-			 *
-			 * @example
-			 * // In an APP_INITIALIZER
-			 * export function initializeAuth() {
-			 *   const authStore = inject(AuthStore);
-			 *   return () => {
-			 *     authStore.restoreFromStorage();
-			 *   };
-			 * }
-			 *
-			 * // In app.config.ts
-			 * providers: [
-			 *   {
-			 *     provide: APP_INITIALIZER,
-			 *     useFactory: initializeAuth,
-			 *     multi: true,
-			 *   },
-			 * ]
 			 */
 			restoreFromStorage() {
 				const storedUser = localStorage.getItem('auth_user');
@@ -361,11 +338,6 @@ export const AuthStore = signalStore(
 					}
 				}
 				patchState(store, { isInitialized: true });
-
-				// Ensure loading screen visible for minimum duration (MIN_LOADING_SCREEN_DURATION = 1000ms)
-				setTimeout(() => {
-					patchState(store, { minLoadingTimeElapsed: true });
-				}, MIN_LOADING_SCREEN_DURATION);
 			},
 
 			/**
@@ -382,13 +354,6 @@ export const AuthStore = signalStore(
 				patchState(store, { currentUser: user });
 				const storageData = mapUserToStorageData(user);
 				localStorage.setItem('auth_user', JSON.stringify(storageData));
-			},
-
-			/**
-			 * Set guard validation status
-			 */
-			setGuardValidated(validated: boolean) {
-				patchState(store, { isGuardValidated: validated });
 			},
 
 			/**
