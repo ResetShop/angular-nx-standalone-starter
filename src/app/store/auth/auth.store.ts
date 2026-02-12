@@ -1,4 +1,4 @@
-import { isPlatformServer } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject, PLATFORM_ID } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -6,13 +6,11 @@ import { authStorageDataSchema } from '@domain/auth/auth-storage.type';
 import { mapLoginResponseToUser, mapStorageDataToUser, mapUserToStorageData } from '@domain/auth/auth.mapper';
 import type { IUser } from '@domain/user/user.interface';
 import { createUser } from '@domain/user/user.mapper';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { AuthApiService } from '@providers/auth/auth';
 import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
 import { initialAuthState } from './auth.types';
-
-const MIN_LOADING_SCREEN_DURATION = 1000;
 
 /**
  * AuthStore - Signal Store for authentication state
@@ -20,6 +18,11 @@ const MIN_LOADING_SCREEN_DURATION = 1000;
  * Manages authentication state using NgRx Signal Store.
  * Components inject this store directly for all auth operations.
  * Uses AuthApiService for HTTP calls.
+ *
+ * Initialization: Self-initializes via `withHooks({ onInit })`. On browser
+ * platforms, restores the user session from localStorage. On server platforms
+ * (SSR), initialization is skipped and `isInitialized` remains `false` — this
+ * is safe because auth-guarded routes use `RenderMode.Client`.
  *
  * @example
  * // Basic usage in a component
@@ -122,15 +125,11 @@ export const AuthStore = signalStore(
 	withState(initialAuthState),
 	withComputed((store) => ({
 		isAuthenticated: computed(() => !!store.currentUser()),
-		isLoadingComplete: computed(
-			() => store.isInitialized() && store.isGuardValidated() && store.minLoadingTimeElapsed(),
-		),
 		userPermissions: computed(() => store.currentUser()?.permissions ?? []),
 		userRoles: computed(() => store.currentUser()?.roles ?? []),
 	})),
 	withMethods((store) => {
 		const authApi = inject(AuthApiService);
-		const platformId = inject(PLATFORM_ID);
 
 		return {
 			/**
@@ -234,7 +233,7 @@ export const AuthStore = signalStore(
 				authApi.logout().subscribe({
 					complete: () => patchState(store, { isLoggingOut: false }),
 					error: (error) => {
-						// TODO: Replace with security event logging (see issue #66)
+						// TODO(#66): Replace with security event logging
 						console.error('[AuthStore] Logout error:', error);
 						patchState(store, { isLoggingOut: false });
 					},
@@ -325,34 +324,16 @@ export const AuthStore = signalStore(
 			/**
 			 * Restore user from localStorage
 			 *
-			 * Called during application initialization to restore authenticated session.
+			 * Called automatically by the store's onInit hook on browser platforms.
+			 * On server platforms, this method is not called and isInitialized
+			 * remains false — auth-guarded routes use RenderMode.Client, so no
+			 * server-side code depends on this state.
+			 *
 			 * Validates stored data with Zod schema before restoring.
+			 * Clears corrupted or invalid data from localStorage.
 			 * Sets isInitialized to true once complete.
-			 *
-			 * @example
-			 * // In an APP_INITIALIZER
-			 * export function initializeAuth() {
-			 *   const authStore = inject(AuthStore);
-			 *   return () => {
-			 *     authStore.restoreFromStorage();
-			 *   };
-			 * }
-			 *
-			 * // In app.config.ts
-			 * providers: [
-			 *   {
-			 *     provide: APP_INITIALIZER,
-			 *     useFactory: initializeAuth,
-			 *     multi: true,
-			 *   },
-			 * ]
 			 */
 			restoreFromStorage() {
-				if (isPlatformServer(platformId)) {
-					patchState(store, { isInitialized: true });
-					return;
-				}
-
 				const storedUser = localStorage.getItem('auth_user');
 				if (storedUser) {
 					try {
@@ -361,18 +342,15 @@ export const AuthStore = signalStore(
 							const user = mapStorageDataToUser(result.data);
 							patchState(store, { currentUser: user });
 						} else {
+							// TODO(#66): Log invalid storage data for security monitoring
 							localStorage.removeItem('auth_user');
 						}
 					} catch {
+						// TODO(#66): Log storage parse error for security monitoring
 						localStorage.removeItem('auth_user');
 					}
 				}
 				patchState(store, { isInitialized: true });
-
-				// Ensure loading screen visible for minimum duration (MIN_LOADING_SCREEN_DURATION = 1000ms)
-				setTimeout(() => {
-					patchState(store, { minLoadingTimeElapsed: true });
-				}, MIN_LOADING_SCREEN_DURATION);
 			},
 
 			/**
@@ -392,18 +370,18 @@ export const AuthStore = signalStore(
 			},
 
 			/**
-			 * Set guard validation status
-			 */
-			setGuardValidated(validated: boolean) {
-				patchState(store, { isGuardValidated: validated });
-			},
-
-			/**
 			 * Set token refreshing status
 			 */
 			setTokenRefreshing(refreshing: boolean) {
 				patchState(store, { isTokenRefreshing: refreshing });
 			},
 		};
+	}),
+	withHooks({
+		onInit(store) {
+			if (isPlatformBrowser(inject(PLATFORM_ID))) {
+				store.restoreFromStorage();
+			}
+		},
 	}),
 );
