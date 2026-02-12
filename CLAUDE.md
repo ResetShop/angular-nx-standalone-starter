@@ -338,6 +338,23 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
 ## Development Workflow
 
+### Git Conventions
+
+**Branch naming:** `<issue_number>-<issue-title-in-kebab-case>`
+
+```
+# Examples
+144-remove-vercel-specific-configuration
+87-add-user-authentication
+```
+
+**Commit messages:** Prefix with `[#<issue_number>]`
+
+```
+[#144] Remove vercel.json and API redirect entry point
+[#87] Add login form component
+```
+
 ### Agent Orchestration
 
 Use the Task tool to delegate to specialized agents at each development phase:
