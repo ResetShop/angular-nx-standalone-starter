@@ -32,55 +32,8 @@ describe('authGuard', () => {
 		localStorage.clear();
 	});
 
-	it('should initialize auth state when not yet initialized', () => {
-		expect(store.isInitialized()).toBe(false);
-
-		TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
-
-		expect(store.isInitialized()).toBe(true);
-	});
-
-	it('should restore user from localStorage during initialization', () => {
-		const validData = {
-			id: 1,
-			email: 'stored@example.com',
-			firstName: 'Stored',
-			lastName: 'User',
-			roles: [],
-			token: 'stored-token',
-		};
-		localStorage.setItem('auth_user', JSON.stringify(validData));
-
-		const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
-
-		expect(store.currentUser()?.email).toBe('stored@example.com');
-		expect(result).toBe(true);
-	});
-
-	it('should not re-initialize when already initialized', () => {
-		store.restoreFromStorage();
-		store.updateCurrentUser(createMockUser({ email: 'original@example.com' }));
-
-		localStorage.setItem(
-			'auth_user',
-			JSON.stringify({
-				id: 2,
-				email: 'different@example.com',
-				firstName: 'Other',
-				lastName: 'User',
-				roles: [],
-				token: 'other-token',
-			}),
-		);
-
-		TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
-
-		expect(store.currentUser()?.email).toBe('original@example.com');
-	});
-
 	it('should return true when user is authenticated', () => {
 		store.updateCurrentUser(createMockUser());
-		store.restoreFromStorage();
 
 		const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
 

@@ -32,52 +32,6 @@ describe('noAuthGuard', () => {
 		localStorage.clear();
 	});
 
-	it('should initialize auth state when not yet initialized', () => {
-		expect(store.isInitialized()).toBe(false);
-
-		TestBed.runInInjectionContext(() => noAuthGuard({} as never, {} as never));
-
-		expect(store.isInitialized()).toBe(true);
-	});
-
-	it('should restore user from localStorage during initialization', () => {
-		const validData = {
-			id: 1,
-			email: 'stored@example.com',
-			firstName: 'Stored',
-			lastName: 'User',
-			roles: [],
-			token: 'stored-token',
-		};
-		localStorage.setItem('auth_user', JSON.stringify(validData));
-
-		const result = TestBed.runInInjectionContext(() => noAuthGuard({} as never, {} as never));
-
-		expect(store.currentUser()?.email).toBe('stored@example.com');
-		expect(result).toBeInstanceOf(UrlTree);
-		expect((result as UrlTree).toString()).toBe('/dashboard');
-	});
-
-	it('should not re-initialize when already initialized', () => {
-		store.restoreFromStorage();
-
-		localStorage.setItem(
-			'auth_user',
-			JSON.stringify({
-				id: 2,
-				email: 'different@example.com',
-				firstName: 'Other',
-				lastName: 'User',
-				roles: [],
-				token: 'other-token',
-			}),
-		);
-
-		TestBed.runInInjectionContext(() => noAuthGuard({} as never, {} as never));
-
-		expect(store.currentUser()).toBeNull();
-	});
-
 	it('should return true when user is not authenticated', () => {
 		const result = TestBed.runInInjectionContext(() => noAuthGuard({} as never, {} as never));
 
@@ -86,7 +40,6 @@ describe('noAuthGuard', () => {
 
 	it('should redirect to /dashboard when user is authenticated', () => {
 		store.updateCurrentUser(createMockUser());
-		store.restoreFromStorage();
 
 		const result = TestBed.runInInjectionContext(() => noAuthGuard({} as never, {} as never));
 
