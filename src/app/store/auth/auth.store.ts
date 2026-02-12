@@ -332,9 +332,11 @@ export const AuthStore = signalStore(
 							const user = mapStorageDataToUser(result.data);
 							patchState(store, { currentUser: user });
 						} else {
+							// TODO: Log invalid storage data for security monitoring (see issue #66)
 							localStorage.removeItem('auth_user');
 						}
 					} catch {
+						// TODO: Log storage parse error for security monitoring (see issue #66)
 						localStorage.removeItem('auth_user');
 					}
 				}
