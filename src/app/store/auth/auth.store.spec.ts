@@ -1,9 +1,10 @@
+import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { LoginResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import type { IPermission } from '@domain/access/permission.interface';
 import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
-import { advanceTimersByTime, clearAllMocks, fn, useFakeTimers, useRealTimers, type MockFn } from '@test-utils';
+import { clearAllMocks, fn, type MockFn } from '@test-utils';
 import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
 import { AuthStore } from './auth.store';
 
@@ -56,21 +57,68 @@ describe('AuthStore', () => {
 	describe('initial state', () => {
 		it('should have correct initial state', () => {
 			expect(store.currentUser()).toBeNull();
-			expect(store.isInitialized()).toBe(false);
-			expect(store.isGuardValidated()).toBe(false);
+			expect(store.isInitialized()).toBe(true);
 			expect(store.isTokenRefreshing()).toBe(false);
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.isLoggingOut()).toBe(false);
 			expect(store.loginError()).toBeNull();
-			expect(store.minLoadingTimeElapsed()).toBe(false);
 			expect(store.pendingRefreshToken()).toBeNull();
 		});
 
 		it('should have correct computed signals', () => {
 			expect(store.isAuthenticated()).toBe(false);
-			expect(store.isLoadingComplete()).toBe(false);
 			expect(store.userPermissions()).toEqual([]);
 			expect(store.userRoles()).toEqual([]);
+		});
+
+		it('should skip restoreFromStorage on server platform', () => {
+			localStorage.setItem(
+				'auth_user',
+				JSON.stringify({
+					id: 1,
+					email: 'server@example.com',
+					firstName: 'Server',
+					lastName: 'User',
+					roles: [],
+					token: 'server-token',
+				}),
+			);
+
+			TestBed.resetTestingModule();
+			TestBed.configureTestingModule({
+				providers: [
+					AuthStore,
+					{ provide: AuthApiService, useValue: authApiMock },
+					{ provide: PLATFORM_ID, useValue: 'server' },
+				],
+			});
+
+			const serverStore = TestBed.inject(AuthStore);
+
+			expect(serverStore.currentUser()).toBeNull();
+			expect(serverStore.isInitialized()).toBe(false);
+		});
+
+		it('should auto-initialize from localStorage on creation', () => {
+			const validData = {
+				id: 1,
+				email: 'auto@example.com',
+				firstName: 'Auto',
+				lastName: 'User',
+				roles: [],
+				token: 'auto-token',
+			};
+			localStorage.setItem('auth_user', JSON.stringify(validData));
+
+			TestBed.resetTestingModule();
+			TestBed.configureTestingModule({
+				providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
+			});
+
+			const freshStore = TestBed.inject(AuthStore);
+
+			expect(freshStore.isInitialized()).toBe(true);
+			expect(freshStore.currentUser()?.email).toBe('auto@example.com');
 		});
 	});
 
@@ -214,13 +262,24 @@ describe('AuthStore', () => {
 			expect(store.isInitialized()).toBe(true);
 		});
 
-		it('should clear invalid localStorage data', () => {
-			localStorage.setItem('auth_user', 'invalid-json');
+		it('should clear localStorage on invalid JSON', () => {
+			localStorage.setItem('auth_user', '{not valid json}');
 
 			store.restoreFromStorage();
 
 			expect(store.currentUser()).toBeNull();
 			expect(localStorage.getItem('auth_user')).toBeNull();
+			expect(store.isInitialized()).toBe(true);
+		});
+
+		it('should clear localStorage on schema validation failure', () => {
+			localStorage.setItem('auth_user', JSON.stringify({ invalid: 'schema' }));
+
+			store.restoreFromStorage();
+
+			expect(store.currentUser()).toBeNull();
+			expect(localStorage.getItem('auth_user')).toBeNull();
+			expect(store.isInitialized()).toBe(true);
 		});
 
 		it('should handle missing localStorage data', () => {
@@ -228,20 +287,6 @@ describe('AuthStore', () => {
 
 			expect(store.currentUser()).toBeNull();
 			expect(store.isInitialized()).toBe(true);
-		});
-
-		it('should set minLoadingTimeElapsed after timeout', () => {
-			useFakeTimers();
-
-			store.restoreFromStorage();
-
-			expect(store.minLoadingTimeElapsed()).toBe(false);
-
-			advanceTimersByTime(1000);
-
-			expect(store.minLoadingTimeElapsed()).toBe(true);
-
-			useRealTimers();
 		});
 	});
 
@@ -252,23 +297,6 @@ describe('AuthStore', () => {
 			store.updateCurrentUser(createMockUser());
 
 			expect(store.isAuthenticated()).toBe(true);
-		});
-
-		it('should compute isLoadingComplete based on flags', () => {
-			useFakeTimers();
-
-			expect(store.isLoadingComplete()).toBe(false);
-
-			store.restoreFromStorage();
-			expect(store.isLoadingComplete()).toBe(false);
-
-			store.setGuardValidated(true);
-			expect(store.isLoadingComplete()).toBe(false);
-
-			advanceTimersByTime(1000);
-			expect(store.isLoadingComplete()).toBe(true);
-
-			useRealTimers();
 		});
 
 		it('should compute userPermissions from currentUser', () => {
@@ -289,14 +317,6 @@ describe('AuthStore', () => {
 	});
 
 	describe('state management methods', () => {
-		it('should update guard validation status', () => {
-			expect(store.isGuardValidated()).toBe(false);
-
-			store.setGuardValidated(true);
-
-			expect(store.isGuardValidated()).toBe(true);
-		});
-
 		it('should update token refreshing status', () => {
 			expect(store.isTokenRefreshing()).toBe(false);
 
