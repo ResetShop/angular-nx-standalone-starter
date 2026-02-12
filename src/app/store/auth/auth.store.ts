@@ -19,6 +19,11 @@ import { initialAuthState } from './auth.types';
  * Components inject this store directly for all auth operations.
  * Uses AuthApiService for HTTP calls.
  *
+ * Initialization: Self-initializes via `withHooks({ onInit })`. On browser
+ * platforms, restores the user session from localStorage. On server platforms
+ * (SSR), initialization is skipped and `isInitialized` remains `false` — this
+ * is safe because auth-guarded routes use `RenderMode.Client`.
+ *
  * @example
  * // Basic usage in a component
  * import { inject } from '@angular/core';
@@ -320,7 +325,12 @@ export const AuthStore = signalStore(
 			 * Restore user from localStorage
 			 *
 			 * Called automatically by the store's onInit hook on browser platforms.
+			 * On server platforms, this method is not called and isInitialized
+			 * remains false — auth-guarded routes use RenderMode.Client, so no
+			 * server-side code depends on this state.
+			 *
 			 * Validates stored data with Zod schema before restoring.
+			 * Clears corrupted or invalid data from localStorage.
 			 * Sets isInitialized to true once complete.
 			 */
 			restoreFromStorage() {
