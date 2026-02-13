@@ -293,6 +293,44 @@ Use queries in this order of preference:
 
 > Principles Cross-Reference: See `.claude/references/cross-reference.md`
 
+> Authentication Architecture: See `.claude/references/auth.md`
+
+### App Initializer Pattern
+
+All `provideAppInitializer` calls **must** use a named factory function that returns an async closure. Never inline the initializer logic directly in `app.config.ts`.
+
+```typescript
+// ✅ Correct — named factory in a dedicated file (e.g., auth.initializer.ts)
+export function initializeAuth() {
+	return async () => {
+		const authStore = inject(AuthStore);
+		await firstValueFrom(authStore.initialize());
+	};
+}
+
+// Usage in app.config.ts:
+provideAppInitializer(initializeAuth()),
+
+// ❌ Incorrect — inline lambda
+provideAppInitializer(() => firstValueFrom(inject(AuthStore).initialize())),
+```
+
+**Rules:**
+
+1. Create a dedicated `<name>.initializer.ts` file alongside the provider/store it initializes
+2. Export a named function (`initializeX`) that returns `async () => { ... }`
+3. Use `inject()` inside the returned async closure (injection context is available there)
+4. Register in `app.config.ts` as `provideAppInitializer(initializeX())`
+5. Private initializers that depend on app-level imports (e.g., `environment`) may be defined as module-scoped functions in `app.config.ts` itself (see `initializeAnalytics`)
+
+**Existing initializers:**
+
+| Initializer             | File                                                |
+| ----------------------- | --------------------------------------------------- |
+| `initializeAuth`        | `src/app/store/auth/auth.initializer.ts`            |
+| `initializeAnalytics`   | `src/app/app.config.ts` (private, uses env)         |
+| `initializeTranslation` | `src/app/providers/i18n/translation.initializer.ts` |
+
 ---
 
 ## Error Handling Guidelines
@@ -403,16 +441,16 @@ Agent definitions live in `.claude/agents/` (YAML frontmatter defines `name`, `d
 
 Which `.claude/references/` files each agent loads in Step 0:
 
-| Agent                    | References Loaded                                                     |
-| ------------------------ | --------------------------------------------------------------------- |
-| `code-reviewer`          | All 7 references                                                      |
-| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference |
-| `refactoring-specialist` | solid, cupid, guiding-principles                                      |
-| `domain-model-advisor`   | domain-model                                                          |
-| `test-generator`         | testing                                                               |
-| `security-auditor`       | —                                                                     |
-| `documentation-writer`   | —                                                                     |
-| `migration-planner`      | —                                                                     |
+| Agent                    | References Loaded                                                           |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `code-reviewer`          | All 8 references                                                            |
+| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth |
+| `refactoring-specialist` | solid, cupid, guiding-principles                                            |
+| `domain-model-advisor`   | domain-model                                                                |
+| `test-generator`         | testing                                                                     |
+| `security-auditor`       | auth                                                                        |
+| `documentation-writer`   | —                                                                           |
+| `migration-planner`      | —                                                                           |
 
 ---
 
