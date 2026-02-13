@@ -5,8 +5,13 @@ import { HttpInterceptorFn } from '@angular/common/http';
  * for all API requests. Access token is sent as an HttpOnly cookie.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-	if (req.url.includes('/api/')) {
-		return next(req.clone({ withCredentials: true }));
+	try {
+		const url = new URL(req.url, location.origin);
+		if (url.pathname.startsWith('/api/')) {
+			return next(req.clone({ withCredentials: true }));
+		}
+	} catch {
+		// SSR: location unavailable, withCredentials is irrelevant on the server
 	}
 
 	return next(req);

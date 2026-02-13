@@ -32,6 +32,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
 	const authStore = inject(AuthStore);
 	const router = inject(Router);
+	const { pathname } = new URL(req.url, location.origin);
 
 	// toObservable() requires an injection context (it uses effect() internally).
 	// The catchError callback below runs asynchronously when an HTTP error arrives,
@@ -46,14 +47,14 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			}
 
 			// Refresh endpoint failed — session is dead, force logout
-			if (req.url.includes('/api/auth/refresh')) {
+			if (pathname.startsWith('/api/auth/refresh')) {
 				authStore.logout();
 				router.navigate(['/auth/login']);
 				return throwError(() => error);
 			}
 
 			// Login returns 401 for invalid credentials — not a token expiry
-			if (req.url.includes('/api/auth/login')) {
+			if (pathname.startsWith('/api/auth/login')) {
 				return throwError(() => error);
 			}
 
