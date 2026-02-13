@@ -46,7 +46,7 @@ describe('authInterceptor', () => {
 
 	it('should set withCredentials for absolute URLs containing /api/', () => {
 		// SSR resolves relative URLs to absolute (e.g., http://localhost:4200/api/auth/me).
-		// includes('/api/') is used instead of startsWith to match both forms.
+		// URL parsing extracts the pathname so startsWith('/api/') matches both forms.
 		http.get('http://localhost:4200/api/auth/me').subscribe();
 
 		const req = httpMock.expectOne('http://localhost:4200/api/auth/me');
@@ -58,6 +58,14 @@ describe('authInterceptor', () => {
 		http.get('https://cdn.example.com/data').subscribe();
 
 		const req = httpMock.expectOne('https://cdn.example.com/data');
+		expect(req.request.withCredentials).toBe(false);
+		req.flush({});
+	});
+
+	it('should not match /api/ in query parameters', () => {
+		http.get('/callback?redirect=/api/users').subscribe();
+
+		const req = httpMock.expectOne('/callback?redirect=/api/users');
 		expect(req.request.withCredentials).toBe(false);
 		req.flush({});
 	});
