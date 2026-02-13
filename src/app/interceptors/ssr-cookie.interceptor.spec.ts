@@ -1,6 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { REQUEST } from '@angular/core';
+import { PLATFORM_ID, REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { authInterceptor } from './auth.interceptor';
 import { ssrCookieInterceptor } from './ssr-cookie.interceptor';
@@ -14,6 +14,7 @@ describe('ssrCookieInterceptor', () => {
 			providers: [
 				provideHttpClient(withInterceptors([ssrCookieInterceptor])),
 				provideHttpClientTesting(),
+				{ provide: PLATFORM_ID, useValue: 'server' },
 				{ provide: REQUEST, useValue: request },
 			],
 		});
@@ -85,6 +86,7 @@ describe('ssrCookieInterceptor + authInterceptor chain', () => {
 			providers: [
 				provideHttpClient(withInterceptors([ssrCookieInterceptor, authInterceptor])),
 				provideHttpClientTesting(),
+				{ provide: PLATFORM_ID, useValue: 'server' },
 				{ provide: REQUEST, useValue: request },
 			],
 		});
