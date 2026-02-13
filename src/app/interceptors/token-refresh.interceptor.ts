@@ -33,9 +33,10 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	const authStore = inject(AuthStore);
 	const router = inject(Router);
 
-	// Create in the injection context — toObservable requires it for effect scheduling.
-	// Used inside catchError (which runs outside injection context) to wait for
-	// a concurrent refresh to complete before retrying the original request.
+	// toObservable() requires an injection context (it uses effect() internally).
+	// The catchError callback below runs asynchronously when an HTTP error arrives,
+	// at which point the injection context is no longer active. Creating the
+	// observable here — in the synchronous interceptor body — avoids NG0203.
 	const isRefreshing$ = toObservable(authStore.isTokenRefreshing);
 
 	return next(req).pipe(

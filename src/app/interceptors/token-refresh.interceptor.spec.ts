@@ -145,7 +145,11 @@ describe('tokenRefreshInterceptor', () => {
 		it('should not start a new refresh when one is already in progress', () => {
 			authStoreMock.isTokenRefreshing.set(true);
 
-			http.get('/api/users').subscribe({ error: () => {} });
+			http.get('/api/users').subscribe({
+				error: () => {
+					/* empty on purpose */
+				},
+			});
 
 			flush401(httpMock, '/api/users');
 
