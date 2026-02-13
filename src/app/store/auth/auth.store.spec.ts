@@ -51,6 +51,8 @@ describe('AuthStore', () => {
 		});
 
 		store = TestBed.inject(AuthStore);
+		// APP_INITIALIZER calls initialize() before routing — replicate in tests
+		store.initialize().subscribe();
 	});
 
 	describe('initial state', () => {
@@ -80,6 +82,7 @@ describe('AuthStore', () => {
 			});
 
 			const freshStore = TestBed.inject(AuthStore);
+			freshStore.initialize().subscribe();
 
 			expect(freshStore.isInitialized()).toBe(true);
 			expect(freshStore.currentUser()?.email).toBe('test@example.com');
@@ -94,6 +97,7 @@ describe('AuthStore', () => {
 			});
 
 			const freshStore = TestBed.inject(AuthStore);
+			freshStore.initialize().subscribe();
 
 			expect(freshStore.isInitialized()).toBe(true);
 			expect(freshStore.currentUser()).toBeNull();
