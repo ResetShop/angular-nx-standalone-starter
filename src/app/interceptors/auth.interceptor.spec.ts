@@ -44,10 +44,20 @@ describe('authInterceptor', () => {
 		req.flush({});
 	});
 
-	it('should not set withCredentials for external URLs', () => {
-		http.get('https://cdn.example.com/api/data').subscribe();
+	it('should set withCredentials for absolute URLs containing /api/', () => {
+		// SSR resolves relative URLs to absolute (e.g., http://localhost:4200/api/auth/me).
+		// includes('/api/') is used instead of startsWith to match both forms.
+		http.get('http://localhost:4200/api/auth/me').subscribe();
 
-		const req = httpMock.expectOne('https://cdn.example.com/api/data');
+		const req = httpMock.expectOne('http://localhost:4200/api/auth/me');
+		expect(req.request.withCredentials).toBe(true);
+		req.flush({});
+	});
+
+	it('should not set withCredentials for external non-API URLs', () => {
+		http.get('https://cdn.example.com/data').subscribe();
+
+		const req = httpMock.expectOne('https://cdn.example.com/data');
 		expect(req.request.withCredentials).toBe(false);
 		req.flush({});
 	});
