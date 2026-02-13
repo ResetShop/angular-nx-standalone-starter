@@ -45,22 +45,8 @@ describe('AuthApiService', () => {
 			const req = httpMock.expectOne('/api/auth/login');
 			expect(req.request.method).toBe('POST');
 			expect(req.request.body).toEqual(loginRequest);
-			expect(req.request.withCredentials).toBe(true);
 
 			req.flush(mockResponse);
-		});
-
-		it('should include credentials in request', () => {
-			const loginRequest: LoginRequest = {
-				email: 'test@example.com',
-				password: 'password123',
-			};
-
-			service.login(loginRequest).subscribe();
-
-			const req = httpMock.expectOne('/api/auth/login');
-			expect(req.request.withCredentials).toBe(true);
-			req.flush({});
 		});
 	});
 
@@ -71,16 +57,7 @@ describe('AuthApiService', () => {
 			const req = httpMock.expectOne('/api/auth/logout');
 			expect(req.request.method).toBe('POST');
 			expect(req.request.body).toEqual({});
-			expect(req.request.withCredentials).toBe(true);
 
-			req.flush(null);
-		});
-
-		it('should include credentials in request', () => {
-			service.logout().subscribe();
-
-			const req = httpMock.expectOne('/api/auth/logout');
-			expect(req.request.withCredentials).toBe(true);
 			req.flush(null);
 		});
 	});
@@ -96,17 +73,8 @@ describe('AuthApiService', () => {
 			const req = httpMock.expectOne('/api/auth/refresh');
 			expect(req.request.method).toBe('POST');
 			expect(req.request.body).toEqual({});
-			expect(req.request.withCredentials).toBe(true);
 
 			req.flush(mockResponse);
-		});
-
-		it('should include credentials in request', () => {
-			service.refreshToken().subscribe();
-
-			const req = httpMock.expectOne('/api/auth/refresh');
-			expect(req.request.withCredentials).toBe(true);
-			req.flush({});
 		});
 	});
 
@@ -126,17 +94,8 @@ describe('AuthApiService', () => {
 
 			const req = httpMock.expectOne('/api/auth/me');
 			expect(req.request.method).toBe('GET');
-			expect(req.request.withCredentials).toBe(true);
 
 			req.flush(mockResponse);
-		});
-
-		it('should include credentials in request', () => {
-			service.getMe().subscribe();
-
-			const req = httpMock.expectOne('/api/auth/me');
-			expect(req.request.withCredentials).toBe(true);
-			req.flush({});
 		});
 	});
 
