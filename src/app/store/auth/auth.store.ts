@@ -38,18 +38,25 @@ export const AuthStore = signalStore(
 			 * Restores the user session from the HttpOnly access token cookie.
 			 * On success, sets currentUser. On failure (401/network), sets currentUser to null.
 			 * Always sets isInitialized to true when complete.
+			 *
+			 * Uses rxMethod for automatic subscription cleanup on store destroy.
 			 */
-			initialize() {
-				authApi.getMe().subscribe({
-					next: (response) => {
-						const user = mapMeResponseToUser(response);
-						patchState(store, { currentUser: user, isInitialized: true });
-					},
-					error: () => {
-						patchState(store, { currentUser: null, isInitialized: true });
-					},
-				});
-			},
+			initialize: rxMethod<void>(
+				pipe(
+					switchMap(() =>
+						authApi.getMe().pipe(
+							tap((response) => {
+								const user = mapMeResponseToUser(response);
+								patchState(store, { currentUser: user, isInitialized: true });
+							}),
+							catchError(() => {
+								patchState(store, { currentUser: null, isInitialized: true });
+								return EMPTY;
+							}),
+						),
+					),
+				),
+			),
 
 			/**
 			 * Login with email and password
