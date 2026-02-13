@@ -36,10 +36,13 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return throwError(() => error);
 			}
 
-			// Don't retry if already on refresh endpoint
-			if (req.url.includes('/api/auth/refresh')) {
-				authStore.logout();
-				router.navigate(['/auth/login']);
+			// Auth endpoints where 401 is expected and should not trigger a refresh
+			const skipRefreshRoutes = ['/api/auth/refresh', '/api/auth/login'];
+			if (skipRefreshRoutes.some((route) => req.url.includes(route))) {
+				if (req.url.includes('/api/auth/refresh')) {
+					authStore.logout();
+					router.navigate(['/auth/login']);
+				}
 				return throwError(() => error);
 			}
 
