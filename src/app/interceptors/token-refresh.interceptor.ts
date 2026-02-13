@@ -21,8 +21,11 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	const platformId = inject(PLATFORM_ID);
 
 	// During SSR, skip refresh logic entirely — let errors propagate to callers.
-	// The SSR cookie interceptor forwards cookies for the initial getMe() call.
-	// If the access token is expired, the browser handles refresh after hydration.
+	// SSR runs in a Node.js context where browser cookies are not directly
+	// accessible; the ssrCookieInterceptor handles cookie forwarding instead.
+	// Set-Cookie headers from the API stay in the server HTTP client and never
+	// reach the browser, so token refresh during SSR would silently discard
+	// the new cookies. The browser handles refresh after hydration.
 	if (!isPlatformBrowser(platformId)) {
 		return next(req);
 	}
