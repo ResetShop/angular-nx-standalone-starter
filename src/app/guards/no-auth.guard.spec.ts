@@ -33,6 +33,8 @@ describe('noAuthGuard', () => {
 		});
 
 		store = TestBed.inject(AuthStore);
+		// APP_INITIALIZER calls initialize() before routing — replicate in tests
+		store.initialize().subscribe();
 	});
 
 	it('should return true when user is not authenticated', () => {

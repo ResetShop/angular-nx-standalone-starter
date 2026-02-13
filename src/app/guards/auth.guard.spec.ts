@@ -33,6 +33,8 @@ describe('authGuard', () => {
 		});
 
 		store = TestBed.inject(AuthStore);
+		// APP_INITIALIZER calls initialize() before routing — replicate in tests
+		store.initialize().subscribe();
 	});
 
 	it('should return true when user is authenticated', () => {
@@ -71,11 +73,13 @@ describe('authGuard', () => {
 			providers: [AuthStore, provideRouter([]), { provide: AuthApiService, useValue: authApiMock }],
 		});
 
+		// APP_INITIALIZER calls initialize() before routing
+		TestBed.inject(AuthStore).initialize().subscribe();
+
 		const result = TestBed.runInInjectionContext(() =>
 			authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot),
 		);
 
-		// Store is already initialized synchronously (observable emits immediately)
 		expect(result).toBe(true);
 	});
 });
