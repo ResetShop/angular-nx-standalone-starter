@@ -2,10 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject } from '@angular/core';
 import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper';
 import type { IUser } from '@domain/user/user.interface';
-import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { AuthApiService } from '@providers/auth/auth';
-import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, of, pipe, switchMap, tap } from 'rxjs';
 import { initialAuthState } from './auth.types';
 
 /**
@@ -15,8 +15,9 @@ import { initialAuthState } from './auth.types';
  * Components inject this store directly for all auth operations.
  * Uses AuthApiService for HTTP calls.
  *
- * Initialization: Self-initializes via `withHooks({ onInit })` by calling
- * `getMe()` to restore the session from the HttpOnly access token cookie.
+ * Initialization: Initialized via `APP_INITIALIZER` which calls `initialize()`
+ * before the router evaluates any guards. This guarantees `isInitialized` is
+ * `true` and guards can check auth state synchronously.
  * Works on both browser and server platforms — cookies are forwarded by the
  * SSR cookie interceptor on the server side.
  */
@@ -39,31 +40,21 @@ export const AuthStore = signalStore(
 			 * On success, sets currentUser. On failure (401/network), sets currentUser to null.
 			 * Always sets isInitialized to true when complete.
 			 *
-			 * Uses rxMethod for automatic subscription cleanup on store destroy.
-			 *
-			 * @example
-			 * // Called automatically via withHooks({ onInit }):
-			 * store.initialize();
-			 *
-			 * // rxMethod accepts void — calling it triggers the pipeline.
-			 * // The subscription is managed by the store lifecycle.
+			 * Called by the auth APP_INITIALIZER to guarantee auth state is resolved
+			 * before the router evaluates any guards.
 			 */
-			initialize: rxMethod<void>(
-				pipe(
-					switchMap(() =>
-						authApi.getMe().pipe(
-							tap((response) => {
-								const user = mapMeResponseToUser(response);
-								patchState(store, { currentUser: user, isInitialized: true });
-							}),
-							catchError(() => {
-								patchState(store, { currentUser: null, isInitialized: true });
-								return EMPTY;
-							}),
-						),
-					),
-				),
-			),
+			initialize() {
+				return authApi.getMe().pipe(
+					tap((response) => {
+						const user = mapMeResponseToUser(response);
+						patchState(store, { currentUser: user, isInitialized: true });
+					}),
+					catchError(() => {
+						patchState(store, { currentUser: null, isInitialized: true });
+						return of(undefined);
+					}),
+				);
+			},
 
 			/**
 			 * Login with email and password
@@ -164,10 +155,5 @@ export const AuthStore = signalStore(
 				patchState(store, { currentUser: user });
 			},
 		};
-	}),
-	withHooks({
-		onInit(store) {
-			store.initialize();
-		},
 	}),
 );
