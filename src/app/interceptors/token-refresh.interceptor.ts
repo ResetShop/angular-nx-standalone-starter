@@ -36,13 +36,15 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return throwError(() => error);
 			}
 
-			// Auth endpoints where 401 is expected and should not trigger a refresh
-			const skipRefreshRoutes = ['/api/auth/refresh', '/api/auth/login'];
-			if (skipRefreshRoutes.some((route) => req.url.includes(route))) {
-				if (req.url.includes('/api/auth/refresh')) {
-					authStore.logout();
-					router.navigate(['/auth/login']);
-				}
+			// Refresh endpoint failed — session is dead, force logout
+			if (req.url.includes('/api/auth/refresh')) {
+				authStore.logout();
+				router.navigate(['/auth/login']);
+				return throwError(() => error);
+			}
+
+			// Login returns 401 for invalid credentials — not a token expiry
+			if (req.url.includes('/api/auth/login')) {
 				return throwError(() => error);
 			}
 
@@ -51,7 +53,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return toObservable(authStore.isTokenRefreshing).pipe(
 					filter((refreshing) => !refreshing),
 					take(1),
-					switchMap(() => next(req.clone({ withCredentials: true }))),
+					switchMap(() => next(req)),
 				);
 			}
 
@@ -61,7 +63,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 			return authStore.refreshToken().pipe(
 				switchMap(() => {
 					authStore.completeTokenRefresh();
-					return next(req.clone({ withCredentials: true }));
+					return next(req);
 				}),
 				catchError((refreshError) => {
 					authStore.failTokenRefresh();

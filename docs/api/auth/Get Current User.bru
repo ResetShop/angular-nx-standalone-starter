@@ -7,7 +7,7 @@ meta {
 get {
   url: {{baseUrl}}/auth/me
   body: none
-  auth: bearer
+  auth: none
 }
 
 }
@@ -23,11 +23,10 @@ docs {
 
   - Response: `MeResponse` from `@contracts/auth/auth.types`
 
-  ## Headers
+  ## Authentication
 
-  | Header | Value | Description |
-  |--------|-------|-------------|
-  | Authorization | Bearer {token} | Access token from login |
+  Uses HttpOnly cookie-based authentication. The `access_token` cookie
+  is sent automatically by the browser — no Authorization header needed.
 
   ## Response
 
