@@ -33,6 +33,11 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	const authStore = inject(AuthStore);
 	const router = inject(Router);
 
+	// Create in the injection context — toObservable requires it for effect scheduling.
+	// Used inside catchError (which runs outside injection context) to wait for
+	// a concurrent refresh to complete before retrying the original request.
+	const isRefreshing$ = toObservable(authStore.isTokenRefreshing);
+
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			if (error.status !== 401) {
@@ -53,7 +58,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
 			// If a refresh is already in progress, wait for it then retry
 			if (authStore.isTokenRefreshing()) {
-				return toObservable(authStore.isTokenRefreshing).pipe(
+				return isRefreshing$.pipe(
 					filter((refreshing) => !refreshing),
 					take(1),
 					switchMap(() => next(req)),
