@@ -40,6 +40,13 @@ export const AuthStore = signalStore(
 			 * Always sets isInitialized to true when complete.
 			 *
 			 * Uses rxMethod for automatic subscription cleanup on store destroy.
+			 *
+			 * @example
+			 * // Called automatically via withHooks({ onInit }):
+			 * store.initialize();
+			 *
+			 * // rxMethod accepts void — calling it triggers the pipeline.
+			 * // The subscription is managed by the store lifecycle.
 			 */
 			initialize: rxMethod<void>(
 				pipe(

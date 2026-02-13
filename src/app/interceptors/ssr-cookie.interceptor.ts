@@ -9,7 +9,7 @@ import { inject, REQUEST } from '@angular/core';
 export const ssrCookieInterceptor: HttpInterceptorFn = (req, next) => {
 	const request = inject(REQUEST, { optional: true });
 
-	if (request && req.url.includes('/api/')) {
+	if (request && req.url.startsWith('/api/')) {
 		const cookies = request.headers.get('cookie');
 		if (cookies) {
 			return next(req.clone({ setHeaders: { Cookie: cookies } }));

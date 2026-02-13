@@ -92,6 +92,14 @@ libs/
 - **Functions/Methods:** `camelCase` (e.g., `getUserById`)
 - **Constants:** `SCREAMING_SNAKE_CASE` for true global constants; `camelCase` for local constants
 
+### Scope Rules for Constants
+
+- **Local constants:** Keep inside the function scope when used by a single function. Declare them as close as possible to the point of evaluation — never at the top of a file when the only usage is deep inside a single function
+- **Module constants:** Promote to module level only when shared across multiple functions in the same file
+- **Global constants:** Use only after analysis confirms reuse across multiple files
+
+**Rationale:** A constant declared 50+ lines away from its single usage forces the reader to scroll and mentally link two distant locations. Co-locating the constant with its usage, when the usage is single, makes the code self-contained and easier to follow.
+
 ---
 
 ## Hard Constraints
@@ -187,14 +195,6 @@ import { User, IUserRepository } from './user.types';
 - Enums (compiled to runtime objects)
 - Functions or constants
 - Anything used in expressions or statements
-
-### Scope Rules for Constants
-
-- **Local constants:** Keep inside the function scope when used by a single function. Declare them as close as possible to the point of evaluation — never at the top of a file when the only usage is deep inside a single function
-- **Module constants:** Promote to module level only when shared across multiple functions in the same file
-- **Global constants:** Use only after analysis confirms reuse across multiple files
-
-**Rationale:** A constant declared 50+ lines away from its single usage forces the reader to scroll and mentally link two distant locations. Co-locating the constant with its usage, when the usage is single, makes the code self-contained and easier to follow.
 
 ---
 
