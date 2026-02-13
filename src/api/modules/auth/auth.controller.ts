@@ -23,9 +23,11 @@ const app = new Hono();
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
 const ACCESS_TOKEN_COOKIE_NAME = 'access_token';
 
+// WARNING: COOKIE_SECURE=false must ONLY be used in local development (no HTTPS).
+// In production, omit the variable entirely — it defaults to true (HTTPS required).
 const BASE_COOKIE_OPTIONS = {
 	httpOnly: true, // Cannot be accessed by JavaScript (XSS protection)
-	secure: process.env['COOKIE_SECURE'] !== 'false', // HTTPS based on COOKIE_SECURE env var value
+	secure: process.env['COOKIE_SECURE'] !== 'false', // Defaults to true; false only for local dev
 	sameSite: 'Strict' as const, // CSRF protection
 	path: '/',
 };
