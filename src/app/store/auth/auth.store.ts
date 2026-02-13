@@ -103,7 +103,9 @@ export const AuthStore = signalStore(
 				authApi.logout().subscribe({
 					complete: () => patchState(store, { isLoggingOut: false }),
 					error: (error) => {
-						// TODO(#66): Replace with security event logging
+						// TODO(#66): Replace with security event logging — HIGH priority
+						// Logout failures in a cookie-based auth flow may leave stale
+						// server sessions, so visibility into these errors is critical.
 						console.error('[AuthStore] Logout error:', error);
 						patchState(store, { isLoggingOut: false });
 					},
