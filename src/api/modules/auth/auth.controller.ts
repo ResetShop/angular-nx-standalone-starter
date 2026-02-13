@@ -162,9 +162,9 @@ app.post('/logout', async (c) => {
 	// Get refresh token before deleting cookie
 	const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
 
-	// Always delete both cookies
-	deleteCookie(c, ACCESS_TOKEN_COOKIE_NAME, { path: '/' });
-	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, { path: '/' });
+	// Always delete both cookies (flags must match creation options for correct targeting)
+	deleteCookie(c, ACCESS_TOKEN_COOKIE_NAME, BASE_COOKIE_OPTIONS);
+	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, BASE_COOKIE_OPTIONS);
 
 	try {
 		if (!refreshToken) {
