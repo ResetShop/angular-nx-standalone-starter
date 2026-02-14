@@ -17,7 +17,7 @@ export function mapLoginResponseToUser(response: LoginResponse): IUser {
 		email: response.user.email,
 		firstName: response.user.firstName,
 		lastName: response.user.lastName,
-		roles: [],
+		roles: [], // Roles added via the /api/me endpoint
 	});
 }
 
