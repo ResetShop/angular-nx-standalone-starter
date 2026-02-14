@@ -9,7 +9,7 @@ describe('ssrCookieInterceptor', () => {
 	let http: HttpClient;
 	let httpMock: HttpTestingController;
 
-	function setup(request: { headers: { get: (name: string) => string | null } } | null) {
+	function setup(request: { url: string; headers: { get: (name: string) => string | null } } | null) {
 		TestBed.configureTestingModule({
 			providers: [
 				provideHttpClient(withInterceptors([ssrCookieInterceptor])),
@@ -29,6 +29,7 @@ describe('ssrCookieInterceptor', () => {
 
 	it('should forward cookies from REQUEST to API requests', () => {
 		const mockRequest = {
+			url: 'http://localhost:4200/',
 			headers: { get: (name: string) => (name === 'cookie' ? 'access_token=abc; refresh_token=xyz' : null) },
 		};
 		setup(mockRequest);
@@ -40,8 +41,23 @@ describe('ssrCookieInterceptor', () => {
 		req.flush({});
 	});
 
+	it('should forward cookies for absolute API URLs', () => {
+		const mockRequest = {
+			url: 'http://localhost:4200/',
+			headers: { get: (name: string) => (name === 'cookie' ? 'access_token=abc; refresh_token=xyz' : null) },
+		};
+		setup(mockRequest);
+
+		http.get('http://localhost:4200/api/auth/me').subscribe();
+
+		const req = httpMock.expectOne('http://localhost:4200/api/auth/me');
+		expect(req.request.headers.get('Cookie')).toBe('access_token=abc; refresh_token=xyz');
+		req.flush({});
+	});
+
 	it('should not add Cookie header for non-API requests', () => {
 		const mockRequest = {
+			url: 'http://localhost:4200/',
 			headers: { get: (name: string) => (name === 'cookie' ? 'access_token=abc' : null) },
 		};
 		setup(mockRequest);
@@ -55,6 +71,7 @@ describe('ssrCookieInterceptor', () => {
 
 	it('should not add Cookie header when REQUEST has no cookies', () => {
 		const mockRequest = {
+			url: 'http://localhost:4200/',
 			headers: { get: () => null },
 		};
 		setup(mockRequest);
@@ -81,7 +98,7 @@ describe('ssrCookieInterceptor + authInterceptor chain', () => {
 	let http: HttpClient;
 	let httpMock: HttpTestingController;
 
-	function setup(request: { headers: { get: (name: string) => string | null } } | null) {
+	function setup(request: { url: string; headers: { get: (name: string) => string | null } } | null) {
 		TestBed.configureTestingModule({
 			providers: [
 				provideHttpClient(withInterceptors([ssrCookieInterceptor, authInterceptor])),
@@ -99,8 +116,9 @@ describe('ssrCookieInterceptor + authInterceptor chain', () => {
 		httpMock.verify();
 	});
 
-	it('should forward cookies and set withCredentials for API requests', () => {
+	it('should forward cookies for API requests without withCredentials on server', () => {
 		const mockRequest = {
+			url: 'http://localhost:4200/',
 			headers: { get: (name: string) => (name === 'cookie' ? 'access_token=abc; refresh_token=xyz' : null) },
 		};
 		setup(mockRequest);
@@ -109,23 +127,24 @@ describe('ssrCookieInterceptor + authInterceptor chain', () => {
 
 		const req = httpMock.expectOne('/api/auth/me');
 		expect(req.request.headers.get('Cookie')).toBe('access_token=abc; refresh_token=xyz');
-		expect(req.request.withCredentials).toBe(true);
+		expect(req.request.withCredentials).toBe(false);
 		req.flush({});
 	});
 
-	it('should set withCredentials but not cookies when REQUEST is absent', () => {
+	it('should not set withCredentials or cookies when REQUEST is absent', () => {
 		setup(null);
 
 		http.get('/api/users').subscribe();
 
 		const req = httpMock.expectOne('/api/users');
 		expect(req.request.headers.has('Cookie')).toBe(false);
-		expect(req.request.withCredentials).toBe(true);
+		expect(req.request.withCredentials).toBe(false);
 		req.flush({});
 	});
 
 	it('should not modify non-API requests even with cookies available', () => {
 		const mockRequest = {
+			url: 'http://localhost:4200/',
 			headers: { get: (name: string) => (name === 'cookie' ? 'access_token=abc' : null) },
 		};
 		setup(mockRequest);
