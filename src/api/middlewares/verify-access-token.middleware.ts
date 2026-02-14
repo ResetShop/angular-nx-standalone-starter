@@ -36,6 +36,7 @@ export default async function verifyAccessToken(c: Context, next: Next) {
 
 		await next();
 	} catch (error) {
+		// TODO(#66): Replace with structured logging service
 		console.error('Token verification failed:', error instanceof Error ? error.message : 'Unknown error');
 		return c.json({ error: 'Invalid or expired token' }, 401);
 	}
