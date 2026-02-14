@@ -231,6 +231,7 @@ app.get('/cleanup-tokens', async (c) => {
 			incomplete: result.incomplete,
 		});
 	} catch (error) {
+		// TODO(#66): Replace with structured logging service
 		console.error('[TokenCleanup] Error:', error);
 		return c.json({ error: 'Cleanup failed' }, 500);
 	}

@@ -19,6 +19,7 @@ export const authGuard: CanActivateFn = () => {
 		take(1),
 		map(() => (authStore.isAuthenticated() ? true : router.createUrlTree(['/auth/login']))),
 		catchError((error) => {
+			// TODO(#66): Replace with structured logging service
 			console.error('[AuthGuard] Unexpected initialization failure during routing:', error);
 			return of(router.createUrlTree(['/auth/login']));
 		}),
