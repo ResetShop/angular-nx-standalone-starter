@@ -63,7 +63,12 @@ Interceptors are registered in two configs and merged via `mergeApplicationConfi
 
 ### URL matching
 
-All interceptors use `req.url.includes('/api/')` — **not** `startsWith`. During SSR, Angular resolves relative URLs to absolute (e.g., `/api/auth/me` becomes `http://localhost:4200/api/auth/me`). Using `includes` handles both forms.
+All interceptors use `new URL().pathname.startsWith('/api/')` for safe pathname matching
+that ignores query parameters:
+
+- **`authInterceptor`** — `new URL(req.url, location.origin)` (browser only, `isPlatformBrowser` guard)
+- **`tokenRefreshInterceptor`** — `new URL(req.url, location.origin)` (browser only, `isPlatformBrowser` guard)
+- **`ssrCookieInterceptor`** — `new URL(req.url, request.url)` (server only, `isPlatformBrowser` guard)
 
 ### Token refresh flow (browser only)
 
