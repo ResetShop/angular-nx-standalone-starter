@@ -1,5 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { authInterceptor } from './auth.interceptor';
 
@@ -9,7 +10,11 @@ describe('authInterceptor', () => {
 
 	beforeEach(() => {
 		TestBed.configureTestingModule({
-			providers: [provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting()],
+			providers: [
+				provideHttpClient(withInterceptors([authInterceptor])),
+				provideHttpClientTesting(),
+				{ provide: PLATFORM_ID, useValue: 'browser' },
+			],
 		});
 
 		http = TestBed.inject(HttpClient);
@@ -68,5 +73,27 @@ describe('authInterceptor', () => {
 		const req = httpMock.expectOne('/callback?redirect=/api/users');
 		expect(req.request.withCredentials).toBe(false);
 		req.flush({});
+	});
+
+	it('should pass through without withCredentials on server platform', () => {
+		TestBed.resetTestingModule();
+		TestBed.configureTestingModule({
+			providers: [
+				provideHttpClient(withInterceptors([authInterceptor])),
+				provideHttpClientTesting(),
+				{ provide: PLATFORM_ID, useValue: 'server' },
+			],
+		});
+
+		const serverHttp = TestBed.inject(HttpClient);
+		const serverHttpMock = TestBed.inject(HttpTestingController);
+
+		serverHttp.get('/api/users').subscribe();
+
+		const req = serverHttpMock.expectOne('/api/users');
+		expect(req.request.withCredentials).toBe(false);
+		req.flush({});
+
+		serverHttpMock.verify();
 	});
 });
