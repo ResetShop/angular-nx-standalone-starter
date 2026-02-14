@@ -15,7 +15,8 @@ export const ssrCookieInterceptor: HttpInterceptorFn = (req, next) => {
 		return next(req);
 	}
 
-	if (req.url.startsWith('/api/')) {
+	const { pathname } = new URL(req.url, request.url);
+	if (pathname.startsWith('/api/')) {
 		const cookies = request.headers.get('cookie');
 		if (cookies) {
 			return next(req.clone({ setHeaders: { Cookie: cookies } }));
