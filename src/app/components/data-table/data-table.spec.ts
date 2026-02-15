@@ -1,7 +1,7 @@
 import { Translation } from '@providers/i18n/translation';
 import { type ColumnDef } from '@tanstack/angular-table';
 import { fn } from '@test-utils';
-import { render, screen } from '@testing-library/angular';
+import { render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { DataTable } from './data-table';
 import { DataTableCellDef } from './data-table-cell-def';
@@ -9,6 +9,12 @@ import { DataTableCellDef } from './data-table-cell-def';
 interface TestData {
 	id: number;
 	name: string;
+	email: string;
+}
+
+interface GroupableData {
+	name: string;
+	role: string;
 	email: string;
 }
 
@@ -278,5 +284,105 @@ describe('DataTable', () => {
 		});
 
 		expect(screen.getByRole('columnheader', { name: /full name/i })).toBeInTheDocument();
+	});
+
+	describe('Grouping', () => {
+		const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+			{ accessorKey: 'name', header: 'Name', enableSorting: false },
+			{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			{ accessorKey: 'email', header: 'Email', enableSorting: false },
+		];
+
+		const groupableData: GroupableData[] = [
+			{ name: 'Alice', role: 'Admin', email: 'alice@example.com' },
+			{ name: 'Bob', role: 'Editor', email: 'bob@example.com' },
+			{ name: 'Carol', role: 'Admin', email: 'carol@example.com' },
+			{ name: 'Dave', role: 'Editor', email: 'dave@example.com' },
+			{ name: 'Eve', role: 'Viewer', email: 'eve@example.com' },
+		];
+
+		it('should render group headers when grouping is set', async () => {
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			expect(screen.getByRole('button', { name: /admin/i })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: /editor/i })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: /viewer/i })).toBeInTheDocument();
+		});
+
+		it('should show row count per group', async () => {
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			expect(within(adminButton).getByText('(2)')).toBeInTheDocument();
+
+			const editorButton = screen.getByRole('button', { name: /editor/i });
+			expect(within(editorButton).getByText('(2)')).toBeInTheDocument();
+
+			const viewerButton = screen.getByRole('button', { name: /viewer/i });
+			expect(within(viewerButton).getByText('(1)')).toBeInTheDocument();
+		});
+
+		it('should show data rows expanded by default', async () => {
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+			expect(screen.getByText('Bob')).toBeInTheDocument();
+			expect(screen.getByText('Eve')).toBeInTheDocument();
+		});
+
+		it('should collapse group rows when clicking the group header', async () => {
+			const user = userEvent.setup();
+
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+
+			await user.click(screen.getByRole('button', { name: /admin/i }));
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(screen.queryByText('Carol')).not.toBeInTheDocument();
+			// Other groups remain visible
+			expect(screen.getByText('Bob')).toBeInTheDocument();
+		});
+
+		it('should re-expand collapsed group when clicking the header again', async () => {
+			const user = userEvent.setup();
+
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			const adminHeader = screen.getByRole('button', { name: /admin/i });
+
+			await user.click(adminHeader);
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+
+			await user.click(adminHeader);
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+		});
+
+		it('should render data rows without grouping when grouping is empty', async () => {
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: [] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			expect(screen.queryAllByRole('button')).toHaveLength(0);
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+			expect(screen.getByText('Eve')).toBeInTheDocument();
+		});
 	});
 });
