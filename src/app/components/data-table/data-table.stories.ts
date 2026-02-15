@@ -25,6 +25,13 @@ const sampleData: User[] = [
 	{ name: 'Carol White', email: 'carol@example.com', role: 'Viewer' },
 	{ name: 'Dave Brown', email: 'dave@example.com', role: 'Editor' },
 	{ name: 'Eve Davis', email: 'eve@example.com', role: 'Admin' },
+	{ name: 'Frank Miller', email: 'frank@example.com', role: 'Moderator' },
+	{ name: 'Grace Lee', email: 'grace@example.com', role: 'Viewer' },
+	{ name: 'Henry Wilson', email: 'henry@example.com', role: 'Editor' },
+	{ name: 'Ivy Chen', email: 'ivy@example.com', role: 'Moderator' },
+	{ name: 'Jack Taylor', email: 'jack@example.com', role: 'Viewer' },
+	{ name: 'Karen Adams', email: 'karen@example.com', role: 'Admin' },
+	{ name: 'Leo Martinez', email: 'leo@example.com', role: 'Editor' },
 ];
 
 /**
@@ -304,6 +311,24 @@ export const Playground: Story = {
 		loading: false,
 		caption: 'Users table',
 		groupBy: 'none',
+		expandedByDefault: true,
+		pageSize: 0,
+		language: 'en',
+	},
+};
+
+/**
+ * Rows grouped by the 'Role' column with expand/collapse toggles.
+ * Use the `expandedByDefault` control to toggle whether groups start open or closed.
+ */
+export const GroupedByRole: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
+		loading: false,
+		caption: 'Users table',
+		groupBy: 'role',
 		expandedByDefault: true,
 		pageSize: 0,
 		language: 'en',
