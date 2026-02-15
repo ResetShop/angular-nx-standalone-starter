@@ -86,8 +86,18 @@ export class DataTable<T> {
 	/** Internal sorting state */
 	readonly sorting = signal<SortingState>([]);
 
-	/** Internal expanded state — `true` means all expanded */
-	readonly expanded = signal<ExpandedState>(true);
+	/**
+	 * User-driven expanded state. `null` means no user interaction yet,
+	 * so the table falls back to `expandedByDefault`.
+	 */
+	private readonly userExpanded = signal<ExpandedState | null>(null);
+
+	/** Resolved expanded state — derives from `expandedByDefault` until user interacts */
+	readonly expanded = computed<ExpandedState>(() => {
+		const userState = this.userExpanded();
+		if (userState !== null) return userState;
+		return this.expandedByDefault() ? true : {};
+	});
 
 	/** TanStack table instance */
 	readonly table = createAngularTable(() => {
@@ -164,7 +174,7 @@ export class DataTable<T> {
 
 	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
 		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater;
-		this.expanded.set(newExpanded);
+		this.userExpanded.set(newExpanded);
 	}
 
 	private handleSortingUpdate(updater: Updater<SortingState>): void {
