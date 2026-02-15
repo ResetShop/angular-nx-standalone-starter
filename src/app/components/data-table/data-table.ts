@@ -6,6 +6,7 @@ import {
 	contentChildren,
 	inject,
 	input,
+	linkedSignal,
 	output,
 	signal,
 } from '@angular/core';
@@ -86,17 +87,10 @@ export class DataTable<T> {
 	/** Internal sorting state */
 	readonly sorting = signal<SortingState>([]);
 
-	/**
-	 * User-driven expanded state. `null` means no user interaction yet,
-	 * so the table falls back to `expandedByDefault`.
-	 */
-	private readonly userExpanded = signal<ExpandedState | null>(null);
-
-	/** Resolved expanded state — derives from `expandedByDefault` until user interacts */
-	readonly expanded = computed<ExpandedState>(() => {
-		const userState = this.userExpanded();
-		if (userState !== null) return userState;
-		return this.expandedByDefault() ? true : {};
+	/** Internal expanded state — resets to `expandedByDefault` when the input changes */
+	readonly expanded = linkedSignal<boolean, ExpandedState>({
+		source: this.expandedByDefault,
+		computation: (expandedByDefault) => (expandedByDefault ? true : {}),
 	});
 
 	/** TanStack table instance */
@@ -174,7 +168,7 @@ export class DataTable<T> {
 
 	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
 		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater;
-		this.userExpanded.set(newExpanded);
+		this.expanded.set(newExpanded);
 	}
 
 	private handleSortingUpdate(updater: Updater<SortingState>): void {
