@@ -59,7 +59,23 @@
 					{{ emptyMessage() }}
 				</td>
 			</tr>
-			} @else { @for (row of table.getRowModel().rows; track row.id) {
+			} @else { @for (row of table.getRowModel().rows; track row.id) { @if (row.getIsGrouped()) {
+			<!-- Group header row -->
+			<tr class="bg-gray-50 dark:bg-gray-800">
+				<td [attr.colspan]="columnCount()" class="px-4 py-2">
+					<button
+						(click)="row.getToggleExpandedHandler()()"
+						class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+						type="button"
+					>
+						<span aria-hidden="true">{{ row.getIsExpanded() ? '▼' : '▶' }}</span>
+						{{ row.getValue(grouping()[0]) }}
+						<span class="text-xs font-normal text-gray-500">({{ row.subRows.length }})</span>
+					</button>
+				</td>
+			</tr>
+			} @else {
+			<!-- Data row -->
 			<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
 				@for (cell of row.getVisibleCells(); track cell.id) {
 				<td class="px-4 py-3 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
@@ -72,7 +88,7 @@
 				</td>
 				}
 			</tr>
-			} }
+			} } }
 		</tbody>
 	</table>
 </div>

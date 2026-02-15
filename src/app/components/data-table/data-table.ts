@@ -11,10 +11,13 @@ import {
 } from '@angular/core';
 import {
 	type ColumnDef,
+	type ExpandedState,
 	type SortingState,
 	type Updater,
 	createAngularTable,
 	getCoreRowModel,
+	getExpandedRowModel,
+	getGroupedRowModel,
 	getSortedRowModel,
 } from '@tanstack/angular-table';
 
@@ -63,6 +66,12 @@ export class DataTable<T> {
 	/** Accessible table caption */
 	readonly caption = input<string>('');
 
+	/** Column IDs to group by (empty = no grouping) */
+	readonly grouping = input<string[]>([]);
+
+	/** Whether grouped rows start expanded (default: true) */
+	readonly expandedByDefault = input<boolean>(true);
+
 	/**
 	 * Translated loading message, resolved once at construction.
 	 *
@@ -77,17 +86,35 @@ export class DataTable<T> {
 	/** Internal sorting state */
 	readonly sorting = signal<SortingState>([]);
 
+	/** Internal expanded state — `true` means all expanded */
+	readonly expanded = signal<ExpandedState>(true);
+
 	/** TanStack table instance */
-	readonly table = createAngularTable(() => ({
-		data: this.data(),
-		columns: this.columns(),
-		state: {
-			sorting: this.sorting(),
-		},
-		onSortingChange: (updater) => this.handleSortingUpdate(updater),
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-	}));
+	readonly table = createAngularTable(() => {
+		const groupingState = this.grouping();
+		const isGrouped = groupingState.length > 0;
+
+		return {
+			data: this.data(),
+			columns: this.columns(),
+			state: {
+				sorting: this.sorting(),
+				...(isGrouped && {
+					grouping: groupingState,
+					expanded: this.expanded(),
+				}),
+			},
+			onSortingChange: (updater) => this.handleSortingUpdate(updater),
+			...(isGrouped && {
+				onExpandedChange: (updater: Updater<ExpandedState>) => this.handleExpandedUpdate(updater),
+				getGroupedRowModel: getGroupedRowModel(),
+				getExpandedRowModel: getExpandedRowModel(),
+				groupedColumnMode: false as const,
+			}),
+			getCoreRowModel: getCoreRowModel(),
+			getSortedRowModel: getSortedRowModel(),
+		};
+	});
 
 	/** Column count for colspan in empty/loading states */
 	readonly columnCount = computed(() => this.columns().length);
@@ -133,6 +160,11 @@ export class DataTable<T> {
 		if (typeof headerDef === 'string') return headerDef;
 		if (typeof headerDef === 'function') return String(headerDef(context));
 		return '';
+	}
+
+	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
+		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater;
+		this.expanded.set(newExpanded);
 	}
 
 	private handleSortingUpdate(updater: Updater<SortingState>): void {
