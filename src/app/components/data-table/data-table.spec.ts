@@ -414,6 +414,62 @@ describe('DataTable', () => {
 			expect(screen.queryByText('Bob')).not.toBeInTheDocument();
 		});
 
+		it('should set aria-expanded to true on expanded group headers', async () => {
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			expect(adminButton).toHaveAttribute('aria-expanded', 'true');
+		});
+
+		it('should set aria-expanded to false on collapsed group headers', async () => {
+			const user = userEvent.setup();
+
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			await user.click(adminButton);
+
+			expect(adminButton).toHaveAttribute('aria-expanded', 'false');
+		});
+
+		it('should toggle group via Enter key on group header button', async () => {
+			const user = userEvent.setup();
+
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			adminButton.focus();
+			await user.keyboard('{Enter}');
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(adminButton).toHaveAttribute('aria-expanded', 'false');
+		});
+
+		it('should toggle group via Space key on group header button', async () => {
+			const user = userEvent.setup();
+
+			await render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			adminButton.focus();
+			await user.keyboard(' ');
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(adminButton).toHaveAttribute('aria-expanded', 'false');
+		});
+
 		it('should render data rows without grouping when grouping is empty', async () => {
 			await render(DataTable<GroupableData>, {
 				inputs: { columns: groupableColumns, data: groupableData, grouping: [] },
