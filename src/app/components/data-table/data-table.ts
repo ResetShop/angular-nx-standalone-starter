@@ -4,8 +4,10 @@ import {
 	Component,
 	computed,
 	contentChildren,
+	effect,
 	inject,
 	input,
+	isDevMode,
 	linkedSignal,
 	output,
 	signal,
@@ -170,6 +172,27 @@ export class DataTable<T> {
 	/** Resolve the group label for a grouped row, coercing the unknown cell value to string */
 	resolveGroupLabel(row: Row<T>): string {
 		return String(row.getValue(this.grouping()[0]));
+	}
+
+	constructor() {
+		if (isDevMode()) {
+			effect(() => {
+				const groupingIds = this.grouping();
+				if (groupingIds.length === 0) return;
+
+				const columnIds = new Set<string>();
+				for (const col of this.columns()) {
+					const id = col.id ?? ('accessorKey' in col ? (col.accessorKey as string) : undefined);
+					if (id) columnIds.add(id);
+				}
+
+				for (const id of groupingIds) {
+					if (!columnIds.has(id)) {
+						console.warn(`DataTable: grouping column "${id}" does not match any column definition.`);
+					}
+				}
+			});
+		}
 	}
 
 	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
