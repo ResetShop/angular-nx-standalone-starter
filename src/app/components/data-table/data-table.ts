@@ -101,25 +101,28 @@ export class DataTable<T> {
 		const groupingState = this.grouping();
 		const isGrouped = groupingState.length > 0;
 
-		return {
+		const baseOptions = {
 			data: this.data(),
 			columns: this.columns(),
-			state: {
-				sorting: this.sorting(),
-				...(isGrouped && {
-					grouping: groupingState,
-					expanded: this.expanded(),
-				}),
-			},
-			onSortingChange: (updater) => this.handleSortingUpdate(updater),
-			...(isGrouped && {
-				onExpandedChange: (updater: Updater<ExpandedState>) => this.handleExpandedUpdate(updater),
-				getGroupedRowModel: getGroupedRowModel(),
-				getExpandedRowModel: getExpandedRowModel(),
-				groupedColumnMode: false as const,
-			}),
+			state: { sorting: this.sorting() },
+			onSortingChange: (updater: Updater<SortingState>) => this.handleSortingUpdate(updater),
 			getCoreRowModel: getCoreRowModel(),
 			getSortedRowModel: getSortedRowModel(),
+		};
+
+		if (!isGrouped) return baseOptions;
+
+		return {
+			...baseOptions,
+			state: {
+				...baseOptions.state,
+				grouping: groupingState,
+				expanded: this.expanded(),
+			},
+			onExpandedChange: (updater: Updater<ExpandedState>) => this.handleExpandedUpdate(updater),
+			getGroupedRowModel: getGroupedRowModel(),
+			getExpandedRowModel: getExpandedRowModel(),
+			groupedColumnMode: false as const,
 		};
 	});
 
