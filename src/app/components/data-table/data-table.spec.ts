@@ -1,7 +1,7 @@
 import { Translation } from '@providers/i18n/translation';
 import { type ColumnDef } from '@tanstack/angular-table';
 import { fn } from '@test-utils';
-import { render, screen, within } from '@testing-library/angular';
+import { type RenderResult, render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { DataTable } from './data-table';
 import { DataTableCellDef } from './data-table-cell-def';
@@ -301,11 +301,17 @@ describe('DataTable', () => {
 			{ name: 'Eve', role: 'Viewer', email: 'eve@example.com' },
 		];
 
-		it('should render group headers when grouping is set', async () => {
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
+		function renderGroupedTable(
+			overrides: Partial<{ expandedByDefault: boolean; grouping: string[] }> = {},
+		): Promise<RenderResult<DataTable<GroupableData>>> {
+			return render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'], ...overrides },
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			});
+		}
+
+		it('should render group headers when grouping is set', async () => {
+			await renderGroupedTable();
 
 			expect(screen.getByRole('button', { name: /admin/i })).toBeInTheDocument();
 			expect(screen.getByRole('button', { name: /editor/i })).toBeInTheDocument();
@@ -313,10 +319,7 @@ describe('DataTable', () => {
 		});
 
 		it('should show row count per group', async () => {
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			const adminButton = screen.getByRole('button', { name: /admin/i });
 			expect(within(adminButton).getByText('(2)')).toBeInTheDocument();
@@ -329,10 +332,7 @@ describe('DataTable', () => {
 		});
 
 		it('should show data rows expanded by default', async () => {
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			expect(screen.getByText('Alice')).toBeInTheDocument();
 			expect(screen.getByText('Bob')).toBeInTheDocument();
@@ -341,11 +341,7 @@ describe('DataTable', () => {
 
 		it('should collapse group rows when clicking the group header', async () => {
 			const user = userEvent.setup();
-
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			expect(screen.getByText('Alice')).toBeInTheDocument();
 
@@ -359,11 +355,7 @@ describe('DataTable', () => {
 
 		it('should re-expand collapsed group when clicking the header again', async () => {
 			const user = userEvent.setup();
-
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			const adminHeader = screen.getByRole('button', { name: /admin/i });
 
@@ -375,15 +367,7 @@ describe('DataTable', () => {
 		});
 
 		it('should start collapsed when expandedByDefault is false', async () => {
-			await render(DataTable<GroupableData>, {
-				inputs: {
-					columns: groupableColumns,
-					data: groupableData,
-					grouping: ['role'],
-					expandedByDefault: false,
-				},
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable({ expandedByDefault: false });
 
 			expect(screen.getByRole('button', { name: /admin/i })).toBeInTheDocument();
 			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
@@ -393,16 +377,7 @@ describe('DataTable', () => {
 
 		it('should expand a collapsed group when expandedByDefault is false and header is clicked', async () => {
 			const user = userEvent.setup();
-
-			await render(DataTable<GroupableData>, {
-				inputs: {
-					columns: groupableColumns,
-					data: groupableData,
-					grouping: ['role'],
-					expandedByDefault: false,
-				},
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable({ expandedByDefault: false });
 
 			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
 
@@ -415,10 +390,7 @@ describe('DataTable', () => {
 		});
 
 		it('should set aria-expanded to true on expanded group headers', async () => {
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			const adminButton = screen.getByRole('button', { name: /admin/i });
 			expect(adminButton).toHaveAttribute('aria-expanded', 'true');
@@ -426,11 +398,7 @@ describe('DataTable', () => {
 
 		it('should set aria-expanded to false on collapsed group headers', async () => {
 			const user = userEvent.setup();
-
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			const adminButton = screen.getByRole('button', { name: /admin/i });
 			await user.click(adminButton);
@@ -440,11 +408,7 @@ describe('DataTable', () => {
 
 		it('should toggle group via Enter key on group header button', async () => {
 			const user = userEvent.setup();
-
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			const adminButton = screen.getByRole('button', { name: /admin/i });
 			adminButton.focus();
@@ -456,11 +420,7 @@ describe('DataTable', () => {
 
 		it('should toggle group via Space key on group header button', async () => {
 			const user = userEvent.setup();
-
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable();
 
 			const adminButton = screen.getByRole('button', { name: /admin/i });
 			adminButton.focus();
@@ -471,10 +431,7 @@ describe('DataTable', () => {
 		});
 
 		it('should render data rows without grouping when grouping is empty', async () => {
-			await render(DataTable<GroupableData>, {
-				inputs: { columns: groupableColumns, data: groupableData, grouping: [] },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			});
+			await renderGroupedTable({ grouping: [] });
 
 			expect(screen.queryAllByRole('button')).toHaveLength(0);
 			expect(screen.getByText('Alice')).toBeInTheDocument();
