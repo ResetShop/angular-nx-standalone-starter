@@ -48,18 +48,9 @@
 					</div>
 				</td>
 			</tr>
-			} @else if (table.getRowModel().rows.length === 0) {
-			<tr>
-				<td
-					[attr.colspan]="columnCount()"
-					class="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
-					role="status"
-					aria-live="polite"
-				>
-					{{ emptyMessage() }}
-				</td>
-			</tr>
-			} @else { @for (row of table.getRowModel().rows; track row.id) { @if (row.getIsGrouped()) {
+			} @else {
+			@for (row of table.getRowModel().rows; track row.id) {
+			@if (row.getIsGrouped()) {
 			<!-- Group header row -->
 			<tr class="bg-gray-50 dark:bg-gray-800">
 				<td [attr.colspan]="columnCount()" class="px-4 py-2">
@@ -90,7 +81,20 @@
 				</td>
 				}
 			</tr>
-			} } }
+			}
+			} @empty {
+			<tr>
+				<td
+					[attr.colspan]="columnCount()"
+					class="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
+					role="status"
+					aria-live="polite"
+				>
+					{{ emptyMessage() }}
+				</td>
+			</tr>
+			}
+			}
 		</tbody>
 	</table>
 </div>
