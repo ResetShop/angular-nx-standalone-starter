@@ -437,5 +437,17 @@ describe('DataTable', () => {
 			expect(screen.getByText('Alice')).toBeInTheDocument();
 			expect(screen.getByText('Eve')).toBeInTheDocument();
 		});
+
+		it('should warn when grouping column ID does not match any column definition', async () => {
+			const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+			await renderGroupedTable({ grouping: ['nonexistent'] });
+
+			expect(warnSpy).toHaveBeenCalledWith(
+				'DataTable: grouping column "nonexistent" does not match any column definition.',
+			);
+
+			warnSpy.mockRestore();
+		});
 	});
 });
