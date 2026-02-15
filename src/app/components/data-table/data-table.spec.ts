@@ -374,6 +374,46 @@ describe('DataTable', () => {
 			expect(screen.getByText('Alice')).toBeInTheDocument();
 		});
 
+		it('should start collapsed when expandedByDefault is false', async () => {
+			await render(DataTable<GroupableData>, {
+				inputs: {
+					columns: groupableColumns,
+					data: groupableData,
+					grouping: ['role'],
+					expandedByDefault: false,
+				},
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			expect(screen.getByRole('button', { name: /admin/i })).toBeInTheDocument();
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+			expect(screen.queryByText('Eve')).not.toBeInTheDocument();
+		});
+
+		it('should expand a collapsed group when expandedByDefault is false and header is clicked', async () => {
+			const user = userEvent.setup();
+
+			await render(DataTable<GroupableData>, {
+				inputs: {
+					columns: groupableColumns,
+					data: groupableData,
+					grouping: ['role'],
+					expandedByDefault: false,
+				},
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+
+			await user.click(screen.getByRole('button', { name: /admin/i }));
+
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+			expect(screen.getByText('Carol')).toBeInTheDocument();
+			// Other groups remain collapsed
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+		});
+
 		it('should render data rows without grouping when grouping is empty', async () => {
 			await render(DataTable<GroupableData>, {
 				inputs: { columns: groupableColumns, data: groupableData, grouping: [] },
