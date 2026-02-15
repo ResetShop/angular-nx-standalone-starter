@@ -7,11 +7,10 @@ meta {
 delete {
   url: {{baseUrl}}/access/roles/{{testRoleId}}
   body: none
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: {{accessToken}}
+}
 }
 
 docs {

@@ -97,9 +97,6 @@ export default class ResetPassword {
 			return;
 		}
 
-		const { email } = this.resetPasswordForm.value;
-		console.log('Password reset requested for:', email);
-
 		// TODO: Implement actual password reset logic
 		// After successful request, could navigate to a confirmation page
 		// this.router.navigate(["/reset-password-sent"]);

@@ -7,11 +7,10 @@ meta {
 put {
   url: {{baseUrl}}/access/roles/{{testRoleId}}
   body: json
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: {{accessToken}}
+}
 }
 
 body:json {

@@ -8,7 +8,7 @@ export interface AuthState {
 	/** Currently authenticated user, or null if not logged in */
 	currentUser: IUser | null;
 
-	/** Whether auth state has been restored from localStorage on app startup */
+	/** Whether auth state has been initialized (getMe() completed or failed) */
 	isInitialized: boolean;
 
 	/** Whether a token refresh operation is currently in progress */
@@ -25,9 +25,6 @@ export interface AuthState {
 
 	/** Whether a network/server error occurred during login (5xx or connection failure) */
 	networkError: boolean;
-
-	/** Token from completed refresh operation, for interceptor coordination (null when not refreshing) */
-	pendingRefreshToken: string | null;
 }
 
 /**
@@ -41,5 +38,4 @@ export const initialAuthState: AuthState = {
 	isLoggingOut: false,
 	loginError: null,
 	networkError: false,
-	pendingRefreshToken: null,
 };

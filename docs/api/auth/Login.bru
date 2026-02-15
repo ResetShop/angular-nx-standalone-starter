@@ -19,35 +19,32 @@ body:json {
 
 assert {
   res.status: eq 200
-  res.body.token: isDefined
   res.body.user: isDefined
   res.body.user.email: isDefined
-}
-
-script:post-response {
-  if (res.status === 200 && res.body.token) {
-    bru.setEnvVar("accessToken", res.body.token);
-  }
 }
 
 tests {
   test("should return 200 on successful login", function() {
     expect(res.status).to.equal(200);
   });
-  
-  test("should return access token", function() {
-    expect(res.body.token).to.be.a("string");
-    expect(res.body.token.length).to.be.greaterThan(0);
-  });
-  
+
   test("should return user object", function() {
     expect(res.body.user).to.be.an("object");
   });
-  
+
   test("should return user email", function() {
     expect(res.body.user.email).to.be.a("string");
   });
-  
+
+  test("should set access token cookie", function() {
+    const cookies = res.headers['set-cookie'];
+    expect(cookies).to.exist;
+    const hasAccessToken = Array.isArray(cookies)
+      ? cookies.some(c => c.includes('access_token'))
+      : cookies.includes('access_token');
+    expect(hasAccessToken).to.be.true;
+  });
+
   test("should set refresh token cookie", function() {
     const cookies = res.headers['set-cookie'];
     expect(cookies).to.exist;
@@ -84,10 +81,9 @@ docs {
   | user.email | string | User email |
   | user.firstName | string | User's first name |
   | user.lastName | string | User's last name |
-  | token | string | JWT access token |
 
   ## Notes
 
-  - Refresh token is set as an HttpOnly cookie
-  - Access token should be stored in memory and sent in Authorization header
+  - Both access token and refresh token are set as HttpOnly cookies
+  - No tokens are returned in the response body
 }
