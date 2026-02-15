@@ -28,7 +28,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.id).toBe(1);
@@ -36,7 +35,6 @@ describe('User', () => {
 			expect(user.firstName).toBe('John');
 			expect(user.lastName).toBe('Doe');
 			expect(user.roles).toEqual(roles);
-			expect(user.token).toBe('token123');
 		});
 
 		it('should allow empty roles array', () => {
@@ -46,7 +44,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.roles).toEqual([]);
@@ -61,7 +58,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.fullName).toBe('John Doe');
@@ -74,7 +70,6 @@ describe('User', () => {
 				firstName: 'Prince',
 				lastName: '',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.fullName).toBe('Prince');
@@ -90,7 +85,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.permissions).toHaveLength(4);
@@ -125,7 +119,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [role1, role2],
-				token: 'token123',
 			});
 
 			expect(user.permissions).toHaveLength(1);
@@ -139,7 +132,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.permissions).toEqual([]);
@@ -155,7 +147,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.hasPermission('users', 'read')).toBe(true);
@@ -170,7 +161,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.hasPermission('settings', 'read')).toBe(false);
@@ -183,7 +173,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.hasPermission('users', 'read')).toBe(false);
@@ -199,7 +188,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.hasPermissionByIdentifier('users:read')).toBe(true);
@@ -214,7 +202,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.hasPermissionByIdentifier('settings:read')).toBe(false);
@@ -227,7 +214,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.hasPermissionByIdentifier('users:read')).toBe(false);
@@ -243,7 +229,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.hasRole('admin')).toBe(true);
@@ -258,7 +243,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.hasRole('superadmin')).toBe(false);
@@ -271,7 +255,6 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.hasRole('admin')).toBe(false);

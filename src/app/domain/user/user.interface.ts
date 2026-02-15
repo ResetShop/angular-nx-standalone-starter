@@ -8,7 +8,6 @@ export interface IUser {
 	readonly lastName: string;
 	readonly fullName: string;
 	readonly roles: readonly IRole[];
-	readonly token: string;
 
 	get permissions(): readonly IPermission[];
 

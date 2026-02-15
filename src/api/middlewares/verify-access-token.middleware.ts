@@ -1,4 +1,5 @@
 import { Context, Next } from 'hono';
+import { getCookie } from 'hono/cookie';
 import { container } from '../container';
 
 export interface AuthenticatedContext extends Context {
@@ -12,17 +13,15 @@ export interface AuthenticatedContext extends Context {
 }
 
 /**
- * Hono middleware to validate Paseto access token from Authorization header
+ * Hono middleware to validate Paseto access token from HttpOnly cookie
  */
 export default async function verifyAccessToken(c: Context, next: Next) {
 	const { pasetoService } = container.cradle;
-	const authHeader = c.req.header('Authorization');
+	const token = getCookie(c, 'access_token');
 
-	if (!authHeader?.startsWith('Bearer ')) {
-		return c.json({ error: 'Missing or invalid Authorization header' }, 401);
+	if (!token) {
+		return c.json({ error: 'Missing access token cookie' }, 401);
 	}
-
-	const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
 	try {
 		const payload = await pasetoService.verifyAccessToken(token);
@@ -37,6 +36,7 @@ export default async function verifyAccessToken(c: Context, next: Next) {
 
 		await next();
 	} catch (error) {
+		// TODO(#66): Replace with structured logging service
 		console.error('Token verification failed:', error instanceof Error ? error.message : 'Unknown error');
 		return c.json({ error: 'Invalid or expired token' }, 401);
 	}
