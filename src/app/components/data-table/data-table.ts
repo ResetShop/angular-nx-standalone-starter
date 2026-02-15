@@ -13,6 +13,7 @@ import {
 import {
 	type ColumnDef,
 	type ExpandedState,
+	type Row,
 	type SortingState,
 	type Updater,
 	createAngularTable,
@@ -164,6 +165,11 @@ export class DataTable<T> {
 		if (typeof headerDef === 'string') return headerDef;
 		if (typeof headerDef === 'function') return String(headerDef(context));
 		return '';
+	}
+
+	/** Resolve the group label for a grouped row, coercing the unknown cell value to string */
+	resolveGroupLabel(row: Row<T>): string {
+		return String(row.getValue(this.grouping()[0]));
 	}
 
 	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
