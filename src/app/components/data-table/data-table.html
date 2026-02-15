@@ -71,7 +71,7 @@
 					>
 						<span aria-hidden="true">{{ row.getIsExpanded() ? '▼' : '▶' }}</span>
 						<span class="sr-only">{{ row.getIsExpanded() ? 'Collapse' : 'Expand' }}</span>
-						{{ row.getValue(grouping()[0]) }}
+						{{ resolveGroupLabel(row) }}
 						<span class="text-xs font-normal text-gray-500">({{ row.subRows.length }})</span>
 					</button>
 				</td>
