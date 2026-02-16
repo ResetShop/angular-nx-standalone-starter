@@ -1,7 +1,7 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
+import { fn } from '@test-utils';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
-import { vi } from 'vitest';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
 import { MockUserRepository } from '../user/user.repository.mock';
 import { AuthService } from './auth.service';
@@ -494,19 +494,19 @@ describe('AuthService', () => {
 		});
 
 		it('should return cleanup result even when lock release fails', async () => {
-			// Make releaseCleanupLock throw an error
-			const releaseSpy = vi
-				.spyOn(mockRefreshTokenRepo, 'releaseCleanupLock')
-				.mockRejectedValue(new Error('Connection lost'));
+			// Save original and replace with a mock that rejects
+			const originalRelease = mockRefreshTokenRepo.releaseCleanupLock.bind(mockRefreshTokenRepo);
+			const releaseFn = fn<[], Promise<void>>().mockRejectedValue(new Error('Connection lost'));
+			mockRefreshTokenRepo.releaseCleanupLock = releaseFn;
 
 			// Cleanup should still succeed and return results
 			const result = await authService.cleanupExpiredTokens();
 
 			expect(result).not.toBeNull();
 			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
-			expect(releaseSpy).toHaveBeenCalled();
+			expect(releaseFn.calls).toHaveLength(1);
 
-			releaseSpy.mockRestore();
+			mockRefreshTokenRepo.releaseCleanupLock = originalRelease;
 		});
 	});
 });

@@ -76,6 +76,16 @@ const viRestrictedSyntax = [
 		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="useRealTimers"]',
 		message: 'vi.useRealTimers() is forbidden. Use useRealTimers() from test-utils.ts instead.',
 	},
+	// Bulk operations
+	{
+		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="clearAllMocks"]',
+		message: 'vi.clearAllMocks() is forbidden. Use clearAllMocks() from test-utils.ts instead.',
+	},
+	// Spying
+	{
+		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="spyOn"]',
+		message: 'vi.spyOn() is forbidden. Reassign the method directly with fn() from test-utils.ts instead.',
+	},
 ];
 
 export default [
