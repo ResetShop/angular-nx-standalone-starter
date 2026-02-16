@@ -1,4 +1,4 @@
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import type { Transporter } from 'nodemailer';
 import * as nodemailer from 'nodemailer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,8 +21,8 @@ describe('SmtpEmailRepository', () => {
 	};
 
 	beforeEach(() => {
-		vi.clearAllMocks();
-		mockSendMail.mockClear();
+		clearAllMocks();
+		vi.mocked(nodemailer.createTransport).mockClear();
 
 		Object.entries(defaultEnv).forEach(([key, value]) => {
 			process.env[key] = value;

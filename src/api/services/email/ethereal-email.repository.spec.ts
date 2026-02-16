@@ -1,4 +1,4 @@
-import { fn, type MockFn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import type { Transporter } from 'nodemailer';
 import * as nodemailer from 'nodemailer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,7 +10,8 @@ vi.mock('nodemailer');
 
 describe('EtherealEmailRepository', () => {
 	const mockSendMail = fn<[Record<string, string>], Promise<{ messageId: string }>>();
-	let consoleLogSpy: MockFn;
+	const consoleLogSpy = fn();
+	const originalConsoleLog = console.log;
 
 	const testAccount = {
 		user: 'ethereal-user@ethereal.email',
@@ -30,24 +31,25 @@ describe('EtherealEmailRepository', () => {
 	};
 
 	beforeEach(() => {
-		vi.clearAllMocks();
-		mockSendMail.mockClear();
+		clearAllMocks();
+		vi.mocked(nodemailer.createTestAccount).mockClear();
+		vi.mocked(nodemailer.createTransport).mockClear();
+		vi.mocked(nodemailer.getTestMessageUrl).mockClear();
 
 		vi.mocked(nodemailer.createTestAccount).mockResolvedValue(testAccount as never);
 		vi.mocked(nodemailer.createTransport).mockReturnValue({
 			sendMail: mockSendMail,
 		} as unknown as Transporter);
 
-		consoleLogSpy = fn();
-		vi.spyOn(console, 'log').mockImplementation(consoleLogSpy);
+		console.log = consoleLogSpy as typeof console.log;
 	});
 
 	afterEach(() => {
-		vi.restoreAllMocks();
+		console.log = originalConsoleLog;
 	});
 
-	describe('lazy initialization', () => {
-		it('should create test account and transporter on first send call', async () => {
+	describe('initialization', () => {
+		it('should create test account and transporter', async () => {
 			mockSendMail.mockResolvedValue({ messageId: '123' });
 			vi.mocked(nodemailer.getTestMessageUrl).mockReturnValue(false);
 
