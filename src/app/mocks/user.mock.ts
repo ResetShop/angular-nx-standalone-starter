@@ -5,7 +5,7 @@ import type { IUser } from '@domain/user/user.interface';
  *
  * @example
  * ```typescript
- * const admin = createMockUser({ email: 'admin@test.com', token: 'admin-token' });
+ * const admin = createMockUser({ email: 'admin@test.com' });
  * ```
  */
 export function createMockUser(overrides: Partial<IUser> = {}): IUser {
@@ -17,7 +17,6 @@ export function createMockUser(overrides: Partial<IUser> = {}): IUser {
 		fullName: 'Test User',
 		roles: [],
 		permissions: [],
-		token: 'mock-token',
 		hasPermission: () => false,
 		hasPermissionByIdentifier: () => false,
 		hasRole: () => false,

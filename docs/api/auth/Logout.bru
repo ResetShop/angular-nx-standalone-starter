@@ -34,11 +34,6 @@ assert {
   res.body.message: eq Logged out successfully
 }
 
-script:post-response {
-  // Clear the access token after logout
-  bru.setEnvVar("accessToken", "");
-}
-
 tests {
   test("should return 200 on logout", function() {
     expect(res.status).to.equal(200);
