@@ -15,6 +15,9 @@ import { UserRoleRepository } from './modules/user/user-role.repository';
 import { UserRoleService } from './modules/user/user-role.service';
 import { UserRepository } from './modules/user/user.repository';
 import { EmailService } from './services/email/email.service';
+import { EtherealEmailRepository } from './services/email/ethereal-email.repository';
+import type { IEmailRepository } from './services/email/interfaces';
+import { SmtpEmailRepository } from './services/email/smtp-email.repository';
 import { PasetoService } from './services/paseto/paseto.service';
 
 /**
@@ -52,7 +55,8 @@ validateEnvironment();
  * UserManagementService
  *   └── UserManagementRepository ► db
  *
- * EmailService (no deps)
+ * EmailService
+ *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'smtp' | 'ethereal')
  * PasetoService (no deps)
  *
  * Middleware/Controllers resolve services lazily at runtime.
@@ -68,6 +72,7 @@ export interface Cradle {
 	pasetoService: PasetoService;
 
 	// Repositories
+	emailRepository: IEmailRepository;
 	userRepository: UserRepository;
 	authRepository: AuthenticationRepository;
 	refreshTokenRepository: RefreshTokenRepository;
@@ -117,6 +122,10 @@ realContainer.register({
 	pasetoService: asClass(PasetoService).singleton(),
 
 	// Repositories (singletons - stateless, share db connection)
+	emailRepository:
+		process.env['EMAIL_PROVIDER'] === 'ethereal'
+			? asClass(EtherealEmailRepository).singleton()
+			: asClass(SmtpEmailRepository).singleton(),
 	userRepository: asClass(UserRepository).singleton(),
 	authRepository: asClass(AuthenticationRepository).singleton(),
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
