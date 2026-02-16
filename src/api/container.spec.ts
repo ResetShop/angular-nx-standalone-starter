@@ -15,6 +15,10 @@ describe('DI Container', () => {
 			expect(container.cradle.db).toBeDefined();
 		});
 
+		it('should resolve emailRepository', () => {
+			expect(container.cradle.emailRepository).toBeDefined();
+		});
+
 		it('should resolve emailService', () => {
 			expect(container.cradle.emailService).toBeDefined();
 		});

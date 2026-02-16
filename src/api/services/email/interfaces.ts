@@ -5,6 +5,10 @@ export interface SendEmailParams {
 	text: string;
 }
 
+export interface IEmailRepository {
+	send(params: SendEmailParams): Promise<void>;
+}
+
 export interface IEmailService {
 	sendEmail(params: SendEmailParams): Promise<boolean>;
 }
