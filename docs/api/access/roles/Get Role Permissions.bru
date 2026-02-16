@@ -7,7 +7,7 @@ meta {
 get {
   url: {{baseUrl}}/access/roles/1/permissions
   body: none
-  auth: bearer
+  auth: none
 }
 
 params:query {
@@ -15,8 +15,7 @@ params:query {
   ~limit: 10
 }
 
-auth:bearer {
-  token: {{accessToken}}
+}
 }
 
 docs {
