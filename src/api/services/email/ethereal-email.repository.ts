@@ -7,19 +7,26 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * Activated when EMAIL_PROVIDER is 'ethereal'.
  *
  * No environment variables required — Ethereal generates test credentials
- * automatically on first use. After each email is sent, the Ethereal
- * preview URL is logged so the developer can inspect the email in a browser.
+ * automatically. The transporter is created eagerly at construction time
+ * (as a Promise) and shared across all send() calls.
+ *
+ * After each email is sent, the Ethereal preview URL is logged so the
+ * developer can inspect the email in a browser.
  *
  * Intended for local development and testing only.
  */
 export class EtherealEmailRepository implements IEmailRepository {
-	private transporter: Transporter | null = null;
+	private readonly transporterPromise: Promise<Transporter>;
+
+	constructor() {
+		this.transporterPromise = this.createTransporter();
+	}
 
 	async send(params: SendEmailParams): Promise<void> {
-		const transporter = await this.getTransporter();
+		const transporter = await this.transporterPromise;
 
 		const info = await transporter.sendMail({
-			from: params.to,
+			from: 'noreply@example.ethereal',
 			to: params.to,
 			subject: params.subject,
 			html: params.html,
@@ -40,14 +47,10 @@ export class EtherealEmailRepository implements IEmailRepository {
 		}
 	}
 
-	private async getTransporter(): Promise<Transporter> {
-		if (this.transporter) {
-			return this.transporter;
-		}
-
+	private async createTransporter(): Promise<Transporter> {
 		const testAccount = await nodemailer.createTestAccount();
 
-		this.transporter = nodemailer.createTransport({
+		return nodemailer.createTransport({
 			host: testAccount.smtp.host,
 			port: testAccount.smtp.port,
 			secure: testAccount.smtp.secure,
@@ -56,7 +59,5 @@ export class EtherealEmailRepository implements IEmailRepository {
 				pass: testAccount.pass,
 			},
 		});
-
-		return this.transporter;
 	}
 }
