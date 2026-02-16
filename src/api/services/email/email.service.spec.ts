@@ -1,17 +1,18 @@
-import { fn, type MockFn } from '@test-utils';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearAllMocks, fn } from '@test-utils';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { EmailService } from './email.service';
 import type { IEmailRepository, SendEmailParams } from './interfaces';
 
 describe('EmailService', () => {
 	const mockSend = fn<[SendEmailParams], Promise<void>>();
+	const consoleErrorSpy = fn();
+	const originalConsoleError = console.error;
 
 	const mockEmailRepository: IEmailRepository = {
 		send: mockSend,
 	};
 
 	let emailService: EmailService;
-	let consoleErrorSpy: MockFn;
 
 	const emailParams: SendEmailParams = {
 		to: 'recipient@test.com',
@@ -21,18 +22,17 @@ describe('EmailService', () => {
 	};
 
 	beforeEach(() => {
-		mockSend.mockClear();
+		clearAllMocks();
 
 		emailService = new EmailService({
 			emailRepository: mockEmailRepository,
 		});
 
-		consoleErrorSpy = fn();
-		vi.spyOn(console, 'error').mockImplementation(consoleErrorSpy);
+		console.error = consoleErrorSpy as typeof console.error;
 	});
 
 	afterEach(() => {
-		vi.restoreAllMocks();
+		console.error = originalConsoleError;
 	});
 
 	describe('sendEmail', () => {
@@ -44,26 +44,27 @@ describe('EmailService', () => {
 			expect(mockSend.calls).toEqual([[emailParams]]);
 		});
 
-		it('should return true when email is sent successfully', async () => {
+		it('should resolve when email is sent successfully', async () => {
 			mockSend.mockResolvedValue(undefined);
 
-			const result = await emailService.sendEmail(emailParams);
-
-			expect(result).toBe(true);
+			await expect(emailService.sendEmail(emailParams)).resolves.toBeUndefined();
 		});
 
-		it('should return false when repository throws', async () => {
-			mockSend.mockRejectedValue(new Error('SMTP error'));
+		it('should re-throw the original error from repository', async () => {
+			const error = new Error('SMTP error');
+			mockSend.mockRejectedValue(error);
 
-			const result = await emailService.sendEmail(emailParams);
-
-			expect(result).toBe(false);
+			await expect(emailService.sendEmail(emailParams)).rejects.toThrow(error);
 		});
 
-		it('should log structured JSON error when repository throws', async () => {
+		it('should log structured JSON error before re-throwing', async () => {
 			mockSend.mockRejectedValue(new Error('SMTP connection failed'));
 
-			await emailService.sendEmail(emailParams);
+			try {
+				await emailService.sendEmail(emailParams);
+			} catch {
+				// expected
+			}
 
 			expect(consoleErrorSpy.calls).toHaveLength(1);
 
@@ -83,18 +84,10 @@ describe('EmailService', () => {
 		it('should handle non-Error objects in catch block', async () => {
 			mockSend.mockRejectedValue('String error');
 
-			const result = await emailService.sendEmail(emailParams);
-
-			expect(result).toBe(false);
+			await expect(emailService.sendEmail(emailParams)).rejects.toBe('String error');
 
 			const loggedData = JSON.parse(consoleErrorSpy.calls[0][0] as string);
 			expect(loggedData.error).toBe('String error');
-		});
-
-		it('should not throw when repository throws', async () => {
-			mockSend.mockRejectedValue(new Error('SMTP error'));
-
-			await expect(emailService.sendEmail(emailParams)).resolves.not.toThrow();
 		});
 	});
 });

@@ -10,5 +10,5 @@ export interface IEmailRepository {
 }
 
 export interface IEmailService {
-	sendEmail(params: SendEmailParams): Promise<boolean>;
+	sendEmail(params: SendEmailParams): Promise<void>;
 }
