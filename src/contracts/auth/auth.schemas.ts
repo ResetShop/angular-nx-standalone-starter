@@ -17,12 +17,9 @@ export const loginRequestSchema = z.object({
 
 export const loginResponseSchema = z.object({
 	user: authUserSchema,
-	token: z.string(),
 });
 
-export const refreshResponseSchema = z.object({
-	token: z.string(),
-});
+export const refreshResponseSchema = z.object({});
 
 export const meResponseSchema = z.object({
 	id: z.number(),

@@ -4,16 +4,22 @@ import { provideRouter } from '@angular/router';
 import { BreadcrumbItem, NavigationSection } from '@interfaces/navigation';
 import { featherActivity, featherHome } from '@ng-icons/feather-icons';
 import { Navigation } from '@providers/navigation/navigation';
+import { NavigationState } from '@providers/navigation/navigation-state';
 import { provideMockTheme } from '@providers/theme/theme.mock';
 import { render, screen } from '@testing-library/angular';
 import Dashboard from './dashboard';
 
 describe('Dashboard', () => {
 	const defaultProviders = () => [
-		provideRouter([]),
+		provideRouter([
+			{ path: 'auth/login', component: Dashboard },
+			{ path: 'welcome', component: Dashboard },
+			{ path: 'health', component: Dashboard },
+		]),
 		provideMockTheme(false),
 		provideHttpClient(),
 		provideHttpClientTesting(),
+		NavigationState,
 	];
 
 	const createNavigationWithSectionsAndBreadcrumbs = (

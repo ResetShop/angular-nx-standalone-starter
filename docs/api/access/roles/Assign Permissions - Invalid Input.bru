@@ -1,0 +1,38 @@
+meta {
+  name: Assign Permissions - Invalid Input
+  type: http
+  seq: 18
+}
+
+put {
+  url: {{baseUrl}}/access/roles/1/permissions
+  body: json
+  auth: none
+}
+
+}
+}
+
+body:json {
+  {
+    "permissionIds": [-1, 0]
+  }
+}
+
+docs {
+  # Assign Permissions - Invalid Input Test
+
+  Tests that assigning invalid permission IDs returns 400.
+
+  Permission IDs must be positive integers.
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should return 400 for invalid permission IDs", function() {
+    expect(res.status).to.equal(400);
+  });
+}

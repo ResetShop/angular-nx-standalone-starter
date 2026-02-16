@@ -1,15 +1,12 @@
 import { NgOptimizedImage } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
-import type { LoginErrorResponse } from '@contracts/auth/auth.errors';
 import { LoginForm } from '@interfaces/auth';
-import { Auth } from '@providers/auth/auth';
 import { Translation } from '@providers/i18n/translation';
-import { first } from 'rxjs';
+import { AuthStore } from '@store/auth/auth.store';
 
 @Component({
 	selector: 'app-login-page',
@@ -118,7 +115,7 @@ import { first } from 'rxjs';
 	`,
 })
 export default class Login {
-	private auth = inject(Auth);
+	private authStore = inject(AuthStore);
 	private router = inject(Router);
 	private translation = inject(Translation);
 
@@ -137,10 +134,20 @@ export default class Login {
 	});
 
 	constructor() {
+		// Handle login state changes: navigation on success, error display on failure
 		effect(() => {
-			const user = this.auth.currentUser();
+			const user = this.authStore.currentUser();
+			const error = this.authStore.loginError();
+
 			if (user) {
+				// Clear any previous error and navigate to dashboard
+				this.errorMessage.set(null);
 				this.router.navigate(['/dashboard']);
+			} else if (error) {
+				// Display translated error message
+				this.errorMessage.set(
+					this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'),
+				);
 			}
 		});
 	}
@@ -155,18 +162,6 @@ export default class Login {
 		this.errorMessage.set(null);
 
 		const { email, password } = this.loginForm.value;
-		this.auth
-			.login({ email, password })
-			.pipe(first())
-			.subscribe({
-				error: (error: HttpErrorResponse) => {
-					this.handleLoginError(error);
-				},
-			});
-	}
-
-	private handleLoginError(response: HttpErrorResponse): void {
-		const error = response.error as LoginErrorResponse | undefined;
-		this.errorMessage.set(this.translation.instant(error?.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'));
+		this.authStore.login({ email, password });
 	}
 }
