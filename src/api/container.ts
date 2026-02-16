@@ -17,7 +17,7 @@ import { UserRepository } from './modules/user/user.repository';
 import { EmailService } from './services/email/email.service';
 import { EtherealEmailRepository } from './services/email/ethereal-email.repository';
 import type { IEmailRepository } from './services/email/interfaces';
-import { SmtpEmailRepository } from './services/email/smtp-email.repository';
+import { NodemailerRepository } from './services/email/nodemailer.repository';
 import { PasetoService } from './services/paseto/paseto.service';
 
 /**
@@ -33,6 +33,12 @@ function validateEnvironment(): void {
 		throw new Error(
 			'PASETO_SECRET_KEY must be at least 32 bytes (64 hex characters). ' + 'Generate with: openssl rand -hex 32',
 		);
+	}
+
+	const emailProvider = process.env['EMAIL_PROVIDER'];
+	const validEmailProviders = ['nodemailer', 'ethereal'];
+	if (emailProvider && !validEmailProviders.includes(emailProvider)) {
+		throw new Error(`Invalid EMAIL_PROVIDER: "${emailProvider}". Valid values: ${validEmailProviders.join(', ')}`);
 	}
 }
 
@@ -56,7 +62,7 @@ validateEnvironment();
  *   └── UserManagementRepository ► db
  *
  * EmailService
- *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'smtp' | 'ethereal')
+ *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
  * PasetoService (no deps)
  *
  * Middleware/Controllers resolve services lazily at runtime.
@@ -125,7 +131,7 @@ realContainer.register({
 	emailRepository:
 		process.env['EMAIL_PROVIDER'] === 'ethereal'
 			? asClass(EtherealEmailRepository).singleton()
-			: asClass(SmtpEmailRepository).singleton(),
+			: asClass(NodemailerRepository).singleton(),
 	userRepository: asClass(UserRepository).singleton(),
 	authRepository: asClass(AuthenticationRepository).singleton(),
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),

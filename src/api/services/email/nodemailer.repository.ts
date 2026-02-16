@@ -3,8 +3,8 @@ import * as nodemailer from 'nodemailer';
 import type { IEmailRepository, SendEmailParams } from './interfaces';
 
 /**
- * SMTP email repository using Nodemailer.
- * Activated when EMAIL_PROVIDER is 'smtp' (or unset — this is the default).
+ * Nodemailer email repository using SMTP transport.
+ * Activated when EMAIL_PROVIDER is 'nodemailer' (or unset — this is the default).
  *
  * Required environment variables:
  * - SMTP_HOST: SMTP server hostname
@@ -16,7 +16,7 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * - SMTP_SECURE: Use TLS on port 465 (default: false)
  * - SMTP_FROM: Default sender address (default: noreply@example.com)
  */
-export class SmtpEmailRepository implements IEmailRepository {
+export class NodemailerRepository implements IEmailRepository {
 	private readonly transporter: Transporter;
 	private readonly fromAddress: string;
 

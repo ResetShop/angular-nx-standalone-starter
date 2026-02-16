@@ -11,7 +11,7 @@ interface EmailServiceDeps {
  *
  * The concrete repository is selected at container setup time via the
  * EMAIL_PROVIDER environment variable:
- * - 'smtp'     (default) — SmtpEmailRepository, requires SMTP_* env vars
+ * - 'nodemailer' (default) — NodemailerRepository, requires SMTP_* env vars
  * - 'ethereal' — EtherealEmailRepository, no env vars needed (test accounts)
  */
 export class EmailService implements IEmailService {

@@ -3,12 +3,12 @@ import type { Transporter } from 'nodemailer';
 import * as nodemailer from 'nodemailer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SendEmailParams } from './interfaces';
-import { SmtpEmailRepository } from './smtp-email.repository';
+import { NodemailerRepository } from './nodemailer.repository';
 
 // eslint-disable-next-line no-restricted-syntax -- Repository is the DI boundary; must mock external transport module
 vi.mock('nodemailer');
 
-describe('SmtpEmailRepository', () => {
+describe('NodemailerRepository', () => {
 	const mockSendMail = fn<[Record<string, string>], Promise<{ messageId: string }>>();
 
 	const defaultEnv = {
@@ -41,7 +41,7 @@ describe('SmtpEmailRepository', () => {
 
 	describe('constructor', () => {
 		it('should create transporter with correct configuration', () => {
-			new SmtpEmailRepository();
+			new NodemailerRepository();
 
 			expect(vi.mocked(nodemailer.createTransport).mock.calls).toEqual([
 				[
@@ -61,7 +61,7 @@ describe('SmtpEmailRepository', () => {
 		it('should use default port 587 when SMTP_PORT not set', () => {
 			delete process.env['SMTP_PORT'];
 
-			new SmtpEmailRepository();
+			new NodemailerRepository();
 
 			const callArgs = vi.mocked(nodemailer.createTransport).mock.calls[0][0] as Record<string, unknown>;
 			expect(callArgs['port']).toBe(587);
@@ -71,7 +71,7 @@ describe('SmtpEmailRepository', () => {
 			delete process.env['SMTP_FROM'];
 			mockSendMail.mockResolvedValue({ messageId: '123' });
 
-			const repository = new SmtpEmailRepository();
+			const repository = new NodemailerRepository();
 
 			const params: SendEmailParams = {
 				to: 'recipient@test.com',
@@ -90,7 +90,7 @@ describe('SmtpEmailRepository', () => {
 		it('should set secure to true when SMTP_SECURE is "true"', () => {
 			process.env['SMTP_SECURE'] = 'true';
 
-			new SmtpEmailRepository();
+			new NodemailerRepository();
 
 			const callArgs = vi.mocked(nodemailer.createTransport).mock.calls[0][0] as Record<string, unknown>;
 			expect(callArgs['secure']).toBe(true);
@@ -99,7 +99,7 @@ describe('SmtpEmailRepository', () => {
 		it('should throw when SMTP_HOST is missing', () => {
 			delete process.env['SMTP_HOST'];
 
-			expect(() => new SmtpEmailRepository()).toThrow(
+			expect(() => new NodemailerRepository()).toThrow(
 				'SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS',
 			);
 		});
@@ -107,7 +107,7 @@ describe('SmtpEmailRepository', () => {
 		it('should throw when SMTP_USER is missing', () => {
 			delete process.env['SMTP_USER'];
 
-			expect(() => new SmtpEmailRepository()).toThrow(
+			expect(() => new NodemailerRepository()).toThrow(
 				'SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS',
 			);
 		});
@@ -115,7 +115,7 @@ describe('SmtpEmailRepository', () => {
 		it('should throw when SMTP_PASS is missing', () => {
 			delete process.env['SMTP_PASS'];
 
-			expect(() => new SmtpEmailRepository()).toThrow(
+			expect(() => new NodemailerRepository()).toThrow(
 				'SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS',
 			);
 		});
@@ -125,7 +125,7 @@ describe('SmtpEmailRepository', () => {
 		it('should call transporter.sendMail with correct parameters', async () => {
 			mockSendMail.mockResolvedValue({ messageId: '123' });
 
-			const repository = new SmtpEmailRepository();
+			const repository = new NodemailerRepository();
 			const params: SendEmailParams = {
 				to: 'recipient@test.com',
 				subject: 'Test Subject',
@@ -151,7 +151,7 @@ describe('SmtpEmailRepository', () => {
 		it('should propagate errors from transporter', async () => {
 			mockSendMail.mockRejectedValue(new Error('SMTP error'));
 
-			const repository = new SmtpEmailRepository();
+			const repository = new NodemailerRepository();
 			const params: SendEmailParams = {
 				to: 'recipient@test.com',
 				subject: 'Test',
