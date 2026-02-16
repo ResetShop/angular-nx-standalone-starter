@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/angular';
 import { provideRouter } from '@angular/router';
-import { featherHome, featherActivity, featherSettings, featherRefreshCw } from '@ng-icons/feather-icons';
-import NavSection from './nav-section';
 import { NavigationSection } from '@interfaces/navigation';
+import { featherActivity, featherHome, featherRefreshCw, featherSettings } from '@ng-icons/feather-icons';
+import { NavigationState } from '@providers/navigation/navigation-state';
+import { render, screen } from '@testing-library/angular';
+import NavSection from './nav-section';
 
 describe('NavSection', () => {
 	const mockSection: NavigationSection = {
@@ -67,7 +68,7 @@ describe('NavSection', () => {
 		],
 	};
 
-	const defaultProviders = () => [provideRouter([])];
+	const defaultProviders = () => [provideRouter([]), NavigationState];
 
 	it('should create the nav section component', async () => {
 		const { fixture } = await render(NavSection, {

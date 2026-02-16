@@ -7,10 +7,11 @@
 		"node": "^20.19.0 || ^22.19.0"
 	},
 	"scripts": {
-		"preinstall": "pnpx only-allow pnpm",
-		"postinstall": "pnpm run config && pnpm run drizzle:push-migrations && pnpm run drizzle:seed",
+		"postinstall": "npm run config && npm run drizzle:push-migrations && npm run drizzle:seed",
 		"config": "tsx ./scripts/set-environment.ts",
+		"serve:ssr": "node dist/app/server/server.mjs",
 		"prepare": "husky",
+		"ci": "npm run stylelint && npm run lint && npm run test && npm run build && npm run storybook:build",
 		"dev": "nx serve",
 		"build": "nx build",
 		"storybook": "nx run app:storybook",
@@ -45,6 +46,7 @@
 		"@hono/zod-validator": "^0.7.6",
 		"@ng-icons/core": "^33.0.0",
 		"@ng-icons/feather-icons": "^33.0.0",
+		"@ngrx/signals": "^21.0.1",
 		"@tailwindcss/postcss": "^4.1.18",
 		"@tanstack/angular-table": "^8.21.3",
 		"awilix": "^12.0.5",
@@ -82,7 +84,7 @@
 		"@nx/workspace": "22.3.3",
 		"@playwright/test": "^1.57.0",
 		"@schematics/angular": "21.0.4",
-		"@storybook/addon-docs": "^10.1.10",
+		"@storybook/addon-docs": "10.1.10",
 		"@storybook/addon-styling-webpack": "^3.0.0",
 		"@storybook/angular": "10.1.10",
 		"@stylistic/eslint-plugin": "^5.6.1",
@@ -105,7 +107,7 @@
 		"eslint-config-prettier": "10.1.8",
 		"eslint-plugin-no-barrel-files": "^1.2.2",
 		"eslint-plugin-playwright": "^2.4.0",
-		"eslint-plugin-storybook": "^10.1.10",
+		"eslint-plugin-storybook": "10.1.10",
 		"eslint-plugin-testing-library": "^7.15.3",
 		"eslint-plugin-vitest": "^0.5.4",
 		"happy-dom": "^20.0.11",
@@ -135,6 +137,5 @@
 	},
 	"nx": {
 		"includedScripts": []
-	},
-	"packageManager": "pnpm@10.15.1+sha512.34e538c329b5553014ca8e8f4535997f96180a1d0f614339357449935350d924e22f8614682191264ec33d1462ac21561aff97f6bb18065351c162c7e8f6de67"
+	}
 }

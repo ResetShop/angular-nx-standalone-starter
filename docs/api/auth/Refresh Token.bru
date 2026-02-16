@@ -13,7 +13,7 @@ post {
 docs {
   # Refresh Token Endpoint
 
-  Exchanges the refresh token (from HttpOnly cookie) for a new access token.
+  Exchanges the refresh token (from HttpOnly cookie) for new access and refresh tokens.
 
   ## Contract Types
 
@@ -23,28 +23,16 @@ docs {
 
   - Must have a valid refresh token cookie set (from login)
 
-  ## Response
-
-  | Field | Type | Description |
-  |-------|------|-------------|
-  | token | string | New JWT access token |
-
   ## Notes
 
-  - Refresh token is read from HttpOnly cookie
-  - New refresh token is set as HttpOnly cookie (token rotation)
+  - Both tokens are read from and set as HttpOnly cookies
+  - New refresh token replaces the old one (token rotation)
   - Old refresh token is invalidated
+  - Response body is empty — tokens are delivered via cookies
 }
 
 assert {
   res.status: eq 200
-  res.body.token: isDefined
-}
-
-script:post-response {
-  if (res.status === 200 && res.body.token) {
-    bru.setEnvVar("accessToken", res.body.token);
-  }
 }
 
 tests {
@@ -52,9 +40,13 @@ tests {
     expect(res.status).to.equal(200);
   });
 
-  test("should return new access token", function() {
-    expect(res.body.token).to.be.a("string");
-    expect(res.body.token.length).to.be.greaterThan(0);
+  test("should set new access token cookie", function() {
+    const cookies = res.headers['set-cookie'];
+    expect(cookies).to.exist;
+    const hasAccessToken = Array.isArray(cookies)
+      ? cookies.some(c => c.includes('access_token'))
+      : cookies.includes('access_token');
+    expect(hasAccessToken).to.be.true;
   });
 
   test("should set new refresh token cookie", function() {
