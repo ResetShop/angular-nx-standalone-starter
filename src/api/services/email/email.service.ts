@@ -21,11 +21,9 @@ export class EmailService implements IEmailService {
 		this.emailRepository = emailRepository;
 	}
 
-	async sendEmail(params: SendEmailParams): Promise<boolean> {
+	async sendEmail(params: SendEmailParams): Promise<void> {
 		try {
 			await this.emailRepository.send(params);
-
-			return true;
 		} catch (error) {
 			// TODO(#66): Replace with structured logging service
 			console.error(
@@ -38,7 +36,7 @@ export class EmailService implements IEmailService {
 				}),
 			);
 
-			return false;
+			throw error;
 		}
 	}
 }
