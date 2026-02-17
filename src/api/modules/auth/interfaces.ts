@@ -54,16 +54,6 @@ export interface CleanupResult {
 	incomplete: boolean;
 }
 
-export interface IAuthService {
-	authenticate(credentials: {
-		email: string;
-		password: string;
-	}): Promise<{ user: { id: number; email: string; firstName: string; lastName: string }; token: string; refreshToken: string }>;
-	refreshToken(token: string): Promise<{ token: string; refreshToken: string }>;
-	logout(userId: number): Promise<void>;
-	cleanupExpiredTokens(): Promise<CleanupResult | null>;
-}
-
 export interface IRefreshTokenRepository {
 	findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null>;
 	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>;
@@ -73,4 +63,34 @@ export interface IRefreshTokenRepository {
 	tryAcquireCleanupLock(): Promise<boolean>;
 	releaseCleanupLock(): Promise<void>;
 	deleteAllExpiredTokens(): Promise<CleanupResult>;
+}
+
+// ============================================================================
+// Auth Service Types & Interface
+// ============================================================================
+
+export interface AuthCredentials {
+	email: string;
+	password: string;
+}
+
+export interface AuthResult {
+	user: { id: number; email: string; firstName: string; lastName: string };
+	token: string;
+	refreshToken: string;
+}
+
+export interface RefreshResult {
+	token: string;
+	refreshToken: string;
+}
+
+/**
+ * Service interface for authentication operations: login, logout, token refresh, and cleanup.
+ */
+export interface IAuthService {
+	authenticate(credentials: AuthCredentials): Promise<AuthResult>;
+	refreshToken(token: string): Promise<RefreshResult>;
+	logout(userId: number): Promise<void>;
+	cleanupExpiredTokens(): Promise<CleanupResult | null>;
 }

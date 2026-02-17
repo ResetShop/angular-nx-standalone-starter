@@ -1,42 +1,19 @@
 import { AuthError, getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
-import type { AuthUser } from '@contracts/users/users.types';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
 import { type IUserRepository, type UserData } from '../user/interfaces';
 import {
+	type AuthCredentials,
+	type AuthResult,
 	type AuthenticationData,
 	type CleanupResult,
 	type IAuthService,
 	type IAuthenticationRepository,
 	type IRefreshTokenRepository,
+	type RefreshResult,
 } from './interfaces';
-
-interface LoginParams {
-	email: string;
-	password: string;
-}
-
-/**
- * Internal refresh token response from service layer.
- * Includes refreshToken which the controller extracts for HttpOnly cookie.
- */
-interface InternalRefreshResponse {
-	token: string;
-	refreshToken: string;
-}
-
-/**
- * Complete authentication result from the service layer.
- * The controller extracts the refresh token to store in HttpOnly cookie
- * and returns only user + token in the HTTP response.
- */
-interface AuthResult {
-	user: AuthUser;
-	token: string;
-	refreshToken: string;
-}
 
 interface AuthServiceDeps {
 	userRepository: IUserRepository;
@@ -86,7 +63,7 @@ export class AuthService implements IAuthService {
 	 * @throws AuthError with INVALID_CREDENTIALS code if authentication fails
 	 * @throws AuthError with ACCOUNT_LOCKED code if account is locked due to failed attempts
 	 */
-	async authenticate(credentials: LoginParams): Promise<AuthResult> {
+	async authenticate(credentials: AuthCredentials): Promise<AuthResult> {
 		return this.findUserAndAuth(credentials.email)
 			.then(({ user, authRecord }) => {
 				this.checkAccountLockout(authRecord, user?.id);
@@ -273,10 +250,10 @@ export class AuthService implements IAuthService {
 	 * Validates token signature, expiration, revocation status, and user account status.
 	 *
 	 * @param token - The refresh token to exchange
-	 * @returns InternalRefreshResponse containing new access token and refresh token
+	 * @returns RefreshResult containing new access token and refresh token
 	 * @throws AuthError if token is invalid, expired, revoked, or user account is disabled
 	 */
-	async refreshToken(token: string): Promise<InternalRefreshResponse> {
+	async refreshToken(token: string): Promise<RefreshResult> {
 		// 1. Verify refresh token
 		const payload = await this.pasetoService.verifyRefreshToken(token);
 
