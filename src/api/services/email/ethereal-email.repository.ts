@@ -27,7 +27,7 @@ export class EtherealEmailRepository implements IEmailRepository {
 		const transporter = await this.getTransporter();
 
 		const info = await transporter.sendMail({
-			from: 'noreply@example.ethereal',
+			from: 'noreply@ethereal.email',
 			to: params.to,
 			subject: params.subject,
 			html: params.html,

@@ -37,7 +37,7 @@ describe('EmailService', () => {
 
 	describe('validation', () => {
 		it('should throw when recipient email is invalid', async () => {
-			await expect(emailService.sendEmail({ ...emailParams, to: 'not-an-email' })).rejects.toThrow(
+			await expect(emailService.send({ ...emailParams, to: 'not-an-email' })).rejects.toThrow(
 				'Invalid recipient email address',
 			);
 
@@ -45,35 +45,35 @@ describe('EmailService', () => {
 		});
 
 		it('should throw when recipient email is empty', async () => {
-			await expect(emailService.sendEmail({ ...emailParams, to: '' })).rejects.toThrow();
+			await expect(emailService.send({ ...emailParams, to: '' })).rejects.toThrow();
 
 			expect(mockSend.calls).toHaveLength(0);
 		});
 
 		it('should throw when subject is empty', async () => {
-			await expect(emailService.sendEmail({ ...emailParams, subject: '' })).rejects.toThrow('Subject is required');
+			await expect(emailService.send({ ...emailParams, subject: '' })).rejects.toThrow('Subject is required');
 
 			expect(mockSend.calls).toHaveLength(0);
 		});
 
 		it('should throw when html content is empty', async () => {
-			await expect(emailService.sendEmail({ ...emailParams, html: '' })).rejects.toThrow('HTML content is required');
+			await expect(emailService.send({ ...emailParams, html: '' })).rejects.toThrow('HTML content is required');
 
 			expect(mockSend.calls).toHaveLength(0);
 		});
 
 		it('should throw when text content is empty', async () => {
-			await expect(emailService.sendEmail({ ...emailParams, text: '' })).rejects.toThrow('Text content is required');
+			await expect(emailService.send({ ...emailParams, text: '' })).rejects.toThrow('Text content is required');
 
 			expect(mockSend.calls).toHaveLength(0);
 		});
 	});
 
-	describe('sendEmail', () => {
+	describe('send', () => {
 		it('should delegate to emailRepository.send', async () => {
 			mockSend.mockResolvedValue(undefined);
 
-			await emailService.sendEmail(emailParams);
+			await emailService.send(emailParams);
 
 			expect(mockSend.calls).toEqual([[emailParams]]);
 		});
@@ -81,21 +81,21 @@ describe('EmailService', () => {
 		it('should resolve when email is sent successfully', async () => {
 			mockSend.mockResolvedValue(undefined);
 
-			await expect(emailService.sendEmail(emailParams)).resolves.toBeUndefined();
+			await expect(emailService.send(emailParams)).resolves.toBeUndefined();
 		});
 
 		it('should re-throw the original error from repository', async () => {
 			const error = new Error('SMTP error');
 			mockSend.mockRejectedValue(error);
 
-			await expect(emailService.sendEmail(emailParams)).rejects.toThrow(error);
+			await expect(emailService.send(emailParams)).rejects.toThrow(error);
 		});
 
 		it('should log structured JSON error before re-throwing', async () => {
 			mockSend.mockRejectedValue(new Error('SMTP connection failed'));
 
 			try {
-				await emailService.sendEmail(emailParams);
+				await emailService.send(emailParams);
 			} catch {
 				// expected
 			}
@@ -127,7 +127,7 @@ describe('EmailService', () => {
 			});
 
 			try {
-				await expect(emailService.sendEmail(emailParams)).rejects.toThrow(originalError);
+				await expect(emailService.send(emailParams)).rejects.toThrow(originalError);
 				expect(consoleErrorSpy.calls[0]).toEqual(['email_send_failed', 'recipient@test.com', 'Test Subject']);
 			} finally {
 				JSON.stringify = originalStringify;
@@ -137,7 +137,7 @@ describe('EmailService', () => {
 		it('should handle non-Error objects in catch block', async () => {
 			mockSend.mockRejectedValue('String error');
 
-			await expect(emailService.sendEmail(emailParams)).rejects.toBe('String error');
+			await expect(emailService.send(emailParams)).rejects.toBe('String error');
 
 			const loggedData = JSON.parse(consoleErrorSpy.calls[0][0] as string);
 			expect(loggedData.error).toBe('String error');
