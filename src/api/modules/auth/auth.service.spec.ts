@@ -1,7 +1,6 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
-import { vi } from 'vitest';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
 import { MockUserRepository } from '../user/user.repository.mock';
 import { AuthService } from './auth.service';

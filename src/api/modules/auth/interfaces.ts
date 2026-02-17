@@ -1,3 +1,5 @@
+import type { AuthUser } from '@contracts/users/users.types';
+
 export interface AuthenticationData {
 	id: number;
 	userId: number;
@@ -69,17 +71,30 @@ export interface IRefreshTokenRepository {
 // Auth Service Types & Interface
 // ============================================================================
 
+/**
+ * Credentials for user authentication.
+ */
 export interface AuthCredentials {
 	email: string;
 	password: string;
 }
 
+/**
+ * Complete authentication result from the service layer.
+ * The controller extracts `refreshToken` to store in an HttpOnly cookie
+ * and returns only `user` + `token` in the HTTP response body.
+ */
 export interface AuthResult {
-	user: { id: number; email: string; firstName: string; lastName: string };
+	user: AuthUser;
 	token: string;
 	refreshToken: string;
 }
 
+/**
+ * Result from token refresh operation.
+ * The controller extracts `refreshToken` for the HttpOnly cookie
+ * and returns only `token` in the HTTP response body.
+ */
 export interface RefreshResult {
 	token: string;
 	refreshToken: string;
