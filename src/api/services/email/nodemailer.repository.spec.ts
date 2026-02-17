@@ -11,7 +11,9 @@ vi.mock('nodemailer');
 const mockCreateTransport = nodemailer.createTransport as unknown as Mock;
 
 describe('NodemailerRepository', () => {
-	const mockSendMail = fn<[Record<string, string>], Promise<{ messageId: string }>>();
+	const mockSendMail = fn<[Record<string, string>], Promise<{ messageId: string; rejected: string[] }>>();
+	const consoleErrorSpy = fn();
+	const originalConsoleError = console.error;
 
 	const defaultEnv = {
 		SMTP_HOST: 'smtp.test.com',
@@ -33,9 +35,13 @@ describe('NodemailerRepository', () => {
 		mockCreateTransport.mockReturnValue({
 			sendMail: mockSendMail,
 		} as unknown as Transporter);
+
+		console.error = consoleErrorSpy as typeof console.error;
 	});
 
 	afterEach(() => {
+		console.error = originalConsoleError;
+
 		Object.keys(defaultEnv).forEach((key) => {
 			delete process.env[key];
 		});
@@ -71,7 +77,7 @@ describe('NodemailerRepository', () => {
 
 		it('should use default from address when SMTP_FROM not set', async () => {
 			delete process.env['SMTP_FROM'];
-			mockSendMail.mockResolvedValue({ messageId: '123' });
+			mockSendMail.mockResolvedValue({ messageId: '123', rejected: [] });
 
 			const repository = new NodemailerRepository();
 
@@ -147,7 +153,7 @@ describe('NodemailerRepository', () => {
 
 	describe('send', () => {
 		it('should call transporter.sendMail with correct parameters', async () => {
-			mockSendMail.mockResolvedValue({ messageId: '123' });
+			mockSendMail.mockResolvedValue({ messageId: '123', rejected: [] });
 
 			const repository = new NodemailerRepository();
 			const params: SendEmailParams = {
@@ -170,6 +176,31 @@ describe('NodemailerRepository', () => {
 					},
 				],
 			]);
+		});
+
+		it('should throw when recipients are rejected by SMTP server', async () => {
+			mockSendMail.mockResolvedValue({
+				messageId: '123',
+				rejected: ['bad@example.com'],
+			});
+
+			const repository = new NodemailerRepository();
+			const params: SendEmailParams = {
+				to: 'bad@example.com',
+				subject: 'Test',
+				html: '<p>Test</p>',
+				text: 'Test',
+			};
+
+			await expect(repository.send(params)).rejects.toThrow('Recipients rejected by SMTP server: bad@example.com');
+
+			const loggedData = JSON.parse(consoleErrorSpy.calls[0][0] as string);
+			expect(loggedData).toEqual({
+				event: 'email_recipients_rejected',
+				rejected: ['bad@example.com'],
+				recipient: 'bad@example.com',
+				subject: 'Test',
+			});
 		});
 
 		it('should propagate errors from transporter', async () => {
