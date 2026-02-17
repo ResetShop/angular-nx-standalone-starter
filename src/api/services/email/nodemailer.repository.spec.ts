@@ -128,6 +128,30 @@ describe('NodemailerRepository', () => {
 			);
 		});
 
+		it('should throw when SMTP_HOST is empty string', () => {
+			process.env['SMTP_HOST'] = '';
+
+			expect(() => new NodemailerRepository()).toThrow(
+				'SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS',
+			);
+		});
+
+		it('should throw when SMTP_USER is empty string', () => {
+			process.env['SMTP_USER'] = '';
+
+			expect(() => new NodemailerRepository()).toThrow(
+				'SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS',
+			);
+		});
+
+		it('should throw when SMTP_PASS is empty string', () => {
+			process.env['SMTP_PASS'] = '';
+
+			expect(() => new NodemailerRepository()).toThrow(
+				'SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS',
+			);
+		});
+
 		it('should throw when SMTP_PORT is not a valid number', () => {
 			process.env['SMTP_PORT'] = 'abc';
 
