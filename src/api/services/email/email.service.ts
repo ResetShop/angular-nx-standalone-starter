@@ -26,15 +26,19 @@ export class EmailService implements IEmailService {
 			await this.emailRepository.send(params);
 		} catch (error) {
 			// TODO(#66): Replace with structured logging service
-			console.error(
-				JSON.stringify({
-					event: 'email_send_failed',
-					recipient: params.to,
-					subject: params.subject,
-					error: error instanceof Error ? error.message : String(error),
-					timestamp: new Date().toISOString(),
-				}),
-			);
+			try {
+				console.error(
+					JSON.stringify({
+						event: 'email_send_failed',
+						recipient: params.to,
+						subject: params.subject,
+						error: error instanceof Error ? error.message : String(error),
+						timestamp: new Date().toISOString(),
+					}),
+				);
+			} catch {
+				console.error('email_send_failed', params.to, params.subject);
+			}
 
 			throw error;
 		}
