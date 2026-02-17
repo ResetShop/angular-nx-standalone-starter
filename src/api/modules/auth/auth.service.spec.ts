@@ -493,19 +493,14 @@ describe('AuthService', () => {
 		});
 
 		it('should return cleanup result even when lock release fails', async () => {
-			// Make releaseCleanupLock throw an error
-			const releaseSpy = vi
-				.spyOn(mockRefreshTokenRepo, 'releaseCleanupLock')
-				.mockRejectedValue(new Error('Connection lost'));
+			mockRefreshTokenRepo.releaseCleanupLockError = new Error('Connection lost');
 
-			// Cleanup should still succeed and return results
 			const result = await authService.cleanupExpiredTokens();
 
 			expect(result).not.toBeNull();
 			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
-			expect(releaseSpy).toHaveBeenCalled();
-
-			releaseSpy.mockRestore();
+			// Lock was acquired but release threw — lock remains held
+			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(true);
 		});
 	});
 });
