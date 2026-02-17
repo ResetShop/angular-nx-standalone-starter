@@ -60,6 +60,18 @@ validateEnvironment();
  *   ├── RefreshTokenRepository ► db
  *   └── PasetoService (no deps)
  *
+ * RoleService
+ *   ├── RoleRepository ──────► db
+ *   └── UserRoleRepository ──► db
+ *
+ * PermissionService
+ *   └── PermissionRepository ► db
+ *
+ * UserRoleService
+ *   ├── UserRoleRepository ──► db
+ *   ├── UserRepository ──────► db
+ *   └── RoleRepository ──────► db
+ *
  * UserManagementService
  *   └── UserManagementRepository ► db
  *
