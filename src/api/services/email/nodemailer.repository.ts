@@ -48,12 +48,26 @@ export class NodemailerRepository implements IEmailRepository {
 	}
 
 	async send(params: SendEmailParams): Promise<void> {
-		await this.transporter.sendMail({
+		const info = await this.transporter.sendMail({
 			from: this.fromAddress,
 			to: params.to,
 			subject: params.subject,
 			html: params.html,
 			text: params.text,
 		});
+
+		const rejected = info.rejected as string[];
+		if (rejected.length > 0) {
+			// TODO(#66): Replace with structured logging service
+			console.error(
+				JSON.stringify({
+					event: 'email_recipients_rejected',
+					rejected,
+					recipient: params.to,
+					subject: params.subject,
+				}),
+			);
+			throw new Error(`Recipients rejected by SMTP server: ${rejected.join(', ')}`);
+		}
 	}
 }
