@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { IEmailRepository, IEmailService, SendEmailParams } from './interfaces';
 
 interface EmailServiceDeps {
@@ -22,6 +23,15 @@ export class EmailService implements IEmailService {
 	}
 
 	async sendEmail(params: SendEmailParams): Promise<void> {
+		const sendEmailSchema = z.object({
+			to: z.email('Invalid recipient email address'),
+			subject: z.string().min(1, 'Subject is required'),
+			html: z.string().min(1, 'HTML content is required'),
+			text: z.string().min(1, 'Text content is required'),
+		});
+
+		sendEmailSchema.parse(params);
+
 		try {
 			await this.emailRepository.send(params);
 		} catch (error) {
