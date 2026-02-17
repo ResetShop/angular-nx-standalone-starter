@@ -20,3 +20,7 @@ export interface HealthCheckResponse {
 		readonly database: DatabaseCheck;
 	};
 }
+
+export interface IHealthService {
+	checkHealth(): Promise<HealthCheckResponse>;
+}

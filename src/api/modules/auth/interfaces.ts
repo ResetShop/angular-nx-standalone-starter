@@ -54,6 +54,16 @@ export interface CleanupResult {
 	incomplete: boolean;
 }
 
+export interface IAuthService {
+	authenticate(credentials: {
+		email: string;
+		password: string;
+	}): Promise<{ user: { id: number; email: string; firstName: string; lastName: string }; token: string; refreshToken: string }>;
+	refreshToken(token: string): Promise<{ token: string; refreshToken: string }>;
+	logout(userId: number): Promise<void>;
+	cleanupExpiredTokens(): Promise<CleanupResult | null>;
+}
+
 export interface IRefreshTokenRepository {
 	findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null>;
 	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>;
