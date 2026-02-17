@@ -119,6 +119,28 @@ describe('NodemailerRepository', () => {
 				'SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS',
 			);
 		});
+
+		it('should throw when SMTP_PORT is not a valid number', () => {
+			process.env['SMTP_PORT'] = 'abc';
+
+			expect(() => new NodemailerRepository()).toThrow(
+				'Invalid SMTP_PORT: "abc". Must be a number between 1 and 65535',
+			);
+		});
+
+		it('should throw when SMTP_PORT is out of range', () => {
+			process.env['SMTP_PORT'] = '99999';
+
+			expect(() => new NodemailerRepository()).toThrow(
+				'Invalid SMTP_PORT: "99999". Must be a number between 1 and 65535',
+			);
+		});
+
+		it('should throw when SMTP_PORT is zero', () => {
+			process.env['SMTP_PORT'] = '0';
+
+			expect(() => new NodemailerRepository()).toThrow('Invalid SMTP_PORT: "0". Must be a number between 1 and 65535');
+		});
 	});
 
 	describe('send', () => {

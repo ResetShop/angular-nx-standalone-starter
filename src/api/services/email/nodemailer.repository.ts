@@ -30,6 +30,9 @@ export class NodemailerRepository implements IEmailRepository {
 		}
 
 		const port = parseInt(process.env['SMTP_PORT'] || '587', 10);
+		if (isNaN(port) || port < 1 || port > 65535) {
+			throw new Error(`Invalid SMTP_PORT: "${process.env['SMTP_PORT']}". Must be a number between 1 and 65535`);
+		}
 		const secure = process.env['SMTP_SECURE'] === 'true';
 		this.fromAddress = process.env['SMTP_FROM'] || 'noreply@example.com';
 
