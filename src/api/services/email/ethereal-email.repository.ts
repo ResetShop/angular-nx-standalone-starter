@@ -7,9 +7,9 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * Activated when EMAIL_PROVIDER is 'ethereal'.
  *
  * No environment variables required — Ethereal generates test credentials
- * automatically. The transporter is created eagerly at construction time
- * and cached on success. If initialization fails, the next send() call
- * retries automatically.
+ * automatically. The transporter is created lazily on the first send()
+ * call and cached on success. If initialization fails, the next send()
+ * call retries automatically.
  *
  * After each email is sent, the Ethereal preview URL is logged so the
  * developer can inspect the email in a browser.
@@ -17,11 +17,7 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * Intended for local development and testing only.
  */
 export class EtherealEmailRepository implements IEmailRepository {
-	private transporterPromise: Promise<Transporter>;
-
-	constructor() {
-		this.transporterPromise = this.createTransporter();
-	}
+	private transporterPromise: Promise<Transporter> | null = null;
 
 	async send(params: SendEmailParams): Promise<void> {
 		const transporter = await this.getTransporter();
@@ -49,6 +45,10 @@ export class EtherealEmailRepository implements IEmailRepository {
 	}
 
 	private async getTransporter(): Promise<Transporter> {
+		if (!this.transporterPromise) {
+			this.transporterPromise = this.createTransporter();
+		}
+
 		try {
 			return await this.transporterPromise;
 		} catch {
