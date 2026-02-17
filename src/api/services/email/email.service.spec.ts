@@ -35,6 +35,40 @@ describe('EmailService', () => {
 		console.error = originalConsoleError;
 	});
 
+	describe('validation', () => {
+		it('should throw when recipient email is invalid', async () => {
+			await expect(emailService.sendEmail({ ...emailParams, to: 'not-an-email' })).rejects.toThrow(
+				'Invalid recipient email address',
+			);
+
+			expect(mockSend.calls).toHaveLength(0);
+		});
+
+		it('should throw when recipient email is empty', async () => {
+			await expect(emailService.sendEmail({ ...emailParams, to: '' })).rejects.toThrow();
+
+			expect(mockSend.calls).toHaveLength(0);
+		});
+
+		it('should throw when subject is empty', async () => {
+			await expect(emailService.sendEmail({ ...emailParams, subject: '' })).rejects.toThrow('Subject is required');
+
+			expect(mockSend.calls).toHaveLength(0);
+		});
+
+		it('should throw when html content is empty', async () => {
+			await expect(emailService.sendEmail({ ...emailParams, html: '' })).rejects.toThrow('HTML content is required');
+
+			expect(mockSend.calls).toHaveLength(0);
+		});
+
+		it('should throw when text content is empty', async () => {
+			await expect(emailService.sendEmail({ ...emailParams, text: '' })).rejects.toThrow('Text content is required');
+
+			expect(mockSend.calls).toHaveLength(0);
+		});
+	});
+
 	describe('sendEmail', () => {
 		it('should delegate to emailRepository.send', async () => {
 			mockSend.mockResolvedValue(undefined);
@@ -83,12 +117,14 @@ describe('EmailService', () => {
 
 		it('should re-throw the original error even when JSON.stringify fails', async () => {
 			const originalError = new Error('SMTP connection refused');
-			mockSend.mockRejectedValue(originalError);
-
 			const originalStringify = JSON.stringify;
-			JSON.stringify = () => {
-				throw new TypeError('Circular');
-			};
+
+			mockSend.mockImplementation(() => {
+				JSON.stringify = () => {
+					throw new TypeError('Circular');
+				};
+				return Promise.reject(originalError);
+			});
 
 			try {
 				await expect(emailService.sendEmail(emailParams)).rejects.toThrow(originalError);
