@@ -1,10 +1,9 @@
 import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix';
 import { getTestCradle } from './container.mock';
 import { drizzlePgConnector, type DrizzlePgConnector } from './helpers/drizzle-postgres-connector';
-import type { IPermissionRepository } from './modules/access/permission/interfaces';
+import type { IPermissionRepository, IPermissionService } from './modules/access/permission/interfaces';
 import { PermissionRepository } from './modules/access/permission/permission.repository';
 import { PermissionService } from './modules/access/permission/permission.service';
-import type { IPermissionService } from './modules/access/permission/interfaces';
 import type { IRoleRepository, IRoleService } from './modules/access/role/interfaces';
 import { RoleRepository } from './modules/access/role/role.repository';
 import { RoleService } from './modules/access/role/role.service';
