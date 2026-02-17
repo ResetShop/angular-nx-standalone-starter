@@ -22,7 +22,7 @@ export class EmailService implements IEmailService {
 		this.emailRepository = emailRepository;
 	}
 
-	async sendEmail(params: SendEmailParams): Promise<void> {
+	async send(params: SendEmailParams): Promise<void> {
 		const sendEmailSchema = z.object({
 			to: z.email('Invalid recipient email address'),
 			subject: z.string().min(1, 'Subject is required'),
