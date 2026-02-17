@@ -8,7 +8,8 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  *
  * No environment variables required — Ethereal generates test credentials
  * automatically. The transporter is created eagerly at construction time
- * (as a Promise) and shared across all send() calls.
+ * and cached on success. If initialization fails, the next send() call
+ * retries automatically.
  *
  * After each email is sent, the Ethereal preview URL is logged so the
  * developer can inspect the email in a browser.
@@ -16,14 +17,14 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * Intended for local development and testing only.
  */
 export class EtherealEmailRepository implements IEmailRepository {
-	private readonly transporterPromise: Promise<Transporter>;
+	private transporterPromise: Promise<Transporter>;
 
 	constructor() {
 		this.transporterPromise = this.createTransporter();
 	}
 
 	async send(params: SendEmailParams): Promise<void> {
-		const transporter = await this.transporterPromise;
+		const transporter = await this.getTransporter();
 
 		const info = await transporter.sendMail({
 			from: 'noreply@example.ethereal',
@@ -47,17 +48,33 @@ export class EtherealEmailRepository implements IEmailRepository {
 		}
 	}
 
-	private async createTransporter(): Promise<Transporter> {
-		const testAccount = await nodemailer.createTestAccount();
+	private async getTransporter(): Promise<Transporter> {
+		try {
+			return await this.transporterPromise;
+		} catch {
+			this.transporterPromise = this.createTransporter();
+			return this.transporterPromise;
+		}
+	}
 
-		return nodemailer.createTransport({
-			host: testAccount.smtp.host,
-			port: testAccount.smtp.port,
-			secure: testAccount.smtp.secure,
-			auth: {
-				user: testAccount.user,
-				pass: testAccount.pass,
-			},
-		});
+	private createTransporter(): Promise<Transporter> {
+		return nodemailer
+			.createTestAccount()
+			.then((testAccount) =>
+				nodemailer.createTransport({
+					host: testAccount.smtp.host,
+					port: testAccount.smtp.port,
+					secure: testAccount.smtp.secure,
+					auth: {
+						user: testAccount.user,
+						pass: testAccount.pass,
+					},
+				}),
+			)
+			.catch((error) => {
+				// TODO(#66): Replace with structured logging service
+				console.error('Failed to create Ethereal test account:', error);
+				throw error;
+			});
 	}
 }

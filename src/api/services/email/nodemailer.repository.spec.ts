@@ -1,12 +1,14 @@
 import { clearAllMocks, fn } from '@test-utils';
 import type { Transporter } from 'nodemailer';
 import * as nodemailer from 'nodemailer';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SendEmailParams } from './interfaces';
 import { NodemailerRepository } from './nodemailer.repository';
 
 // eslint-disable-next-line no-restricted-syntax -- Repository is the DI boundary; must mock external transport module
 vi.mock('nodemailer');
+
+const mockCreateTransport = nodemailer.createTransport as unknown as Mock;
 
 describe('NodemailerRepository', () => {
 	const mockSendMail = fn<[Record<string, string>], Promise<{ messageId: string }>>();
@@ -22,13 +24,13 @@ describe('NodemailerRepository', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
-		vi.mocked(nodemailer.createTransport).mockClear();
+		mockCreateTransport.mockClear();
 
 		Object.entries(defaultEnv).forEach(([key, value]) => {
 			process.env[key] = value;
 		});
 
-		vi.mocked(nodemailer.createTransport).mockReturnValue({
+		mockCreateTransport.mockReturnValue({
 			sendMail: mockSendMail,
 		} as unknown as Transporter);
 	});
@@ -43,7 +45,7 @@ describe('NodemailerRepository', () => {
 		it('should create transporter with correct configuration', () => {
 			new NodemailerRepository();
 
-			expect(vi.mocked(nodemailer.createTransport).mock.calls).toEqual([
+			expect(mockCreateTransport.mock.calls).toEqual([
 				[
 					{
 						host: 'smtp.test.com',
@@ -63,7 +65,7 @@ describe('NodemailerRepository', () => {
 
 			new NodemailerRepository();
 
-			const callArgs = vi.mocked(nodemailer.createTransport).mock.calls[0][0] as Record<string, unknown>;
+			const callArgs = mockCreateTransport.mock.calls[0][0] as Record<string, unknown>;
 			expect(callArgs['port']).toBe(587);
 		});
 
@@ -92,7 +94,7 @@ describe('NodemailerRepository', () => {
 
 			new NodemailerRepository();
 
-			const callArgs = vi.mocked(nodemailer.createTransport).mock.calls[0][0] as Record<string, unknown>;
+			const callArgs = mockCreateTransport.mock.calls[0][0] as Record<string, unknown>;
 			expect(callArgs['secure']).toBe(true);
 		});
 
