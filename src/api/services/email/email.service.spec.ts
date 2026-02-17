@@ -81,6 +81,23 @@ describe('EmailService', () => {
 			expect(new Date(loggedData.timestamp).toString()).not.toBe('Invalid Date');
 		});
 
+		it('should re-throw the original error even when JSON.stringify fails', async () => {
+			const originalError = new Error('SMTP connection refused');
+			mockSend.mockRejectedValue(originalError);
+
+			const originalStringify = JSON.stringify;
+			JSON.stringify = () => {
+				throw new TypeError('Circular');
+			};
+
+			try {
+				await expect(emailService.sendEmail(emailParams)).rejects.toThrow(originalError);
+				expect(consoleErrorSpy.calls[0]).toEqual(['email_send_failed', 'recipient@test.com', 'Test Subject']);
+			} finally {
+				JSON.stringify = originalStringify;
+			}
+		});
+
 		it('should handle non-Error objects in catch block', async () => {
 			mockSend.mockRejectedValue('String error');
 
