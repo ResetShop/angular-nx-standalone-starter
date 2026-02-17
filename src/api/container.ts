@@ -13,8 +13,13 @@ import { AuthenticationRepository } from './modules/auth/authentication.reposito
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
 import type { IHealthService } from './modules/health/interfaces';
 import { HealthService } from './modules/health/health.service';
-import type { IUserManagementRepository, IUserManagementService } from './modules/user/interfaces';
-import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './modules/user/interfaces';
+import type {
+	IUserManagementRepository,
+	IUserManagementService,
+	IUserRepository,
+	IUserRoleRepository,
+	IUserRoleService,
+} from './modules/user/interfaces';
 import { UserManagementRepository } from './modules/user/user-management.repository';
 import { UserManagementService } from './modules/user/user-management.service';
 import { UserRepository } from './modules/user/user.repository';
