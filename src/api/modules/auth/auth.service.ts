@@ -103,6 +103,7 @@ export class AuthService implements IAuthService {
 	 */
 	private checkAccountLockout(authRecord: AuthenticationData | null, userId?: number): void {
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
+			// TODO(#66): Replace with structured logging service
 			console.log(
 				JSON.stringify({
 					event: 'login_blocked_account_locked',
@@ -164,6 +165,7 @@ export class AuthService implements IAuthService {
 		const result = await this.authRepository.incrementAndLockIfNeeded(user.id);
 
 		if (result.wasLocked && result.lockedUntil) {
+			// TODO(#66): Replace with structured logging service
 			console.log(
 				JSON.stringify({
 					event: 'account_locked',
@@ -184,6 +186,7 @@ export class AuthService implements IAuthService {
 	 * @param user - User object or null
 	 * @param authRecord - Authentication record or null
 	 */
+	// TODO(#66): Replace with structured logging service
 	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
 		if (!user) {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND));
@@ -344,11 +347,13 @@ export class AuthService implements IAuthService {
 		try {
 			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock();
 		} catch (error) {
+			// TODO(#66): Replace with structured logging service
 			console.error('[TokenCleanup] Failed to acquire advisory lock:', error);
 			return null;
 		}
 
 		if (!lockAcquired) {
+			// TODO(#66): Replace with structured logging service
 			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)');
 			return null;
 		}
@@ -358,7 +363,7 @@ export class AuthService implements IAuthService {
 			const result = await this.refreshTokenRepository.deleteAllExpiredTokens();
 			const durationMs = Date.now() - startTime;
 
-			// Structured logging for monitoring/metrics collection
+			// TODO(#66): Replace with structured logging service
 			console.log(
 				JSON.stringify({
 					event: 'token_cleanup',
@@ -369,7 +374,7 @@ export class AuthService implements IAuthService {
 				}),
 			);
 
-			// Human-readable summary
+			// TODO(#66): Replace with structured logging service
 			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`);
 			if (result.incomplete) {
 				console.warn('[TokenCleanup] Cleanup was incomplete - more expired tokens may remain');
@@ -379,6 +384,7 @@ export class AuthService implements IAuthService {
 			try {
 				await this.refreshTokenRepository.releaseCleanupLock();
 			} catch (error) {
+				// TODO(#66): Replace with structured logging service
 				// PostgreSQL session advisory locks (pg_advisory_lock) are automatically
 				// released when the database session/connection ends. This is a safety net
 				// - the lock won't persist indefinitely even if explicit release fails.
