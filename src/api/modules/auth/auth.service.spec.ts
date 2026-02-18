@@ -28,6 +28,13 @@ describe('AuthService', () => {
 		deleted: false,
 	};
 
+	const expectedAuthUser = {
+		id: testUser.id,
+		email: testUser.email,
+		firstName: testUser.firstName,
+		lastName: testUser.lastName,
+	};
+
 	beforeAll(async () => {
 		// Create a real bcrypt hash for testing
 		testPasswordHash = await hash(testPassword, 10);
@@ -67,7 +74,7 @@ describe('AuthService', () => {
 				password: testPassword,
 			});
 
-			expect(result.user).toEqual(testUser);
+			expect(result.user).toEqual(expectedAuthUser);
 			expect(result.token).toBe('mock-access-token-1');
 			expect(result.refreshToken).toBe('mock-refresh-token-1');
 		});
@@ -241,7 +248,7 @@ describe('AuthService', () => {
 				password: testPassword,
 			});
 
-			expect(result.user).toEqual(testUser);
+			expect(result.user).toEqual(expectedAuthUser);
 			expect(result.token).toBeDefined();
 		});
 
@@ -269,7 +276,7 @@ describe('AuthService', () => {
 			});
 
 			// Assert on observable outcome
-			expect(result.user).toEqual(testUser);
+			expect(result.user).toEqual(expectedAuthUser);
 			expect(result.token).toBeDefined();
 			expect(result.refreshToken).toBeDefined();
 
@@ -499,7 +506,6 @@ describe('AuthService', () => {
 			const releaseFn = fn<[], Promise<void>>().mockRejectedValue(new Error('Connection lost'));
 			mockRefreshTokenRepo.releaseCleanupLock = releaseFn;
 
-			// Cleanup should still succeed and return results
 			const result = await authService.cleanupExpiredTokens();
 
 			expect(result).not.toBeNull();
