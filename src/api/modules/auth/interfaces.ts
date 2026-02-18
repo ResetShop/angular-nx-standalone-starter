@@ -81,8 +81,8 @@ export interface AuthCredentials {
 
 /**
  * Complete authentication result from the service layer.
- * The controller extracts `refreshToken` to store in an HttpOnly cookie
- * and returns only `user` + `token` in the HTTP response body.
+ * The controller sets both `token` and `refreshToken` as HttpOnly cookies
+ * and returns only `user` in the HTTP response body.
  */
 export interface AuthResult {
 	user: AuthUser;
@@ -92,8 +92,8 @@ export interface AuthResult {
 
 /**
  * Result from token refresh operation.
- * The controller extracts `refreshToken` for the HttpOnly cookie
- * and returns only `token` in the HTTP response body.
+ * The controller sets both `token` and `refreshToken` as HttpOnly cookies.
+ * The HTTP response body is empty.
  */
 export interface RefreshResult {
 	token: string;
