@@ -5,7 +5,7 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
 
 describe('EmailService', () => {
 	const mockSend = fn<[SendEmailParams], Promise<void>>();
-	const consoleErrorSpy = fn();
+	const consoleErrorSpy = fn<Parameters<typeof console.error>, void>();
 	const originalConsoleError = console.error;
 
 	const mockEmailRepository: IEmailRepository = {
@@ -94,11 +94,7 @@ describe('EmailService', () => {
 		it('should log structured JSON error before re-throwing', async () => {
 			mockSend.mockRejectedValue(new Error('SMTP connection failed'));
 
-			try {
-				await emailService.send(emailParams);
-			} catch {
-				// expected
-			}
+			await expect(emailService.send(emailParams)).rejects.toThrow('SMTP connection failed');
 
 			expect(consoleErrorSpy.calls).toHaveLength(1);
 

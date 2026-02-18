@@ -56,7 +56,7 @@ export class NodemailerRepository implements IEmailRepository {
 			text: params.text,
 		});
 
-		const rejected = info.rejected as string[];
+		const rejected = Array.isArray(info.rejected) ? info.rejected : [];
 		if (rejected.length > 0) {
 			// TODO(#66): Replace with structured logging service
 			console.error(
