@@ -1,4 +1,5 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
+import { fn } from '@test-utils';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
@@ -500,14 +501,18 @@ describe('AuthService', () => {
 		});
 
 		it('should return cleanup result even when lock release fails', async () => {
-			mockRefreshTokenRepo.releaseCleanupLockError = new Error('Connection lost');
+			// Save original and replace with a mock that rejects
+			const originalRelease = mockRefreshTokenRepo.releaseCleanupLock.bind(mockRefreshTokenRepo);
+			const releaseFn = fn<[], Promise<void>>().mockRejectedValue(new Error('Connection lost'));
+			mockRefreshTokenRepo.releaseCleanupLock = releaseFn;
 
 			const result = await authService.cleanupExpiredTokens();
 
 			expect(result).not.toBeNull();
 			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
-			// Lock was acquired but release threw — lock remains held
-			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(true);
+			expect(releaseFn.calls).toHaveLength(1);
+
+			mockRefreshTokenRepo.releaseCleanupLock = originalRelease;
 		});
 	});
 });

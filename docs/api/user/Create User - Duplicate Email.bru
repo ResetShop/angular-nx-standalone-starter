@@ -1,0 +1,47 @@
+meta {
+  name: Create User - Duplicate Email
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/user
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "email": "admin@example.com",
+    "password": "SecurePass123!",
+    "firstName": "Duplicate",
+    "lastName": "User",
+    "roleIds": [1]
+  }
+}
+
+docs {
+  # Create User - Duplicate Email
+
+  Demonstrates the error response when trying to create a user with an email
+  that already exists in the system.
+}
+
+assert {
+  res.status: eq 409
+  res.body.error: isDefined
+}
+
+tests {
+  test("should return 409 conflict", function() {
+    expect(res.status).to.equal(409);
+  });
+
+  test("should return email exists error", function() {
+    expect(res.body.error).to.include("email already exists");
+  });
+}

@@ -1,4 +1,4 @@
-import { AuthError, getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
+import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
 import { type IPasetoService } from '../../services/paseto/interfaces';
