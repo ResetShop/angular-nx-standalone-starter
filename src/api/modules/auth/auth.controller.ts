@@ -66,7 +66,7 @@ const ACCESS_TOKEN_COOKIE_OPTIONS = {
  * - Configurable lockout duration (AUTH_LOCKOUT_DURATION, default: 15m)
  * - Timing-safe password comparison (prevents timing attacks)
  * - Constant-time response for invalid emails (prevents user enumeration)
- * - Refresh token set as HttpOnly, Secure, SameSite=Strict cookie
+ * - Both tokens set as HttpOnly, Secure, SameSite=Strict cookies
  */
 app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 	const { authService } = container.cradle;
