@@ -27,7 +27,7 @@ import { UserRoleService } from './modules/user/user-role.service';
 import { UserRepository } from './modules/user/user.repository';
 import { EmailService } from './services/email/email.service';
 import { EtherealEmailRepository } from './services/email/ethereal-email.repository';
-import type { IEmailRepository } from './services/email/interfaces';
+import type { IEmailRepository, IEmailService } from './services/email/interfaces';
 import { NodemailerRepository } from './services/email/nodemailer.repository';
 import type { IPasetoService } from './services/paseto/interfaces';
 import { PasetoService } from './services/paseto/paseto.service';
@@ -98,7 +98,7 @@ export interface Cradle {
 
 	// Services
 	healthService: IHealthService;
-	emailService: EmailService;
+	emailService: IEmailService;
 	pasetoService: IPasetoService;
 
 	// Repositories
