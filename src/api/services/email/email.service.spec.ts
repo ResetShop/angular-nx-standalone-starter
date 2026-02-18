@@ -114,10 +114,13 @@ describe('EmailService', () => {
 		it('should re-throw the original error even when JSON.stringify fails', async () => {
 			const originalError = new Error('SMTP connection refused');
 			const originalStringify = JSON.stringify;
-			mockSend.mockRejectedValue(originalError);
-			JSON.stringify = () => {
-				throw new TypeError('Circular');
-			};
+
+			mockSend.mockImplementation(() => {
+				JSON.stringify = () => {
+					throw new TypeError('Circular');
+				};
+				return Promise.reject(originalError);
+			});
 
 			try {
 				await expect(emailService.send(emailParams)).rejects.toThrow(originalError);
