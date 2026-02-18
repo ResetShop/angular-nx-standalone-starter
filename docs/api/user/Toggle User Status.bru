@@ -1,0 +1,70 @@
+meta {
+  name: Toggle User Status
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/user/{{testUserId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "isActive": false
+  }
+}
+
+docs {
+  # Toggle User Status
+
+  Enables or disables a user account. Disabled users cannot log in.
+
+  ## Path Parameters
+
+  | Parameter | Type | Required | Description |
+  |-----------|------|----------|-------------|
+  | id | number | Yes | The user's unique ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | isActive | boolean | Yes | `true` to enable, `false` to disable |
+
+  ## Response
+
+  Returns the updated user object.
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Invalid user ID | ID is not a valid number |
+  | 400 | Validation error | Invalid input format |
+  | 404 | User not found | No user exists with this ID |
+
+  ## Required Permission
+
+  `admin:users:disable`
+}
+
+assert {
+  res.status: eq 200
+  res.body.isActive: eq false
+}
+
+tests {
+  test("should return 200 on successful status toggle", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return user with updated isActive status", function() {
+    expect(res.body.isActive).to.be.false;
+  });
+}

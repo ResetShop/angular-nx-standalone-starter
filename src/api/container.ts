@@ -7,12 +7,12 @@ import { PermissionService } from './modules/access/permission/permission.servic
 import type { IRoleRepository, IRoleService } from './modules/access/role/interfaces';
 import { RoleRepository } from './modules/access/role/role.repository';
 import { RoleService } from './modules/access/role/role.service';
-import type { IAuthService, IAuthenticationRepository, IRefreshTokenRepository } from './modules/auth/interfaces';
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
+import type { IAuthenticationRepository, IAuthService, IRefreshTokenRepository } from './modules/auth/interfaces';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
-import type { IHealthService } from './modules/health/interfaces';
 import { HealthService } from './modules/health/health.service';
+import type { IHealthService } from './modules/health/interfaces';
 import type {
 	IUserManagementRepository,
 	IUserManagementService,
@@ -22,9 +22,13 @@ import type {
 } from './modules/user/interfaces';
 import { UserManagementRepository } from './modules/user/user-management.repository';
 import { UserManagementService } from './modules/user/user-management.service';
-import { UserRepository } from './modules/user/user.repository';
 import { UserRoleRepository } from './modules/user/user-role.repository';
 import { UserRoleService } from './modules/user/user-role.service';
+import { UserRepository } from './modules/user/user.repository';
+import { EmailService } from './services/email/email.service';
+import { EtherealEmailRepository } from './services/email/ethereal-email.repository';
+import type { IEmailRepository, IEmailService } from './services/email/interfaces';
+import { NodemailerRepository } from './services/email/nodemailer.repository';
 import type { IPasetoService } from './services/paseto/interfaces';
 import { PasetoService } from './services/paseto/paseto.service';
 
@@ -41,6 +45,12 @@ function validateEnvironment(): void {
 		throw new Error(
 			'PASETO_SECRET_KEY must be at least 32 bytes (64 hex characters). ' + 'Generate with: openssl rand -hex 32',
 		);
+	}
+
+	const emailProvider = process.env['EMAIL_PROVIDER'];
+	const validEmailProviders = ['nodemailer', 'ethereal'];
+	if (emailProvider && !validEmailProviders.includes(emailProvider)) {
+		throw new Error(`Invalid EMAIL_PROVIDER: "${emailProvider}". Valid values: ${validEmailProviders.join(', ')}`);
 	}
 }
 
@@ -75,6 +85,10 @@ validateEnvironment();
  * UserManagementService
  *   └── UserManagementRepository ► db
  *
+ * EmailService
+ *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
+ * PasetoService (no deps)
+ *
  * Middleware/Controllers resolve services lazily at runtime.
  * All services are registered as singletons.
  */
@@ -84,9 +98,11 @@ export interface Cradle {
 
 	// Services
 	healthService: IHealthService;
+	emailService: IEmailService;
 	pasetoService: IPasetoService;
 
 	// Repositories
+	emailRepository: IEmailRepository;
 	userRepository: IUserRepository;
 	authRepository: IAuthenticationRepository;
 	refreshTokenRepository: IRefreshTokenRepository;
@@ -131,10 +147,15 @@ realContainer.register({
 	db: asValue(drizzlePgConnector),
 
 	// Services (singletons - stateless, hold config)
+	emailService: asClass(EmailService).singleton(),
 	healthService: asClass(HealthService).singleton(),
 	pasetoService: asClass(PasetoService).singleton(),
 
 	// Repositories (singletons - stateless, share db connection)
+	emailRepository:
+		process.env['EMAIL_PROVIDER'] === 'ethereal'
+			? asClass(EtherealEmailRepository).singleton()
+			: asClass(NodemailerRepository).singleton(),
 	userRepository: asClass(UserRepository).singleton(),
 	authRepository: asClass(AuthenticationRepository).singleton(),
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
