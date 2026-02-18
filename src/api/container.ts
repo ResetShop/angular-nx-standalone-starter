@@ -1,19 +1,31 @@
 import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix';
 import { getTestCradle } from './container.mock';
 import { drizzlePgConnector, type DrizzlePgConnector } from './helpers/drizzle-postgres-connector';
+import type { IPermissionRepository, IPermissionService } from './modules/access/permission/interfaces';
 import { PermissionRepository } from './modules/access/permission/permission.repository';
 import { PermissionService } from './modules/access/permission/permission.service';
+import type { IRoleRepository, IRoleService } from './modules/access/role/interfaces';
 import { RoleRepository } from './modules/access/role/role.repository';
 import { RoleService } from './modules/access/role/role.service';
+import type { IAuthService, IAuthenticationRepository, IRefreshTokenRepository } from './modules/auth/interfaces';
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
+import type { IHealthService } from './modules/health/interfaces';
 import { HealthService } from './modules/health/health.service';
+import type {
+	IUserManagementRepository,
+	IUserManagementService,
+	IUserRepository,
+	IUserRoleRepository,
+	IUserRoleService,
+} from './modules/user/interfaces';
 import { UserManagementRepository } from './modules/user/user-management.repository';
 import { UserManagementService } from './modules/user/user-management.service';
+import { UserRepository } from './modules/user/user.repository';
 import { UserRoleRepository } from './modules/user/user-role.repository';
 import { UserRoleService } from './modules/user/user-role.service';
-import { UserRepository } from './modules/user/user.repository';
+import type { IPasetoService } from './services/paseto/interfaces';
 import { PasetoService } from './services/paseto/paseto.service';
 
 /**
@@ -48,6 +60,18 @@ validateEnvironment();
  *   ├── RefreshTokenRepository ► db
  *   └── PasetoService (no deps)
  *
+ * RoleService
+ *   ├── RoleRepository ──────► db
+ *   └── UserRoleRepository ──► db
+ *
+ * PermissionService
+ *   └── PermissionRepository ► db
+ *
+ * UserRoleService
+ *   ├── UserRoleRepository ──► db
+ *   ├── UserRepository ──────► db
+ *   └── RoleRepository ──────► db
+ *
  * UserManagementService
  *   └── UserManagementRepository ► db
  *
@@ -59,24 +83,24 @@ export interface Cradle {
 	db: DrizzlePgConnector;
 
 	// Services
-	healthService: HealthService;
-	pasetoService: PasetoService;
+	healthService: IHealthService;
+	pasetoService: IPasetoService;
 
 	// Repositories
-	userRepository: UserRepository;
-	authRepository: AuthenticationRepository;
-	refreshTokenRepository: RefreshTokenRepository;
-	roleRepository: RoleRepository;
-	permissionRepository: PermissionRepository;
-	userRoleRepository: UserRoleRepository;
-	userManagementRepository: UserManagementRepository;
+	userRepository: IUserRepository;
+	authRepository: IAuthenticationRepository;
+	refreshTokenRepository: IRefreshTokenRepository;
+	roleRepository: IRoleRepository;
+	permissionRepository: IPermissionRepository;
+	userRoleRepository: IUserRoleRepository;
+	userManagementRepository: IUserManagementRepository;
 
 	// Application Services
-	authService: AuthService;
-	roleService: RoleService;
-	permissionService: PermissionService;
-	userRoleService: UserRoleService;
-	userManagementService: UserManagementService;
+	authService: IAuthService;
+	roleService: IRoleService;
+	permissionService: IPermissionService;
+	userRoleService: IUserRoleService;
+	userManagementService: IUserManagementService;
 }
 
 /**

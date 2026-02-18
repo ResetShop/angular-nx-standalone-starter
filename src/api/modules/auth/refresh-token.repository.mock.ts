@@ -17,6 +17,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	public createdTokens: RefreshTokenData[] = [];
 	public cleanupLockAcquired = false;
 	public deleteAllExpiredCalled = false;
+	public releaseCleanupLockError: Error | null = null;
 
 	/**
 	 * Add a token to the mock repository.
@@ -52,6 +53,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		this.createdTokens = [];
 		this.cleanupLockAcquired = false;
 		this.deleteAllExpiredCalled = false;
+		this.releaseCleanupLockError = null;
 		this.tokenIdCounter = 1;
 	}
 
@@ -112,13 +114,16 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	}
 
 	async releaseCleanupLock(): Promise<void> {
+		if (this.releaseCleanupLockError) {
+			throw this.releaseCleanupLockError;
+		}
 		this.cleanupLockAcquired = false;
 	}
 
 	async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		this.deleteAllExpiredCalled = true;
 		// Count and remove tokens expired at least EXPIRY_BUFFER_MS ago (matches real repo)
-		const EXPIRY_BUFFER_MS = 3600000;
+		const EXPIRY_BUFFER_MS = 3600000; // 1 hour
 		let count = 0;
 		const cutoffTime = new Date(Date.now() - EXPIRY_BUFFER_MS);
 		for (const [hash, token] of this.tokens.entries()) {
