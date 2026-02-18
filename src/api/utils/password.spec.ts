@@ -1,106 +1,80 @@
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { generatePassword } from './password';
 
 describe('generatePassword', () => {
-	describe('Default behavior', () => {
-		it('should return a string of the default length (16)', () => {
-			const password = generatePassword();
-			expect(password).toHaveLength(16);
+	const originalAppLanguage = process.env['APP_LANGUAGE'];
+
+	beforeEach(() => {
+		delete process.env['APP_LANGUAGE'];
+	});
+
+	afterEach(() => {
+		if (originalAppLanguage !== undefined) {
+			process.env['APP_LANGUAGE'] = originalAppLanguage;
+		} else {
+			delete process.env['APP_LANGUAGE'];
+		}
+	});
+
+	describe('format', () => {
+		it('should return three words separated by dots', async () => {
+			const password = await generatePassword();
+			const parts = password.split('.');
+
+			expect(parts).toHaveLength(3);
 		});
 
-		it('should only contain valid base64url characters', () => {
-			const password = generatePassword();
-			const base64urlRegex = /^[A-Za-z0-9_-]+$/;
-			expect(password).toMatch(base64urlRegex);
+		it('should contain only lowercase letters and dots', async () => {
+			const password = await generatePassword();
+
+			expect(password).toMatch(/^[a-z]+\.[a-z]+\.[a-z]+$/);
+		});
+
+		it('should produce non-empty words', async () => {
+			const password = await generatePassword();
+			const parts = password.split('.');
+
+			for (const word of parts) {
+				expect(word.length).toBeGreaterThan(0);
+			}
 		});
 	});
 
-	describe('Custom length', () => {
-		it('should return a string of the specified custom length (8)', () => {
-			const password = generatePassword(8);
-			expect(password).toHaveLength(8);
-		});
+	describe('randomness', () => {
+		it('should generate different passwords on consecutive calls', async () => {
+			const password1 = await generatePassword();
+			const password2 = await generatePassword();
 
-		it('should return a string of the specified custom length (24)', () => {
-			const password = generatePassword(24);
-			expect(password).toHaveLength(24);
-		});
-
-		it('should return a string of the specified custom length (32)', () => {
-			const password = generatePassword(32);
-			expect(password).toHaveLength(32);
-		});
-
-		it('should return a string of the specified custom length (64)', () => {
-			const password = generatePassword(64);
-			expect(password).toHaveLength(64);
-		});
-	});
-
-	describe('Character validation', () => {
-		it('should only contain valid base64url characters for default length', () => {
-			const password = generatePassword();
-			const base64urlRegex = /^[A-Za-z0-9_-]+$/;
-			expect(password).toMatch(base64urlRegex);
-		});
-
-		it('should only contain valid base64url characters for custom length (24)', () => {
-			const password = generatePassword(24);
-			const base64urlRegex = /^[A-Za-z0-9_-]+$/;
-			expect(password).toMatch(base64urlRegex);
-		});
-
-		it('should not contain + or / or = characters (base64 padding)', () => {
-			const password = generatePassword(32);
-			expect(password).not.toContain('+');
-			expect(password).not.toContain('/');
-			expect(password).not.toContain('=');
-		});
-	});
-
-	describe('Randomness', () => {
-		it('should generate different passwords on consecutive calls', () => {
-			const password1 = generatePassword();
-			const password2 = generatePassword();
 			expect(password1).not.toBe(password2);
 		});
 
-		it('should generate different passwords for multiple calls', () => {
-			const passwords = Array.from({ length: 100 }, () => generatePassword());
-			const uniquePasswords = new Set(passwords);
-			expect(uniquePasswords.size).toBe(100);
+		it('should generate unique passwords across multiple calls', async () => {
+			const passwords = await Promise.all(Array.from({ length: 50 }, () => generatePassword()));
+			const unique = new Set(passwords);
+
+			expect(unique.size).toBe(50);
 		});
 	});
 
-	describe('Edge cases', () => {
-		it('should handle length of 1', () => {
-			const password = generatePassword(1);
-			expect(password).toHaveLength(1);
-			expect(/^[A-Za-z0-9_-]$/).toMatch(password);
+	describe('language selection', () => {
+		it('should use English word list by default', async () => {
+			const password = await generatePassword();
+
+			expect(password).toMatch(/^[a-z]+\.[a-z]+\.[a-z]+$/);
 		});
 
-		it('should handle large length (128)', () => {
-			const password = generatePassword(128);
-			expect(password).toHaveLength(128);
-			const base64urlRegex = /^[A-Za-z0-9_-]+$/;
-			expect(password).toMatch(base64urlRegex);
-		});
-	});
+		it('should use Spanish word list when APP_LANGUAGE is es', async () => {
+			process.env['APP_LANGUAGE'] = 'es';
 
-	describe('Real-world use cases', () => {
-		it('should generate a secure temporary password for new users', () => {
-			const password = generatePassword();
-			expect(password).toHaveLength(16);
-			expect(/^[A-Za-z0-9_-]+$/).toMatch(password);
+			const password = await generatePassword();
+
+			expect(password).toMatch(/^[a-z]+\.[a-z]+\.[a-z]+$/);
 		});
 
-		it('should generate a short password for SMS/PIN use case', () => {
-			const password = generatePassword(8);
-			expect(password).toHaveLength(8);
-		});
+		it('should throw when word list file does not exist for language', async () => {
+			process.env['APP_LANGUAGE'] = 'xx';
 
-		it('should generate a long password for high-security use case', () => {
-			const password = generatePassword(32);
-			expect(password).toHaveLength(32);
+			await expect(generatePassword()).rejects.toThrow();
 		});
 	});
 });
