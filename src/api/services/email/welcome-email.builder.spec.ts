@@ -16,12 +16,12 @@ describe('buildWelcomeEmail', () => {
 			expect(result).toHaveProperty('text');
 		});
 
-		it('should return all properties as strings', () => {
+		it('should return non-empty values for all properties', () => {
 			const result = buildWelcomeEmail(mockParams);
 
-			expect(typeof result.subject).toBe('string');
-			expect(typeof result.html).toBe('string');
-			expect(typeof result.text).toBe('string');
+			expect(result.subject.length).toBeGreaterThan(0);
+			expect(result.html.length).toBeGreaterThan(0);
+			expect(result.text.length).toBeGreaterThan(0);
 		});
 	});
 
