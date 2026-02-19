@@ -37,6 +37,10 @@ async function getWordList(language: string): Promise<readonly string[]> {
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
 export async function generatePassword(wordCount = 3): Promise<string> {
+	if (!Number.isInteger(wordCount) || wordCount < 1) {
+		throw new Error(`wordCount must be a positive integer, got: ${wordCount}`);
+	}
+
 	const language = process.env['APP_LANGUAGE'] || 'en';
 	const words = await getWordList(language);
 
