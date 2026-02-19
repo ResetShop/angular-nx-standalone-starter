@@ -22,6 +22,10 @@ async function getWordList(language: string): Promise<readonly string[]> {
 			.filter(Boolean),
 	);
 
+	if (words.length === 0) {
+		throw new Error(`Word list is empty for language: ${language}`);
+	}
+
 	wordListCache.set(language, words);
 
 	return words;
