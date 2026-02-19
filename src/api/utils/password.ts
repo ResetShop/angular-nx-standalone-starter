@@ -35,8 +35,7 @@ async function getWordList(language: string): Promise<readonly string[]> {
  *
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
-export async function generatePassword(): Promise<string> {
-	const wordCount = 3;
+export async function generatePassword(wordCount = 3): Promise<string> {
 	const language = process.env['APP_LANGUAGE'] || 'en';
 	const words = await getWordList(language);
 

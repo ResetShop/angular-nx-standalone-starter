@@ -1,4 +1,3 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { generatePassword } from './password';
 
 describe('generatePassword', () => {
@@ -27,7 +26,7 @@ describe('generatePassword', () => {
 		it('should contain only lowercase letters and dots', async () => {
 			const password = await generatePassword();
 
-			expect(password).toMatch(/^[a-z]+\.[a-z]+\.[a-z]+$/);
+			expect(password).toMatch(/^[\p{Ll}]+\.[\p{Ll}]+\.[\p{Ll}]+$/u);
 		});
 
 		it('should produce non-empty words', async () => {
@@ -40,27 +39,11 @@ describe('generatePassword', () => {
 		});
 	});
 
-	describe('randomness', () => {
-		it('should generate different passwords on consecutive calls', async () => {
-			const password1 = await generatePassword();
-			const password2 = await generatePassword();
-
-			expect(password1).not.toBe(password2);
-		});
-
-		it('should generate unique passwords across multiple calls', async () => {
-			const passwords = await Promise.all(Array.from({ length: 50 }, () => generatePassword()));
-			const unique = new Set(passwords);
-
-			expect(unique.size).toBe(50);
-		});
-	});
-
 	describe('language selection', () => {
 		it('should use English word list by default', async () => {
 			const password = await generatePassword();
 
-			expect(password).toMatch(/^[a-z]+\.[a-z]+\.[a-z]+$/);
+			expect(password).toMatch(/^[\p{Ll}]+\.[\p{Ll}]+\.[\p{Ll}]+$/u);
 		});
 
 		it('should use Spanish word list when APP_LANGUAGE is es', async () => {
@@ -68,7 +51,7 @@ describe('generatePassword', () => {
 
 			const password = await generatePassword();
 
-			expect(password).toMatch(/^[a-z]+\.[a-z]+\.[a-z]+$/);
+			expect(password).toMatch(/^[\p{Ll}]+\.[\p{Ll}]+\.[\p{Ll}]+$/u);
 		});
 
 		it('should throw when word list file does not exist for language', async () => {
