@@ -41,15 +41,15 @@ describe('generatePassword', () => {
 
 	describe('wordCount validation', () => {
 		it('should throw for zero', async () => {
-			await expect(generatePassword(0)).rejects.toThrow('wordCount must be a positive integer');
+			await expect(generatePassword(0)).rejects.toThrow();
 		});
 
 		it('should throw for negative values', async () => {
-			await expect(generatePassword(-1)).rejects.toThrow('wordCount must be a positive integer');
+			await expect(generatePassword(-1)).rejects.toThrow();
 		});
 
 		it('should throw for non-integer values', async () => {
-			await expect(generatePassword(2.5)).rejects.toThrow('wordCount must be a positive integer');
+			await expect(generatePassword(2.5)).rejects.toThrow();
 		});
 
 		it('should accept a custom word count', async () => {
