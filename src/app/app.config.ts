@@ -9,12 +9,12 @@ import {
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy } from '@angular/router';
 import { Analytics } from '@providers/analytics/analytics';
-import { initializeAuth } from '@providers/auth/auth.initializer';
 import { initializeTranslation } from '@providers/i18n/translation.initializer';
 import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.strategy';
 import { provideNavigation } from '@providers/navigation/navigation.provider';
 import { provideProjectConfig } from '@providers/project/project.provider';
 import { provideTheme } from '@providers/theme/theme';
+import { initializeAuth } from '@store/auth/auth.initializer';
 import { appRoutes } from './app.routes';
 import { environment } from './environments/environment';
 import { authInterceptor } from './interceptors/auth.interceptor';
@@ -40,8 +40,8 @@ export const appConfig: ApplicationConfig = {
 		provideHttpClient(withFetch(), withInterceptors([authInterceptor, tokenRefreshInterceptor])),
 
 		// Initializers
-		provideAppInitializer(initializeAnalytics()),
 		provideAppInitializer(initializeAuth()),
+		provideAppInitializer(initializeAnalytics()),
 		provideAppInitializer(initializeTranslation()),
 
 		// Custom providers

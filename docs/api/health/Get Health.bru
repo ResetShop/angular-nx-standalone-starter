@@ -7,32 +7,32 @@ meta {
 get {
   url: {{baseUrl}}/health/v1
   body: none
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{accessToken}}
+  auth: none
 }
 
 docs {
   # Health Check Endpoint
 
-  Returns the current server health status.
+  Returns application health status including database connectivity.
+  Public endpoint — no authentication required.
 
-  ## Response
+  ## Response (200 OK / 503 Service Unavailable)
 
   | Field | Type | Description |
   |-------|------|-------------|
-  | message | string | Status message |
+  | status | string | Overall health status ("healthy" or "unhealthy") |
   | timestamp | string | ISO 8601 timestamp |
-  | status | string | Server status ("success") |
+  | checks.database.status | string | Database check status ("healthy" or "unhealthy") |
+  | checks.database.responseTimeMs | number\|null | DB query response time in milliseconds |
+  | checks.database.error | string | Error message (only present when unhealthy) |
 }
 
 assert {
   res.status: eq 200
-  res.body.status: eq success
-  res.body.message: eq Server is running!
+  res.body.status: eq healthy
   res.body.timestamp: isDefined
+  res.body.checks.database.status: eq healthy
+  res.body.checks.database.responseTimeMs: isNumber
 }
 
 tests {
@@ -40,17 +40,22 @@ tests {
     expect(res.status).to.equal(200);
   });
 
-  test("should return success status", function() {
-    expect(res.body.status).to.equal("success");
+  test("should return healthy status", function() {
+    expect(res.body.status).to.equal("healthy");
   });
 
-  test("should return server running message", function() {
-    expect(res.body.message).to.equal("Server is running!");
+  test("should include database check", function() {
+    expect(res.body.checks).to.have.property("database");
+    expect(res.body.checks.database.status).to.equal("healthy");
   });
 
-  test("should include timestamp", function() {
+  test("should include response time", function() {
+    expect(res.body.checks.database.responseTimeMs).to.be.a("number");
+    expect(res.body.checks.database.responseTimeMs).to.be.at.least(0);
+  });
+
+  test("should include valid ISO timestamp", function() {
     expect(res.body.timestamp).to.be.a("string");
-    // Verify it's a valid ISO date
     const date = new Date(res.body.timestamp);
     expect(date.toString()).to.not.equal("Invalid Date");
   });

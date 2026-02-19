@@ -46,6 +46,9 @@ Thumbs.db
 # Tools & frameworks
 .angular
 .nx
-.vercel
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+
+# Claude Code workspace
+.claude/workspace/*
+!.claude/workspace/README.md
