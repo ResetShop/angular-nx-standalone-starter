@@ -45,7 +45,20 @@ Best regards,
 The Team`;
 }
 
+function escapeHtml(value: string): string {
+	return value
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
 function buildHtmlContent(firstName: string, email: string, password: string): string {
+	const safeFirstName = escapeHtml(firstName);
+	const safeEmail = escapeHtml(email);
+	const safePassword = escapeHtml(password);
+
 	return `<!DOCTYPE html>
 <html>
 <head>
@@ -53,14 +66,14 @@ function buildHtmlContent(firstName: string, email: string, password: string): s
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50;">Hello ${firstName},</h1>
+    <h1 style="color: #2c3e50;">Hello ${safeFirstName},</h1>
 
     <p>Welcome! Your account has been created successfully.</p>
 
     <div style="background-color: #f4f4f4; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0;">
         <h2 style="margin-top: 0; color: #2c3e50;">Your login credentials:</h2>
-        <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
-        <p style="margin: 10px 0;"><strong>Temporary Password:</strong> <code style="background-color: #e8e8e8; padding: 2px 6px; border-radius: 3px;">${password}</code></p>
+        <p style="margin: 10px 0;"><strong>Email:</strong> ${safeEmail}</p>
+        <p style="margin: 10px 0;"><strong>Temporary Password:</strong> <code style="background-color: #e8e8e8; padding: 2px 6px; border-radius: 3px;">${safePassword}</code></p>
     </div>
 
     <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">

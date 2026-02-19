@@ -214,7 +214,24 @@ describe('buildWelcomeEmail', () => {
 			});
 
 			expect(result.text).toContain("O'Brien");
-			expect(result.html).toContain("O'Brien");
+			expect(result.html).toContain('O&#39;Brien');
+		});
+
+		it('should escape HTML-dangerous characters in HTML but not in plain text', () => {
+			const result = buildWelcomeEmail({
+				firstName: '<b>Joe&"Ann</b>',
+				email: 'joe&ann@example.com',
+				password: 'p<a>ss',
+			});
+
+			expect(result.text).toContain('<b>Joe&"Ann</b>');
+			expect(result.text).toContain('joe&ann@example.com');
+			expect(result.text).toContain('p<a>ss');
+
+			expect(result.html).toContain('&lt;b&gt;Joe&amp;&quot;Ann&lt;/b&gt;');
+			expect(result.html).toContain('joe&amp;ann@example.com');
+			expect(result.html).toContain('p&lt;a&gt;ss');
+			expect(result.html).not.toContain('<b>Joe');
 		});
 
 		it('should handle generated passwords with various characters', () => {
