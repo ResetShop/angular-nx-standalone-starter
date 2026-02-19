@@ -61,18 +61,23 @@ describe('generatePassword', () => {
 	});
 
 	describe('language selection', () => {
-		it('should use English word list by default', async () => {
-			const password = await generatePassword();
+		it('should produce only ASCII words for English', async () => {
+			const passwords = await Promise.all(Array.from({ length: 20 }, () => generatePassword()));
+			const words = passwords.flatMap((p) => p.split('.'));
 
-			expect(password).toMatch(/^[\p{Ll}]+\.[\p{Ll}]+\.[\p{Ll}]+$/u);
+			for (const word of words) {
+				expect(word).toMatch(/^[a-z]+$/);
+			}
 		});
 
-		it('should use Spanish word list when APP_LANGUAGE is es', async () => {
+		it('should produce Spanish words when APP_LANGUAGE is es', async () => {
 			process.env['APP_LANGUAGE'] = 'es';
 
-			const password = await generatePassword();
+			const passwords = await Promise.all(Array.from({ length: 20 }, () => generatePassword()));
+			const words = passwords.flatMap((p) => p.split('.'));
+			const hasAccentedWord = words.some((word) => /[^a-z]/.test(word));
 
-			expect(password).toMatch(/^[\p{Ll}]+\.[\p{Ll}]+\.[\p{Ll}]+$/u);
+			expect(hasAccentedWord).toBe(true);
 		});
 
 		it('should throw when word list file does not exist for language', async () => {
