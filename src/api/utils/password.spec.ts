@@ -39,6 +39,27 @@ describe('generatePassword', () => {
 		});
 	});
 
+	describe('wordCount validation', () => {
+		it('should throw for zero', async () => {
+			await expect(generatePassword(0)).rejects.toThrow('wordCount must be a positive integer');
+		});
+
+		it('should throw for negative values', async () => {
+			await expect(generatePassword(-1)).rejects.toThrow('wordCount must be a positive integer');
+		});
+
+		it('should throw for non-integer values', async () => {
+			await expect(generatePassword(2.5)).rejects.toThrow('wordCount must be a positive integer');
+		});
+
+		it('should accept a custom word count', async () => {
+			const password = await generatePassword(5);
+			const parts = password.split('.');
+
+			expect(parts).toHaveLength(5);
+		});
+	});
+
 	describe('language selection', () => {
 		it('should use English word list by default', async () => {
 			const password = await generatePassword();
