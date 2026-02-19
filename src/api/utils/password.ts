@@ -4,6 +4,7 @@ import { resolve } from 'path';
 
 const wordListCache = new Map<string, readonly string[]>();
 
+// TODO (#159): Validate language against an allowlist to prevent path traversal
 async function getWordList(language: string): Promise<readonly string[]> {
 	const cached = wordListCache.get(language);
 	if (cached) {
