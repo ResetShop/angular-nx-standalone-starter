@@ -18,17 +18,15 @@ interface EmailContent {
  * @returns Email content with subject, HTML, and text versions
  */
 export function buildWelcomeEmail(params: WelcomeEmailParams): EmailContent {
-	const { firstName, email, password } = params;
-
 	const subject = 'Your new account has been created';
 
-	const text = buildTextContent(firstName, email, password);
-	const html = buildHtmlContent(firstName, email, password);
+	const text = buildTextContent(params);
+	const html = buildHtmlContent(params);
 
 	return { subject, html, text };
 }
 
-function buildTextContent(firstName: string, email: string, password: string): string {
+function buildTextContent({ firstName, email, password }: WelcomeEmailParams): string {
 	return `Hello ${firstName},
 
 Welcome! Your account has been created successfully.
@@ -54,7 +52,7 @@ function escapeHtml(value: string): string {
 		.replace(/'/g, '&#39;');
 }
 
-function buildHtmlContent(firstName: string, email: string, password: string): string {
+function buildHtmlContent({ firstName, email, password }: WelcomeEmailParams): string {
 	const safeFirstName = escapeHtml(firstName);
 	const safeEmail = escapeHtml(email);
 	const safePassword = escapeHtml(password);
