@@ -7,6 +7,16 @@ describe('buildWelcomeEmail', () => {
 		password: 'TempPass123_xyz',
 	};
 
+	const originalAppLanguage = process.env['APP_LANGUAGE'];
+
+	afterEach(() => {
+		if (originalAppLanguage !== undefined) {
+			process.env['APP_LANGUAGE'] = originalAppLanguage;
+		} else {
+			delete process.env['APP_LANGUAGE'];
+		}
+	});
+
 	describe('Return structure', () => {
 		it('should return an object with subject, html, and text properties', () => {
 			const result = buildWelcomeEmail(mockParams);
@@ -113,10 +123,18 @@ describe('buildWelcomeEmail', () => {
 
 		it('should contain proper HTML structure', () => {
 			const result = buildWelcomeEmail(mockParams);
-			expect(result.html).toContain('<html>');
+			expect(result.html).toContain('<html lang="en">');
 			expect(result.html).toContain('</html>');
 			expect(result.html).toContain('<body');
 			expect(result.html).toContain('</body>');
+		});
+
+		it('should set html lang attribute from APP_LANGUAGE', () => {
+			process.env['APP_LANGUAGE'] = 'es';
+
+			const result = buildWelcomeEmail(mockParams);
+
+			expect(result.html).toContain('<html lang="es">');
 		});
 	});
 

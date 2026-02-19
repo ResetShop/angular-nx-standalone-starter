@@ -53,12 +53,14 @@ function escapeHtml(value: string): string {
 }
 
 function buildHtmlContent({ firstName, email, password }: WelcomeEmailParams): string {
+	// TODO (#159): Validate language against an allowlist to prevent path traversal
+	const language = process.env['APP_LANGUAGE'] || 'en';
 	const safeFirstName = escapeHtml(firstName);
 	const safeEmail = escapeHtml(email);
 	const safePassword = escapeHtml(password);
 
 	return `<!DOCTYPE html>
-<html>
+<html lang="${language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
