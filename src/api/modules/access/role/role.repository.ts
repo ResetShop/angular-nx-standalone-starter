@@ -1,0 +1,332 @@
+import { type SQL, count, eq, ilike, inArray, or } from 'drizzle-orm';
+import { permission } from '../../../../db/schema/permission';
+import { role, rolePermission } from '../../../../db/schema/role';
+import { QUERY_DEFAULTS } from '../../../constants/query.constants';
+import { BaseRepository } from '../../../helpers/base.repository';
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
+import type {
+	CreateRoleParams,
+	IRoleRepository,
+	ListRolesParams,
+	PermissionData,
+	RoleData,
+	UpdateRoleParams,
+} from './interfaces';
+
+/**
+ * Repository for role-related database operations.
+ * Handles CRUD operations for roles and role-permission assignments.
+ */
+export class RoleRepository extends BaseRepository implements IRoleRepository {
+	/**
+	 * Finds a role by its unique identifier.
+	 *
+	 * @param id - The role's primary key
+	 * @returns The role data if found, null otherwise
+	 */
+	async findById(id: number): Promise<RoleData | null> {
+		const result = await this.db
+			.select({
+				id: role.id,
+				name: role.name,
+				code: role.code,
+				description: role.description,
+				removable: role.removable,
+				createdAt: role.createdAt,
+				updatedAt: role.updatedAt,
+			})
+			.from(role)
+			.where(eq(role.id, id))
+			.limit(1);
+
+		return result.length > 0 ? result[0] : null;
+	}
+
+	/**
+	 * Finds a role by its unique code.
+	 *
+	 * @param code - The role's unique code (e.g., 'admin', 'editor')
+	 * @returns The role data if found, null otherwise
+	 */
+	async findByCode(code: string): Promise<RoleData | null> {
+		const result = await this.db
+			.select({
+				id: role.id,
+				name: role.name,
+				code: role.code,
+				description: role.description,
+				removable: role.removable,
+				createdAt: role.createdAt,
+				updatedAt: role.updatedAt,
+			})
+			.from(role)
+			.where(eq(role.code, code))
+			.limit(1);
+
+		return result.length > 0 ? result[0] : null;
+	}
+
+	/**
+	 * Finds a role by its display name.
+	 *
+	 * @param name - The role's display name (e.g., 'Administrator')
+	 * @returns The role data if found, null otherwise
+	 */
+	async findByName(name: string): Promise<RoleData | null> {
+		const result = await this.db
+			.select({
+				id: role.id,
+				name: role.name,
+				code: role.code,
+				description: role.description,
+				removable: role.removable,
+				createdAt: role.createdAt,
+				updatedAt: role.updatedAt,
+			})
+			.from(role)
+			.where(eq(role.name, name))
+			.limit(1);
+
+		return result.length > 0 ? result[0] : null;
+	}
+
+	/**
+	 * Retrieves all roles with pagination and optional search filtering.
+	 * Search is case-insensitive and matches against name, code, or description.
+	 *
+	 * @param params - Optional list parameters
+	 * @param params.offset - Number of records to skip (default: 0)
+	 * @param params.limit - Maximum records to return (default: 10)
+	 * @param params.search - Optional search term to filter by name, code, or description
+	 * @returns Paginated response containing roles and metadata
+	 */
+	async findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
+		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT;
+		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET;
+		const searchCondition = this.buildSearchCondition(params?.search);
+
+		const [data, totalResult] = await Promise.all([
+			this.db
+				.select({
+					id: role.id,
+					name: role.name,
+					code: role.code,
+					description: role.description,
+					removable: role.removable,
+					createdAt: role.createdAt,
+					updatedAt: role.updatedAt,
+				})
+				.from(role)
+				.where(searchCondition)
+				.limit(limit)
+				.offset(offset),
+			this.db.select({ count: count() }).from(role).where(searchCondition),
+		]);
+
+		return {
+			data,
+			total: totalResult[0].count,
+			offset,
+			limit,
+		};
+	}
+
+	/**
+	 * Builds a case-insensitive search condition for filtering roles
+	 * by name, code, or description.
+	 *
+	 * @param search - The search term to filter by
+	 * @returns A SQL condition or undefined if no search term provided
+	 */
+	private buildSearchCondition(search?: string): SQL | undefined {
+		if (!search || search.trim().length === 0) {
+			return undefined;
+		}
+
+		const escaped = search.trim().replace(/[%_]/g, '\\$&');
+		const pattern = `%${escaped}%`;
+		return or(ilike(role.name, pattern), ilike(role.code, pattern), ilike(role.description, pattern));
+	}
+
+	/**
+	 * Creates a new role in the database.
+	 * New roles are created with removable=true by default.
+	 *
+	 * @param params - The role creation parameters
+	 * @param params.name - Display name for the role
+	 * @param params.code - Unique code identifier (lowercase, snake_case)
+	 * @param params.description - Optional description of the role
+	 * @returns The newly created role data
+	 */
+	async create(params: CreateRoleParams): Promise<RoleData> {
+		const result = await this.db
+			.insert(role)
+			.values({
+				name: params.name,
+				code: params.code,
+				description: params.description,
+			})
+			.returning({
+				id: role.id,
+				name: role.name,
+				code: role.code,
+				description: role.description,
+				removable: role.removable,
+				createdAt: role.createdAt,
+				updatedAt: role.updatedAt,
+			});
+
+		return result[0];
+	}
+
+	/**
+	 * Updates an existing role's properties.
+	 * Only provided fields are updated; undefined fields are left unchanged.
+	 * The updatedAt timestamp is automatically set.
+	 *
+	 * @param id - The role's primary key
+	 * @param params - The fields to update
+	 * @param params.name - New display name (optional)
+	 * @param params.description - New description (optional)
+	 * @returns The updated role data, or null if not found
+	 */
+	async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
+		const updateData: Partial<typeof role.$inferInsert> = { updatedAt: new Date() };
+
+		if (params.name !== undefined) {
+			updateData.name = params.name;
+		}
+		if (params.description !== undefined) {
+			updateData.description = params.description;
+		}
+
+		const result = await this.db.update(role).set(updateData).where(eq(role.id, id)).returning({
+			id: role.id,
+			name: role.name,
+			code: role.code,
+			description: role.description,
+			removable: role.removable,
+			createdAt: role.createdAt,
+			updatedAt: role.updatedAt,
+		});
+
+		return result.length > 0 ? result[0] : null;
+	}
+
+	/**
+	 * Deletes a role and its permission assignments in a transaction.
+	 * User-role associations are automatically deleted via CASCADE constraint.
+	 *
+	 * @param id - The role's primary key
+	 * @throws Will throw if role doesn't exist (no rows affected)
+	 */
+	async delete(id: number): Promise<void> {
+		await this.db.transaction(async (tx) => {
+			// Delete role_permission entries first (no CASCADE on this FK)
+			await tx.delete(rolePermission).where(eq(rolePermission.roleId, id));
+
+			// Delete the role
+			await tx.delete(role).where(eq(role.id, id));
+		});
+	}
+
+	/**
+	 * Retrieves all permissions assigned to a role with pagination.
+	 *
+	 * @param roleId - The role's primary key
+	 * @param pagination - Optional pagination parameters
+	 * @param pagination.offset - Number of records to skip (default: 0)
+	 * @param pagination.limit - Maximum records to return (default: 10)
+	 * @returns Paginated response containing permissions and metadata
+	 */
+	async getPermissionsForRole(
+		roleId: number,
+		pagination?: PaginationParams,
+	): Promise<PaginatedResponse<PermissionData>> {
+		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
+		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
+
+		const [data, totalResult] = await Promise.all([
+			this.db
+				.select({
+					id: permission.id,
+					name: permission.name,
+					description: permission.description,
+					resource: permission.resource,
+					action: permission.action,
+				})
+				.from(rolePermission)
+				.innerJoin(permission, eq(rolePermission.permissionId, permission.id))
+				.where(eq(rolePermission.roleId, roleId))
+				.limit(limit)
+				.offset(offset),
+			this.db.select({ count: count() }).from(rolePermission).where(eq(rolePermission.roleId, roleId)),
+		]);
+
+		return {
+			data,
+			total: totalResult[0].count,
+			offset,
+			limit,
+		};
+	}
+
+	/**
+	 * Finds permissions by their IDs.
+	 * Used for validating permission IDs before assignment.
+	 *
+	 * @param ids - Array of permission primary keys
+	 * @returns Array of found permissions (may be fewer than requested if some IDs are invalid)
+	 */
+	async findPermissionsByIds(ids: number[]): Promise<PermissionData[]> {
+		if (ids.length === 0) {
+			return [];
+		}
+
+		return this.db
+			.select({
+				id: permission.id,
+				name: permission.name,
+				description: permission.description,
+				resource: permission.resource,
+				action: permission.action,
+			})
+			.from(permission)
+			.where(inArray(permission.id, ids));
+	}
+
+	/**
+	 * Assigns permissions to a role, replacing all existing assignments.
+	 * Uses a transaction to ensure atomicity and prevent race conditions
+	 * where the role would temporarily have no permissions.
+	 *
+	 * @param roleId - The role's primary key
+	 * @param permissionIds - Array of permission IDs to assign (replaces existing)
+	 */
+	async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
+		await this.db.transaction(async (tx) => {
+			// Remove existing permissions
+			await tx.delete(rolePermission).where(eq(rolePermission.roleId, roleId));
+
+			// Add new permissions
+			if (permissionIds.length > 0) {
+				const values = permissionIds.map((permissionId) => ({
+					roleId,
+					permissionId,
+				}));
+
+				await tx.insert(rolePermission).values(values).onConflictDoNothing();
+			}
+		});
+	}
+
+	/**
+	 * Removes all permission assignments from a role.
+	 * The role itself is not deleted.
+	 *
+	 * @param roleId - The role's primary key
+	 */
+	async removeAllPermissions(roleId: number): Promise<void> {
+		await this.db.delete(rolePermission).where(eq(rolePermission.roleId, roleId));
+	}
+}

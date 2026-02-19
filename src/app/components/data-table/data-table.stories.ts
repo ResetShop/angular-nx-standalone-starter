@@ -25,10 +25,17 @@ const sampleData: User[] = [
 	{ name: 'Carol White', email: 'carol@example.com', role: 'Viewer' },
 	{ name: 'Dave Brown', email: 'dave@example.com', role: 'Editor' },
 	{ name: 'Eve Davis', email: 'eve@example.com', role: 'Admin' },
+	{ name: 'Frank Miller', email: 'frank@example.com', role: 'Moderator' },
+	{ name: 'Grace Lee', email: 'grace@example.com', role: 'Viewer' },
+	{ name: 'Henry Wilson', email: 'henry@example.com', role: 'Editor' },
+	{ name: 'Ivy Chen', email: 'ivy@example.com', role: 'Moderator' },
+	{ name: 'Jack Taylor', email: 'jack@example.com', role: 'Viewer' },
+	{ name: 'Karen Adams', email: 'karen@example.com', role: 'Admin' },
+	{ name: 'Leo Martinez', email: 'leo@example.com', role: 'Editor' },
 ];
 
 /**
- * Wrapper component that manages language loading for DataTable stories.
+ * Wrapper component that manages language loading and pagination for DataTable stories.
  * Destroys and re-creates the DataTable when language changes so that
  * translated defaults (emptyMessage, loadingMessage) pick up the new locale.
  */
@@ -44,6 +51,8 @@ const sampleData: User[] = [
 				[loading]="loading()"
 				[caption]="caption()"
 				[emptyMessage]="resolvedEmptyMessage()"
+				[grouping]="resolvedGrouping()"
+				[expandedByDefault]="expandedByDefault()"
 			/>
 			@if (pageSize() > 0) {
 				<div class="mt-4">
@@ -68,6 +77,20 @@ class DataTableStoryComponent {
 	readonly loading = input(false);
 	readonly caption = input('');
 	readonly language = input<Language>('en');
+	readonly expandedByDefault = input(true);
+	readonly showData = input(true);
+
+	/**
+	 * Grouping column selector. Maps a user-friendly label to the actual column ID.
+	 * Use 'none' to disable grouping.
+	 */
+	readonly groupBy = input<'none' | 'role'>('none');
+
+	/** Resolved grouping array from the `groupBy` select control */
+	readonly resolvedGrouping = computed(() => {
+		const groupBy = this.groupBy();
+		return groupBy === 'none' ? [] : [groupBy];
+	});
 
 	/**
 	 * Items per page. Set to 0 to disable pagination and show all data.
@@ -107,13 +130,12 @@ class DataTableStoryComponent {
 		return this.data().slice(start, start + size);
 	});
 
-	/** Data passed to the DataTable — paged when pagination is active. */
-	readonly displayData = computed(() => this.pagedData());
+	/** Data passed to the DataTable — empty when showData is false, paged otherwise. */
+	readonly displayData = computed(() => (this.showData() ? this.pagedData() : []));
 
 	/**
 	 * Resolves the empty message for the current language.
 	 * Uses the per-language custom message if provided, otherwise the translated default.
-	 * Depends on `isReady` to re-evaluate after a language change.
 	 */
 	readonly resolvedEmptyMessage = computed(() => {
 		if (!this.isReady()) return '';
@@ -146,7 +168,7 @@ class DataTableStoryComponent {
 
 	onPageSizeChange(size: number): void {
 		this.currentPageSize.set(size);
-		this.currentPage.set(1); // Reset to first page when page size changes
+		this.currentPage.set(1);
 	}
 }
 
@@ -167,52 +189,31 @@ A data table component powered by TanStack Table.
 
 ## Features
 
-- **TanStack Table Integration**: Type-safe column definitions and sorting
-- **Semantic HTML**: Proper table markup with accessibility attributes
 - **Sorting**: Click column headers to sort (aria-sort, keyboard support)
-- **Loading State**: Built-in loading spinner
-- **Empty State**: Customizable empty message
+- **Row Grouping**: Group rows by a column with expand/collapse toggle
+- **Pagination**: Optional page-based data slicing
+- **Loading & Empty States**: Built-in spinner and customizable empty message
+- **Custom Cell Templates**: Content projection via \`appDataTableCellDef\`
+- **Accessibility**: aria-busy, aria-sort, aria-expanded, keyboard navigation
+- **i18n**: Localized messages via the Translation service
 - **Dark Mode**: Full dark mode support
-- **Responsive**: Horizontal scroll on small screens
-- **i18n Support**: Loading and empty messages are localized using the Translation service
-
-## Language Support
-
-Use the **language** control to switch between:
-- **en** (English) - Default
-- **es** (Spanish)
-
-Empty and loading messages will automatically update to the selected language.
 
 ## Usage
 
 \`\`\`typescript
 import { DataTable } from '@components/data-table/data-table';
-import { DataTableCellDef } from '@components/data-table/data-table-cell-def';
 import { type ColumnDef } from '@tanstack/angular-table';
 
-interface User {
-  name: string;
-  email: string;
-  role: string;
-}
-
 @Component({
-  imports: [DataTable, DataTableCellDef],
+  imports: [DataTable],
   template: \\\`
     <app-data-table
       [columns]="columns"
       [data]="users"
-      [loading]="loading"
-      [caption]="'Team members'"
-      [emptyMessage]="'No users found.'"
-      (sortChange)="onSort($event)"
-    >
-      <!-- Custom cell template for the 'role' column -->
-      <ng-template appDataTableCellDef="role" let-value let-row="row">
-        <span class="font-semibold">{{ value }}</span>
-      </ng-template>
-    </app-data-table>
+      [grouping]="['role']"
+      [expandedByDefault]="true"
+      caption="Team members"
+    />
   \\\`,
 })
 export class UserListComponent {
@@ -221,13 +222,7 @@ export class UserListComponent {
     { accessorKey: 'email', header: 'Email', enableSorting: true },
     { accessorKey: 'role', header: 'Role' },
   ];
-
   users: User[] = [];
-  loading = false;
-
-  onSort(event: { id: string; direction: 'asc' | 'desc' }) {
-    // Handle sort change (e.g. fetch sorted data from API)
-  }
 }
 \`\`\`
 				`,
@@ -235,17 +230,12 @@ export class UserListComponent {
 		},
 	},
 	argTypes: {
-		language: {
-			control: 'select',
-			options: ['en', 'es'],
-			description: 'Language for translated messages (empty state, loading state)',
+		showData: {
+			control: 'boolean',
+			description: 'Show data rows (disable to see the empty state)',
 			table: {
-				type: { summary: 'Language' },
-				defaultValue: { summary: 'en' },
-			},
-			labels: {
-				en: 'English',
-				es: 'Español',
+				type: { summary: 'boolean' },
+				defaultValue: { summary: 'true' },
 			},
 		},
 		loading: {
@@ -256,12 +246,50 @@ export class UserListComponent {
 				defaultValue: { summary: 'false' },
 			},
 		},
+		caption: {
+			control: 'text',
+			description: 'Accessible table caption (screen-reader only)',
+			table: {
+				type: { summary: 'string' },
+				defaultValue: { summary: '' },
+			},
+		},
+		groupBy: {
+			control: 'select',
+			options: ['none', 'role'],
+			description: 'Column to group rows by',
+			table: {
+				type: { summary: "'none' | 'role'" },
+				defaultValue: { summary: 'none' },
+			},
+		},
+		expandedByDefault: {
+			control: 'boolean',
+			description: 'Whether groups start expanded (only applies when grouping is active)',
+			table: {
+				type: { summary: 'boolean' },
+				defaultValue: { summary: 'true' },
+			},
+		},
 		pageSize: {
 			control: { type: 'number', min: 0 },
 			description: 'Items per page (0 to disable pagination)',
 			table: {
 				type: { summary: 'number' },
 				defaultValue: { summary: '0' },
+			},
+		},
+		language: {
+			control: 'select',
+			options: ['en', 'es'],
+			description: 'Language for translated messages',
+			table: {
+				type: { summary: 'Language' },
+				defaultValue: { summary: 'en' },
+			},
+			labels: {
+				en: 'English',
+				es: 'Espanol',
 			},
 		},
 	},
@@ -272,84 +300,37 @@ export default meta;
 type Story = StoryObj<DataTableStoryComponent>;
 
 /**
- * Default data table with sample user data and sortable columns.
- * Toggle the **loading** switch to see the loading state.
+ * Interactive data table with all configurable options.
+ * Use the controls panel to toggle loading, grouping, pagination, and language.
  */
-export const Default: Story = {
+export const Playground: Story = {
 	args: {
 		columns: sampleColumns,
 		data: sampleData,
-		caption: 'Users table',
+		showData: true,
 		loading: false,
-		language: 'en',
-	},
-};
-
-/**
- * Empty table with default translated message.
- * Switch **language** to see the translated empty message.
- */
-export const Empty: Story = {
-	args: {
-		columns: sampleColumns,
-		data: [],
-		language: 'en',
-	},
-};
-
-/**
- * Empty table with per-language custom messages.
- * Switch **language** to see the message change.
- */
-export const CustomEmptyMessage: Story = {
-	args: {
-		columns: sampleColumns,
-		data: [],
-		emptyMessages: {
-			en: 'No users found. Try adjusting your filters.',
-			es: 'No se encontraron usuarios. Intenta ajustar tus filtros.',
-		},
-		language: 'en',
-	},
-};
-
-/**
- * Table in loading state with spinner.
- * Switch **language** to see the translated loading message.
- */
-export const Loading: Story = {
-	args: {
-		columns: sampleColumns,
-		data: [],
-		loading: true,
-		language: 'en',
-	},
-};
-
-/**
- * Table with an accessible caption.
- */
-export const WithCaption: Story = {
-	args: {
-		columns: sampleColumns,
-		data: sampleData,
-		caption: 'Team Members',
-		language: 'en',
-	},
-};
-
-/**
- * Data table with pagination enabled (3 items per page).
- * Navigate between pages using the Previous/Next buttons.
- * Switch **language** to see translated pagination labels.
- */
-export const WithPagination: Story = {
-	args: {
-		columns: sampleColumns,
-		data: sampleData,
 		caption: 'Users table',
+		groupBy: 'none',
+		expandedByDefault: true,
+		pageSize: 0,
+		language: 'en',
+	},
+};
+
+/**
+ * Rows grouped by the 'Role' column with expand/collapse toggles.
+ * Use the `expandedByDefault` control to toggle whether groups start open or closed.
+ */
+export const GroupedByRole: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
 		loading: false,
-		pageSize: 3,
+		caption: 'Users table',
+		groupBy: 'role',
+		expandedByDefault: true,
+		pageSize: 0,
 		language: 'en',
 	},
 };

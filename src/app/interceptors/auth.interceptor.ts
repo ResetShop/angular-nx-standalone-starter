@@ -1,32 +1,21 @@
+import { isPlatformBrowser } from '@angular/common';
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { Auth } from '@providers/auth/auth';
+import { inject, PLATFORM_ID } from '@angular/core';
 
 /**
- * Intercepts outgoing HTTP requests to attach Paseto access token
- * and include credentials (cookies) for all API requests
+ * Intercepts outgoing HTTP requests to include credentials (cookies)
+ * for all API requests. Access token is sent as an HttpOnly cookie.
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-	const authService = inject(Auth);
-	const currentUser = authService.currentUser();
+	const platformId = inject(PLATFORM_ID);
 
-	// For API requests, always include credentials to send cookies
-	if (req.url.includes('/api/')) {
-		// Clone request with credentials
-		let authReq = req.clone({
-			withCredentials: true, // Send cookies (HttpOnly refresh token)
-		});
+	if (!isPlatformBrowser(platformId)) {
+		return next(req);
+	}
 
-		// Attach access token to non-auth endpoints
-		if (!req.url.includes('/api/auth/login') && currentUser?.token) {
-			authReq = authReq.clone({
-				setHeaders: {
-					Authorization: `Bearer ${currentUser.token}`,
-				},
-			});
-		}
-
-		return next(authReq);
+	const url = new URL(req.url, location.origin);
+	if (url.pathname.startsWith('/api/')) {
+		return next(req.clone({ withCredentials: true }));
 	}
 
 	return next(req);

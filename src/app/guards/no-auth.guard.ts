@@ -1,28 +1,27 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
-import { Auth } from '@providers/auth/auth';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthStore } from '@store/auth/auth.store';
+import { catchError, filter, map, of, take } from 'rxjs';
 
 export const noAuthGuard: CanActivateFn = () => {
-	const auth = inject(Auth);
+	const authStore = inject(AuthStore);
 	const router = inject(Router);
 
-	// If auth is not initialized yet, defer the guard decision until initialization is complete
-	if (!auth.isInitialized()) {
-		return new Promise<boolean | UrlTree>((resolve) => {
-			const checkAuth = () => {
-				if (auth.isInitialized()) {
-					const result = auth.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
-					auth.isGuardValidated.set(true);
-					resolve(result);
-				} else {
-					setTimeout(checkAuth, 50);
-				}
-			};
-			checkAuth();
-		});
+	if (authStore.isInitialized()) {
+		return authStore.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
 	}
 
-	const result = auth.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true;
-	auth.isGuardValidated.set(true);
-	return result;
+	// Safety net — APP_INITIALIZER guarantees isInitialized before routing,
+	// but this handles edge cases where the signal hasn't propagated yet.
+	return toObservable(authStore.isInitialized).pipe(
+		filter(Boolean),
+		take(1),
+		map(() => (authStore.isAuthenticated() ? router.createUrlTree(['/dashboard']) : true)),
+		catchError((error) => {
+			// TODO(#66): Replace with structured logging service
+			console.error('[NoAuthGuard] Unexpected initialization failure during routing:', error);
+			return of(true);
+		}),
+	);
 };

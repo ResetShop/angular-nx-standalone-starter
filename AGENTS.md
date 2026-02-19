@@ -1,3 +1,9 @@
+# AI Agent Guidelines
+
+> **Note:** This file is a standard AI-agent instruction file (`AGENTS.md`) auto-managed by the **Nx MCP server** between the `nx configuration` markers below. It provides Nx-specific guidelines for AI tools.
+>
+> For **Claude Code specialized agents** (code-reviewer, security-auditor, test-generator, etc.), see [`.claude/agents/`](.claude/agents/).
+
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
 
@@ -5,16 +11,17 @@
 
 ## Running Tasks
 
-**CRITICAL: Always use `pnpm run <task>` for these task executions in this project.**
+**CRITICAL: Always use `npm run <task>` for these task executions in this project.**
 
-- ✅ `pnpm run build` - Build the project
-- ✅ `pnpm run dev` - Start dev server
-- ✅ `pnpm run lint` - Run linting
-- ✅ `pnpm run stylelint` - Run style linting
-- ✅ `pnpm run test` - Run tests
-- ✅ `pnpm run test:e2e` - Run e2e tests
+- ✅ `npm run ci` - Run all CI checks locally
+- ✅ `npm run build` - Build the project
+- ✅ `npm run dev` - Start dev server
+- ✅ `npm run lint` - Run linting
+- ✅ `npm run stylelint` - Run style linting
+- ✅ `npm run test` - Run tests
+- ✅ `npm run test:e2e` - Run e2e tests
 - ❌ `nx test`, `nx run` - Do NOT use direct nx commands
-- ❌ `pnpm test --`, `pnpm nx test` - Do NOT construct variants
+- ❌ `npm test --`, `npm exec nx test` - Do NOT construct variants
 
 For other task executions relative to Nx itself, you can run nx commands.
 
