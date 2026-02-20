@@ -83,22 +83,13 @@ export class UserManagementService implements IUserManagementService {
 
 		const passwordHash = await hash(params.password, BCRYPT_SALT_ROUNDS);
 
-		const newUser = await this.userManagementRepository.create({
+		return this.userManagementRepository.create({
 			email: params.email,
 			firstName: params.firstName,
 			lastName: params.lastName,
 			passwordHash,
+			roleIds: params.roleIds ?? [],
 		});
-
-		if (params.roleIds && params.roleIds.length > 0) {
-			await this.userManagementRepository.replaceUserRoles(newUser.id, params.roleIds);
-		}
-
-		const userData = await this.userManagementRepository.findByIdWithRoles(newUser.id);
-		if (!userData) {
-			throw userManagementErrors.notFound(newUser.id);
-		}
-		return userData;
 	}
 
 	/**

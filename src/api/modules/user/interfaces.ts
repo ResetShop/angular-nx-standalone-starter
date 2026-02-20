@@ -73,7 +73,13 @@ export interface IUserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>;
 	findByEmail(email: string): Promise<UserData | null>;
-	create(params: { email: string; firstName: string; lastName: string; passwordHash: string }): Promise<UserData>;
+	create(params: {
+		email: string;
+		firstName: string;
+		lastName: string;
+		passwordHash: string;
+		roleIds: number[];
+	}): Promise<ManagedUserData>;
 	update(
 		id: number,
 		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },

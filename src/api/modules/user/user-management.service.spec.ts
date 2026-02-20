@@ -13,8 +13,8 @@ describe('UserManagementService', () => {
 	const mockFindByIdWithRoles = fn<[number], Promise<ManagedUserData | null>>();
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>();
 	const mockCreate = fn<
-		[{ email: string; firstName: string; lastName: string; passwordHash: string }],
-		Promise<UserData>
+		[{ email: string; firstName: string; lastName: string; passwordHash: string; roleIds: number[] }],
+		Promise<ManagedUserData>
 	>();
 	const mockUpdate = fn<
 		[number, { email?: string; firstName?: string; lastName?: string; enabled?: boolean }],
@@ -127,11 +127,9 @@ describe('UserManagementService', () => {
 	});
 
 	describe('create', () => {
-		it('should create a new user', async () => {
+		it('should create a new user with roles', async () => {
 			mockFindByEmail.mockResolvedValue(null);
-			mockCreate.mockResolvedValue(testUser);
-			mockReplaceUserRoles.mockResolvedValue(undefined);
-			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
+			mockCreate.mockResolvedValue(testManagedUser);
 
 			const result = await service.create({
 				email: 'test@example.com',
@@ -144,13 +142,13 @@ describe('UserManagementService', () => {
 			expect(result).toEqual(testManagedUser);
 			expect(mockFindByEmail.calls).toEqual([['test@example.com']]);
 			expect(mockCreate.calls).toHaveLength(1);
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1]]]);
+			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [1] });
 		});
 
-		it('should create user without roles', async () => {
+		it('should create user without roles by defaulting to empty array', async () => {
+			const userWithNoRoles = { ...testManagedUser, roles: [] };
 			mockFindByEmail.mockResolvedValue(null);
-			mockCreate.mockResolvedValue(testUser);
-			mockFindByIdWithRoles.mockResolvedValue({ ...testManagedUser, roles: [] });
+			mockCreate.mockResolvedValue(userWithNoRoles);
 
 			const result = await service.create({
 				email: 'test@example.com',
@@ -160,7 +158,7 @@ describe('UserManagementService', () => {
 			});
 
 			expect(result.roles).toEqual([]);
-			expect(mockReplaceUserRoles.calls).toHaveLength(0);
+			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [] });
 		});
 
 		it('should throw EMAIL_EXISTS when email is taken', async () => {
