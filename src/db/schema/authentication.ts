@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 import { user } from './user';
 
 export const authentication = pgTable('authentication', {
@@ -9,6 +9,7 @@ export const authentication = pgTable('authentication', {
 		.unique()
 		.references(() => user.id, { onDelete: 'cascade' }),
 	passwordHash: text('password_hash').notNull(),
+	mustChangePassword: boolean('must_change_password').default(false).notNull(),
 	lastPasswordChangedAt: timestamp('last_password_changed_at').defaultNow(),
 	passwordExpiresAt: timestamp('password_expires_at'),
 	failedLoginAttempts: integer('failed_login_attempts').default(0),
