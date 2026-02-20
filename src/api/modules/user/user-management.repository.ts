@@ -150,13 +150,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param params - User creation parameters including password hash and role IDs
 	 * @returns The newly created user with roles
 	 */
-	async create(params: {
-		email: string;
-		firstName: string;
-		lastName: string;
-		passwordHash: string;
-		roleIds: number[];
-	}): Promise<ManagedUserData> {
+	async create(params: Parameters<IUserManagementRepository['create']>[0]): Promise<ManagedUserData> {
 		return this.db.transaction(async (tx) => {
 			const userResult = await tx
 				.insert(user)

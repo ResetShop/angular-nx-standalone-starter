@@ -66,6 +66,14 @@ export interface IUserRepository {
 	findById(id: number): Promise<UserData | null>;
 }
 
+interface CreateUserWithHashedPasswordParams {
+	email: string;
+	firstName: string;
+	lastName: string;
+	passwordHash: string;
+	roleIds: number[];
+}
+
 /**
  * User management repository interface for CRUD operations
  */
@@ -73,13 +81,7 @@ export interface IUserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>;
 	findByEmail(email: string): Promise<UserData | null>;
-	create(params: {
-		email: string;
-		firstName: string;
-		lastName: string;
-		passwordHash: string;
-		roleIds: number[];
-	}): Promise<ManagedUserData>;
+	create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData>;
 	update(
 		id: number,
 		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },
