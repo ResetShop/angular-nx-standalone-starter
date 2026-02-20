@@ -66,7 +66,7 @@ export interface IUserRepository {
 	findById(id: number): Promise<UserData | null>;
 }
 
-interface CreateUserWithHashedPasswordParams {
+export interface CreateUserWithHashedPasswordParams {
 	email: string;
 	firstName: string;
 	lastName: string;

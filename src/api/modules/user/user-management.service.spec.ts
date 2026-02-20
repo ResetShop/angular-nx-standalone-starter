@@ -1,7 +1,12 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { RoleData } from '../access/role/interfaces';
-import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
+import type {
+	CreateUserWithHashedPasswordParams,
+	IUserManagementRepository,
+	ManagedUserData,
+	UserData,
+} from './interfaces';
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service';
 
 describe('UserManagementService', () => {
@@ -12,10 +17,7 @@ describe('UserManagementService', () => {
 	>();
 	const mockFindByIdWithRoles = fn<[number], Promise<ManagedUserData | null>>();
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>();
-	const mockCreate = fn<
-		[{ email: string; firstName: string; lastName: string; passwordHash: string; roleIds: number[] }],
-		Promise<ManagedUserData>
-	>();
+	const mockCreate = fn<[CreateUserWithHashedPasswordParams], Promise<ManagedUserData>>();
 	const mockUpdate = fn<
 		[number, { email?: string; firstName?: string; lastName?: string; enabled?: boolean }],
 		Promise<UserData | null>
