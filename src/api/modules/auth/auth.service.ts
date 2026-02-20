@@ -64,24 +64,24 @@ export class AuthService implements IAuthService {
 	 * @throws AuthError with ACCOUNT_LOCKED code if account is locked due to failed attempts
 	 */
 	async authenticate(credentials: AuthCredentials): Promise<AuthResult> {
-		return this.findUserAndAuth(credentials.email)
-			.then(({ user, authRecord }) => {
-				this.checkAccountLockout(authRecord, user?.id);
-				return this.validateCredentials(user, authRecord, credentials.password);
-			})
-			.then(({ user, authRecord }) =>
-				this.handleSuccessfulLogin(user, authRecord).then(() => ({
-					user,
-					mustChangePassword: authRecord.mustChangePassword,
-				})),
-			)
-			.then(({ user, mustChangePassword }) =>
-				this.generateTokenPair(user).then((tokens) => ({
-					...tokens,
-					user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
-					mustChangePassword,
-				})),
-			);
+		const { user, authRecord } = await this.findUserAndAuth(credentials.email);
+		this.checkAccountLockout(authRecord, user?.id);
+
+		const validated = await this.validateCredentials(user, authRecord, credentials.password);
+		await this.handleSuccessfulLogin(validated.user, validated.authRecord);
+
+		const tokens = await this.generateTokenPair(validated.user);
+
+		return {
+			...tokens,
+			user: {
+				id: validated.user.id,
+				email: validated.user.email,
+				firstName: validated.user.firstName,
+				lastName: validated.user.lastName,
+			},
+			mustChangePassword: validated.authRecord.mustChangePassword,
+		};
 	}
 
 	/**
