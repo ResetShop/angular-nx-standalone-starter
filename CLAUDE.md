@@ -466,7 +466,11 @@ This is a mandatory step in the workflow:
 2. **Run `npm run ci`** — All CI checks must pass (exit code 0) before work is considered complete
 3. **Automatically run code review** using the `code-reviewer` agent
 4. Provide a report to the user, with a prioritization of all the found issues, plus the recommendations and suggestions to address them. The report must be in form of a table, that will be used to track the pending work while addressing the issues, recommendations and suggestions.
-5. Save the Proactive Review results to the `.claude/workspace/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
+5. Save the Proactive Review results to the `workspace/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
+
+### Tracking Fixes
+
+**IMPORTANT:** When fixing issues, warnings, or suggestions from `workspace/CODE_REVIEW.md`, Claude MUST update the **Addressed** column of the corresponding row immediately after the fix is applied — before moving on to the next issue. This keeps the review report in sync with the actual state of the code.
 
 ### Local CI Verification
 
@@ -513,6 +517,12 @@ The code-reviewer agent checks:
 
 ```
 ┌─────────────────┐
+│  Planning       │ ◄── Delegation to plan-writer agent → workspace/PLAN.md
+│   (optional)    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
 │  Implementation │
 │   (commits)     │
 └────────┬────────┘
@@ -525,7 +535,13 @@ The code-reviewer agent checks:
          │
          ▼
 ┌─────────────────┐
-│  Code Review    │ ◄── Automatic delegation to code-reviewer agent
+│  npm run ci     │ ◄── MUST pass with exit code 0
+│   (mandatory)   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Code Review    │ ◄── Delegation to code-reviewer agent → workspace/CODE_REVIEW.md
 │   (mandatory)   │
 └────────┬────────┘
          │
@@ -548,4 +564,4 @@ The code-reviewer agent checks:
 
 ---
 
-_Last updated: 2026-02-09_
+_Last updated: 2026-02-19_
