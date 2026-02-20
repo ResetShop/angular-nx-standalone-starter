@@ -411,7 +411,7 @@ When a new module/feature is developed:
 1. Create a Drizzle migration to insert the required permissions:
 
    ```bash
-   pnpm drizzle-kit generate --custom
+   npm run drizzle:create-migrations -- --custom
    ```
 
    Then in the generated migration file:
@@ -426,7 +426,7 @@ When a new module/feature is developed:
 2. Apply the migration:
 
    ```bash
-   pnpm db:migrate
+   npm run drizzle:push-migrations
    ```
 
 3. Add middleware checks in the controller:

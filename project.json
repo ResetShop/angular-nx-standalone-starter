@@ -15,7 +15,7 @@
 				"browser": "./src/main.ts",
 				"polyfills": [],
 				"externalDependencies": ["awilix"],
-				"index": "./src/indexFile.html",
+				"index": "./src/index.html",
 				"tsConfig": "tsconfig.app.json",
 				"assets": [
 					"./src/assets",
@@ -119,7 +119,7 @@
 			"executor": "nx-stylelint:lint",
 			"outputs": ["{options.outputFile}"],
 			"options": {
-				"lintFilePatterns": ["**/*.css", "**/*.scss"]
+				"lintFilePatterns": ["**/*.css"]
 			}
 		},
 		"storybook": {

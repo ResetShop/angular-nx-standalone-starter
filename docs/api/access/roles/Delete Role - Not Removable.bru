@@ -1,0 +1,37 @@
+meta {
+  name: Delete Role - Not Removable
+  type: http
+  seq: 12
+}
+
+delete {
+  url: {{baseUrl}}/access/roles/1
+  body: none
+  auth: none
+}
+
+}
+}
+
+docs {
+  # Delete Role - Not Removable Test
+
+  Tests that system roles (like Administrator) cannot be deleted.
+
+  The Administrator role (ID: 1) has `removable: false`.
+}
+
+assert {
+  res.status: eq 403
+  res.body.error: eq This role cannot be deleted
+}
+
+tests {
+  test("should return 403 for non-removable role", function() {
+    expect(res.status).to.equal(403);
+  });
+
+  test("should return error message", function() {
+    expect(res.body.error).to.equal("This role cannot be deleted");
+  });
+}

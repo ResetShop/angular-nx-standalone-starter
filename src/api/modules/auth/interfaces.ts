@@ -1,3 +1,5 @@
+import type { AuthUser } from '@contracts/users/users.types';
+
 export interface AuthenticationData {
 	id: number;
 	userId: number;
@@ -64,4 +66,47 @@ export interface IRefreshTokenRepository {
 	tryAcquireCleanupLock(): Promise<boolean>;
 	releaseCleanupLock(): Promise<void>;
 	deleteAllExpiredTokens(): Promise<CleanupResult>;
+}
+
+// ============================================================================
+// Auth Service Types & Interface
+// ============================================================================
+
+/**
+ * Credentials for user authentication.
+ */
+export interface AuthCredentials {
+	email: string;
+	password: string;
+}
+
+/**
+ * Complete authentication result from the service layer.
+ * The controller sets both `token` and `refreshToken` as HttpOnly cookies
+ * and returns only `user` in the HTTP response body.
+ */
+export interface AuthResult {
+	user: AuthUser;
+	token: string;
+	refreshToken: string;
+}
+
+/**
+ * Result from token refresh operation.
+ * The controller sets both `token` and `refreshToken` as HttpOnly cookies.
+ * The HTTP response body is empty.
+ */
+export interface RefreshResult {
+	token: string;
+	refreshToken: string;
+}
+
+/**
+ * Service interface for authentication operations: login, logout, token refresh, and cleanup.
+ */
+export interface IAuthService {
+	authenticate(credentials: AuthCredentials): Promise<AuthResult>;
+	refreshToken(token: string): Promise<RefreshResult>;
+	logout(userId: number): Promise<void>;
+	cleanupExpiredTokens(): Promise<CleanupResult | null>;
 }

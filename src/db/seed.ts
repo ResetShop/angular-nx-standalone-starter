@@ -2,7 +2,7 @@ import { eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { environment } from '../api/helpers/environment';
-import { ADMIN_PERMISSIONS_SEED_DATA } from '../api/modules/role/permissions.constants';
+import { ADMIN_PERMISSIONS_SEED_DATA } from '../api/modules/access/role/permissions.constants';
 import { authentication } from './schema/authentication';
 import { permission } from './schema/permission';
 import { role, rolePermission } from './schema/role';

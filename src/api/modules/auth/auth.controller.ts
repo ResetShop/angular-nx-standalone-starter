@@ -19,14 +19,27 @@ import { parseDurationToSeconds } from '../../utils/duration';
 
 const app = new Hono();
 
-// Cookie configuration for refresh token
+// Cookie configuration
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
-const COOKIE_OPTIONS = {
+const ACCESS_TOKEN_COOKIE_NAME = 'access_token';
+
+// WARNING: COOKIE_SECURE=false must ONLY be used in local development (no HTTPS).
+// In production, omit the variable entirely — it defaults to true (HTTPS required).
+const BASE_COOKIE_OPTIONS = {
 	httpOnly: true, // Cannot be accessed by JavaScript (XSS protection)
-	secure: process.env['COOKIE_SECURE'] !== 'false', // HTTPS based on COOKIE_SECURE env var value
+	secure: process.env['COOKIE_SECURE'] !== 'false', // Defaults to true; false only for local dev
 	sameSite: 'Strict' as const, // CSRF protection
 	path: '/',
+};
+
+const REFRESH_TOKEN_COOKIE_OPTIONS = {
+	...BASE_COOKIE_OPTIONS,
 	maxAge: parseDurationToSeconds(process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d'), // Default of 7 days
+};
+
+const ACCESS_TOKEN_COOKIE_OPTIONS = {
+	...BASE_COOKIE_OPTIONS,
+	maxAge: parseDurationToSeconds(process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? '15m'), // Default of 15 minutes
 };
 
 /**
@@ -53,7 +66,7 @@ const COOKIE_OPTIONS = {
  * - Configurable lockout duration (AUTH_LOCKOUT_DURATION, default: 15m)
  * - Timing-safe password comparison (prevents timing attacks)
  * - Constant-time response for invalid emails (prevents user enumeration)
- * - Refresh token set as HttpOnly, Secure, SameSite=Strict cookie
+ * - Both tokens set as HttpOnly, Secure, SameSite=Strict cookies
  */
 app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 	const { authService } = container.cradle;
@@ -63,14 +76,14 @@ app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 
 		const response = await authService.authenticate({ email, password });
 
-		// Set refresh token as HttpOnly cookie
-		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
+		// Set tokens as HttpOnly cookies
+		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, ACCESS_TOKEN_COOKIE_OPTIONS);
 
-		// Return only access token and user info (refresh token is in cookie)
+		// Return only user info (both tokens are in cookies)
 		return c.json<LoginResponse>(
 			{
 				user: response.user,
-				token: response.token,
 				...(response.mustChangePassword && { mustChangePassword: true }),
 			},
 			200,
@@ -102,11 +115,12 @@ app.post('/refresh', async (c) => {
 
 		const response = await authService.refreshToken(refreshToken);
 
-		// Update refresh token cookie with new token
-		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, COOKIE_OPTIONS);
+		// Update both token cookies
+		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
+		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, ACCESS_TOKEN_COOKIE_OPTIONS);
 
-		// Return only new access token (refresh token is in cookie)
-		return c.json<RefreshResponse>({ token: response.token }, 200);
+		// No body needed — tokens are in cookies
+		return c.json<RefreshResponse>({}, 200);
 	} catch (error) {
 		if (isAuthError(error)) {
 			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 401);
@@ -151,8 +165,9 @@ app.post('/logout', async (c) => {
 	// Get refresh token before deleting cookie
 	const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME);
 
-	// Always delete the cookie
-	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, { path: '/' });
+	// Always delete both cookies (flags must match creation options for correct targeting)
+	deleteCookie(c, ACCESS_TOKEN_COOKIE_NAME, BASE_COOKIE_OPTIONS);
+	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, BASE_COOKIE_OPTIONS);
 
 	try {
 		if (!refreshToken) {
@@ -217,6 +232,7 @@ app.get('/cleanup-tokens', async (c) => {
 			incomplete: result.incomplete,
 		});
 	} catch (error) {
+		// TODO(#66): Replace with structured logging service
 		console.error('[TokenCleanup] Error:', error);
 		return c.json({ error: 'Cleanup failed' }, 500);
 	}
