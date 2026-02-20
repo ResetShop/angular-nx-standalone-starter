@@ -23,6 +23,7 @@ describe('AuthStore', () => {
 			firstName: 'Test',
 			lastName: 'User',
 		},
+		mustChangePassword: false,
 	};
 
 	const mockMeResponse: MeResponse = {
@@ -63,6 +64,7 @@ describe('AuthStore', () => {
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.isLoggingOut()).toBe(false);
 			expect(store.loginError()).toBeNull();
+			expect(store.mustChangePassword()).toBe(false);
 		});
 
 		it('should have correct computed signals', () => {
@@ -121,6 +123,15 @@ describe('AuthStore', () => {
 			expect(store.currentUser()?.email).toBe('test@example.com');
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.loginError()).toBeNull();
+			expect(store.mustChangePassword()).toBe(false);
+		});
+
+		it('should set mustChangePassword when login response requires password change', () => {
+			authApiMock.login.mockReturnValue(of({ ...mockLoginResponse, mustChangePassword: true }));
+
+			store.login({ email: 'test@example.com', password: 'password' });
+
+			expect(store.mustChangePassword()).toBe(true);
 		});
 
 		it('should set loginError on failed login', () => {
@@ -140,12 +151,13 @@ describe('AuthStore', () => {
 			store.updateCurrentUser(createMockUser());
 		});
 
-		it('should clear current user immediately', () => {
+		it('should clear current user and mustChangePassword immediately', () => {
 			authApiMock.logout.mockReturnValue(of(undefined));
 
 			store.logout();
 
 			expect(store.currentUser()).toBeNull();
+			expect(store.mustChangePassword()).toBe(false);
 		});
 
 		it('should set isLoggingOut to true', () => {
