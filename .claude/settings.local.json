@@ -52,6 +52,7 @@
 			"Bash(npx vitest:*)",
 			"Bash(test:*)",
 			"WebFetch(domain:angularprimitives.com)",
+			"WebFetch(domain:github.com)",
 			"WebFetch(domain:raw.githubusercontent.com)",
 			"WebFetch(domain:tanstack.com)",
 			"WebFetch(domain:ui.shadcn.com)",
