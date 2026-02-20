@@ -1,4 +1,4 @@
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { RoleData } from '../access/role/interfaces';
 import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
@@ -62,13 +62,7 @@ describe('UserManagementService', () => {
 	};
 
 	beforeEach(() => {
-		mockFindAll.mockClear();
-		mockFindByIdWithRoles.mockClear();
-		mockFindByEmail.mockClear();
-		mockCreate.mockClear();
-		mockUpdate.mockClear();
-		mockSoftDelete.mockClear();
-		mockReplaceUserRoles.mockClear();
+		clearAllMocks();
 
 		service = new UserManagementService({
 			userManagementRepository: mockRepository,
