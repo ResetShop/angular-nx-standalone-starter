@@ -273,3 +273,17 @@ After completing your setup:
    - Run `npm run dev` to start the development server
    - Ensure all configured features work correctly
    - Test that removed routes no longer appear
+
+---
+
+### Third-Party Acknowledgments
+
+This project includes third-party data assets. See each linked file for full
+license details.
+
+| Asset                      | Source                                                                                       | License      |
+| -------------------------- | -------------------------------------------------------------------------------------------- | ------------ |
+| English password word list | [EFF Large Wordlist](https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases) | CC BY 3.0 US |
+| Spanish password word list | [Dadoware Bonito ES](https://github.com/mir123/dadoware-bonito-es)                           | MIT          |
+
+Full details: [`src/api/utils/wordlists/README.md`](./src/api/utils/wordlists/README.md)
