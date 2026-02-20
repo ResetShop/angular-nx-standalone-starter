@@ -25,6 +25,9 @@ export interface AuthState {
 
 	/** Whether a network/server error occurred during login (5xx or connection failure) */
 	networkError: boolean;
+
+	/** Whether the user must change their password (set at login, reset on logout) */
+	mustChangePassword: boolean;
 }
 
 /**
@@ -38,4 +41,5 @@ export const initialAuthState: AuthState = {
 	isLoggingOut: false,
 	loginError: null,
 	networkError: false,
+	mustChangePassword: false,
 };
