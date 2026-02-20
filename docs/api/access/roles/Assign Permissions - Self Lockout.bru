@@ -1,0 +1,44 @@
+meta {
+  name: Assign Permissions - Self Lockout
+  type: http
+  seq: 19
+}
+
+put {
+  url: {{baseUrl}}/access/roles/1/permissions
+  body: json
+  auth: none
+}
+
+}
+}
+
+body:json {
+  {
+    "permissionIds": []
+  }
+}
+
+docs {
+  # Assign Permissions - Self Lockout Test
+
+  Tests that removing role management permissions from your own role returns 403.
+
+  This protection prevents administrators from accidentally locking themselves out
+  of the system by removing their own ability to manage roles.
+}
+
+assert {
+  res.status: eq 403
+  res.body.error: contains Cannot remove role management permission
+}
+
+tests {
+  test("should return 403 for self-lockout attempt", function() {
+    expect(res.status).to.equal(403);
+  });
+
+  test("should return self-lockout error message", function() {
+    expect(res.body.error).to.include("Cannot remove role management permission");
+  });
+}

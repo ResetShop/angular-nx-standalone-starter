@@ -1,0 +1,71 @@
+meta {
+  name: Get Role by ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/access/roles/1
+  body: none
+  auth: none
+}
+
+}
+}
+
+docs {
+  # Get Role by ID
+
+  Returns a single role by its ID.
+
+  ## Contract Types
+
+  - Response: `RoleData` from `@contracts/roles/roles.types`
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | id | number | Role ID |
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | id | number | Role ID |
+  | name | string | Display name |
+  | code | string | Unique code identifier |
+  | description | string | Role description |
+  | removable | boolean | Whether role can be deleted |
+  | createdAt | string | ISO 8601 creation timestamp |
+  | updatedAt | string | ISO 8601 update timestamp |
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: eq 1
+  res.body.name: isDefined
+  res.body.code: isDefined
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return correct role", function() {
+    expect(res.body.id).to.equal(1);
+  });
+
+  test("should return role name", function() {
+    expect(res.body.name).to.be.a("string");
+  });
+
+  test("should return role code", function() {
+    expect(res.body.code).to.be.a("string");
+  });
+
+  test("should return removable flag", function() {
+    expect(res.body.removable).to.be.a("boolean");
+  });
+}

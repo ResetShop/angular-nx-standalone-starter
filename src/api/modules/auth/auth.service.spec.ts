@@ -1,7 +1,7 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
+import { fn } from '@test-utils';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
-import { vi } from 'vitest';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
 import { MockUserRepository } from '../user/user.repository.mock';
 import { AuthService } from './auth.service';
@@ -26,6 +26,13 @@ describe('AuthService', () => {
 		lastName: 'User',
 		enabled: true,
 		deleted: false,
+	};
+
+	const expectedAuthUser = {
+		id: testUser.id,
+		email: testUser.email,
+		firstName: testUser.firstName,
+		lastName: testUser.lastName,
 	};
 
 	beforeAll(async () => {
@@ -67,7 +74,7 @@ describe('AuthService', () => {
 				password: testPassword,
 			});
 
-			expect(result.user).toEqual(testUser);
+			expect(result.user).toEqual(expectedAuthUser);
 			expect(result.token).toBe('mock-access-token-1');
 			expect(result.refreshToken).toBe('mock-refresh-token-1');
 		});
@@ -241,7 +248,7 @@ describe('AuthService', () => {
 				password: testPassword,
 			});
 
-			expect(result.user).toEqual(testUser);
+			expect(result.user).toEqual(expectedAuthUser);
 			expect(result.token).toBeDefined();
 		});
 
@@ -269,7 +276,7 @@ describe('AuthService', () => {
 			});
 
 			// Assert on observable outcome
-			expect(result.user).toEqual(testUser);
+			expect(result.user).toEqual(expectedAuthUser);
 			expect(result.token).toBeDefined();
 			expect(result.refreshToken).toBeDefined();
 
@@ -494,19 +501,18 @@ describe('AuthService', () => {
 		});
 
 		it('should return cleanup result even when lock release fails', async () => {
-			// Make releaseCleanupLock throw an error
-			const releaseSpy = vi
-				.spyOn(mockRefreshTokenRepo, 'releaseCleanupLock')
-				.mockRejectedValue(new Error('Connection lost'));
+			// Save original and replace with a mock that rejects
+			const originalRelease = mockRefreshTokenRepo.releaseCleanupLock.bind(mockRefreshTokenRepo);
+			const releaseFn = fn<[], Promise<void>>().mockRejectedValue(new Error('Connection lost'));
+			mockRefreshTokenRepo.releaseCleanupLock = releaseFn;
 
-			// Cleanup should still succeed and return results
 			const result = await authService.cleanupExpiredTokens();
 
 			expect(result).not.toBeNull();
 			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
-			expect(releaseSpy).toHaveBeenCalled();
+			expect(releaseFn.calls).toHaveLength(1);
 
-			releaseSpy.mockRestore();
+			mockRefreshTokenRepo.releaseCleanupLock = originalRelease;
 		});
 	});
 });

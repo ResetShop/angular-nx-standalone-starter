@@ -1,18 +1,35 @@
 import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix';
 import { getTestCradle } from './container.mock';
 import { drizzlePgConnector, type DrizzlePgConnector } from './helpers/drizzle-postgres-connector';
+import type { IPermissionRepository, IPermissionService } from './modules/access/permission/interfaces';
+import { PermissionRepository } from './modules/access/permission/permission.repository';
+import { PermissionService } from './modules/access/permission/permission.service';
+import type { IRoleRepository, IRoleService } from './modules/access/role/interfaces';
+import { RoleRepository } from './modules/access/role/role.repository';
+import { RoleService } from './modules/access/role/role.service';
 import { AuthService } from './modules/auth/auth.service';
 import { AuthenticationRepository } from './modules/auth/authentication.repository';
+import type { IAuthenticationRepository, IAuthService, IRefreshTokenRepository } from './modules/auth/interfaces';
 import { RefreshTokenRepository } from './modules/auth/refresh-token.repository';
-import { PermissionRepository } from './modules/permission/permission.repository';
-import { PermissionService } from './modules/permission/permission.service';
-import { RoleRepository } from './modules/role/role.repository';
-import { RoleService } from './modules/role/role.service';
+import { HealthService } from './modules/health/health.service';
+import type { IHealthService } from './modules/health/interfaces';
+import type {
+	IUserManagementRepository,
+	IUserManagementService,
+	IUserRepository,
+	IUserRoleRepository,
+	IUserRoleService,
+} from './modules/user/interfaces';
 import { UserManagementRepository } from './modules/user/user-management.repository';
 import { UserManagementService } from './modules/user/user-management.service';
 import { UserRoleRepository } from './modules/user/user-role.repository';
 import { UserRoleService } from './modules/user/user-role.service';
 import { UserRepository } from './modules/user/user.repository';
+import { EmailService } from './services/email/email.service';
+import { EtherealEmailRepository } from './services/email/ethereal-email.repository';
+import type { IEmailRepository, IEmailService } from './services/email/interfaces';
+import { NodemailerRepository } from './services/email/nodemailer.repository';
+import type { IPasetoService } from './services/paseto/interfaces';
 import { PasetoService } from './services/paseto/paseto.service';
 
 /**
@@ -29,6 +46,12 @@ function validateEnvironment(): void {
 			'PASETO_SECRET_KEY must be at least 32 bytes (64 hex characters). ' + 'Generate with: openssl rand -hex 32',
 		);
 	}
+
+	const emailProvider = process.env['EMAIL_PROVIDER'];
+	const validEmailProviders = ['nodemailer', 'ethereal'];
+	if (emailProvider && !validEmailProviders.includes(emailProvider)) {
+		throw new Error(`Invalid EMAIL_PROVIDER: "${emailProvider}". Valid values: ${validEmailProviders.join(', ')}`);
+	}
 }
 
 validateEnvironment();
@@ -39,14 +62,32 @@ validateEnvironment();
  *
  * Dependency Graph:
  *
+ * HealthService ──────────────► db
+ *
  * AuthService
  *   ├── UserRepository ──────► db
  *   ├── AuthRepository ──────► db
  *   ├── RefreshTokenRepository ► db
  *   └── PasetoService (no deps)
  *
+ * RoleService
+ *   ├── RoleRepository ──────► db
+ *   └── UserRoleRepository ──► db
+ *
+ * PermissionService
+ *   └── PermissionRepository ► db
+ *
+ * UserRoleService
+ *   ├── UserRoleRepository ──► db
+ *   ├── UserRepository ──────► db
+ *   └── RoleRepository ──────► db
+ *
  * UserManagementService
  *   └── UserManagementRepository ► db
+ *
+ * EmailService
+ *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
+ * PasetoService (no deps)
  *
  * Middleware/Controllers resolve services lazily at runtime.
  * All services are registered as singletons.
@@ -56,23 +97,26 @@ export interface Cradle {
 	db: DrizzlePgConnector;
 
 	// Services
-	pasetoService: PasetoService;
+	healthService: IHealthService;
+	emailService: IEmailService;
+	pasetoService: IPasetoService;
 
 	// Repositories
-	userRepository: UserRepository;
-	authRepository: AuthenticationRepository;
-	refreshTokenRepository: RefreshTokenRepository;
-	roleRepository: RoleRepository;
-	permissionRepository: PermissionRepository;
-	userRoleRepository: UserRoleRepository;
-	userManagementRepository: UserManagementRepository;
+	emailRepository: IEmailRepository;
+	userRepository: IUserRepository;
+	authRepository: IAuthenticationRepository;
+	refreshTokenRepository: IRefreshTokenRepository;
+	roleRepository: IRoleRepository;
+	permissionRepository: IPermissionRepository;
+	userRoleRepository: IUserRoleRepository;
+	userManagementRepository: IUserManagementRepository;
 
 	// Application Services
-	authService: AuthService;
-	roleService: RoleService;
-	permissionService: PermissionService;
-	userRoleService: UserRoleService;
-	userManagementService: UserManagementService;
+	authService: IAuthService;
+	roleService: IRoleService;
+	permissionService: IPermissionService;
+	userRoleService: IUserRoleService;
+	userManagementService: IUserManagementService;
 }
 
 /**
@@ -103,9 +147,15 @@ realContainer.register({
 	db: asValue(drizzlePgConnector),
 
 	// Services (singletons - stateless, hold config)
+	emailService: asClass(EmailService).singleton(),
+	healthService: asClass(HealthService).singleton(),
 	pasetoService: asClass(PasetoService).singleton(),
 
 	// Repositories (singletons - stateless, share db connection)
+	emailRepository:
+		process.env['EMAIL_PROVIDER'] === 'ethereal'
+			? asClass(EtherealEmailRepository).singleton()
+			: asClass(NodemailerRepository).singleton(),
 	userRepository: asClass(UserRepository).singleton(),
 	authRepository: asClass(AuthenticationRepository).singleton(),
 	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),

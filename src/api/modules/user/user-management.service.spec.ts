@@ -1,6 +1,6 @@
+import { fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { fn } from '../../container.mock';
-import type { RoleData } from '../role/interfaces';
+import type { RoleData } from '../access/role/interfaces';
 import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service';
 
@@ -143,7 +143,7 @@ describe('UserManagementService', () => {
 
 			expect(result).toEqual(testManagedUser);
 			expect(mockFindByEmail.calls).toEqual([['test@example.com']]);
-			expect(mockCreate.calls.length).toBe(1);
+			expect(mockCreate.calls).toHaveLength(1);
 			expect(mockReplaceUserRoles.calls).toEqual([[1, [1]]]);
 		});
 
@@ -160,7 +160,7 @@ describe('UserManagementService', () => {
 			});
 
 			expect(result.roles).toEqual([]);
-			expect(mockReplaceUserRoles.calls.length).toBe(0);
+			expect(mockReplaceUserRoles.calls).toHaveLength(0);
 		});
 
 		it('should throw EMAIL_EXISTS when email is taken', async () => {
