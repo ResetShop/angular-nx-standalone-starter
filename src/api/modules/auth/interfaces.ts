@@ -83,7 +83,7 @@ export interface AuthCredentials {
 /**
  * Complete authentication result from the service layer.
  * The controller sets both `token` and `refreshToken` as HttpOnly cookies
- * and returns only `user` in the HTTP response body.
+ * and returns `user` and `mustChangePassword` in the HTTP response body.
  */
 export interface AuthResult {
 	user: AuthUser;
