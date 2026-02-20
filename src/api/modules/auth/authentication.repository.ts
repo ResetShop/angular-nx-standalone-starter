@@ -67,7 +67,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 			passwordHash: result[0].passwordHash,
 			failedLoginAttempts: result[0].failedLoginAttempts ?? 0,
 			lockedUntil: result[0].lockedUntil,
-			mustChangePassword: result[0].mustChangePassword,
+			mustChangePassword: result[0].mustChangePassword ?? false,
 		};
 	}
 
