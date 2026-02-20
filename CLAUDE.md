@@ -444,6 +444,7 @@ Which `.claude/references/` files each agent loads in Step 0:
 | Agent                    | References Loaded                                                           |
 | ------------------------ | --------------------------------------------------------------------------- |
 | `code-reviewer`          | All 8 references                                                            |
+| `plan-writer`            | All 8 references                                                            |
 | `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth |
 | `refactoring-specialist` | solid, cupid, guiding-principles                                            |
 | `domain-model-advisor`   | domain-model                                                                |

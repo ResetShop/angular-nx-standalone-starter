@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Review code changes for quality, architecture, and best practices. Use proactively after code changes are committed or when implementation is complete.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Write
 model: sonnet
 ---
 
