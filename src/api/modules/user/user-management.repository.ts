@@ -145,7 +145,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 
 	/**
 	 * Creates a new user with authentication and role assignments in a single transaction.
-	 * If role assignment fails, the entire operation (user + auth) is rolled back.
+	 * If any step fails (e.g. invalid roleId FK violation), the entire operation is rolled back.
 	 *
 	 * @param params - User creation parameters including password hash and role IDs
 	 * @returns The newly created user with roles
@@ -185,7 +185,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 
 			if (params.roleIds.length > 0) {
 				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }));
-				await tx.insert(userRole).values(values).onConflictDoNothing();
+				await tx.insert(userRole).values(values);
 			}
 
 			const roles = await tx
