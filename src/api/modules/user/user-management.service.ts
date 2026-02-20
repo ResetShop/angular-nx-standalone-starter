@@ -88,7 +88,7 @@ export class UserManagementService implements IUserManagementService {
 			firstName: params.firstName,
 			lastName: params.lastName,
 			passwordHash,
-			roleIds: params.roleIds ?? [],
+			roleIds: [...new Set(params.roleIds ?? [])],
 		});
 	}
 
