@@ -4,6 +4,7 @@ interface MockAuthRecord {
 	passwordHash: string;
 	failedLoginAttempts?: number;
 	lockedUntil?: Date | null;
+	mustChangePassword?: boolean;
 }
 
 export class MockAuthenticationRepository implements IAuthenticationRepository {
@@ -46,6 +47,7 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 			passwordHash: record.passwordHash,
 			failedLoginAttempts: record.failedLoginAttempts ?? 0,
 			lockedUntil: record.lockedUntil ?? null,
+			mustChangePassword: record.mustChangePassword ?? false,
 		};
 	}
 
