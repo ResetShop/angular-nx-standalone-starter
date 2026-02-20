@@ -4,17 +4,24 @@ import {
 	Component,
 	computed,
 	contentChildren,
+	effect,
 	inject,
 	input,
+	isDevMode,
+	linkedSignal,
 	output,
 	signal,
 } from '@angular/core';
 import {
 	type ColumnDef,
+	type ExpandedState,
+	type Row,
 	type SortingState,
 	type Updater,
 	createAngularTable,
 	getCoreRowModel,
+	getExpandedRowModel,
+	getGroupedRowModel,
 	getSortedRowModel,
 } from '@tanstack/angular-table';
 
@@ -63,6 +70,12 @@ export class DataTable<T> {
 	/** Accessible table caption */
 	readonly caption = input<string>('');
 
+	/** Column IDs to group by (empty = no grouping) */
+	readonly grouping = input<string[]>([]);
+
+	/** Whether grouped rows start expanded (default: true) */
+	readonly expandedByDefault = input<boolean>(true);
+
 	/**
 	 * Translated loading message, resolved once at construction.
 	 *
@@ -77,17 +90,41 @@ export class DataTable<T> {
 	/** Internal sorting state */
 	readonly sorting = signal<SortingState>([]);
 
+	/** Internal expanded state — resets to `expandedByDefault` when the input changes */
+	readonly expanded = linkedSignal<boolean, ExpandedState>({
+		source: this.expandedByDefault,
+		computation: (expandedByDefault) => (expandedByDefault ? true : {}),
+	});
+
 	/** TanStack table instance */
-	readonly table = createAngularTable(() => ({
-		data: this.data(),
-		columns: this.columns(),
-		state: {
-			sorting: this.sorting(),
-		},
-		onSortingChange: (updater) => this.handleSortingUpdate(updater),
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-	}));
+	readonly table = createAngularTable(() => {
+		const groupingState = this.grouping();
+		const isGrouped = groupingState.length > 0;
+
+		const baseOptions = {
+			data: this.data(),
+			columns: this.columns(),
+			state: { sorting: this.sorting() },
+			onSortingChange: (updater: Updater<SortingState>) => this.handleSortingUpdate(updater),
+			getCoreRowModel: getCoreRowModel(),
+			getSortedRowModel: getSortedRowModel(),
+		};
+
+		if (!isGrouped) return baseOptions;
+
+		return {
+			...baseOptions,
+			state: {
+				...baseOptions.state,
+				grouping: groupingState,
+				expanded: this.expanded(),
+			},
+			onExpandedChange: (updater: Updater<ExpandedState>) => this.handleExpandedUpdate(updater),
+			getGroupedRowModel: getGroupedRowModel(),
+			getExpandedRowModel: getExpandedRowModel(),
+			groupedColumnMode: false as const,
+		};
+	});
 
 	/** Column count for colspan in empty/loading states */
 	readonly columnCount = computed(() => this.columns().length);
@@ -133,6 +170,37 @@ export class DataTable<T> {
 		if (typeof headerDef === 'string') return headerDef;
 		if (typeof headerDef === 'function') return String(headerDef(context));
 		return '';
+	}
+
+	/** Resolve the group label for a grouped row, coercing the unknown cell value to string */
+	resolveGroupLabel(row: Row<T>): string {
+		return String(row.getValue(this.grouping()[0]));
+	}
+
+	constructor() {
+		if (isDevMode()) {
+			effect(() => {
+				const groupingIds = this.grouping();
+				if (groupingIds.length === 0) return;
+
+				const columnIds = new Set<string>();
+				for (const col of this.columns()) {
+					const id = col.id ?? ('accessorKey' in col ? (col.accessorKey as string) : undefined);
+					if (id) columnIds.add(id);
+				}
+
+				for (const id of groupingIds) {
+					if (!columnIds.has(id)) {
+						console.warn(`DataTable: grouping column "${id}" does not match any column definition.`);
+					}
+				}
+			});
+		}
+	}
+
+	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
+		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater;
+		this.expanded.set(newExpanded);
 	}
 
 	private handleSortingUpdate(updater: Updater<SortingState>): void {

@@ -1,5 +1,5 @@
-import Dashboard from '@pages/dashboard/dashboard';
 import { NamedRoute } from '@interfaces/navigation';
+import Dashboard from '@pages/dashboard/dashboard';
 
 export default [
 	{

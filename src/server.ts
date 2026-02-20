@@ -8,8 +8,8 @@ import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
 
-// DI Container - imported to ensure initialization at startup
-import { verifyContainer } from './api/container';
+// Health verification - runs all startup checks (DI container, database, etc.)
+import { verifyHealth } from './api/modules/health/verify-health';
 
 /**
  * Max-age for static asset caching (1 year in seconds).
@@ -118,50 +118,51 @@ app.onError((error, c) => {
  * variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
-	// Verify DI container initialization before starting server
-	try {
-		verifyContainer();
-		console.log('DI Container initialized successfully');
-	} catch (error) {
-		console.error('DI Container initialization failed:', error);
-		process.exit(1);
-	}
-
-	const port = Number(process.env['PORT'] || 4000);
-	const server = serve(
-		{
-			fetch: app.fetch,
-			port,
-		},
-		(info) => {
-			console.log(`Hono server listening on http://localhost:${info.port}`);
-
-			// Start cron jobs
-			startCronJobs();
-		},
-	);
-
-	// Graceful shutdown handler with timeout
-	const SHUTDOWN_TIMEOUT_MS = 10000; // 10 seconds
-	const gracefulShutdown = (signal: string) => {
-		console.log(`\n${signal} received. Starting graceful shutdown...`);
-		stopCronJobs();
-
-		// Force exit if graceful shutdown takes too long
-		const forceExitTimeout = setTimeout(() => {
-			console.error('Graceful shutdown timed out. Forcing exit...');
+	(async () => {
+		// Run all startup health checks before accepting traffic
+		try {
+			await verifyHealth();
+		} catch (error) {
+			console.error('Startup health check failed:', error);
 			process.exit(1);
-		}, SHUTDOWN_TIMEOUT_MS);
+		}
 
-		server.close(() => {
-			clearTimeout(forceExitTimeout);
-			console.log('Server closed');
-			process.exit(0);
-		});
-	};
+		const port = Number(process.env['PORT'] || 4000);
+		const server = serve(
+			{
+				fetch: app.fetch,
+				port,
+			},
+			(info) => {
+				console.log(`Hono server listening on http://localhost:${info.port}`);
 
-	process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-	process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+				// Start cron jobs
+				startCronJobs();
+			},
+		);
+
+		// Graceful shutdown handler with timeout
+		const SHUTDOWN_TIMEOUT_MS = 10000; // 10 seconds
+		const gracefulShutdown = (signal: string) => {
+			console.log(`\n${signal} received. Starting graceful shutdown...`);
+			stopCronJobs();
+
+			// Force exit if graceful shutdown takes too long
+			const forceExitTimeout = setTimeout(() => {
+				console.error('Graceful shutdown timed out. Forcing exit...');
+				process.exit(1);
+			}, SHUTDOWN_TIMEOUT_MS);
+
+			server.close(() => {
+				clearTimeout(forceExitTimeout);
+				console.log('Server closed');
+				process.exit(0);
+			});
+		};
+
+		process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+		process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+	})();
 }
 
 /**

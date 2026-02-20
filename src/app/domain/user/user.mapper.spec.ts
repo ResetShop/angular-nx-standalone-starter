@@ -12,7 +12,6 @@ describe('User Mapper', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.id).toBe(1);
@@ -20,7 +19,6 @@ describe('User Mapper', () => {
 			expect(user.firstName).toBe('John');
 			expect(user.lastName).toBe('Doe');
 			expect(user.roles).toEqual(roles);
-			expect(user.token).toBe('token123');
 		});
 
 		it('should create user with working fullName getter', () => {
@@ -30,7 +28,6 @@ describe('User Mapper', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.fullName).toBe('John Doe');
@@ -45,10 +42,9 @@ describe('User Mapper', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
-			expect(user.permissions.length).toBe(1);
+			expect(user.permissions).toHaveLength(1);
 			expect(user.hasPermission('users', 'read')).toBe(true);
 		});
 
@@ -60,7 +56,6 @@ describe('User Mapper', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-				token: 'token123',
 			});
 
 			expect(user.hasRole('admin')).toBe(true);
@@ -74,7 +69,6 @@ describe('User Mapper', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-				token: 'token123',
 			});
 
 			expect(user.roles).toEqual([]);

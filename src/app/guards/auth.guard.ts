@@ -1,36 +1,27 @@
-import { isPlatformServer } from '@angular/common';
-import { inject, PLATFORM_ID } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
-import { Auth } from '@providers/auth/auth';
+import { inject } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthStore } from '@store/auth/auth.store';
+import { catchError, filter, map, of, take } from 'rxjs';
 
 export const authGuard: CanActivateFn = () => {
-	const platformId = inject(PLATFORM_ID);
-	const auth = inject(Auth);
+	const authStore = inject(AuthStore);
 	const router = inject(Router);
 
-	// On the server, allow the route to be rendered
-	// The client will handle the actual auth check after hydration
-	if (isPlatformServer(platformId)) {
-		return true;
+	if (authStore.isInitialized()) {
+		return authStore.isAuthenticated() ? true : router.createUrlTree(['/auth/login']);
 	}
 
-	// If auth is not initialized yet, defer the guard decision until initialization is complete
-	if (!auth.isInitialized()) {
-		return new Promise<boolean | UrlTree>((resolve) => {
-			const checkAuth = () => {
-				if (auth.isInitialized()) {
-					const result = !auth.isAuthenticated() ? router.createUrlTree(['/auth/login']) : true;
-					auth.isGuardValidated.set(true);
-					resolve(result);
-				} else {
-					setTimeout(checkAuth, 50);
-				}
-			};
-			checkAuth();
-		});
-	}
-
-	const result = !auth.isAuthenticated() ? router.createUrlTree(['/auth/login']) : true;
-	auth.isGuardValidated.set(true);
-	return result;
+	// Safety net — APP_INITIALIZER guarantees isInitialized before routing,
+	// but this handles edge cases where the signal hasn't propagated yet.
+	return toObservable(authStore.isInitialized).pipe(
+		filter(Boolean),
+		take(1),
+		map(() => (authStore.isAuthenticated() ? true : router.createUrlTree(['/auth/login']))),
+		catchError((error) => {
+			// TODO(#66): Replace with structured logging service
+			console.error('[AuthGuard] Unexpected initialization failure during routing:', error);
+			return of(router.createUrlTree(['/auth/login']));
+		}),
+	);
 };

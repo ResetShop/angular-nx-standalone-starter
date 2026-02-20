@@ -8,9 +8,8 @@ interface CreateUserOptions {
 	firstName: string;
 	lastName: string;
 	roles: IRole[];
-	token: string;
 }
 
 export function createUser(options: CreateUserOptions): IUser {
-	return new User(options.id, options.email, options.firstName, options.lastName, options.roles, options.token);
+	return new User(options.id, options.email, options.firstName, options.lastName, options.roles);
 }

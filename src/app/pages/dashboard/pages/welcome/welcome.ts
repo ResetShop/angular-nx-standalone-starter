@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
 	selector: 'app-welcome',
-	imports: [],
+	imports: [RouterOutlet],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<h1 class="text-xl font-bold">
@@ -36,6 +37,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 				</li>
 				<li>Update Brand component with anything that fits your project, be it a logo or any other option</li>
 			</ol>
+		</div>
+
+		<div class="mt-8">
+			<router-outlet />
 		</div>
 	`,
 })

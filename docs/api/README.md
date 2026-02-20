@@ -50,9 +50,9 @@ docs/api/
 
 ### Health
 
-| Method | Endpoint       | Description  |
-| ------ | -------------- | ------------ |
-| GET    | /api/health/v1 | Health check |
+| Method | Endpoint       | Description                                                                  |
+| ------ | -------------- | ---------------------------------------------------------------------------- |
+| GET    | /api/health/v1 | Health check (database connectivity). See [Health Check](../HEALTH_CHECK.md) |
 
 ### Authentication
 
@@ -96,21 +96,19 @@ docs/api/
 
 ## Environment Variables
 
-| Variable       | Description                         | Default                     |
-| -------------- | ----------------------------------- | --------------------------- |
-| `baseUrl`      | API base URL                        | `http://localhost:3000/api` |
-| `accessToken`  | Access token (auto-set after login) | -                           |
-| `testEmail`    | Test user email                     | `admin@example.com`         |
-| `testPassword` | Test user password                  | `admin123`                  |
-| `testRoleId`   | Created role ID (auto-set)          | -                           |
+| Variable       | Description                | Default                     |
+| -------------- | -------------------------- | --------------------------- |
+| `baseUrl`      | API base URL               | `http://localhost:3000/api` |
+| `testEmail`    | Test user email            | `admin@example.com`         |
+| `testPassword` | Test user password         | `admin123`                  |
+| `testRoleId`   | Created role ID (auto-set) | -                           |
 
 ## Workflow Example
 
 1. **Login**: Run "Login" request to authenticate
-   - Access token is automatically saved to `accessToken` variable
-   - Refresh token is stored in cookies
+   - Access token and refresh token are stored as HttpOnly cookies
 
-2. **Test Protected Endpoints**: Other requests use the saved token automatically
+2. **Test Protected Endpoints**: Other requests use the cookies automatically
 
 3. **Create Test Data**: Run "Create Role" to create test data
    - Role ID is saved to `testRoleId` for subsequent tests

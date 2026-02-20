@@ -1,42 +1,19 @@
-import { AuthError, getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
-import type { AuthUser } from '@contracts/users/users.types';
+import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
 import { type IUserRepository, type UserData } from '../user/interfaces';
 import {
+	type AuthCredentials,
+	type AuthResult,
 	type AuthenticationData,
 	type CleanupResult,
+	type IAuthService,
 	type IAuthenticationRepository,
 	type IRefreshTokenRepository,
+	type RefreshResult,
 } from './interfaces';
-
-interface LoginParams {
-	email: string;
-	password: string;
-}
-
-/**
- * Internal refresh token response from service layer.
- * Includes refreshToken which the controller extracts for HttpOnly cookie.
- */
-interface InternalRefreshResponse {
-	token: string;
-	refreshToken: string;
-}
-
-/**
- * Complete authentication result from the service layer.
- * The controller extracts the refresh token to store in HttpOnly cookie
- * and returns only user + token in the HTTP response.
- */
-interface AuthResult {
-	user: AuthUser;
-	token: string;
-	refreshToken: string;
-	mustChangePassword: boolean;
-}
 
 interface AuthServiceDeps {
 	userRepository: IUserRepository;
@@ -50,7 +27,7 @@ interface AuthServiceDeps {
  * Handles login, logout, token refresh, and expired token cleanup.
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
-export class AuthService {
+export class AuthService implements IAuthService {
 	private userRepository: IUserRepository;
 	private authRepository: IAuthenticationRepository;
 	private refreshTokenRepository: IRefreshTokenRepository;
@@ -86,7 +63,7 @@ export class AuthService {
 	 * @throws AuthError with INVALID_CREDENTIALS code if authentication fails
 	 * @throws AuthError with ACCOUNT_LOCKED code if account is locked due to failed attempts
 	 */
-	async authenticate(credentials: LoginParams): Promise<AuthResult> {
+	async authenticate(credentials: AuthCredentials): Promise<AuthResult> {
 		return this.findUserAndAuth(credentials.email)
 			.then(({ user, authRecord }) => {
 				this.checkAccountLockout(authRecord, user?.id);
@@ -133,6 +110,7 @@ export class AuthService {
 	 */
 	private checkAccountLockout(authRecord: AuthenticationData | null, userId?: number): void {
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
+			// TODO(#66): Replace with structured logging service
 			console.log(
 				JSON.stringify({
 					event: 'login_blocked_account_locked',
@@ -194,6 +172,7 @@ export class AuthService {
 		const result = await this.authRepository.incrementAndLockIfNeeded(user.id);
 
 		if (result.wasLocked && result.lockedUntil) {
+			// TODO(#66): Replace with structured logging service
 			console.log(
 				JSON.stringify({
 					event: 'account_locked',
@@ -214,6 +193,7 @@ export class AuthService {
 	 * @param user - User object or null
 	 * @param authRecord - Authentication record or null
 	 */
+	// TODO(#66): Replace with structured logging service
 	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
 		if (!user) {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND));
@@ -268,7 +248,7 @@ export class AuthService {
 		});
 
 		return {
-			user,
+			user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
 			token: accessToken,
 			refreshToken,
 		};
@@ -280,10 +260,10 @@ export class AuthService {
 	 * Validates token signature, expiration, revocation status, and user account status.
 	 *
 	 * @param token - The refresh token to exchange
-	 * @returns InternalRefreshResponse containing new access token and refresh token
+	 * @returns RefreshResult containing new access token and refresh token
 	 * @throws AuthError if token is invalid, expired, revoked, or user account is disabled
 	 */
-	async refreshToken(token: string): Promise<InternalRefreshResponse> {
+	async refreshToken(token: string): Promise<RefreshResult> {
 		// 1. Verify refresh token
 		const payload = await this.pasetoService.verifyRefreshToken(token);
 
@@ -374,11 +354,13 @@ export class AuthService {
 		try {
 			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock();
 		} catch (error) {
+			// TODO(#66): Replace with structured logging service
 			console.error('[TokenCleanup] Failed to acquire advisory lock:', error);
 			return null;
 		}
 
 		if (!lockAcquired) {
+			// TODO(#66): Replace with structured logging service
 			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)');
 			return null;
 		}
@@ -388,7 +370,7 @@ export class AuthService {
 			const result = await this.refreshTokenRepository.deleteAllExpiredTokens();
 			const durationMs = Date.now() - startTime;
 
-			// Structured logging for monitoring/metrics collection
+			// TODO(#66): Replace with structured logging service
 			console.log(
 				JSON.stringify({
 					event: 'token_cleanup',
@@ -399,7 +381,7 @@ export class AuthService {
 				}),
 			);
 
-			// Human-readable summary
+			// TODO(#66): Replace with structured logging service
 			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`);
 			if (result.incomplete) {
 				console.warn('[TokenCleanup] Cleanup was incomplete - more expired tokens may remain');
@@ -409,6 +391,7 @@ export class AuthService {
 			try {
 				await this.refreshTokenRepository.releaseCleanupLock();
 			} catch (error) {
+				// TODO(#66): Replace with structured logging service
 				// PostgreSQL session advisory locks (pg_advisory_lock) are automatically
 				// released when the database session/connection ends. This is a safety net
 				// - the lock won't persist indefinitely even if explicit release fails.
