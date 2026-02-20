@@ -1,5 +1,5 @@
 import { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../role/interfaces';
+import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './interfaces';
 
 export const USER_ROLE_ERRORS = {

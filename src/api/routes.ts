@@ -1,7 +1,6 @@
+import accessRoutes from './modules/access';
 import authController from './modules/auth/auth.controller';
 import healthController from './modules/health/health.controller';
-import permissionController from './modules/permission/permission.controller';
-import roleController from './modules/role/role.controller';
 import userRoutes from './modules/user';
 
 // Define public paths that don't require authentication
@@ -12,6 +11,7 @@ export const PUBLIC_AUTH_ROUTES = [
 	'/api/auth/refresh',
 	'/api/auth/logout',
 	'/api/auth/cleanup-tokens',
+	'/api/health', // Health checks must be public for load balancers/monitoring
 ] as const;
 
 export default [
@@ -24,12 +24,8 @@ export default [
 		controller: authController,
 	},
 	{
-		path: '/permissions',
-		controller: permissionController,
-	},
-	{
-		path: '/roles',
-		controller: roleController,
+		path: '/access',
+		controller: accessRoutes,
 	},
 	{
 		path: '/user',

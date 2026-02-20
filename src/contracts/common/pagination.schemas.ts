@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Pagination query parameters schema.
- * Matches PAGINATION_DEFAULTS from api/constants/pagination.constants.ts
+ * Matches QUERY_DEFAULTS from api/constants/query.constants.ts
  */
 export const paginationParamsSchema = z.object({
 	offset: z.coerce.number().int().min(0).optional(),

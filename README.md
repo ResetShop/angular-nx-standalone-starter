@@ -35,7 +35,7 @@ This guide covers all the setup steps needed to configure this starter repositor
 This project requires:
 
 - **Node.js**: `^20.19.0` or `^22.12.0`
-- **pnpm**: Package manager (enforced by preinstall script)
+- **npm**: Package manager
 
 **Installation Steps:**
 
@@ -45,10 +45,10 @@ git clone <repository-url>
 cd angular-nx-standalone-starter
 
 # Install dependencies (automatically runs config and database setup)
-pnpm install
+npm install
 ```
 
-Note: The `pnpm install` command automatically runs the configuration script (`scripts/set-environment.ts`) and database migrations via the postinstall hook.
+Note: The `npm install` command automatically runs the configuration script (`scripts/set-environment.ts`) and database migrations via the postinstall hook.
 
 #### 2. Environment Variables Configuration **[Required]**
 
@@ -151,13 +151,13 @@ The starter supports both MySQL and PostgreSQL via Drizzle ORM. Choose one based
    For MySQL:
 
    ```bash
-   pnpm install drizzle-orm drizzle-kit mysql2
+   npm install drizzle-orm drizzle-kit mysql2
    ```
 
    For PostgreSQL:
 
    ```bash
-   pnpm install drizzle-orm drizzle-kit postgres
+   npm install drizzle-orm drizzle-kit postgres
    ```
 
 2. **Configure Drizzle:**
@@ -184,7 +184,7 @@ Integrate Sanity.io headless CMS for content management.
 1. **Install Sanity Client:**
 
    ```bash
-   pnpm install @sanity/client
+   npm install @sanity/client
    ```
 
 2. **Uncomment Sanity Connector:**
@@ -211,7 +211,7 @@ Enable analytics tracking with Microsoft Clarity and/or Vercel Speed Insights.
 1. **Install Clarity Package:**
 
    ```bash
-   pnpm install @microsoft/clarity
+   npm install @microsoft/clarity
    ```
 
 2. **Uncomment Clarity Connector:**
@@ -232,7 +232,7 @@ Enable analytics tracking with Microsoft Clarity and/or Vercel Speed Insights.
 1. **Install Speed Insights:**
 
    ```bash
-   pnpm install @vercel/speed-insights
+   npm install @vercel/speed-insights
    ```
 
 2. **Uncomment in Analytics Provider:**
@@ -270,6 +270,20 @@ After completing your setup:
    - Remove the welcome/configuration route intended for initial setup only
 
 2. **Verify Application:**
-   - Run `pnpm dev` to start the development server
+   - Run `npm run dev` to start the development server
    - Ensure all configured features work correctly
    - Test that removed routes no longer appear
+
+---
+
+### Third-Party Acknowledgments
+
+This project includes third-party data assets. See each linked file for full
+license details.
+
+| Asset                      | Source                                                                                       | License      |
+| -------------------------- | -------------------------------------------------------------------------------------------- | ------------ |
+| English password word list | [EFF Large Wordlist](https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases) | CC BY 3.0 US |
+| Spanish password word list | [Dadoware Bonito ES](https://github.com/mir123/dadoware-bonito-es)                           | MIT          |
+
+Full details: [`src/api/utils/wordlists/README.md`](./src/api/utils/wordlists/README.md)

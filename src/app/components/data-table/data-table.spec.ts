@@ -1,6 +1,7 @@
 import { Translation } from '@providers/i18n/translation';
 import { type ColumnDef } from '@tanstack/angular-table';
-import { render, screen } from '@testing-library/angular';
+import { fn } from '@test-utils';
+import { type RenderResult, render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { DataTable } from './data-table';
 import { DataTableCellDef } from './data-table-cell-def';
@@ -8,6 +9,12 @@ import { DataTableCellDef } from './data-table-cell-def';
 interface TestData {
 	id: number;
 	name: string;
+	email: string;
+}
+
+interface GroupableData {
+	name: string;
+	role: string;
 	email: string;
 }
 
@@ -142,7 +149,7 @@ describe('DataTable', () => {
 
 	it('should emit sortChange when clicking sortable header', async () => {
 		const user = userEvent.setup();
-		const sortChangeSpy = vi.fn();
+		const sortChangeSpy = fn<[{ id: string; direction: string }], void>();
 		const sortableColumns: ColumnDef<TestData, unknown>[] = [
 			{ accessorKey: 'name', header: 'Name', enableSorting: true },
 			{ accessorKey: 'email', header: 'Email', enableSorting: false },
@@ -157,7 +164,7 @@ describe('DataTable', () => {
 		const nameHeader = screen.getByRole('columnheader', { name: /name/i });
 		await user.click(nameHeader);
 
-		expect(sortChangeSpy).toHaveBeenCalledWith({ id: 'name', direction: 'asc' });
+		expect(sortChangeSpy.calls).toContainEqual([{ id: 'name', direction: 'asc' }]);
 	});
 
 	it('should toggle sort via Enter key on sortable header', async () => {
@@ -277,5 +284,175 @@ describe('DataTable', () => {
 		});
 
 		expect(screen.getByRole('columnheader', { name: /full name/i })).toBeInTheDocument();
+	});
+
+	describe('Grouping', () => {
+		const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+			{ accessorKey: 'name', header: 'Name', enableSorting: false },
+			{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			{ accessorKey: 'email', header: 'Email', enableSorting: false },
+		];
+
+		const groupableData: GroupableData[] = [
+			{ name: 'Alice', role: 'Admin', email: 'alice@example.com' },
+			{ name: 'Bob', role: 'Editor', email: 'bob@example.com' },
+			{ name: 'Carol', role: 'Admin', email: 'carol@example.com' },
+			{ name: 'Dave', role: 'Editor', email: 'dave@example.com' },
+			{ name: 'Eve', role: 'Viewer', email: 'eve@example.com' },
+		];
+
+		function renderGroupedTable(
+			overrides: Partial<{ expandedByDefault: boolean; grouping: string[] }> = {},
+		): Promise<RenderResult<DataTable<GroupableData>>> {
+			return render(DataTable<GroupableData>, {
+				inputs: { columns: groupableColumns, data: groupableData, grouping: ['role'], ...overrides },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			});
+		}
+
+		it('should render group headers when grouping is set', async () => {
+			await renderGroupedTable();
+
+			expect(screen.getByRole('button', { name: /admin/i })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: /editor/i })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: /viewer/i })).toBeInTheDocument();
+		});
+
+		it('should show row count per group', async () => {
+			await renderGroupedTable();
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			expect(within(adminButton).getByText('(2)')).toBeInTheDocument();
+
+			const editorButton = screen.getByRole('button', { name: /editor/i });
+			expect(within(editorButton).getByText('(2)')).toBeInTheDocument();
+
+			const viewerButton = screen.getByRole('button', { name: /viewer/i });
+			expect(within(viewerButton).getByText('(1)')).toBeInTheDocument();
+		});
+
+		it('should show data rows expanded by default', async () => {
+			await renderGroupedTable();
+
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+			expect(screen.getByText('Bob')).toBeInTheDocument();
+			expect(screen.getByText('Eve')).toBeInTheDocument();
+		});
+
+		it('should collapse group rows when clicking the group header', async () => {
+			const user = userEvent.setup();
+			await renderGroupedTable();
+
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+
+			await user.click(screen.getByRole('button', { name: /admin/i }));
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(screen.queryByText('Carol')).not.toBeInTheDocument();
+			// Other groups remain visible
+			expect(screen.getByText('Bob')).toBeInTheDocument();
+		});
+
+		it('should re-expand collapsed group when clicking the header again', async () => {
+			const user = userEvent.setup();
+			await renderGroupedTable();
+
+			const adminHeader = screen.getByRole('button', { name: /admin/i });
+
+			await user.click(adminHeader);
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+
+			await user.click(adminHeader);
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+		});
+
+		it('should start collapsed when expandedByDefault is false', async () => {
+			await renderGroupedTable({ expandedByDefault: false });
+
+			expect(screen.getByRole('button', { name: /admin/i })).toBeInTheDocument();
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+			expect(screen.queryByText('Eve')).not.toBeInTheDocument();
+		});
+
+		it('should expand a collapsed group when expandedByDefault is false and header is clicked', async () => {
+			const user = userEvent.setup();
+			await renderGroupedTable({ expandedByDefault: false });
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+
+			await user.click(screen.getByRole('button', { name: /admin/i }));
+
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+			expect(screen.getByText('Carol')).toBeInTheDocument();
+			// Other groups remain collapsed
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+		});
+
+		it('should set aria-expanded to true on expanded group headers', async () => {
+			await renderGroupedTable();
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			expect(adminButton).toHaveAttribute('aria-expanded', 'true');
+		});
+
+		it('should set aria-expanded to false on collapsed group headers', async () => {
+			const user = userEvent.setup();
+			await renderGroupedTable();
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			await user.click(adminButton);
+
+			expect(adminButton).toHaveAttribute('aria-expanded', 'false');
+		});
+
+		it('should toggle group via Enter key on group header button', async () => {
+			const user = userEvent.setup();
+			await renderGroupedTable();
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			adminButton.focus();
+			await user.keyboard('{Enter}');
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(adminButton).toHaveAttribute('aria-expanded', 'false');
+		});
+
+		it('should toggle group via Space key on group header button', async () => {
+			const user = userEvent.setup();
+			await renderGroupedTable();
+
+			const adminButton = screen.getByRole('button', { name: /admin/i });
+			adminButton.focus();
+			await user.keyboard(' ');
+
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument();
+			expect(adminButton).toHaveAttribute('aria-expanded', 'false');
+		});
+
+		it('should render data rows without grouping when grouping is empty', async () => {
+			await renderGroupedTable({ grouping: [] });
+
+			expect(screen.queryAllByRole('button')).toHaveLength(0);
+			expect(screen.getByText('Alice')).toBeInTheDocument();
+			expect(screen.getByText('Eve')).toBeInTheDocument();
+		});
+
+		it('should warn when grouping column ID does not match any column definition', async () => {
+			const originalWarn = console.warn;
+			const warnMock = fn<[string], void>();
+			console.warn = warnMock;
+
+			try {
+				await renderGroupedTable({ grouping: ['nonexistent'] });
+
+				expect(warnMock.calls).toHaveLength(1);
+				expect(warnMock.calls[0][0]).toBe(
+					'DataTable: grouping column "nonexistent" does not match any column definition.',
+				);
+			} finally {
+				console.warn = originalWarn;
+			}
+		});
 	});
 });
