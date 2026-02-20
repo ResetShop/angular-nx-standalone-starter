@@ -87,6 +87,7 @@ export interface AuthCredentials {
  */
 export interface AuthResult {
 	user: AuthUser;
+	mustChangePassword: boolean;
 	token: string;
 	refreshToken: string;
 }
