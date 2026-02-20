@@ -144,18 +144,19 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	}
 
 	/**
-	 * Creates a new user and their authentication record in a single transaction.
-	 * The user record stores profile data, the authentication record stores the password hash.
+	 * Creates a new user with authentication and role assignments in a single transaction.
+	 * If role assignment fails, the entire operation (user + auth) is rolled back.
 	 *
-	 * @param params - User creation parameters including password hash
-	 * @returns The newly created user data
+	 * @param params - User creation parameters including password hash and role IDs
+	 * @returns The newly created user with roles
 	 */
 	async create(params: {
 		email: string;
 		firstName: string;
 		lastName: string;
 		passwordHash: string;
-	}): Promise<UserData> {
+		roleIds: number[];
+	}): Promise<ManagedUserData> {
 		return this.db.transaction(async (tx) => {
 			const userResult = await tx
 				.insert(user)
@@ -171,6 +172,8 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 					lastName: user.lastName,
 					enabled: user.enabled,
 					deleted: user.deleted,
+					createdAt: user.createdAt,
+					updatedAt: user.updatedAt,
 				});
 
 			const newUser = userResult[0];
@@ -180,7 +183,31 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				passwordHash: params.passwordHash,
 			});
 
-			return newUser;
+			if (params.roleIds.length > 0) {
+				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }));
+				await tx.insert(userRole).values(values).onConflictDoNothing();
+			}
+
+			const roles = await tx
+				.select({
+					id: role.id,
+					name: role.name,
+					code: role.code,
+					description: role.description,
+					removable: role.removable,
+					createdAt: role.createdAt,
+					updatedAt: role.updatedAt,
+				})
+				.from(userRole)
+				.innerJoin(role, eq(userRole.roleId, role.id))
+				.where(eq(userRole.userId, newUser.id));
+
+			return {
+				...newUser,
+				enabled: newUser.enabled ?? true,
+				deleted: newUser.deleted ?? false,
+				roles,
+			};
 		});
 	}
 
