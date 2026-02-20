@@ -76,7 +76,11 @@ export class AuthService implements IAuthService {
 				})),
 			)
 			.then(({ user, mustChangePassword }) =>
-				this.generateTokenPair(user).then((result) => ({ ...result, mustChangePassword })),
+				this.generateTokenPair(user).then((tokens) => ({
+					...tokens,
+					user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
+					mustChangePassword,
+				})),
 			);
 	}
 
@@ -228,7 +232,7 @@ export class AuthService implements IAuthService {
 	 * @param user - Authenticated user
 	 * @returns AuthResult with user data and tokens
 	 */
-	private async generateTokenPair(user: UserData): Promise<AuthResult> {
+	private async generateTokenPair(user: UserData): Promise<{ token: string; refreshToken: string }> {
 		const accessToken = await this.pasetoService.generateAccessToken({
 			sub: user.id.toString(),
 			email: user.email,
@@ -248,7 +252,6 @@ export class AuthService implements IAuthService {
 		});
 
 		return {
-			user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
 			token: accessToken,
 			refreshToken,
 		};
