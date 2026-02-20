@@ -6,7 +6,12 @@ import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { RoleData } from '../access/role/interfaces';
-import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
+import type {
+	CreateUserWithHashedPasswordParams,
+	IUserManagementRepository,
+	ManagedUserData,
+	UserData,
+} from './interfaces';
 
 interface UserProjection {
 	id: number;
@@ -150,7 +155,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param params - User creation parameters including password hash and role IDs
 	 * @returns The newly created user with roles
 	 */
-	async create(params: Parameters<IUserManagementRepository['create']>[0]): Promise<ManagedUserData> {
+	async create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData> {
 		return this.db.transaction(async (tx) => {
 			const userResult = await tx
 				.insert(user)
