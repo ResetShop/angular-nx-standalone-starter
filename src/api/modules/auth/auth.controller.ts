@@ -84,6 +84,7 @@ app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 		return c.json<LoginResponse>(
 			{
 				user: response.user,
+				mustChangePassword: response.mustChangePassword,
 			},
 			200,
 		);
