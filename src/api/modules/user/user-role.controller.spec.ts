@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { resetTestCradle, setTestCradle } from '../../container.mock';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import type { PermissionData, RoleData } from '../access/role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 import type { PaginatedResponse } from './interfaces';
 import userRoleController from './user-role.controller';
@@ -15,6 +15,7 @@ describe('User Role Controller', () => {
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 	const mockAssignRoleToUser = fn<[number, number], Promise<void>>();
 	const mockRemoveRoleFromUser = fn<[number, number], Promise<void>>();
+	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>();
 
 	// Create app with auth middleware that simulates authenticated user
 	let app: Hono;
@@ -83,6 +84,8 @@ describe('User Role Controller', () => {
 				getUserPermissions: mockGetUserPermissions,
 				assignRoleToUser: mockAssignRoleToUser,
 				removeRoleFromUser: mockRemoveRoleFromUser,
+				getUserRolesWithPermissions: fn<[number], Promise<RoleWithPermissions[]>>(),
+				replaceUserRoles: mockReplaceUserRoles,
 			},
 		});
 
@@ -345,6 +348,108 @@ describe('User Role Controller', () => {
 			expect(res.status).toBe(400);
 			const data = await res.json();
 			expect(data.error).toBe('Invalid role ID');
+		});
+	});
+
+	describe('PUT /users/:userId/roles', () => {
+		it('should replace user roles', async () => {
+			mockReplaceUserRoles.mockResolvedValue(undefined);
+
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [1, 2] }),
+			});
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expect(data.message).toBe('Roles replaced successfully');
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]]);
+		});
+
+		it('should accept empty roleIds array', async () => {
+			mockReplaceUserRoles.mockResolvedValue(undefined);
+
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [] }),
+			});
+
+			expect(res.status).toBe(200);
+			expect(mockReplaceUserRoles.calls).toEqual([[1, []]]);
+		});
+
+		it('should return 404 when user not found', async () => {
+			mockReplaceUserRoles.mockRejectedValue(new Error(USER_ROLE_ERRORS.USER_NOT_FOUND));
+
+			const res = await app.request('/users/999/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [1] }),
+			});
+
+			expect(res.status).toBe(404);
+			const data = await res.json();
+			expect(data.error).toBe(USER_ROLE_ERRORS.USER_NOT_FOUND);
+		});
+
+		it('should return 400 when roles not found', async () => {
+			mockReplaceUserRoles.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`));
+
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [99, 100] }),
+			});
+
+			expect(res.status).toBe(400);
+			const data = await res.json();
+			expect(data.error).toBe(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`);
+		});
+
+		it('should return 400 for invalid user ID', async () => {
+			const res = await app.request('/users/invalid/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [1] }),
+			});
+
+			expect(res.status).toBe(400);
+			const data = await res.json();
+			expect(data.error).toBe('Invalid user ID');
+		});
+
+		it('should return 400 for invalid roleIds', async () => {
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [-1] }),
+			});
+
+			expect(res.status).toBe(400);
+		});
+
+		it('should return 400 when roleIds exceeds maximum length', async () => {
+			const tooManyRoleIds = Array.from({ length: 101 }, (_, i) => i + 1);
+
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: tooManyRoleIds }),
+			});
+
+			expect(res.status).toBe(400);
+		});
+
+		it('should return 400 when roleIds is missing', async () => {
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({}),
+			});
+
+			expect(res.status).toBe(400);
 		});
 	});
 });

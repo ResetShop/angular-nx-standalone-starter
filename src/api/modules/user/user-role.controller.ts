@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { container } from '../../container';
-import { requirePermission } from '../../middlewares/verify-permissions.middleware';
+import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 import { USER_ROLE_ERRORS } from './user-role.service';
 
@@ -107,6 +107,46 @@ app.post(
 				}
 				if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED)) {
 					return c.json<ErrorResponse>({ error: error.message }, 409);
+				}
+			}
+			throw error;
+		}
+	},
+);
+
+/**
+ * PUT /api/user/:userId/roles
+ * Replace all role assignments for a user
+ */
+app.put(
+	'/:userId/roles',
+	requireAllPermissions([ADMIN_USER_ROLE_PERMISSIONS.ASSIGN, ADMIN_USER_ROLE_PERMISSIONS.REMOVE]),
+	zValidator(
+		'json',
+		z.object({
+			roleIds: z.array(z.number().int().positive()).max(QUERY_DEFAULTS.MAX_ROLE_IDS),
+		}),
+	),
+	async (c) => {
+		const { userRoleService } = container.cradle;
+		const userId = parseInt(c.req.param('userId'), 10);
+
+		if (isNaN(userId)) {
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
+		}
+
+		const { roleIds } = c.req.valid('json');
+
+		try {
+			await userRoleService.replaceUserRoles(userId, roleIds);
+			return c.json<SuccessMessage>({ message: 'Roles replaced successfully' }, 200);
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
+					return c.json<ErrorResponse>({ error: error.message }, 404);
+				}
+				if (error.message.startsWith(USER_ROLE_ERRORS.ROLES_NOT_FOUND)) {
+					return c.json<ErrorResponse>({ error: error.message }, 400);
 				}
 			}
 			throw error;
