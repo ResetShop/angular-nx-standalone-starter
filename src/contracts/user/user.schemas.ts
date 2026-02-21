@@ -62,6 +62,7 @@ export const createUserRequestSchema = z.object({
 	firstName: z.string().min(1).max(100),
 	lastName: z.string().min(1).max(100),
 	roleIds: z.array(z.number().int().positive()).optional(),
+	mustChangePassword: z.boolean().optional().default(true),
 });
 
 /**

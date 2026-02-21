@@ -42,6 +42,8 @@ export interface CreateUserParams {
 	lastName: string;
 	/** Role IDs to assign. Defaults to no roles when omitted. */
 	roleIds?: number[];
+	/** Whether the user must change their password on first login. Defaults to true. */
+	mustChangePassword?: boolean;
 }
 
 /**
@@ -71,7 +73,7 @@ export interface CreateUserWithHashedPasswordParams {
 	firstName: string;
 	lastName: string;
 	passwordHash: string;
-	mustChangePassword: true;
+	mustChangePassword: boolean;
 	roleIds: number[];
 }
 
