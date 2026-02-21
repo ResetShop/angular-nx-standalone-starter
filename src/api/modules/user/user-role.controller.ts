@@ -124,7 +124,10 @@ app.put(
 	zValidator(
 		'json',
 		z.object({
-			roleIds: z.array(z.number().int().positive()).max(QUERY_DEFAULTS.MAX_ROLE_IDS),
+			roleIds: z
+				.array(z.number().int().positive())
+				.max(QUERY_DEFAULTS.MAX_ROLE_IDS_PER_REQUEST)
+				.refine((ids) => new Set(ids).size === ids.length, 'roleIds must be unique'),
 		}),
 	),
 	async (c) => {

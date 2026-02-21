@@ -462,6 +462,16 @@ describe('User Role Controller', () => {
 			expect(res.status).toBe(400);
 		});
 
+		it('should return 400 when roleIds contains duplicates', async () => {
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [1, 2, 2, 3] }),
+			});
+
+			expect(res.status).toBe(400);
+		});
+
 		it('should return 400 when roleIds is missing', async () => {
 			const res = await app.request('/users/1/roles', {
 				method: 'PUT',
