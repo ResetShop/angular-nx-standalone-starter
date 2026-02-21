@@ -18,7 +18,7 @@ describe('User Management Controller', () => {
 	>();
 	const mockGetById = fn<[number], Promise<ManagedUserData>>();
 	const mockCreate = fn<
-		[{ email: string; firstName: string; lastName: string; roleIds?: number[] }],
+		[{ email: string; firstName: string; lastName: string; roleIds?: number[]; mustChangePassword?: boolean }],
 		Promise<ManagedUserData & { passwordEmailSent: boolean }>
 	>();
 	const mockUpdate = fn<
@@ -237,6 +237,41 @@ describe('User Management Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
+		});
+
+		it('should accept mustChangePassword in request body', async () => {
+			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
+
+			const res = await app.request('/users', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+					mustChangePassword: false,
+				}),
+			});
+
+			expect(res.status).toBe(201);
+			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: false });
+		});
+
+		it('should default mustChangePassword to true when omitted', async () => {
+			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
+
+			const res = await app.request('/users', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}),
+			});
+
+			expect(res.status).toBe(201);
+			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true });
 		});
 
 		it('should validate email format', async () => {

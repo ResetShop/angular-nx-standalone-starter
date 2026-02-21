@@ -5,6 +5,7 @@ describe('buildWelcomeEmail', () => {
 		firstName: 'John',
 		email: 'john.doe@example.com',
 		password: 'TempPass123_xyz',
+		mustChangePassword: true,
 	};
 
 	const originalAppLanguage = process.env['APP_LANGUAGE'];
@@ -47,6 +48,7 @@ describe('buildWelcomeEmail', () => {
 				firstName: 'Jane',
 				email: 'jane.smith@example.com',
 				password: 'DifferentPass456',
+				mustChangePassword: true,
 			});
 
 			expect(result1.subject).toBe(result2.subject);
@@ -218,6 +220,7 @@ describe('buildWelcomeEmail', () => {
 				firstName: 'Alice',
 				email: 'alice.wonder@company.com',
 				password: 'SecurePass123',
+				mustChangePassword: true,
 			});
 
 			expect(result.text).toContain('Alice');
@@ -229,6 +232,7 @@ describe('buildWelcomeEmail', () => {
 				firstName: "O'Brien",
 				email: 'obrien@example.com',
 				password: 'TempPass456',
+				mustChangePassword: true,
 			});
 
 			expect(result.text).toContain("O'Brien");
@@ -240,6 +244,7 @@ describe('buildWelcomeEmail', () => {
 				firstName: '<b>Joe&"Ann</b>',
 				email: 'joe&ann@example.com',
 				password: 'p<a>ss',
+				mustChangePassword: true,
 			});
 
 			expect(result.text).toContain('<b>Joe&"Ann</b>');
@@ -257,10 +262,41 @@ describe('buildWelcomeEmail', () => {
 				firstName: 'Bob',
 				email: 'bob@example.com',
 				password: 'aB3-_xYz9QwE',
+				mustChangePassword: true,
 			});
 
 			expect(result.text).toContain('aB3-_xYz9QwE');
 			expect(result.html).toContain('aB3-_xYz9QwE');
+		});
+	});
+
+	describe('mustChangePassword=false', () => {
+		it('should not contain password change instruction in text', () => {
+			const result = buildWelcomeEmail({ ...mockParams, mustChangePassword: false });
+
+			expect(result.text).not.toContain('change your password');
+			expect(result.text).not.toContain('IMPORTANT');
+		});
+
+		it('should not contain password change instruction in HTML', () => {
+			const result = buildWelcomeEmail({ ...mockParams, mustChangePassword: false });
+
+			expect(result.html).not.toContain('change your password');
+			expect(result.html).not.toContain('#fff3cd');
+		});
+
+		it('should label password as "Password" in text when mustChangePassword is false', () => {
+			const result = buildWelcomeEmail({ ...mockParams, mustChangePassword: false });
+
+			expect(result.text).toContain('Password: TempPass123_xyz');
+			expect(result.text).not.toContain('Temporary Password');
+		});
+
+		it('should label password as "Password" in HTML when mustChangePassword is false', () => {
+			const result = buildWelcomeEmail({ ...mockParams, mustChangePassword: false });
+
+			expect(result.html).toContain('<strong>Password:</strong>');
+			expect(result.html).not.toContain('Temporary Password');
 		});
 	});
 
