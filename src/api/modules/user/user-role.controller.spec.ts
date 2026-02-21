@@ -395,6 +395,8 @@ describe('User Role Controller', () => {
 			});
 
 			expect(res.status).toBe(200);
+			const data = await res.json();
+			expect(data.message).toBe('Roles replaced successfully');
 			expect(mockReplaceUserRoles.calls).toEqual([[1, []]]);
 		});
 
