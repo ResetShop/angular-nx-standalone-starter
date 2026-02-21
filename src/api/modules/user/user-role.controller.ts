@@ -8,7 +8,7 @@ import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { container } from '../../container';
 import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
-import { USER_ROLE_ERRORS } from './user-role.service';
+import { USER_ROLE_ERRORS } from './user-role.errors';
 
 const app = new Hono();
 

@@ -7,7 +7,7 @@ import { BaseRepository } from '../../helpers/base.repository';
 import { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRoleRepository } from './interfaces';
-import { USER_ROLE_ERRORS, userRoleErrors } from './user-role.service';
+import { USER_ROLE_ERRORS, userRoleErrors } from './user-role.errors';
 
 /**
  * Repository for user-role relationship database operations.

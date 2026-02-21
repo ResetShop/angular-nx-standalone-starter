@@ -7,7 +7,7 @@ import type { PermissionData, RoleData, RoleWithPermissions } from '../access/ro
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 import type { PaginatedResponse } from './interfaces';
 import userRoleController from './user-role.controller';
-import { USER_ROLE_ERRORS } from './user-role.service';
+import { USER_ROLE_ERRORS } from './user-role.errors';
 
 describe('User Role Controller', () => {
 	// Create mock functions
