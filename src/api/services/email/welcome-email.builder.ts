@@ -2,6 +2,7 @@ interface WelcomeEmailParams {
 	firstName: string;
 	email: string;
 	password: string;
+	mustChangePassword: boolean;
 }
 
 interface EmailContent {
@@ -26,17 +27,20 @@ export function buildWelcomeEmail(params: WelcomeEmailParams): EmailContent {
 	return { subject, html, text };
 }
 
-function buildTextContent({ firstName, email, password }: WelcomeEmailParams): string {
+function buildTextContent({ firstName, email, password, mustChangePassword }: WelcomeEmailParams): string {
+	const passwordLabel = mustChangePassword ? 'Temporary Password' : 'Password';
+	const changeWarning = mustChangePassword
+		? '\nIMPORTANT: Please change your password immediately after your first login for security reasons.\n'
+		: '';
+
 	return `Hello ${firstName},
 
 Welcome! Your account has been created successfully.
 
 Your login credentials:
 Email: ${email}
-Temporary Password: ${password}
-
-IMPORTANT: Please change your password immediately after your first login for security reasons.
-
+${passwordLabel}: ${password}
+${changeWarning}
 This is an automated message. Please do not reply to this email.
 
 Best regards,
@@ -52,7 +56,7 @@ function escapeHtml(value: string): string {
 		.replace(/'/g, '&#39;');
 }
 
-function buildHtmlContent({ firstName, email, password }: WelcomeEmailParams): string {
+function buildHtmlContent({ firstName, email, password, mustChangePassword }: WelcomeEmailParams): string {
 	// TODO (#159): Validate language against an allowlist to prevent HTML attribute injection
 	const language = process.env['APP_LANGUAGE'] || 'en';
 	const safeFirstName = escapeHtml(firstName);
@@ -73,12 +77,16 @@ function buildHtmlContent({ firstName, email, password }: WelcomeEmailParams): s
     <div style="background-color: #f4f4f4; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0;">
         <h2 style="margin-top: 0; color: #2c3e50;">Your login credentials:</h2>
         <p style="margin: 10px 0;"><strong>Email:</strong> ${safeEmail}</p>
-        <p style="margin: 10px 0;"><strong>Temporary Password:</strong> <code style="background-color: #e8e8e8; padding: 2px 6px; border-radius: 3px;">${safePassword}</code></p>
+        <p style="margin: 10px 0;"><strong>${mustChangePassword ? 'Temporary Password' : 'Password'}:</strong> <code style="background-color: #e8e8e8; padding: 2px 6px; border-radius: 3px;">${safePassword}</code></p>
     </div>
 
-    <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+    ${
+			mustChangePassword
+				? `<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
         <p style="margin: 0;"><strong>IMPORTANT:</strong> Please change your password immediately after your first login for security reasons.</p>
-    </div>
+    </div>`
+				: ''
+		}
 
     <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 
