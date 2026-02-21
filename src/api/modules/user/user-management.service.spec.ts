@@ -5,6 +5,7 @@ import type {
 	CreateUserWithHashedPasswordParams,
 	IUserManagementRepository,
 	ManagedUserData,
+	UpdateUserParams,
 	UserData,
 } from './interfaces';
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service';
@@ -18,10 +19,7 @@ describe('UserManagementService', () => {
 	const mockFindByIdWithRoles = fn<[number], Promise<ManagedUserData | null>>();
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>();
 	const mockCreate = fn<[CreateUserWithHashedPasswordParams], Promise<ManagedUserData>>();
-	const mockUpdate = fn<
-		[number, { email?: string; firstName?: string; lastName?: string; enabled?: boolean }],
-		Promise<UserData | null>
-	>();
+	const mockUpdate = fn<[number, UpdateUserParams], Promise<UserData | null>>();
 	const mockSoftDelete = fn<[number], Promise<boolean>>();
 
 	const mockRepository: IUserManagementRepository = {

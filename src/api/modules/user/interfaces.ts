@@ -82,10 +82,7 @@ export interface IUserManagementRepository {
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>;
 	findByEmail(email: string): Promise<UserData | null>;
 	create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData>;
-	update(
-		id: number,
-		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },
-	): Promise<UserData | null>;
+	update(id: number, params: UpdateUserParams): Promise<UserData | null>;
 	softDelete(id: number): Promise<boolean>;
 }
 

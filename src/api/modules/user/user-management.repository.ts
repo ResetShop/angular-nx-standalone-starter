@@ -10,6 +10,7 @@ import type {
 	CreateUserWithHashedPasswordParams,
 	IUserManagementRepository,
 	ManagedUserData,
+	UpdateUserParams,
 	UserData,
 } from './interfaces';
 
@@ -200,10 +201,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param params - Fields to update
 	 * @returns Updated user data, or null if not found
 	 */
-	async update(
-		id: number,
-		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },
-	): Promise<UserData | null> {
+	async update(id: number, params: UpdateUserParams): Promise<UserData | null> {
 		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() };
 
 		if (params.email !== undefined) {
