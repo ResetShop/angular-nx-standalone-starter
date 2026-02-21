@@ -10,13 +10,9 @@ post {
   auth: none
 }
 
-}
-}
-
 body:json {
   {
     "email": "newuser@example.com",
-    "password": "securePassword123",
     "firstName": "New",
     "lastName": "User",
     "roleIds": [1]
@@ -33,7 +29,6 @@ docs {
   | Field | Type | Required | Description |
   |-------|------|----------|-------------|
   | email | string | Yes | Valid email address |
-  | password | string | Yes | Password (8-128 characters) |
   | firstName | string | Yes | First name (1-100 characters) |
   | lastName | string | Yes | Last name (1-100 characters) |
   | roleIds | number[] | No | Array of role IDs to assign |
@@ -41,6 +36,27 @@ docs {
   ## Response (201)
 
   Returns the created user with their assigned roles.
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | id | number | User ID |
+  | email | string | User email address |
+  | firstName | string | User's first name |
+  | lastName | string | User's last name |
+  | roles | RoleData[] | Assigned roles |
+  | passwordEmailSent | boolean | Whether the welcome email was sent successfully |
+
+  ### RoleData Object
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | id | number | Role ID |
+  | name | string | Display name |
+  | code | string | Unique role code |
+  | description | string \| null | Role description |
+  | removable | boolean | Whether the role can be deleted |
+  | createdAt | string \| null | ISO 8601 creation timestamp |
+  | updatedAt | string \| null | ISO 8601 last update timestamp |
 }
 
 assert {
@@ -59,5 +75,7 @@ tests {
     expect(res.body.email).to.equal("newuser@example.com");
     expect(res.body.firstName).to.equal("New");
     expect(res.body.lastName).to.equal("User");
+    expect(res.body.passwordEmailSent).to.be.a("boolean");
+    expect(res.body.roles).to.be.an("array");
   });
 }

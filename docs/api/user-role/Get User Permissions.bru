@@ -5,12 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/users/1/permissions
+  url: {{baseUrl}}/user/1/permissions
   body: none
   auth: none
-}
-
-}
 }
 
 docs {
@@ -20,7 +17,7 @@ docs {
 
   ## Contract Types
 
-  - Response: `PermissionData[]` from `@contracts/roles/roles.types`
+  - Response: `PermissionData[]` from `@contracts/role/role.types`
 
   ## Path Parameters
 

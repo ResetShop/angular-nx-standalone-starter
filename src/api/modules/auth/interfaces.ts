@@ -1,4 +1,4 @@
-import type { AuthUser } from '@contracts/users/users.types';
+import type { AuthUser } from '@contracts/user/user.types';
 
 export interface AuthenticationData {
 	id: number;

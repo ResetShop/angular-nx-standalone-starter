@@ -5,12 +5,9 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/users/1/roles
+  url: {{baseUrl}}/user/1/roles
   body: json
   auth: none
-}
-
-}
 }
 
 body:json {
@@ -26,7 +23,7 @@ docs {
 
   ## Contract Types
 
-  - Request: `AssignRoleToUserRequest` from `@contracts/users/users.types`
+  - Request: `AssignRoleToUserRequest` from `@contracts/user/user.types`
   - Response: `SuccessMessage` from `@contracts/common/error.types`
 
   ## Path Parameters

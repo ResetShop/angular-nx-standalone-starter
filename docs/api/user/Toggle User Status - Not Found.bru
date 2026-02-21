@@ -1,27 +1,30 @@
 meta {
-  name: Get User Permissions - Not Found
+  name: Toggle User Status - Not Found
   type: http
-  seq: 4
+  seq: 7
 }
 
-get {
-  url: {{baseUrl}}/users/99999/permissions
-  body: none
+patch {
+  url: {{baseUrl}}/user/99999/status
+  body: json
   auth: none
 }
 
-}
+body:json {
+  {
+    "isActive": false
+  }
 }
 
 docs {
-  # Get User Permissions - Not Found Test
+  # Toggle User Status - Not Found
 
-  Tests that getting permissions for a non-existent user returns 404.
+  Tests that toggling the status of a non-existent user returns 404.
 }
 
 assert {
   res.status: eq 404
-  res.body.error: contains User not found
+  res.body.error: isDefined
 }
 
 tests {
