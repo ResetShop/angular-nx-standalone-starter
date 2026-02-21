@@ -1,4 +1,4 @@
-import type { PermissionData, RoleWithPermissions } from '@contracts/roles/roles.types';
+import type { PermissionData, RoleWithPermissions } from '@contracts/role/role.types';
 import { mapPermission, mapRole } from './role.mapper';
 
 describe('Role Mapper', () => {

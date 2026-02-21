@@ -1,4 +1,4 @@
-import type { PermissionData, RoleWithPermissions } from '@contracts/roles/roles.types';
+import type { PermissionData, RoleWithPermissions } from '@contracts/role/role.types';
 import type { IPermission } from './permission.interface';
 import { createPermission } from './permission.mapper';
 import type { IRole } from './role.interface';

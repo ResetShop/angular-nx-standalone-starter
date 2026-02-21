@@ -1,6 +1,6 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import type { PermissionAssignmentError, PermissionData, RoleData } from '@contracts/roles/roles.types';
+import type { PermissionAssignmentError, PermissionData, RoleData } from '@contracts/role/role.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
