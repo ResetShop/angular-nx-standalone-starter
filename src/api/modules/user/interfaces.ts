@@ -40,6 +40,7 @@ export interface CreateUserParams {
 	password: string;
 	firstName: string;
 	lastName: string;
+	/** Role IDs to assign. Defaults to no roles when omitted. */
 	roleIds?: number[];
 }
 
