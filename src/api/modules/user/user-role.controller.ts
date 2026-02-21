@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { container } from '../../container';
-import { requirePermission } from '../../middlewares/verify-permissions.middleware';
+import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 import { USER_ROLE_ERRORS } from './user-role.service';
 
@@ -120,11 +120,11 @@ app.post(
  */
 app.put(
 	'/:userId/roles',
-	requirePermission(ADMIN_USER_ROLE_PERMISSIONS.ASSIGN),
+	requireAllPermissions([ADMIN_USER_ROLE_PERMISSIONS.ASSIGN, ADMIN_USER_ROLE_PERMISSIONS.REMOVE]),
 	zValidator(
 		'json',
 		z.object({
-			roleIds: z.array(z.number().int().positive()),
+			roleIds: z.array(z.number().int().positive()).max(QUERY_DEFAULTS.MAX_ROLE_IDS),
 		}),
 	),
 	async (c) => {

@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { resetTestCradle, setTestCradle } from '../../container.mock';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import type { PermissionData, RoleData } from '../access/role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 import type { PaginatedResponse } from './interfaces';
 import userRoleController from './user-role.controller';
@@ -84,6 +84,7 @@ describe('User Role Controller', () => {
 				getUserPermissions: mockGetUserPermissions,
 				assignRoleToUser: mockAssignRoleToUser,
 				removeRoleFromUser: mockRemoveRoleFromUser,
+				getUserRolesWithPermissions: fn<[number], Promise<RoleWithPermissions[]>>(),
 				replaceUserRoles: mockReplaceUserRoles,
 			},
 		});
@@ -394,7 +395,7 @@ describe('User Role Controller', () => {
 		});
 
 		it('should return 400 when roles not found', async () => {
-			mockReplaceUserRoles.mockRejectedValue(new Error('Roles not found: 99, 100'));
+			mockReplaceUserRoles.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`));
 
 			const res = await app.request('/users/1/roles', {
 				method: 'PUT',
@@ -404,7 +405,7 @@ describe('User Role Controller', () => {
 
 			expect(res.status).toBe(400);
 			const data = await res.json();
-			expect(data.error).toBe('Roles not found: 99, 100');
+			expect(data.error).toBe(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`);
 		});
 
 		it('should return 400 for invalid user ID', async () => {
@@ -424,6 +425,18 @@ describe('User Role Controller', () => {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ roleIds: [-1] }),
+			});
+
+			expect(res.status).toBe(400);
+		});
+
+		it('should return 400 when roleIds exceeds maximum length', async () => {
+			const tooManyRoleIds = Array.from({ length: 101 }, (_, i) => i + 1);
+
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: tooManyRoleIds }),
 			});
 
 			expect(res.status).toBe(400);
