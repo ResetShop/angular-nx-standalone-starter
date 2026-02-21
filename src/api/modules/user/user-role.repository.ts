@@ -7,7 +7,7 @@ import { BaseRepository } from '../../helpers/base.repository';
 import { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRoleRepository } from './interfaces';
-import { USER_ROLE_ERRORS } from './user-role.service';
+import { USER_ROLE_ERRORS, userRoleErrors } from './user-role.service';
 
 /**
  * Repository for user-role relationship database operations.
@@ -184,6 +184,11 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 			}
 		}
 
+		const missingNonRemovable = await this.findUserNonRemovableRoleIdsNotIn(userId, roleIds);
+		if (missingNonRemovable.length > 0) {
+			throw userRoleErrors.nonRemovableRoles(missingNonRemovable);
+		}
+
 		await this.db.transaction(async (tx) => {
 			await tx.delete(userRole).where(eq(userRole.userId, userId));
 
@@ -192,6 +197,17 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 				await tx.insert(userRole).values(values);
 			}
 		});
+	}
+
+	private async findUserNonRemovableRoleIdsNotIn(userId: number, roleIds: number[]): Promise<number[]> {
+		const result = await this.db
+			.select({ roleId: userRole.roleId })
+			.from(userRole)
+			.innerJoin(role, eq(userRole.roleId, role.id))
+			.where(and(eq(userRole.userId, userId), eq(role.removable, false)));
+
+		const roleIdSet = new Set(roleIds);
+		return result.map((r) => r.roleId).filter((id) => !roleIdSet.has(id));
 	}
 
 	private async findMissingRoleIds(roleIds: number[]): Promise<number[]> {

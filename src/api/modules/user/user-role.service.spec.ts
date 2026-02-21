@@ -234,5 +234,12 @@ describe('UserRoleService', () => {
 				`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`,
 			);
 		});
+
+		it('should propagate "Non-removable roles" error from repository', async () => {
+			mockFindUserById.mockResolvedValue(testUser);
+			mockReplaceUserRoles.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.NON_REMOVABLE_ROLES}: 1`));
+
+			await expect(service.replaceUserRoles(1, [2, 3])).rejects.toThrow(`${USER_ROLE_ERRORS.NON_REMOVABLE_ROLES}: 1`);
+		});
 	});
 });

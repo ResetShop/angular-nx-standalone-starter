@@ -451,5 +451,19 @@ describe('User Role Controller', () => {
 
 			expect(res.status).toBe(400);
 		});
+
+		it('should return 400 when replacing would remove non-removable roles', async () => {
+			mockReplaceUserRoles.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.NON_REMOVABLE_ROLES}: 1`));
+
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [2, 3] }),
+			});
+
+			expect(res.status).toBe(400);
+			const data = await res.json();
+			expect(data.error).toBe(`${USER_ROLE_ERRORS.NON_REMOVABLE_ROLES}: 1`);
+		});
 	});
 });

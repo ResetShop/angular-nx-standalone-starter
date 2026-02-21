@@ -148,6 +148,9 @@ app.put(
 				if (error.message.startsWith(USER_ROLE_ERRORS.ROLES_NOT_FOUND)) {
 					return c.json<ErrorResponse>({ error: error.message }, 400);
 				}
+				if (error.message.startsWith(USER_ROLE_ERRORS.NON_REMOVABLE_ROLES)) {
+					return c.json<ErrorResponse>({ error: error.message }, 400);
+				}
 			}
 			throw error;
 		}
