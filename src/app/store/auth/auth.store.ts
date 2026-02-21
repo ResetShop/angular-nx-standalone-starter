@@ -72,6 +72,7 @@ export const AuthStore = signalStore(
 									const user = mapLoginResponseToUser(response);
 									patchState(store, {
 										currentUser: user,
+										mustChangePassword: response.mustChangePassword,
 										isLoggingIn: false,
 										loginError: null,
 										networkError: false,
@@ -98,7 +99,7 @@ export const AuthStore = signalStore(
 			 * The server deletes the cookies. Navigation should be handled by the caller.
 			 */
 			logout() {
-				patchState(store, { currentUser: null, isLoggingOut: true });
+				patchState(store, { currentUser: null, mustChangePassword: false, isLoggingOut: true });
 
 				authApi.logout().subscribe({
 					complete: () => patchState(store, { isLoggingOut: false }),
