@@ -228,9 +228,11 @@ describe('UserRoleService', () => {
 
 		it('should propagate "Roles not found" error from repository', async () => {
 			mockFindUserById.mockResolvedValue(testUser);
-			mockReplaceUserRoles.mockRejectedValue(new Error('Roles not found: 99, 100'));
+			mockReplaceUserRoles.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`));
 
-			await expect(service.replaceUserRoles(1, [99, 100])).rejects.toThrow('Roles not found: 99, 100');
+			await expect(service.replaceUserRoles(1, [99, 100])).rejects.toThrow(
+				`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`,
+			);
 		});
 	});
 });
