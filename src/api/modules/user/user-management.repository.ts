@@ -187,26 +187,8 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				await tx.insert(userRole).values(values);
 			}
 
-			const roles = await tx
-				.select({
-					id: role.id,
-					name: role.name,
-					code: role.code,
-					description: role.description,
-					removable: role.removable,
-					createdAt: role.createdAt,
-					updatedAt: role.updatedAt,
-				})
-				.from(userRole)
-				.innerJoin(role, eq(userRole.roleId, role.id))
-				.where(eq(userRole.userId, newUser.id));
-
-			return {
-				...newUser,
-				enabled: newUser.enabled ?? true,
-				deleted: newUser.deleted ?? false,
-				roles,
-			};
+			const [result] = await this.attachRolesToUsers([newUser]);
+			return result;
 		});
 	}
 
