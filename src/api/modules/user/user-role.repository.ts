@@ -177,43 +177,35 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @throws Error if any role ID does not exist
 	 */
 	async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
-		if (roleIds.length > 0) {
-			const missingIds = await this.findMissingRoleIds(roleIds);
-			if (missingIds.length > 0) {
-				throw new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: ${missingIds.join(', ')}`);
-			}
-		}
-
-		const missingNonRemovable = await this.findUserNonRemovableRoleIdsNotIn(userId, roleIds);
-		if (missingNonRemovable.length > 0) {
-			throw userRoleErrors.nonRemovableRoles(missingNonRemovable);
-		}
-
 		await this.db.transaction(async (tx) => {
-			await tx.delete(userRole).where(eq(userRole.userId, userId));
+			if (roleIds.length > 0) {
+				const existingRoles = await tx.select({ id: role.id }).from(role).where(inArray(role.id, roleIds));
+				const existingIds = new Set(existingRoles.map((r) => r.id));
+				const missingIds = roleIds.filter((id) => !existingIds.has(id));
+				if (missingIds.length > 0) {
+					throw new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: ${missingIds.join(', ')}`);
+				}
+			}
 
+			// We check for non-removable roles that are missing from the replaced roleIds
+			// If there's any non-removable role already assigned to the user that's missing,
+			// then an error is thrown
+			const nonRemovableResult = await tx
+				.select({ roleId: userRole.roleId })
+				.from(userRole)
+				.innerJoin(role, eq(userRole.roleId, role.id))
+				.where(and(eq(userRole.userId, userId), eq(role.removable, false)));
+			const roleIdSet = new Set(roleIds);
+			const missingNonRemovable = nonRemovableResult.map((r) => r.roleId).filter((id) => !roleIdSet.has(id));
+			if (missingNonRemovable.length > 0) {
+				throw userRoleErrors.nonRemovableRoles(missingNonRemovable);
+			}
+
+			await tx.delete(userRole).where(eq(userRole.userId, userId));
 			if (roleIds.length > 0) {
 				const values = roleIds.map((roleId) => ({ userId, roleId }));
 				await tx.insert(userRole).values(values);
 			}
 		});
-	}
-
-	private async findUserNonRemovableRoleIdsNotIn(userId: number, roleIds: number[]): Promise<number[]> {
-		const result = await this.db
-			.select({ roleId: userRole.roleId })
-			.from(userRole)
-			.innerJoin(role, eq(userRole.roleId, role.id))
-			.where(and(eq(userRole.userId, userId), eq(role.removable, false)));
-
-		const roleIdSet = new Set(roleIds);
-		return result.map((r) => r.roleId).filter((id) => !roleIdSet.has(id));
-	}
-
-	private async findMissingRoleIds(roleIds: number[]): Promise<number[]> {
-		const result = await this.db.select({ id: role.id }).from(role).where(inArray(role.id, roleIds));
-
-		const existingIds = new Set(result.map((r) => r.id));
-		return roleIds.filter((id) => !existingIds.has(id));
 	}
 }
