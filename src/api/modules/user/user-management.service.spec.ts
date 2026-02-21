@@ -202,7 +202,7 @@ describe('UserManagementService', () => {
 			expect(passwordHash).not.toBe('indigo.rabbit.troop');
 		});
 
-		it('should set mustChangePassword to true', async () => {
+		it('should default mustChangePassword to true when not provided', async () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
@@ -213,6 +213,35 @@ describe('UserManagementService', () => {
 			});
 
 			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true });
+		});
+
+		it('should pass mustChangePassword false when explicitly set', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+
+			await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+				mustChangePassword: false,
+			});
+
+			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: false });
+		});
+
+		it('should pass mustChangePassword to welcome email builder', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+
+			await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+				mustChangePassword: false,
+			});
+
+			const sentEmail = mockSend.calls[0][0];
+			expect(sentEmail.text).not.toContain('change your password');
 		});
 
 		it('should send welcome email with generated password', async () => {
