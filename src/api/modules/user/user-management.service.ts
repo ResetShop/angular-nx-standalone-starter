@@ -111,8 +111,9 @@ export class UserManagementService implements IUserManagementService {
 			});
 			await this.emailService.send({ to: params.email, ...emailContent });
 			passwordEmailSent = true;
-		} catch {
-			// Email failure is non-blocking — user was already created
+		} catch (error: unknown) {
+			// TODO(#66): Replace with structured logging service
+			console.error('[UserManagementService] Welcome email failed:', error);
 		}
 
 		return { ...user, passwordEmailSent };

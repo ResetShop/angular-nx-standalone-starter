@@ -1,5 +1,5 @@
 import { clearAllMocks, fn } from '@test-utils';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { IEmailService, SendEmailParams } from '../../services/email/interfaces';
 import type { RoleData } from '../access/role/interfaces';
 import type {
@@ -39,6 +39,10 @@ describe('UserManagementService', () => {
 	// Password generator mock
 	const mockGeneratePassword = fn<[], Promise<string>>();
 
+	// Suppress console.error in tests that trigger non-blocking email failures
+	const consoleErrorSpy = fn<Parameters<typeof console.error>, void>();
+	const originalConsoleError = console.error;
+
 	let service: UserManagementService;
 
 	const testRole: RoleData = {
@@ -69,6 +73,7 @@ describe('UserManagementService', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
+		console.error = consoleErrorSpy as typeof console.error;
 
 		mockGeneratePassword.mockResolvedValue('indigo.rabbit.troop');
 		mockSend.mockResolvedValue(undefined);
@@ -78,6 +83,10 @@ describe('UserManagementService', () => {
 			emailService: mockEmailService,
 			generatePassword: mockGeneratePassword,
 		});
+	});
+
+	afterEach(() => {
+		console.error = originalConsoleError;
 	});
 
 	describe('list', () => {
@@ -250,6 +259,8 @@ describe('UserManagementService', () => {
 			});
 
 			expect(result.passwordEmailSent).toBe(false);
+			expect(consoleErrorSpy.calls).toHaveLength(1);
+			expect(consoleErrorSpy.calls[0][0]).toContain('[UserManagementService]');
 		});
 
 		it('should still create user when email sending fails', async () => {
