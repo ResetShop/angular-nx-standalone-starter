@@ -23,7 +23,6 @@ describe('UserManagementService', () => {
 		Promise<UserData | null>
 	>();
 	const mockSoftDelete = fn<[number], Promise<boolean>>();
-	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>();
 
 	const mockRepository: IUserManagementRepository = {
 		findAll: mockFindAll,
@@ -32,7 +31,6 @@ describe('UserManagementService', () => {
 		create: mockCreate,
 		update: mockUpdate,
 		softDelete: mockSoftDelete,
-		replaceUserRoles: mockReplaceUserRoles,
 	};
 
 	let service: UserManagementService;
@@ -221,24 +219,6 @@ describe('UserManagementService', () => {
 			await expect(service.update(1, { email: 'taken@example.com' }, 999)).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.EMAIL_EXISTS,
 			);
-		});
-
-		it('should update roles when roleIds provided', async () => {
-			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
-			mockReplaceUserRoles.mockResolvedValue(undefined);
-
-			await service.update(1, { roleIds: [1, 2] }, 999);
-
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]]);
-		});
-
-		it('should deduplicate roleIds before replacing roles', async () => {
-			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
-			mockReplaceUserRoles.mockResolvedValue(undefined);
-
-			await service.update(1, { roleIds: [1, 2, 1, 2] }, 999);
-
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]]);
 		});
 	});
 
