@@ -8,7 +8,7 @@ export const QUERY_DEFAULTS = Object.freeze({
 	MAX_LIMIT: 500,
 	OFFSET: 0,
 	/** Array limits */
-	MAX_ROLE_IDS: 100,
+	MAX_ROLE_IDS_PER_REQUEST: 100,
 	/** Search */
 	SEARCH_MIN_LENGTH: 1,
 	SEARCH_MAX_LENGTH: 100,

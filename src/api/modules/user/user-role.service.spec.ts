@@ -202,11 +202,11 @@ describe('UserRoleService', () => {
 	});
 
 	describe('replaceUserRoles', () => {
-		it('should replace user roles with deduplicated roleIds', async () => {
+		it('should replace user roles', async () => {
 			mockFindUserById.mockResolvedValue(testUser);
 			mockReplaceUserRoles.mockResolvedValue(undefined);
 
-			await service.replaceUserRoles(1, [1, 2, 2, 3]);
+			await service.replaceUserRoles(1, [1, 2, 3]);
 
 			expect(mockFindUserById.calls).toEqual([[1]]);
 			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2, 3]]]);
