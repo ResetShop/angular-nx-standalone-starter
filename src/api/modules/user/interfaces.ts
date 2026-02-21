@@ -71,7 +71,7 @@ export interface CreateUserWithHashedPasswordParams {
 	firstName: string;
 	lastName: string;
 	passwordHash: string;
-	mustChangePassword: boolean;
+	mustChangePassword: true;
 	roleIds: number[];
 }
 
