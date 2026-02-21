@@ -231,6 +231,15 @@ describe('UserManagementService', () => {
 
 			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]]);
 		});
+
+		it('should deduplicate roleIds before replacing roles', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
+			mockReplaceUserRoles.mockResolvedValue(undefined);
+
+			await service.update(1, { roleIds: [1, 2, 1, 2] }, 999);
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]]);
+		});
 	});
 
 	describe('delete', () => {
