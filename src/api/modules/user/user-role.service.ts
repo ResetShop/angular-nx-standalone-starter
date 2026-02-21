@@ -5,6 +5,7 @@ import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './i
 export const USER_ROLE_ERRORS = {
 	USER_NOT_FOUND: 'User not found',
 	ROLE_NOT_FOUND: 'Role not found',
+	ROLES_NOT_FOUND: 'Roles not found',
 	ROLE_ALREADY_ASSIGNED: 'Role is already assigned to this user',
 	ROLE_NOT_ASSIGNED: 'Role is not assigned to this user',
 } as const;
