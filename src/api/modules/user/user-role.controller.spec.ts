@@ -15,6 +15,7 @@ describe('User Role Controller', () => {
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 	const mockAssignRoleToUser = fn<[number, number], Promise<void>>();
 	const mockRemoveRoleFromUser = fn<[number, number], Promise<void>>();
+	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>();
 	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>();
 
 	// Create app with auth middleware that simulates authenticated user
@@ -84,7 +85,7 @@ describe('User Role Controller', () => {
 				getUserPermissions: mockGetUserPermissions,
 				assignRoleToUser: mockAssignRoleToUser,
 				removeRoleFromUser: mockRemoveRoleFromUser,
-				getUserRolesWithPermissions: fn<[number], Promise<RoleWithPermissions[]>>(),
+				getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
 				replaceUserRoles: mockReplaceUserRoles,
 			},
 		});

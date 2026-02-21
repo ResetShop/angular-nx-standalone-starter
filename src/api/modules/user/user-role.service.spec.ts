@@ -12,6 +12,7 @@ describe('UserRoleService', () => {
 	const mockAssignRoleToUser = fn<[number, number], Promise<boolean>>();
 	const mockRemoveRoleFromUser = fn<[number, number], Promise<boolean>>();
 	const mockUserHasRole = fn<[number, number], Promise<boolean>>();
+	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>();
 	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>();
 	const mockFindUserById = fn<[number], Promise<UserData | null>>();
 	const mockFindRoleById = fn<[number], Promise<RoleData | null>>();
@@ -22,7 +23,7 @@ describe('UserRoleService', () => {
 		assignRoleToUser: mockAssignRoleToUser,
 		removeRoleFromUser: mockRemoveRoleFromUser,
 		userHasRole: mockUserHasRole,
-		getUserRolesWithPermissions: fn<[number], Promise<RoleWithPermissions[]>>(),
+		getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
 		replaceUserRoles: mockReplaceUserRoles,
 	};
 
