@@ -1,6 +1,6 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import type { ManagedUser } from '@contracts/user/user.types';
+import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -82,7 +82,6 @@ app.post(
 		'json',
 		z.object({
 			email: z.string().email(),
-			password: z.string().min(8).max(128),
 			firstName: z.string().min(1).max(100),
 			lastName: z.string().min(1).max(100),
 			roleIds: z.array(z.number().int().positive()).optional(),
@@ -93,8 +92,8 @@ app.post(
 		const body = c.req.valid('json');
 
 		try {
-			const userData = await userManagementService.create(body);
-			return c.json<ManagedUser>(userData, 201);
+			const result = await userManagementService.create(body);
+			return c.json<CreateUserResponse>(result, 201);
 		} catch (error) {
 			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
 				return c.json<ErrorResponse>({ error: error.message }, 409);
