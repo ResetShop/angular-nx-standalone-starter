@@ -141,4 +141,25 @@ export class UserRoleService implements IUserRoleService {
 			throw userRoleErrors.roleNotAssigned(userId, roleId);
 		}
 	}
+
+	/**
+	 * Replaces all role assignments for a user.
+	 * Validates that the user exists and deduplicates role IDs before delegating
+	 * to the repository, which validates role existence and performs the swap
+	 * in a single transaction.
+	 *
+	 * @param userId - The user's primary key
+	 * @param roleIds - Array of role IDs to assign (replaces all existing)
+	 * @throws Error if user not found
+	 * @throws Error if any role ID does not exist
+	 */
+	async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
+		const user = await this.userRepository.findById(userId);
+		if (!user) {
+			throw userRoleErrors.userNotFound(userId);
+		}
+
+		const uniqueRoleIds = [...new Set(roleIds)];
+		await this.userRoleRepository.replaceUserRoles(userId, uniqueRoleIds);
+	}
 }

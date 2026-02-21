@@ -1,0 +1,69 @@
+meta {
+  name: Replace User Roles
+  type: http
+  seq: 11
+}
+
+put {
+  url: {{baseUrl}}/user/1/roles
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "roleIds": [1, 2]
+  }
+}
+
+docs {
+  # Replace User Roles
+
+  Replaces all role assignments for a user in a single operation. Existing roles are removed and the provided roles are assigned.
+
+  ## Contract Types
+
+  - Response: `SuccessMessage` from `@contracts/common/error.types`
+
+  ## Path Parameters
+
+  | Parameter | Type | Description |
+  |-----------|------|-------------|
+  | userId | number | User ID |
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | roleIds | number[] | Yes | Array of role IDs to assign (must be positive integers). Pass an empty array to remove all roles. |
+
+  ## Response
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | message | string | Success message |
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Invalid user ID | User ID is not a valid number |
+  | 400 | Validation error | Invalid roleIds in request body |
+  | 400 | Roles not found: ... | One or more role IDs do not exist |
+  | 404 | User not found | User ID doesn't exist |
+}
+
+assert {
+  res.status: eq 200
+  res.body.message: eq Roles replaced successfully
+}
+
+tests {
+  test("should return 200 on successful replacement", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return success message", function() {
+    expect(res.body.message).to.equal("Roles replaced successfully");
+  });
+}

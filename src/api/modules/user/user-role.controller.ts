@@ -115,6 +115,46 @@ app.post(
 );
 
 /**
+ * PUT /api/user/:userId/roles
+ * Replace all role assignments for a user
+ */
+app.put(
+	'/:userId/roles',
+	requirePermission(ADMIN_USER_ROLE_PERMISSIONS.ASSIGN),
+	zValidator(
+		'json',
+		z.object({
+			roleIds: z.array(z.number().int().positive()),
+		}),
+	),
+	async (c) => {
+		const { userRoleService } = container.cradle;
+		const userId = parseInt(c.req.param('userId'), 10);
+
+		if (isNaN(userId)) {
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
+		}
+
+		const { roleIds } = c.req.valid('json');
+
+		try {
+			await userRoleService.replaceUserRoles(userId, roleIds);
+			return c.json<SuccessMessage>({ message: 'Roles replaced successfully' });
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
+					return c.json<ErrorResponse>({ error: error.message }, 404);
+				}
+				if (error.message.startsWith('Roles not found')) {
+					return c.json<ErrorResponse>({ error: error.message }, 400);
+				}
+			}
+			throw error;
+		}
+	},
+);
+
+/**
  * DELETE /api/user/:userId/roles/:roleId
  * Remove a role from a user
  */
