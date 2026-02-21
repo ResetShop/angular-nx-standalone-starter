@@ -124,16 +124,7 @@ export class UserManagementService implements IUserManagementService {
 		}
 
 		// Update user fields
-		const { roleIds, ...userFields } = params;
-		const hasUserFields = Object.values(userFields).some((v) => v !== undefined);
-		if (hasUserFields) {
-			await this.userManagementRepository.update(id, userFields);
-		}
-
-		// Update roles if provided
-		if (roleIds !== undefined) {
-			await this.userManagementRepository.replaceUserRoles(id, [...new Set(roleIds)]);
-		}
+		await this.userManagementRepository.update(id, params);
 
 		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id);
 		if (!updatedUser) {

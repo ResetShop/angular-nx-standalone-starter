@@ -52,7 +52,6 @@ export interface UpdateUserParams {
 	firstName?: string;
 	lastName?: string;
 	enabled?: boolean;
-	roleIds?: number[];
 }
 
 // ============================================================================
@@ -88,7 +87,6 @@ export interface IUserManagementRepository {
 		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },
 	): Promise<UserData | null>;
 	softDelete(id: number): Promise<boolean>;
-	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>;
 }
 
 // ============================================================================
@@ -149,6 +147,12 @@ export interface IUserRoleRepository {
 	 * Check if a user has a specific role
 	 */
 	userHasRole(userId: number, roleId: number): Promise<boolean>;
+
+	/**
+	 * Replace all role assignments for a user
+	 * @throws Error if any role ID does not exist
+	 */
+	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>;
 }
 
 /**
