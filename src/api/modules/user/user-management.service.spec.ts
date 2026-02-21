@@ -141,7 +141,7 @@ describe('UserManagementService', () => {
 			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [1] });
 		});
 
-		it('should create user without roles by defaulting to empty array', async () => {
+		it('should create user without roles when roleIds is omitted', async () => {
 			const userWithNoRoles = { ...testManagedUser, roles: [] };
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(userWithNoRoles);
