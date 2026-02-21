@@ -7,6 +7,7 @@ import { BaseRepository } from '../../helpers/base.repository';
 import { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRoleRepository } from './interfaces';
+import { USER_ROLE_ERRORS } from './user-role.service';
 
 /**
  * Repository for user-role relationship database operations.
@@ -179,7 +180,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 		if (roleIds.length > 0) {
 			const missingIds = await this.findMissingRoleIds(roleIds);
 			if (missingIds.length > 0) {
-				throw new Error(`Roles not found: ${missingIds.join(', ')}`);
+				throw new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: ${missingIds.join(', ')}`);
 			}
 		}
 
