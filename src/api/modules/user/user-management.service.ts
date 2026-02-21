@@ -93,12 +93,14 @@ export class UserManagementService implements IUserManagementService {
 		const plainPassword = await this.generatePassword();
 		const passwordHash = await hash(plainPassword, BCRYPT_SALT_ROUNDS);
 
+		const mustChangePassword = params.mustChangePassword ?? true;
+
 		const user = await this.userManagementRepository.create({
 			email: params.email,
 			firstName: params.firstName,
 			lastName: params.lastName,
 			passwordHash,
-			mustChangePassword: true,
+			mustChangePassword,
 			roleIds: [...new Set(params.roleIds ?? [])],
 		});
 
@@ -108,6 +110,7 @@ export class UserManagementService implements IUserManagementService {
 				firstName: params.firstName,
 				email: params.email,
 				password: plainPassword,
+				mustChangePassword,
 			});
 			await this.emailService.send({ to: params.email, ...emailContent });
 			passwordEmailSent = true;
