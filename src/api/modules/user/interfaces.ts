@@ -182,6 +182,12 @@ export interface IUserRoleService {
 	 * @throws Error if user not found or role not assigned
 	 */
 	removeRoleFromUser(userId: number, roleId: number): Promise<void>;
+
+	/**
+	 * Replace all role assignments for a user
+	 * @throws Error if user not found or any role ID does not exist
+	 */
+	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>;
 }
 
 /**
