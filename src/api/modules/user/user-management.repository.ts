@@ -253,20 +253,36 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 
 	/**
 	 * Replaces all role assignments for a user.
+	 * Validates that all role IDs exist before replacing.
 	 * Removes existing roles and assigns the new ones in a transaction.
 	 *
 	 * @param userId - The user's primary key
 	 * @param roleIds - Array of role IDs to assign (replaces existing)
+	 * @throws Error if any role ID does not exist
 	 */
 	async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
+		if (roleIds.length > 0) {
+			const missingIds = await this.findMissingRoleIds(roleIds);
+			if (missingIds.length > 0) {
+				throw new Error(`Roles not found: ${missingIds.join(', ')}`);
+			}
+		}
+
 		await this.db.transaction(async (tx) => {
 			await tx.delete(userRole).where(eq(userRole.userId, userId));
 
 			if (roleIds.length > 0) {
 				const values = roleIds.map((roleId) => ({ userId, roleId }));
-				await tx.insert(userRole).values(values).onConflictDoNothing();
+				await tx.insert(userRole).values(values);
 			}
 		});
+	}
+
+	private async findMissingRoleIds(roleIds: number[]): Promise<number[]> {
+		const result = await this.db.select({ id: role.id }).from(role).where(inArray(role.id, roleIds));
+
+		const existingIds = new Set(result.map((r) => r.id));
+		return roleIds.filter((id) => !existingIds.has(id));
 	}
 
 	/**

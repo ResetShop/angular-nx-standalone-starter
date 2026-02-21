@@ -132,7 +132,7 @@ export class UserManagementService implements IUserManagementService {
 
 		// Update roles if provided
 		if (roleIds !== undefined) {
-			await this.userManagementRepository.replaceUserRoles(id, roleIds);
+			await this.userManagementRepository.replaceUserRoles(id, [...new Set(roleIds)]);
 		}
 
 		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id);
