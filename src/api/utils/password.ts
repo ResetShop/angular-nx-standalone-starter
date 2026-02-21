@@ -1,9 +1,31 @@
 import { randomInt } from 'crypto';
-import { readFile } from 'fs/promises';
+import { access, readFile } from 'fs/promises';
 import { resolve } from 'path';
 import { z } from 'zod';
 
 const wordListCache = new Map<string, readonly string[]>();
+
+async function resolveWordListPath(filename: string): Promise<string> {
+	/**
+	 * Candidate directories for wordlist files, checked in order.
+	 * - Production: copied to dist/app/server/wordlists/ via copy-server-assets Nx target
+	 * - Development: source tree location
+	 */
+	const candidateDirs = [resolve(import.meta.dirname, 'wordlists'), resolve(process.cwd(), 'src/api/utils/wordlists')];
+
+	for (const dir of candidateDirs) {
+		const candidate = resolve(dir, filename);
+		try {
+			await access(candidate);
+			return candidate;
+		} catch (error) {
+			// TODO(#66): Replace with structured logging service
+			console.error(`Wordlist not found at ${candidate}:`, error.message);
+			continue;
+		}
+	}
+	throw new Error(`Word list file not found: ${filename}`);
+}
 
 // TODO (#159): Validate language against an allowlist to prevent path traversal
 async function getWordList(language: string): Promise<readonly string[]> {
@@ -12,7 +34,7 @@ async function getWordList(language: string): Promise<readonly string[]> {
 		return cached;
 	}
 
-	const filePath = resolve(__dirname, 'wordlists', `${language}-password-seed.txt`);
+	const filePath = await resolveWordListPath(`${language}-password-seed.txt`);
 	const content = await readFile(filePath, 'utf-8');
 	const lines = content.split('\n');
 	const words = Object.freeze(

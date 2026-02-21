@@ -55,6 +55,12 @@
 			},
 			"defaultConfiguration": "production"
 		},
+		"copy-server-assets": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node -e \"import('fs').then(f=>f.cpSync('src/api/utils/wordlists','dist/app/server/wordlists',{recursive:true}))\""
+			}
+		},
 		"serve": {
 			"continuous": true,
 			"executor": "@angular/build:dev-server",
