@@ -6,7 +6,13 @@ import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { BaseRepository } from '../../helpers/base.repository';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { RoleData } from '../access/role/interfaces';
-import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
+import type {
+	CreateUserWithHashedPasswordParams,
+	IUserManagementRepository,
+	ManagedUserData,
+	UpdateUserParams,
+	UserData,
+} from './interfaces';
 
 interface UserProjection {
 	id: number;
@@ -144,18 +150,13 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	}
 
 	/**
-	 * Creates a new user and their authentication record in a single transaction.
-	 * The user record stores profile data, the authentication record stores the password hash.
+	 * Creates a new user with authentication and role assignments in a single transaction.
+	 * If any step fails (e.g. invalid roleId FK violation), the entire operation is rolled back.
 	 *
-	 * @param params - User creation parameters including password hash
-	 * @returns The newly created user data
+	 * @param params - User creation parameters including password hash and role IDs
+	 * @returns The newly created user with roles
 	 */
-	async create(params: {
-		email: string;
-		firstName: string;
-		lastName: string;
-		passwordHash: string;
-	}): Promise<UserData> {
+	async create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData> {
 		return this.db.transaction(async (tx) => {
 			const userResult = await tx
 				.insert(user)
@@ -171,6 +172,8 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 					lastName: user.lastName,
 					enabled: user.enabled,
 					deleted: user.deleted,
+					createdAt: user.createdAt,
+					updatedAt: user.updatedAt,
 				});
 
 			const newUser = userResult[0];
@@ -180,7 +183,13 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				passwordHash: params.passwordHash,
 			});
 
-			return newUser;
+			if (params.roleIds.length > 0) {
+				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }));
+				await tx.insert(userRole).values(values);
+			}
+
+			const [result] = await this.attachRolesToUsers([newUser]);
+			return result;
 		});
 	}
 
@@ -192,10 +201,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param params - Fields to update
 	 * @returns Updated user data, or null if not found
 	 */
-	async update(
-		id: number,
-		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },
-	): Promise<UserData | null> {
+	async update(id: number, params: UpdateUserParams): Promise<UserData | null> {
 		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() };
 
 		if (params.email !== undefined) {
@@ -241,24 +247,6 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			.returning({ id: user.id });
 
 		return result.length > 0;
-	}
-
-	/**
-	 * Replaces all role assignments for a user.
-	 * Removes existing roles and assigns the new ones in a transaction.
-	 *
-	 * @param userId - The user's primary key
-	 * @param roleIds - Array of role IDs to assign (replaces existing)
-	 */
-	async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
-		await this.db.transaction(async (tx) => {
-			await tx.delete(userRole).where(eq(userRole.userId, userId));
-
-			if (roleIds.length > 0) {
-				const values = roleIds.map((roleId) => ({ userId, roleId }));
-				await tx.insert(userRole).values(values).onConflictDoNothing();
-			}
-		});
 	}
 
 	/**

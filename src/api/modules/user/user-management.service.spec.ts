@@ -1,7 +1,13 @@
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { RoleData } from '../access/role/interfaces';
-import type { IUserManagementRepository, ManagedUserData, UserData } from './interfaces';
+import type {
+	CreateUserWithHashedPasswordParams,
+	IUserManagementRepository,
+	ManagedUserData,
+	UpdateUserParams,
+	UserData,
+} from './interfaces';
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service';
 
 describe('UserManagementService', () => {
@@ -12,16 +18,9 @@ describe('UserManagementService', () => {
 	>();
 	const mockFindByIdWithRoles = fn<[number], Promise<ManagedUserData | null>>();
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>();
-	const mockCreate = fn<
-		[{ email: string; firstName: string; lastName: string; passwordHash: string }],
-		Promise<UserData>
-	>();
-	const mockUpdate = fn<
-		[number, { email?: string; firstName?: string; lastName?: string; enabled?: boolean }],
-		Promise<UserData | null>
-	>();
+	const mockCreate = fn<[CreateUserWithHashedPasswordParams], Promise<ManagedUserData>>();
+	const mockUpdate = fn<[number, UpdateUserParams], Promise<UserData | null>>();
 	const mockSoftDelete = fn<[number], Promise<boolean>>();
-	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>();
 
 	const mockRepository: IUserManagementRepository = {
 		findAll: mockFindAll,
@@ -30,7 +29,6 @@ describe('UserManagementService', () => {
 		create: mockCreate,
 		update: mockUpdate,
 		softDelete: mockSoftDelete,
-		replaceUserRoles: mockReplaceUserRoles,
 	};
 
 	let service: UserManagementService;
@@ -62,13 +60,7 @@ describe('UserManagementService', () => {
 	};
 
 	beforeEach(() => {
-		mockFindAll.mockClear();
-		mockFindByIdWithRoles.mockClear();
-		mockFindByEmail.mockClear();
-		mockCreate.mockClear();
-		mockUpdate.mockClear();
-		mockSoftDelete.mockClear();
-		mockReplaceUserRoles.mockClear();
+		clearAllMocks();
 
 		service = new UserManagementService({
 			userManagementRepository: mockRepository,
@@ -127,11 +119,9 @@ describe('UserManagementService', () => {
 	});
 
 	describe('create', () => {
-		it('should create a new user', async () => {
+		it('should create a new user with roles', async () => {
 			mockFindByEmail.mockResolvedValue(null);
-			mockCreate.mockResolvedValue(testUser);
-			mockReplaceUserRoles.mockResolvedValue(undefined);
-			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
+			mockCreate.mockResolvedValue(testManagedUser);
 
 			const result = await service.create({
 				email: 'test@example.com',
@@ -144,13 +134,13 @@ describe('UserManagementService', () => {
 			expect(result).toEqual(testManagedUser);
 			expect(mockFindByEmail.calls).toEqual([['test@example.com']]);
 			expect(mockCreate.calls).toHaveLength(1);
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1]]]);
+			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [1] });
 		});
 
-		it('should create user without roles', async () => {
+		it('should create user without roles when roleIds is omitted', async () => {
+			const userWithNoRoles = { ...testManagedUser, roles: [] };
 			mockFindByEmail.mockResolvedValue(null);
-			mockCreate.mockResolvedValue(testUser);
-			mockFindByIdWithRoles.mockResolvedValue({ ...testManagedUser, roles: [] });
+			mockCreate.mockResolvedValue(userWithNoRoles);
 
 			const result = await service.create({
 				email: 'test@example.com',
@@ -160,7 +150,7 @@ describe('UserManagementService', () => {
 			});
 
 			expect(result.roles).toEqual([]);
-			expect(mockReplaceUserRoles.calls).toHaveLength(0);
+			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [] });
 		});
 
 		it('should throw EMAIL_EXISTS when email is taken', async () => {
@@ -227,15 +217,6 @@ describe('UserManagementService', () => {
 			await expect(service.update(1, { email: 'taken@example.com' }, 999)).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.EMAIL_EXISTS,
 			);
-		});
-
-		it('should update roles when roleIds provided', async () => {
-			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
-			mockReplaceUserRoles.mockResolvedValue(undefined);
-
-			await service.update(1, { roleIds: [1, 2] }, 999);
-
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]]);
 		});
 	});
 
