@@ -83,22 +83,13 @@ export class UserManagementService implements IUserManagementService {
 
 		const passwordHash = await hash(params.password, BCRYPT_SALT_ROUNDS);
 
-		const newUser = await this.userManagementRepository.create({
+		return this.userManagementRepository.create({
 			email: params.email,
 			firstName: params.firstName,
 			lastName: params.lastName,
 			passwordHash,
+			roleIds: [...new Set(params.roleIds ?? [])],
 		});
-
-		if (params.roleIds && params.roleIds.length > 0) {
-			await this.userManagementRepository.replaceUserRoles(newUser.id, params.roleIds);
-		}
-
-		const userData = await this.userManagementRepository.findByIdWithRoles(newUser.id);
-		if (!userData) {
-			throw userManagementErrors.notFound(newUser.id);
-		}
-		return userData;
 	}
 
 	/**
@@ -133,16 +124,7 @@ export class UserManagementService implements IUserManagementService {
 		}
 
 		// Update user fields
-		const { roleIds, ...userFields } = params;
-		const hasUserFields = Object.values(userFields).some((v) => v !== undefined);
-		if (hasUserFields) {
-			await this.userManagementRepository.update(id, userFields);
-		}
-
-		// Update roles if provided
-		if (roleIds !== undefined) {
-			await this.userManagementRepository.replaceUserRoles(id, roleIds);
-		}
+		await this.userManagementRepository.update(id, params);
 
 		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id);
 		if (!updatedUser) {

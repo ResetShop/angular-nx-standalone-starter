@@ -11,6 +11,7 @@ describe('Auth Mapper', () => {
 					firstName: 'John',
 					lastName: 'Doe',
 				},
+				mustChangePassword: false,
 			};
 
 			const user = mapLoginResponseToUser(response);

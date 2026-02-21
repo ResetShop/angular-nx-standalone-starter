@@ -165,6 +165,27 @@ describe('AuthService', () => {
 				}),
 			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
+
+		it('should return mustChangePassword as false for normal users', async () => {
+			const result = await authService.authenticate({
+				email: testUser.email,
+				password: testPassword,
+			});
+
+			expect(result.mustChangePassword).toBe(false);
+		});
+
+		it('should return mustChangePassword as true when auth record has mustChangePassword set to true', async () => {
+			mockAuthRepo.clear();
+			mockAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash, mustChangePassword: true });
+
+			const result = await authService.authenticate({
+				email: testUser.email,
+				password: testPassword,
+			});
+
+			expect(result.mustChangePassword).toBe(true);
+		});
 	});
 
 	describe('account lockout', () => {

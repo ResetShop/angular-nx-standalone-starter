@@ -21,6 +21,7 @@ assert {
   res.status: eq 200
   res.body.user: isDefined
   res.body.user.email: isDefined
+  res.body.mustChangePassword: isDefined
 }
 
 tests {
@@ -34,6 +35,10 @@ tests {
 
   test("should return user email", function() {
     expect(res.body.user.email).to.be.a("string");
+  });
+
+  test("should return mustChangePassword flag", function() {
+    expect(res.body.mustChangePassword).to.be.a("boolean");
   });
 
   test("should set access token cookie", function() {
@@ -81,7 +86,7 @@ docs {
   | user.email | string | User email |
   | user.firstName | string | User's first name |
   | user.lastName | string | User's last name |
-  | mustChangePassword | boolean | Optional. Present and true when user must change password on first login |
+  | mustChangePassword | boolean | Whether the user must change their password before proceeding |
 
   ## Notes
 
