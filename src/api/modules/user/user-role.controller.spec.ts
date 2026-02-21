@@ -353,6 +353,23 @@ describe('User Role Controller', () => {
 	});
 
 	describe('PUT /users/:userId/roles', () => {
+		it('should return 403 when caller lacks required permissions', async () => {
+			mockGetUserPermissions.mockImplementation((userId: number) => {
+				if (userId === ADMIN_USER_ID) {
+					return Promise.resolve([allUserRolePermissions[0]]);
+				}
+				return Promise.resolve(testPermissions);
+			});
+
+			const res = await app.request('/users/1/roles', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [1, 2] }),
+			});
+
+			expect(res.status).toBe(403);
+		});
+
 		it('should replace user roles', async () => {
 			mockReplaceUserRoles.mockResolvedValue(undefined);
 
