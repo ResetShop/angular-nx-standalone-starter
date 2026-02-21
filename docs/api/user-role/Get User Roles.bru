@@ -5,12 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/users/1/roles
+  url: {{baseUrl}}/user/1/roles
   body: none
   auth: none
-}
-
-}
 }
 
 docs {
@@ -20,7 +17,7 @@ docs {
 
   ## Contract Types
 
-  - Response: `PaginatedResponse<RoleData>` from `@contracts/common/pagination.types` and `@contracts/roles/roles.types`
+  - Response: `PaginatedResponse<RoleData>` from `@contracts/common/pagination.types` and `@contracts/role/role.types`
 
   ## Path Parameters
 

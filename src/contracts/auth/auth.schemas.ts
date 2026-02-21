@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { roleWithPermissionsSchema } from '../roles/roles.schemas';
-import { authUserSchema } from '../users/users.schemas';
+import { roleWithPermissionsSchema } from '../role/role.schemas';
+import { authUserSchema } from '../user/user.schemas';
 
 // ============================================================================
 // Request Schemas

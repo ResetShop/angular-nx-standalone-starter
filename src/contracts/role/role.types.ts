@@ -7,7 +7,7 @@ import type {
 	roleDataSchema,
 	roleWithPermissionsSchema,
 	updateRoleRequestSchema,
-} from './roles.schemas';
+} from './role.schemas';
 
 // ============================================================================
 // Permission Types

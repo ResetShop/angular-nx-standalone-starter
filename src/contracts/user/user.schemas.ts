@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { roleDataSchema } from '../roles/roles.schemas';
+import { roleDataSchema } from '../role/role.schemas';
 
 // ============================================================================
 // User Data Schemas
