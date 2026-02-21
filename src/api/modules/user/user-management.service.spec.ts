@@ -1,5 +1,6 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
+import type { IEmailService, SendEmailParams } from '../../services/email/interfaces';
 import type { RoleData } from '../access/role/interfaces';
 import type {
 	CreateUserWithHashedPasswordParams,
@@ -11,7 +12,7 @@ import type {
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service';
 
 describe('UserManagementService', () => {
-	// Mock functions
+	// Repository mock functions
 	const mockFindAll = fn<
 		[{ offset?: number; limit?: number } | undefined, string | undefined],
 		Promise<{ data: ManagedUserData[]; total: number; offset: number; limit: number }>
@@ -30,6 +31,13 @@ describe('UserManagementService', () => {
 		update: mockUpdate,
 		softDelete: mockSoftDelete,
 	};
+
+	// Email mock
+	const mockSend = fn<[SendEmailParams], Promise<void>>();
+	const mockEmailService: IEmailService = { send: mockSend };
+
+	// Password generator mock
+	const mockGeneratePassword = fn<[], Promise<string>>();
 
 	let service: UserManagementService;
 
@@ -62,8 +70,13 @@ describe('UserManagementService', () => {
 	beforeEach(() => {
 		clearAllMocks();
 
+		mockGeneratePassword.mockResolvedValue('indigo.rabbit.troop');
+		mockSend.mockResolvedValue(undefined);
+
 		service = new UserManagementService({
 			userManagementRepository: mockRepository,
+			emailService: mockEmailService,
+			generatePassword: mockGeneratePassword,
 		});
 	});
 
@@ -119,19 +132,19 @@ describe('UserManagementService', () => {
 	});
 
 	describe('create', () => {
-		it('should create a new user with roles', async () => {
+		it('should create a new user with roles and send welcome email', async () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			const result = await service.create({
+			const { passwordEmailSent, ...user } = await service.create({
 				email: 'test@example.com',
-				password: 'password123',
 				firstName: 'Test',
 				lastName: 'User',
 				roleIds: [1],
 			});
 
-			expect(result).toEqual(testManagedUser);
+			expect(user).toEqual(testManagedUser);
+			expect(passwordEmailSent).toBe(true);
 			expect(mockFindByEmail.calls).toEqual([['test@example.com']]);
 			expect(mockCreate.calls).toHaveLength(1);
 			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [1] });
@@ -144,7 +157,6 @@ describe('UserManagementService', () => {
 
 			const result = await service.create({
 				email: 'test@example.com',
-				password: 'password123',
 				firstName: 'Test',
 				lastName: 'User',
 			});
@@ -159,11 +171,101 @@ describe('UserManagementService', () => {
 			await expect(
 				service.create({
 					email: 'test@example.com',
-					password: 'password123',
 					firstName: 'Test',
 					lastName: 'User',
 				}),
 			).rejects.toThrow(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS);
+		});
+
+		it('should auto-generate a password and hash it', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+
+			await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+			});
+
+			expect(mockGeneratePassword.calls).toHaveLength(1);
+			const { passwordHash } = mockCreate.calls[0][0];
+			expect(passwordHash).toEqual(expect.any(String));
+			expect(passwordHash).not.toBe('indigo.rabbit.troop');
+		});
+
+		it('should set mustChangePassword to true', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+
+			await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+			});
+
+			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true });
+		});
+
+		it('should send welcome email with generated password', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+
+			await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+			});
+
+			expect(mockSend.calls).toHaveLength(1);
+			const sentEmail = mockSend.calls[0][0];
+			expect(sentEmail.to).toBe('test@example.com');
+			expect(sentEmail.subject).toEqual(expect.any(String));
+			expect(sentEmail.text).toContain('indigo.rabbit.troop');
+			expect(sentEmail.html).toContain('indigo.rabbit.troop');
+		});
+
+		it('should return passwordEmailSent true when email succeeds', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+			mockSend.mockResolvedValue(undefined);
+
+			const result = await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+			});
+
+			expect(result.passwordEmailSent).toBe(true);
+		});
+
+		it('should return passwordEmailSent false when email fails', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+			mockSend.mockRejectedValue(new Error('SMTP connection refused'));
+
+			const result = await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+			});
+
+			expect(result.passwordEmailSent).toBe(false);
+		});
+
+		it('should still create user when email sending fails', async () => {
+			mockFindByEmail.mockResolvedValue(null);
+			mockCreate.mockResolvedValue(testManagedUser);
+			mockSend.mockRejectedValue(new Error('SMTP connection refused'));
+
+			const { passwordEmailSent, ...user } = await service.create({
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+			});
+
+			expect(mockCreate.calls).toHaveLength(1);
+			expect(user).toEqual(testManagedUser);
+			expect(passwordEmailSent).toBe(false);
 		});
 	});
 

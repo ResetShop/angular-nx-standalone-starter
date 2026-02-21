@@ -18,8 +18,8 @@ describe('User Management Controller', () => {
 	>();
 	const mockGetById = fn<[number], Promise<ManagedUserData>>();
 	const mockCreate = fn<
-		[{ email: string; password: string; firstName: string; lastName: string; roleIds?: number[] }],
-		Promise<ManagedUserData>
+		[{ email: string; firstName: string; lastName: string; roleIds?: number[] }],
+		Promise<ManagedUserData & { passwordEmailSent: boolean }>
 	>();
 	const mockUpdate = fn<
 		[number, { email?: string; firstName?: string; lastName?: string; enabled?: boolean; roleIds?: number[] }, number],
@@ -189,14 +189,13 @@ describe('User Management Controller', () => {
 
 	describe('POST /users', () => {
 		it('should create a new user', async () => {
-			mockCreate.mockResolvedValue(testManagedUser);
+			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
 
 			const res = await app.request('/users', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email: 'test@example.com',
-					password: 'password123',
 					firstName: 'Test',
 					lastName: 'User',
 					roleIds: [1],
@@ -206,6 +205,7 @@ describe('User Management Controller', () => {
 			expect(res.status).toBe(201);
 			const data = await res.json();
 			expect(data.email).toBe('test@example.com');
+			expect(data.passwordEmailSent).toBe(true);
 		});
 
 		it('should return 409 when email already exists', async () => {
@@ -216,7 +216,6 @@ describe('User Management Controller', () => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email: 'test@example.com',
-					password: 'password123',
 					firstName: 'Test',
 					lastName: 'User',
 				}),
@@ -233,22 +232,7 @@ describe('User Management Controller', () => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email: 'test@example.com',
-					// missing password, firstName, lastName
-				}),
-			});
-
-			expect(res.status).toBe(400);
-		});
-
-		it('should validate password minimum length', async () => {
-			const res = await app.request('/users', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					email: 'test@example.com',
-					password: 'short',
-					firstName: 'Test',
-					lastName: 'User',
+					// missing firstName, lastName
 				}),
 			});
 
@@ -261,7 +245,6 @@ describe('User Management Controller', () => {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					email: 'not-an-email',
-					password: 'password123',
 					firstName: 'Test',
 					lastName: 'User',
 				}),
