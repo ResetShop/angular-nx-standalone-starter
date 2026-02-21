@@ -6,7 +6,7 @@ import type {
 	managedUserSchema,
 	updateUserRequestSchema,
 	userDataSchema,
-} from './users.schemas';
+} from './user.schemas';
 
 // ============================================================================
 // User Data Types
