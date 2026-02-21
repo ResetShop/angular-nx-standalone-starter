@@ -1,6 +1,6 @@
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { PermissionData, RoleData } from '../access/role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRoleRepository, PaginatedResponse, UserData } from './interfaces';
 import { USER_ROLE_ERRORS, UserRoleService } from './user-role.service';
 
@@ -21,7 +21,7 @@ describe('UserRoleService', () => {
 		assignRoleToUser: mockAssignRoleToUser,
 		removeRoleFromUser: mockRemoveRoleFromUser,
 		userHasRole: mockUserHasRole,
-		getUserRolesWithPermissions: fn(),
+		getUserRolesWithPermissions: fn<[number], Promise<RoleWithPermissions[]>>(),
 		replaceUserRoles: mockReplaceUserRoles,
 	};
 
@@ -69,14 +69,7 @@ describe('UserRoleService', () => {
 	];
 
 	beforeEach(() => {
-		mockGetUserRoles.mockClear();
-		mockGetUserPermissions.mockClear();
-		mockAssignRoleToUser.mockClear();
-		mockRemoveRoleFromUser.mockClear();
-		mockUserHasRole.mockClear();
-		mockReplaceUserRoles.mockClear();
-		mockFindUserById.mockClear();
-		mockFindRoleById.mockClear();
+		clearAllMocks();
 
 		service = new UserRoleService({
 			userRoleRepository: mockUserRoleRepository,

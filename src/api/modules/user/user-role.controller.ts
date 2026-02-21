@@ -139,13 +139,13 @@ app.put(
 
 		try {
 			await userRoleService.replaceUserRoles(userId, roleIds);
-			return c.json<SuccessMessage>({ message: 'Roles replaced successfully' });
+			return c.json<SuccessMessage>({ message: 'Roles replaced successfully' }, 200);
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
 					return c.json<ErrorResponse>({ error: error.message }, 404);
 				}
-				if (error.message.startsWith('Roles not found')) {
+				if (error.message.startsWith(USER_ROLE_ERRORS.ROLES_NOT_FOUND)) {
 					return c.json<ErrorResponse>({ error: error.message }, 400);
 				}
 			}
