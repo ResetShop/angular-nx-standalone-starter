@@ -40,6 +40,7 @@ export interface CreateUserParams {
 	password: string;
 	firstName: string;
 	lastName: string;
+	/** Role IDs to assign. Defaults to no roles when omitted. */
 	roleIds?: number[];
 }
 
@@ -51,7 +52,6 @@ export interface UpdateUserParams {
 	firstName?: string;
 	lastName?: string;
 	enabled?: boolean;
-	roleIds?: number[];
 }
 
 // ============================================================================
@@ -66,6 +66,14 @@ export interface IUserRepository {
 	findById(id: number): Promise<UserData | null>;
 }
 
+export interface CreateUserWithHashedPasswordParams {
+	email: string;
+	firstName: string;
+	lastName: string;
+	passwordHash: string;
+	roleIds: number[];
+}
+
 /**
  * User management repository interface for CRUD operations
  */
@@ -73,13 +81,9 @@ export interface IUserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>;
 	findByEmail(email: string): Promise<UserData | null>;
-	create(params: { email: string; firstName: string; lastName: string; passwordHash: string }): Promise<UserData>;
-	update(
-		id: number,
-		params: { email?: string; firstName?: string; lastName?: string; enabled?: boolean },
-	): Promise<UserData | null>;
+	create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData>;
+	update(id: number, params: UpdateUserParams): Promise<UserData | null>;
 	softDelete(id: number): Promise<boolean>;
-	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>;
 }
 
 // ============================================================================
@@ -140,6 +144,12 @@ export interface IUserRoleRepository {
 	 * Check if a user has a specific role
 	 */
 	userHasRole(userId: number, roleId: number): Promise<boolean>;
+
+	/**
+	 * Replace all role assignments for a user
+	 * @throws Error if any role ID does not exist
+	 */
+	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>;
 }
 
 /**
