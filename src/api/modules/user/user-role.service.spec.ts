@@ -1,6 +1,6 @@
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { PermissionData, RoleData } from '../access/role/interfaces';
+import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRoleRepository, PaginatedResponse, UserData } from './interfaces';
 import { USER_ROLE_ERRORS, UserRoleService } from './user-role.service';
 
@@ -11,6 +11,7 @@ describe('UserRoleService', () => {
 	const mockAssignRoleToUser = fn<[number, number], Promise<boolean>>();
 	const mockRemoveRoleFromUser = fn<[number, number], Promise<boolean>>();
 	const mockUserHasRole = fn<[number, number], Promise<boolean>>();
+	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>();
 	const mockFindUserById = fn<[number], Promise<UserData | null>>();
 	const mockFindRoleById = fn<[number], Promise<RoleData | null>>();
 
@@ -20,6 +21,8 @@ describe('UserRoleService', () => {
 		assignRoleToUser: mockAssignRoleToUser,
 		removeRoleFromUser: mockRemoveRoleFromUser,
 		userHasRole: mockUserHasRole,
+		getUserRolesWithPermissions: fn<[number], Promise<RoleWithPermissions[]>>(),
+		replaceUserRoles: mockReplaceUserRoles,
 	};
 
 	const mockUserRepository = {
@@ -66,13 +69,7 @@ describe('UserRoleService', () => {
 	];
 
 	beforeEach(() => {
-		mockGetUserRoles.mockClear();
-		mockGetUserPermissions.mockClear();
-		mockAssignRoleToUser.mockClear();
-		mockRemoveRoleFromUser.mockClear();
-		mockUserHasRole.mockClear();
-		mockFindUserById.mockClear();
-		mockFindRoleById.mockClear();
+		clearAllMocks();
 
 		service = new UserRoleService({
 			userRoleRepository: mockUserRoleRepository,
@@ -199,6 +196,43 @@ describe('UserRoleService', () => {
 			mockRemoveRoleFromUser.mockResolvedValue(false);
 
 			await expect(service.removeRoleFromUser(1, 999)).rejects.toThrow(USER_ROLE_ERRORS.ROLE_NOT_ASSIGNED);
+		});
+	});
+
+	describe('replaceUserRoles', () => {
+		it('should replace user roles with deduplicated roleIds', async () => {
+			mockFindUserById.mockResolvedValue(testUser);
+			mockReplaceUserRoles.mockResolvedValue(undefined);
+
+			await service.replaceUserRoles(1, [1, 2, 2, 3]);
+
+			expect(mockFindUserById.calls).toEqual([[1]]);
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2, 3]]]);
+		});
+
+		it('should handle empty roleIds array', async () => {
+			mockFindUserById.mockResolvedValue(testUser);
+			mockReplaceUserRoles.mockResolvedValue(undefined);
+
+			await service.replaceUserRoles(1, []);
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, []]]);
+		});
+
+		it('should throw USER_NOT_FOUND when user does not exist', async () => {
+			mockFindUserById.mockResolvedValue(null);
+
+			await expect(service.replaceUserRoles(999, [1, 2])).rejects.toThrow(USER_ROLE_ERRORS.USER_NOT_FOUND);
+			expect(mockReplaceUserRoles.calls).toEqual([]);
+		});
+
+		it('should propagate "Roles not found" error from repository', async () => {
+			mockFindUserById.mockResolvedValue(testUser);
+			mockReplaceUserRoles.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`));
+
+			await expect(service.replaceUserRoles(1, [99, 100])).rejects.toThrow(
+				`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99, 100`,
+			);
 		});
 	});
 });

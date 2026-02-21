@@ -106,8 +106,8 @@ Best practice violations that should be addressed.
 
 Improvements that would enhance code quality.
 
-| #   | File | Line | Suggestion | Addressed |
-| --- | ---- | ---- | ---------- | --------- |
+| #   | File | Line | Issue | Recommendation | Addressed |
+| --- | ---- | ---- | ----- | -------------- | --------- |
 
 ### Addressed Column Statuses
 
