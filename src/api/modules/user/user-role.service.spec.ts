@@ -2,7 +2,8 @@ import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRoleRepository, PaginatedResponse, UserData } from './interfaces';
-import { USER_ROLE_ERRORS, UserRoleService } from './user-role.service';
+import { USER_ROLE_ERRORS } from './user-role.errors';
+import { UserRoleService } from './user-role.service';
 
 describe('UserRoleService', () => {
 	// Mock functions
