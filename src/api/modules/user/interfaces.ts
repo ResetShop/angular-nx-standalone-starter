@@ -33,11 +33,11 @@ export interface ManagedUserData extends UserWithTimestamps {
 }
 
 /**
- * Parameters for creating a new user
+ * Parameters for creating a new user.
+ * Password is auto-generated server-side and sent via welcome email.
  */
 export interface CreateUserParams {
 	email: string;
-	password: string;
 	firstName: string;
 	lastName: string;
 	/** Role IDs to assign. Defaults to no roles when omitted. */
@@ -71,6 +71,7 @@ export interface CreateUserWithHashedPasswordParams {
 	firstName: string;
 	lastName: string;
 	passwordHash: string;
+	mustChangePassword: boolean;
 	roleIds: number[];
 }
 
@@ -196,7 +197,7 @@ export interface IUserRoleService {
 export interface IUserManagementService {
 	list(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
 	getById(id: number): Promise<ManagedUserData>;
-	create(params: CreateUserParams): Promise<ManagedUserData>;
+	create(params: CreateUserParams): Promise<ManagedUserData & { passwordEmailSent: boolean }>;
 	update(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
 	delete(id: number): Promise<void>;
 }
