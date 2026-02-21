@@ -43,8 +43,20 @@ docs {
   | email | string | User email address |
   | firstName | string | User's first name |
   | lastName | string | User's last name |
-  | roles | Role[] | Assigned roles |
+  | roles | RoleData[] | Assigned roles |
   | passwordEmailSent | boolean | Whether the welcome email was sent successfully |
+
+  ### RoleData Object
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | id | number | Role ID |
+  | name | string | Display name |
+  | code | string | Unique role code |
+  | description | string \| null | Role description |
+  | removable | boolean | Whether the role can be deleted |
+  | createdAt | string \| null | ISO 8601 creation timestamp |
+  | updatedAt | string \| null | ISO 8601 last update timestamp |
 }
 
 assert {
@@ -64,5 +76,6 @@ tests {
     expect(res.body.firstName).to.equal("New");
     expect(res.body.lastName).to.equal("User");
     expect(res.body.passwordEmailSent).to.be.a("boolean");
+    expect(res.body.roles).to.be.an("array");
   });
 }
