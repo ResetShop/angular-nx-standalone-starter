@@ -18,10 +18,10 @@ async function resolveWordListPath(filename: string): Promise<string> {
 		try {
 			await access(candidate);
 			return candidate;
-		} catch (error) {
+		} catch (error: unknown) {
 			// TODO(#66): Replace with structured logging service
-			console.error(`Wordlist not found at ${candidate}:`, error.message);
-			continue;
+			const message = error instanceof Error ? error.message : String(error);
+			console.error(`Wordlist not found at ${candidate}:`, message);
 		}
 	}
 	throw new Error(`Word list file not found: ${filename}`);
