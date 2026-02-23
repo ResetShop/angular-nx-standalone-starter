@@ -257,6 +257,24 @@ describe('User Management Controller', () => {
 			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: false });
 		});
 
+		it('should pass mustChangePassword true when explicitly set', async () => {
+			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
+
+			const res = await app.request('/users', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+					mustChangePassword: true,
+				}),
+			});
+
+			expect(res.status).toBe(201);
+			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true });
+		});
+
 		it('should default mustChangePassword to true when omitted', async () => {
 			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
 
