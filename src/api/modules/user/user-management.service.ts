@@ -80,7 +80,7 @@ export class UserManagementService implements IUserManagementService {
 	 * Auto-generates a passphrase, hashes it, stores with mustChangePassword flag,
 	 * and sends a welcome email with the temporary password (non-blocking).
 	 *
-	 * @param params - User creation parameters (email, firstName, lastName, roleIds)
+	 * @param params - User creation parameters (email, firstName, lastName, roleIds, mustChangePassword)
 	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
