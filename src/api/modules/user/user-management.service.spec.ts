@@ -242,6 +242,8 @@ describe('UserManagementService', () => {
 
 			const sentEmail = mockSend.calls[0][0];
 			expect(sentEmail.text).not.toContain('change your password');
+			expect(sentEmail.html).not.toContain('change your password');
+			expect(sentEmail.html).not.toContain('#fff3cd');
 		});
 
 		it('should send welcome email with generated password', async () => {
