@@ -1,3 +1,4 @@
+import type { CreateUserResponse } from '@contracts/user/user.types';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 
@@ -199,7 +200,7 @@ export interface IUserRoleService {
 export interface IUserManagementService {
 	list(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
 	getById(id: number): Promise<ManagedUserData>;
-	create(params: CreateUserParams): Promise<ManagedUserData & { passwordEmailSent: boolean }>;
+	create(params: CreateUserParams): Promise<CreateUserResponse>;
 	update(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
 	delete(id: number): Promise<void>;
 }

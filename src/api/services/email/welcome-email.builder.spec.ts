@@ -1,3 +1,5 @@
+import { clearAllMocks } from '@test-utils';
+import { beforeEach } from 'vitest';
 import { buildWelcomeEmail } from './welcome-email.builder';
 
 describe('buildWelcomeEmail', () => {
@@ -9,6 +11,10 @@ describe('buildWelcomeEmail', () => {
 	};
 
 	const originalAppLanguage = process.env['APP_LANGUAGE'];
+
+	beforeEach(() => {
+		clearAllMocks();
+	});
 
 	afterEach(() => {
 		if (originalAppLanguage !== undefined) {

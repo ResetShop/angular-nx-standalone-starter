@@ -1,3 +1,4 @@
+import type { CreateUserResponse } from '@contracts/user/user.types';
 import { hash } from 'bcryptjs';
 import { BCRYPT_SALT_ROUNDS } from '../../constants/auth.constants';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
@@ -84,7 +85,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
-	async create(params: CreateUserParams): Promise<ManagedUserData & { passwordEmailSent: boolean }> {
+	async create(params: CreateUserParams): Promise<CreateUserResponse> {
 		const existingUser = await this.userManagementRepository.findByEmail(params.email);
 		if (existingUser) {
 			throw userManagementErrors.emailExists(params.email);
@@ -104,22 +105,31 @@ export class UserManagementService implements IUserManagementService {
 			roleIds: [...new Set(params.roleIds ?? [])],
 		});
 
-		let passwordEmailSent = false;
+		const passwordEmailSent = await this.sendWelcomeEmail(
+			params.email,
+			params.firstName,
+			plainPassword,
+			mustChangePassword,
+		);
+
+		return { ...user, passwordEmailSent };
+	}
+
+	private async sendWelcomeEmail(
+		email: string,
+		firstName: string,
+		password: string,
+		mustChangePassword: boolean,
+	): Promise<boolean> {
 		try {
-			const emailContent = buildWelcomeEmail({
-				firstName: params.firstName,
-				email: params.email,
-				password: plainPassword,
-				mustChangePassword,
-			});
-			await this.emailService.send({ to: params.email, ...emailContent });
-			passwordEmailSent = true;
+			const emailContent = buildWelcomeEmail({ firstName, email, password, mustChangePassword });
+			await this.emailService.send({ to: email, ...emailContent });
+			return true;
 		} catch (error: unknown) {
 			// TODO(#66): Replace with structured logging service
 			console.error('[UserManagementService] Welcome email failed:', error);
+			return false;
 		}
-
-		return { ...user, passwordEmailSent };
 	}
 
 	/**
