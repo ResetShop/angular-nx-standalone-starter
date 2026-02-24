@@ -12,6 +12,7 @@ async function readWordListFile(filename: string): Promise<string> {
 	 * - Development: source tree location
 	 */
 	const candidateDirs = [resolve(import.meta.dirname, 'wordlists'), resolve(process.cwd(), 'src/api/utils/wordlists')];
+	const triedPaths: string[] = [];
 
 	for (const dir of candidateDirs) {
 		const candidate = resolve(dir, filename);
@@ -19,14 +20,13 @@ async function readWordListFile(filename: string): Promise<string> {
 			return await readFile(candidate, 'utf-8');
 		} catch (error: unknown) {
 			if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-				// TODO(#66): Replace with structured logging service
-				console.error(`Wordlist not found at ${candidate}`);
+				triedPaths.push(candidate);
 			} else {
 				throw error;
 			}
 		}
 	}
-	throw new Error(`Word list file not found: ${filename}`);
+	throw new Error(`Word list file not found: ${filename} (tried: ${triedPaths.join(', ')})`);
 }
 
 // TODO (#159): Validate language against an allowlist to prevent path traversal
