@@ -267,7 +267,6 @@ describe('UserManagementService', () => {
 		it('should return passwordEmailSent true when email succeeds', async () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
-			mockSend.mockResolvedValue(undefined);
 
 			const result = await service.create({
 				email: 'test@example.com',
