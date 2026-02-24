@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { z } from 'zod';
 
 const wordListCache = new Map<string, readonly string[]>();
+const wordCountSchema = z.number().int().positive();
 
 async function readWordListFile(filename: string): Promise<string> {
 	/**
@@ -65,7 +66,6 @@ async function getWordList(language: string): Promise<readonly string[]> {
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
 export async function generatePassword(wordCount = 3): Promise<string> {
-	const wordCountSchema = z.number().int().positive();
 	const parsed = wordCountSchema.safeParse(wordCount);
 	if (!parsed.success) {
 		// TODO(#66): Replace with structured logging service
