@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import type { CanActivateFn } from '@angular/router';
-import { Router } from '@angular/router';
+import { Router, type UrlTree } from '@angular/router';
 import { AuthStore } from '@store/auth/auth.store';
 import { catchError, map, of } from 'rxjs';
 
@@ -10,7 +10,7 @@ export const noAuthGuard: CanActivateFn = () => {
 	const dashboardUrl = router.createUrlTree(['/dashboard']);
 
 	return authStore.validateSession().pipe(
-		map(() => dashboardUrl as typeof dashboardUrl | boolean),
-		catchError(() => of(true as typeof dashboardUrl | boolean)),
+		map((): UrlTree | boolean => dashboardUrl),
+		catchError(() => of<UrlTree | boolean>(true)),
 	);
 };
