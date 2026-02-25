@@ -55,6 +55,12 @@
 			},
 			"defaultConfiguration": "production"
 		},
+		"copy-server-assets": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node scripts/copy-server-assets.mjs"
+			}
+		},
 		"serve": {
 			"continuous": true,
 			"executor": "@angular/build:dev-server",

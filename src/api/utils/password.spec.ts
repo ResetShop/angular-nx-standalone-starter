@@ -1,13 +1,19 @@
+import { clearAllMocks, fn } from '@test-utils';
 import { generatePassword } from './password';
 
 describe('generatePassword', () => {
 	const originalAppLanguage = process.env['APP_LANGUAGE'];
+	const consoleErrorSpy = fn<Parameters<typeof console.error>, void>();
+	const originalConsoleError = console.error;
 
 	beforeEach(() => {
+		clearAllMocks();
 		delete process.env['APP_LANGUAGE'];
+		console.error = consoleErrorSpy as typeof console.error;
 	});
 
 	afterEach(() => {
+		console.error = originalConsoleError;
 		if (originalAppLanguage !== undefined) {
 			process.env['APP_LANGUAGE'] = originalAppLanguage;
 		} else {
@@ -40,16 +46,26 @@ describe('generatePassword', () => {
 	});
 
 	describe('wordCount validation', () => {
-		it('should throw for zero', async () => {
-			await expect(generatePassword(0)).rejects.toThrow();
+		it('should fall back to default for zero and log error', async () => {
+			const password = await generatePassword(0);
+
+			expect(password.split('.')).toHaveLength(3);
+			expect(consoleErrorSpy.calls).toHaveLength(1);
+			expect(consoleErrorSpy.calls[0][0]).toContain('[generatePassword]');
 		});
 
-		it('should throw for negative values', async () => {
-			await expect(generatePassword(-1)).rejects.toThrow();
+		it('should fall back to default for negative values and log error', async () => {
+			const password = await generatePassword(-1);
+
+			expect(password.split('.')).toHaveLength(3);
+			expect(consoleErrorSpy.calls).toHaveLength(1);
 		});
 
-		it('should throw for non-integer values', async () => {
-			await expect(generatePassword(2.5)).rejects.toThrow();
+		it('should fall back to default for non-integer values and log error', async () => {
+			const password = await generatePassword(2.5);
+
+			expect(password.split('.')).toHaveLength(3);
+			expect(consoleErrorSpy.calls).toHaveLength(1);
 		});
 
 		it('should accept a custom word count', async () => {

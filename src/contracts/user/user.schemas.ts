@@ -54,14 +54,23 @@ export const managedUserSchema = z.object({
 
 /**
  * Create user request body schema.
- * Requires email, password, first/last name, and optional role IDs.
+ * Requires email, first/last name, and optional role IDs.
+ * Password is auto-generated server-side and sent via welcome email.
  */
 export const createUserRequestSchema = z.object({
 	email: z.email(),
-	password: z.string().min(8).max(128),
 	firstName: z.string().min(1).max(100),
 	lastName: z.string().min(1).max(100),
 	roleIds: z.array(z.number().int().positive()).optional(),
+	mustChangePassword: z.boolean().optional().default(true),
+});
+
+/**
+ * Create user response schema.
+ * Extends managed user with a flag indicating whether the welcome email was sent.
+ */
+export const createUserResponseSchema = managedUserSchema.extend({
+	passwordEmailSent: z.boolean(),
 });
 
 /**

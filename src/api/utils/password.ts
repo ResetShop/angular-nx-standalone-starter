@@ -4,6 +4,31 @@ import { resolve } from 'path';
 import { z } from 'zod';
 
 const wordListCache = new Map<string, readonly string[]>();
+const wordCountSchema = z.number().int().positive();
+
+async function readWordListFile(filename: string): Promise<string> {
+	/**
+	 * Candidate directories for wordlist files, checked in order.
+	 * - Production: copied to dist/app/server/wordlists/ via copy-server-assets Nx target
+	 * - Development: source tree location
+	 */
+	const candidateDirs = [resolve(import.meta.dirname, 'wordlists'), resolve(process.cwd(), 'src/api/utils/wordlists')];
+	const triedPaths: string[] = [];
+
+	for (const dir of candidateDirs) {
+		const candidate = resolve(dir, filename);
+		try {
+			return await readFile(candidate, 'utf-8');
+		} catch (error: unknown) {
+			if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+				triedPaths.push(candidate);
+			} else {
+				throw error;
+			}
+		}
+	}
+	throw new Error(`Word list file not found: ${filename} (tried: ${triedPaths.join(', ')})`);
+}
 
 // TODO (#159): Validate language against an allowlist to prevent path traversal
 async function getWordList(language: string): Promise<readonly string[]> {
@@ -12,8 +37,7 @@ async function getWordList(language: string): Promise<readonly string[]> {
 		return cached;
 	}
 
-	const filePath = resolve(__dirname, 'wordlists', `${language}-password-seed.txt`);
-	const content = await readFile(filePath, 'utf-8');
+	const content = await readWordListFile(`${language}-password-seed.txt`);
 	const lines = content.split('\n');
 	const words = Object.freeze(
 		lines
@@ -42,11 +66,15 @@ async function getWordList(language: string): Promise<readonly string[]> {
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
 export async function generatePassword(wordCount = 3): Promise<string> {
-	const wordCountSchema = z.number().int().positive();
-	wordCountSchema.parse(wordCount);
+	const parsed = wordCountSchema.safeParse(wordCount);
+	if (!parsed.success) {
+		// TODO(#66): Replace with structured logging service
+		console.error(`[generatePassword] Invalid wordCount (${wordCount}), using default:`, parsed.error.message);
+	}
+	const effectiveWordCount = parsed.success ? wordCount : 3;
 
 	const language = process.env['APP_LANGUAGE'] || 'en';
 	const words = await getWordList(language);
 
-	return Array.from({ length: wordCount }, () => words[randomInt(words.length)]).join('.');
+	return Array.from({ length: effectiveWordCount }, () => words[randomInt(words.length)]).join('.');
 }

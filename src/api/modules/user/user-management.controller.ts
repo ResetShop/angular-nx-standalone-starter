@@ -1,6 +1,7 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import type { ManagedUser } from '@contracts/user/user.types';
+import { createUserRequestSchema, updateUserRequestSchema } from '@contracts/user/user.schemas';
+import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -16,6 +17,8 @@ const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
 	[USER_MANAGEMENT_ERRORS.SELF_DISABLE, 403],
 ] as const;
+
+const idParamSchema = z.object({ id: z.coerce.number().int().positive() });
 
 const app = new Hono();
 
@@ -50,7 +53,7 @@ app.get(
 app.get(
 	'/:id',
 	requirePermission(ADMIN_USER_PERMISSIONS.READ),
-	zValidator('param', z.object({ id: z.coerce.number().int().positive() }), (result, c) => {
+	zValidator('param', idParamSchema, (result, c) => {
 		if (!result.success) {
 			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 		}
@@ -78,23 +81,14 @@ app.get(
 app.post(
 	'/',
 	requirePermission(ADMIN_USER_PERMISSIONS.CREATE),
-	zValidator(
-		'json',
-		z.object({
-			email: z.string().email(),
-			password: z.string().min(8).max(128),
-			firstName: z.string().min(1).max(100),
-			lastName: z.string().min(1).max(100),
-			roleIds: z.array(z.number().int().positive()).optional(),
-		}),
-	),
+	zValidator('json', createUserRequestSchema),
 	async (c) => {
 		const { userManagementService } = container.cradle;
 		const body = c.req.valid('json');
 
 		try {
-			const userData = await userManagementService.create(body);
-			return c.json<ManagedUser>(userData, 201);
+			const result = await userManagementService.create(body);
+			return c.json<CreateUserResponse>(result, 201);
 		} catch (error) {
 			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
 				return c.json<ErrorResponse>({ error: error.message }, 409);
@@ -111,21 +105,12 @@ app.post(
 app.patch(
 	'/:id',
 	requirePermission(ADMIN_USER_PERMISSIONS.UPDATE),
-	zValidator('param', z.object({ id: z.coerce.number().int().positive() }), (result, c) => {
+	zValidator('param', idParamSchema, (result, c) => {
 		if (!result.success) {
 			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 		}
 	}),
-	zValidator(
-		'json',
-		z.object({
-			email: z.string().email().optional(),
-			firstName: z.string().min(1).max(100).optional(),
-			lastName: z.string().min(1).max(100).optional(),
-			enabled: z.boolean().optional(),
-			roleIds: z.array(z.number().int().positive()).optional(),
-		}),
-	),
+	zValidator('json', updateUserRequestSchema),
 	async (c) => {
 		const { userManagementService } = container.cradle;
 		const { id } = c.req.valid('param');
@@ -155,7 +140,7 @@ app.patch(
 app.delete(
 	'/:id',
 	requirePermission(ADMIN_USER_PERMISSIONS.DELETE),
-	zValidator('param', z.object({ id: z.coerce.number().int().positive() }), (result, c) => {
+	zValidator('param', idParamSchema, (result, c) => {
 		if (!result.success) {
 			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
 		}
