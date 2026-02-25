@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import type { CanActivateFn } from '@angular/router';
-import { Router } from '@angular/router';
+import { Router, type UrlTree } from '@angular/router';
 import { AuthStore } from '@store/auth/auth.store';
 import { catchError, map, of } from 'rxjs';
 
@@ -10,7 +10,7 @@ export const authGuard: CanActivateFn = () => {
 	const loginUrl = router.createUrlTree(['/auth/login']);
 
 	return authStore.validateSession().pipe(
-		map(() => true as boolean | typeof loginUrl),
+		map((): boolean | UrlTree => true),
 		catchError(() => of(loginUrl)),
 	);
 };
