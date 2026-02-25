@@ -143,7 +143,7 @@ export class MockRoleRepository implements IRoleRepository {
 		}
 	}
 
-	async getPermissionsForRole(
+	async findPermissionsForRole(
 		roleId: number,
 		pagination?: PaginationParams,
 	): Promise<PaginatedResponse<PermissionData>> {

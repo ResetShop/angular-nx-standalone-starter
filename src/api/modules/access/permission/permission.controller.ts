@@ -28,7 +28,7 @@ app.get(
 	async (c) => {
 		const { permissionService } = container.cradle;
 		const { offset, limit, search } = c.req.valid('query');
-		const permissions = await permissionService.list({ offset, limit, search });
+		const permissions = await permissionService.getAllPermissions({ offset, limit, search });
 		return c.json<PaginatedResponse<PermissionData>>(permissions);
 	},
 );

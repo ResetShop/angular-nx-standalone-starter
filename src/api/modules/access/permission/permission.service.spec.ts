@@ -23,11 +23,11 @@ describe('PermissionService', () => {
 		mockPermissionRepo.clear();
 	});
 
-	describe('list', () => {
+	describe('getAllPermissions', () => {
 		it('should return paginated permissions', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list();
+			const result = await permissionService.getAllPermissions();
 
 			expect(result.data).toHaveLength(4);
 			expect(result.total).toBe(4);
@@ -38,7 +38,7 @@ describe('PermissionService', () => {
 		it('should respect pagination parameters', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ offset: 1, limit: 2 });
+			const result = await permissionService.getAllPermissions({ offset: 1, limit: 2 });
 
 			expect(result.data).toHaveLength(2);
 			expect(result.total).toBe(4);
@@ -49,14 +49,14 @@ describe('PermissionService', () => {
 		it('should return empty data when offset exceeds total', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ offset: 10, limit: 10 });
+			const result = await permissionService.getAllPermissions({ offset: 10, limit: 10 });
 
 			expect(result.data).toHaveLength(0);
 			expect(result.total).toBe(4);
 		});
 
 		it('should return empty data when no permissions exist', async () => {
-			const result = await permissionService.list();
+			const result = await permissionService.getAllPermissions();
 
 			expect(result.data).toHaveLength(0);
 			expect(result.total).toBe(0);
@@ -65,7 +65,7 @@ describe('PermissionService', () => {
 		it('should filter permissions by name when search is provided', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ search: 'create' });
+			const result = await permissionService.getAllPermissions({ search: 'create' });
 
 			expect(result.data).toHaveLength(2);
 			expect(result.data.every((p) => p.name.includes('create') || p.action.includes('create'))).toBe(true);
@@ -74,7 +74,7 @@ describe('PermissionService', () => {
 		it('should filter permissions by resource when search is provided', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ search: 'roles' });
+			const result = await permissionService.getAllPermissions({ search: 'roles' });
 
 			expect(result.data).toHaveLength(2);
 			expect(result.data.every((p) => p.resource === 'roles')).toBe(true);
@@ -83,7 +83,7 @@ describe('PermissionService', () => {
 		it('should perform case-insensitive search', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ search: 'USERS' });
+			const result = await permissionService.getAllPermissions({ search: 'USERS' });
 
 			expect(result.data).toHaveLength(2);
 			expect(result.data.every((p) => p.resource === 'users')).toBe(true);
@@ -92,7 +92,7 @@ describe('PermissionService', () => {
 		it('should return all permissions when search is empty string', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ search: '' });
+			const result = await permissionService.getAllPermissions({ search: '' });
 
 			expect(result.data).toHaveLength(4);
 		});
@@ -100,7 +100,7 @@ describe('PermissionService', () => {
 		it('should return no permissions when search matches nothing', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ search: 'nonexistent' });
+			const result = await permissionService.getAllPermissions({ search: 'nonexistent' });
 
 			expect(result.data).toHaveLength(0);
 			expect(result.total).toBe(0);
@@ -109,7 +109,7 @@ describe('PermissionService', () => {
 		it('should ignore leading and trailing whitespace in search', async () => {
 			testPermissions.forEach((p) => mockPermissionRepo.addPermission(p));
 
-			const result = await permissionService.list({ search: '  users  ' });
+			const result = await permissionService.getAllPermissions({ search: '  users  ' });
 
 			expect(result.data).toHaveLength(2);
 		});

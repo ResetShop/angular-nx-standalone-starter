@@ -1,4 +1,4 @@
-import { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './interfaces';
 import { userRoleErrors } from './user-role.errors';
@@ -39,7 +39,7 @@ export class UserRoleService implements IUserRoleService {
 			throw userRoleErrors.userNotFound(userId);
 		}
 
-		return this.userRoleRepository.getUserRoles(userId, pagination);
+		return this.userRoleRepository.findRolesForUser(userId, pagination);
 	}
 
 	/**
@@ -50,7 +50,7 @@ export class UserRoleService implements IUserRoleService {
 	 * @returns Array of roles with nested permissions (empty if user has no roles)
 	 */
 	async getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]> {
-		return this.userRoleRepository.getUserRolesWithPermissions(userId);
+		return this.userRoleRepository.findRolesWithPermissionsForUser(userId);
 	}
 
 	/**
@@ -67,7 +67,7 @@ export class UserRoleService implements IUserRoleService {
 			throw userRoleErrors.userNotFound(userId);
 		}
 
-		return this.userRoleRepository.getUserPermissions(userId);
+		return this.userRoleRepository.findPermissionsForUser(userId);
 	}
 
 	/**

@@ -57,7 +57,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @param search - Optional search term for email, first name, or last name
 	 * @returns Paginated response containing users with roles
 	 */
-	async list(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
+	async getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
 		return this.userManagementRepository.findAll(pagination, search);
 	}
 
@@ -68,7 +68,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @returns User data with roles
 	 * @throws Error if user not found
 	 */
-	async getById(id: number): Promise<ManagedUserData> {
+	async getUser(id: number): Promise<ManagedUserData> {
 		const userData = await this.userManagementRepository.findByIdWithRoles(id);
 		if (!userData) {
 			throw userManagementErrors.notFound(id);
@@ -85,7 +85,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
-	async create(params: CreateUserParams): Promise<CreateUserResponse> {
+	async createUser(params: CreateUserParams): Promise<CreateUserResponse> {
 		const existingUser = await this.userManagementRepository.findByEmail(params.email);
 		if (existingUser) {
 			throw userManagementErrors.emailExists(params.email);
@@ -144,7 +144,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @throws Error if email conflicts with existing user
 	 * @throws Error if attempting self-disable
 	 */
-	async update(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData> {
+	async updateUser(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData> {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id);
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id);
@@ -179,7 +179,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @param id - The user's primary key
 	 * @throws Error if user not found
 	 */
-	async delete(id: number): Promise<void> {
+	async deleteUser(id: number): Promise<void> {
 		const deleted = await this.userManagementRepository.softDelete(id);
 		if (!deleted) {
 			throw userManagementErrors.notFound(id);

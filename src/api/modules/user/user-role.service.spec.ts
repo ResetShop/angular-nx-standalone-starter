@@ -7,23 +7,26 @@ import { UserRoleService } from './user-role.service';
 
 describe('UserRoleService', () => {
 	// Mock functions
-	const mockGetUserRoles = fn<[number, { offset?: number; limit?: number }?], Promise<PaginatedResponse<RoleData>>>();
-	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
+	const mockFindRolesForUser = fn<
+		[number, { offset?: number; limit?: number }?],
+		Promise<PaginatedResponse<RoleData>>
+	>();
+	const mockFindPermissionsForUser = fn<[number], Promise<PermissionData[]>>();
 	const mockAssignRoleToUser = fn<[number, number], Promise<boolean>>();
 	const mockRemoveRoleFromUser = fn<[number, number], Promise<boolean>>();
-	const mockUserHasRole = fn<[number, number], Promise<boolean>>();
-	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>();
+	const mockFindUserHasRole = fn<[number, number], Promise<boolean>>();
+	const mockFindRolesWithPermissionsForUser = fn<[number], Promise<RoleWithPermissions[]>>();
 	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>();
 	const mockFindUserById = fn<[number], Promise<UserData | null>>();
 	const mockFindRoleById = fn<[number], Promise<RoleData | null>>();
 
 	const mockUserRoleRepository: IUserRoleRepository = {
-		getUserRoles: mockGetUserRoles,
-		getUserPermissions: mockGetUserPermissions,
+		findRolesForUser: mockFindRolesForUser,
+		findPermissionsForUser: mockFindPermissionsForUser,
 		assignRoleToUser: mockAssignRoleToUser,
 		removeRoleFromUser: mockRemoveRoleFromUser,
-		userHasRole: mockUserHasRole,
-		getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
+		findUserHasRole: mockFindUserHasRole,
+		findRolesWithPermissionsForUser: mockFindRolesWithPermissionsForUser,
 		replaceUserRoles: mockReplaceUserRoles,
 	};
 
@@ -39,7 +42,7 @@ describe('UserRoleService', () => {
 		create: fn(),
 		update: fn(),
 		delete: fn(),
-		getPermissionsForRole: fn(),
+		findPermissionsForRole: fn(),
 		assignPermissions: fn(),
 		removeAllPermissions: fn(),
 	};
@@ -89,13 +92,13 @@ describe('UserRoleService', () => {
 				limit: 10,
 			};
 			mockFindUserById.mockResolvedValue(testUser);
-			mockGetUserRoles.mockResolvedValue(paginatedResponse);
+			mockFindRolesForUser.mockResolvedValue(paginatedResponse);
 
 			const result = await service.getUserRoles(1);
 
 			expect(result).toEqual(paginatedResponse);
 			expect(mockFindUserById.calls).toEqual([[1]]);
-			expect(mockGetUserRoles.calls).toEqual([[1, undefined]]);
+			expect(mockFindRolesForUser.calls).toEqual([[1, undefined]]);
 		});
 
 		it('should pass pagination parameters', async () => {
@@ -106,13 +109,13 @@ describe('UserRoleService', () => {
 				limit: 5,
 			};
 			mockFindUserById.mockResolvedValue(testUser);
-			mockGetUserRoles.mockResolvedValue(paginatedResponse);
+			mockFindRolesForUser.mockResolvedValue(paginatedResponse);
 
 			const result = await service.getUserRoles(1, { offset: 5, limit: 5 });
 
 			expect(result.offset).toBe(5);
 			expect(result.limit).toBe(5);
-			expect(mockGetUserRoles.calls).toEqual([[1, { offset: 5, limit: 5 }]]);
+			expect(mockFindRolesForUser.calls).toEqual([[1, { offset: 5, limit: 5 }]]);
 		});
 
 		it('should throw USER_NOT_FOUND when user does not exist', async () => {
@@ -125,13 +128,13 @@ describe('UserRoleService', () => {
 	describe('getUserPermissions', () => {
 		it('should return user permissions', async () => {
 			mockFindUserById.mockResolvedValue(testUser);
-			mockGetUserPermissions.mockResolvedValue(testPermissions);
+			mockFindPermissionsForUser.mockResolvedValue(testPermissions);
 
 			const result = await service.getUserPermissions(1);
 
 			expect(result).toEqual(testPermissions);
 			expect(mockFindUserById.calls).toEqual([[1]]);
-			expect(mockGetUserPermissions.calls).toEqual([[1]]);
+			expect(mockFindPermissionsForUser.calls).toEqual([[1]]);
 		});
 
 		it('should throw USER_NOT_FOUND when user does not exist', async () => {

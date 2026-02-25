@@ -10,7 +10,7 @@ import type { ListPermissionsParams } from './interfaces';
 import permissionController from './permission.controller';
 
 describe('Permission Controller', () => {
-	const mockList = fn<[ListPermissionsParams], Promise<PaginatedResponse<PermissionData>>>();
+	const mockGetAllPermissions = fn<[ListPermissionsParams], Promise<PaginatedResponse<PermissionData>>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 
 	let app: Hono;
@@ -36,7 +36,7 @@ describe('Permission Controller', () => {
 
 		setTestCradle({
 			permissionService: {
-				list: mockList,
+				getAllPermissions: mockGetAllPermissions,
 			},
 			userRoleService: {
 				getUserPermissions: mockGetUserPermissions,
@@ -68,7 +68,7 @@ describe('Permission Controller', () => {
 				offset: 0,
 				limit: 10,
 			};
-			mockList.mockResolvedValue(paginatedResponse);
+			mockGetAllPermissions.mockResolvedValue(paginatedResponse);
 
 			const res = await app.request('/access/permissions');
 
@@ -76,7 +76,7 @@ describe('Permission Controller', () => {
 			const data = await res.json();
 			expect(data.data).toHaveLength(2);
 			expect(data.total).toBe(2);
-			expect(mockList.calls).toEqual([[{ offset: undefined, limit: undefined, search: undefined }]]);
+			expect(mockGetAllPermissions.calls).toEqual([[{ offset: undefined, limit: undefined, search: undefined }]]);
 		});
 
 		it('should pass pagination parameters', async () => {
@@ -86,12 +86,12 @@ describe('Permission Controller', () => {
 				offset: 5,
 				limit: 5,
 			};
-			mockList.mockResolvedValue(paginatedResponse);
+			mockGetAllPermissions.mockResolvedValue(paginatedResponse);
 
 			const res = await app.request('/access/permissions?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
-			expect(mockList.calls).toEqual([[{ offset: 5, limit: 5, search: undefined }]]);
+			expect(mockGetAllPermissions.calls).toEqual([[{ offset: 5, limit: 5, search: undefined }]]);
 		});
 
 		it('should pass search parameter to service', async () => {
@@ -101,12 +101,12 @@ describe('Permission Controller', () => {
 				offset: 0,
 				limit: 10,
 			};
-			mockList.mockResolvedValue(paginatedResponse);
+			mockGetAllPermissions.mockResolvedValue(paginatedResponse);
 
 			const res = await app.request('/access/permissions?search=users');
 
 			expect(res.status).toBe(200);
-			expect(mockList.calls).toEqual([[{ offset: undefined, limit: undefined, search: 'users' }]]);
+			expect(mockGetAllPermissions.calls).toEqual([[{ offset: undefined, limit: undefined, search: 'users' }]]);
 		});
 
 		it('should pass search with pagination parameters', async () => {
@@ -116,12 +116,12 @@ describe('Permission Controller', () => {
 				offset: 0,
 				limit: 1,
 			};
-			mockList.mockResolvedValue(paginatedResponse);
+			mockGetAllPermissions.mockResolvedValue(paginatedResponse);
 
 			const res = await app.request('/access/permissions?search=users&offset=0&limit=1');
 
 			expect(res.status).toBe(200);
-			expect(mockList.calls).toEqual([[{ offset: 0, limit: 1, search: 'users' }]]);
+			expect(mockGetAllPermissions.calls).toEqual([[{ offset: 0, limit: 1, search: 'users' }]]);
 		});
 
 		it('should validate offset is non-negative', async () => {

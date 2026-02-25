@@ -23,7 +23,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param pagination.limit - Maximum records to return (default: 10)
 	 * @returns Paginated response containing roles and metadata
 	 */
-	async getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
+	async findRolesForUser(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
 		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
 		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
 
@@ -61,7 +61,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param userId - The user's primary key
 	 * @returns Array of roles with nested permissions
 	 */
-	async getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]> {
+	async findRolesWithPermissionsForUser(userId: number): Promise<RoleWithPermissions[]> {
 		const userRolesWithData = await this.db.query.userRole.findMany({
 			where: eq(userRole.userId, userId),
 			with: {
@@ -99,7 +99,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param userId - The user's primary key
 	 * @returns Array of unique permissions across all user's roles
 	 */
-	async getUserPermissions(userId: number): Promise<PermissionData[]> {
+	async findPermissionsForUser(userId: number): Promise<PermissionData[]> {
 		const result = await this.db
 			.selectDistinct({
 				id: permission.id,
@@ -157,7 +157,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleId - The role's primary key to check
 	 * @returns true if the user has the role, false otherwise
 	 */
-	async userHasRole(userId: number, roleId: number): Promise<boolean> {
+	async findUserHasRole(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
 			.select({ id: userRole.id })
 			.from(userRole)
