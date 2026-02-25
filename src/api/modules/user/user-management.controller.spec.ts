@@ -1,3 +1,4 @@
+import type { CreateUserResponse } from '@contracts/user/user.types';
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -6,7 +7,7 @@ import type { PaginatedResponse } from '../../interfaces';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PermissionData, RoleData } from '../access/role/interfaces';
 import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
-import type { ManagedUserData } from './interfaces';
+import type { CreateUserParams, ManagedUserData, UpdateUserParams } from './interfaces';
 import userManagementController from './user-management.controller';
 import { USER_MANAGEMENT_ERRORS } from './user-management.service';
 
@@ -17,14 +18,8 @@ describe('User Management Controller', () => {
 		Promise<PaginatedResponse<ManagedUserData>>
 	>();
 	const mockGetById = fn<[number], Promise<ManagedUserData>>();
-	const mockCreate = fn<
-		[{ email: string; firstName: string; lastName: string; roleIds?: number[]; mustChangePassword?: boolean }],
-		Promise<ManagedUserData & { passwordEmailSent: boolean }>
-	>();
-	const mockUpdate = fn<
-		[number, { email?: string; firstName?: string; lastName?: string; enabled?: boolean; roleIds?: number[] }, number],
-		Promise<ManagedUserData>
-	>();
+	const mockCreate = fn<[CreateUserParams], Promise<CreateUserResponse>>();
+	const mockUpdate = fn<[number, UpdateUserParams, number], Promise<ManagedUserData>>();
 	const mockDelete = fn<[number], Promise<void>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 
