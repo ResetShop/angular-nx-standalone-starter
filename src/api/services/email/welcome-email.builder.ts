@@ -1,11 +1,11 @@
-interface WelcomeEmailParams {
+export interface WelcomeEmailParams {
 	firstName: string;
 	email: string;
 	password: string;
 	mustChangePassword: boolean;
 }
 
-interface EmailContent {
+export interface EmailContent {
 	subject: string;
 	html: string;
 	text: string;
