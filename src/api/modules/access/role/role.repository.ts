@@ -239,7 +239,7 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 * @param pagination.limit - Maximum records to return (default: 10)
 	 * @returns Paginated response containing permissions and metadata
 	 */
-	async getPermissionsForRole(
+	async findPermissionsForRole(
 		roleId: number,
 		pagination?: PaginationParams,
 	): Promise<PaginatedResponse<PermissionData>> {
