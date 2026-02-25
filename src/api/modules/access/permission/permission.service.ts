@@ -23,7 +23,7 @@ export class PermissionService implements IPermissionService {
 	 * @param params - Optional parameters (offset, limit, search)
 	 * @returns Paginated response containing permissions and metadata
 	 */
-	async list(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
+	async getAllPermissions(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
 		return this.permissionRepository.findAll(params);
 	}
 }

@@ -13,14 +13,14 @@ import { USER_MANAGEMENT_ERRORS } from './user-management.service';
 
 describe('User Management Controller', () => {
 	// Create mock functions
-	const mockList = fn<
+	const mockGetAllUsers = fn<
 		[{ offset?: number; limit?: number } | undefined, string | undefined],
 		Promise<PaginatedResponse<ManagedUserData>>
 	>();
-	const mockGetById = fn<[number], Promise<ManagedUserData>>();
-	const mockCreate = fn<[CreateUserParams], Promise<CreateUserResponse>>();
-	const mockUpdate = fn<[number, UpdateUserParams, number], Promise<ManagedUserData>>();
-	const mockDelete = fn<[number], Promise<void>>();
+	const mockGetUser = fn<[number], Promise<ManagedUserData>>();
+	const mockCreateUser = fn<[CreateUserParams], Promise<CreateUserResponse>>();
+	const mockUpdateUser = fn<[number, UpdateUserParams, number], Promise<ManagedUserData>>();
+	const mockDeleteUser = fn<[number], Promise<void>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 
 	let app: Hono;
@@ -64,11 +64,11 @@ describe('User Management Controller', () => {
 
 		setTestCradle({
 			userManagementService: {
-				list: mockList,
-				getById: mockGetById,
-				create: mockCreate,
-				update: mockUpdate,
-				delete: mockDelete,
+				getAllUsers: mockGetAllUsers,
+				getUser: mockGetUser,
+				createUser: mockCreateUser,
+				updateUser: mockUpdateUser,
+				deleteUser: mockDeleteUser,
 			},
 			userRoleService: {
 				getUserPermissions: mockGetUserPermissions,
@@ -100,7 +100,7 @@ describe('User Management Controller', () => {
 				offset: 0,
 				limit: 10,
 			};
-			mockList.mockResolvedValue(paginatedResponse);
+			mockGetAllUsers.mockResolvedValue(paginatedResponse);
 
 			const res = await app.request('/users');
 
@@ -117,12 +117,12 @@ describe('User Management Controller', () => {
 				offset: 5,
 				limit: 5,
 			};
-			mockList.mockResolvedValue(paginatedResponse);
+			mockGetAllUsers.mockResolvedValue(paginatedResponse);
 
 			const res = await app.request('/users?offset=5&limit=5');
 
 			expect(res.status).toBe(200);
-			expect(mockList.calls).toEqual([[{ offset: 5, limit: 5 }, undefined]]);
+			expect(mockGetAllUsers.calls).toEqual([[{ offset: 5, limit: 5 }, undefined]]);
 		});
 
 		it('should pass search parameter', async () => {
@@ -132,12 +132,12 @@ describe('User Management Controller', () => {
 				offset: 0,
 				limit: 10,
 			};
-			mockList.mockResolvedValue(paginatedResponse);
+			mockGetAllUsers.mockResolvedValue(paginatedResponse);
 
 			const res = await app.request('/users?search=test');
 
 			expect(res.status).toBe(200);
-			expect(mockList.calls).toEqual([[{ offset: undefined, limit: undefined }, 'test']]);
+			expect(mockGetAllUsers.calls).toEqual([[{ offset: undefined, limit: undefined }, 'test']]);
 		});
 
 		it('should validate offset is non-negative', async () => {
@@ -153,7 +153,7 @@ describe('User Management Controller', () => {
 
 	describe('GET /users/:id', () => {
 		it('should return user when found', async () => {
-			mockGetById.mockResolvedValue(testManagedUser);
+			mockGetUser.mockResolvedValue(testManagedUser);
 
 			const res = await app.request('/users/1');
 
@@ -164,7 +164,7 @@ describe('User Management Controller', () => {
 		});
 
 		it('should return 404 when user not found', async () => {
-			mockGetById.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND));
+			mockGetUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND));
 
 			const res = await app.request('/users/999');
 
@@ -184,7 +184,7 @@ describe('User Management Controller', () => {
 
 	describe('POST /users', () => {
 		it('should create a new user', async () => {
-			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
+			mockCreateUser.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
 
 			const res = await app.request('/users', {
 				method: 'POST',
@@ -204,7 +204,7 @@ describe('User Management Controller', () => {
 		});
 
 		it('should return 409 when email already exists', async () => {
-			mockCreate.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS));
+			mockCreateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS));
 
 			const res = await app.request('/users', {
 				method: 'POST',
@@ -235,7 +235,7 @@ describe('User Management Controller', () => {
 		});
 
 		it('should accept mustChangePassword in request body', async () => {
-			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
+			mockCreateUser.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
 
 			const res = await app.request('/users', {
 				method: 'POST',
@@ -249,11 +249,11 @@ describe('User Management Controller', () => {
 			});
 
 			expect(res.status).toBe(201);
-			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: false });
+			expect(mockCreateUser.calls[0][0]).toMatchObject({ mustChangePassword: false });
 		});
 
 		it('should pass mustChangePassword true when explicitly set', async () => {
-			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
+			mockCreateUser.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
 
 			const res = await app.request('/users', {
 				method: 'POST',
@@ -267,11 +267,11 @@ describe('User Management Controller', () => {
 			});
 
 			expect(res.status).toBe(201);
-			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true });
+			expect(mockCreateUser.calls[0][0]).toMatchObject({ mustChangePassword: true });
 		});
 
 		it('should default mustChangePassword to true when omitted', async () => {
-			mockCreate.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
+			mockCreateUser.mockResolvedValue({ ...testManagedUser, passwordEmailSent: true });
 
 			const res = await app.request('/users', {
 				method: 'POST',
@@ -284,7 +284,7 @@ describe('User Management Controller', () => {
 			});
 
 			expect(res.status).toBe(201);
-			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true });
+			expect(mockCreateUser.calls[0][0]).toMatchObject({ mustChangePassword: true });
 		});
 
 		it('should validate email format', async () => {
@@ -305,7 +305,7 @@ describe('User Management Controller', () => {
 	describe('PATCH /users/:id', () => {
 		it('should update user details', async () => {
 			const updatedUser = { ...testManagedUser, firstName: 'Updated' };
-			mockUpdate.mockResolvedValue(updatedUser);
+			mockUpdateUser.mockResolvedValue(updatedUser);
 
 			const res = await app.request('/users/1', {
 				method: 'PATCH',
@@ -319,7 +319,7 @@ describe('User Management Controller', () => {
 		});
 
 		it('should return 404 when user not found', async () => {
-			mockUpdate.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND));
+			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND));
 
 			const res = await app.request('/users/999', {
 				method: 'PATCH',
@@ -333,7 +333,7 @@ describe('User Management Controller', () => {
 		});
 
 		it('should return 409 when email already exists', async () => {
-			mockUpdate.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS));
+			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS));
 
 			const res = await app.request('/users/1', {
 				method: 'PATCH',
@@ -347,7 +347,7 @@ describe('User Management Controller', () => {
 		});
 
 		it('should return 403 when trying to self-disable', async () => {
-			mockUpdate.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_DISABLE));
+			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_DISABLE));
 
 			const res = await app.request('/users/999', {
 				method: 'PATCH',
@@ -375,7 +375,7 @@ describe('User Management Controller', () => {
 
 	describe('DELETE /users/:id', () => {
 		it('should soft delete user successfully', async () => {
-			mockDelete.mockResolvedValue(undefined);
+			mockDeleteUser.mockResolvedValue(undefined);
 
 			const res = await app.request('/users/1', {
 				method: 'DELETE',
@@ -387,7 +387,7 @@ describe('User Management Controller', () => {
 		});
 
 		it('should return 404 when user not found', async () => {
-			mockDelete.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND));
+			mockDeleteUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND));
 
 			const res = await app.request('/users/999', {
 				method: 'DELETE',
