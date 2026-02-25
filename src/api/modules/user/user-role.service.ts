@@ -1,4 +1,4 @@
-import { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
 import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './interfaces';
 import { userRoleErrors } from './user-role.errors';
