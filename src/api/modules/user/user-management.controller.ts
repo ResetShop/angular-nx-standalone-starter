@@ -41,7 +41,7 @@ app.get(
 		const { userManagementService } = container.cradle;
 		const { offset, limit, search } = c.req.valid('query');
 
-		const users = await userManagementService.list({ offset, limit }, search);
+		const users = await userManagementService.getAllUsers({ offset, limit }, search);
 		return c.json<PaginatedResponse<ManagedUser>>(users);
 	},
 );
@@ -63,7 +63,7 @@ app.get(
 		const { id } = c.req.valid('param');
 
 		try {
-			const userData = await userManagementService.getById(id);
+			const userData = await userManagementService.getUser(id);
 			return c.json<ManagedUser>(userData);
 		} catch (error) {
 			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {
@@ -87,7 +87,7 @@ app.post(
 		const body = c.req.valid('json');
 
 		try {
-			const result = await userManagementService.create(body);
+			const result = await userManagementService.createUser(body);
 			return c.json<CreateUserResponse>(result, 201);
 		} catch (error) {
 			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
@@ -118,7 +118,7 @@ app.patch(
 		const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
 		try {
-			const userData = await userManagementService.update(id, body, currentUserId);
+			const userData = await userManagementService.updateUser(id, body, currentUserId);
 			return c.json<ManagedUser>(userData);
 		} catch (error) {
 			if (error instanceof Error) {
@@ -150,7 +150,7 @@ app.delete(
 		const { id } = c.req.valid('param');
 
 		try {
-			await userManagementService.delete(id);
+			await userManagementService.deleteUser(id);
 			return c.json<SuccessMessage>({ message: 'User deleted successfully' });
 		} catch (error) {
 			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {

@@ -19,5 +19,5 @@ export interface IPermissionRepository {
  * Permission service interface for listing system permissions.
  */
 export interface IPermissionService {
-	list(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>;
+	getAllPermissions(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>;
 }

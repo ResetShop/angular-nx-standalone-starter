@@ -198,9 +198,9 @@ export interface IUserRoleService {
  * User management service interface for CRUD operations
  */
 export interface IUserManagementService {
-	list(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
-	getById(id: number): Promise<ManagedUserData>;
-	create(params: CreateUserParams): Promise<CreateUserResponse>;
-	update(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
-	delete(id: number): Promise<void>;
+	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
+	getUser(id: number): Promise<ManagedUserData>;
+	createUser(params: CreateUserParams): Promise<CreateUserResponse>;
+	updateUser(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
+	deleteUser(id: number): Promise<void>;
 }

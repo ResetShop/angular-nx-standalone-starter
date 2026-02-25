@@ -89,7 +89,7 @@ describe('UserManagementService', () => {
 		console.error = originalConsoleError;
 	});
 
-	describe('list', () => {
+	describe('getAllUsers', () => {
 		it('should return paginated users', async () => {
 			const paginatedResponse = {
 				data: [testManagedUser],
@@ -99,7 +99,7 @@ describe('UserManagementService', () => {
 			};
 			mockFindAll.mockResolvedValue(paginatedResponse);
 
-			const result = await service.list();
+			const result = await service.getAllUsers();
 
 			expect(result).toEqual(paginatedResponse);
 			expect(mockFindAll.calls).toEqual([[undefined, undefined]]);
@@ -114,7 +114,7 @@ describe('UserManagementService', () => {
 			};
 			mockFindAll.mockResolvedValue(paginatedResponse);
 
-			const result = await service.list({ offset: 5, limit: 5 }, 'test');
+			const result = await service.getAllUsers({ offset: 5, limit: 5 }, 'test');
 
 			expect(result.offset).toBe(5);
 			expect(result.limit).toBe(5);
@@ -122,12 +122,12 @@ describe('UserManagementService', () => {
 		});
 	});
 
-	describe('getById', () => {
+	describe('getUser', () => {
 		it('should return user with roles', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 
 			// eslint-disable-next-line testing-library/no-await-sync-queries -- service method, not DOM query
-			const result = await service.getById(1);
+			const result = await service.getUser(1);
 
 			expect(result).toEqual(testManagedUser);
 			expect(mockFindByIdWithRoles.calls).toEqual([[1]]);
@@ -136,16 +136,16 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null);
 
-			await expect(service.getById(999)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
+			await expect(service.getUser(999)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
 		});
 	});
 
-	describe('create', () => {
+	describe('createUser', () => {
 		it('should create a new user with roles and send welcome email', async () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			const { passwordEmailSent, ...user } = await service.create({
+			const { passwordEmailSent, ...user } = await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -164,7 +164,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(userWithNoRoles);
 
-			const result = await service.create({
+			const result = await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -178,7 +178,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(testUser);
 
 			await expect(
-				service.create({
+				service.createUser({
 					email: 'test@example.com',
 					firstName: 'Test',
 					lastName: 'User',
@@ -190,7 +190,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			await service.create({
+			await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -206,7 +206,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			await service.create({
+			await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -219,7 +219,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			await service.create({
+			await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -233,7 +233,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			await service.create({
+			await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -250,7 +250,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			await service.create({
+			await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -268,7 +268,7 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null);
 			mockCreate.mockResolvedValue(testManagedUser);
 
-			const result = await service.create({
+			const result = await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -282,7 +282,7 @@ describe('UserManagementService', () => {
 			mockCreate.mockResolvedValue(testManagedUser);
 			mockSend.mockRejectedValue(new Error('SMTP connection refused'));
 
-			const result = await service.create({
+			const result = await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -298,7 +298,7 @@ describe('UserManagementService', () => {
 			mockCreate.mockResolvedValue(testManagedUser);
 			mockSend.mockRejectedValue(new Error('SMTP connection refused'));
 
-			const { passwordEmailSent, ...user } = await service.create({
+			const { passwordEmailSent, ...user } = await service.createUser({
 				email: 'test@example.com',
 				firstName: 'Test',
 				lastName: 'User',
@@ -310,7 +310,7 @@ describe('UserManagementService', () => {
 		});
 	});
 
-	describe('update', () => {
+	describe('updateUser', () => {
 		it('should update user details', async () => {
 			const updatedUser = { ...testManagedUser, firstName: 'Updated' };
 			mockFindByIdWithRoles.mockImplementation(() => {
@@ -321,7 +321,7 @@ describe('UserManagementService', () => {
 			});
 			mockUpdate.mockResolvedValue({ ...testUser, firstName: 'Updated' });
 
-			const result = await service.update(1, { firstName: 'Updated' }, 999);
+			const result = await service.updateUser(1, { firstName: 'Updated' }, 999);
 
 			expect(result.firstName).toBe('Updated');
 		});
@@ -329,13 +329,15 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null);
 
-			await expect(service.update(999, { firstName: 'Updated' }, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
+			await expect(service.updateUser(999, { firstName: 'Updated' }, 1)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.NOT_FOUND,
+			);
 		});
 
 		it('should throw SELF_DISABLE when disabling own account', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 
-			await expect(service.update(1, { enabled: false }, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.SELF_DISABLE);
+			await expect(service.updateUser(1, { enabled: false }, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.SELF_DISABLE);
 		});
 
 		it('should allow disabling another user', async () => {
@@ -348,7 +350,7 @@ describe('UserManagementService', () => {
 			});
 			mockUpdate.mockResolvedValue({ ...testUser, enabled: false });
 
-			const result = await service.update(1, { enabled: false }, 999);
+			const result = await service.updateUser(1, { enabled: false }, 999);
 
 			expect(result.enabled).toBe(false);
 		});
@@ -357,17 +359,17 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 			mockFindByEmail.mockResolvedValue({ ...testUser, id: 2, email: 'taken@example.com' });
 
-			await expect(service.update(1, { email: 'taken@example.com' }, 999)).rejects.toThrow(
+			await expect(service.updateUser(1, { email: 'taken@example.com' }, 999)).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.EMAIL_EXISTS,
 			);
 		});
 	});
 
-	describe('delete', () => {
+	describe('deleteUser', () => {
 		it('should soft delete a user', async () => {
 			mockSoftDelete.mockResolvedValue(true);
 
-			await service.delete(1);
+			await service.deleteUser(1);
 
 			expect(mockSoftDelete.calls).toEqual([[1]]);
 		});
@@ -375,7 +377,7 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockSoftDelete.mockResolvedValue(false);
 
-			await expect(service.delete(999)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
+			await expect(service.deleteUser(999)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
 		});
 	});
 });
