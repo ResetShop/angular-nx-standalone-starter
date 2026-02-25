@@ -11,10 +11,11 @@
 3. [Nx Guidelines](#nx-guidelines)
 4. [Testing Guidelines](#testing-guidelines)
 5. [Code Architecture Guidelines](#code-architecture-guidelines)
-6. [Error Handling Guidelines](#error-handling-guidelines)
-7. [Domain Model Guidelines](#domain-model-guidelines)
-8. [Development Workflow](#development-workflow)
-9. [Automated Code Review](#automated-code-review)
+6. [Backend API Naming Conventions](#backend-api-naming-conventions)
+7. [Error Handling Guidelines](#error-handling-guidelines)
+8. [Domain Model Guidelines](#domain-model-guidelines)
+9. [Development Workflow](#development-workflow)
+10. [Automated Code Review](#automated-code-review)
 
 ---
 
@@ -332,6 +333,62 @@ provideAppInitializer(() => firstValueFrom(inject(AuthStore).initialize())),
 | `initializeAuth`        | `src/app/store/auth/auth.initializer.ts`            |
 | `initializeAnalytics`   | `src/app/app.config.ts` (private, uses env)         |
 | `initializeTranslation` | `src/app/providers/i18n/translation.initializer.ts` |
+
+---
+
+## Backend API Naming Conventions
+
+### Repository Layer — Data Access Naming
+
+| Pattern      | Usage                                                                | Example                                                                |
+| ------------ | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `find*()`    | All read operations (single entity, relationships, filtered lookups) | `findById()`, `findByEmail()`, `findAll()`, `findPermissionsForRole()` |
+| `create()`   | Insert a new record                                                  | `create(params)`                                                       |
+| `update()`   | Modify an existing record                                            | `update(id, params)`                                                   |
+| `delete()`   | Remove a record                                                      | `delete(id)`                                                           |
+| Domain verbs | Domain-specific write operations                                     | `revokeToken()`, `assignPermissions()`, `incrementFailedAttempts()`    |
+
+**Key rule:** Repositories always use `find*()` for reads — never `get*()`.
+
+### Service Layer — Business Logic Naming
+
+| Pattern                   | Usage                                           | Example                                             |
+| ------------------------- | ----------------------------------------------- | --------------------------------------------------- |
+| `get[Entity]()`           | Single-entity retrieval (wraps repo `find*`)    | `getRole(id)`, `getRoleByCode(code)`                |
+| `getAll[Entities]()`      | Paginated list retrieval (wraps repo `findAll`) | `getAllRoles(params)`, `getAllPermissions(params)`  |
+| `create[Entity]()`        | Business logic + repo `create`                  | `createRole(params)`                                |
+| `update[Entity]()`        | Business logic + repo `update`                  | `updateRole(id, params)`                            |
+| `delete[Entity]()`        | Business logic + repo `delete`                  | `deleteRole(id)`                                    |
+| `get[Entity][Relation]()` | Relationship data                               | `getRolePermissions()`, `getUserRoles()`            |
+| `assign/remove`           | Relationship mutations                          | `assignPermissionsToRole()`, `removeRoleFromUser()` |
+| Domain verbs              | Auth/domain-specific operations                 | `authenticate()`, `logout()`, `refreshToken()`      |
+
+**Key rule:** Services always use `get*()` for reads — never `find*()` or `list()`.
+
+### Repository Projection Types
+
+Define **file-local** interfaces with the `Projection` suffix for query result shapes used internally by repository methods. These types represent the specific column selection of a query — not the full table schema or a domain type. They must not be exported.
+
+```typescript
+// File-local — not exported
+interface UserProjection {
+	id: number;
+	email: string;
+	firstName: string;
+	lastName: string;
+	enabled: boolean | null;
+	deleted: boolean | null;
+	createdAt: Date | null;
+	updatedAt: Date | null;
+}
+```
+
+**Rules:**
+
+- Use `Projection` suffix to distinguish from domain types (`UserData`, `RoleData`)
+- Keep file-local (not exported) — these are internal to the repository
+- Extract when a query result type is used in method signatures or appears inline with 3+ fields
+- Inline anonymous types in Drizzle `.select()` calls are fine — the `Projection` type captures the output shape when passed between methods
 
 ---
 
