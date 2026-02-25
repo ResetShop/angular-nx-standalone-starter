@@ -20,6 +20,7 @@ describe('noAuthGuard', () => {
 		};
 	}
 
+	// validateSession() always returns an Observable, never a synchronous value
 	function runGuard() {
 		return TestBed.runInInjectionContext(() => noAuthGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
 	}
@@ -56,5 +57,23 @@ describe('noAuthGuard', () => {
 
 		expect(result).toBeInstanceOf(UrlTree);
 		expect((result as UrlTree).toString()).toBe('/dashboard');
+	});
+
+	it('should update currentUser with fresh data from /me response', async () => {
+		authApiMock.getMe.mockReturnValue(
+			of({
+				id: 1,
+				email: 'updated@example.com',
+				firstName: 'Updated',
+				lastName: 'User',
+				roles: [],
+			}),
+		);
+
+		const store = TestBed.inject(AuthStore);
+		await firstValueFrom(runGuard() as Observable<boolean | UrlTree>);
+
+		expect(store.currentUser()?.email).toBe('updated@example.com');
+		expect(store.currentUser()?.firstName).toBe('Updated');
 	});
 });

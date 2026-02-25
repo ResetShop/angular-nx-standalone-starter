@@ -4,7 +4,7 @@ import type { IPermission } from '@domain/access/permission.interface';
 import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
 import { clearAllMocks, fn, type MockFn } from '@test-utils';
-import { NEVER, of, throwError, type Observable } from 'rxjs';
+import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
 import { AuthStore } from './auth.store';
 
 describe('AuthStore', () => {
@@ -164,16 +164,13 @@ describe('AuthStore', () => {
 	});
 
 	describe('validateSession', () => {
-		it('should call getMe and update currentUser on success', () => {
+		it('should call getMe and update currentUser on success', async () => {
 			authApiMock.getMe.mockReturnValue(of(mockMeResponse));
 
-			let emittedUser: unknown;
-			store.validateSession().subscribe((user) => {
-				emittedUser = user;
-			});
+			const emittedUser = await firstValueFrom(store.validateSession());
 
 			expect(store.currentUser()?.email).toBe('test@example.com');
-			expect((emittedUser as { email: string }).email).toBe('test@example.com');
+			expect(emittedUser.email).toBe('test@example.com');
 		});
 
 		it('should propagate errors without catching', () => {

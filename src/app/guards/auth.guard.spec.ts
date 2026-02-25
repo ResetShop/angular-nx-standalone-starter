@@ -20,6 +20,7 @@ describe('authGuard', () => {
 		};
 	}
 
+	// validateSession() always returns an Observable, never a synchronous value
 	function runGuard() {
 		return TestBed.runInInjectionContext(() => authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot));
 	}
