@@ -126,7 +126,6 @@ describe('UserManagementService', () => {
 		it('should return user with roles', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 
-			// eslint-disable-next-line testing-library/no-await-sync-queries -- service method, not DOM query
 			const result = await service.getUser(1);
 
 			expect(result).toEqual(testManagedUser);
