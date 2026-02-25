@@ -31,6 +31,7 @@ import type { IEmailRepository, IEmailService } from './services/email/interface
 import { NodemailerRepository } from './services/email/nodemailer.repository';
 import type { IPasetoService } from './services/paseto/interfaces';
 import { PasetoService } from './services/paseto/paseto.service';
+import { generatePassword } from './utils/password';
 
 /**
  * Validates required environment variables at container setup time.
@@ -83,7 +84,9 @@ validateEnvironment();
  *   └── RoleRepository ──────► db
  *
  * UserManagementService
- *   └── UserManagementRepository ► db
+ *   ├── UserManagementRepository ► db
+ *   ├── EmailService
+ *   └── generatePassword (value)
  *
  * EmailService
  *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
@@ -110,6 +113,9 @@ export interface Cradle {
 	permissionRepository: IPermissionRepository;
 	userRoleRepository: IUserRoleRepository;
 	userManagementRepository: IUserManagementRepository;
+
+	// Utilities
+	generatePassword: () => Promise<string>;
 
 	// Application Services
 	authService: IAuthService;
@@ -163,6 +169,9 @@ realContainer.register({
 	permissionRepository: asClass(PermissionRepository).singleton(),
 	userRoleRepository: asClass(UserRoleRepository).singleton(),
 	userManagementRepository: asClass(UserManagementRepository).singleton(),
+
+	// Utilities
+	generatePassword: asValue(generatePassword),
 
 	// Services that depend on repositories
 	authService: asClass(AuthService).singleton(),

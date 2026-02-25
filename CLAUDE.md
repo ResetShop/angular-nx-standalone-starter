@@ -92,11 +92,13 @@ libs/
 - **Functions/Methods:** `camelCase` (e.g., `getUserById`)
 - **Constants:** `SCREAMING_SNAKE_CASE` for true global constants; `camelCase` for local constants
 
-### Scope Rules for Constants
+### Scope Rules for Constants and Variables
 
 - **Local constants:** Keep inside the function scope when used by a single function. Declare them as close as possible to the point of evaluation — never at the top of a file when the only usage is deep inside a single function
 - **Module constants:** Promote to module level only when shared across multiple functions in the same file
 - **Global constants:** Use only after analysis confirms reuse across multiple files
+
+**Default is local scope.** When writing code, fixing issues, or suggesting improvements, always prefer a local `const` over a module-level declaration. Never introduce a module-level variable or constant as part of a fix when the value is only consumed by a single function — use an inline literal or a function-scoped `const` instead.
 
 **Rationale:** A constant declared 50+ lines away from its single usage forces the reader to scroll and mentally link two distant locations. Co-locating the constant with its usage, when the usage is single, makes the code self-contained and easier to follow.
 

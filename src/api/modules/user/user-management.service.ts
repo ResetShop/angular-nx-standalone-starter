@@ -1,6 +1,9 @@
+import type { CreateUserResponse } from '@contracts/user/user.types';
 import { hash } from 'bcryptjs';
 import { BCRYPT_SALT_ROUNDS } from '../../constants/auth.constants';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
+import type { IEmailService } from '../../services/email/interfaces';
+import { buildWelcomeEmail } from '../../services/email/welcome-email.builder';
 import type {
 	CreateUserParams,
 	IUserManagementRepository,
@@ -27,6 +30,8 @@ export const userManagementErrors = {
 
 interface UserManagementServiceDeps {
 	userManagementRepository: IUserManagementRepository;
+	emailService: IEmailService;
+	generatePassword: () => Promise<string>;
 }
 
 /**
@@ -36,9 +41,13 @@ interface UserManagementServiceDeps {
  */
 export class UserManagementService implements IUserManagementService {
 	private userManagementRepository: IUserManagementRepository;
+	private emailService: IEmailService;
+	private generatePassword: () => Promise<string>;
 
-	constructor({ userManagementRepository }: UserManagementServiceDeps) {
+	constructor({ userManagementRepository, emailService, generatePassword }: UserManagementServiceDeps) {
 		this.userManagementRepository = userManagementRepository;
+		this.emailService = emailService;
+		this.generatePassword = generatePassword;
 	}
 
 	/**
@@ -69,27 +78,58 @@ export class UserManagementService implements IUserManagementService {
 
 	/**
 	 * Creates a new user with optional role assignments.
-	 * Validates that the email is unique and hashes the password before storing.
+	 * Auto-generates a passphrase, hashes it, stores with mustChangePassword flag,
+	 * and sends a welcome email with the temporary password (failure-tolerant).
 	 *
-	 * @param params - User creation parameters (email, password, firstName, lastName, roleIds)
-	 * @returns The newly created user with roles
+	 * @param params - User creation parameters (email, firstName, lastName, roleIds, mustChangePassword)
+	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
-	async create(params: CreateUserParams): Promise<ManagedUserData> {
+	async create(params: CreateUserParams): Promise<CreateUserResponse> {
 		const existingUser = await this.userManagementRepository.findByEmail(params.email);
 		if (existingUser) {
 			throw userManagementErrors.emailExists(params.email);
 		}
 
-		const passwordHash = await hash(params.password, BCRYPT_SALT_ROUNDS);
+		const plainPassword = await this.generatePassword();
+		const passwordHash = await hash(plainPassword, BCRYPT_SALT_ROUNDS);
 
-		return this.userManagementRepository.create({
+		const mustChangePassword = params.mustChangePassword ?? true;
+
+		const user = await this.userManagementRepository.create({
 			email: params.email,
 			firstName: params.firstName,
 			lastName: params.lastName,
 			passwordHash,
+			mustChangePassword,
 			roleIds: [...new Set(params.roleIds ?? [])],
 		});
+
+		const passwordEmailSent = await this.sendWelcomeEmail(
+			params.email,
+			params.firstName,
+			plainPassword,
+			mustChangePassword,
+		);
+
+		return { ...user, passwordEmailSent };
+	}
+
+	private async sendWelcomeEmail(
+		email: string,
+		firstName: string,
+		password: string,
+		mustChangePassword: boolean,
+	): Promise<boolean> {
+		try {
+			const emailContent = buildWelcomeEmail({ firstName, email, password, mustChangePassword });
+			await this.emailService.send({ to: email, ...emailContent });
+			return true;
+		} catch (error: unknown) {
+			// TODO(#66): Replace with structured logging service
+			console.error('[UserManagementService] Welcome email failed:', error);
+			return false;
+		}
 	}
 
 	/**

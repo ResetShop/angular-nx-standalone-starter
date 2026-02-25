@@ -15,7 +15,8 @@ body:json {
     "email": "newuser@example.com",
     "firstName": "New",
     "lastName": "User",
-    "roleIds": [1]
+    "roleIds": [1],
+    "mustChangePassword": true
   }
 }
 
@@ -32,6 +33,7 @@ docs {
   | firstName | string | Yes | First name (1-100 characters) |
   | lastName | string | Yes | Last name (1-100 characters) |
   | roleIds | number[] | No | Array of role IDs to assign |
+  | mustChangePassword | boolean | No | Whether user must change password on first login (default: true) |
 
   ## Response (201)
 

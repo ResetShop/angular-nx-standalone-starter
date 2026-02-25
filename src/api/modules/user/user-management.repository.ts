@@ -181,6 +181,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			await tx.insert(authentication).values({
 				userId: newUser.id,
 				passwordHash: params.passwordHash,
+				mustChangePassword: params.mustChangePassword,
 			});
 
 			if (params.roleIds.length > 0) {
