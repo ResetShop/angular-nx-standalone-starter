@@ -19,30 +19,23 @@ Authentication uses **HttpOnly cookies** for both access and refresh tokens. Jav
 - Cookies are sent automatically on every same-origin request (`withCredentials: true`)
 - Works during SSR — cookies from the browser request can be forwarded server-side
 
-## Initialization Lifecycle
+## Session Validation Lifecycle
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  APP_INITIALIZER (initializeAuth)                            │
-│  Blocks bootstrap until auth state is resolved               │
+│  Router evaluates guards on every navigation                 │
 │                                                              │
-│  1. AuthStore.initialize() calls GET /api/auth/me            │
+│  authGuard / noAuthGuard call AuthStore.validateSession()    │
+│                                                              │
+│  1. validateSession() calls GET /api/auth/me                 │
 │  2. Browser: cookies sent automatically (withCredentials)    │
 │     Server: ssrCookieInterceptor forwards cookies            │
-│  3. On success → currentUser set, isInitialized = true       │
-│     On failure → currentUser = null, isInitialized = true    │
-└──────────────────────┬───────────────────────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────────────────────┐
-│  Router evaluates guards (isInitialized is always true)      │
-│                                                              │
-│  authGuard:   isAuthenticated → allow, else → /auth/login    │
-│  noAuthGuard: isAuthenticated → /dashboard, else → allow     │
+│  3. On success → currentUser patched, guard allows/redirects │
+│     On error  → guard redirects to login / allows through    │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Key invariant:** Guards check `isInitialized()` synchronously. The `toObservable` fallback in guards is a safety net — under normal operation the APP_INITIALIZER guarantees the signal is `true` before any guard runs.
+**Key invariant:** Every protected-route navigation validates the session against the backend. The `tokenRefreshInterceptor` transparently handles 401 → refresh → retry inside `validateSession()`, so an expired access token is refreshed before the error reaches the guard. No APP_INITIALIZER is used for auth — the guards own the full validation lifecycle.
 
 ## Interceptor Chain
 
@@ -107,7 +100,6 @@ The `verifyAccessToken` Hono middleware reads the `access_token` cookie via `get
 | File                                                    | Role                                    |
 | ------------------------------------------------------- | --------------------------------------- |
 | `src/app/store/auth/auth.store.ts`                      | Auth state (Signal Store)               |
-| `src/app/store/auth/auth.initializer.ts`                | APP_INITIALIZER factory                 |
 | `src/app/store/auth/auth.types.ts`                      | State shape and initial values          |
 | `src/app/interceptors/auth.interceptor.ts`              | Adds `withCredentials` for API requests |
 | `src/app/interceptors/token-refresh.interceptor.ts`     | 401 → refresh → retry                   |
