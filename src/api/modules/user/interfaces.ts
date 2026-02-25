@@ -119,19 +119,19 @@ export interface AssignRoleParams {
  */
 export interface IUserRoleRepository {
 	/**
-	 * Get all roles assigned to a user with pagination
+	 * Find all roles assigned to a user with pagination
 	 */
-	getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>>;
+	findRolesForUser(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>>;
 
 	/**
-	 * Get all roles assigned to a user with their permissions nested
+	 * Find all roles assigned to a user with their permissions nested
 	 */
-	getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]>;
+	findRolesWithPermissionsForUser(userId: number): Promise<RoleWithPermissions[]>;
 
 	/**
-	 * Get all permissions for a user (aggregated from all their roles)
+	 * Find all permissions for a user (aggregated from all their roles)
 	 */
-	getUserPermissions(userId: number): Promise<PermissionData[]>;
+	findPermissionsForUser(userId: number): Promise<PermissionData[]>;
 
 	/**
 	 * Assign a role to a user
@@ -147,7 +147,7 @@ export interface IUserRoleRepository {
 	/**
 	 * Check if a user has a specific role
 	 */
-	userHasRole(userId: number, roleId: number): Promise<boolean>;
+	findUserHasRole(userId: number, roleId: number): Promise<boolean>;
 
 	/**
 	 * Replace all role assignments for a user
@@ -198,9 +198,9 @@ export interface IUserRoleService {
  * User management service interface for CRUD operations
  */
 export interface IUserManagementService {
-	list(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
-	getById(id: number): Promise<ManagedUserData>;
-	create(params: CreateUserParams): Promise<CreateUserResponse>;
-	update(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
-	delete(id: number): Promise<void>;
+	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
+	getUser(id: number): Promise<ManagedUserData>;
+	createUser(params: CreateUserParams): Promise<CreateUserResponse>;
+	updateUser(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
+	deleteUser(id: number): Promise<void>;
 }

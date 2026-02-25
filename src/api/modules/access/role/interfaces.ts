@@ -86,7 +86,7 @@ export interface IRoleRepository {
 	create(params: CreateRoleParams): Promise<RoleData>;
 	update(id: number, params: UpdateRoleParams): Promise<RoleData | null>;
 	delete(id: number): Promise<void>;
-	getPermissionsForRole(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>>;
+	findPermissionsForRole(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>>;
 	findPermissionsByIds(ids: number[]): Promise<PermissionData[]>;
 	assignPermissions(roleId: number, permissionIds: number[]): Promise<void>;
 	removeAllPermissions(roleId: number): Promise<void>;
