@@ -340,15 +340,16 @@ provideAppInitializer(() => firstValueFrom(inject(AuthStore).initialize())),
 
 ### Repository Layer — Data Access Naming
 
-| Pattern      | Usage                                                                | Example                                                                |
-| ------------ | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `find*()`    | All read operations (single entity, relationships, filtered lookups) | `findById()`, `findByEmail()`, `findAll()`, `findPermissionsForRole()` |
-| `create()`   | Insert a new record                                                  | `create(params)`                                                       |
-| `update()`   | Modify an existing record                                            | `update(id, params)`                                                   |
-| `delete()`   | Remove a record                                                      | `delete(id)`                                                           |
-| Domain verbs | Domain-specific write operations                                     | `revokeToken()`, `assignPermissions()`, `incrementFailedAttempts()`    |
+| Pattern          | Usage                                                                | Example                                                                |
+| ---------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `find*()`        | All read operations (single entity, relationships, filtered lookups) | `findById()`, `findByEmail()`, `findAll()`, `findPermissionsForRole()` |
+| `find*()` → bool | Boolean predicates (existence checks, membership tests)              | `findUserHasRole()`, `findEmailExists()`                               |
+| `create()`       | Insert a new record                                                  | `create(params)`                                                       |
+| `update()`       | Modify an existing record                                            | `update(id, params)`                                                   |
+| `delete()`       | Remove a record                                                      | `delete(id)`                                                           |
+| Domain verbs     | Domain-specific write operations                                     | `revokeToken()`, `assignPermissions()`, `incrementFailedAttempts()`    |
 
-**Key rule:** Repositories always use `find*()` for reads — never `get*()`.
+**Key rule:** Repositories always use `find*()` for reads — never `get*()`. Boolean predicates also use `find*()` with a descriptive suffix like `Has*` or `Exists*` (e.g., `findUserHasRole()`, `findEmailExists()`).
 
 ### Service Layer — Business Logic Naming
 
