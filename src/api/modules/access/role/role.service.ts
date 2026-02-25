@@ -196,7 +196,7 @@ export class RoleService implements IRoleService {
 			throw roleErrors.notFound(roleId);
 		}
 
-		return this.roleRepository.getPermissionsForRole(roleId, pagination);
+		return this.roleRepository.findPermissionsForRole(roleId, pagination);
 	}
 
 	/**
@@ -234,9 +234,9 @@ export class RoleService implements IRoleService {
 		if (userId !== undefined) {
 			// Fetch user's current permissions and role assignment in parallel
 			const [userPermissions, userHasRole, currentRolePermissions] = await Promise.all([
-				this.userRoleRepository.getUserPermissions(userId),
-				this.userRoleRepository.userHasRole(userId, roleId),
-				this.roleRepository.getPermissionsForRole(roleId, { limit: 1000 }),
+				this.userRoleRepository.findPermissionsForUser(userId),
+				this.userRoleRepository.findUserHasRole(userId, roleId),
+				this.roleRepository.findPermissionsForRole(roleId, { limit: 1000 }),
 			]);
 
 			// Only need to check for lockout if the user is assigned to the role being modified
