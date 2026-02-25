@@ -1,27 +1,16 @@
 import { inject } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
-import { CanActivateFn, Router } from '@angular/router';
+import type { CanActivateFn } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthStore } from '@store/auth/auth.store';
-import { catchError, filter, map, of, take } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 
 export const authGuard: CanActivateFn = () => {
 	const authStore = inject(AuthStore);
 	const router = inject(Router);
+	const loginUrl = router.createUrlTree(['/auth/login']);
 
-	if (authStore.isInitialized()) {
-		return authStore.isAuthenticated() ? true : router.createUrlTree(['/auth/login']);
-	}
-
-	// Safety net — APP_INITIALIZER guarantees isInitialized before routing,
-	// but this handles edge cases where the signal hasn't propagated yet.
-	return toObservable(authStore.isInitialized).pipe(
-		filter(Boolean),
-		take(1),
-		map(() => (authStore.isAuthenticated() ? true : router.createUrlTree(['/auth/login']))),
-		catchError((error) => {
-			// TODO(#66): Replace with structured logging service
-			console.error('[AuthGuard] Unexpected initialization failure during routing:', error);
-			return of(router.createUrlTree(['/auth/login']));
-		}),
+	return authStore.validateSession().pipe(
+		map(() => true as boolean | typeof loginUrl),
+		catchError(() => of(loginUrl)),
 	);
 };
