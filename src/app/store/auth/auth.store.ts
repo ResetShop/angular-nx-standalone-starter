@@ -128,6 +128,8 @@ export const AuthStore = signalStore(
 			 *
 			 * The tokenRefreshInterceptor transparently handles 401 → refresh → retry,
 			 * so an expired access token is refreshed before the error reaches the caller.
+			 * If the interceptor's refresh attempt also fails, the error is unrecoverable
+			 * and callers should redirect to login.
 			 */
 			validateSession() {
 				return authApi.getMe().pipe(
