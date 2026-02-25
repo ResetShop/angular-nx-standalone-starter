@@ -47,6 +47,7 @@ Before reviewing, read ALL reference files to have full project context:
 - [ ] No `// @ts-ignore` without linked issue
 - [ ] No `console.log` (remove before commit)
 - [ ] No direct `vi.fn()`, `vi.mock()`, or timer calls (use `@test-utils` wrappers)
+- [ ] No module-level constants/variables that are only used by a single function — keep them local (see CLAUDE.md Scope Rules)
 
 ### SOLID Principles
 
