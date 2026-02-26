@@ -125,11 +125,6 @@ export const AuthStore = signalStore(
 			 * Calls getMe(), maps the response to IUser, and patches currentUser.
 			 * Does NOT catch errors — the caller (e.g. authGuard) owns the
 			 * redirect/error-handling decision.
-			 *
-			 * The tokenRefreshInterceptor transparently handles 401 → refresh → retry,
-			 * so an expired access token is refreshed before the error reaches the caller.
-			 * If the interceptor's refresh attempt also fails, the error is unrecoverable
-			 * and callers should redirect to login.
 			 */
 			validateSession() {
 				return authApi.getMe().pipe(
