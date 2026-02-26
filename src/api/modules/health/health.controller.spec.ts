@@ -1,6 +1,6 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../../container.mock';
+import { resetTestCradle, setTestCradle } from '../../container/container.mock';
 import { HealthStatus } from './health.constants';
 import healthController from './health.controller';
 import type { HealthCheckResponse } from './interfaces';

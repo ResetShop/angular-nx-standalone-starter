@@ -1,4 +1,4 @@
-import type { Cradle } from './container';
+import type { Cradle } from './container.types';
 
 /**
  * Type that allows partial implementations of each service in the Cradle.
@@ -14,7 +14,7 @@ type MockCradle = {
  *
  * Usage in tests:
  * ```typescript
- * import { setTestCradle, resetTestCradle } from '../../container.mock';
+ * import { setTestCradle, resetTestCradle } from '../../container/container.mock';
  *
  * beforeEach(() => {
  *   setTestCradle({

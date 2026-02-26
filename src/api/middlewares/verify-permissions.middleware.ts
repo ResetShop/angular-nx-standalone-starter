@@ -1,5 +1,5 @@
 import { Next } from 'hono';
-import { container } from '../container';
+import { container } from '../container/container';
 import { PermissionName } from '../modules/user/permission-types';
 import { AuthenticatedContext } from './verify-access-token.middleware';
 
