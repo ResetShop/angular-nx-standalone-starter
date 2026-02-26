@@ -173,18 +173,11 @@ describe('AuthStore', () => {
 			expect(emittedUser.email).toBe('test@example.com');
 		});
 
-		it('should propagate errors without catching', () => {
+		it('should propagate errors without catching', async () => {
 			const testError = new Error('Unauthorized');
 			authApiMock.getMe.mockReturnValue(throwError(() => testError));
 
-			let receivedError: unknown;
-			store.validateSession().subscribe({
-				error: (err) => {
-					receivedError = err;
-				},
-			});
-
-			expect(receivedError).toBe(testError);
+			await expect(firstValueFrom(store.validateSession())).rejects.toBe(testError);
 		});
 	});
 

@@ -10,7 +10,7 @@ export const noAuthGuard: CanActivateFn = () => {
 	const dashboardUrl = router.createUrlTree(['/dashboard']);
 
 	return authStore.validateSession().pipe(
-		map((): UrlTree | boolean => dashboardUrl),
-		catchError(() => of<UrlTree | boolean>(true)),
+		map((): boolean | UrlTree => dashboardUrl),
+		catchError(() => of<boolean | UrlTree>(true)),
 	);
 };
