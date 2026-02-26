@@ -81,7 +81,24 @@ Request fails with 401
         └── Failure → failTokenRefresh(), logout, propagate error (guard redirects)
 ```
 
-**Navigation responsibility:** The interceptor handles state cleanup (`authStore.logout()`) but never navigates. All redirect decisions are owned by the route guards' `catchError` handlers. This prevents competing navigations when both the interceptor and guard try to redirect simultaneously.
+## Design Rules
+
+### Interceptors must never navigate
+
+HTTP interceptors handle cross-cutting HTTP concerns (credentials, token refresh, cookie forwarding). They must **never** call `router.navigate()` or return `UrlTree` — navigation is a routing concern owned exclusively by route guards.
+
+**Why:** When a guard triggers an HTTP call that fails, both the interceptor's error handler and the guard's `catchError` run. If both attempt to navigate, two competing redirects race against each other, producing unpredictable behavior.
+
+**Boundary of responsibility:**
+
+| Concern                       | Owner       | Example                                   |
+| ----------------------------- | ----------- | ----------------------------------------- |
+| State cleanup on auth failure | Interceptor | `authStore.logout()`                      |
+| Redirect to login             | Guard       | `catchError(() => of(loginUrl))`          |
+| Token refresh + retry         | Interceptor | 401 → refresh → retry pipeline            |
+| Allow/deny navigation         | Guard       | `validateSession().pipe(map(() => true))` |
+
+**Rule:** Interceptors propagate errors via `throwError()`. Guards catch those errors and decide where to navigate. This keeps navigation decisions in a single layer.
 
 ## Server-Side Rendering
 
