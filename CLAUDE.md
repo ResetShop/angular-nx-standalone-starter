@@ -303,19 +303,19 @@ Use queries in this order of preference:
 All `provideAppInitializer` calls **must** use a named factory function that returns an async closure. Never inline the initializer logic directly in `app.config.ts`.
 
 ```typescript
-// ✅ Correct — named factory in a dedicated file (e.g., auth.initializer.ts)
-export function initializeAuth() {
+// ✅ Correct — named factory in a dedicated file (e.g., translation.initializer.ts)
+export function initializeTranslation() {
 	return async () => {
-		const authStore = inject(AuthStore);
-		await firstValueFrom(authStore.initialize());
+		const translation = inject(Translation);
+		await translation.loadDefaultLanguage();
 	};
 }
 
 // Usage in app.config.ts:
-provideAppInitializer(initializeAuth()),
+provideAppInitializer(initializeTranslation()),
 
 // ❌ Incorrect — inline lambda
-provideAppInitializer(() => firstValueFrom(inject(AuthStore).initialize())),
+provideAppInitializer(() => inject(Translation).loadDefaultLanguage()),
 ```
 
 **Rules:**
@@ -330,7 +330,6 @@ provideAppInitializer(() => firstValueFrom(inject(AuthStore).initialize())),
 
 | Initializer             | File                                                |
 | ----------------------- | --------------------------------------------------- |
-| `initializeAuth`        | `src/app/store/auth/auth.initializer.ts`            |
 | `initializeAnalytics`   | `src/app/app.config.ts` (private, uses env)         |
 | `initializeTranslation` | `src/app/providers/i18n/translation.initializer.ts` |
 

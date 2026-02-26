@@ -2,7 +2,6 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
 import { AuthStore } from '@store/auth/auth.store';
 import { catchError, filter, switchMap, take, throwError } from 'rxjs';
 
@@ -31,7 +30,6 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 	}
 
 	const authStore = inject(AuthStore);
-	const router = inject(Router);
 	const { pathname } = new URL(req.url, location.origin);
 
 	// toObservable() requires an injection context (it uses effect() internally).
@@ -46,10 +44,10 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return throwError(() => error);
 			}
 
-			// Refresh endpoint failed — session is dead, force logout
+			// Refresh endpoint failed — session is dead, force logout.
+			// Navigation to /auth/login is handled by the route guard's catchError.
 			if (pathname.startsWith('/api/auth/refresh')) {
 				authStore.logout();
-				router.navigate(['/auth/login']);
 				return throwError(() => error);
 			}
 
@@ -78,7 +76,6 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				catchError((refreshError) => {
 					authStore.failTokenRefresh();
 					authStore.logout();
-					router.navigate(['/auth/login']);
 					return throwError(() => refreshError);
 				}),
 			);

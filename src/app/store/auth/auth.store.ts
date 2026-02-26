@@ -5,7 +5,7 @@ import type { IUser } from '@domain/user/user.interface';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { AuthApiService } from '@providers/auth/auth';
-import { catchError, EMPTY, of, pipe, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, map, pipe, switchMap, tap } from 'rxjs';
 import { initialAuthState } from './auth.types';
 
 /**
@@ -15,11 +15,9 @@ import { initialAuthState } from './auth.types';
  * Components inject this store directly for all auth operations.
  * Uses AuthApiService for HTTP calls.
  *
- * Initialization: Initialized via `APP_INITIALIZER` which calls `initialize()`
- * before the router evaluates any guards. This guarantees `isInitialized` is
- * `true` and guards can check auth state synchronously.
- * Works on both browser and server platforms — cookies are forwarded by the
- * SSR cookie interceptor on the server side.
+ * Session validation is performed by the route guards on every navigation
+ * via `validateSession()`. Works on both browser and server platforms —
+ * cookies are forwarded by the SSR cookie interceptor on the server side.
  */
 export const AuthStore = signalStore(
 	{ providedIn: 'root' },
@@ -33,29 +31,6 @@ export const AuthStore = signalStore(
 		const authApi = inject(AuthApiService);
 
 		return {
-			/**
-			 * Initialize auth state by calling getMe()
-			 *
-			 * Restores the user session from the HttpOnly access token cookie.
-			 * On success, sets currentUser. On failure (401/network), sets currentUser to null.
-			 * Always sets isInitialized to true when complete.
-			 *
-			 * Called by the auth APP_INITIALIZER to guarantee auth state is resolved
-			 * before the router evaluates any guards.
-			 */
-			initialize() {
-				return authApi.getMe().pipe(
-					tap((response) => {
-						const user = mapMeResponseToUser(response);
-						patchState(store, { currentUser: user, isInitialized: true });
-					}),
-					catchError(() => {
-						patchState(store, { currentUser: null, isInitialized: true });
-						return of(undefined);
-					}),
-				);
-			},
-
 			/**
 			 * Login with email and password
 			 *
@@ -145,10 +120,17 @@ export const AuthStore = signalStore(
 			},
 
 			/**
-			 * Token introspection
+			 * Validate the current session by calling GET /api/auth/me
+			 *
+			 * Calls getMe(), maps the response to IUser, and patches currentUser.
+			 * Does NOT catch errors — the caller (e.g. authGuard) owns the
+			 * redirect/error-handling decision.
 			 */
-			getMe() {
-				return authApi.getMe();
+			validateSession() {
+				return authApi.getMe().pipe(
+					map((response) => mapMeResponseToUser(response)),
+					tap((user) => patchState(store, { currentUser: user })),
+				);
 			},
 
 			/**

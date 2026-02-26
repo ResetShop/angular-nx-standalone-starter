@@ -8,9 +8,6 @@ export interface AuthState {
 	/** Currently authenticated user, or null if not logged in */
 	currentUser: IUser | null;
 
-	/** Whether auth state has been initialized (getMe() completed or failed) */
-	isInitialized: boolean;
-
 	/** Whether a token refresh operation is currently in progress */
 	isTokenRefreshing: boolean;
 
@@ -35,7 +32,6 @@ export interface AuthState {
  */
 export const initialAuthState: AuthState = {
 	currentUser: null,
-	isInitialized: false,
 	isTokenRefreshing: false,
 	isLoggingIn: false,
 	isLoggingOut: false,
