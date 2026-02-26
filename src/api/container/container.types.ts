@@ -1,0 +1,82 @@
+import type { DrizzlePgConnector } from '../helpers/drizzle-postgres-connector';
+import type { IPermissionRepository, IPermissionService } from '../modules/access/permission/interfaces';
+import type { IRoleRepository, IRoleService } from '../modules/access/role/interfaces';
+import type { IAuthenticationRepository, IAuthService, IRefreshTokenRepository } from '../modules/auth/interfaces';
+import type { IHealthService } from '../modules/health/interfaces';
+import type {
+	IUserManagementRepository,
+	IUserManagementService,
+	IUserRepository,
+	IUserRoleRepository,
+	IUserRoleService,
+} from '../modules/user/interfaces';
+import type { IEmailRepository, IEmailService } from '../services/email/interfaces';
+import type { IPasetoService } from '../services/paseto/interfaces';
+
+/**
+ * Cradle interface defines all dependencies available in the container.
+ * This provides type safety when resolving dependencies.
+ *
+ * Dependency Graph:
+ *
+ * HealthService ──────────────► db
+ *
+ * AuthService
+ *   ├── UserRepository ──────► db
+ *   ├── AuthRepository ──────► db
+ *   ├── RefreshTokenRepository ► db
+ *   └── PasetoService (no deps)
+ *
+ * RoleService
+ *   ├── RoleRepository ──────► db
+ *   └── UserRoleRepository ──► db
+ *
+ * PermissionService
+ *   └── PermissionRepository ► db
+ *
+ * UserRoleService
+ *   ├── UserRoleRepository ──► db
+ *   ├── UserRepository ──────► db
+ *   └── RoleRepository ──────► db
+ *
+ * UserManagementService
+ *   ├── UserManagementRepository ► db
+ *   ├── EmailService
+ *   └── generatePassword (value)
+ *
+ * EmailService
+ *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
+ * PasetoService (no deps)
+ *
+ * Middleware/Controllers resolve services lazily at runtime.
+ * All services are registered as singletons.
+ */
+export interface Cradle {
+	// Infrastructure
+	db: DrizzlePgConnector;
+
+	// Services
+	healthService: IHealthService;
+	emailService: IEmailService;
+	pasetoService: IPasetoService;
+
+	// Repositories
+	emailRepository: IEmailRepository;
+	userRepository: IUserRepository;
+	authRepository: IAuthenticationRepository;
+	refreshTokenRepository: IRefreshTokenRepository;
+	roleRepository: IRoleRepository;
+	permissionRepository: IPermissionRepository;
+	userRoleRepository: IUserRoleRepository;
+	userManagementRepository: IUserManagementRepository;
+
+	// Utilities
+	generatePassword: () => Promise<string>;
+
+	// Application Services
+	authService: IAuthService;
+	roleService: IRoleService;
+	permissionService: IPermissionService;
+	userRoleService: IUserRoleService;
+	userManagementService: IUserManagementService;
+}

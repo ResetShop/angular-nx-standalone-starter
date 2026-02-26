@@ -1,7 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../container.mock';
+import { resetTestCradle, setTestCradle } from '../container/container.mock';
 import type { PermissionData } from '../modules/access/role/interfaces';
 import { permission } from '../modules/user/permission-types';
 import type { AuthenticatedContext } from './verify-access-token.middleware';

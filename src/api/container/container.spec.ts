@@ -1,5 +1,6 @@
-import { container, type Cradle, verifyContainer } from './container';
+import { container, verifyContainer } from './container';
 import { resetTestCradle, setTestCradle } from './container.mock';
+import type { Cradle } from './container.types';
 
 /**
  * DI Container Integration Tests

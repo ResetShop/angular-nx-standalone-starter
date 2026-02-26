@@ -1,4 +1,4 @@
-import { container, verifyContainer } from '../../container';
+import { container, verifyContainer } from '../../container/container';
 import { HealthStatus } from './health.constants';
 import type { IHealthService } from './interfaces';
 

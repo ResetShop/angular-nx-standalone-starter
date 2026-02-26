@@ -13,7 +13,7 @@ import { timingSafeEqual } from 'crypto';
 import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { MIN_CRON_SECRET_LENGTH } from '../../constants/auth.constants';
-import { container } from '../../container';
+import { container } from '../../container/container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { parseDurationToSeconds } from '../../utils/duration';
 
