@@ -18,108 +18,124 @@ import { EtherealEmailRepository } from '../services/email/ethereal-email.reposi
 import { NodemailerRepository } from '../services/email/nodemailer.repository';
 import { PasetoService } from '../services/paseto/paseto.service';
 import { generatePassword } from '../utils/password';
-import { getTestCradle } from './container.mock';
+import { BaseContainer } from './container.base';
 import type { Cradle } from './container.types';
 import { validateEnvironment } from './validate-environment';
 
-validateEnvironment();
-
 /**
- * Awilix Dependency Injection Container
+ * Creates and wires the Awilix DI container.
+ * Environment validation and container wiring happen on first access,
+ * not at module import time. This keeps the module pure and avoids
+ * throwing in test files that only use the mock container.
  *
  * Using PROXY injection mode for:
  * - Works with minified code (production builds)
  * - Dependencies resolved via property access on proxy object
  * - Destructured constructor parameters work correctly
- *
- * Constructor signature pattern for PROXY mode:
- * ```typescript
- * class MyService {
- *   constructor({ dep1, dep2 }: { dep1: Dep1; dep2: Dep2 }) {
- *     this.dep1 = dep1;
- *     this.dep2 = dep2;
- *   }
- * }
- * ```
  */
-const realContainer = createContainer<Cradle>({
-	injectionMode: InjectionMode.PROXY,
-	strict: true,
-});
+function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
+	validateEnvironment();
 
-realContainer.register({
-	// Infrastructure (values)
-	db: asValue(drizzlePgConnector),
+	const c = createContainer<Cradle>({
+		injectionMode: InjectionMode.PROXY,
+		strict: true,
+	});
 
-	// Services (singletons - stateless, hold config)
-	emailService: asClass(EmailService).singleton(),
-	healthService: asClass(HealthService).singleton(),
-	pasetoService: asClass(PasetoService).singleton(),
+	c.register({
+		// Infrastructure (values)
+		db: asValue(drizzlePgConnector),
 
-	// Repositories (singletons - stateless, share db connection)
-	emailRepository:
-		process.env['EMAIL_PROVIDER'] === 'ethereal'
-			? asClass(EtherealEmailRepository).singleton()
-			: asClass(NodemailerRepository).singleton(),
-	userRepository: asClass(UserRepository).singleton(),
-	authRepository: asClass(AuthenticationRepository).singleton(),
-	refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
-	roleRepository: asClass(RoleRepository).singleton(),
-	permissionRepository: asClass(PermissionRepository).singleton(),
-	userRoleRepository: asClass(UserRoleRepository).singleton(),
-	userManagementRepository: asClass(UserManagementRepository).singleton(),
+		// Services (singletons - stateless, hold config)
+		emailService: asClass(EmailService).singleton(),
+		healthService: asClass(HealthService).singleton(),
+		pasetoService: asClass(PasetoService).singleton(),
 
-	// Utilities
-	generatePassword: asValue(generatePassword),
+		// Repositories (singletons - stateless, share db connection)
+		emailRepository:
+			process.env['EMAIL_PROVIDER'] === 'ethereal'
+				? asClass(EtherealEmailRepository).singleton()
+				: asClass(NodemailerRepository).singleton(),
+		userRepository: asClass(UserRepository).singleton(),
+		authRepository: asClass(AuthenticationRepository).singleton(),
+		refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
+		roleRepository: asClass(RoleRepository).singleton(),
+		permissionRepository: asClass(PermissionRepository).singleton(),
+		userRoleRepository: asClass(UserRoleRepository).singleton(),
+		userManagementRepository: asClass(UserManagementRepository).singleton(),
 
-	// Services that depend on repositories
-	authService: asClass(AuthService).singleton(),
-	roleService: asClass(RoleService).singleton(),
-	permissionService: asClass(PermissionService).singleton(),
-	userRoleService: asClass(UserRoleService).singleton(),
-	userManagementService: asClass(UserManagementService).singleton(),
-});
+		// Utilities
+		generatePassword: asValue(generatePassword),
 
-/**
- * Container proxy that supports test mode.
- * When a test cradle is set (via setTestCradle), the proxy returns mock services.
- * In production, it delegates to the real Awilix container.
- */
-export const container: Pick<AwilixContainer<Cradle>, 'cradle' | 'resolve' | 'registrations'> = {
+		// Services that depend on repositories
+		authService: asClass(AuthService).singleton(),
+		roleService: asClass(RoleService).singleton(),
+		permissionService: asClass(PermissionService).singleton(),
+		userRoleService: asClass(UserRoleService).singleton(),
+		userManagementService: asClass(UserManagementService).singleton(),
+	});
+
+	return c;
+}
+
+let defaultContainer: Container | null = null;
+let activeContainer: BaseContainer | null = null;
+
+export class Container extends BaseContainer {
+	private awilix: Readonly<AwilixContainer<Cradle>> | null = null;
+
+	static get active(): BaseContainer {
+		return activeContainer ?? Container.default;
+	}
+
+	static setActive(c: BaseContainer): void {
+		activeContainer = c;
+	}
+
+	static resetActive(): void {
+		activeContainer = null;
+	}
+
+	/**
+	 * Verifies that all registered dependencies can be resolved.
+	 * Call at server startup to fail fast if configuration is invalid.
+	 * @throws Error if any dependency fails to resolve
+	 */
+	static verify(): void {
+		const awilix = Container.default.initAwilix();
+		for (const dep of Object.keys(awilix.registrations)) {
+			awilix.resolve(dep);
+		}
+	}
+
+	private static get default(): Container {
+		defaultContainer ??= new Container();
+		return defaultContainer;
+	}
+
+	private initAwilix(): Readonly<AwilixContainer<Cradle>> {
+		this.awilix ??= createAwilixContainer();
+		return this.awilix;
+	}
+
 	get cradle(): Cradle {
-		const testCradle = getTestCradle();
-		if (testCradle) {
-			// Return a proxy that throws for unmocked services
-			return new Proxy(testCradle as Cradle, {
-				get(target, prop: keyof Cradle) {
-					if (prop in target) {
-						return target[prop];
-					}
-					throw new Error(`Test mock missing for service: ${String(prop)}`);
-				},
-			});
-		}
-		return realContainer.cradle;
-	},
-	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
-		const testCradle = getTestCradle();
-		if (testCradle && key in testCradle) {
-			return testCradle[key] as Cradle[K];
-		}
-		return realContainer.resolve(key);
-	},
-	get registrations() {
-		return realContainer.registrations;
-	},
-};
+		return this.initAwilix().cradle;
+	}
 
-/**
- * Verifies that all registered dependencies can be resolved from the container.
- * Call this at server startup to fail fast if configuration is invalid.
- * @throws Error if any dependency fails to resolve
- */
-export function verifyContainer(): void {
-	for (const dep of Object.keys(realContainer.registrations)) {
-		realContainer.resolve(dep);
+	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
+		return this.initAwilix().resolve(key);
 	}
 }
+
+/**
+ * Container proxy that delegates to the currently active container.
+ * In production, this is the singleton Container instance.
+ * In tests, MockContainer.activate() swaps it to a mock container.
+ */
+export const container: Pick<BaseContainer, 'cradle' | 'resolve'> = {
+	get cradle(): Cradle {
+		return Container.active.cradle;
+	},
+	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
+		return Container.active.resolve(key);
+	},
+};

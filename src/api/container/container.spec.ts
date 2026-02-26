@@ -1,5 +1,5 @@
-import { container, verifyContainer } from './container';
-import { resetTestCradle, setTestCradle } from './container.mock';
+import { Container, container } from './container';
+import { MockContainer } from './container.mock';
 import type { Cradle } from './container.types';
 
 /**
@@ -71,20 +71,20 @@ describe('DI Container', () => {
 		});
 	});
 
-	describe('verifyContainer', () => {
+	describe('Container.verify', () => {
 		it('should not throw when all critical dependencies are resolvable', () => {
-			expect(() => verifyContainer()).not.toThrow();
+			expect(() => Container.verify()).not.toThrow();
 		});
 	});
 
 	describe('test cradle proxy', () => {
 		afterEach(() => {
-			resetTestCradle();
+			MockContainer.deactivate();
 		});
 
 		it('should return mocked service when test cradle is set', () => {
 			const mockRoleService = { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'];
-			setTestCradle({
+			MockContainer.activate({
 				roleService: mockRoleService,
 			});
 
@@ -92,7 +92,7 @@ describe('DI Container', () => {
 		});
 
 		it('should throw when accessing unmocked service in test mode', () => {
-			setTestCradle({
+			MockContainer.activate({
 				roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
 			});
 
@@ -101,11 +101,11 @@ describe('DI Container', () => {
 		});
 
 		it('should return real service after test cradle is reset', () => {
-			setTestCradle({
+			MockContainer.activate({
 				roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
 			});
 
-			resetTestCradle();
+			MockContainer.deactivate();
 
 			// After reset, real authService should be accessible
 			expect(container.cradle.authService).toBeDefined();
