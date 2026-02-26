@@ -133,11 +133,8 @@ export const AuthStore = signalStore(
 			 */
 			validateSession() {
 				return authApi.getMe().pipe(
-					map((response) => {
-						const user = mapMeResponseToUser(response);
-						patchState(store, { currentUser: user });
-						return user;
-					}),
+					map((response) => mapMeResponseToUser(response)),
+					tap((user) => patchState(store, { currentUser: user })),
 				);
 			},
 
