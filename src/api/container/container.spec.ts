@@ -7,8 +7,8 @@ import type { Cradle } from './container.types';
  *
  * These tests verify that all dependencies are properly registered and resolvable.
  * Environment validation (PASETO_SECRET_KEY) is tested implicitly - if the env var
- * is missing or invalid, the container module will throw at import time, causing
- * these tests to fail before they even run.
+ * is missing or invalid, the container will throw on first access (when
+ * container.cradle or Container.verify() is called), causing these tests to fail.
  */
 describe('DI Container', () => {
 	describe('dependency resolution', () => {
