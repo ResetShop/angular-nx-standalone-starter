@@ -1,7 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../../../container/container.mock';
+import { MockContainer } from '../../../container/container.mock';
 import type { PaginatedResponse } from '../../../interfaces';
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
 import type { PermissionData } from '../role/interfaces';
@@ -34,7 +34,7 @@ describe('Permission Controller', () => {
 
 		mockGetUserPermissions.mockResolvedValue([requiredPermission]);
 
-		setTestCradle({
+		MockContainer.activate({
 			permissionService: {
 				getAllPermissions: mockGetAllPermissions,
 			},
@@ -57,7 +57,7 @@ describe('Permission Controller', () => {
 	});
 
 	afterEach(() => {
-		resetTestCradle();
+		MockContainer.deactivate();
 	});
 
 	describe('GET /access/permissions', () => {

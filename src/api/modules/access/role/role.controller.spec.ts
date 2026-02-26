@@ -1,7 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../../../container/container.mock';
+import { MockContainer } from '../../../container/container.mock';
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
 import type { ListRolesParams, PaginatedResponse, PermissionData, RoleData } from './interfaces';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
@@ -54,7 +54,7 @@ describe('Role Controller', () => {
 		// Mock getUserPermissions to return all role permissions
 		mockGetUserPermissions.mockResolvedValue(allRolePermissions);
 
-		setTestCradle({
+		MockContainer.activate({
 			roleService: {
 				getAllRoles: mockGetAllRoles,
 				getRole: mockGetRole,
@@ -84,7 +84,7 @@ describe('Role Controller', () => {
 	});
 
 	afterEach(() => {
-		resetTestCradle();
+		MockContainer.deactivate();
 	});
 
 	describe('GET /access/roles', () => {
