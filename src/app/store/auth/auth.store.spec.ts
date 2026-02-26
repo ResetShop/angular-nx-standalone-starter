@@ -4,7 +4,7 @@ import type { IPermission } from '@domain/access/permission.interface';
 import { createMockUser } from '@mocks/user.mock';
 import { AuthApiService } from '@providers/auth/auth';
 import { clearAllMocks, fn, type MockFn } from '@test-utils';
-import { NEVER, of, throwError, type Observable } from 'rxjs';
+import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs';
 import { AuthStore } from './auth.store';
 
 describe('AuthStore', () => {
@@ -44,7 +44,6 @@ describe('AuthStore', () => {
 			getMe: fn(),
 		};
 
-		// Default: getMe fails (no session) so store initializes with null user
 		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')));
 
 		TestBed.configureTestingModule({
@@ -52,14 +51,11 @@ describe('AuthStore', () => {
 		});
 
 		store = TestBed.inject(AuthStore);
-		// APP_INITIALIZER calls initialize() before routing — replicate in tests
-		store.initialize().subscribe();
 	});
 
 	describe('initial state', () => {
-		it('should have correct initial state after initialization', () => {
+		it('should have correct initial state', () => {
 			expect(store.currentUser()).toBeNull();
-			expect(store.isInitialized()).toBe(true);
 			expect(store.isTokenRefreshing()).toBe(false);
 			expect(store.isLoggingIn()).toBe(false);
 			expect(store.isLoggingOut()).toBe(false);
@@ -71,38 +67,6 @@ describe('AuthStore', () => {
 			expect(store.isAuthenticated()).toBe(false);
 			expect(store.userPermissions()).toEqual([]);
 			expect(store.userRoles()).toEqual([]);
-		});
-	});
-
-	describe('initialize', () => {
-		it('should restore user from getMe on successful init', () => {
-			authApiMock.getMe.mockReturnValue(of(mockMeResponse));
-
-			TestBed.resetTestingModule();
-			TestBed.configureTestingModule({
-				providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
-			});
-
-			const freshStore = TestBed.inject(AuthStore);
-			freshStore.initialize().subscribe();
-
-			expect(freshStore.isInitialized()).toBe(true);
-			expect(freshStore.currentUser()?.email).toBe('test@example.com');
-		});
-
-		it('should set currentUser to null on getMe failure', () => {
-			authApiMock.getMe.mockReturnValue(throwError(() => ({ status: 401 })));
-
-			TestBed.resetTestingModule();
-			TestBed.configureTestingModule({
-				providers: [AuthStore, { provide: AuthApiService, useValue: authApiMock }],
-			});
-
-			const freshStore = TestBed.inject(AuthStore);
-			freshStore.initialize().subscribe();
-
-			expect(freshStore.isInitialized()).toBe(true);
-			expect(freshStore.currentUser()).toBeNull();
 		});
 	});
 
@@ -196,6 +160,24 @@ describe('AuthStore', () => {
 			});
 
 			expect(emitted).toBe(true);
+		});
+	});
+
+	describe('validateSession', () => {
+		it('should call getMe and update currentUser on success', async () => {
+			authApiMock.getMe.mockReturnValue(of(mockMeResponse));
+
+			const emittedUser = await firstValueFrom(store.validateSession());
+
+			expect(store.currentUser()?.email).toBe('test@example.com');
+			expect(emittedUser.email).toBe('test@example.com');
+		});
+
+		it('should propagate errors without catching', async () => {
+			const testError = new Error('Unauthorized');
+			authApiMock.getMe.mockReturnValue(throwError(() => testError));
+
+			await expect(firstValueFrom(store.validateSession())).rejects.toBe(testError);
 		});
 	});
 
