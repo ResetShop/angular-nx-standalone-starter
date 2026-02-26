@@ -70,7 +70,7 @@ The `tokenRefreshInterceptor` is disabled during SSR because `Set-Cookie` header
 ```
 Request fails with 401
     │
-    ├── Is /api/auth/refresh? → logout + redirect (session dead)
+    ├── Is /api/auth/refresh? → logout, propagate error (guard redirects)
     ├── Is /api/auth/login?   → pass through (invalid credentials)
     │
     ├── Is refresh in progress? → wait for it, then retry original request
@@ -78,8 +78,10 @@ Request fails with 401
     └── Start new refresh:
         ├── POST /api/auth/refresh (cookie sent automatically)
         ├── Success → completeTokenRefresh(), retry original request
-        └── Failure → failTokenRefresh(), logout + redirect
+        └── Failure → failTokenRefresh(), logout, propagate error (guard redirects)
 ```
+
+**Navigation responsibility:** The interceptor handles state cleanup (`authStore.logout()`) but never navigates. All redirect decisions are owned by the route guards' `catchError` handlers. This prevents competing navigations when both the interceptor and guard try to redirect simultaneously.
 
 ## Server-Side Rendering
 

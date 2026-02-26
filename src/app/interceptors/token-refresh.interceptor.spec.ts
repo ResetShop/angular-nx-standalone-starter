@@ -2,7 +2,6 @@ import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } fr
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
 import { AuthStore } from '@store/auth/auth.store';
 import { clearAllMocks, fn, type MockFn } from '@test-utils';
 import { of, throwError, type Observable } from 'rxjs';
@@ -37,13 +36,11 @@ describe('tokenRefreshInterceptor', () => {
 		let http: HttpClient;
 		let httpMock: HttpTestingController;
 		let authStoreMock: AuthStoreMock;
-		let routerMock: { navigate: MockFn };
 
 		beforeEach(() => {
 			clearAllMocks();
 
 			authStoreMock = createAuthStoreMock();
-			routerMock = { navigate: fn() };
 
 			TestBed.configureTestingModule({
 				providers: [
@@ -51,7 +48,6 @@ describe('tokenRefreshInterceptor', () => {
 					provideHttpClientTesting(),
 					{ provide: PLATFORM_ID, useValue: 'browser' },
 					{ provide: AuthStore, useValue: authStoreMock },
-					{ provide: Router, useValue: routerMock },
 				],
 			});
 
@@ -84,7 +80,7 @@ describe('tokenRefreshInterceptor', () => {
 			expect(authStoreMock.logout.calls).toHaveLength(0);
 		});
 
-		it('should logout and redirect when refresh endpoint returns 401', () => {
+		it('should logout when refresh endpoint returns 401', () => {
 			let error: HttpErrorResponse | undefined;
 			http.get('/api/auth/refresh').subscribe({ error: (e) => (error = e) });
 
@@ -92,7 +88,6 @@ describe('tokenRefreshInterceptor', () => {
 
 			expect(error?.status).toBe(401);
 			expect(authStoreMock.logout.calls).toHaveLength(1);
-			expect(routerMock.navigate.calls).toEqual([[['/auth/login']]]);
 			expect(authStoreMock.startTokenRefresh.calls).toHaveLength(0);
 		});
 
@@ -105,7 +100,6 @@ describe('tokenRefreshInterceptor', () => {
 			expect(error?.status).toBe(401);
 			expect(authStoreMock.startTokenRefresh.calls).toHaveLength(0);
 			expect(authStoreMock.logout.calls).toHaveLength(0);
-			expect(routerMock.navigate.calls).toHaveLength(0);
 		});
 
 		it('should refresh token and retry the original request on 401', () => {
@@ -126,7 +120,7 @@ describe('tokenRefreshInterceptor', () => {
 			expect(authStoreMock.logout.calls).toHaveLength(0);
 		});
 
-		it('should logout and redirect when token refresh fails', () => {
+		it('should logout when token refresh fails', () => {
 			authStoreMock.refreshToken.mockReturnValue(throwError(() => new Error('refresh failed')));
 
 			let error: unknown;
@@ -138,7 +132,6 @@ describe('tokenRefreshInterceptor', () => {
 			expect(authStoreMock.startTokenRefresh.calls).toHaveLength(1);
 			expect(authStoreMock.failTokenRefresh.calls).toHaveLength(1);
 			expect(authStoreMock.logout.calls).toHaveLength(1);
-			expect(routerMock.navigate.calls).toEqual([[['/auth/login']]]);
 			expect(authStoreMock.completeTokenRefresh.calls).toHaveLength(0);
 		});
 
@@ -194,7 +187,6 @@ describe('tokenRefreshInterceptor', () => {
 					provideHttpClientTesting(),
 					{ provide: PLATFORM_ID, useValue: 'server' },
 					{ provide: AuthStore, useValue: authStoreMock },
-					{ provide: Router, useValue: { navigate: fn() } },
 				],
 			});
 
