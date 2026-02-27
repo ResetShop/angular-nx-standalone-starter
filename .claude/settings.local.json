@@ -57,7 +57,13 @@
 			"WebFetch(domain:tanstack.com)",
 			"WebFetch(domain:ui.shadcn.com)",
 			"WebSearch",
-			"mcp__nx-mcp__nx_workspace_path"
+			"mcp__nx-mcp__nx_workspace_path",
+			"mcp__plugin_playwright_playwright__browser_evaluate",
+			"mcp__plugin_playwright_playwright__browser_navigate",
+			"mcp__plugin_playwright_playwright__browser_click",
+			"mcp__plugin_playwright_playwright__browser_take_screenshot",
+			"mcp__plugin_playwright_playwright__browser_snapshot",
+			"mcp__plugin_playwright_playwright__browser_wait_for"
 		]
 	},
 	"enableAllProjectMcpServers": true,
