@@ -61,13 +61,13 @@ export const Default: Story = {
 			<div class="space-y-4">
 				<div>
 					<h3 class="text-sm font-semibold text-foreground mb-2">Light</h3>
-					<div class="bg-white p-4 rounded border border-gray-200">
+					<div class="bg-background p-4 rounded border border-border">
 						<span appBadge [variant]="variant">Badge</span>
 					</div>
 				</div>
 				<div>
 					<h3 class="text-sm font-semibold text-foreground mb-2">Dark</h3>
-					<div class="dark bg-black p-4 rounded border border-gray-800">
+					<div class="dark bg-background p-4 rounded border border-border">
 						<span appBadge [variant]="variant">Badge</span>
 					</div>
 				</div>
@@ -85,7 +85,7 @@ export const AllVariants: Story = {
 			<div class="space-y-4">
 				<div>
 					<h3 class="text-sm font-semibold text-foreground mb-2">Light</h3>
-					<div class="bg-white p-4 rounded border border-gray-200">
+					<div class="bg-background p-4 rounded border border-border">
 						<div class="flex gap-3 flex-wrap items-center">
 							<span appBadge variant="default">Default</span>
 							<span appBadge variant="secondary">Secondary</span>
@@ -96,7 +96,7 @@ export const AllVariants: Story = {
 				</div>
 				<div>
 					<h3 class="text-sm font-semibold text-foreground mb-2">Dark</h3>
-					<div class="dark bg-black p-4 rounded border border-gray-800">
+					<div class="dark bg-background p-4 rounded border border-border">
 						<div class="flex gap-3 flex-wrap items-center">
 							<span appBadge variant="default">Default</span>
 							<span appBadge variant="secondary">Secondary</span>

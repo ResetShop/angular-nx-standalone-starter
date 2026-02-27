@@ -29,6 +29,7 @@ export class Badge {
 			'inline-flex',
 			'items-center',
 			'rounded-full',
+			'border',
 			'px-2.5',
 			'py-0.5',
 			'text-xs',
@@ -39,10 +40,10 @@ export class Badge {
 		];
 
 		const variantClasses: Record<BadgeVariant, string[]> = {
-			default: ['bg-default', 'text-default-foreground'],
-			secondary: ['bg-secondary', 'text-secondary-foreground'],
-			destructive: ['bg-destructive', 'text-destructive-foreground'],
-			outline: ['border', 'border-solid', 'border-border', 'text-foreground', 'bg-transparent'],
+			default: ['bg-default', 'border-transparent', 'text-default-foreground'],
+			secondary: ['bg-secondary', 'border-transparent', 'text-secondary-foreground'],
+			destructive: ['bg-destructive/10', 'border-transparent', 'text-destructive', 'dark:bg-destructive/20'],
+			outline: ['border-border', 'text-foreground'],
 		};
 
 		return [...baseClasses, ...variantClasses[this.variant()]].join(' ');
