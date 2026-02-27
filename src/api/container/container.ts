@@ -19,7 +19,7 @@ import { EMAIL_PROVIDERS } from '../services/email/interfaces';
 import { NodemailerRepository } from '../services/email/nodemailer.repository';
 import { PasetoService } from '../services/paseto/paseto.service';
 import { generatePassword } from '../utils/password';
-import type { IContainer } from './container.base';
+import type { IContainer } from './container.interface';
 import type { Cradle } from './container.types';
 import { validateEnvironment } from './validate-environment';
 
