@@ -47,7 +47,7 @@
 	--ring: oklch(83.1% 0.117 257deg);
 }
 
-@theme inline {
+@theme {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
@@ -68,9 +68,6 @@
 	--color-input: var(--input);
 	--color-ring: var(--ring);
 	--radius: var(--radius);
-}
-
-@theme {
 	--font-sans: var(--font-geist-sans);
 	--font-mono: var(--font-geist-mono);
 	--font-display: 'Satoshi', 'sans-serif';

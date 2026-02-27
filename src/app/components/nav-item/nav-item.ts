@@ -9,23 +9,31 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink, RouterLinkActive],
 	styles: `
-		@reference "tailwindcss";
-
 		:host {
-			@apply text-sm hover:cursor-pointer;
+			font-size: 0.875rem;
+			line-height: 1.25rem;
+			cursor: pointer;
 		}
 
 		a {
-			@apply text-foreground flex items-center gap-2 rounded-lg p-2;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			border-radius: 0.5rem;
+			padding: 0.5rem;
+			color: var(--foreground);
 		}
 
 		a.active {
-			@apply bg-accent text-accent-foreground font-medium;
+			background-color: var(--accent);
+			color: var(--accent-foreground);
+			font-weight: 500;
 		}
 
 		a:hover,
 		a.active:hover {
-			@apply bg-accent text-accent-foreground;
+			background-color: var(--accent);
+			color: var(--accent-foreground);
 		}
 
 		.nav-children {
@@ -50,7 +58,11 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 		}
 
 		button {
-			@apply hover:bg-accent/50 rounded-md;
+			border-radius: 0.375rem;
+		}
+
+		button:hover {
+			background-color: oklch(from var(--accent) l c h / 50%);
 		}
 	`,
 	template: `
