@@ -91,7 +91,7 @@ export default meta;
 type Story = StoryObj<Button>;
 
 /**
- * The default button using primary colors from the theme.
+ * The default button using default colors from the theme.
  * Use this for primary actions.
  */
 export const Default: Story = {

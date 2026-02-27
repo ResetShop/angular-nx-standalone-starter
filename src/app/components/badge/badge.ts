@@ -42,17 +42,9 @@ export class Badge {
 	];
 
 	private readonly VARIANT_CLASSES: Record<BadgeVariant, string[]> = {
-		default: ['bg-primary', 'text-gray-50', 'dark:bg-gray-50', 'dark:text-primary'],
-		secondary: ['bg-gray-200', 'text-gray-900', 'dark:bg-gray-800', 'dark:text-gray-100'],
-		destructive: ['bg-danger', 'text-gray-50', 'dark:bg-danger', 'dark:text-gray-50'],
-		outline: [
-			'border',
-			'border-solid',
-			'border-gray-300',
-			'text-gray-700',
-			'bg-transparent',
-			'dark:border-gray-600',
-			'dark:text-gray-300',
-		],
+		default: ['bg-default', 'text-default-foreground'],
+		secondary: ['bg-secondary', 'text-secondary-foreground'],
+		destructive: ['bg-destructive', 'text-destructive-foreground'],
+		outline: ['border', 'border-solid', 'border-border', 'text-foreground', 'bg-transparent'],
 	};
 }

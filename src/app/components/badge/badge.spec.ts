@@ -36,7 +36,7 @@ describe('Badge', () => {
 		});
 
 		const badge = screen.getByText('Default');
-		expect(badge).toHaveClass('bg-primary', 'text-gray-50', 'dark:bg-gray-50', 'dark:text-primary');
+		expect(badge).toHaveClass('bg-default', 'text-default-foreground');
 	});
 
 	it('should apply secondary variant classes', async () => {
@@ -45,7 +45,7 @@ describe('Badge', () => {
 		});
 
 		const badge = screen.getByText('Secondary');
-		expect(badge).toHaveClass('bg-gray-200', 'text-gray-900', 'dark:bg-gray-800', 'dark:text-gray-100');
+		expect(badge).toHaveClass('bg-secondary', 'text-secondary-foreground');
 	});
 
 	it('should apply destructive variant classes', async () => {
@@ -54,7 +54,7 @@ describe('Badge', () => {
 		});
 
 		const badge = screen.getByText('Error');
-		expect(badge).toHaveClass('bg-danger', 'text-gray-50', 'dark:bg-danger', 'dark:text-gray-50');
+		expect(badge).toHaveClass('bg-destructive', 'text-destructive-foreground');
 	});
 
 	it('should apply outline variant classes', async () => {
@@ -63,6 +63,6 @@ describe('Badge', () => {
 		});
 
 		const badge = screen.getByText('Outline');
-		expect(badge).toHaveClass('border', 'border-solid', 'border-gray-300', 'text-gray-700', 'bg-transparent', 'dark:border-gray-600', 'dark:text-gray-300');
+		expect(badge).toHaveClass('border', 'border-solid', 'border-border', 'text-foreground', 'bg-transparent');
 	});
 });
