@@ -1,4 +1,4 @@
-import { BaseContainer } from './container.base';
+import type { IContainer } from './container.base';
 import type { Cradle } from './container.types';
 
 /**
@@ -9,10 +9,8 @@ type MockCradle = {
 	[K in keyof Cradle]?: Partial<Cradle[K]>;
 };
 
-export class MockContainer extends BaseContainer {
-	constructor(private readonly mockCradle: MockCradle) {
-		super();
-	}
+export class MockContainer implements IContainer {
+	constructor(private readonly mockCradle: MockCradle) {}
 
 	get cradle(): Cradle {
 		return new Proxy(this.mockCradle as Cradle, {
