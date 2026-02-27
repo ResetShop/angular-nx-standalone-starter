@@ -84,6 +84,12 @@ function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
 	return c;
 }
 
+/**
+ * Singleton DI container that supports delegate-based test isolation.
+ * In production, cradle/resolve access the real Awilix container (lazy-initialized).
+ * In tests, call use(mockContainer) to redirect all resolution to a MockContainer,
+ * then restore() in afterEach to revert to the real container.
+ */
 class Container extends BaseContainer {
 	private awilix: Readonly<AwilixContainer<Cradle>> | null = null;
 	private delegate: BaseContainer | null = null;
@@ -112,6 +118,7 @@ class Container extends BaseContainer {
 	verify(): void {
 		const awilix = this.initAwilix();
 		for (const dep of Object.keys(awilix.registrations)) {
+			// Use string overload intentionally — verifying all registered keys at startup
 			awilix.resolve(dep);
 		}
 	}
