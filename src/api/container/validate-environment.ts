@@ -1,3 +1,5 @@
+import { EMAIL_PROVIDERS, isEmailProvider } from '../services/email/interfaces';
+
 /**
  * Validates required environment variables at container setup time.
  * Fails fast if critical configuration is missing or invalid.
@@ -14,8 +16,9 @@ export function validateEnvironment(): void {
 	}
 
 	const emailProvider = process.env['EMAIL_PROVIDER'];
-	const validEmailProviders = ['nodemailer', 'ethereal'];
-	if (emailProvider && !validEmailProviders.includes(emailProvider)) {
-		throw new Error(`Invalid EMAIL_PROVIDER: "${emailProvider}". Valid values: ${validEmailProviders.join(', ')}`);
+	if (emailProvider && !isEmailProvider(emailProvider)) {
+		throw new Error(
+			`Invalid EMAIL_PROVIDER: "${emailProvider}". Valid values: ${Object.values(EMAIL_PROVIDERS).join(', ')}`,
+		);
 	}
 }

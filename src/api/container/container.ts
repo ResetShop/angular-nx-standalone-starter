@@ -15,6 +15,7 @@ import { UserRoleService } from '../modules/user/user-role.service';
 import { UserRepository } from '../modules/user/user.repository';
 import { EmailService } from '../services/email/email.service';
 import { EtherealEmailRepository } from '../services/email/ethereal-email.repository';
+import { EMAIL_PROVIDERS } from '../services/email/interfaces';
 import { NodemailerRepository } from '../services/email/nodemailer.repository';
 import { PasetoService } from '../services/paseto/paseto.service';
 import { generatePassword } from '../utils/password';
@@ -27,7 +28,7 @@ function registerInfrastructure(c: AwilixContainer<Cradle>): void {
 		db: asValue(drizzlePgConnector),
 		generatePassword: asValue(generatePassword),
 		emailRepository:
-			process.env['EMAIL_PROVIDER'] === 'ethereal'
+			process.env['EMAIL_PROVIDER'] === EMAIL_PROVIDERS.ETHEREAL
 				? asClass(EtherealEmailRepository).singleton()
 				: asClass(NodemailerRepository).singleton(),
 	});
