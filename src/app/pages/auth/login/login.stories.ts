@@ -30,7 +30,7 @@ type ErrorCodeOption = LoginErrorCode | null;
 					<ng-template #cardTitle>
 						<div class="mt-4 flex flex-col gap-4">
 							<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-							<div class="mb-8 text-center dark:text-white">Ingresar al sistema</div>
+							<div class="text-foreground mb-8 text-center">Ingresar al sistema</div>
 						</div>
 					</ng-template>
 
@@ -43,7 +43,7 @@ type ErrorCodeOption = LoginErrorCode | null;
 										id="email"
 										type="email"
 										autocomplete="email"
-										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring block w-full rounded-md bg-white px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 									/>
 								</div>
 							</div>
@@ -61,7 +61,7 @@ type ErrorCodeOption = LoginErrorCode | null;
 										id="password"
 										type="password"
 										autocomplete="current-password"
-										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring block w-full rounded-md bg-white px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 									/>
 								</div>
 							</div>
