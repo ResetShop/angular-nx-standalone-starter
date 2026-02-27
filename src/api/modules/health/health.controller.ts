@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { container } from '../../container';
+import { container } from '../../container/container';
 import { HealthStatus } from './health.constants';
 import type { HealthCheckResponse } from './interfaces';
 

@@ -2,7 +2,8 @@ import type { CreateUserResponse } from '@contracts/user/user.types';
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../../container.mock';
+import { container } from '../../container/container';
+import { MockContainer } from '../../container/container.mock';
 import type { PaginatedResponse } from '../../interfaces';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PermissionData, RoleData } from '../access/role/interfaces';
@@ -62,18 +63,20 @@ describe('User Management Controller', () => {
 
 		mockGetUserPermissions.mockResolvedValue(allUserPermissions);
 
-		setTestCradle({
-			userManagementService: {
-				getAllUsers: mockGetAllUsers,
-				getUser: mockGetUser,
-				createUser: mockCreateUser,
-				updateUser: mockUpdateUser,
-				deleteUser: mockDeleteUser,
-			},
-			userRoleService: {
-				getUserPermissions: mockGetUserPermissions,
-			},
-		});
+		container.use(
+			new MockContainer({
+				userManagementService: {
+					getAllUsers: mockGetAllUsers,
+					getUser: mockGetUser,
+					createUser: mockCreateUser,
+					updateUser: mockUpdateUser,
+					deleteUser: mockDeleteUser,
+				},
+				userRoleService: {
+					getUserPermissions: mockGetUserPermissions,
+				},
+			}),
+		);
 
 		app = new Hono();
 		app.use('*', async (c, next) => {
@@ -89,7 +92,7 @@ describe('User Management Controller', () => {
 	});
 
 	afterEach(() => {
-		resetTestCradle();
+		container.restore();
 	});
 
 	describe('GET /users', () => {

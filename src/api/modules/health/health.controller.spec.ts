@@ -1,6 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../../container.mock';
+import { container } from '../../container/container';
+import { MockContainer } from '../../container/container.mock';
 import { HealthStatus } from './health.constants';
 import healthController from './health.controller';
 import type { HealthCheckResponse } from './interfaces';
@@ -11,15 +12,17 @@ describe('Health Controller', () => {
 	beforeEach(() => {
 		clearAllMocks();
 
-		setTestCradle({
-			healthService: {
-				checkHealth: mockCheckHealth,
-			},
-		});
+		container.use(
+			new MockContainer({
+				healthService: {
+					checkHealth: mockCheckHealth,
+				},
+			}),
+		);
 	});
 
 	afterEach(() => {
-		resetTestCradle();
+		container.restore();
 	});
 
 	it('should return 200 with healthy response', async () => {

@@ -1,15 +1,22 @@
-import { container, type Cradle, verifyContainer } from './container';
-import { resetTestCradle, setTestCradle } from './container.mock';
+import { clearAllMocks } from '@test-utils';
+import { AuthService } from '../modules/auth/auth.service';
+import { container } from './container';
+import { MockContainer } from './container.mock';
+import type { Cradle } from './container.types';
 
 /**
  * DI Container Integration Tests
  *
  * These tests verify that all dependencies are properly registered and resolvable.
  * Environment validation (PASETO_SECRET_KEY) is tested implicitly - if the env var
- * is missing or invalid, the container module will throw at import time, causing
- * these tests to fail before they even run.
+ * is missing or invalid, the container will throw on first access (when
+ * container.cradle or container.verify() is called), causing these tests to fail.
  */
 describe('DI Container', () => {
+	beforeEach(() => {
+		clearAllMocks();
+	});
+
 	describe('dependency resolution', () => {
 		it('should resolve db infrastructure', () => {
 			expect(container.cradle.db).toBeDefined();
@@ -70,45 +77,51 @@ describe('DI Container', () => {
 		});
 	});
 
-	describe('verifyContainer', () => {
+	describe('container.verify', () => {
 		it('should not throw when all critical dependencies are resolvable', () => {
-			expect(() => verifyContainer()).not.toThrow();
+			expect(() => container.verify()).not.toThrow();
 		});
 	});
 
 	describe('test cradle proxy', () => {
 		afterEach(() => {
-			resetTestCradle();
+			container.restore();
 		});
 
 		it('should return mocked service when test cradle is set', () => {
 			const mockRoleService = { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'];
-			setTestCradle({
-				roleService: mockRoleService,
-			});
+			container.use(
+				new MockContainer({
+					roleService: mockRoleService,
+				}),
+			);
 
 			expect(container.cradle.roleService).toBe(mockRoleService);
 		});
 
 		it('should throw when accessing unmocked service in test mode', () => {
-			setTestCradle({
-				roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
-			});
+			container.use(
+				new MockContainer({
+					roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
+				}),
+			);
 
 			// authService wasn't mocked, so accessing it should throw
 			expect(() => container.cradle.authService).toThrow('Test mock missing for service: authService');
 		});
 
 		it('should return real service after test cradle is reset', () => {
-			setTestCradle({
-				roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
-			});
+			container.use(
+				new MockContainer({
+					roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
+				}),
+			);
 
-			resetTestCradle();
+			container.restore();
 
 			// After reset, real authService should be accessible
 			expect(container.cradle.authService).toBeDefined();
-			expect(container.cradle.authService.constructor.name).toBe('AuthService');
+			expect(container.cradle.authService).toBeInstanceOf(AuthService);
 		});
 	});
 });
