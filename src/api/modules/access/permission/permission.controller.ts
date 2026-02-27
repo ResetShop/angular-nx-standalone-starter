@@ -4,7 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { QUERY_DEFAULTS } from '../../../constants/query.constants';
-import { container } from '../../../container';
+import { container } from '../../../container/container';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
 

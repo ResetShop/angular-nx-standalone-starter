@@ -1,6 +1,6 @@
 import { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
-import { container } from '../container';
+import { container } from '../container/container';
 
 export interface AuthenticatedContext extends Context {
 	user?: {
