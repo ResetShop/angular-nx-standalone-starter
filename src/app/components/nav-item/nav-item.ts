@@ -80,7 +80,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 				[routerLink]="item().route"
 				[routerLinkActiveOptions]="{ exact: false }"
 				routerLinkActive="bg-accent text-accent-foreground font-medium"
-				class="text-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
+				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
 			>
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
