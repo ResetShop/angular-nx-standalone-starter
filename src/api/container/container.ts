@@ -18,7 +18,7 @@ import { EtherealEmailRepository } from '../services/email/ethereal-email.reposi
 import { NodemailerRepository } from '../services/email/nodemailer.repository';
 import { PasetoService } from '../services/paseto/paseto.service';
 import { generatePassword } from '../utils/password';
-import { BaseContainer } from './container.base';
+import type { IContainer } from './container.base';
 import type { Cradle } from './container.types';
 import { validateEnvironment } from './validate-environment';
 
@@ -90,9 +90,9 @@ function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
  * In tests, call use(mockContainer) to redirect all resolution to a MockContainer,
  * then restore() in afterEach to revert to the real container.
  */
-class Container extends BaseContainer {
+class Container implements IContainer {
 	private awilix: Readonly<AwilixContainer<Cradle>> | null = null;
-	private delegate: BaseContainer | null = null;
+	private delegate: IContainer | null = null;
 
 	private initAwilix(): Readonly<AwilixContainer<Cradle>> {
 		this.awilix ??= createAwilixContainer();
@@ -127,7 +127,7 @@ class Container extends BaseContainer {
 	 * Replaces the active container with a delegate (e.g. MockContainer for tests).
 	 * While a delegate is active, cradle and resolve() forward to it.
 	 */
-	use(delegate: BaseContainer): void {
+	use(delegate: IContainer): void {
 		this.delegate = delegate;
 	}
 

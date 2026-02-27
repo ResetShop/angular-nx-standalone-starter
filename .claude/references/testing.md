@@ -148,7 +148,7 @@ The `src/api/container/container.mock.ts` module provides the `MockContainer` cl
 
 | Export          | Purpose                                                      |
 | --------------- | ------------------------------------------------------------ |
-| `MockContainer` | Extends `BaseContainer` with a partial cradle for test mocks |
+| `MockContainer` | Implements `IContainer` with a partial cradle for test mocks |
 
 Usage with the singleton `container` from `src/api/container/container.ts`:
 
