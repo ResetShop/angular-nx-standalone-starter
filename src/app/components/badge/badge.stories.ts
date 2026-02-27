@@ -49,7 +49,7 @@ export default meta;
 type Story = StoryObj<Badge>;
 
 /**
- * The default badge using primary colors from the theme.
+ * The default badge using default colors from the theme.
  */
 export const Default: Story = {
 	args: {

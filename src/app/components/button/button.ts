@@ -1,4 +1,4 @@
-import { computed, Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { NgpButton } from 'ng-primitives/button';
 
 export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
@@ -9,7 +9,9 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 	selector: 'button[appButton], a[appButton]',
 	standalone: true,
 	hostDirectives: [NgpButton],
-	template: `<ng-content />`,
+	template: `
+		<ng-content />
+	`,
 	host: {
 		'[class]': 'computedClasses()',
 		'[attr.type]': 'type()',
@@ -73,63 +75,49 @@ export class Button {
 		// Variant classes
 		const variantClasses: Record<ButtonVariant, string[]> = {
 			default: [
-				'bg-primary',
-				'text-gray-50',
-				'data-[hover]:bg-primary/90',
-				'data-[focus-visible]:outline-primary/90',
-				'dark:text-primary',
-				'dark:bg-gray-50',
-				'dark:data-[hover]:bg-gray-200',
+				'bg-default',
+				'text-default-foreground',
 				'shadow',
+				'data-[hover]:bg-default/90',
+				'data-[focus-visible]:outline-default/90',
 			],
 			secondary: [
-				'bg-gray-200',
-				'text-gray-900',
-				'data-[hover]:bg-gray-200/90',
-				'data-[focus-visible]:outline-gray-500',
-				'dark:bg-gray-900',
-				'dark:text-gray-100',
-				'dark:data-[hover]:bg-gray-900/90',
+				'bg-secondary',
+				'text-secondary-foreground',
 				'shadow',
+				'data-[hover]:bg-secondary/80',
+				'data-[focus-visible]:outline-secondary',
 			],
 			destructive: [
-				'bg-danger',
-				'text-gray-50',
-				'data-[hover]:bg-danger/90',
-				'data-[focus-visible]:outline-danger/90',
-				'dark:bg-danger',
-				'dark:data-[hover]:bg-danger/90',
+				'bg-destructive',
+				'text-destructive-foreground',
 				'shadow',
+				'data-[hover]:bg-destructive/90',
+				'data-[focus-visible]:outline-destructive/90',
 			],
 			outline: [
 				'border',
 				'border-solid',
-				'border-primary/30',
-				'text-gray-50',
-				'text-primary',
-				'data-[hover]:bg-primary/10',
-				'data-[focus-visible]:bg-primary/10',
-				'dark:border-gray-700',
-				'dark:bg-gray-950',
-				'dark:text-gray-100',
-				'dark:data-[hover]:bg-gray-800',
+				'border-input',
+				'bg-background',
+				'text-foreground',
+				'data-[hover]:bg-accent',
+				'data-[hover]:text-accent-foreground',
+				'data-[focus-visible]:outline-ring',
 			],
 			ghost: [
 				'bg-transparent',
-				'text-primary',
-				'data-[hover]:bg-primary/10',
-				'data-[focus-visible]:outline-primary',
-				'dark:text-gray-100',
-				'dark:data-[hover]:bg-primary/20',
-				'dark:data-[hover]:text-gray-100',
+				'text-foreground',
+				'data-[hover]:bg-accent',
+				'data-[hover]:text-accent-foreground',
+				'data-[focus-visible]:outline-ring',
 			],
 			link: [
 				'bg-transparent',
-				'text-primary',
+				'text-default',
 				'underline-offset-4',
 				'data-[hover]:underline',
-				'data-[focus-visible]:outline-primary/90',
-				'dark:text-primary',
+				'data-[focus-visible]:outline-default/90',
 			],
 		};
 		classes.push(...variantClasses[this.variant()]);
