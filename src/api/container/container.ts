@@ -22,6 +22,42 @@ import { BaseContainer } from './container.base';
 import type { Cradle } from './container.types';
 import { validateEnvironment } from './validate-environment';
 
+function registerInfrastructure(c: AwilixContainer<Cradle>): void {
+	c.register({
+		db: asValue(drizzlePgConnector),
+		generatePassword: asValue(generatePassword),
+		emailRepository:
+			process.env['EMAIL_PROVIDER'] === 'ethereal'
+				? asClass(EtherealEmailRepository).singleton()
+				: asClass(NodemailerRepository).singleton(),
+	});
+}
+
+function registerRepositories(c: AwilixContainer<Cradle>): void {
+	c.register({
+		userRepository: asClass(UserRepository).singleton(),
+		authRepository: asClass(AuthenticationRepository).singleton(),
+		refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
+		roleRepository: asClass(RoleRepository).singleton(),
+		permissionRepository: asClass(PermissionRepository).singleton(),
+		userRoleRepository: asClass(UserRoleRepository).singleton(),
+		userManagementRepository: asClass(UserManagementRepository).singleton(),
+	});
+}
+
+function registerServices(c: AwilixContainer<Cradle>): void {
+	c.register({
+		emailService: asClass(EmailService).singleton(),
+		healthService: asClass(HealthService).singleton(),
+		pasetoService: asClass(PasetoService).singleton(),
+		authService: asClass(AuthService).singleton(),
+		roleService: asClass(RoleService).singleton(),
+		permissionService: asClass(PermissionService).singleton(),
+		userRoleService: asClass(UserRoleService).singleton(),
+		userManagementService: asClass(UserManagementService).singleton(),
+	});
+}
+
 /**
  * Creates and wires the Awilix DI container.
  * Environment validation and container wiring happen on first access,
@@ -41,38 +77,9 @@ function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
 		strict: true,
 	});
 
-	c.register({
-		// Infrastructure (values)
-		db: asValue(drizzlePgConnector),
-
-		// Services (singletons - stateless, hold config)
-		emailService: asClass(EmailService).singleton(),
-		healthService: asClass(HealthService).singleton(),
-		pasetoService: asClass(PasetoService).singleton(),
-
-		// Repositories (singletons - stateless, share db connection)
-		emailRepository:
-			process.env['EMAIL_PROVIDER'] === 'ethereal'
-				? asClass(EtherealEmailRepository).singleton()
-				: asClass(NodemailerRepository).singleton(),
-		userRepository: asClass(UserRepository).singleton(),
-		authRepository: asClass(AuthenticationRepository).singleton(),
-		refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
-		roleRepository: asClass(RoleRepository).singleton(),
-		permissionRepository: asClass(PermissionRepository).singleton(),
-		userRoleRepository: asClass(UserRoleRepository).singleton(),
-		userManagementRepository: asClass(UserManagementRepository).singleton(),
-
-		// Utilities
-		generatePassword: asValue(generatePassword),
-
-		// Services that depend on repositories
-		authService: asClass(AuthService).singleton(),
-		roleService: asClass(RoleService).singleton(),
-		permissionService: asClass(PermissionService).singleton(),
-		userRoleService: asClass(UserRoleService).singleton(),
-		userManagementService: asClass(UserManagementService).singleton(),
-	});
+	registerInfrastructure(c);
+	registerRepositories(c);
+	registerServices(c);
 
 	return c;
 }
