@@ -1,4 +1,5 @@
 import { clearAllMocks } from '@test-utils';
+import { AuthService } from '../modules/auth/auth.service';
 import { container } from './container';
 import { MockContainer } from './container.mock';
 import type { Cradle } from './container.types';
@@ -120,7 +121,7 @@ describe('DI Container', () => {
 
 			// After reset, real authService should be accessible
 			expect(container.cradle.authService).toBeDefined();
-			expect(container.cradle.authService.constructor.name).toBe('AuthService');
+			expect(container.cradle.authService).toBeInstanceOf(AuthService);
 		});
 	});
 });

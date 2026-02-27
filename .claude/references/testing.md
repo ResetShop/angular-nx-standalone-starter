@@ -102,6 +102,20 @@ describe('LoginFormComponent', () => {
 });
 ```
 
+## Instance Type Assertions
+
+When verifying that an object is an instance of a specific class, always use `toBeInstanceOf()` instead of comparing `constructor.name` strings:
+
+```typescript
+// ✅ Correct — type-safe and idiomatic
+expect(container.cradle.authService).toBeInstanceOf(AuthService);
+
+// ❌ Incorrect — fragile string comparison
+expect(container.cradle.authService.constructor.name).toBe('AuthService');
+```
+
+`toBeInstanceOf` is safer (survives refactors and minification), more expressive, and produces better error messages on failure.
+
 ## Mock Infrastructure
 
 This project uses a two-layer mock architecture that avoids direct `vi.fn()`, `vi.mock()`, and `jest.fn()` usage. ESLint rules enforce this constraint.
