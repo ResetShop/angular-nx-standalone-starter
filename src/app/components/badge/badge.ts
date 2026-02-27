@@ -25,26 +25,26 @@ export class Badge {
 	 * Computed classes based on variant
 	 */
 	readonly computedClasses = computed(() => {
-		return [...this.BASE_CLASSES, ...this.VARIANT_CLASSES[this.variant()]].join(' ');
+		const baseClasses = [
+			'inline-flex',
+			'items-center',
+			'rounded-full',
+			'px-2.5',
+			'py-0.5',
+			'text-xs',
+			'font-semibold',
+			'transition-colors',
+			'duration-300',
+			'ease-in-out',
+		];
+
+		const variantClasses: Record<BadgeVariant, string[]> = {
+			default: ['bg-default', 'text-default-foreground'],
+			secondary: ['bg-secondary', 'text-secondary-foreground'],
+			destructive: ['bg-destructive', 'text-destructive-foreground'],
+			outline: ['border', 'border-solid', 'border-border', 'text-foreground', 'bg-transparent'],
+		};
+
+		return [...baseClasses, ...variantClasses[this.variant()]].join(' ');
 	});
-
-	private readonly BASE_CLASSES = [
-		'inline-flex',
-		'items-center',
-		'rounded-full',
-		'px-2.5',
-		'py-0.5',
-		'text-xs',
-		'font-semibold',
-		'transition-colors',
-		'duration-300',
-		'ease-in-out',
-	];
-
-	private readonly VARIANT_CLASSES: Record<BadgeVariant, string[]> = {
-		default: ['bg-default', 'text-default-foreground'],
-		secondary: ['bg-secondary', 'text-secondary-foreground'],
-		destructive: ['bg-destructive', 'text-destructive-foreground'],
-		outline: ['border', 'border-solid', 'border-border', 'text-foreground', 'bg-transparent'],
-	};
 }
