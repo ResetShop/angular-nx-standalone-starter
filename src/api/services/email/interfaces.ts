@@ -1,3 +1,14 @@
+export const EMAIL_PROVIDERS = Object.freeze({
+	NODEMAILER: 'nodemailer',
+	ETHEREAL: 'ethereal',
+} as const);
+
+export type EmailProvider = (typeof EMAIL_PROVIDERS)[keyof typeof EMAIL_PROVIDERS];
+
+export function isEmailProvider(value: string): value is EmailProvider {
+	return Object.values(EMAIL_PROVIDERS).includes(value as EmailProvider);
+}
+
 export interface SendEmailParams {
 	to: string;
 	subject: string;

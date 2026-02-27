@@ -1,8 +1,9 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../../container.mock';
-import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
+import { container } from '../../container/container';
+import { MockContainer } from '../../container/container.mock';
+import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { RoleWithPermissions } from '../access/role/interfaces';
 import authController from './auth.controller';
 
@@ -29,15 +30,17 @@ describe('Auth Controller - /me endpoint', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
-		setTestCradle({
-			userRoleService: {
-				getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
-			},
-		});
+		container.use(
+			new MockContainer({
+				userRoleService: {
+					getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
+				},
+			}),
+		);
 	});
 
 	afterEach(() => {
-		resetTestCradle();
+		container.restore();
 	});
 
 	it('should return 401 when no authorization provided', async () => {
@@ -111,16 +114,18 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 		process.env = { ...originalEnv };
 		delete process.env['CRON_SECRET'];
 
-		setTestCradle({
-			authService: {
-				cleanupExpiredTokens: mockCleanupExpiredTokens,
-			},
-		});
+		container.use(
+			new MockContainer({
+				authService: {
+					cleanupExpiredTokens: mockCleanupExpiredTokens,
+				},
+			}),
+		);
 	});
 
 	afterEach(() => {
 		process.env = originalEnv;
-		resetTestCradle();
+		container.restore();
 	});
 
 	describe('Authorization', () => {

@@ -1,5 +1,5 @@
 import { MIN_CRON_SECRET_LENGTH } from './constants/auth.constants';
-import { container } from './container';
+import { container } from './container/container';
 import { isServerless } from './utils/environment';
 
 let cleanupInterval: NodeJS.Timeout | null = null;

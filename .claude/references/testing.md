@@ -102,6 +102,20 @@ describe('LoginFormComponent', () => {
 });
 ```
 
+## Instance Type Assertions
+
+When verifying that an object is an instance of a specific class, always use `toBeInstanceOf()` instead of comparing `constructor.name` strings:
+
+```typescript
+// ✅ Correct — type-safe and idiomatic
+expect(container.cradle.authService).toBeInstanceOf(AuthService);
+
+// ❌ Incorrect — fragile string comparison
+expect(container.cradle.authService.constructor.name).toBe('AuthService');
+```
+
+`toBeInstanceOf` is safer (survives refactors and minification), more expressive, and produces better error messages on failure.
+
 ## Mock Infrastructure
 
 This project uses a two-layer mock architecture that avoids direct `vi.fn()`, `vi.mock()`, and `jest.fn()` usage. ESLint rules enforce this constraint.
@@ -144,13 +158,18 @@ it('should fetch user', async () => {
 
 ### Layer 2: `container.mock.ts` (backend DI tests only)
 
-The `src/api/container.mock.ts` module provides DI-specific cradle utilities for backend controller/middleware tests:
+The `src/api/container/container.mock.ts` module provides the `MockContainer` class for backend controller/middleware tests:
 
-| Export               | Purpose                                               |
-| -------------------- | ----------------------------------------------------- |
-| `setTestCradle()`    | Set mock services for the current test                |
-| `resetTestCradle()`  | Clear mock services after tests                       |
-| `createMockCradle()` | Type-safe builder for creating partial cradle objects |
+| Export          | Purpose                                                      |
+| --------------- | ------------------------------------------------------------ |
+| `MockContainer` | Implements `IContainer` with a partial cradle for test mocks |
+
+Usage with the singleton `container` from `src/api/container/container.ts`:
+
+| Method                | Purpose                                                  |
+| --------------------- | -------------------------------------------------------- |
+| `container.use()`     | Replace active container with a `MockContainer` instance |
+| `container.restore()` | Remove the delegate, restoring the real Awilix container |
 
 ### Timer Wrappers
 
