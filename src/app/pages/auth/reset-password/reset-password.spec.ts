@@ -1,6 +1,6 @@
+import { provideRouter } from '@angular/router';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
-import { provideRouter } from '@angular/router';
 import ResetPassword from './reset-password';
 
 describe('ResetPassword', () => {
@@ -30,7 +30,7 @@ describe('ResetPassword', () => {
 		});
 
 		// Check that the button has the appButton directive classes
-		expect(submitButton).toHaveClass('bg-primary');
+		expect(submitButton).toHaveClass('bg-default');
 		expect(submitButton).toHaveClass('inline-flex');
 		expect(submitButton).toHaveClass('w-full');
 	});
