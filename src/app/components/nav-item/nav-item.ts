@@ -15,27 +15,6 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 			cursor: pointer;
 		}
 
-		a {
-			display: flex;
-			align-items: center;
-			gap: 0.5rem;
-			border-radius: 0.5rem;
-			padding: 0.5rem;
-			color: var(--foreground);
-		}
-
-		a.active {
-			background-color: var(--accent);
-			color: var(--accent-foreground);
-			font-weight: 500;
-		}
-
-		a:hover,
-		a.active:hover {
-			background-color: var(--accent);
-			color: var(--accent-foreground);
-		}
-
 		.nav-children {
 			max-height: 0;
 			overflow: hidden;
@@ -56,14 +35,6 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 				transition-duration: 0.01ms;
 			}
 		}
-
-		button {
-			border-radius: 0.375rem;
-		}
-
-		button:hover {
-			background-color: oklch(from var(--accent) l c h / 50%);
-		}
 	`,
 	template: `
 		@if (hasChildren()) {
@@ -75,7 +46,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 					(keydown.space)="$event.preventDefault(); toggleExpanded()"
 					[attr.aria-expanded]="isExpanded()"
 					[attr.aria-controls]="'nav-children-' + item().id"
-					class="text-foreground flex w-full items-center gap-2 p-2 text-left"
+					class="text-foreground hover:bg-accent/50 flex w-full items-center gap-2 rounded-md p-2 text-left"
 				>
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
@@ -105,7 +76,12 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 			</div>
 		} @else {
 			<!-- Leaf item (no children) - original implementation -->
-			<a [routerLink]="item().route" [routerLinkActiveOptions]="{ exact: false }" routerLinkActive="active">
+			<a
+				[routerLink]="item().route"
+				[routerLinkActiveOptions]="{ exact: false }"
+				routerLinkActive="bg-accent text-accent-foreground font-medium"
+				class="text-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
+			>
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
 				}

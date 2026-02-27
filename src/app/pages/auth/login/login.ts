@@ -24,7 +24,7 @@ import { AuthStore } from '@store/auth/auth.store';
 					<!-- TODO: Replace the image for your system/company logo -->
 					<div class="mt-4 flex flex-col gap-4">
 						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-						<div class="mb-8 text-center dark:text-white">Ingresar al sistema</div>
+						<div class="text-foreground mb-8 text-center">Ingresar al sistema</div>
 					</div>
 				</ng-template>
 
@@ -38,7 +38,7 @@ import { AuthStore } from '@store/auth/auth.store';
 									type="email"
 									formControlName="email"
 									autocomplete="email"
-									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring block w-full rounded-md bg-white px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 								/>
 								@if (loginForm.controls.email.invalid && loginForm.controls.email.dirty) {
 									<p class="text-destructive mt-2 text-sm">
@@ -70,7 +70,7 @@ import { AuthStore } from '@store/auth/auth.store';
 									type="password"
 									formControlName="password"
 									autocomplete="current-password"
-									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring block w-full rounded-md bg-white px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 								/>
 								@if (loginForm.controls.password.invalid && loginForm.controls.password.dirty) {
 									<p class="text-destructive mt-2 text-sm">

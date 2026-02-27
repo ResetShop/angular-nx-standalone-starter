@@ -33,7 +33,7 @@ interface ResetPasswordForm {
 									type="email"
 									formControlName="email"
 									autocomplete="email"
-									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring block w-full rounded-md bg-white px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 								/>
 								@if (resetPasswordForm.controls.email.invalid && resetPasswordForm.controls.email.touched) {
 									<p class="text-destructive mt-2 text-sm">
@@ -75,7 +75,8 @@ interface ResetPasswordForm {
 	styles: `
 		@reference "tailwindcss";
 		:host {
-			@apply flex h-svh w-svw items-center justify-center bg-gray-500;
+			@apply flex h-svh w-svw items-center justify-center;
+			background-color: var(--muted);
 		}
 	`,
 })
