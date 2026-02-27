@@ -1,3 +1,4 @@
+import { clearAllMocks } from '@test-utils';
 import { container } from './container';
 import { MockContainer } from './container.mock';
 import type { Cradle } from './container.types';
@@ -11,6 +12,10 @@ import type { Cradle } from './container.types';
  * container.cradle or container.verify() is called), causing these tests to fail.
  */
 describe('DI Container', () => {
+	beforeEach(() => {
+		clearAllMocks();
+	});
+
 	describe('dependency resolution', () => {
 		it('should resolve db infrastructure', () => {
 			expect(container.cradle.db).toBeDefined();
