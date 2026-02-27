@@ -1,7 +1,8 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { resetTestCradle, setTestCradle } from '../../../container.mock';
+import { container } from '../../../container/container';
+import { MockContainer } from '../../../container/container.mock';
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
 import type { ListRolesParams, PaginatedResponse, PermissionData, RoleData } from './interfaces';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
@@ -54,20 +55,22 @@ describe('Role Controller', () => {
 		// Mock getUserPermissions to return all role permissions
 		mockGetUserPermissions.mockResolvedValue(allRolePermissions);
 
-		setTestCradle({
-			roleService: {
-				getAllRoles: mockGetAllRoles,
-				getRole: mockGetRole,
-				createRole: mockCreateRole,
-				updateRole: mockUpdateRole,
-				deleteRole: mockDeleteRole,
-				getRolePermissions: mockGetRolePermissions,
-				assignPermissionsToRole: mockAssignPermissionsToRole,
-			},
-			userRoleService: {
-				getUserPermissions: mockGetUserPermissions,
-			},
-		});
+		container.use(
+			new MockContainer({
+				roleService: {
+					getAllRoles: mockGetAllRoles,
+					getRole: mockGetRole,
+					createRole: mockCreateRole,
+					updateRole: mockUpdateRole,
+					deleteRole: mockDeleteRole,
+					getRolePermissions: mockGetRolePermissions,
+					assignPermissionsToRole: mockAssignPermissionsToRole,
+				},
+				userRoleService: {
+					getUserPermissions: mockGetUserPermissions,
+				},
+			}),
+		);
 
 		// Create app with simulated authenticated user
 		app = new Hono();
@@ -84,7 +87,7 @@ describe('Role Controller', () => {
 	});
 
 	afterEach(() => {
-		resetTestCradle();
+		container.restore();
 	});
 
 	describe('GET /access/roles', () => {
