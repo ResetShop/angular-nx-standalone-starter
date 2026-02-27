@@ -16,16 +16,16 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 		}
 
 		a {
-			@apply flex items-center gap-2 rounded-lg p-2 dark:text-gray-50;
+			@apply text-foreground flex items-center gap-2 rounded-lg p-2;
 		}
 
 		a.active {
-			@apply bg-blue-50 font-medium text-blue-600 dark:bg-blue-950 dark:text-blue-400;
+			@apply bg-accent text-accent-foreground font-medium;
 		}
 
 		a:hover,
 		a.active:hover {
-			@apply bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400;
+			@apply bg-accent text-accent-foreground;
 		}
 
 		.nav-children {
@@ -50,7 +50,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 		}
 
 		button {
-			@apply rounded-md hover:bg-black/5 dark:hover:bg-white/5;
+			@apply hover:bg-accent/50 rounded-md;
 		}
 	`,
 	template: `
@@ -63,7 +63,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 					(keydown.space)="$event.preventDefault(); toggleExpanded()"
 					[attr.aria-expanded]="isExpanded()"
 					[attr.aria-controls]="'nav-children-' + item().id"
-					class="flex w-full items-center gap-2 p-2 text-left dark:text-gray-50"
+					class="text-foreground flex w-full items-center gap-2 p-2 text-left"
 				>
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
