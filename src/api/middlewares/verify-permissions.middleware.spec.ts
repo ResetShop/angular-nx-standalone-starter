@@ -1,6 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { container } from '../container/container';
 import { MockContainer } from '../container/container.mock';
 import type { PermissionData } from '../modules/access/role/interfaces';
 import { permission } from '../modules/user/permission-types';
@@ -62,15 +63,17 @@ describe('Permissions Middleware', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
-		MockContainer.activate({
-			userRoleService: {
-				getUserPermissions: mockGetUserPermissions,
-			},
-		});
+		container.use(
+			new MockContainer({
+				userRoleService: {
+					getUserPermissions: mockGetUserPermissions,
+				},
+			}),
+		);
 	});
 
 	afterEach(() => {
-		MockContainer.deactivate();
+		container.restore();
 	});
 
 	describe('requirePermission', () => {

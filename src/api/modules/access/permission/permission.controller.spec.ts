@@ -1,6 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { container } from '../../../container/container';
 import { MockContainer } from '../../../container/container.mock';
 import type { PaginatedResponse } from '../../../interfaces';
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
@@ -34,14 +35,16 @@ describe('Permission Controller', () => {
 
 		mockGetUserPermissions.mockResolvedValue([requiredPermission]);
 
-		MockContainer.activate({
-			permissionService: {
-				getAllPermissions: mockGetAllPermissions,
-			},
-			userRoleService: {
-				getUserPermissions: mockGetUserPermissions,
-			},
-		});
+		container.use(
+			new MockContainer({
+				permissionService: {
+					getAllPermissions: mockGetAllPermissions,
+				},
+				userRoleService: {
+					getUserPermissions: mockGetUserPermissions,
+				},
+			}),
+		);
 
 		app = new Hono();
 		app.use('*', async (c, next) => {
@@ -57,7 +60,7 @@ describe('Permission Controller', () => {
 	});
 
 	afterEach(() => {
-		MockContainer.deactivate();
+		container.restore();
 	});
 
 	describe('GET /access/permissions', () => {

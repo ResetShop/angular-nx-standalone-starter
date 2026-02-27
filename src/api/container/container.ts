@@ -77,40 +77,9 @@ function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
 	return c;
 }
 
-let defaultContainer: Container | null = null;
-let activeContainer: BaseContainer | null = null;
-
-export class Container extends BaseContainer {
+class Container extends BaseContainer {
 	private awilix: Readonly<AwilixContainer<Cradle>> | null = null;
-
-	static get active(): BaseContainer {
-		return activeContainer ?? Container.default;
-	}
-
-	static setActive(c: BaseContainer): void {
-		activeContainer = c;
-	}
-
-	static resetActive(): void {
-		activeContainer = null;
-	}
-
-	/**
-	 * Verifies that all registered dependencies can be resolved.
-	 * Call at server startup to fail fast if configuration is invalid.
-	 * @throws Error if any dependency fails to resolve
-	 */
-	static verify(): void {
-		const awilix = Container.default.initAwilix();
-		for (const dep of Object.keys(awilix.registrations)) {
-			awilix.resolve(dep);
-		}
-	}
-
-	private static get default(): Container {
-		defaultContainer ??= new Container();
-		return defaultContainer;
-	}
+	private delegate: BaseContainer | null = null;
 
 	private initAwilix(): Readonly<AwilixContainer<Cradle>> {
 		this.awilix ??= createAwilixContainer();
@@ -118,24 +87,43 @@ export class Container extends BaseContainer {
 	}
 
 	get cradle(): Cradle {
+		if (this.delegate) return this.delegate.cradle;
 		return this.initAwilix().cradle;
 	}
 
 	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
+		if (this.delegate) return this.delegate.resolve(key);
 		return this.initAwilix().resolve(key);
+	}
+
+	/**
+	 * Verifies that all registered dependencies can be resolved.
+	 * Always operates on the real Awilix container, not the delegate.
+	 * Call at server startup to fail fast if configuration is invalid.
+	 * @throws Error if any dependency fails to resolve
+	 */
+	verify(): void {
+		const awilix = this.initAwilix();
+		for (const dep of Object.keys(awilix.registrations)) {
+			awilix.resolve(dep);
+		}
+	}
+
+	/**
+	 * Replaces the active container with a delegate (e.g. MockContainer for tests).
+	 * While a delegate is active, cradle and resolve() forward to it.
+	 */
+	use(delegate: BaseContainer): void {
+		this.delegate = delegate;
+	}
+
+	/**
+	 * Removes the delegate, restoring the real Awilix container.
+	 * Call in afterEach to ensure clean state between tests.
+	 */
+	restore(): void {
+		this.delegate = null;
 	}
 }
 
-/**
- * Container proxy that delegates to the currently active container.
- * In production, this is the singleton Container instance.
- * In tests, MockContainer.activate() swaps it to a mock container.
- */
-export const container: Pick<BaseContainer, 'cradle' | 'resolve'> = {
-	get cradle(): Cradle {
-		return Container.active.cradle;
-	},
-	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
-		return Container.active.resolve(key);
-	},
-};
+export const container = new Container();
