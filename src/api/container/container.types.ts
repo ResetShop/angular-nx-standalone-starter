@@ -52,12 +52,12 @@ import type { IPasetoService } from '../services/paseto/interfaces';
  * All services are registered as singletons.
  */
 export interface Cradle {
-	// Infrastructure (registerInfrastructure)
+	// Values (registerValues)
 	db: DrizzlePgConnector;
 	generatePassword: () => Promise<string>;
-	emailRepository: IEmailRepository;
 
 	// Repositories (registerRepositories)
+	emailRepository: IEmailRepository;
 	userRepository: IUserRepository;
 	authRepository: IAuthenticationRepository;
 	refreshTokenRepository: IRefreshTokenRepository;

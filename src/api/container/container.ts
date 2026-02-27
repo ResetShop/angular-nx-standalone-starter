@@ -23,19 +23,19 @@ import type { IContainer } from './container.interface';
 import type { Cradle } from './container.types';
 import { validateEnvironment } from './validate-environment';
 
-function registerInfrastructure(c: AwilixContainer<Cradle>): void {
+function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
 		db: asValue(drizzlePgConnector),
 		generatePassword: asValue(generatePassword),
-		emailRepository:
-			process.env['EMAIL_PROVIDER'] === EMAIL_PROVIDERS.ETHEREAL
-				? asClass(EtherealEmailRepository).singleton()
-				: asClass(NodemailerRepository).singleton(),
 	});
 }
 
 function registerRepositories(c: AwilixContainer<Cradle>): void {
 	c.register({
+		emailRepository:
+			process.env['EMAIL_PROVIDER'] === EMAIL_PROVIDERS.ETHEREAL
+				? asClass(EtherealEmailRepository).singleton()
+				: asClass(NodemailerRepository).singleton(),
 		userRepository: asClass(UserRepository).singleton(),
 		authRepository: asClass(AuthenticationRepository).singleton(),
 		refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
@@ -78,7 +78,7 @@ function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
 		strict: true,
 	});
 
-	registerInfrastructure(c);
+	registerValues(c);
 	registerRepositories(c);
 	registerServices(c);
 
