@@ -1,4 +1,4 @@
-import { Container, container } from '../../container/container';
+import { container } from '../../container/container';
 import { HealthStatus } from './health.constants';
 import type { IHealthService } from './interfaces';
 
@@ -33,7 +33,7 @@ export interface VerifyHealthDependencies {
  * Default production dependencies.
  */
 const defaultDependencies: VerifyHealthDependencies = {
-	verifyContainer: () => Container.verify(),
+	verifyContainer: () => container.verify(),
 	resolveHealthService: () => container.resolve('healthService'),
 };
 

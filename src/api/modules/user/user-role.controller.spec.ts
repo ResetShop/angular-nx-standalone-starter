@@ -1,6 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { container } from '../../container/container';
 import { MockContainer } from '../../container/container.mock';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
@@ -79,16 +80,18 @@ describe('User Role Controller', () => {
 			return Promise.resolve(testPermissions);
 		});
 
-		MockContainer.activate({
-			userRoleService: {
-				getUserRoles: mockGetUserRoles,
-				getUserPermissions: mockGetUserPermissions,
-				assignRoleToUser: mockAssignRoleToUser,
-				removeRoleFromUser: mockRemoveRoleFromUser,
-				getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
-				replaceUserRoles: mockReplaceUserRoles,
-			},
-		});
+		container.use(
+			new MockContainer({
+				userRoleService: {
+					getUserRoles: mockGetUserRoles,
+					getUserPermissions: mockGetUserPermissions,
+					assignRoleToUser: mockAssignRoleToUser,
+					removeRoleFromUser: mockRemoveRoleFromUser,
+					getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
+					replaceUserRoles: mockReplaceUserRoles,
+				},
+			}),
+		);
 
 		// Create app with simulated authenticated user
 		app = new Hono();
@@ -105,7 +108,7 @@ describe('User Role Controller', () => {
 	});
 
 	afterEach(() => {
-		MockContainer.deactivate();
+		container.restore();
 	});
 
 	describe('GET /users/:userId/roles', () => {

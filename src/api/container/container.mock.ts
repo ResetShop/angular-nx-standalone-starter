@@ -1,4 +1,3 @@
-import { Container } from './container';
 import { BaseContainer } from './container.base';
 import type { Cradle } from './container.types';
 
@@ -6,30 +5,13 @@ import type { Cradle } from './container.types';
  * Type that allows partial implementations of each service in the Cradle.
  * Useful for tests where you only need to mock specific methods.
  */
-export type MockCradle = {
+type MockCradle = {
 	[K in keyof Cradle]?: Partial<Cradle[K]>;
 };
 
 export class MockContainer extends BaseContainer {
 	constructor(private readonly mockCradle: MockCradle) {
 		super();
-	}
-
-	/**
-	 * Activates the mock container for tests.
-	 * Only the services you provide will be mocked;
-	 * accessing unmocked services will throw an error to catch missing mocks early.
-	 */
-	static activate(cradle: MockCradle): void {
-		Container.setActive(new MockContainer(cradle));
-	}
-
-	/**
-	 * Deactivates the mock container, restoring the default production container.
-	 * Call this in afterEach to ensure clean state.
-	 */
-	static deactivate(): void {
-		Container.resetActive();
 	}
 
 	get cradle(): Cradle {
