@@ -144,13 +144,18 @@ it('should fetch user', async () => {
 
 ### Layer 2: `container.mock.ts` (backend DI tests only)
 
-The `src/api/container.mock.ts` module provides DI-specific cradle utilities for backend controller/middleware tests:
+The `src/api/container/container.mock.ts` module provides the `MockContainer` class for backend controller/middleware tests:
 
-| Export               | Purpose                                               |
-| -------------------- | ----------------------------------------------------- |
-| `setTestCradle()`    | Set mock services for the current test                |
-| `resetTestCradle()`  | Clear mock services after tests                       |
-| `createMockCradle()` | Type-safe builder for creating partial cradle objects |
+| Export          | Purpose                                                      |
+| --------------- | ------------------------------------------------------------ |
+| `MockContainer` | Extends `BaseContainer` with a partial cradle for test mocks |
+
+Usage with the singleton `container` from `src/api/container/container.ts`:
+
+| Method                | Purpose                                                  |
+| --------------------- | -------------------------------------------------------- |
+| `container.use()`     | Replace active container with a `MockContainer` instance |
+| `container.restore()` | Remove the delegate, restoring the real Awilix container |
 
 ### Timer Wrappers
 
