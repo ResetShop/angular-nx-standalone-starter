@@ -6,18 +6,17 @@ import {
 	PublicAuthErrorCode,
 	toLoginErrorResponse,
 } from '@contracts/auth/auth.errors';
-import { loginRequestSchema } from '@contracts/auth/auth.schemas';
 import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
-import { zValidator } from '@hono/zod-validator';
 import { timingSafeEqual } from 'crypto';
-import { Hono } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { MIN_CRON_SECRET_LENGTH } from '../../constants/auth.constants';
 import { container } from '../../container/container';
 import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
+import { createOpenAPIApp, registerRoute } from '../../openapi-app';
 import { parseDurationToSeconds } from '../../utils/duration';
+import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes';
 
-const app = new Hono();
+const app = createOpenAPIApp();
 
 // Cookie configuration
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
@@ -68,7 +67,7 @@ const ACCESS_TOKEN_COOKIE_OPTIONS = {
  * - Constant-time response for invalid emails (prevents user enumeration)
  * - Both tokens set as HttpOnly, Secure, SameSite=Strict cookies
  */
-app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
+registerRoute(app, loginRoute, async (c) => {
 	const { authService } = container.cradle;
 
 	try {
@@ -99,7 +98,7 @@ app.post('/login', zValidator('json', loginRequestSchema), async (c) => {
 });
 
 // POST /api/auth/refresh - Exchange refresh token for new access + refresh tokens
-app.post('/refresh', async (c) => {
+registerRoute(app, refreshRoute, async (c) => {
 	const { authService } = container.cradle;
 
 	try {
@@ -134,7 +133,7 @@ app.post('/refresh', async (c) => {
 // GET /api/auth/me - Token introspection endpoint
 // Returns the current authenticated user's information with roles and permissions
 // Useful for verifying token validity, getting user data, and frontend authorization
-app.get('/me', async (c) => {
+registerRoute(app, meRoute, async (c) => {
 	const { userRoleService } = container.cradle;
 	const user = (c as AuthenticatedContext).user;
 
@@ -159,7 +158,7 @@ app.get('/me', async (c) => {
 // POST /api/auth/logout - Revoke all refresh tokens for the user
 // Uses refresh token from cookie to identify user (no access token needed)
 // Always succeeds from client perspective - cleans up what it can
-app.post('/logout', async (c) => {
+registerRoute(app, logoutRoute, async (c) => {
 	const { authService, pasetoService } = container.cradle;
 
 	// Get refresh token before deleting cookie
@@ -190,7 +189,7 @@ app.post('/logout', async (c) => {
 // GET /api/auth/cleanup-tokens - Manually trigger expired token cleanup
 // Public endpoint but protected by CRON_SECRET for Vercel Cron Jobs
 // Also allows authenticated users to call it manually
-app.get('/cleanup-tokens', async (c) => {
+registerRoute(app, cleanupTokensRoute, async (c) => {
 	const cronSecret = process.env['CRON_SECRET'];
 	const authHeader = c.req.header('Authorization');
 	const user = (c as AuthenticatedContext).user;

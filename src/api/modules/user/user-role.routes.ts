@@ -1,0 +1,183 @@
+import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
+import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas';
+import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas';
+import { createRoute, z } from '@hono/zod-openapi';
+import { QUERY_DEFAULTS } from '../../constants/query.constants';
+import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
+import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
+import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
+
+const userIdParamSchema = z.object({
+	userId: z.string().openapi({ description: 'User ID', example: '1' }),
+});
+
+const userIdAndRoleIdParamSchema = z.object({
+	userId: z.string().openapi({ description: 'User ID', example: '1' }),
+	roleId: z.string().openapi({ description: 'Role ID', example: '1' }),
+});
+
+export const getUserRolesRoute = createRoute({
+	method: 'get',
+	path: '/{userId}/roles',
+	tags: ['User Roles'],
+	summary: 'Get user roles',
+	description: 'Get all roles assigned to a user with pagination.',
+	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
+	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ)] as const,
+	request: {
+		params: userIdParamSchema,
+		query: paginationParamsSchema,
+	},
+	responses: {
+		200: {
+			description: 'Paginated list of user roles',
+			content: { 'application/json': { schema: paginatedResponseSchema(roleDataSchema) } },
+		},
+		400: {
+			description: 'Invalid user ID',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: 'User not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonSecuredResponses,
+	},
+});
+
+export const getUserPermissionsRoute = createRoute({
+	method: 'get',
+	path: '/{userId}/permissions',
+	tags: ['User Roles'],
+	summary: 'Get user permissions',
+	description: 'Get all permissions for a user (aggregated from all their roles).',
+	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
+	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ)] as const,
+	request: { params: userIdParamSchema },
+	responses: {
+		200: {
+			description: 'List of user permissions',
+			content: { 'application/json': { schema: z.array(permissionDataSchema) } },
+		},
+		400: {
+			description: 'Invalid user ID',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: 'User not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonSecuredResponses,
+	},
+});
+
+export const assignRoleRoute = createRoute({
+	method: 'post',
+	path: '/{userId}/roles',
+	tags: ['User Roles'],
+	summary: 'Assign role to user',
+	description: 'Assign a role to a user.',
+	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
+	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.ASSIGN)] as const,
+	request: {
+		params: userIdParamSchema,
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({
+						roleId: z.number().int().positive(),
+					}),
+				},
+			},
+			required: true,
+		},
+	},
+	responses: {
+		201: {
+			description: 'Role assigned',
+			content: { 'application/json': { schema: successMessageSchema } },
+		},
+		400: {
+			description: 'Invalid user ID',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: 'User or role not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		409: {
+			description: 'Role already assigned',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonSecuredResponses,
+	},
+});
+
+export const replaceUserRolesRoute = createRoute({
+	method: 'put',
+	path: '/{userId}/roles',
+	tags: ['User Roles'],
+	summary: 'Replace user roles',
+	description: 'Replace all role assignments for a user.',
+	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
+	middleware: [
+		requireAllPermissions([ADMIN_USER_ROLE_PERMISSIONS.ASSIGN, ADMIN_USER_ROLE_PERMISSIONS.REMOVE]),
+	] as const,
+	request: {
+		params: userIdParamSchema,
+		body: {
+			content: {
+				'application/json': {
+					schema: z.object({
+						roleIds: z
+							.array(z.number().int().positive())
+							.max(QUERY_DEFAULTS.MAX_ROLE_IDS_PER_REQUEST)
+							.refine((ids) => new Set(ids).size === ids.length, 'roleIds must be unique'),
+					}),
+				},
+			},
+			required: true,
+		},
+	},
+	responses: {
+		200: {
+			description: 'Roles replaced',
+			content: { 'application/json': { schema: successMessageSchema } },
+		},
+		400: {
+			description: 'Invalid input',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: 'User not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonSecuredResponses,
+	},
+});
+
+export const removeRoleRoute = createRoute({
+	method: 'delete',
+	path: '/{userId}/roles/{roleId}',
+	tags: ['User Roles'],
+	summary: 'Remove role from user',
+	description: 'Remove a role from a user.',
+	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
+	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.REMOVE)] as const,
+	request: { params: userIdAndRoleIdParamSchema },
+	responses: {
+		200: {
+			description: 'Role removed',
+			content: { 'application/json': { schema: successMessageSchema } },
+		},
+		400: {
+			description: 'Invalid user or role ID',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: 'User or role not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonSecuredResponses,
+	},
+});
