@@ -9,10 +9,9 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink, RouterLinkActive],
 	styles: `
+		@reference "tailwindcss";
 		:host {
-			font-size: 0.875rem;
-			line-height: 1.25rem;
-			cursor: pointer;
+			@apply cursor-pointer text-sm;
 		}
 
 		.nav-children {
