@@ -1,4 +1,4 @@
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
 import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons';
@@ -126,6 +126,26 @@ describe('NavItem', () => {
 		const link = screen.getByRole('link');
 		expect(link).toBeInTheDocument();
 		expect(link).toHaveAttribute('href', '/test');
+	});
+
+	it('should apply routerLinkActive classes when the route is active', async () => {
+		const { fixture } = await render(NavItem, {
+			inputs: { item: mockRoute },
+			providers: [
+				provideRouter([{ path: 'test', children: [] }]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
+		});
+
+		const link = screen.getByRole('link', { name: /test route/i });
+		expect(link).not.toHaveClass('bg-accent');
+
+		const router = fixture.debugElement.injector.get(Router);
+		await router.navigate(['/test']);
+		fixture.detectChanges();
+
+		expect(link).toHaveClass('bg-accent', 'text-accent-foreground', 'font-medium');
 	});
 
 	it('should handle navigation items with children property', async () => {
