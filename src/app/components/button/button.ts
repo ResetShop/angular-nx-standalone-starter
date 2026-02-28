@@ -97,7 +97,6 @@ export class Button {
 			],
 			outline: [
 				'border',
-				'border-solid',
 				'border-input',
 				'bg-background',
 				'text-foreground',
