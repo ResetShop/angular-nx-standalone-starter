@@ -1,8 +1,14 @@
+import { extendZodWithOpenApi } from '@hono/zod-openapi';
+import { z } from 'zod';
+
+// Must run before any schema or controller import
+extendZodWithOpenApi(z);
+
 import { AngularAppEngine, createRequestHandler } from '@angular/ssr';
 import { isMainModule } from '@angular/ssr/node';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { Hono } from 'hono';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
@@ -10,6 +16,7 @@ import { join } from 'node:path';
 
 // Health verification - runs all startup checks (DI container, database, etc.)
 import { verifyHealth } from './api/modules/health/verify-health';
+import { OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
 
 /**
  * Max-age for static asset caching (1 year in seconds).
@@ -25,21 +32,22 @@ import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 import { startCronJobs, stopCronJobs } from './api/cron-jobs';
 
 /**
- * Initialize Hono and export the app instance
+ * Initialize OpenAPIHono and export the app instance
  */
-export const app = new Hono({ strict: false })
-	.use(requestId())
-	.use(
-		'*',
-		cors({
-			origin: process.env['CORS_ORIGIN'] || 'http://localhost:4200',
-			credentials: true,
-			allowHeaders: ['Content-Type', 'Authorization'],
-			allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-			maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Cache preflight requests (default: 24 hours)
-		}),
-	)
-	.use(secureHeaders());
+export const app = new OpenAPIHono({ strict: false });
+
+app.use(requestId());
+app.use(
+	'*',
+	cors({
+		origin: process.env['CORS_ORIGIN'] || 'http://localhost:4200',
+		credentials: true,
+		allowHeaders: ['Content-Type', 'Authorization'],
+		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Cache preflight requests (default: 24 hours)
+	}),
+);
+app.use(secureHeaders());
 
 /**
  * Apply authentication middleware to all API routes except public endpoints
@@ -67,6 +75,55 @@ app.use('/api/*', async (c, next) => {
 for (const route of routes) {
 	app.route(`/api${route.path}`, route.controller);
 }
+
+/**
+ * Register the PASETO cookie security scheme in the OpenAPI registry.
+ * This must happen before app.doc() so the scheme appears in the spec.
+ */
+app.openAPIRegistry.registerComponent('securitySchemes', PASETO_COOKIE_SCHEME, {
+	type: 'apiKey',
+	in: 'cookie',
+	name: 'access_token',
+	description: 'PASETO access token stored as an HttpOnly cookie',
+});
+
+/**
+ * OpenAPI JSON spec endpoint
+ */
+app.doc('/api/openapi.json', {
+	openapi: '3.0.0',
+	info: OPENAPI_INFO,
+	tags: [
+		{ name: 'Health', description: 'Health check endpoints' },
+		{ name: 'Auth', description: 'Authentication endpoints' },
+		{ name: 'Permissions', description: 'Permission management endpoints' },
+		{ name: 'Roles', description: 'Role management endpoints' },
+		{ name: 'Users', description: 'User management endpoints' },
+		{ name: 'User Roles', description: 'User-role assignment endpoints' },
+	],
+	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
+});
+
+/**
+ * Swagger UI endpoint (CDN-hosted)
+ */
+app.get('/api/docs', (c) => {
+	return c.html(`<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>API Documentation</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+</head>
+<body>
+	<div id="swagger-ui"></div>
+	<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+	<script>
+		SwaggerUIBundle({ url: '/api/openapi.json', dom_id: '#swagger-ui' });
+	</script>
+</body>
+</html>`);
+});
 
 /**
  * Serve static files from /browser

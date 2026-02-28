@@ -12,6 +12,8 @@ export const PUBLIC_AUTH_ROUTES = [
 	'/api/auth/logout',
 	'/api/auth/cleanup-tokens',
 	'/api/health', // Health checks must be public for load balancers/monitoring
+	'/api/docs', // Swagger UI
+	'/api/openapi.json', // OpenAPI spec
 ] as const;
 
 export default [

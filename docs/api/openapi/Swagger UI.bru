@@ -1,0 +1,37 @@
+meta {
+  name: Swagger UI
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/docs
+  body: none
+  auth: none
+}
+
+docs {
+  # Swagger UI
+
+  Serves the Swagger UI interface for interactive API exploration.
+  Public endpoint — no authentication required.
+
+  ## Response (200 OK)
+
+  Returns an HTML page with the Swagger UI loaded from CDN,
+  configured to display the OpenAPI spec from /api/openapi.json.
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 status", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return HTML content", function() {
+    expect(res.headers['content-type']).to.include("text/html");
+  });
+}

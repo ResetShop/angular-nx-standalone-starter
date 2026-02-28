@@ -1,8 +1,8 @@
-import { Hono } from 'hono';
+import { createOpenAPIApp } from '../../openapi-app';
 import userManagementController from './user-management.controller';
 import userRoleController from './user-role.controller';
 
-const app = new Hono();
+const app = createOpenAPIApp();
 
 // User CRUD management endpoints: /, /:id
 app.route('/', userManagementController);
