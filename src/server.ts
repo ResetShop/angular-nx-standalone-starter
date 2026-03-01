@@ -16,7 +16,7 @@ import { join } from 'node:path';
 
 // Health verification - runs all startup checks (DI container, database, etc.)
 import { verifyHealth } from './api/modules/health/verify-health';
-import { OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
+import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
 import { buildSwaggerHtml } from './api/swagger-ui';
 
 /**
@@ -86,6 +86,12 @@ app.openAPIRegistry.registerComponent('securitySchemes', PASETO_COOKIE_SCHEME, {
 	in: 'cookie',
 	name: 'access_token',
 	description: 'PASETO access token stored as an HttpOnly cookie',
+});
+
+app.openAPIRegistry.registerComponent('securitySchemes', CRON_SECRET_SCHEME, {
+	type: 'http',
+	scheme: 'bearer',
+	description: 'CRON_SECRET passed as a Bearer token for scheduled job invocations',
 });
 
 /**
