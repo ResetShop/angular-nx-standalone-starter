@@ -7,12 +7,12 @@ import { requireAllPermissions, requirePermission } from '../../middlewares/veri
 import { commonSecuredResponses } from '../../openapi-config';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 
-const userIdParamSchema = z.object({
-	userId: z.string().openapi({ description: 'User ID', example: '1' }),
-});
+const userIdField = z.string().openapi({ description: 'User ID', example: '1' });
+
+const userIdParamSchema = z.object({ userId: userIdField });
 
 const userIdAndRoleIdParamSchema = z.object({
-	userId: z.string().openapi({ description: 'User ID', example: '1' }),
+	userId: userIdField,
 	roleId: z.string().openapi({ description: 'Role ID', example: '1' }),
 });
 
