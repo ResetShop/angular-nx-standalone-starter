@@ -8,7 +8,7 @@ import {
 } from '@contracts/auth/auth.schemas';
 import { errorResponseSchema } from '@contracts/common/error.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
-import { commonSecuredResponses } from '../../openapi-config';
+import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
 
 const authErrorResponseSchema = z.object({
 	code: z.string(),
@@ -94,8 +94,9 @@ export const cleanupTokensRoute = createRoute({
 	path: '/cleanup-tokens',
 	tags: ['Auth'],
 	summary: 'Cleanup expired tokens',
-	description: 'Manually triggers expired token cleanup. Protected by CRON_SECRET or requires authentication.',
-	security: [],
+	description:
+		'Manually triggers expired token cleanup. Accepts either a CRON_SECRET Bearer token or an authenticated user session.',
+	security: [{ [PASETO_COOKIE_SCHEME]: [] }, { [CRON_SECRET_SCHEME]: [] }],
 	responses: {
 		200: {
 			description: 'Cleanup result',

@@ -1,6 +1,7 @@
 import { errorResponseSchema } from '@contracts/common/error.schemas';
 
 export const PASETO_COOKIE_SCHEME = 'pasetoCookie';
+export const CRON_SECRET_SCHEME = 'cronSecret';
 
 export const OPENAPI_INFO = {
 	title: 'Angular NX Starter API',
