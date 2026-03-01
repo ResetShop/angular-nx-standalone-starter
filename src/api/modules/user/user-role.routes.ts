@@ -1,8 +1,8 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
 import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
-import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { commonSecuredResponses } from '../../openapi-config';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';

@@ -1,5 +1,5 @@
 /**
- * Default query parameter settings used across controllers and repositories.
+ * Default query parameter settings used across controllers, repositories, and contract schemas.
  */
 export const QUERY_DEFAULTS = Object.freeze({
 	/** Pagination */

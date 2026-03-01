@@ -1,12 +1,10 @@
 import { z } from 'zod';
+import { QUERY_DEFAULTS } from './query.constants';
 
-/**
- * Pagination query parameters schema.
- * Matches QUERY_DEFAULTS from api/constants/query.constants.ts
- */
+/** Pagination query parameters schema. */
 export const paginationParamsSchema = z.object({
-	offset: z.coerce.number().int().min(0).optional(),
-	limit: z.coerce.number().int().min(1).max(500).optional(),
+	offset: z.coerce.number().int().min(QUERY_DEFAULTS.OFFSET).optional(),
+	limit: z.coerce.number().int().min(QUERY_DEFAULTS.MIN_LIMIT).max(QUERY_DEFAULTS.MAX_LIMIT).optional(),
 });
 
 /**
@@ -14,7 +12,7 @@ export const paginationParamsSchema = z.object({
  * Used by list endpoints that support text search.
  */
 export const searchPaginationSchema = paginationParamsSchema.extend({
-	search: z.string().optional(),
+	search: z.string().trim().min(QUERY_DEFAULTS.SEARCH_MIN_LENGTH).max(QUERY_DEFAULTS.SEARCH_MAX_LENGTH).optional(),
 });
 
 /**
