@@ -1,4 +1,4 @@
-import { QUERY_DEFAULTS } from '../../../constants/query.constants';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
 import type {
 	CreateRoleParams,
