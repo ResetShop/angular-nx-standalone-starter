@@ -24,6 +24,7 @@ export const healthCheckRoute = createRoute({
 	tags: ['Health'],
 	summary: 'Health check',
 	description: 'Returns application health status including database connectivity.',
+	security: [],
 	responses: {
 		200: {
 			description: 'Application is healthy',

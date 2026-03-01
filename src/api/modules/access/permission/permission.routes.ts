@@ -2,7 +2,7 @@ import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/comm
 import { permissionDataSchema } from '@contracts/role/role.schemas';
 import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
-import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../../openapi-config';
+import { commonSecuredResponses } from '../../../openapi-config';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
 
 export const listPermissionsRoute = createRoute({
@@ -11,7 +11,6 @@ export const listPermissionsRoute = createRoute({
 	tags: ['Permissions'],
 	summary: 'List all permissions',
 	description: 'List all system permissions with pagination and optional search.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_PERMISSION_PERMISSIONS.READ)] as const,
 	request: {
 		query: searchPaginationSchema,

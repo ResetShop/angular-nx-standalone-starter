@@ -8,7 +8,7 @@ import {
 } from '@contracts/auth/auth.schemas';
 import { errorResponseSchema } from '@contracts/common/error.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
-import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
+import { commonSecuredResponses } from '../../openapi-config';
 
 const authErrorResponseSchema = z.object({
 	code: z.string(),
@@ -21,6 +21,7 @@ export const loginRoute = createRoute({
 	tags: ['Auth'],
 	summary: 'Authenticate user',
 	description: 'Authenticates a user with email and password. Sets access and refresh tokens as HttpOnly cookies.',
+	security: [],
 	request: {
 		body: {
 			content: { 'application/json': { schema: loginRequestSchema } },
@@ -45,6 +46,7 @@ export const refreshRoute = createRoute({
 	tags: ['Auth'],
 	summary: 'Refresh access token',
 	description: 'Exchanges refresh token cookie for new access and refresh tokens.',
+	security: [],
 	responses: {
 		200: {
 			description: 'Tokens refreshed successfully',
@@ -63,7 +65,6 @@ export const meRoute = createRoute({
 	tags: ['Auth'],
 	summary: 'Get current user',
 	description: 'Returns the authenticated user with roles and permissions.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	responses: {
 		200: {
 			description: 'Current user information',
@@ -79,6 +80,7 @@ export const logoutRoute = createRoute({
 	tags: ['Auth'],
 	summary: 'Logout user',
 	description: 'Revokes all refresh tokens and clears cookies. Always succeeds from client perspective.',
+	security: [],
 	responses: {
 		200: {
 			description: 'Logged out successfully',
@@ -93,6 +95,7 @@ export const cleanupTokensRoute = createRoute({
 	tags: ['Auth'],
 	summary: 'Cleanup expired tokens',
 	description: 'Manually triggers expired token cleanup. Protected by CRON_SECRET or requires authentication.',
+	security: [],
 	responses: {
 		200: {
 			description: 'Cleanup result',
