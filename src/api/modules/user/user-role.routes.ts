@@ -1,7 +1,7 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
 import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas';
-import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas';
+import { assignRoleToUserRequestSchema, replaceUserRolesRequestSchema } from '@contracts/user/user.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
 import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { commonSecuredResponses } from '../../openapi-config';
@@ -79,13 +79,7 @@ export const assignRoleRoute = createRoute({
 	request: {
 		params: userIdParamSchema,
 		body: {
-			content: {
-				'application/json': {
-					schema: z.object({
-						roleId: z.number().int().positive(),
-					}),
-				},
-			},
+			content: { 'application/json': { schema: assignRoleToUserRequestSchema } },
 			required: true,
 		},
 	},
@@ -122,16 +116,7 @@ export const replaceUserRolesRoute = createRoute({
 	request: {
 		params: userIdParamSchema,
 		body: {
-			content: {
-				'application/json': {
-					schema: z.object({
-						roleIds: z
-							.array(z.number().int().positive())
-							.max(QUERY_DEFAULTS.MAX_ROLE_IDS_PER_REQUEST)
-							.refine((ids) => new Set(ids).size === ids.length, 'roleIds must be unique'),
-					}),
-				},
-			},
+			content: { 'application/json': { schema: replaceUserRolesRequestSchema } },
 			required: true,
 		},
 	},

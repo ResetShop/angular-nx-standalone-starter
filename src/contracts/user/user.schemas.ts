@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { QUERY_DEFAULTS } from '../common/query.constants';
 import { roleDataSchema } from '../role/role.schemas';
 
 // ============================================================================
@@ -93,5 +94,15 @@ export const updateUserRequestSchema = z.object({
  * Assign role to user request body schema.
  */
 export const assignRoleToUserRequestSchema = z.object({
-	roleId: z.number(),
+	roleId: z.number().int().positive(),
+});
+
+/**
+ * Replace all role assignments for a user request body schema.
+ */
+export const replaceUserRolesRequestSchema = z.object({
+	roleIds: z
+		.array(z.number().int().positive())
+		.max(QUERY_DEFAULTS.MAX_ROLE_IDS_PER_REQUEST)
+		.refine((ids) => new Set(ids).size === ids.length, 'roleIds must be unique'),
 });
