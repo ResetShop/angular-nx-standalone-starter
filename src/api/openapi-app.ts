@@ -2,6 +2,11 @@ import type { RouteConfig } from '@hono/zod-openapi';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import type { Context, Env } from 'hono';
 
+/**
+ * Factory for creating OpenAPIHono instances used by controllers and routers.
+ * Centralizes instantiation so default configuration (e.g. error hooks) can
+ * be added in one place without touching every module.
+ */
 export function createOpenAPIApp<E extends Env = Env>(): OpenAPIHono<E> {
 	return new OpenAPIHono<E>();
 }
