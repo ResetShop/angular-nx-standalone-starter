@@ -115,7 +115,7 @@ app.doc('/api/openapi.json', {
  * Swagger UI endpoint (CDN-hosted)
  */
 app.get('/api/docs', (c) => {
-	return c.html(buildSwaggerHtml('/api/openapi.json'));
+	return c.html(buildSwaggerHtml());
 });
 
 /**
