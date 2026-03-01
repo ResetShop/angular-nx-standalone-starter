@@ -10,11 +10,6 @@ import { errorResponseSchema } from '@contracts/common/error.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
 import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
 
-const loginErrorResponseSchema = z.object({
-	code: z.string(),
-	message: z.string(),
-});
-
 const authErrorResponseSchema = z.object({
 	code: z.string(),
 	message: z.string(),
@@ -39,7 +34,7 @@ export const loginRoute = createRoute({
 		},
 		401: {
 			description: 'Authentication failed',
-			content: { 'application/json': { schema: loginErrorResponseSchema } },
+			content: { 'application/json': { schema: authErrorResponseSchema } },
 		},
 	},
 });
