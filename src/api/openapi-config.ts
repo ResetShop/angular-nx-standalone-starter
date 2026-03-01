@@ -1,3 +1,5 @@
+import { errorResponseSchema } from '@contracts/common/error.schemas';
+
 export const PASETO_COOKIE_SCHEME = 'pasetoCookie';
 
 export const OPENAPI_INFO = {
@@ -7,7 +9,16 @@ export const OPENAPI_INFO = {
 } as const;
 
 export const commonSecuredResponses = {
-	401: { description: 'Unauthorized - missing or invalid access token cookie' },
-	403: { description: 'Forbidden - insufficient permissions' },
-	500: { description: 'Internal server error' },
-} as const;
+	401: {
+		description: 'Unauthorized - missing or invalid access token cookie',
+		content: { 'application/json': { schema: errorResponseSchema } },
+	},
+	403: {
+		description: 'Forbidden - insufficient permissions',
+		content: { 'application/json': { schema: errorResponseSchema } },
+	},
+	500: {
+		description: 'Internal server error',
+		content: { 'application/json': { schema: errorResponseSchema } },
+	},
+};
