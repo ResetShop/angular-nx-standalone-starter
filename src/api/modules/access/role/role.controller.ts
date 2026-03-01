@@ -2,7 +2,7 @@ import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.type
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import type { PermissionAssignmentError, PermissionData, RoleData } from '@contracts/role/role.types';
 import { container } from '../../../container/container';
-import { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
+import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
 import { createOpenAPIApp, registerRoute } from '../../../openapi-app';
 import {
 	assignPermissionsRoute,

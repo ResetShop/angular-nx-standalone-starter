@@ -161,6 +161,10 @@ export const deleteRoleRoute = createRoute({
 			description: 'Invalid role ID',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
+		403: {
+			description: 'Role is not removable',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 		404: {
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },

@@ -11,7 +11,7 @@ import { timingSafeEqual } from 'crypto';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import { MIN_CRON_SECRET_LENGTH } from '../../constants/auth.constants';
 import { container } from '../../container/container';
-import { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
+import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { createOpenAPIApp, registerRoute } from '../../openapi-app';
 import { parseDurationToSeconds } from '../../utils/duration';
 import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes';
