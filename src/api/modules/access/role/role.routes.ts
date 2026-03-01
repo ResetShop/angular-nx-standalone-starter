@@ -1,14 +1,21 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
-import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas';
-import { permissionAssignmentErrorSchema, permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas';
+import {
+	paginatedResponseSchema,
+	paginationParamsSchema,
+	searchPaginationSchema,
+} from '@contracts/common/pagination.schemas';
+import {
+	assignPermissionsRequestSchema,
+	createRoleRequestSchema,
+	permissionAssignmentErrorSchema,
+	permissionDataSchema,
+	roleDataSchema,
+	updateRoleRequestSchema,
+} from '@contracts/role/role.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
 import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../../openapi-config';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
-
-const searchQuerySchema = paginationParamsSchema.extend({
-	search: z.string().optional(),
-});
 
 const idParamSchema = z.object({
 	id: z.string().openapi({ description: 'Role ID', example: '1' }),
@@ -22,7 +29,7 @@ export const listRolesRoute = createRoute({
 	description: 'Get all roles with pagination and optional search.',
 	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
-	request: { query: searchQuerySchema },
+	request: { query: searchPaginationSchema },
 	responses: {
 		200: {
 			description: 'Paginated list of roles',
@@ -68,22 +75,7 @@ export const createRoleRoute = createRoute({
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.CREATE)] as const,
 	request: {
 		body: {
-			content: {
-				'application/json': {
-					schema: z.object({
-						name: z.string().min(1).max(100),
-						code: z
-							.string()
-							.min(1)
-							.max(50)
-							.regex(
-								/^[a-z][a-z0-9_]*$/,
-								'Code must be lowercase alphanumeric with underscores, starting with a letter',
-							),
-						description: z.string().max(500).optional(),
-					}),
-				},
-			},
+			content: { 'application/json': { schema: createRoleRequestSchema } },
 			required: true,
 		},
 	},
@@ -111,14 +103,7 @@ export const updateRoleRoute = createRoute({
 	request: {
 		params: idParamSchema,
 		body: {
-			content: {
-				'application/json': {
-					schema: z.object({
-						name: z.string().min(1).max(100).optional(),
-						description: z.string().max(500).optional(),
-					}),
-				},
-			},
+			content: { 'application/json': { schema: updateRoleRequestSchema } },
 			required: true,
 		},
 	},
@@ -213,13 +198,7 @@ export const assignPermissionsRoute = createRoute({
 	request: {
 		params: idParamSchema,
 		body: {
-			content: {
-				'application/json': {
-					schema: z.object({
-						permissionIds: z.array(z.number().int().positive()),
-					}),
-				},
-			},
+			content: { 'application/json': { schema: assignPermissionsRequestSchema } },
 			required: true,
 		},
 	},

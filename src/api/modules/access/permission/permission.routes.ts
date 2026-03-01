@@ -1,13 +1,9 @@
-import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas';
+import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas';
 import { permissionDataSchema } from '@contracts/role/role.schemas';
-import { createRoute, z } from '@hono/zod-openapi';
+import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
 import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../../openapi-config';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
-
-const searchQuerySchema = paginationParamsSchema.extend({
-	search: z.string().optional(),
-});
 
 export const listPermissionsRoute = createRoute({
 	method: 'get',
@@ -18,7 +14,7 @@ export const listPermissionsRoute = createRoute({
 	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_PERMISSION_PERMISSIONS.READ)] as const,
 	request: {
-		query: searchQuerySchema,
+		query: searchPaginationSchema,
 	},
 	responses: {
 		200: {

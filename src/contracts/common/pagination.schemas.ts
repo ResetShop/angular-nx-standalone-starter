@@ -10,6 +10,14 @@ export const paginationParamsSchema = z.object({
 });
 
 /**
+ * Pagination with optional search query parameter.
+ * Used by list endpoints that support text search.
+ */
+export const searchPaginationSchema = paginationParamsSchema.extend({
+	search: z.string().optional(),
+});
+
+/**
  * Factory function to create a paginated response schema for any item type.
  *
  * @param itemSchema - Zod schema for the items in the data array

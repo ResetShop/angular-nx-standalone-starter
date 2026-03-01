@@ -1,5 +1,5 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
-import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas';
+import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas';
 import {
 	createUserRequestSchema,
 	createUserResponseSchema,
@@ -10,10 +10,6 @@ import { createRoute, z } from '@hono/zod-openapi';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
 import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
-
-const searchQuerySchema = paginationParamsSchema.extend({
-	search: z.string().optional(),
-});
 
 const idParamSchema = z.object({
 	id: z.string().openapi({ description: 'User ID', example: '1' }),
@@ -27,7 +23,7 @@ export const listUsersRoute = createRoute({
 	description: 'List users with pagination and optional search.',
 	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.READ)] as const,
-	request: { query: searchQuerySchema },
+	request: { query: searchPaginationSchema },
 	responses: {
 		200: {
 			description: 'Paginated list of users',

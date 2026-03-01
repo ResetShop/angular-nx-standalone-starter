@@ -52,18 +52,22 @@ export const roleWithPermissionsSchema = z.object({
 // ============================================================================
 
 export const createRoleRequestSchema = z.object({
-	name: z.string().min(1),
-	code: z.string().min(1),
-	description: z.string().optional(),
+	name: z.string().min(1).max(100),
+	code: z
+		.string()
+		.min(1)
+		.max(50)
+		.regex(/^[a-z][a-z0-9_]*$/, 'Code must be lowercase alphanumeric with underscores, starting with a letter'),
+	description: z.string().max(500).optional(),
 });
 
 export const updateRoleRequestSchema = z.object({
-	name: z.string().min(1).optional(),
-	description: z.string().optional(),
+	name: z.string().min(1).max(100).optional(),
+	description: z.string().max(500).optional(),
 });
 
 export const assignPermissionsRequestSchema = z.object({
-	permissionIds: z.array(z.number()),
+	permissionIds: z.array(z.number().int().positive()),
 });
 
 // ============================================================================
