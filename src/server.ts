@@ -17,6 +17,7 @@ import { join } from 'node:path';
 // Health verification - runs all startup checks (DI container, database, etc.)
 import { verifyHealth } from './api/modules/health/verify-health';
 import { OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
+import { buildSwaggerHtml } from './api/swagger-ui';
 
 /**
  * Max-age for static asset caching (1 year in seconds).
@@ -108,21 +109,7 @@ app.doc('/api/openapi.json', {
  * Swagger UI endpoint (CDN-hosted)
  */
 app.get('/api/docs', (c) => {
-	return c.html(`<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8" />
-	<title>API Documentation</title>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
-</head>
-<body>
-	<div id="swagger-ui"></div>
-	<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-	<script>
-		SwaggerUIBundle({ url: '/api/openapi.json', dom_id: '#swagger-ui' });
-	</script>
-</body>
-</html>`);
+	return c.html(buildSwaggerHtml('/api/openapi.json'));
 });
 
 /**
