@@ -12,14 +12,10 @@ import {
 	roleDataSchema,
 	updateRoleRequestSchema,
 } from '@contracts/role/role.schemas';
-import { createRoute, z } from '@hono/zod-openapi';
+import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
-import { commonSecuredResponses } from '../../../openapi-config';
+import { commonSecuredResponses, idParamSchema } from '../../../openapi-config';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
-
-const idParamSchema = z.object({
-	id: z.string().openapi({ description: 'Role ID', example: '1' }),
-});
 
 export const listRolesRoute = createRoute({
 	method: 'get',

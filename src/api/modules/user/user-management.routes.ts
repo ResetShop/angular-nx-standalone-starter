@@ -6,14 +6,10 @@ import {
 	managedUserSchema,
 	updateUserRequestSchema,
 } from '@contracts/user/user.schemas';
-import { createRoute, z } from '@hono/zod-openapi';
+import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { commonSecuredResponses } from '../../openapi-config';
+import { commonSecuredResponses, idParamSchema } from '../../openapi-config';
 import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
-
-const idParamSchema = z.object({
-	id: z.string().openapi({ description: 'User ID', example: '1' }),
-});
 
 export const listUsersRoute = createRoute({
 	method: 'get',
