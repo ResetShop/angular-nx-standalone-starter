@@ -8,7 +8,7 @@ import {
 } from '@contracts/user/user.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
+import { commonSecuredResponses } from '../../openapi-config';
 import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
 
 const idParamSchema = z.object({
@@ -21,7 +21,6 @@ export const listUsersRoute = createRoute({
 	tags: ['Users'],
 	summary: 'List users',
 	description: 'List users with pagination and optional search.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.READ)] as const,
 	request: { query: searchPaginationSchema },
 	responses: {
@@ -39,7 +38,6 @@ export const getUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Get user by ID',
 	description: 'Get user details with roles.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.READ)] as const,
 	request: { params: idParamSchema },
 	responses: {
@@ -65,7 +63,6 @@ export const createUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Create a user',
 	description: 'Create a new user with optional role assignments.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.CREATE)] as const,
 	request: {
 		body: {
@@ -92,7 +89,6 @@ export const updateUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Update a user',
 	description: 'Update user details, roles, or status.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.UPDATE)] as const,
 	request: {
 		params: idParamSchema,
@@ -132,7 +128,6 @@ export const deleteUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Delete a user',
 	description: 'Soft delete a user.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.DELETE)] as const,
 	request: { params: idParamSchema },
 	responses: {

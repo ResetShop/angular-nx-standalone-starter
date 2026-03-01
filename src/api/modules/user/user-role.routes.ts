@@ -4,7 +4,7 @@ import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schem
 import { createRoute, z } from '@hono/zod-openapi';
 import { QUERY_DEFAULTS } from '../../constants/query.constants';
 import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
+import { commonSecuredResponses } from '../../openapi-config';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 
 const userIdParamSchema = z.object({
@@ -22,7 +22,6 @@ export const getUserRolesRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Get user roles',
 	description: 'Get all roles assigned to a user with pagination.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ)] as const,
 	request: {
 		params: userIdParamSchema,
@@ -51,7 +50,6 @@ export const getUserPermissionsRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Get user permissions',
 	description: 'Get all permissions for a user (aggregated from all their roles).',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ)] as const,
 	request: { params: userIdParamSchema },
 	responses: {
@@ -77,7 +75,6 @@ export const assignRoleRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Assign role to user',
 	description: 'Assign a role to a user.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.ASSIGN)] as const,
 	request: {
 		params: userIdParamSchema,
@@ -119,7 +116,6 @@ export const replaceUserRolesRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Replace user roles',
 	description: 'Replace all role assignments for a user.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [
 		requireAllPermissions([ADMIN_USER_ROLE_PERMISSIONS.ASSIGN, ADMIN_USER_ROLE_PERMISSIONS.REMOVE]),
 	] as const,
@@ -162,7 +158,6 @@ export const removeRoleRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Remove role from user',
 	description: 'Remove a role from a user.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.REMOVE)] as const,
 	request: { params: userIdAndRoleIdParamSchema },
 	responses: {

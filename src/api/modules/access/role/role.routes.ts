@@ -14,7 +14,7 @@ import {
 } from '@contracts/role/role.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
-import { PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../../openapi-config';
+import { commonSecuredResponses } from '../../../openapi-config';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 
 const idParamSchema = z.object({
@@ -27,7 +27,6 @@ export const listRolesRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'List all roles',
 	description: 'Get all roles with pagination and optional search.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
 	request: { query: searchPaginationSchema },
 	responses: {
@@ -45,7 +44,6 @@ export const getRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Get role by ID',
 	description: 'Get a single role by its ID.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
 	request: { params: idParamSchema },
 	responses: {
@@ -71,7 +69,6 @@ export const createRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Create a role',
 	description: 'Create a new role.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.CREATE)] as const,
 	request: {
 		body: {
@@ -98,7 +95,6 @@ export const updateRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Update a role',
 	description: 'Update an existing role.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.UPDATE)] as const,
 	request: {
 		params: idParamSchema,
@@ -134,7 +130,6 @@ export const deleteRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Delete a role',
 	description: 'Delete an existing role.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.DELETE)] as const,
 	request: { params: idParamSchema },
 	responses: {
@@ -164,7 +159,6 @@ export const getRolePermissionsRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Get role permissions',
 	description: 'Get all permissions assigned to a role with pagination.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
 	request: {
 		params: idParamSchema,
@@ -193,7 +187,6 @@ export const assignPermissionsRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Assign permissions to role',
 	description: 'Replace all permissions for a role. Full replacement operation.',
-	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.UPDATE)] as const,
 	request: {
 		params: idParamSchema,
