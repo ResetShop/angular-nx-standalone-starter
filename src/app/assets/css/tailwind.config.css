@@ -7,8 +7,6 @@
 	--foreground: oklch(14.5% 0 0deg);
 	--card: oklch(100% 0 0deg);
 	--card-foreground: oklch(14.5% 0 0deg);
-	--popover: oklch(100% 0 0deg);
-	--popover-foreground: oklch(14.5% 0 0deg);
 	--default: oklch(20.5% 0 0deg);
 	--default-foreground: oklch(98.5% 0 0deg);
 	--secondary: oklch(97% 0 0deg);
@@ -30,8 +28,6 @@
 	--foreground: oklch(98.5% 0 0deg);
 	--card: oklch(20.5% 0 0deg);
 	--card-foreground: oklch(98.5% 0 0deg);
-	--popover: oklch(26.9% 0 0deg);
-	--popover-foreground: oklch(98.5% 0 0deg);
 	--default: oklch(92.2% 0 0deg);
 	--default-foreground: oklch(20.5% 0 0deg);
 	--secondary: oklch(26.9% 0 0deg);
@@ -52,8 +48,6 @@
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
 	--color-card-foreground: var(--card-foreground);
-	--color-popover: var(--popover);
-	--color-popover-foreground: var(--popover-foreground);
 	--color-default: var(--default);
 	--color-default-foreground: var(--default-foreground);
 	--color-secondary: var(--secondary);
