@@ -76,7 +76,7 @@ interface ResetPasswordForm {
 		@reference "tailwindcss";
 		:host {
 			@apply flex h-svh w-svw items-center justify-center;
-			background-color: var(--muted);
+			@apply bg-muted;
 		}
 	`,
 })
