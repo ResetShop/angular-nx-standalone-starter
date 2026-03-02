@@ -73,10 +73,9 @@ interface ResetPasswordForm {
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	styles: `
-		@reference "tailwindcss";
+		@reference "#tailwind-theme";
 		:host {
-			@apply flex h-svh w-svw items-center justify-center;
-			@apply bg-muted;
+			@apply bg-muted flex h-svh w-svw items-center justify-center;
 		}
 	`,
 })

@@ -3,6 +3,9 @@
 	"type": "module",
 	"version": "1.0.0-next.0",
 	"license": "CC-BY-SA 4.0",
+	"imports": {
+		"#tailwind-theme": "./src/app/assets/css/tailwind.config.css"
+	},
 	"engines": {
 		"node": "^20.19.0 || ^22.19.0"
 	},
