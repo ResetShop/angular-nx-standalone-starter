@@ -23,6 +23,13 @@ export const DEFAULT_LOCKOUT_DURATION = '15m';
  */
 export const BCRYPT_SALT_ROUNDS = 12;
 
+/**
+ * Expiry buffer for refresh token cleanup (1 hour in milliseconds).
+ * Tokens must be expired for at least this duration before deletion,
+ * preventing race conditions during active refresh operations.
+ */
+export const REFRESH_TOKEN_EXPIRY_BUFFER_MS = 3600000;
+
 /** HttpOnly cookie name for the PASETO refresh token. */
 export const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
 
