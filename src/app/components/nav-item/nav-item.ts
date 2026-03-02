@@ -45,7 +45,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 					(keydown.space)="$event.preventDefault(); toggleExpanded()"
 					[attr.aria-expanded]="isExpanded()"
 					[attr.aria-controls]="'nav-children-' + item().id"
-					class="text-foreground hover:bg-accent/50 flex w-full items-center gap-2 rounded-md p-2 text-left"
+					class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left"
 				>
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
