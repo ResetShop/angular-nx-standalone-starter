@@ -7,15 +7,15 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
 			<div
-				class="flex flex-col items-center justify-center gap-6 rounded-xl border border-gray-200 bg-white p-8 shadow-2xs sm:h-[420px] sm:w-[420px] md:p-10 dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-neutral-700/70"
+				class="border-border bg-card flex flex-col items-center justify-center gap-6 rounded-xl border p-8 shadow-2xs sm:h-[420px] sm:w-[420px] md:p-10"
 			>
 				<div class="spinner relative h-[60px] w-[60px]">
-					<div class="spinner-ring border-t-primary border-transparent"></div>
-					<div class="spinner-ring border-t-primary border-transparent"></div>
-					<div class="spinner-ring border-t-primary border-transparent"></div>
-					<div class="spinner-ring border-t-primary border-transparent"></div>
+					<div class="spinner-ring border-t-default border-transparent"></div>
+					<div class="spinner-ring border-t-default border-transparent"></div>
+					<div class="spinner-ring border-t-default border-transparent"></div>
+					<div class="spinner-ring border-t-default border-transparent"></div>
 				</div>
-				<p class="text-center text-lg font-medium text-gray-600 dark:text-neutral-400">Cargando...</p>
+				<p class="text-muted-foreground text-center text-lg font-medium">Cargando...</p>
 			</div>
 		</dialog>
 	`,

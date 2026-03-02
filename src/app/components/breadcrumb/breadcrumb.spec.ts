@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/angular';
 import { provideRouter } from '@angular/router';
 import { Breadcrumb } from '@components/breadcrumb/breadcrumb';
-import { Navigation } from '@providers/navigation/navigation';
 import { BreadcrumbItem } from '@interfaces/navigation';
+import { Navigation } from '@providers/navigation/navigation';
+import { render, screen } from '@testing-library/angular';
 
 describe('Breadcrumb', () => {
 	const defaultProviders = () => [provideRouter([])];
@@ -141,7 +141,7 @@ describe('Breadcrumb', () => {
 		});
 
 		const currentPage = screen.getByText('Current Page');
-		expect(currentPage).toHaveClass('text-sm', 'font-medium', 'text-gray-900');
+		expect(currentPage).toHaveClass('text-sm', 'font-medium', 'text-foreground');
 	});
 
 	it('should apply correct styling to inactive breadcrumb links', async () => {
@@ -155,8 +155,8 @@ describe('Breadcrumb', () => {
 		});
 
 		const homeLink = screen.getByRole('link', { name: /home/i });
-		expect(homeLink).toHaveClass('text-sm', 'font-medium', 'text-gray-500');
-		expect(homeLink).toHaveClass('hover:text-gray-700');
+		expect(homeLink).toHaveClass('text-sm', 'font-medium', 'text-muted-foreground');
+		expect(homeLink).toHaveClass('hover:text-foreground');
 	});
 
 	it('should handle empty breadcrumbs gracefully', async () => {

@@ -73,6 +73,11 @@ Use `npm` for all package management and script execution:
 
 This is a hard constraint. Violations break the workflow and require user intervention.
 
+#### Git Command Rules
+
+1. **Never prefix git commands with `cd`** — the working directory is already at the project root. Using `cd <root> && git ...` changes the command signature and breaks auto-approve permission patterns.
+2. **Use simple `git commit -m "message"`** — never use `$(cat <<'EOF'...)` HEREDOC substitution for commit messages. It changes the command signature and requires manual permission approval.
+
 ### Folder Structure Conventions
 
 ```

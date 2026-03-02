@@ -1,3 +1,4 @@
+#!/bin/sh
 echo "--- Formatting Code ---"
 echo ""
 npx pretty-quick --staged
