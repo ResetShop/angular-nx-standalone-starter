@@ -1,6 +1,6 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types';
+import type { CreateUserRequest, CreateUserResponse, ManagedUser, UpdateUserRequest } from '@contracts/user/user.types';
 import { container } from '../../container/container';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { createOpenAPIApp, registerRoute } from '../../openapi-app';
@@ -58,7 +58,7 @@ registerRoute(app, getUserRoute, async (c) => {
  */
 registerRoute(app, createUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const body = c.req.valid('json');
+	const body: CreateUserRequest = c.req.valid('json');
 
 	try {
 		const result = await userManagementService.createUser(body);
@@ -78,7 +78,7 @@ registerRoute(app, createUserRoute, async (c) => {
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
 	const id = Number(c.req.param('id'));
-	const body = c.req.valid('json');
+	const body: UpdateUserRequest = c.req.valid('json');
 	const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
 	try {
