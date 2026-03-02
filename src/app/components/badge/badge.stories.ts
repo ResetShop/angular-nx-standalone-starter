@@ -49,7 +49,7 @@ export default meta;
 type Story = StoryObj<Badge>;
 
 /**
- * The default badge using primary colors from the theme.
+ * The default badge using default colors from the theme.
  */
 export const Default: Story = {
 	args: {
@@ -60,14 +60,14 @@ export const Default: Story = {
 		template: `
 			<div class="space-y-4">
 				<div>
-					<h3 class="text-sm font-semibold text-gray-900 mb-2">Light</h3>
-					<div class="bg-white p-4 rounded border border-gray-200">
+					<h3 class="text-sm font-semibold text-foreground mb-2">Light</h3>
+					<div class="bg-background p-4 rounded border border-border">
 						<span appBadge [variant]="variant">Badge</span>
 					</div>
 				</div>
 				<div>
-					<h3 class="text-sm font-semibold text-gray-900 mb-2">Dark</h3>
-					<div class="dark bg-black p-4 rounded border border-gray-800">
+					<h3 class="text-sm font-semibold text-foreground mb-2">Dark</h3>
+					<div class="dark bg-background p-4 rounded border border-border">
 						<span appBadge [variant]="variant">Badge</span>
 					</div>
 				</div>
@@ -84,8 +84,8 @@ export const AllVariants: Story = {
 		template: `
 			<div class="space-y-4">
 				<div>
-					<h3 class="text-sm font-semibold text-gray-900 mb-2">Light</h3>
-					<div class="bg-white p-4 rounded border border-gray-200">
+					<h3 class="text-sm font-semibold text-foreground mb-2">Light</h3>
+					<div class="bg-background p-4 rounded border border-border">
 						<div class="flex gap-3 flex-wrap items-center">
 							<span appBadge variant="default">Default</span>
 							<span appBadge variant="secondary">Secondary</span>
@@ -95,8 +95,8 @@ export const AllVariants: Story = {
 					</div>
 				</div>
 				<div>
-					<h3 class="text-sm font-semibold text-gray-900 mb-2">Dark</h3>
-					<div class="dark bg-black p-4 rounded border border-gray-800">
+					<h3 class="text-sm font-semibold text-foreground mb-2">Dark</h3>
+					<div class="dark bg-background p-4 rounded border border-border">
 						<div class="flex gap-3 flex-wrap items-center">
 							<span appBadge variant="default">Default</span>
 							<span appBadge variant="secondary">Secondary</span>

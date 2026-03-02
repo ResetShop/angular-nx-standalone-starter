@@ -2,22 +2,74 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+	--background: oklch(100% 0 0deg);
+	--foreground: oklch(14.5% 0 0deg);
+	--card: oklch(100% 0 0deg);
+	--card-foreground: oklch(14.5% 0 0deg);
+
+	/* "default" replaces shadcn/ui "primary" to avoid collision with Tailwind's built-in primary color */
+	--default: oklch(20.5% 0 0deg);
+	--default-foreground: oklch(98.5% 0 0deg);
+	--secondary: oklch(97% 0 0deg);
+	--secondary-foreground: oklch(20.5% 0 0deg);
+	--muted: oklch(97% 0 0deg);
+	--muted-foreground: oklch(55.6% 0 0deg);
+	--accent: oklch(97% 0 0deg);
+	--accent-foreground: oklch(20.5% 0 0deg);
+	--destructive: oklch(57.7% 0.245 27.325deg);
+	--destructive-foreground: oklch(98.5% 0 0deg);
+	--border: oklch(92.2% 0 0deg);
+	--input: oklch(92.2% 0 0deg);
+	--ring: oklch(70.8% 0 0deg);
+	--radius: 0.625rem;
+}
+
+.dark {
+	--background: oklch(14.5% 0 0deg);
+	--foreground: oklch(98.5% 0 0deg);
+	--card: oklch(20.5% 0 0deg);
+	--card-foreground: oklch(98.5% 0 0deg);
+	--default: oklch(92.2% 0 0deg);
+	--default-foreground: oklch(20.5% 0 0deg);
+	--secondary: oklch(26.9% 0 0deg);
+	--secondary-foreground: oklch(98.5% 0 0deg);
+	--muted: oklch(26.9% 0 0deg);
+	--muted-foreground: oklch(70.8% 0 0deg);
+	--accent: oklch(37.1% 0 0deg);
+	--accent-foreground: oklch(98.5% 0 0deg);
+	--destructive: oklch(70.4% 0.191 22.216deg);
+	--destructive-foreground: oklch(98.5% 0 0deg);
+	--border: oklch(100% 0 0deg / 10%);
+	--input: oklch(100% 0 0deg / 15%);
+	--ring: oklch(55.6% 0 0deg);
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-default: var(--default);
+	--color-default-foreground: var(--default-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+}
+
 @theme {
 	--font-sans: var(--font-geist-sans);
 	--font-mono: var(--font-geist-mono);
 	--font-display: 'Satoshi', 'sans-serif';
 	--breakpoint-3xl: 1920px;
-
-	/* Semantic Colors in OKLCH */
-
-	--color-primary: oklch(60% 0.22 257deg);
-	--color-secondary: oklch(56% 0.02 244deg);
-	--color-success: oklch(64% 0.18 146deg);
-	--color-danger: oklch(59% 0.2 21.2deg);
-	--color-warning: oklch(84% 0.17 84.9deg);
-	--color-info: oklch(66% 0.11 212deg);
-	--color-light: oklch(98% 0 0deg);
-	--color-dark: oklch(35% 0.01 248deg);
 	--ease-fluid: cubic-bezier(0.3, 0, 0, 1);
 	--ease-snappy: cubic-bezier(0.2, 0, 0, 1);
 }
@@ -25,5 +77,9 @@
 @layer base {
 	html {
 		@apply font-sans;
+	}
+
+	body {
+		@apply bg-background text-foreground;
 	}
 }

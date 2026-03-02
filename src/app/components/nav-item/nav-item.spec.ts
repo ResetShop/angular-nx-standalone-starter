@@ -1,13 +1,19 @@
-import { provideRouter } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
 import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons';
 import { NavigationState } from '@providers/navigation/navigation-state';
+import { clearAllMocks } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import NavItem from './nav-item';
 
 describe('NavItem', () => {
+	beforeEach(() => {
+		clearAllMocks();
+	});
+
 	const mockRoute: NavigationRoute = {
 		id: 'test-route',
 		name: 'Test Route',
@@ -22,7 +28,7 @@ describe('NavItem', () => {
 	};
 
 	it('should create the nav item component', async () => {
-		const { fixture } = await render(NavItem, {
+		await render(NavItem, {
 			inputs: { item: mockRoute },
 			providers: [
 				provideRouter([]),
@@ -31,7 +37,7 @@ describe('NavItem', () => {
 			],
 		});
 
-		expect(fixture.componentInstance).toBeTruthy();
+		expect(screen.getByRole('link', { name: /test route/i })).toBeInTheDocument();
 	});
 
 	it('should render the navigation item name', async () => {
@@ -128,6 +134,25 @@ describe('NavItem', () => {
 		expect(link).toHaveAttribute('href', '/test');
 	});
 
+	it('should apply routerLinkActive classes when the route is active', async () => {
+		await render(NavItem, {
+			inputs: { item: mockRoute },
+			providers: [
+				provideRouter([{ path: 'test', children: [] }]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+			],
+		});
+
+		const link = screen.getByRole('link', { name: /test route/i });
+		expect(link).not.toHaveClass('bg-accent');
+
+		const router = TestBed.inject(Router);
+		await router.navigate(['/test']);
+
+		expect(link).toHaveClass('bg-accent', 'text-accent-foreground', 'font-medium');
+	});
+
 	it('should handle navigation items with children property', async () => {
 		const routeWithChildren: NavigationRoute = {
 			id: 'parent',
@@ -188,22 +213,13 @@ describe('NavItem', () => {
 		icon = screen.getByTestId('item-icon');
 		expect(icon).toBeInTheDocument();
 	});
-
-	it('should have OnPush change detection strategy', async () => {
-		const { fixture } = await render(NavItem, {
-			inputs: { item: mockRoute },
-			providers: [
-				provideRouter([]),
-				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationState,
-			],
-		});
-
-		expect(fixture.componentRef.changeDetectorRef).toBeDefined();
-	});
 });
 
 describe('NavItem - Expandable Behavior', () => {
+	beforeEach(() => {
+		clearAllMocks();
+	});
+
 	const parentRoute: NavigationRoute = {
 		id: 'parent',
 		name: 'Parent Route',

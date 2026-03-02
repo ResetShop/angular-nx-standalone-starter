@@ -10,22 +10,8 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 	imports: [NgIcon, RouterLink, RouterLinkActive],
 	styles: `
 		@reference "tailwindcss";
-
 		:host {
-			@apply text-sm hover:cursor-pointer;
-		}
-
-		a {
-			@apply flex items-center gap-2 rounded-lg p-2 dark:text-gray-50;
-		}
-
-		a.active {
-			@apply bg-blue-50 font-medium text-blue-600 dark:bg-blue-950 dark:text-blue-400;
-		}
-
-		a:hover,
-		a.active:hover {
-			@apply bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400;
+			@apply cursor-pointer text-sm;
 		}
 
 		.nav-children {
@@ -48,10 +34,6 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 				transition-duration: 0.01ms;
 			}
 		}
-
-		button {
-			@apply rounded-md hover:bg-black/5 dark:hover:bg-white/5;
-		}
 	`,
 	template: `
 		@if (hasChildren()) {
@@ -63,7 +45,7 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 					(keydown.space)="$event.preventDefault(); toggleExpanded()"
 					[attr.aria-expanded]="isExpanded()"
 					[attr.aria-controls]="'nav-children-' + item().id"
-					class="flex w-full items-center gap-2 p-2 text-left dark:text-gray-50"
+					class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left"
 				>
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
@@ -93,7 +75,12 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 			</div>
 		} @else {
 			<!-- Leaf item (no children) - original implementation -->
-			<a [routerLink]="item().route" [routerLinkActiveOptions]="{ exact: false }" routerLinkActive="active">
+			<a
+				[routerLink]="item().route"
+				[routerLinkActiveOptions]="{ exact: false }"
+				routerLinkActive="bg-accent text-accent-foreground font-medium"
+				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
+			>
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
 				}

@@ -30,28 +30,28 @@ type ErrorCodeOption = LoginErrorCode | null;
 					<ng-template #cardTitle>
 						<div class="mt-4 flex flex-col gap-4">
 							<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-							<div class="mb-8 text-center dark:text-white">Ingresar al sistema</div>
+							<div class="text-foreground mb-8 text-center">Ingresar al sistema</div>
 						</div>
 					</ng-template>
 
 					<ng-template #cardContent>
 						<div class="flex w-96 flex-col gap-6">
 							<div>
-								<label for="email" class="block text-sm/6 font-medium text-gray-900">Dirección de email</label>
+								<label for="email" class="text-foreground block text-sm/6 font-medium">Dirección de email</label>
 								<div class="mt-2">
 									<input
 										id="email"
 										type="email"
 										autocomplete="email"
-										class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 									/>
 								</div>
 							</div>
 							<div>
 								<div class="flex items-center justify-between">
-									<label for="password" class="block text-sm/6 font-medium text-gray-900">Contraseña</label>
+									<label for="password" class="text-foreground block text-sm/6 font-medium">Contraseña</label>
 									<div class="text-sm">
-										<a href="#" class="text-primary hover:text-primary/90 font-semibold hover:underline">
+										<a href="#" class="text-default hover:text-default/90 font-semibold hover:underline">
 											¿Olvidaste tu contraseña?
 										</a>
 									</div>
@@ -61,7 +61,7 @@ type ErrorCodeOption = LoginErrorCode | null;
 										id="password"
 										type="password"
 										autocomplete="current-password"
-										class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 									/>
 								</div>
 							</div>
@@ -69,7 +69,7 @@ type ErrorCodeOption = LoginErrorCode | null;
 
 						@if (errorMessage()) {
 							<div
-								class="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
+								class="border-destructive/30 bg-destructive/10 text-destructive mt-4 rounded-md border p-3 text-sm"
 								role="alert"
 							>
 								{{ errorMessage() }}

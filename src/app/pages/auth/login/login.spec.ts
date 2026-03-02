@@ -34,7 +34,7 @@ describe('Login', () => {
 		});
 
 		// Check that the button has the appButton directive classes
-		expect(submitButton).toHaveClass('bg-primary');
+		expect(submitButton).toHaveClass('bg-default');
 		expect(submitButton).toHaveClass('inline-flex');
 		expect(submitButton).toHaveClass('w-full');
 	});
