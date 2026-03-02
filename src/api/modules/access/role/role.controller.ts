@@ -1,6 +1,13 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import type { PermissionAssignmentError, PermissionData, RoleData } from '@contracts/role/role.types';
+import type {
+	AssignPermissionsRequest,
+	CreateRoleRequest,
+	PermissionAssignmentError,
+	PermissionData,
+	RoleData,
+	UpdateRoleRequest,
+} from '@contracts/role/role.types';
 import { container } from '../../../container/container';
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware';
 import { createOpenAPIApp, registerRoute } from '../../../openapi-app';
@@ -51,7 +58,7 @@ registerRoute(app, getRoleRoute, async (c) => {
  */
 registerRoute(app, createRoleRoute, async (c) => {
 	const { roleService } = container.cradle;
-	const body = c.req.valid('json');
+	const body: CreateRoleRequest = c.req.valid('json');
 
 	try {
 		const role = await roleService.createRole(body);
@@ -74,7 +81,7 @@ registerRoute(app, updateRoleRoute, async (c) => {
 	const { roleService } = container.cradle;
 	const id = Number(c.req.param('id'));
 
-	const body = c.req.valid('json');
+	const body: UpdateRoleRequest = c.req.valid('json');
 
 	try {
 		const role = await roleService.updateRole(id, body);
@@ -147,7 +154,7 @@ registerRoute(app, assignPermissionsRoute, async (c) => {
 	const { roleService } = container.cradle;
 	const id = Number(c.req.param('id'));
 
-	const { permissionIds } = c.req.valid('json');
+	const { permissionIds }: AssignPermissionsRequest = c.req.valid('json');
 	const userId = Number((c as AuthenticatedContext).user.sub);
 
 	try {

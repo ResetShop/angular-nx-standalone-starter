@@ -6,7 +6,7 @@ import {
 	PublicAuthErrorCode,
 	toLoginErrorResponse,
 } from '@contracts/auth/auth.errors';
-import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
+import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import { timingSafeEqual } from 'crypto';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import {
@@ -73,7 +73,7 @@ registerRoute(app, loginRoute, async (c) => {
 	const { authService } = container.cradle;
 
 	try {
-		const { email, password } = c.req.valid('json');
+		const { email, password }: LoginRequest = c.req.valid('json');
 
 		const response = await authService.authenticate({ email, password });
 

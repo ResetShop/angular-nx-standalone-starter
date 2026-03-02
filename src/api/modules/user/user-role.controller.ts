@@ -1,6 +1,7 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import type { PermissionData, RoleData } from '@contracts/role/role.types';
+import type { AssignRoleToUserRequest, ReplaceUserRolesRequest } from '@contracts/user/user.types';
 import { container } from '../../container/container';
 import { createOpenAPIApp, registerRoute } from '../../openapi-app';
 import { USER_ROLE_ERRORS } from './user-role.errors';
@@ -62,7 +63,7 @@ registerRoute(app, assignRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle;
 	const userId = Number(c.req.param('userId'));
 
-	const { roleId } = c.req.valid('json');
+	const { roleId }: AssignRoleToUserRequest = c.req.valid('json');
 
 	try {
 		await userRoleService.assignRoleToUser(userId, roleId);
@@ -91,7 +92,7 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
 	const { userRoleService } = container.cradle;
 	const userId = Number(c.req.param('userId'));
 
-	const { roleIds } = c.req.valid('json');
+	const { roleIds }: ReplaceUserRolesRequest = c.req.valid('json');
 
 	try {
 		await userRoleService.replaceUserRoles(userId, roleIds);
