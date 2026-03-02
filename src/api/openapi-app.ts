@@ -21,11 +21,11 @@ export function createOpenAPIApp<E extends Env = Env>(): OpenAPIHono<E> {
  * utility needs to return usable types. Preserves full type safety on c.json(),
  * c.html(), c.req.param(), etc.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- REASON: @hono/zod-openapi type resolution issue — see AnyValidationInput above
 type AnyValidationInput = { out: { json: any; query: any; form: any; param: any; header: any; cookie: any } };
 
 /** Context with relaxed validation types — see AnyValidationInput. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- REASON: @hono/zod-openapi type resolution issue — see AnyValidationInput above
 type OpenAPIContext<E extends Env = Env> = Context<E, any, AnyValidationInput>;
 
 /**

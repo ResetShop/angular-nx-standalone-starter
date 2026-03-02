@@ -6,6 +6,15 @@
 
 Authentication uses **HttpOnly cookies** for both access and refresh tokens. JavaScript never reads or stores tokens — the server sets and deletes them via `Set-Cookie` headers. User state lives in memory (NgRx Signal Store) and is restored on each app bootstrap via `GET /api/auth/me`.
 
+## Naming: "login" vs "auth"
+
+| Term      | Meaning                                         | Examples                                                                                      |
+| --------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **login** | The user-facing action (frontend + endpoint)    | `loginRoute` (the endpoint), login page components, login form                                |
+| **auth**  | The interaction between the user and the system | `AuthErrorResponse`, `authErrorResponseSchema`, `AuthError`, `authGuard`, `authRequestSchema` |
+
+**Rule:** Use `login*` only for the user-facing login endpoint and frontend login artifacts. Use `auth*` for request/response schemas, error types, guards, interceptors, middleware, and anything that represents the authentication domain.
+
 ## Cookie Strategy
 
 | Cookie          | Type     | Purpose                    | Set by         | Deleted by |

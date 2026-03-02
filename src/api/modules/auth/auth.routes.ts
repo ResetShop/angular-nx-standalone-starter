@@ -1,4 +1,5 @@
 import {
+	authErrorResponseSchema,
 	cleanupTokensResponseSchema,
 	loginRequestSchema,
 	loginResponseSchema,
@@ -7,13 +8,8 @@ import {
 	refreshResponseSchema,
 } from '@contracts/auth/auth.schemas';
 import { errorResponseSchema } from '@contracts/common/error.schemas';
-import { createRoute, z } from '@hono/zod-openapi';
+import { createRoute } from '@hono/zod-openapi';
 import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
-
-const authErrorResponseSchema = z.object({
-	code: z.string(),
-	message: z.string(),
-});
 
 export const loginRoute = createRoute({
 	method: 'post',
