@@ -47,7 +47,7 @@ app.use(
 		credentials: true,
 		allowHeaders: ['Content-Type', 'Authorization'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-		maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Cache preflight requests (default: 24 hours)
+		maxAge: Number(process.env['CORS_MAX_AGE']) || parseDurationToSeconds('24h'), // Cache preflight requests
 	}),
 );
 app.use(secureHeaders());
