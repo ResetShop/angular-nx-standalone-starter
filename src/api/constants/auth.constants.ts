@@ -22,3 +22,9 @@ export const DEFAULT_LOCKOUT_DURATION = '15m';
  * Higher values increase security but also computation time.
  */
 export const BCRYPT_SALT_ROUNDS = 12;
+
+/** HttpOnly cookie name for the PASETO refresh token. */
+export const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
+
+/** HttpOnly cookie name for the PASETO access token. */
+export const ACCESS_TOKEN_COOKIE_NAME = 'access_token';

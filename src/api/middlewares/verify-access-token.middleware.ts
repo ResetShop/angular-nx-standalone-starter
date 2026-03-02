@@ -1,5 +1,6 @@
 import { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
+import { ACCESS_TOKEN_COOKIE_NAME } from '../constants/auth.constants';
 import { container } from '../container/container';
 
 export interface AuthenticatedContext extends Context {
@@ -17,7 +18,7 @@ export interface AuthenticatedContext extends Context {
  */
 export default async function verifyAccessToken(c: Context, next: Next) {
 	const { pasetoService } = container.cradle;
-	const token = getCookie(c, 'access_token');
+	const token = getCookie(c, ACCESS_TOKEN_COOKIE_NAME);
 
 	if (!token) {
 		return c.json({ error: 'Missing access token cookie' }, 401);

@@ -9,7 +9,11 @@ import {
 import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types';
 import { timingSafeEqual } from 'crypto';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
-import { MIN_CRON_SECRET_LENGTH } from '../../constants/auth.constants';
+import {
+	ACCESS_TOKEN_COOKIE_NAME,
+	MIN_CRON_SECRET_LENGTH,
+	REFRESH_TOKEN_COOKIE_NAME,
+} from '../../constants/auth.constants';
 import { container } from '../../container/container';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import { createOpenAPIApp, registerRoute } from '../../openapi-app';
@@ -17,10 +21,6 @@ import { parseDurationToSeconds } from '../../utils/duration';
 import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes';
 
 const app = createOpenAPIApp();
-
-// Cookie configuration
-const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
-const ACCESS_TOKEN_COOKIE_NAME = 'access_token';
 
 // WARNING: COOKIE_SECURE=false must ONLY be used in local development (no HTTPS).
 // In production, omit the variable entirely — it defaults to true (HTTPS required).

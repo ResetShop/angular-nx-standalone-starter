@@ -15,6 +15,7 @@ import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
 
 // Health verification - runs all startup checks (DI container, database, etc.)
+import { ACCESS_TOKEN_COOKIE_NAME } from './api/constants/auth.constants';
 import { verifyHealth } from './api/modules/health/verify-health';
 import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
 import { buildSwaggerHtml } from './api/swagger-ui';
@@ -84,7 +85,7 @@ for (const route of routes) {
 app.openAPIRegistry.registerComponent('securitySchemes', PASETO_COOKIE_SCHEME, {
 	type: 'apiKey',
 	in: 'cookie',
-	name: 'access_token',
+	name: ACCESS_TOKEN_COOKIE_NAME,
 	description: 'PASETO access token stored as an HttpOnly cookie',
 });
 
