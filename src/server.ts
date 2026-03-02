@@ -32,6 +32,7 @@ import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 
 // Cron jobs
 import { startCronJobs, stopCronJobs } from './api/cron-jobs';
+import { parseDurationToMs } from './api/utils/duration';
 
 /**
  * Initialize OpenAPIHono and export the app instance
@@ -193,7 +194,7 @@ if (isMainModule(import.meta.url)) {
 		);
 
 		// Graceful shutdown handler with timeout
-		const SHUTDOWN_TIMEOUT_MS = 10000; // 10 seconds
+		const SHUTDOWN_TIMEOUT = '10s';
 		const gracefulShutdown = (signal: string) => {
 			console.log(`\n${signal} received. Starting graceful shutdown...`);
 			stopCronJobs();
@@ -202,7 +203,7 @@ if (isMainModule(import.meta.url)) {
 			const forceExitTimeout = setTimeout(() => {
 				console.error('Graceful shutdown timed out. Forcing exit...');
 				process.exit(1);
-			}, SHUTDOWN_TIMEOUT_MS);
+			}, parseDurationToMs(SHUTDOWN_TIMEOUT));
 
 			server.close(() => {
 				clearTimeout(forceExitTimeout);

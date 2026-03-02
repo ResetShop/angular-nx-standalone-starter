@@ -205,6 +205,43 @@ import { User, IUserRepository } from './user.types';
 - Functions or constants
 - Anything used in expressions or statements
 
+### Duration String Convention
+
+All time-related constants must use duration string notation (`'{number}{unit}'`, e.g., `'1h'`, `'15m'`, `'7d'`) as their source of truth, resolved to milliseconds or seconds at the point of use via `parseDurationToMs()` / `parseDurationToSeconds()` from `src/api/utils/duration.ts`.
+
+**Rules:**
+
+1. **No `_MS` or `_SECONDS` suffixes** on constant names — the suffix encodes the resolved unit, which is an implementation detail of the expression that uses the value
+2. **Extract to named constants** — inline duration string literals used in more than one location must be extracted to a named constant in the appropriate constants file
+3. **Resolve at point of use** — call `parseDurationToMs()` or `parseDurationToSeconds()` directly in the expression that needs the numeric value; never store the resolved number in a constant
+
+```typescript
+// ✅ Correct — duration string constant, resolved at point of use
+export const REFRESH_TOKEN_EXPIRY_BUFFER = '1h';
+
+// In repository:
+const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER));
+
+// ❌ Incorrect — raw millisecond literal
+export const REFRESH_TOKEN_EXPIRY_BUFFER_MS = 3600000;
+
+// ❌ Incorrect — computed expression
+export const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+// ❌ Incorrect — suffix encodes the unit
+export const HEALTH_CHECK_TIMEOUT_MS = 5000;
+```
+
+**Existing compliant constants (reference as established pattern):**
+
+| Constant                       | File                                         | Value   |
+| ------------------------------ | -------------------------------------------- | ------- |
+| `DEFAULT_LOCKOUT_DURATION`     | `src/api/constants/auth.constants.ts`        | `'15m'` |
+| `DEFAULT_ACCESS_TOKEN_EXPIRY`  | `src/api/constants/auth.constants.ts`        | `'15m'` |
+| `DEFAULT_REFRESH_TOKEN_EXPIRY` | `src/api/constants/auth.constants.ts`        | `'7d'`  |
+| `REFRESH_TOKEN_EXPIRY_BUFFER`  | `src/api/constants/auth.constants.ts`        | `'1h'`  |
+| `HEALTH_CHECK_TIMEOUT`         | `src/api/modules/health/health.constants.ts` | `'5s'`  |
+
 ---
 
 ## Nx Guidelines
