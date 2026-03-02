@@ -1,3 +1,4 @@
+import { errorResponseSchema } from '@contracts/common/error.schemas';
 import { createRoute } from '@hono/zod-openapi';
 import { healthCheckResponseSchema } from './health.schemas';
 
@@ -16,6 +17,10 @@ export const healthCheckRoute = createRoute({
 		503: {
 			description: 'Application is unhealthy',
 			content: { 'application/json': { schema: healthCheckResponseSchema } },
+		},
+		500: {
+			description: 'Internal server error - unexpected database failure',
+			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 	},
 });
