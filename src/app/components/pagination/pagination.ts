@@ -28,14 +28,14 @@ const PAGINATION_KEYS = Object.freeze({
 		<nav [attr.aria-label]="paginationLabel" class="flex items-center justify-between gap-4">
 			<!-- Rows per page selector (left) -->
 			<div class="flex items-center gap-2">
-				<label [attr.for]="selectId" class="text-sm text-gray-500 dark:text-gray-400">
+				<label [attr.for]="selectId" class="text-muted-foreground text-sm">
 					{{ rowsPerPageLabel }}
 				</label>
 				<select
 					(change)="onPageSizeChange($event)"
 					[id]="selectId"
 					[value]="pageSize()"
-					class="h-8 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-900 focus:border-gray-400 focus:ring-1 focus:ring-gray-400 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:focus:border-gray-500 dark:focus:ring-gray-500"
+					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-8 rounded-md border px-2 text-sm focus:ring-1 focus:outline-none"
 				>
 					@for (option of pageSizeOptions(); track option) {
 						<option [value]="option" [selected]="option === pageSize()">{{ option }}</option>
@@ -62,7 +62,7 @@ const PAGINATION_KEYS = Object.freeze({
 				<!-- Page number buttons -->
 				@for (item of pageItems(); track $index) {
 					@if (item.type === 'ellipsis') {
-						<span class="flex h-8 w-8 items-center justify-center text-sm text-gray-500 dark:text-gray-400">…</span>
+						<span class="text-muted-foreground flex h-8 w-8 items-center justify-center text-sm">…</span>
 					} @else {
 						<button
 							(click)="onPageClick(item.value)"
