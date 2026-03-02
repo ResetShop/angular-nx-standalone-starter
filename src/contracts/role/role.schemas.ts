@@ -53,17 +53,17 @@ export const roleWithPermissionsSchema = z.object({
 // ============================================================================
 
 export const createRoleRequestSchema = z.object({
-	name: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
+	name: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
 	code: z
 		.string()
-		.min(1)
+		.min(QUERY_DEFAULTS.FIELD_MIN_LENGTH)
 		.max(QUERY_DEFAULTS.CODE_MAX_LENGTH)
 		.regex(/^[a-z][a-z0-9_]*$/, 'Code must be lowercase alphanumeric with underscores, starting with a letter'),
 	description: z.string().max(QUERY_DEFAULTS.DESCRIPTION_MAX_LENGTH).optional(),
 });
 
 export const updateRoleRequestSchema = z.object({
-	name: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+	name: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	description: z.string().max(QUERY_DEFAULTS.DESCRIPTION_MAX_LENGTH).optional(),
 });
 
