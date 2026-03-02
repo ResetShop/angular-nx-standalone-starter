@@ -1,4 +1,4 @@
-import { parseDurationToMs } from './duration';
+import { parseDurationToMs, parseDurationToSeconds } from './duration';
 
 describe('parseDurationToMs', () => {
 	describe('Valid inputs', () => {
@@ -239,6 +239,88 @@ describe('parseDurationToMs', () => {
 
 		it('should suggest valid format in error message', () => {
 			expect(() => parseDurationToMs('abc')).toThrow('Expected format: number followed by d/h/m/s');
+		});
+	});
+});
+
+describe('parseDurationToSeconds', () => {
+	describe('Valid inputs', () => {
+		it('should parse seconds correctly', () => {
+			expect(parseDurationToSeconds('1s')).toBe(1);
+			expect(parseDurationToSeconds('30s')).toBe(30);
+			expect(parseDurationToSeconds('60s')).toBe(60);
+		});
+
+		it('should parse minutes correctly', () => {
+			expect(parseDurationToSeconds('1m')).toBe(60);
+			expect(parseDurationToSeconds('15m')).toBe(15 * 60);
+			expect(parseDurationToSeconds('60m')).toBe(60 * 60);
+		});
+
+		it('should parse hours correctly', () => {
+			expect(parseDurationToSeconds('1h')).toBe(60 * 60);
+			expect(parseDurationToSeconds('12h')).toBe(12 * 60 * 60);
+			expect(parseDurationToSeconds('24h')).toBe(24 * 60 * 60);
+		});
+
+		it('should parse days correctly', () => {
+			expect(parseDurationToSeconds('1d')).toBe(24 * 60 * 60);
+			expect(parseDurationToSeconds('7d')).toBe(7 * 24 * 60 * 60);
+			expect(parseDurationToSeconds('365d')).toBe(365 * 24 * 60 * 60);
+		});
+	});
+
+	describe('Edge cases', () => {
+		it('should parse zero duration', () => {
+			expect(parseDurationToSeconds('0s')).toBe(0);
+			expect(parseDurationToSeconds('0m')).toBe(0);
+			expect(parseDurationToSeconds('0h')).toBe(0);
+			expect(parseDurationToSeconds('0d')).toBe(0);
+		});
+	});
+
+	describe('Invalid inputs', () => {
+		it('should throw error for empty string', () => {
+			expect(() => parseDurationToSeconds('')).toThrow('Invalid duration format');
+		});
+
+		it('should throw error for missing unit', () => {
+			expect(() => parseDurationToSeconds('7')).toThrow('Invalid duration format');
+		});
+
+		it('should throw error for invalid unit', () => {
+			expect(() => parseDurationToSeconds('7w')).toThrow('Invalid duration format');
+		});
+
+		it('should throw error for negative numbers', () => {
+			expect(() => parseDurationToSeconds('-1s')).toThrow('Invalid duration format');
+		});
+
+		it('should throw error for decimal numbers', () => {
+			expect(() => parseDurationToSeconds('1.5s')).toThrow('Invalid duration format');
+		});
+	});
+
+	describe('Consistency with parseDurationToMs', () => {
+		it('should return exactly 1/1000th of parseDurationToMs for all units', () => {
+			const durations = ['1s', '15m', '1h', '7d'];
+			for (const d of durations) {
+				expect(parseDurationToSeconds(d)).toBe(parseDurationToMs(d) / 1000);
+			}
+		});
+	});
+
+	describe('Real-world use cases', () => {
+		it('should handle typical CORS max-age (24 hours)', () => {
+			expect(parseDurationToSeconds('24h')).toBe(86400);
+		});
+
+		it('should handle typical static cache max-age (365 days)', () => {
+			expect(parseDurationToSeconds('365d')).toBe(31536000);
+		});
+
+		it('should handle typical cookie max-age (15 minutes)', () => {
+			expect(parseDurationToSeconds('15m')).toBe(900);
 		});
 	});
 });
