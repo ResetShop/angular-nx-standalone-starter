@@ -22,9 +22,9 @@ function validateCronSecret(): void {
  */
 function startTokenCleanupJob(): void {
 	try {
-		const DEFAULT_INTERVAL_MS = 86400000; // 24 hours
-		const MIN_INTERVAL_MS = 60000; // 1 minute
-		const MAX_INTERVAL_MS = 604800000; // 7 days
+		const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+		const MIN_INTERVAL_MS = 60 * 1000; // 1 minute
+		const MAX_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 		const { authService } = container.cradle;
 		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS'];
