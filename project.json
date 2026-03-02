@@ -14,7 +14,7 @@
 				"outputPath": "dist/app",
 				"browser": "./src/main.ts",
 				"polyfills": [],
-				"externalDependencies": ["awilix"],
+				"externalDependencies": ["awilix", "zod"],
 				"index": "./src/index.html",
 				"tsConfig": "tsconfig.app.json",
 				"assets": [
