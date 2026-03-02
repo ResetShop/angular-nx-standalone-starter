@@ -21,10 +21,10 @@ import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/op
 import { buildSwaggerHtml } from './api/swagger-ui';
 
 /**
- * Max-age for static asset caching (1 year in seconds).
+ * Max-age for static asset caching.
  * Used for immutable static files served from /browser.
  */
-const STATIC_CACHE_MAX_AGE_SECONDS = 31536000;
+const STATIC_CACHE_MAX_AGE = '365d';
 
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
@@ -32,7 +32,7 @@ import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 
 // Cron jobs
 import { startCronJobs, stopCronJobs } from './api/cron-jobs';
-import { parseDurationToMs } from './api/utils/duration';
+import { parseDurationToMs, parseDurationToSeconds } from './api/utils/duration';
 
 /**
  * Initialize OpenAPIHono and export the app instance
@@ -128,7 +128,7 @@ app.use(
 	serveStatic({
 		root: join(import.meta.dirname, '../browser'),
 		onFound: (path, c) => {
-			c.header('Cache-Control', `public, immutable, max-age=${STATIC_CACHE_MAX_AGE_SECONDS}`);
+			c.header('Cache-Control', `public, immutable, max-age=${parseDurationToSeconds(STATIC_CACHE_MAX_AGE)}`);
 		},
 		onNotFound: () => {
 			// Optionally log or handle the case where a static file is not found
