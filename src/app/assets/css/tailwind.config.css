@@ -7,6 +7,7 @@
 	--foreground: oklch(14.5% 0 0deg);
 	--card: oklch(100% 0 0deg);
 	--card-foreground: oklch(14.5% 0 0deg);
+	/* "default" replaces shadcn/ui "primary" to avoid collision with Tailwind's built-in primary color */
 	--default: oklch(20.5% 0 0deg);
 	--default-foreground: oklch(98.5% 0 0deg);
 	--secondary: oklch(97% 0 0deg);
