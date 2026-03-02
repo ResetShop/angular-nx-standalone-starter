@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { NavigationRoute } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
@@ -22,7 +23,7 @@ describe('NavItem', () => {
 	};
 
 	it('should create the nav item component', async () => {
-		const { fixture } = await render(NavItem, {
+		await render(NavItem, {
 			inputs: { item: mockRoute },
 			providers: [
 				provideRouter([]),
@@ -31,7 +32,7 @@ describe('NavItem', () => {
 			],
 		});
 
-		expect(fixture.componentInstance).toBeTruthy();
+		expect(screen.getByRole('link', { name: /test route/i })).toBeInTheDocument();
 	});
 
 	it('should render the navigation item name', async () => {
@@ -129,7 +130,7 @@ describe('NavItem', () => {
 	});
 
 	it('should apply routerLinkActive classes when the route is active', async () => {
-		const { fixture } = await render(NavItem, {
+		await render(NavItem, {
 			inputs: { item: mockRoute },
 			providers: [
 				provideRouter([{ path: 'test', children: [] }]),
@@ -141,9 +142,8 @@ describe('NavItem', () => {
 		const link = screen.getByRole('link', { name: /test route/i });
 		expect(link).not.toHaveClass('bg-accent');
 
-		const router = fixture.debugElement.injector.get(Router);
+		const router = TestBed.inject(Router);
 		await router.navigate(['/test']);
-		fixture.detectChanges();
 
 		expect(link).toHaveClass('bg-accent', 'text-accent-foreground', 'font-medium');
 	});
@@ -207,19 +207,6 @@ describe('NavItem', () => {
 
 		icon = screen.getByTestId('item-icon');
 		expect(icon).toBeInTheDocument();
-	});
-
-	it('should have OnPush change detection strategy', async () => {
-		const { fixture } = await render(NavItem, {
-			inputs: { item: mockRoute },
-			providers: [
-				provideRouter([]),
-				provideIcons({ featherHome, featherActivity, featherChevronRight }),
-				NavigationState,
-			],
-		});
-
-		expect(fixture.componentRef.changeDetectorRef).toBeDefined();
 	});
 });
 
