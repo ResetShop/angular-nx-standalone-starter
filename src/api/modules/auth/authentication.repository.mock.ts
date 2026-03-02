@@ -1,3 +1,4 @@
+import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants';
 import { parseDurationToMs } from '../../utils/duration';
 import { type AuthenticationData, type IAuthenticationRepository, type IncrementAttemptsResult } from './interfaces';
 
@@ -82,7 +83,7 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 	async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
 		// Read from env vars to match production behavior
 		const maxAttempts = Number(process.env['AUTH_MAX_FAILED_ATTEMPTS'] ?? '5');
-		const lockDuration = parseDurationToMs('15m');
+		const lockDuration = parseDurationToMs(DEFAULT_LOCKOUT_DURATION);
 
 		this.incrementedUsers.push(userId);
 		const record = this.authRecords.get(userId);
