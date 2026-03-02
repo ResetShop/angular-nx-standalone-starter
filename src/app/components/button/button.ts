@@ -116,7 +116,7 @@ export class Button {
 				'text-default',
 				'underline-offset-4',
 				'data-[hover]:underline',
-				'data-[focus-visible]:outline-default/90',
+				'data-[focus-visible]:outline-ring',
 			],
 		};
 		classes.push(...variantClasses[this.variant()]);
