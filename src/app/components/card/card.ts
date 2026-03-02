@@ -1,29 +1,27 @@
-import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular/core';
 
 @Component({
 	selector: 'app-card',
 	imports: [NgTemplateOutlet],
 	template: `
-		<div
-			class="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-2xs md:p-5 dark:border-neutral-700 dark:bg-neutral-900 dark:shadow-neutral-700/70"
-		>
+		<div class="border-border bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-4 shadow-2xs md:p-5">
 			@if (titleTemplate() || subtitleTemplate()) {
 				<div>
 					@if (titleTemplate()) {
-						<h2 class="text-2xl/9 font-bold tracking-tight text-gray-900">
+						<h2 class="text-foreground text-2xl/9 font-bold tracking-tight">
 							<ng-container *ngTemplateOutlet="titleTemplate()" />
 						</h2>
 					}
 					@if (subtitleTemplate()) {
-						<div class="mt-1 text-xs font-medium text-gray-500 uppercase dark:text-neutral-500">
+						<div class="text-muted-foreground mt-1 text-xs font-medium uppercase">
 							<ng-container *ngTemplateOutlet="subtitleTemplate()" />
 						</div>
 					}
 				</div>
 			}
 			@if (contentTemplate()) {
-				<div class="mt-2 text-gray-500 dark:text-neutral-400">
+				<div class="text-muted-foreground mt-2">
 					<ng-container *ngTemplateOutlet="contentTemplate()" />
 				</div>
 			}

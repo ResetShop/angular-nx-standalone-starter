@@ -26,17 +26,17 @@ interface ResetPasswordForm {
 				<ng-template #cardContent>
 					<div class="flex w-96 flex-col gap-6">
 						<div>
-							<label for="email" class="block text-sm/6 font-medium text-gray-900">Dirección de email</label>
+							<label for="email" class="text-foreground block text-sm/6 font-medium">Dirección de email</label>
 							<div class="mt-2">
 								<input
 									id="email"
 									type="email"
 									formControlName="email"
 									autocomplete="email"
-									class="focus:outline-primary-600 block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
+									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
 								/>
 								@if (resetPasswordForm.controls.email.invalid && resetPasswordForm.controls.email.touched) {
-									<p class="text-danger-600 mt-2 text-sm">
+									<p class="text-destructive mt-2 text-sm">
 										@if (resetPasswordForm.controls.email.errors?.['required']) {
 											El email es requerido
 										}
@@ -63,7 +63,7 @@ interface ResetPasswordForm {
 							Enviar enlace de restablecimiento
 						</button>
 
-						<div class="text-center text-sm text-gray-600">
+						<div class="text-muted-foreground text-center text-sm">
 							<a [routerLink]="loginUrl" appButton variant="link">Volver al inicio de sesión</a>
 						</div>
 					</div>
@@ -73,9 +73,9 @@ interface ResetPasswordForm {
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	styles: `
-		@reference "tailwindcss";
+		@reference "#tailwind-theme";
 		:host {
-			@apply flex h-svh w-svw items-center justify-center bg-gray-500;
+			@apply bg-muted flex h-svh w-svw items-center justify-center;
 		}
 	`,
 })

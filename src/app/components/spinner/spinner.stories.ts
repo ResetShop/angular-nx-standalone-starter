@@ -82,8 +82,8 @@ export const Colors: Story = {
 		template: `
 			<div class="flex gap-6 items-center">
 				<span class="text-gray-500"><app-spinner /></span>
-				<span class="text-primary"><app-spinner /></span>
-				<span class="text-danger"><app-spinner /></span>
+				<span class="text-default"><app-spinner /></span>
+				<span class="text-destructive"><app-spinner /></span>
 				<span class="text-green-500"><app-spinner /></span>
 			</div>
 		`,

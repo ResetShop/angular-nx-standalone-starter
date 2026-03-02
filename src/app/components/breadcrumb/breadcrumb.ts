@@ -17,15 +17,12 @@ import { Navigation } from '@providers/navigation/navigation';
 					<li>
 						<div class="flex items-center gap-1">
 							@if (!item.isActive) {
-								<a
-									[routerLink]="item.path"
-									class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-								>
+								<a [routerLink]="item.path" class="text-muted-foreground hover:text-foreground text-sm font-medium">
 									{{ item.title }}
 								</a>
 							}
 							@if (item.isActive) {
-								<span class="text-sm font-medium text-gray-900 dark:text-gray-50" aria-current="page">
+								<span class="text-foreground text-sm font-medium" aria-current="page">
 									{{ item.title }}
 								</span>
 							}
@@ -33,7 +30,7 @@ import { Navigation } from '@providers/navigation/navigation';
 					</li>
 					@if (index !== breadcrumbs().length - 1) {
 						<li>
-							<span class="flex items-center justify-center text-gray-400 dark:text-gray-600" aria-hidden="true">
+							<span class="text-muted-foreground flex items-center justify-center" aria-hidden="true">
 								<ng-icon [size]="'0.75rem'" name="featherChevronRight" />
 							</span>
 						</li>
