@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { QUERY_DEFAULTS } from '../common/query.constants';
 
 // ============================================================================
 // Permission Schemas
@@ -52,18 +53,18 @@ export const roleWithPermissionsSchema = z.object({
 // ============================================================================
 
 export const createRoleRequestSchema = z.object({
-	name: z.string().min(1).max(100),
+	name: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
 	code: z
 		.string()
 		.min(1)
-		.max(50)
+		.max(QUERY_DEFAULTS.CODE_MAX_LENGTH)
 		.regex(/^[a-z][a-z0-9_]*$/, 'Code must be lowercase alphanumeric with underscores, starting with a letter'),
-	description: z.string().max(500).optional(),
+	description: z.string().max(QUERY_DEFAULTS.DESCRIPTION_MAX_LENGTH).optional(),
 });
 
 export const updateRoleRequestSchema = z.object({
-	name: z.string().min(1).max(100).optional(),
-	description: z.string().max(500).optional(),
+	name: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+	description: z.string().max(QUERY_DEFAULTS.DESCRIPTION_MAX_LENGTH).optional(),
 });
 
 export const assignPermissionsRequestSchema = z.object({
