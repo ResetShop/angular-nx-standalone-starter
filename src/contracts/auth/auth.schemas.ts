@@ -16,6 +16,19 @@ export const loginRequestSchema = z.object({
 // Response Schemas
 // ============================================================================
 
+/**
+ * Schema for authentication error responses.
+ * Maps to the AuthErrorResponse interface from auth.errors.ts.
+ *
+ * Named "auth" (not "login") because it represents the system's authentication
+ * interaction with the user, not the specific login action.
+ * See auth.md § Naming: "login" = user action, "auth" = system interaction.
+ */
+export const authErrorResponseSchema = z.object({
+	code: z.string(),
+	message: z.string(),
+});
+
 export const loginResponseSchema = z.object({
 	user: authUserSchema,
 	mustChangePassword: z.boolean(),
