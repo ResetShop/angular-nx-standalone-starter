@@ -12,4 +12,8 @@ export const QUERY_DEFAULTS = Object.freeze({
 	/** Search */
 	SEARCH_MIN_LENGTH: 1,
 	SEARCH_MAX_LENGTH: 100,
+	/** Field lengths */
+	NAME_MAX_LENGTH: 100,
+	CODE_MAX_LENGTH: 50,
+	DESCRIPTION_MAX_LENGTH: 500,
 } as const);
