@@ -31,6 +31,12 @@ type OpenAPIContext<E extends Env = Env> = Context<E, any, AnyValidationInput>;
 /**
  * Wrapper for app.openapi() that relaxes handler types.
  * Handlers are verified through unit tests rather than compile-time checks.
+ *
+ * Limitation: accepts base RouteConfig, so the compiler cannot verify that a
+ * handler's HTTP verb matches the route's declared method. Migrating contract
+ * schemas to use the re-exported `z` from `@hono/zod-openapi` would restore
+ * full type inference, but that couples shared contracts to a Hono-specific
+ * package. The current tradeoff is intentional — runtime tests cover the gap.
  */
 export function registerRoute<E extends Env>(
 	app: OpenAPIHono<E>,

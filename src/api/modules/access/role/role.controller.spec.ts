@@ -198,8 +198,6 @@ describe('Role Controller', () => {
 			const res = await app.request('/access/roles/invalid');
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid role ID');
 		});
 	});
 
@@ -326,8 +324,6 @@ describe('Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid role ID');
 		});
 
 		it('should validate description max length', async () => {
@@ -386,8 +382,6 @@ describe('Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid role ID');
 		});
 	});
 
@@ -438,8 +432,6 @@ describe('Role Controller', () => {
 			const res = await app.request('/access/roles/invalid/permissions');
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid role ID');
 		});
 	});
 
@@ -487,8 +479,6 @@ describe('Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid role ID');
 		});
 
 		it('should validate permissionIds is an array of positive integers', async () => {

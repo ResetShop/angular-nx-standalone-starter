@@ -7,13 +7,13 @@ import { requireAllPermissions, requirePermission } from '../../middlewares/veri
 import { commonSecuredResponses } from '../../openapi-config';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 
-const userIdField = z.string().openapi({ description: 'User ID', example: '1' });
+const userIdField = z.coerce.number().int().positive().openapi({ description: 'User ID', example: 1 });
 
 const userIdParamSchema = z.object({ userId: userIdField });
 
 const userIdAndRoleIdParamSchema = z.object({
 	userId: userIdField,
-	roleId: z.string().openapi({ description: 'Role ID', example: '1' }),
+	roleId: z.coerce.number().int().positive().openapi({ description: 'Role ID', example: 1 }),
 });
 
 export const getUserRolesRoute = createRoute({

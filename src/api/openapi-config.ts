@@ -12,7 +12,7 @@ export const OPENAPI_INFO = {
 
 /** Reusable path parameter schema for endpoints that take a single numeric ID. */
 export const idParamSchema = z.object({
-	id: z.string().openapi({ description: 'Resource ID', example: '1' }),
+	id: z.coerce.number().int().positive().openapi({ description: 'Resource ID', example: 1 }),
 });
 
 export const commonSecuredResponses = {

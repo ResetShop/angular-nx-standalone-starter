@@ -29,6 +29,10 @@ export const loginRoute = createRoute({
 			description: 'Successfully authenticated',
 			content: { 'application/json': { schema: loginResponseSchema } },
 		},
+		400: {
+			description: 'Invalid request body',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 		401: {
 			description: 'Authentication failed',
 			content: { 'application/json': { schema: authErrorResponseSchema } },

@@ -39,11 +39,7 @@ registerRoute(app, listUsersRoute, async (c) => {
  */
 registerRoute(app, getUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
+	const id = Number(c.req.param('id'));
 
 	try {
 		const userData = await userManagementService.getUser(id);
@@ -81,12 +77,7 @@ registerRoute(app, createUserRoute, async (c) => {
  */
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
-
+	const id = Number(c.req.param('id'));
 	const body = c.req.valid('json');
 	const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
@@ -111,11 +102,7 @@ registerRoute(app, updateUserRoute, async (c) => {
  */
 registerRoute(app, deleteUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
+	const id = Number(c.req.param('id'));
 
 	try {
 		await userManagementService.deleteUser(id);
