@@ -50,6 +50,7 @@
 			"Bash(npx nx test:*)",
 			"Bash(npx tsc:*)",
 			"Bash(npx vitest:*)",
+			"Bash(tail:*)",
 			"Bash(test:*)",
 			"WebFetch(domain:angularprimitives.com)",
 			"WebFetch(domain:github.com)",
@@ -63,7 +64,8 @@
 			"mcp__plugin_playwright_playwright__browser_click",
 			"mcp__plugin_playwright_playwright__browser_take_screenshot",
 			"mcp__plugin_playwright_playwright__browser_snapshot",
-			"mcp__plugin_playwright_playwright__browser_wait_for"
+			"mcp__plugin_playwright_playwright__browser_wait_for",
+			"Bash(git clone --depth=1 https://github.com/rolivencia/conferentia.git)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
