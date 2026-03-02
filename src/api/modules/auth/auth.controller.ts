@@ -11,6 +11,8 @@ import { timingSafeEqual } from 'crypto';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
 import {
 	ACCESS_TOKEN_COOKIE_NAME,
+	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_REFRESH_TOKEN_EXPIRY,
 	MIN_CRON_SECRET_LENGTH,
 	REFRESH_TOKEN_COOKIE_NAME,
 } from '../../constants/auth.constants';
@@ -33,12 +35,12 @@ const BASE_COOKIE_OPTIONS = {
 
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
 	...BASE_COOKIE_OPTIONS,
-	maxAge: parseDurationToSeconds(process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d'), // Default of 7 days
+	maxAge: parseDurationToSeconds(process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY),
 };
 
 const ACCESS_TOKEN_COOKIE_OPTIONS = {
 	...BASE_COOKIE_OPTIONS,
-	maxAge: parseDurationToSeconds(process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? '15m'), // Default of 15 minutes
+	maxAge: parseDurationToSeconds(process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY),
 };
 
 /**

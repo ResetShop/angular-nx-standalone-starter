@@ -1,4 +1,5 @@
 import { V3 } from 'paseto';
+import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants';
 import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces';
 
 /**
@@ -42,7 +43,7 @@ export class PasetoService implements IPasetoService {
 	 */
 	async generateAccessToken(payload: TokenPayload): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
-		const expiresIn = process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? '15m';
+		const expiresIn = process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY;
 
 		return await V3.encrypt(
 			{
@@ -70,7 +71,7 @@ export class PasetoService implements IPasetoService {
 	 */
 	async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
-		const expiresIn = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d';
+		const expiresIn = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY;
 
 		return await V3.encrypt(
 			{
