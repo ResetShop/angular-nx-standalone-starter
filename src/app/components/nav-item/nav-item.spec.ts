@@ -4,11 +4,16 @@ import { NavigationRoute } from '@interfaces/navigation';
 import { provideIcons } from '@ng-icons/core';
 import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons';
 import { NavigationState } from '@providers/navigation/navigation-state';
+import { clearAllMocks } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import NavItem from './nav-item';
 
 describe('NavItem', () => {
+	beforeEach(() => {
+		clearAllMocks();
+	});
+
 	const mockRoute: NavigationRoute = {
 		id: 'test-route',
 		name: 'Test Route',
@@ -211,6 +216,10 @@ describe('NavItem', () => {
 });
 
 describe('NavItem - Expandable Behavior', () => {
+	beforeEach(() => {
+		clearAllMocks();
+	});
+
 	const parentRoute: NavigationRoute = {
 		id: 'parent',
 		name: 'Parent Route',
