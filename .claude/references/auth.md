@@ -1,4 +1,4 @@
-<!-- Source: CLAUDE.md | Last updated: 2026-02-12 -->
+<!-- Source: CLAUDE.md | Last updated: 2026-03-02 -->
 
 # Authentication Architecture
 
@@ -121,7 +121,9 @@ During SSR, `HttpClient` does not automatically include browser cookies. The `ss
 
 ## Backend Middleware
 
-The `verifyAccessToken` Hono middleware reads the `access_token` cookie via `getCookie(c, 'access_token')` and verifies it as a PASETO token. On success, it attaches the decoded user payload to the Hono context. On failure, it returns 401.
+The `verifyAccessToken` middleware runs on all `/api/*` routes except public endpoints (configured via `PUBLIC_AUTH_ROUTES` in `routes.ts`). It reads the `access_token` HttpOnly cookie via `getCookie(c, 'access_token')` and verifies it as a PASETO token. On success, it attaches the decoded user payload to the Hono context as `AuthenticatedContext`. On failure, it returns 401.
+
+The OpenAPIHono security scheme (`pasetoCookie`) is registered in `server.ts` via `app.openAPIRegistry.registerComponent()` and applied as a global default in `app.doc()`. Public routes opt out with `security: []` in their `createRoute()` definition. See `.claude/references/backend-api.md` for the full security convention.
 
 ## Key Files
 
@@ -138,3 +140,6 @@ The `verifyAccessToken` Hono middleware reads the `access_token` cookie via `get
 | `src/app/providers/auth/auth.ts`                        | AuthApiService — HTTP calls             |
 | `src/api/middlewares/verify-access-token.middleware.ts` | Backend cookie validation               |
 | `src/api/modules/auth/auth.controller.ts`               | Login/logout/refresh endpoints          |
+| `src/api/modules/auth/auth.routes.ts`                   | Auth route definitions (OpenAPI)        |
+| `src/api/constants/auth.constants.ts`                   | Cookie names, token expiry defaults     |
+| `src/api/openapi-config.ts`                             | Security schemes, shared API config     |
