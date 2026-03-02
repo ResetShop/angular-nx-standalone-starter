@@ -26,6 +26,8 @@ Before reviewing, read ALL reference files to have full project context:
 5. Read `.claude/references/clean-architecture.md`
 6. Read `.claude/references/cross-reference.md`
 7. Read `.claude/references/domain-model.md`
+8. Read `.claude/references/auth.md`
+9. Read `.claude/references/backend-api.md`
 
 ## Review Process
 
@@ -50,6 +52,10 @@ Before reviewing, read ALL reference files to have full project context:
 - [ ] No module-level constants/variables that are only used by a single function — keep them local (see CLAUDE.md Scope Rules)
 - [ ] Repository methods use `find*()` for reads, services use `get[Entity]()`/`getAll[Entities]()` — never `list()` or bare CRUD names (see CLAUDE.md Backend API Naming Conventions)
 - [ ] Inline query result types in repository method signatures (3+ fields) extracted into file-local `Projection` interfaces (see CLAUDE.md Repository Projection Types)
+- [ ] Backend routes defined in `*.routes.ts` using `createRoute()`, handlers in `*.controller.ts` using `registerRoute()` — never inline route+handler in a single file
+- [ ] Protected routes inherit global security; public routes explicitly set `security: []`
+- [ ] Response schemas use `commonSecuredResponses` (write ops) or `commonAuthResponses` (read ops)
+- [ ] Request/response Zod schemas live in `src/contracts/` (shared) or module-local `*.schemas.ts` (domain-specific)
 
 ### SOLID Principles
 
