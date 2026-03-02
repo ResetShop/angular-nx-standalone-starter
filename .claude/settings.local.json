@@ -50,6 +50,7 @@
 			"Bash(npx nx test:*)",
 			"Bash(npx tsc:*)",
 			"Bash(npx vitest:*)",
+			"Bash(tail:*)",
 			"Bash(test:*)",
 			"WebFetch(domain:angularprimitives.com)",
 			"WebFetch(domain:github.com)",
