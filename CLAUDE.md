@@ -212,7 +212,7 @@ All time-related constants must use duration string notation (`'{number}{unit}'`
 **Rules:**
 
 1. **No `_MS` or `_SECONDS` suffixes** on constant names — the suffix encodes the resolved unit, which is an implementation detail of the expression that uses the value
-2. **Extract to named constants** — inline duration string literals used in more than one location must be extracted to a named constant in the appropriate constants file
+2. **Extract to named constants** — inline duration string literals used in more than one location (production or test code) must be extracted to a named constant in the appropriate constants file
 3. **Resolve at point of use** — call `parseDurationToMs()` or `parseDurationToSeconds()` directly in the expression that needs the numeric value; never store the resolved number in a constant
 
 ```typescript
