@@ -60,8 +60,8 @@ export const managedUserSchema = z.object({
  */
 export const createUserRequestSchema = z.object({
 	email: z.email(),
-	firstName: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
-	lastName: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
+	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
+	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
 	roleIds: z.array(z.number().int().positive()).optional(),
 	mustChangePassword: z.boolean().optional().default(true),
 });
@@ -80,8 +80,8 @@ export const createUserResponseSchema = managedUserSchema.extend({
  */
 export const updateUserRequestSchema = z.object({
 	email: z.email().optional(),
-	firstName: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
-	lastName: z.string().min(1).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	enabled: z.boolean().optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),
 });
