@@ -21,24 +21,24 @@ export class Badge {
 	 */
 	readonly variant = input<BadgeVariant>('default');
 
+	private readonly baseClasses = [
+		'inline-flex',
+		'items-center',
+		'rounded-full',
+		'border',
+		'px-2.5',
+		'py-0.5',
+		'text-xs',
+		'font-semibold',
+		'transition-colors',
+		'duration-300',
+		'ease-in-out',
+	];
+
 	/**
 	 * Computed classes based on variant
 	 */
 	readonly computedClasses = computed(() => {
-		const baseClasses = [
-			'inline-flex',
-			'items-center',
-			'rounded-full',
-			'border',
-			'px-2.5',
-			'py-0.5',
-			'text-xs',
-			'font-semibold',
-			'transition-colors',
-			'duration-300',
-			'ease-in-out',
-		];
-
 		const variantClasses: Record<BadgeVariant, string[]> = {
 			default: ['bg-default', 'border-transparent', 'text-default-foreground'],
 			secondary: ['bg-secondary', 'border-transparent', 'text-secondary-foreground'],
@@ -46,6 +46,6 @@ export class Badge {
 			outline: ['border-border', 'text-foreground'],
 		};
 
-		return [...baseClasses, ...variantClasses[this.variant()]].join(' ');
+		return [...this.baseClasses, ...variantClasses[this.variant()]].join(' ');
 	});
 }
