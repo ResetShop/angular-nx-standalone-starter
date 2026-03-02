@@ -20,11 +20,7 @@ const app = createOpenAPIApp();
  */
 registerRoute(app, getUserRolesRoute, async (c) => {
 	const { userRoleService } = container.cradle;
-	const userId = parseInt(c.req.param('userId'), 10);
-
-	if (isNaN(userId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
+	const userId = Number(c.req.param('userId'));
 
 	const { offset, limit } = c.req.valid('query');
 
@@ -45,11 +41,7 @@ registerRoute(app, getUserRolesRoute, async (c) => {
  */
 registerRoute(app, getUserPermissionsRoute, async (c) => {
 	const { userRoleService } = container.cradle;
-	const userId = parseInt(c.req.param('userId'), 10);
-
-	if (isNaN(userId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
+	const userId = Number(c.req.param('userId'));
 
 	try {
 		const permissions = await userRoleService.getUserPermissions(userId);
@@ -68,11 +60,7 @@ registerRoute(app, getUserPermissionsRoute, async (c) => {
  */
 registerRoute(app, assignRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle;
-	const userId = parseInt(c.req.param('userId'), 10);
-
-	if (isNaN(userId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
+	const userId = Number(c.req.param('userId'));
 
 	const { roleId } = c.req.valid('json');
 
@@ -101,11 +89,7 @@ registerRoute(app, assignRoleRoute, async (c) => {
  */
 registerRoute(app, replaceUserRolesRoute, async (c) => {
 	const { userRoleService } = container.cradle;
-	const userId = parseInt(c.req.param('userId'), 10);
-
-	if (isNaN(userId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
+	const userId = Number(c.req.param('userId'));
 
 	const { roleIds } = c.req.valid('json');
 
@@ -134,16 +118,8 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
  */
 registerRoute(app, removeRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle;
-	const userId = parseInt(c.req.param('userId'), 10);
-	const roleId = parseInt(c.req.param('roleId'), 10);
-
-	if (isNaN(userId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
-
-	if (isNaN(roleId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
-	}
+	const userId = Number(c.req.param('userId'));
+	const roleId = Number(c.req.param('roleId'));
 
 	try {
 		await userRoleService.removeRoleFromUser(userId, roleId);

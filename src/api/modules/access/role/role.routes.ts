@@ -200,6 +200,10 @@ export const assignPermissionsRoute = createRoute({
 			description: 'Invalid permission IDs',
 			content: { 'application/json': { schema: permissionAssignmentErrorSchema } },
 		},
+		403: {
+			description: 'Self-lockout: removing your own admin permission is not allowed',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 		404: {
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },

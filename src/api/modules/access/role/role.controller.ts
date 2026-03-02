@@ -34,11 +34,7 @@ registerRoute(app, listRolesRoute, async (c) => {
  */
 registerRoute(app, getRoleRoute, async (c) => {
 	const { roleService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
-	}
+	const id = Number(c.req.param('id'));
 
 	const role = await roleService.getRole(id);
 
@@ -76,11 +72,7 @@ registerRoute(app, createRoleRoute, async (c) => {
  */
 registerRoute(app, updateRoleRoute, async (c) => {
 	const { roleService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
-	}
+	const id = Number(c.req.param('id'));
 
 	const body = c.req.valid('json');
 
@@ -106,11 +98,7 @@ registerRoute(app, updateRoleRoute, async (c) => {
  */
 registerRoute(app, deleteRoleRoute, async (c) => {
 	const { roleService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
-	}
+	const id = Number(c.req.param('id'));
 
 	try {
 		await roleService.deleteRole(id);
@@ -134,11 +122,7 @@ registerRoute(app, deleteRoleRoute, async (c) => {
  */
 registerRoute(app, getRolePermissionsRoute, async (c) => {
 	const { roleService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
-	}
+	const id = Number(c.req.param('id'));
 
 	const { offset, limit } = c.req.valid('query');
 
@@ -161,11 +145,7 @@ registerRoute(app, getRolePermissionsRoute, async (c) => {
  */
 registerRoute(app, assignPermissionsRoute, async (c) => {
 	const { roleService } = container.cradle;
-	const id = parseInt(c.req.param('id'), 10);
-
-	if (isNaN(id)) {
-		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
-	}
+	const id = Number(c.req.param('id'));
 
 	const { permissionIds } = c.req.valid('json');
 	const userId = Number((c as AuthenticatedContext).user.sub);
