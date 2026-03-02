@@ -27,6 +27,7 @@ Before doing any analysis, read these files in full:
 - `.claude/references/guiding-principles.md`
 - `.claude/references/cross-reference.md`
 - `.claude/references/auth.md`
+- `.claude/references/backend-api.md`
 - `CLAUDE.md`
 
 ## Planning Process

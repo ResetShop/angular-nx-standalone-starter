@@ -1,3 +1,4 @@
+import { REFRESH_TOKEN_EXPIRY_BUFFER_MS } from '../../constants/auth.constants';
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
@@ -122,10 +123,9 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 
 	async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		this.deleteAllExpiredCalled = true;
-		// Count and remove tokens expired at least EXPIRY_BUFFER_MS ago (matches real repo)
-		const EXPIRY_BUFFER_MS = 3600000; // 1 hour
+		// Count and remove tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER_MS ago (matches real repo)
 		let count = 0;
-		const cutoffTime = new Date(Date.now() - EXPIRY_BUFFER_MS);
+		const cutoffTime = new Date(Date.now() - REFRESH_TOKEN_EXPIRY_BUFFER_MS);
 		for (const [hash, token] of this.tokens.entries()) {
 			if (token.expiresAt < cutoffTime) {
 				this.tokens.delete(hash);

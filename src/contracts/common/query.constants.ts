@@ -1,5 +1,5 @@
 /**
- * Default query parameter settings used across controllers and repositories.
+ * Default query parameter settings used across controllers, repositories, and contract schemas.
  */
 export const QUERY_DEFAULTS = Object.freeze({
 	/** Pagination */
@@ -12,4 +12,9 @@ export const QUERY_DEFAULTS = Object.freeze({
 	/** Search */
 	SEARCH_MIN_LENGTH: 1,
 	SEARCH_MAX_LENGTH: 100,
+	/** Field lengths */
+	FIELD_MIN_LENGTH: 1,
+	NAME_MAX_LENGTH: 100,
+	CODE_MAX_LENGTH: 50,
+	DESCRIPTION_MAX_LENGTH: 500,
 } as const);

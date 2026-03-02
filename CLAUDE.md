@@ -11,11 +11,12 @@
 3. [Nx Guidelines](#nx-guidelines)
 4. [Testing Guidelines](#testing-guidelines)
 5. [Code Architecture Guidelines](#code-architecture-guidelines)
-6. [Backend API Naming Conventions](#backend-api-naming-conventions)
-7. [Error Handling Guidelines](#error-handling-guidelines)
-8. [Domain Model Guidelines](#domain-model-guidelines)
-9. [Development Workflow](#development-workflow)
-10. [Automated Code Review](#automated-code-review)
+6. [Backend API Architecture](#backend-api-architecture)
+7. [Backend API Naming Conventions](#backend-api-naming-conventions)
+8. [Error Handling Guidelines](#error-handling-guidelines)
+9. [Domain Model Guidelines](#domain-model-guidelines)
+10. [Development Workflow](#development-workflow)
+11. [Automated Code Review](#automated-code-review)
 
 ---
 
@@ -303,6 +304,8 @@ Use queries in this order of preference:
 
 > Authentication Architecture: See `.claude/references/auth.md`
 
+> Backend API Architecture: See `.claude/references/backend-api.md`
+
 ### App Initializer Pattern
 
 All `provideAppInitializer` calls **must** use a named factory function that returns an async closure. Never inline the initializer logic directly in `app.config.ts`.
@@ -337,6 +340,50 @@ provideAppInitializer(() => inject(Translation).loadDefaultLanguage()),
 | ----------------------- | --------------------------------------------------- |
 | `initializeAnalytics`   | `src/app/app.config.ts` (private, uses env)         |
 | `initializeTranslation` | `src/app/providers/i18n/translation.initializer.ts` |
+
+---
+
+## Backend API Architecture
+
+The backend uses **OpenAPIHono** (`@hono/zod-openapi`). Every endpoint is a typed `createRoute()` definition with Zod schemas, handled via `registerRoute()`. The spec is auto-generated at `/api/openapi.json`.
+
+### Layer Conventions
+
+| Layer             | File pattern      | Responsibility                                                     |
+| ----------------- | ----------------- | ------------------------------------------------------------------ |
+| Route definitions | `*.routes.ts`     | `createRoute()` — method, path, schemas, security                  |
+| Handlers          | `*.controller.ts` | `registerRoute(app, route, handler)` — business logic              |
+| Module routers    | `index.ts`        | `app.route()` — composes controllers into sub-app                  |
+| Server            | `server.ts`       | Root app — mounts modules under `/api`, registers security schemes |
+
+### File Naming
+
+| Suffix            | Purpose                                     | Location                    |
+| ----------------- | ------------------------------------------- | --------------------------- |
+| `*.routes.ts`     | Route definitions (`createRoute()`)         | `src/api/modules/<domain>/` |
+| `*.controller.ts` | Handler implementations (`registerRoute()`) | `src/api/modules/<domain>/` |
+| `*.schemas.ts`    | Module-local Zod schemas                    | `src/api/modules/<domain>/` |
+| `*.schemas.ts`    | Shared contract schemas                     | `src/contracts/<domain>/`   |
+| `*.types.ts`      | TypeScript types/interfaces                 | `src/contracts/<domain>/`   |
+
+### Key Rules
+
+- **Always** use `createOpenAPIApp()` — never `new OpenAPIHono()` (except root app in `server.ts`)
+- **Always** use `registerRoute(app, route, handler)` — never `app.openapi()` directly
+- **Separate** route definitions (`*.routes.ts`) from handlers (`*.controller.ts`) — never inline both
+- Path parameters use `{id}` syntax (OpenAPI), not `:id` (Express)
+- **Always** add explicit type annotations to `c.req.valid()` calls
+- Use `commonSecuredResponses` (write endpoints) or `commonAuthResponses` (read endpoints) for standard error responses
+
+### Security Convention
+
+| Pattern   | Route definition                                       | Use case                              |
+| --------- | ------------------------------------------------------ | ------------------------------------- |
+| Protected | _(omit `security`)_                                    | Default — inherits global PASETO auth |
+| Public    | `security: []`                                         | Login, refresh, health check          |
+| Dual-auth | `security: [{ pasetoCookie: [] }, { cronSecret: [] }]` | OR semantics — either auth suffices   |
+
+> Full reference with code examples: See `.claude/references/backend-api.md`
 
 ---
 
@@ -505,17 +552,17 @@ Agent definitions live in `.claude/agents/` (YAML frontmatter defines `name`, `d
 
 Which `.claude/references/` files each agent loads in Step 0:
 
-| Agent                    | References Loaded                                                           |
-| ------------------------ | --------------------------------------------------------------------------- |
-| `code-reviewer`          | All 8 references                                                            |
-| `plan-writer`            | All 8 references                                                            |
-| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth |
-| `refactoring-specialist` | solid, cupid, guiding-principles                                            |
-| `domain-model-advisor`   | domain-model                                                                |
-| `test-generator`         | testing                                                                     |
-| `security-auditor`       | auth                                                                        |
-| `documentation-writer`   | —                                                                           |
-| `migration-planner`      | —                                                                           |
+| Agent                    | References Loaded                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| `code-reviewer`          | All 9 references                                                                         |
+| `plan-writer`            | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api |
+| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api |
+| `refactoring-specialist` | solid, cupid, guiding-principles                                                         |
+| `domain-model-advisor`   | domain-model                                                                             |
+| `test-generator`         | testing                                                                                  |
+| `security-auditor`       | auth, backend-api                                                                        |
+| `documentation-writer`   | —                                                                                        |
+| `migration-planner`      | —                                                                                        |
 
 ---
 
@@ -629,4 +676,4 @@ The code-reviewer agent checks:
 
 ---
 
-_Last updated: 2026-02-19_
+_Last updated: 2026-03-02_

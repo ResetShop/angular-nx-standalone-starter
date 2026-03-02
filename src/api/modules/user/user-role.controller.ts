@@ -1,64 +1,48 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import type { PermissionData, RoleData } from '@contracts/role/role.types';
-import { zValidator } from '@hono/zod-validator';
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { QUERY_DEFAULTS } from '../../constants/query.constants';
+import type { AssignRoleToUserRequest, ReplaceUserRolesRequest } from '@contracts/user/user.types';
 import { container } from '../../container/container';
-import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
+import { createOpenAPIApp, registerRoute } from '../../openapi-app';
 import { USER_ROLE_ERRORS } from './user-role.errors';
+import {
+	assignRoleRoute,
+	getUserPermissionsRoute,
+	getUserRolesRoute,
+	removeRoleRoute,
+	replaceUserRolesRoute,
+} from './user-role.routes';
 
-const app = new Hono();
+const app = createOpenAPIApp();
 
 /**
  * GET /api/user/:userId/roles
  * Get all roles assigned to a user with pagination
  */
-app.get(
-	'/:userId/roles',
-	requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ),
-	zValidator(
-		'query',
-		z.object({
-			offset: z.coerce.number().int().min(QUERY_DEFAULTS.OFFSET).optional(),
-			limit: z.coerce.number().int().min(QUERY_DEFAULTS.MIN_LIMIT).max(QUERY_DEFAULTS.MAX_LIMIT).optional(),
-		}),
-	),
-	async (c) => {
-		const { userRoleService } = container.cradle;
-		const userId = parseInt(c.req.param('userId'), 10);
+registerRoute(app, getUserRolesRoute, async (c) => {
+	const { userRoleService } = container.cradle;
+	const userId = Number(c.req.param('userId'));
 
-		if (isNaN(userId)) {
-			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
+	const { offset, limit } = c.req.valid('query');
+
+	try {
+		const roles = await userRoleService.getUserRoles(userId, { offset, limit });
+		return c.json<PaginatedResponse<RoleData>>(roles);
+	} catch (error) {
+		if (error instanceof Error && error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
+			return c.json<ErrorResponse>({ error: error.message }, 404);
 		}
-
-		const { offset, limit } = c.req.valid('query');
-
-		try {
-			const roles = await userRoleService.getUserRoles(userId, { offset, limit });
-			return c.json<PaginatedResponse<RoleData>>(roles);
-		} catch (error) {
-			if (error instanceof Error && error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
-				return c.json<ErrorResponse>({ error: error.message }, 404);
-			}
-			throw error;
-		}
-	},
-);
+		throw error;
+	}
+});
 
 /**
  * GET /api/user/:userId/permissions
  * Get all permissions for a user (aggregated from all their roles)
  */
-app.get('/:userId/permissions', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ), async (c) => {
+registerRoute(app, getUserPermissionsRoute, async (c) => {
 	const { userRoleService } = container.cradle;
-	const userId = parseInt(c.req.param('userId'), 10);
-
-	if (isNaN(userId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
+	const userId = Number(c.req.param('userId'));
 
 	try {
 		const permissions = await userRoleService.getUserPermissions(userId);
@@ -75,107 +59,68 @@ app.get('/:userId/permissions', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.RE
  * POST /api/user/:userId/roles
  * Assign a role to a user
  */
-app.post(
-	'/:userId/roles',
-	requirePermission(ADMIN_USER_ROLE_PERMISSIONS.ASSIGN),
-	zValidator(
-		'json',
-		z.object({
-			roleId: z.number().int().positive(),
-		}),
-	),
-	async (c) => {
-		const { userRoleService } = container.cradle;
-		const userId = parseInt(c.req.param('userId'), 10);
+registerRoute(app, assignRoleRoute, async (c) => {
+	const { userRoleService } = container.cradle;
+	const userId = Number(c.req.param('userId'));
 
-		if (isNaN(userId)) {
-			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-		}
+	const { roleId }: AssignRoleToUserRequest = c.req.valid('json');
 
-		const { roleId } = c.req.valid('json');
-
-		try {
-			await userRoleService.assignRoleToUser(userId, roleId);
-			return c.json<SuccessMessage>({ message: 'Role assigned successfully' }, 201);
-		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
-					return c.json<ErrorResponse>({ error: error.message }, 404);
-				}
-				if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_NOT_FOUND)) {
-					return c.json<ErrorResponse>({ error: error.message }, 404);
-				}
-				if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED)) {
-					return c.json<ErrorResponse>({ error: error.message }, 409);
-				}
+	try {
+		await userRoleService.assignRoleToUser(userId, roleId);
+		return c.json<SuccessMessage>({ message: 'Role assigned successfully' }, 201);
+	} catch (error) {
+		if (error instanceof Error) {
+			if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
-			throw error;
+			if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 404);
+			}
+			if (error.message.startsWith(USER_ROLE_ERRORS.ROLE_ALREADY_ASSIGNED)) {
+				return c.json<ErrorResponse>({ error: error.message }, 409);
+			}
 		}
-	},
-);
+		throw error;
+	}
+});
 
 /**
  * PUT /api/user/:userId/roles
  * Replace all role assignments for a user
  */
-app.put(
-	'/:userId/roles',
-	requireAllPermissions([ADMIN_USER_ROLE_PERMISSIONS.ASSIGN, ADMIN_USER_ROLE_PERMISSIONS.REMOVE]),
-	zValidator(
-		'json',
-		z.object({
-			roleIds: z
-				.array(z.number().int().positive())
-				.max(QUERY_DEFAULTS.MAX_ROLE_IDS_PER_REQUEST)
-				.refine((ids) => new Set(ids).size === ids.length, 'roleIds must be unique'),
-		}),
-	),
-	async (c) => {
-		const { userRoleService } = container.cradle;
-		const userId = parseInt(c.req.param('userId'), 10);
+registerRoute(app, replaceUserRolesRoute, async (c) => {
+	const { userRoleService } = container.cradle;
+	const userId = Number(c.req.param('userId'));
 
-		if (isNaN(userId)) {
-			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-		}
+	const { roleIds }: ReplaceUserRolesRequest = c.req.valid('json');
 
-		const { roleIds } = c.req.valid('json');
-
-		try {
-			await userRoleService.replaceUserRoles(userId, roleIds);
-			return c.json<SuccessMessage>({ message: 'Roles replaced successfully' }, 200);
-		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
-					return c.json<ErrorResponse>({ error: error.message }, 404);
-				}
-				if (error.message.startsWith(USER_ROLE_ERRORS.ROLES_NOT_FOUND)) {
-					return c.json<ErrorResponse>({ error: error.message }, 400);
-				}
-				if (error.message.startsWith(USER_ROLE_ERRORS.NON_REMOVABLE_ROLES)) {
-					return c.json<ErrorResponse>({ error: error.message }, 400);
-				}
+	try {
+		await userRoleService.replaceUserRoles(userId, roleIds);
+		return c.json<SuccessMessage>({ message: 'Roles replaced successfully' }, 200);
+	} catch (error) {
+		if (error instanceof Error) {
+			if (error.message.startsWith(USER_ROLE_ERRORS.USER_NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 404);
 			}
-			throw error;
+			if (error.message.startsWith(USER_ROLE_ERRORS.ROLES_NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 400);
+			}
+			if (error.message.startsWith(USER_ROLE_ERRORS.NON_REMOVABLE_ROLES)) {
+				return c.json<ErrorResponse>({ error: error.message }, 400);
+			}
 		}
-	},
-);
+		throw error;
+	}
+});
 
 /**
  * DELETE /api/user/:userId/roles/:roleId
  * Remove a role from a user
  */
-app.delete('/:userId/roles/:roleId', requirePermission(ADMIN_USER_ROLE_PERMISSIONS.REMOVE), async (c) => {
+registerRoute(app, removeRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle;
-	const userId = parseInt(c.req.param('userId'), 10);
-	const roleId = parseInt(c.req.param('roleId'), 10);
-
-	if (isNaN(userId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-	}
-
-	if (isNaN(roleId)) {
-		return c.json<ErrorResponse>({ error: 'Invalid role ID' }, 400);
-	}
+	const userId = Number(c.req.param('userId'));
+	const roleId = Number(c.req.param('roleId'));
 
 	try {
 		await userRoleService.removeRoleFromUser(userId, roleId);
