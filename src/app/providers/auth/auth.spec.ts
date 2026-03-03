@@ -34,8 +34,8 @@ describe('AuthApiService', () => {
 					email: 'test@example.com',
 					firstName: 'Test',
 					lastName: 'User',
-					roles: [],
 				},
+				mustChangePassword: false,
 			};
 
 			service.login(loginRequest).subscribe((response) => {
@@ -107,7 +107,7 @@ describe('AuthApiService', () => {
 			};
 
 			service.login(loginRequest).subscribe({
-				next: () => fail('should have failed'),
+				next: () => expect.unreachable('should have failed'),
 				error: (error) => {
 					expect(error.status).toBe(401);
 					expect(error.error.code).toBe('INVALID_CREDENTIALS');
