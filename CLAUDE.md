@@ -47,6 +47,7 @@ Use `npm` for all package management and script execution:
 | `npm run storybook`       | Run storybook dev server                       |
 | `npm run storybook:build` | Build storybook                                |
 | `npm run stylelint`       | Run stylelint                                  |
+| `npm run typecheck`       | Type-check spec files (tsc --noEmit)           |
 | `npm run test`            | Run all unit tests                             |
 | `npm run test:e2e`        | Run all end-to-end tests                       |
 | `npm install <pkg>`       | Add a dependency                               |
@@ -662,9 +663,10 @@ The `npm run ci` command runs all CI checks serially:
 
 1. `npm run stylelint` — CSS/style linting
 2. `npm run lint` — TypeScript/ESLint linting
-3. `npm run test` — Unit tests
-4. `npm run build` — Production build
-5. `npm run storybook:build` — Storybook build
+3. `npm run typecheck` — Type-check spec files (`tsc --noEmit`)
+4. `npm run test` — Unit tests
+5. `npm run build` — Production build
+6. `npm run storybook:build` — Storybook build
 
 If any step fails, the entire command fails. Fix all issues before proceeding to code review.
 
