@@ -2,7 +2,7 @@ import { relations } from 'drizzle-orm';
 import { index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { role } from './role';
 
-export const userStatusEnum = pgEnum('user_status', ['active', 'suspended', 'deleted', 'banned']);
+export const userStatusEnum = pgEnum('user_status', ['active', 'disabled', 'deleted']);
 
 export const user = pgTable('user', {
 	id: serial('id').primaryKey(),

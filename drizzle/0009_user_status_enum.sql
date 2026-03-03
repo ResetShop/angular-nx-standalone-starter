@@ -1,15 +1,15 @@
 -- Step 1: Create the enum type
-CREATE TYPE "user_status" AS ENUM('active', 'suspended', 'deleted', 'banned');
+CREATE TYPE "user_status" AS ENUM('active', 'disabled', 'deleted');
 
 -- Step 2: Add status column as nullable first (required for data migration)
 ALTER TABLE "user" ADD COLUMN "status" "user_status";
 
 -- Step 3: Migrate existing boolean data to enum values
--- deleted=true -> 'deleted', enabled=false -> 'suspended', else -> 'active'
+-- deleted=true -> 'deleted', enabled=false -> 'disabled', else -> 'active'
 UPDATE "user"
 SET "status" = CASE
   WHEN "deleted" = true THEN 'deleted'::"user_status"
-  WHEN "enabled" = false THEN 'suspended'::"user_status"
+  WHEN "enabled" = false THEN 'disabled'::"user_status"
   ELSE 'active'::"user_status"
 END;
 

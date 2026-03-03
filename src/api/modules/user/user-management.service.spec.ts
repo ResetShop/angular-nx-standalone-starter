@@ -367,27 +367,27 @@ describe('UserManagementService', () => {
 	});
 
 	describe('updateUserStatus', () => {
-		it('should update status from active to suspended', async () => {
-			const suspendedUser = { ...testManagedUser, status: 'suspended' as const };
+		it('should update status from active to disabled', async () => {
+			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
 			mockFindByIdWithRoles.mockImplementation(() => {
 				if (mockFindByIdWithRoles.calls.length <= 1) {
 					return Promise.resolve(testManagedUser);
 				}
-				return Promise.resolve(suspendedUser);
+				return Promise.resolve(disabledUser);
 			});
-			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'suspended' });
+			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'disabled' });
 
-			const result = await service.updateUserStatus(1, { status: 'suspended', changedBy: 999 }, 999);
+			const result = await service.updateUserStatus(1, { status: 'disabled', changedBy: 999 }, 999);
 
-			expect(result.status).toBe('suspended');
+			expect(result.status).toBe('disabled');
 		});
 
-		it('should update status from suspended to active', async () => {
-			const suspendedUser = { ...testManagedUser, status: 'suspended' as const };
+		it('should update status from disabled to active', async () => {
+			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
 			const reactivatedUser = { ...testManagedUser, status: 'active' as const };
 			mockFindByIdWithRoles.mockImplementation(() => {
 				if (mockFindByIdWithRoles.calls.length <= 1) {
-					return Promise.resolve(suspendedUser);
+					return Promise.resolve(disabledUser);
 				}
 				return Promise.resolve(reactivatedUser);
 			});
@@ -398,23 +398,8 @@ describe('UserManagementService', () => {
 			expect(result.status).toBe('active');
 		});
 
-		it('should update status from active to banned', async () => {
-			const bannedUser = { ...testManagedUser, status: 'banned' as const };
-			mockFindByIdWithRoles.mockImplementation(() => {
-				if (mockFindByIdWithRoles.calls.length <= 1) {
-					return Promise.resolve(testManagedUser);
-				}
-				return Promise.resolve(bannedUser);
-			});
-			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'banned' });
-
-			const result = await service.updateUserStatus(1, { status: 'banned', changedBy: 999 }, 999);
-
-			expect(result.status).toBe('banned');
-		});
-
 		it('should throw SELF_LOCKOUT when changing own status', async () => {
-			await expect(service.updateUserStatus(1, { status: 'suspended', changedBy: 1 }, 1)).rejects.toThrow(
+			await expect(service.updateUserStatus(1, { status: 'disabled', changedBy: 1 }, 1)).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.SELF_LOCKOUT,
 			);
 		});
@@ -422,30 +407,21 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null);
 
-			await expect(service.updateUserStatus(999, { status: 'suspended', changedBy: 1 }, 1)).rejects.toThrow(
+			await expect(service.updateUserStatus(999, { status: 'disabled', changedBy: 1 }, 1)).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.NOT_FOUND,
 			);
 		});
 
-		it('should throw TERMINAL_STATE when user is deleted', async () => {
+		it('should throw INVALID_TRANSITION when user is deleted', async () => {
 			const deletedUser = { ...testManagedUser, status: 'deleted' as const };
 			mockFindByIdWithRoles.mockResolvedValue(deletedUser);
 
 			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(
-				USER_MANAGEMENT_ERRORS.TERMINAL_STATE,
+				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
 			);
 		});
 
-		it('should throw TERMINAL_STATE when user is banned', async () => {
-			const bannedUser = { ...testManagedUser, status: 'banned' as const };
-			mockFindByIdWithRoles.mockResolvedValue(bannedUser);
-
-			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(
-				USER_MANAGEMENT_ERRORS.TERMINAL_STATE,
-			);
-		});
-
-		it('should throw INVALID_TRANSITION for invalid transition', async () => {
+		it('should throw INVALID_TRANSITION for same-status transition', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 
 			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(

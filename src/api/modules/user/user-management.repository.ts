@@ -265,11 +265,11 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 
 	/**
 	 * Updates a user's account status with audit trail.
-	 * Terminal states (deleted, banned) cannot be changed.
+	 * Deleted users cannot be modified.
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Status change parameters including the new status and who changed it
-	 * @returns Updated user data, or null if not found or in a terminal state
+	 * @returns Updated user data, or null if not found or deleted
 	 */
 	async updateStatus(id: number, params: UpdateUserStatusParams): Promise<UserData | null> {
 		const now = new Date();
@@ -281,7 +281,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				statusChangedBy: params.changedBy,
 				updatedAt: now,
 			})
-			.where(and(eq(user.id, id), ne(user.status, 'deleted'), ne(user.status, 'banned')))
+			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
 			.returning({
 				id: user.id,
 				email: user.email,

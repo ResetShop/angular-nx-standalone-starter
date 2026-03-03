@@ -133,9 +133,9 @@ describe('AuthService', () => {
 			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
 
-		it('should throw INVALID_CREDENTIALS error when user is suspended', async () => {
+		it('should throw INVALID_CREDENTIALS error when user is disabled', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, status: 'suspended' as const });
+			mockUserRepo.addUser({ ...testUser, status: 'disabled' as const });
 
 			await expect(
 				authService.authenticate({
@@ -443,9 +443,9 @@ describe('AuthService', () => {
 			);
 		});
 
-		it('should throw ACCOUNT_DISABLED error when user is suspended', async () => {
+		it('should throw ACCOUNT_DISABLED error when user is disabled', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, status: 'suspended' as const });
+			mockUserRepo.addUser({ ...testUser, status: 'disabled' as const });
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED),
