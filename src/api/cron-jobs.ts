@@ -23,25 +23,28 @@ function validateCronSecret(): void {
  */
 function startTokenCleanupJob(): void {
 	try {
-		const DEFAULT_INTERVAL = '24h';
-		const MIN_INTERVAL = '1m';
-		const MAX_INTERVAL = '7d';
+		const MIN_INTERVAL_MS = parseDurationToMs('1m');
+		const MAX_INTERVAL_MS = parseDurationToMs('7d');
+		const DEFAULT_INTERVAL_MS = parseDurationToMs('24h');
+
+		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS'];
+		const PARSED_ENV_INTERVAL_MS = parseInt(envValue ?? '', 10);
 
 		const { authService } = container.cradle;
-		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS'];
-		const raw = parseInt(envValue ?? '', 10);
 		const isValidInterval =
-			Number.isFinite(raw) && raw >= parseDurationToMs(MIN_INTERVAL) && raw <= parseDurationToMs(MAX_INTERVAL);
+			Number.isFinite(PARSED_ENV_INTERVAL_MS) &&
+			PARSED_ENV_INTERVAL_MS >= MIN_INTERVAL_MS &&
+			PARSED_ENV_INTERVAL_MS <= MAX_INTERVAL_MS;
 
 		if (envValue && !isValidInterval) {
 			console.warn(
 				`[CronJobs] WARNING: TOKEN_CLEANUP_INTERVAL_MS="${envValue}" is invalid. ` +
-					`Must be a number between ${parseDurationToMs(MIN_INTERVAL)} and ${parseDurationToMs(MAX_INTERVAL)}. ` +
-					`Using default: ${parseDurationToMs(DEFAULT_INTERVAL)}ms`,
+					`Must be a number between ${MIN_INTERVAL_MS} and ${MAX_INTERVAL_MS}. ` +
+					`Using default: ${DEFAULT_INTERVAL_MS}ms`,
 			);
 		}
 
-		const intervalMs = isValidInterval ? raw : parseDurationToMs(DEFAULT_INTERVAL);
+		const intervalMs = isValidInterval ? PARSED_ENV_INTERVAL_MS : DEFAULT_INTERVAL_MS;
 		console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
 
 		// Run immediately, then at interval
