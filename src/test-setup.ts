@@ -15,6 +15,7 @@ expect.extend(matchers);
 // Setup TestBed with zoneless configuration
 setupTestBed({
 	zoneless: true,
+	// @ts-expect-error errorOnUnknownElements exists at runtime but is missing from @analogjs/vitest-angular type defs
 	errorOnUnknownElements: true,
 	errorOnUnknownProperties: true,
 });
