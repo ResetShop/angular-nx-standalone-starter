@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import type { DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
-import { HEALTH_CHECK_TIMEOUT_MS, HealthStatus } from './health.constants';
+import { parseDurationToMs } from '../../utils/duration';
+import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants';
 import type { DatabaseCheck, HealthCheckResponse, IHealthService } from './interfaces';
 
 interface HealthServiceDeps {
@@ -43,7 +44,7 @@ export class HealthService implements IHealthService {
 
 		try {
 			const timeout = new Promise<never>((_, reject) => {
-				setTimeout(() => reject(new Error('Database health check timed out')), HEALTH_CHECK_TIMEOUT_MS);
+				setTimeout(() => reject(new Error('Database health check timed out')), parseDurationToMs(HEALTH_CHECK_TIMEOUT));
 			});
 
 			await Promise.race([this.db.execute(sql`SELECT 1`), timeout]);
