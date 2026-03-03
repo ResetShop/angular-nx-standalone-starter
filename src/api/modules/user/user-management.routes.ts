@@ -85,7 +85,7 @@ export const updateUserRoute = createRoute({
 	path: '/{id}',
 	tags: ['Users'],
 	summary: 'Update a user',
-	description: 'Update user details, roles, or status.',
+	description: 'Update user details or role assignments.',
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.UPDATE)] as const,
 	request: {
 		params: idParamSchema,

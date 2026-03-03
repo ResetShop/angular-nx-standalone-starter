@@ -82,7 +82,7 @@ registerRoute(app, createUserRoute, async (c) => {
 
 /**
  * PATCH /api/user/:id
- * Update user details, roles, or status
+ * Update user details or role assignments
  */
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
