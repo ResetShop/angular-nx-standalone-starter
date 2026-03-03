@@ -317,12 +317,7 @@ describe('UserManagementService', () => {
 	describe('updateUser', () => {
 		it('should update user details', async () => {
 			const updatedUser = { ...testManagedUser, firstName: 'Updated' };
-			mockFindByIdWithRoles.mockImplementation(() => {
-				if (mockFindByIdWithRoles.calls.length <= 1) {
-					return Promise.resolve(testManagedUser);
-				}
-				return Promise.resolve(updatedUser);
-			});
+			mockFindByIdWithRoles.mockResolvedValueOnce(testManagedUser).mockResolvedValueOnce(updatedUser);
 			mockUpdate.mockResolvedValue({ ...testUser, firstName: 'Updated' });
 
 			const result = await service.updateUser(1, { firstName: 'Updated' });
@@ -369,12 +364,7 @@ describe('UserManagementService', () => {
 	describe('updateUserStatus', () => {
 		it('should update status from active to disabled', async () => {
 			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
-			mockFindByIdWithRoles.mockImplementation(() => {
-				if (mockFindByIdWithRoles.calls.length <= 1) {
-					return Promise.resolve(testManagedUser);
-				}
-				return Promise.resolve(disabledUser);
-			});
+			mockFindByIdWithRoles.mockResolvedValueOnce(testManagedUser).mockResolvedValueOnce(disabledUser);
 			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'disabled' });
 
 			const result = await service.updateUserStatus(1, { status: 'disabled', changedBy: 999 }, 999);
@@ -385,12 +375,7 @@ describe('UserManagementService', () => {
 		it('should update status from disabled to active', async () => {
 			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
 			const reactivatedUser = { ...testManagedUser, status: 'active' as const };
-			mockFindByIdWithRoles.mockImplementation(() => {
-				if (mockFindByIdWithRoles.calls.length <= 1) {
-					return Promise.resolve(disabledUser);
-				}
-				return Promise.resolve(reactivatedUser);
-			});
+			mockFindByIdWithRoles.mockResolvedValueOnce(disabledUser).mockResolvedValueOnce(reactivatedUser);
 			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'active' });
 
 			const result = await service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999);
