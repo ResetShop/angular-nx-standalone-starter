@@ -7,6 +7,7 @@ import type {
 	IUserManagementRepository,
 	ManagedUserData,
 	UpdateUserParams,
+	UpdateUserStatusParams,
 	UserData,
 } from './interfaces';
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service';
@@ -21,7 +22,8 @@ describe('UserManagementService', () => {
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>();
 	const mockCreate = fn<[CreateUserWithHashedPasswordParams], Promise<ManagedUserData>>();
 	const mockUpdate = fn<[number, UpdateUserParams], Promise<UserData | null>>();
-	const mockSoftDelete = fn<[number], Promise<boolean>>();
+	const mockUpdateStatus = fn<[number, UpdateUserStatusParams], Promise<UserData | null>>();
+	const mockSoftDelete = fn<[number, number], Promise<boolean>>();
 
 	const mockRepository: IUserManagementRepository = {
 		findAll: mockFindAll,
@@ -29,6 +31,7 @@ describe('UserManagementService', () => {
 		findByEmail: mockFindByEmail,
 		create: mockCreate,
 		update: mockUpdate,
+		updateStatus: mockUpdateStatus,
 		softDelete: mockSoftDelete,
 	};
 
@@ -60,12 +63,14 @@ describe('UserManagementService', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		enabled: true,
-		deleted: false,
+		status: 'active',
 	};
 
 	const testManagedUser: ManagedUserData = {
 		...testUser,
+		statusChangedAt: null,
+		statusChangedBy: null,
+		deletedAt: null,
 		createdAt: new Date(),
 		updatedAt: new Date(),
 		roles: [testRole],
@@ -320,7 +325,7 @@ describe('UserManagementService', () => {
 			});
 			mockUpdate.mockResolvedValue({ ...testUser, firstName: 'Updated' });
 
-			const result = await service.updateUser(1, { firstName: 'Updated' }, 999);
+			const result = await service.updateUser(1, { firstName: 'Updated' });
 
 			expect(result.firstName).toBe('Updated');
 		});
@@ -328,37 +333,14 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null);
 
-			await expect(service.updateUser(999, { firstName: 'Updated' }, 1)).rejects.toThrow(
-				USER_MANAGEMENT_ERRORS.NOT_FOUND,
-			);
-		});
-
-		it('should throw SELF_DISABLE when disabling own account', async () => {
-			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
-
-			await expect(service.updateUser(1, { enabled: false }, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.SELF_DISABLE);
-		});
-
-		it('should allow disabling another user', async () => {
-			const disabledUser = { ...testManagedUser, enabled: false };
-			mockFindByIdWithRoles.mockImplementation(() => {
-				if (mockFindByIdWithRoles.calls.length <= 1) {
-					return Promise.resolve(testManagedUser);
-				}
-				return Promise.resolve(disabledUser);
-			});
-			mockUpdate.mockResolvedValue({ ...testUser, enabled: false });
-
-			const result = await service.updateUser(1, { enabled: false }, 999);
-
-			expect(result.enabled).toBe(false);
+			await expect(service.updateUser(999, { firstName: 'Updated' })).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
 		});
 
 		it('should throw EMAIL_EXISTS when changing to taken email', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 			mockFindByEmail.mockResolvedValue({ ...testUser, id: 2, email: 'taken@example.com' });
 
-			await expect(service.updateUser(1, { email: 'taken@example.com' }, 999)).rejects.toThrow(
+			await expect(service.updateUser(1, { email: 'taken@example.com' })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.EMAIL_EXISTS,
 			);
 		});
@@ -368,15 +350,107 @@ describe('UserManagementService', () => {
 		it('should soft delete a user', async () => {
 			mockSoftDelete.mockResolvedValue(true);
 
-			await service.deleteUser(1);
+			await service.deleteUser(1, 999);
 
-			expect(mockSoftDelete.calls).toEqual([[1]]);
+			expect(mockSoftDelete.calls).toEqual([[1, 999]]);
 		});
 
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockSoftDelete.mockResolvedValue(false);
 
-			await expect(service.deleteUser(999)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
+			await expect(service.deleteUser(999, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND);
+		});
+
+		it('should throw SELF_LOCKOUT when deleting own account', async () => {
+			await expect(service.deleteUser(1, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT);
+		});
+	});
+
+	describe('updateUserStatus', () => {
+		it('should update status from active to suspended', async () => {
+			const suspendedUser = { ...testManagedUser, status: 'suspended' as const };
+			mockFindByIdWithRoles.mockImplementation(() => {
+				if (mockFindByIdWithRoles.calls.length <= 1) {
+					return Promise.resolve(testManagedUser);
+				}
+				return Promise.resolve(suspendedUser);
+			});
+			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'suspended' });
+
+			const result = await service.updateUserStatus(1, { status: 'suspended', changedBy: 999 }, 999);
+
+			expect(result.status).toBe('suspended');
+		});
+
+		it('should update status from suspended to active', async () => {
+			const suspendedUser = { ...testManagedUser, status: 'suspended' as const };
+			const reactivatedUser = { ...testManagedUser, status: 'active' as const };
+			mockFindByIdWithRoles.mockImplementation(() => {
+				if (mockFindByIdWithRoles.calls.length <= 1) {
+					return Promise.resolve(suspendedUser);
+				}
+				return Promise.resolve(reactivatedUser);
+			});
+			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'active' });
+
+			const result = await service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999);
+
+			expect(result.status).toBe('active');
+		});
+
+		it('should update status from active to banned', async () => {
+			const bannedUser = { ...testManagedUser, status: 'banned' as const };
+			mockFindByIdWithRoles.mockImplementation(() => {
+				if (mockFindByIdWithRoles.calls.length <= 1) {
+					return Promise.resolve(testManagedUser);
+				}
+				return Promise.resolve(bannedUser);
+			});
+			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'banned' });
+
+			const result = await service.updateUserStatus(1, { status: 'banned', changedBy: 999 }, 999);
+
+			expect(result.status).toBe('banned');
+		});
+
+		it('should throw SELF_LOCKOUT when changing own status', async () => {
+			await expect(service.updateUserStatus(1, { status: 'suspended', changedBy: 1 }, 1)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.SELF_LOCKOUT,
+			);
+		});
+
+		it('should throw NOT_FOUND when user does not exist', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(null);
+
+			await expect(service.updateUserStatus(999, { status: 'suspended', changedBy: 1 }, 1)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.NOT_FOUND,
+			);
+		});
+
+		it('should throw TERMINAL_STATE when user is deleted', async () => {
+			const deletedUser = { ...testManagedUser, status: 'deleted' as const };
+			mockFindByIdWithRoles.mockResolvedValue(deletedUser);
+
+			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.TERMINAL_STATE,
+			);
+		});
+
+		it('should throw TERMINAL_STATE when user is banned', async () => {
+			const bannedUser = { ...testManagedUser, status: 'banned' as const };
+			mockFindByIdWithRoles.mockResolvedValue(bannedUser);
+
+			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.TERMINAL_STATE,
+			);
+		});
+
+		it('should throw INVALID_TRANSITION for invalid transition', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
+
+			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
+			);
 		});
 	});
 });

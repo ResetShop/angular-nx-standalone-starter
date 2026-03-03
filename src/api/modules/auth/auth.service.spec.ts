@@ -24,8 +24,7 @@ describe('AuthService', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		enabled: true,
-		deleted: false,
+		status: 'active' as const,
 	};
 
 	const expectedAuthUser = {
@@ -124,7 +123,7 @@ describe('AuthService', () => {
 
 		it('should throw INVALID_CREDENTIALS error when user is deleted', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, deleted: true });
+			mockUserRepo.addUser({ ...testUser, status: 'deleted' as const });
 
 			await expect(
 				authService.authenticate({
@@ -134,9 +133,9 @@ describe('AuthService', () => {
 			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
 		});
 
-		it('should throw INVALID_CREDENTIALS error when user is disabled', async () => {
+		it('should throw INVALID_CREDENTIALS error when user is suspended', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, enabled: false });
+			mockUserRepo.addUser({ ...testUser, status: 'suspended' as const });
 
 			await expect(
 				authService.authenticate({
@@ -437,16 +436,16 @@ describe('AuthService', () => {
 
 		it('should throw USER_NOT_FOUND error when user is deleted', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, deleted: true });
+			mockUserRepo.addUser({ ...testUser, status: 'deleted' as const });
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
 			);
 		});
 
-		it('should throw ACCOUNT_DISABLED error when user is disabled', async () => {
+		it('should throw ACCOUNT_DISABLED error when user is suspended', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, enabled: false });
+			mockUserRepo.addUser({ ...testUser, status: 'suspended' as const });
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED),

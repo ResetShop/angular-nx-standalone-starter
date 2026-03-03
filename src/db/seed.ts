@@ -38,8 +38,6 @@ async function seed() {
 						firstName: 'Administrador',
 						lastName: 'Sistema',
 						email: 'admin@sistema.com',
-						enabled: true,
-						deleted: false,
 					})
 					.returning({ id: user.id });
 

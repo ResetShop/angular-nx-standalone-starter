@@ -1,3 +1,4 @@
+import type { UserStatus } from '@contracts/user/user.schemas';
 import type { CreateUserResponse } from '@contracts/user/user.types';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
@@ -14,14 +15,16 @@ export interface UserData {
 	email: string;
 	firstName: string;
 	lastName: string;
-	enabled: boolean;
-	deleted: boolean;
+	status: UserStatus;
 }
 
 /**
  * Extended user data with timestamps for management responses
  */
 export interface UserWithTimestamps extends UserData {
+	statusChangedAt: Date | null;
+	statusChangedBy: number | null;
+	deletedAt: Date | null;
 	createdAt: Date | null;
 	updatedAt: Date | null;
 }
@@ -54,7 +57,14 @@ export interface UpdateUserParams {
 	email?: string;
 	firstName?: string;
 	lastName?: string;
-	enabled?: boolean;
+}
+
+/**
+ * Parameters for updating a user's account status
+ */
+export interface UpdateUserStatusParams {
+	status: UserStatus;
+	changedBy: number;
 }
 
 // ============================================================================
@@ -87,7 +97,8 @@ export interface IUserManagementRepository {
 	findByEmail(email: string): Promise<UserData | null>;
 	create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData>;
 	update(id: number, params: UpdateUserParams): Promise<UserData | null>;
-	softDelete(id: number): Promise<boolean>;
+	updateStatus(id: number, params: UpdateUserStatusParams): Promise<UserData | null>;
+	softDelete(id: number, changedBy: number): Promise<boolean>;
 }
 
 // ============================================================================
@@ -201,6 +212,7 @@ export interface IUserManagementService {
 	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>;
 	getUser(id: number): Promise<ManagedUserData>;
 	createUser(params: CreateUserParams): Promise<CreateUserResponse>;
-	updateUser(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData>;
-	deleteUser(id: number): Promise<void>;
+	updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData>;
+	updateUserStatus(id: number, params: UpdateUserStatusParams, currentUserId: number): Promise<ManagedUserData>;
+	deleteUser(id: number, currentUserId: number): Promise<void>;
 }

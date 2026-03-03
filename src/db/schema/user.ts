@@ -1,16 +1,22 @@
 import { relations } from 'drizzle-orm';
-import { boolean, index, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { role } from './role';
+
+export const userStatusEnum = pgEnum('user_status', ['active', 'suspended', 'deleted', 'banned']);
 
 export const user = pgTable('user', {
 	id: serial('id').primaryKey(),
 	firstName: text('first_name').notNull(),
 	lastName: text('last_name').notNull(),
 	email: text('email').notNull().unique(),
+	status: userStatusEnum('status').notNull().default('active'),
+	// No FK on statusChangedBy — avoids cascade complexity when the
+	// admin who changed a status is themselves later deleted.
+	statusChangedAt: timestamp('status_changed_at'),
+	statusChangedBy: integer('status_changed_by'),
+	deletedAt: timestamp('deleted_at'),
 	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').defaultNow(),
-	enabled: boolean('enabled').default(true),
-	deleted: boolean('deleted').default(false),
 });
 
 export const userRole = pgTable(
