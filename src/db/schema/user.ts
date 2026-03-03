@@ -10,10 +10,8 @@ export const user = pgTable('user', {
 	lastName: text('last_name').notNull(),
 	email: text('email').notNull().unique(),
 	status: userStatusEnum('status').notNull().default('active'),
-	// No FK on statusChangedBy — avoids cascade complexity when the
-	// admin who changed a status is themselves later deleted.
 	statusChangedAt: timestamp('status_changed_at'),
-	statusChangedBy: integer('status_changed_by'),
+	statusChangedBy: integer('status_changed_by').references(() => user.id, { onDelete: 'set null' }),
 	deletedAt: timestamp('deleted_at'),
 	createdAt: timestamp('created_at').defaultNow(),
 	updatedAt: timestamp('updated_at').defaultNow(),
