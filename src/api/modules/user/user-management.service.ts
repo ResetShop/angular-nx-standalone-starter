@@ -139,7 +139,6 @@ export class UserManagementService implements IUserManagementService {
 
 	/**
 	 * Updates an existing user's details and/or role assignments.
-	 * Prevents users from disabling their own account (self-lockout prevention).
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
