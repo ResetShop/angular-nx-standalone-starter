@@ -306,6 +306,7 @@ nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
 - **NEVER use** `querySelector`, `querySelectorAll`, `closest`, or `container` queries
 - Test **user behavior**, not implementation details
 - Use `fn()` from `@test-utils` for mock functions — **never** use `vi.fn()`, `vi.mock()`, or `jest.fn()` directly
+- **Always call `clearAllMocks()` from `@test-utils` in `beforeEach`** to reset all mock state between tests — never use `mockClear()` / `mockReset()` on individual mocks in `afterEach`
 - Add an updated entry in the Bruno API client workspace for each new endpoint
 - Update the entries in the Bruno API client workspace if an endpoint is updated
 
