@@ -1,4 +1,4 @@
-import { type UserStatus, UserStatus as UserStatusValue } from '@contracts/user/user.schemas';
+import { UserStatus } from '@contracts/user/user.schemas';
 import type { CreateUserResponse } from '@contracts/user/user.types';
 import { hash } from 'bcryptjs';
 import { BCRYPT_SALT_ROUNDS } from '../../constants/auth.constants';
@@ -35,8 +35,8 @@ export const userManagementErrors = {
 
 function isValidTransition(from: UserStatus, to: UserStatus): boolean {
 	const allowed: Partial<Record<UserStatus, UserStatus[]>> = {
-		[UserStatusValue.ACTIVE]: [UserStatusValue.DISABLED],
-		[UserStatusValue.DISABLED]: [UserStatusValue.ACTIVE],
+		[UserStatus.ACTIVE]: [UserStatus.DISABLED],
+		[UserStatus.DISABLED]: [UserStatus.ACTIVE],
 	};
 	return allowed[from]?.includes(to) ?? false;
 }
