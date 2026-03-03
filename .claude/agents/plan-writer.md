@@ -35,10 +35,11 @@ Before doing any analysis, read these files in full:
 1. **Understand the goal** — Clarify what is being built or changed
 2. **Explore the codebase** — Use Glob, Grep, and Read to understand existing patterns, dependencies, and architecture
 3. **Identify affected files** — List every file that will be created, modified, or deleted
-4. **Evaluate approaches** — Consider multiple options when trade-offs exist; recommend one with rationale
-5. **Design the implementation steps** — Break into ordered, actionable steps
-6. **Check constraints** — Verify the plan respects CLAUDE.md hard constraints, SOLID, CUPID, and guiding principles
-7. **Write the plan** — Save to `/workspace/PLAN.md` using the output format below
+4. **Identify documentation impact** — Search `docs/`, `docs/api/*.bru`, `CLAUDE.md`, and `.claude/references/` for references to types, schemas, columns, or API shapes being changed. Include affected documentation files in the "Affected Files" table
+5. **Evaluate approaches** — Consider multiple options when trade-offs exist; recommend one with rationale
+6. **Design the implementation steps** — Break into ordered, actionable steps
+7. **Check constraints** — Verify the plan respects CLAUDE.md hard constraints, SOLID, CUPID, and guiding principles
+8. **Write the plan** — Save to `/workspace/PLAN.md` using the output format below
 
 ## Output Format
 

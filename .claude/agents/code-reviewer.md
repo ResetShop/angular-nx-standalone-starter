@@ -59,6 +59,7 @@ Before reviewing, read ALL reference files to have full project context:
 - [ ] Protected routes inherit global security; public routes explicitly set `security: []`
 - [ ] Response schemas use `commonSecuredResponses` (write ops) or `commonAuthResponses` (read ops)
 - [ ] Request/response Zod schemas live in `src/contracts/` (shared) or module-local `*.schemas.ts` (domain-specific)
+- [ ] Documentation files (`docs/`, `docs/api/*.bru`, `CLAUDE.md`, `.claude/references/`) updated when schemas, types, columns, or API contracts change — no stale references to renamed/removed entities
 
 ### SOLID Principles
 
