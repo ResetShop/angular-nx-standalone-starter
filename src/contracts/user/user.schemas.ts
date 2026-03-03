@@ -105,7 +105,7 @@ export const updateUserRequestSchema = z.object({
  * Only allows non-terminal transitions — use DELETE endpoint for deletion.
  */
 export const updateUserStatusRequestSchema = z.object({
-	status: userStatusSchema.exclude(['deleted']),
+	status: z.enum(['active', 'disabled']),
 });
 
 // ============================================================================
