@@ -103,10 +103,6 @@ export const updateUserRoute = createRoute({
 			description: 'Invalid user ID',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		403: {
-			description: 'Cannot disable own account',
-			content: { 'application/json': { schema: errorResponseSchema } },
-		},
 		404: {
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
