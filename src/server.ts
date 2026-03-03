@@ -13,6 +13,7 @@ import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
+import { parseDurationToMs, parseDurationToSeconds } from './api/utils/duration';
 
 // Health verification - runs all startup checks (DI container, database, etc.)
 import { ACCESS_TOKEN_COOKIE_NAME } from './api/constants/auth.constants';
@@ -26,7 +27,6 @@ import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
 
 // Cron jobs
 import { startCronJobs, stopCronJobs } from './api/cron-jobs';
-import { parseDurationToMs, parseDurationToSeconds } from './api/utils/duration';
 
 /**
  * Initialize OpenAPIHono and export the app instance
