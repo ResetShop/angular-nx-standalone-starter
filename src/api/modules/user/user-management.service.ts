@@ -33,14 +33,6 @@ export const userManagementErrors = {
 		new Error(`${USER_MANAGEMENT_ERRORS.INVALID_TRANSITION}: ${from} -> ${to}`),
 };
 
-function isValidTransition(from: UserStatus, to: UserStatus): boolean {
-	const allowed: Partial<Record<UserStatus, UserStatus[]>> = {
-		[UserStatus.ACTIVE]: [UserStatus.DISABLED],
-		[UserStatus.DISABLED]: [UserStatus.ACTIVE],
-	};
-	return allowed[from]?.includes(to) ?? false;
-}
-
 interface UserManagementServiceDeps {
 	userManagementRepository: IUserManagementRepository;
 	emailService: IEmailService;
@@ -199,7 +191,7 @@ export class UserManagementService implements IUserManagementService {
 			throw userManagementErrors.notFound(id);
 		}
 
-		if (!isValidTransition(existingUser.status, params.status)) {
+		if (!this.isValidTransition(existingUser.status, params.status)) {
 			throw userManagementErrors.invalidTransition(existingUser.status, params.status);
 		}
 
@@ -227,5 +219,13 @@ export class UserManagementService implements IUserManagementService {
 		if (!deleted) {
 			throw userManagementErrors.notFound(id);
 		}
+	}
+
+	private isValidTransition(from: UserStatus, to: UserStatus): boolean {
+		const allowed: Partial<Record<UserStatus, UserStatus[]>> = {
+			[UserStatus.ACTIVE]: [UserStatus.DISABLED],
+			[UserStatus.DISABLED]: [UserStatus.ACTIVE],
+		};
+		return allowed[from]?.includes(to) ?? false;
 	}
 }
