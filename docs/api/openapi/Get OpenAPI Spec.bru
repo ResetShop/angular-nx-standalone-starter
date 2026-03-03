@@ -1,0 +1,47 @@
+meta {
+  name: Get OpenAPI Spec
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/openapi.json
+  body: none
+  auth: none
+}
+
+docs {
+  # OpenAPI Specification
+
+  Returns the OpenAPI 3.0 JSON specification for all API endpoints.
+  Public endpoint — no authentication required.
+
+  ## Response (200 OK)
+
+  Returns a valid OpenAPI 3.0 JSON document describing all API endpoints,
+  request/response schemas, and security requirements.
+}
+
+assert {
+  res.status: eq 200
+  res.body.openapi: eq 3.0.0
+  res.body.info.title: isDefined
+  res.body.paths: isDefined
+}
+
+tests {
+  test("should return 200 status", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return valid OpenAPI spec", function() {
+    expect(res.body.openapi).to.equal("3.0.0");
+    expect(res.body.info).to.have.property("title");
+    expect(res.body.paths).to.be.an("object");
+  });
+
+  test("should include security schemes", function() {
+    expect(res.body.components).to.have.property("securitySchemes");
+    expect(res.body.components.securitySchemes).to.have.property("pasetoCookie");
+  });
+}

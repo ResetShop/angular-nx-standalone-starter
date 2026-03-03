@@ -1,9 +1,10 @@
-import { Hono } from 'hono';
 import { container } from '../../container/container';
+import { createOpenAPIApp, registerRoute } from '../../openapi-app';
 import { HealthStatus } from './health.constants';
+import { healthCheckRoute } from './health.routes';
 import type { HealthCheckResponse } from './interfaces';
 
-const app = new Hono();
+const app = createOpenAPIApp();
 
 /**
  * Health check endpoint
@@ -12,7 +13,7 @@ const app = new Hono();
  * Returns application health status including database connectivity.
  * Responds with 200 when healthy, 503 when unhealthy.
  */
-app.get('/v1', async (c) => {
+registerRoute(app, healthCheckRoute, async (c) => {
 	const { healthService } = container.cradle;
 	const health = await healthService.checkHealth();
 	const statusCode = health.status === HealthStatus.HEALTHY ? 200 : 503;

@@ -1,8 +1,8 @@
-import { Hono } from 'hono';
+import { createOpenAPIApp } from '../../openapi-app';
 import permissionController from './permission/permission.controller';
 import roleController from './role/role.controller';
 
-const app = new Hono();
+const app = createOpenAPIApp();
 
 // Permission listing endpoints: /permissions
 app.route('/permissions', permissionController);

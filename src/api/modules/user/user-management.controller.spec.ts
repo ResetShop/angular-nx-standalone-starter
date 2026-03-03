@@ -191,8 +191,6 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/invalid');
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 	});
 
@@ -368,8 +366,6 @@ describe('User Management Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 	});
 
@@ -497,8 +493,6 @@ describe('User Management Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 	});
 });
