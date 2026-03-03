@@ -42,14 +42,12 @@ describe('Sidebar', () => {
 				name: 'Configuración inicial',
 				route: 'welcome',
 				icon: { featherHome: featherHome },
-				children: [],
 			},
 			{
 				id: 'health',
 				name: 'Salud',
 				route: 'health',
 				icon: { featherActivity: featherActivity },
-				children: [],
 			},
 		],
 	};
@@ -63,14 +61,12 @@ describe('Sidebar', () => {
 				name: 'Gestión de usuarios',
 				route: 'admin/users',
 				icon: { featherHome: featherHome },
-				children: [],
 			},
 			{
 				id: 'settings',
 				name: 'Configuración del sistema',
 				route: 'admin/settings',
 				icon: { featherActivity: featherActivity },
-				children: [],
 			},
 		],
 	};
