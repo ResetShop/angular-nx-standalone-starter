@@ -19,7 +19,7 @@ ALTER TABLE "user" ALTER COLUMN "status" SET DEFAULT 'active';
 
 -- Step 5: Add audit columns
 ALTER TABLE "user" ADD COLUMN "status_changed_at" timestamp;
-ALTER TABLE "user" ADD COLUMN "status_changed_by" integer;
+ALTER TABLE "user" ADD COLUMN "status_changed_by" integer REFERENCES "user"("id") ON DELETE SET NULL;
 ALTER TABLE "user" ADD COLUMN "deleted_at" timestamp;
 
 -- Step 6: Drop old boolean columns (only after status column is fully set up)
