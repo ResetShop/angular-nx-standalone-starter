@@ -193,9 +193,7 @@ export class UserManagementService implements IUserManagementService {
 			throw userManagementErrors.invalidTransition(existingUser.status, params.status);
 		}
 
-		await this.userManagementRepository.updateStatus(id, params);
-
-		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id);
+		const updatedUser = await this.userManagementRepository.updateStatus(id, params);
 		if (!updatedUser) {
 			throw userManagementErrors.notFound(id);
 		}

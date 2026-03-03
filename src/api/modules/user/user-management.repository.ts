@@ -269,9 +269,9 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Status change parameters including the new status and who changed it
-	 * @returns Updated user data, or null if not found or deleted
+	 * @returns Updated user data with roles, or null if not found or deleted
 	 */
-	async updateStatus(id: number, params: UpdateUserStatusParams): Promise<UserData | null> {
+	async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
 		const now = new Date();
 		const result = await this.db
 			.update(user)
@@ -288,9 +288,19 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				firstName: user.firstName,
 				lastName: user.lastName,
 				status: user.status,
+				statusChangedAt: user.statusChangedAt,
+				statusChangedBy: user.statusChangedBy,
+				deletedAt: user.deletedAt,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
 			});
 
-		return result.length > 0 ? result[0] : null;
+		if (result.length === 0) {
+			return null;
+		}
+
+		const [updatedWithRoles] = await this.attachRolesToUsers(result);
+		return updatedWithRoles;
 	}
 
 	/**

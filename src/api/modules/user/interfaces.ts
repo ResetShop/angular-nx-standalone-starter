@@ -97,7 +97,7 @@ export interface IUserManagementRepository {
 	findByEmail(email: string): Promise<UserData | null>;
 	create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData>;
 	update(id: number, params: UpdateUserParams): Promise<UserData | null>;
-	updateStatus(id: number, params: UpdateUserStatusParams): Promise<UserData | null>;
+	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>;
 	softDelete(id: number, changedBy: number): Promise<boolean>;
 }
 

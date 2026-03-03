@@ -364,8 +364,8 @@ describe('UserManagementService', () => {
 	describe('updateUserStatus', () => {
 		it('should update status from active to disabled', async () => {
 			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
-			mockFindByIdWithRoles.mockResolvedValueOnce(testManagedUser).mockResolvedValueOnce(disabledUser);
-			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'disabled' });
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
+			mockUpdateStatus.mockResolvedValue(disabledUser);
 
 			const result = await service.updateUserStatus(1, { status: 'disabled', changedBy: 999 });
 
@@ -375,8 +375,8 @@ describe('UserManagementService', () => {
 		it('should update status from disabled to active', async () => {
 			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
 			const reactivatedUser = { ...testManagedUser, status: 'active' as const };
-			mockFindByIdWithRoles.mockResolvedValueOnce(disabledUser).mockResolvedValueOnce(reactivatedUser);
-			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'active' });
+			mockFindByIdWithRoles.mockResolvedValue(disabledUser);
+			mockUpdateStatus.mockResolvedValue(reactivatedUser);
 
 			const result = await service.updateUserStatus(1, { status: 'active', changedBy: 999 });
 
