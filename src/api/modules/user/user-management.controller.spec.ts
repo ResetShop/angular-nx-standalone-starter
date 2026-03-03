@@ -22,7 +22,7 @@ describe('User Management Controller', () => {
 	const mockGetUser = fn<[number], Promise<ManagedUserData>>();
 	const mockCreateUser = fn<[CreateUserParams], Promise<CreateUserResponse>>();
 	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>();
-	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams, number], Promise<ManagedUserData>>();
+	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>();
 	const mockDeleteUser = fn<[number, number], Promise<void>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 

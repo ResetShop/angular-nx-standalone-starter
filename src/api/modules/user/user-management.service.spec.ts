@@ -23,7 +23,7 @@ describe('UserManagementService', () => {
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>();
 	const mockCreate = fn<[CreateUserWithHashedPasswordParams], Promise<ManagedUserData>>();
 	const mockUpdate = fn<[number, UpdateUserParams], Promise<UserData | null>>();
-	const mockUpdateStatus = fn<[number, UpdateUserStatusParams], Promise<UserData | null>>();
+	const mockUpdateStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData | null>>();
 	const mockSoftDelete = fn<[number, number], Promise<boolean>>();
 
 	const mockRepository: IUserManagementRepository = {
