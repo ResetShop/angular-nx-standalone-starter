@@ -452,11 +452,18 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 87-add-user-authentication
 ```
 
-**Commit messages:** Prefix with `[#<issue_number>]`
+**Commit messages:** `[#<issue_number>] - <title>`
 
 ```
-[#144] Remove vercel.json and API redirect entry point
-[#87] Add login form component
+[#144] - Remove vercel.json and API redirect entry point
+[#87] - Add login form component
+```
+
+**PR titles:** `[#<issue_number>] - <title>`
+
+```
+[#144] - Remove Vercel-specific configuration
+[#87] - Add user authentication
 ```
 
 ### Agent Orchestration
