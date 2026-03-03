@@ -52,6 +52,7 @@ Before reviewing, read ALL reference files to have full project context:
 - [ ] No `console.log` (remove before commit)
 - [ ] No direct `vi.fn()`, `vi.mock()`, or timer calls (use `@test-utils` wrappers)
 - [ ] No module-level constants/variables that are only used by a single function — keep them local (see CLAUDE.md Scope Rules)
+- [ ] No raw millisecond/second literals for time intervals — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` (see CLAUDE.md Duration String Convention)
 - [ ] Repository methods use `find*()` for reads, services use `get[Entity]()`/`getAll[Entities]()` — never `list()` or bare CRUD names (see CLAUDE.md Backend API Naming Conventions)
 - [ ] Inline query result types in repository method signatures (3+ fields) extracted into file-local `Projection` interfaces (see CLAUDE.md Repository Projection Types)
 - [ ] Backend routes defined in `*.routes.ts` using `createRoute()`, handlers in `*.controller.ts` using `registerRoute()` — never inline route+handler in a single file

@@ -115,19 +115,20 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint             | Limit                                                                                     | Rationale                    |
-| ---------------------- | ----------------------------------------------------------------------------------------- | ---------------------------- |
-| Function length        | ≤ 50 lines                                                                                | Readability, SRP             |
-| File length            | ≤ 500 lines                                                                               | Maintainability              |
-| Cyclomatic complexity  | ≤ 10                                                                                      | Testability                  |
-| Nesting depth          | ≤ 3 levels                                                                                | Readability                  |
-| Barrel imports/exports | Not allowed in any part of the project                                                    | Maintainability, Performance |
-| `any` type             | Forbidden without `// REASON:` comment                                                    | Type safety                  |
-| `// @ts-ignore`        | Forbidden without linked issue                                                            | Technical debt tracking      |
-| `console.log`          | Remove before commit                                                                      | Clean code                   |
-| TypeScript enums       | Forbidden - use `Object.freeze()` instead                                                 | Consistency, type safety     |
-| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations | Bundle size, clarity         |
-| `vi.fn()`/`vi.mock()`  | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                | Framework independence       |
+| Constraint             | Limit                                                                                                                      | Rationale                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Function length        | ≤ 50 lines                                                                                                                 | Readability, SRP             |
+| File length            | ≤ 500 lines                                                                                                                | Maintainability              |
+| Cyclomatic complexity  | ≤ 10                                                                                                                       | Testability                  |
+| Nesting depth          | ≤ 3 levels                                                                                                                 | Readability                  |
+| Barrel imports/exports | Not allowed in any part of the project                                                                                     | Maintainability, Performance |
+| `any` type             | Forbidden without `// REASON:` comment                                                                                     | Type safety                  |
+| `// @ts-ignore`        | Forbidden without linked issue                                                                                             | Technical debt tracking      |
+| `console.log`          | Remove before commit                                                                                                       | Clean code                   |
+| TypeScript enums       | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety     |
+| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
+| Raw time literals      | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
+| `vi.fn()`/`vi.mock()`  | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
 
 ### Object.freeze() Instead of Enums
 
