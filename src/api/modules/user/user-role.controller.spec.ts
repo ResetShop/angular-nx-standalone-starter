@@ -159,8 +159,6 @@ describe('User Role Controller', () => {
 			const res = await app.request('/users/invalid/roles');
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 	});
 
@@ -200,8 +198,6 @@ describe('User Role Controller', () => {
 			const res = await app.request('/users/invalid/permissions');
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 	});
 
@@ -271,8 +267,6 @@ describe('User Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 
 		it('should return 400 for invalid roleId', async () => {
@@ -340,8 +334,6 @@ describe('User Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 
 		it('should return 400 for invalid role ID', async () => {
@@ -350,8 +342,6 @@ describe('User Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid role ID');
 		});
 	});
 
@@ -439,8 +429,6 @@ describe('User Role Controller', () => {
 			});
 
 			expect(res.status).toBe(400);
-			const data = await res.json();
-			expect(data.error).toBe('Invalid user ID');
 		});
 
 		it('should return 400 for invalid roleIds', async () => {

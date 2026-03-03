@@ -23,6 +23,7 @@ Before providing architecture advice, read these reference files:
 3. Read `.claude/references/cupid.md` — CUPID principles for joyful, maintainable code
 4. Read `.claude/references/guiding-principles.md` — YAGNI and KISS
 5. Read `.claude/references/cross-reference.md` — How principles relate to each other
+6. Read `.claude/references/backend-api.md` — Backend API patterns (OpenAPI, routes, controllers)
 
 ## Advisory Process
 

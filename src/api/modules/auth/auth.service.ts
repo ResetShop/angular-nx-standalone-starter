@@ -2,6 +2,7 @@ import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@cont
 import { UserStatus } from '@contracts/user/user.schemas';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
+import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants';
 import { type IPasetoService } from '../../services/paseto/interfaces';
 import { parseDurationToMs } from '../../utils/duration';
 import { type IUserRepository, type UserData } from '../user/interfaces';
@@ -48,7 +49,7 @@ export class AuthService implements IAuthService {
 	 */
 	private getRefreshTokenExpiry(): Date {
 		// duration is read directly from env vars to allow changing the generated refresh token expiration time at runtime
-		const duration = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? '7d';
+		const duration = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY;
 		const expiryMs = parseDurationToMs(duration);
 		return new Date(Date.now() + expiryMs);
 	}

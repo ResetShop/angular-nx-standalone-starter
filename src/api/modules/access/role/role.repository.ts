@@ -1,7 +1,7 @@
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import { type SQL, count, eq, ilike, inArray, or } from 'drizzle-orm';
 import { permission } from '../../../../db/schema/permission';
 import { role, rolePermission } from '../../../../db/schema/role';
-import { QUERY_DEFAULTS } from '../../../constants/query.constants';
 import { BaseRepository } from '../../../helpers/base.repository';
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
 import type {

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { QUERY_DEFAULTS } from '../common/query.constants';
 import { roleDataSchema } from '../role/role.schemas';
 
 // ============================================================================
@@ -74,8 +75,8 @@ export const managedUserSchema = z.object({
  */
 export const createUserRequestSchema = z.object({
 	email: z.email(),
-	firstName: z.string().min(1).max(100),
-	lastName: z.string().min(1).max(100),
+	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
+	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
 	roleIds: z.array(z.number().int().positive()).optional(),
 	mustChangePassword: z.boolean().optional().default(true),
 });
@@ -94,8 +95,8 @@ export const createUserResponseSchema = managedUserSchema.extend({
  */
 export const updateUserRequestSchema = z.object({
 	email: z.email().optional(),
-	firstName: z.string().min(1).max(100).optional(),
-	lastName: z.string().min(1).max(100).optional(),
+	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),
 });
 
@@ -115,5 +116,15 @@ export const updateUserStatusRequestSchema = z.object({
  * Assign role to user request body schema.
  */
 export const assignRoleToUserRequestSchema = z.object({
-	roleId: z.number(),
+	roleId: z.number().int().positive(),
+});
+
+/**
+ * Replace all role assignments for a user request body schema.
+ */
+export const replaceUserRolesRequestSchema = z.object({
+	roleIds: z
+		.array(z.number().int().positive())
+		.max(QUERY_DEFAULTS.MAX_ROLE_IDS_PER_REQUEST)
+		.refine((ids) => new Set(ids).size === ids.length, 'roleIds must be unique'),
 });
