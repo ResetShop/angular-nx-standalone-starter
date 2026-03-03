@@ -1,6 +1,5 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import { updateUserStatusRequestSchema } from '@contracts/user/user.schemas';
 import type {
 	CreateUserRequest,
 	CreateUserResponse,
@@ -8,19 +7,16 @@ import type {
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types';
-import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
 import { container } from '../../container/container';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
-import { requirePermission } from '../../middlewares/verify-permissions.middleware';
 import { createOpenAPIApp, registerRoute } from '../../openapi-app';
-import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
 import {
 	createUserRoute,
 	deleteUserRoute,
 	getUserRoute,
 	listUsersRoute,
 	updateUserRoute,
+	updateUserStatusRoute,
 } from './user-management.routes';
 import { USER_MANAGEMENT_ERRORS } from './user-management.service';
 
@@ -30,8 +26,6 @@ const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.SELF_LOCKOUT, 403],
 	[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
 ] as const;
-
-const idParamSchema = z.object({ id: z.coerce.number().int().positive() });
 
 const app = createOpenAPIApp();
 
@@ -93,10 +87,9 @@ registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
 	const id = Number(c.req.param('id'));
 	const body: UpdateUserRequest = c.req.valid('json');
-	const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
 	try {
-		const userData = await userManagementService.updateUser(id, body, currentUserId);
+		const userData = await userManagementService.updateUser(id, body);
 		return c.json<ManagedUser>(userData);
 	} catch (error) {
 		if (error instanceof Error) {
@@ -114,40 +107,30 @@ registerRoute(app, updateUserRoute, async (c) => {
  * PATCH /api/user/:id/status
  * Update user account status (state machine enforcement)
  */
-app.patch(
-	'/:id/status',
-	requirePermission(ADMIN_USER_PERMISSIONS.DISABLE),
-	zValidator('param', idParamSchema, (result, c) => {
-		if (!result.success) {
-			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
-		}
-	}),
-	zValidator('json', updateUserStatusRequestSchema),
-	async (c) => {
-		const { userManagementService } = container.cradle;
-		const { id } = c.req.valid('param');
-		const body: UpdateUserStatusRequest = c.req.valid('json');
-		const currentUserId = Number((c as AuthenticatedContext).user?.sub);
+registerRoute(app, updateUserStatusRoute, async (c) => {
+	const { userManagementService } = container.cradle;
+	const id = Number(c.req.param('id'));
+	const body: UpdateUserStatusRequest = c.req.valid('json');
+	const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
-		try {
-			const userData = await userManagementService.updateUserStatus(
-				id,
-				{ status: body.status, changedBy: currentUserId },
-				currentUserId,
-			);
-			return c.json<ManagedUser>(userData);
-		} catch (error) {
-			if (error instanceof Error) {
-				for (const [prefix, status] of ERROR_STATUS_MAP) {
-					if (error.message.startsWith(prefix)) {
-						return c.json<ErrorResponse>({ error: error.message }, status);
-					}
+	try {
+		const userData = await userManagementService.updateUserStatus(
+			id,
+			{ status: body.status, changedBy: currentUserId },
+			currentUserId,
+		);
+		return c.json<ManagedUser>(userData);
+	} catch (error) {
+		if (error instanceof Error) {
+			for (const [prefix, status] of ERROR_STATUS_MAP) {
+				if (error.message.startsWith(prefix)) {
+					return c.json<ErrorResponse>({ error: error.message }, status);
 				}
 			}
-			throw error;
 		}
-	},
-);
+		throw error;
+	}
+});
 
 /**
  * DELETE /api/user/:id
