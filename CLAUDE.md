@@ -612,6 +612,28 @@ Which `.claude/references/` files each agent loads in Step 0:
 | `documentation-writer`   | —                                                                                        |
 | `migration-planner`      | —                                                                                        |
 
+### Documentation Impact Scan
+
+**CRITICAL:** When implementation changes types, schemas, database columns, API contracts, or domain terminology, all documentation referencing those entities MUST be updated in the same commit or PR.
+
+**What to scan:**
+
+| Location              | What to check                                                        |
+| --------------------- | -------------------------------------------------------------------- |
+| `docs/`               | Architecture docs, schema references, flow descriptions              |
+| `docs/api/*.bru`      | Bruno API client — request bodies, response fields, assertions, docs |
+| `CLAUDE.md`           | Code examples, naming conventions, projection types                  |
+| `.claude/references/` | Auth flows, backend-api patterns, domain model examples              |
+
+**When to scan:**
+
+- After renaming or removing a database column or table
+- After changing a Zod schema or TypeScript type/interface
+- After modifying API request/response shapes
+- After changing enum values or status codes
+
+**Rule:** If `git diff` shows changes to types, schemas, or database definitions, grep for the old names across documentation before committing. This prevents documentation staleness — a recurring source of review findings.
+
 ---
 
 ## Automated Code Review
@@ -672,6 +694,7 @@ The code-reviewer agent checks:
 - **CUPID principles** — Composable, predictable, idiomatic code
 - **Domain patterns** — Immutability, factory functions, Zod validation
 - **Test coverage** — Tests exist for new code, follow Angular Testing Library patterns
+- **Documentation currency** — Docs, Bruno files, and CLAUDE.md updated when schemas/types/API contracts change
 
 ### Workflow Integration
 
@@ -724,4 +747,4 @@ The code-reviewer agent checks:
 
 ---
 
-_Last updated: 2026-03-02_
+_Last updated: 2026-03-03_
