@@ -1,5 +1,5 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
-import type { UserStatus } from '@contracts/user/user.schemas';
+import { UserStatus } from '@contracts/user/user.schemas';
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { role } from '../../../db/schema/role';
@@ -57,7 +57,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
 		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
 
-		const baseCondition = ne(user.status, 'deleted');
+		const baseCondition = ne(user.status, UserStatus.DELETED);
 
 		const whereClause = search
 			? and(
@@ -123,7 +123,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				updatedAt: user.updatedAt,
 			})
 			.from(user)
-			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
 			.limit(1);
 
 		if (result.length === 0) {
@@ -150,7 +150,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				status: user.status,
 			})
 			.from(user)
-			.where(and(eq(user.email, email), ne(user.status, 'deleted')))
+			.where(and(eq(user.email, email), ne(user.status, UserStatus.DELETED)))
 			.limit(1);
 
 		return result.length > 0 ? result[0] : null;
@@ -227,7 +227,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		const result = await this.db
 			.update(user)
 			.set(updateData)
-			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
 			.returning({
 				id: user.id,
 				email: user.email,
@@ -251,13 +251,13 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		const result = await this.db
 			.update(user)
 			.set({
-				status: 'deleted',
+				status: UserStatus.DELETED,
 				statusChangedAt: now,
 				statusChangedBy: changedBy,
 				deletedAt: now,
 				updatedAt: now,
 			})
-			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
 			.returning({ id: user.id });
 
 		return result.length > 0;
@@ -281,7 +281,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				statusChangedBy: params.changedBy,
 				updatedAt: now,
 			})
-			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
 			.returning({
 				id: user.id,
 				email: user.email,
