@@ -1,21 +1,32 @@
 import { relations } from 'drizzle-orm';
-import { index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { foreignKey, index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { role } from './role';
 
 export const userStatusEnum = pgEnum('user_status', ['active', 'disabled', 'deleted']);
 
-export const user = pgTable('user', {
-	id: serial('id').primaryKey(),
-	firstName: text('first_name').notNull(),
-	lastName: text('last_name').notNull(),
-	email: text('email').notNull().unique(),
-	status: userStatusEnum('status').notNull().default('active'),
-	statusChangedAt: timestamp('status_changed_at'),
-	statusChangedBy: integer('status_changed_by').references(() => user.id, { onDelete: 'set null' }),
-	deletedAt: timestamp('deleted_at'),
-	createdAt: timestamp('created_at').defaultNow(),
-	updatedAt: timestamp('updated_at').defaultNow(),
-});
+export const user = pgTable(
+	'user',
+	{
+		id: serial('id').primaryKey(),
+		firstName: text('first_name').notNull(),
+		lastName: text('last_name').notNull(),
+		email: text('email').notNull().unique(),
+		status: userStatusEnum('status').notNull().default('active'),
+		statusChangedAt: timestamp('status_changed_at'),
+		// Standalone FK avoids circular type inference from inline .references()
+		// on a self-referencing column (breaks Drizzle relational query types).
+		statusChangedBy: integer('status_changed_by'),
+		deletedAt: timestamp('deleted_at'),
+		createdAt: timestamp('created_at').defaultNow(),
+		updatedAt: timestamp('updated_at').defaultNow(),
+	},
+	(table) => ({
+		statusChangedByFk: foreignKey({
+			columns: [table.statusChangedBy],
+			foreignColumns: [table.id],
+		}).onDelete('set null'),
+	}),
+);
 
 export const userRole = pgTable(
 	'user_role',
