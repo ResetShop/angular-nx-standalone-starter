@@ -263,7 +263,7 @@ describe('AuthService', () => {
 			mockAuthRepo.addAuthRecord(testUser.id, {
 				passwordHash: testPasswordHash,
 				failedLoginAttempts: 5,
-				lockedUntil: new Date(Date.now() - 1000), // 1 second ago (expired)
+				lockedUntil: new Date(Date.now() - parseDurationToMs('1s')), // 1 second ago (expired)
 			});
 
 			const result = await authService.authenticate({
