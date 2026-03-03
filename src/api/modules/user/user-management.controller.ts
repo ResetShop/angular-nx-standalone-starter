@@ -115,11 +115,10 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const currentUserId = Number((c as AuthenticatedContext).user.sub);
 
 	try {
-		const userData = await userManagementService.updateUserStatus(
-			id,
-			{ status: body.status, changedBy: currentUserId },
-			currentUserId,
-		);
+		const userData = await userManagementService.updateUserStatus(id, {
+			status: body.status,
+			changedBy: currentUserId,
+		});
 		return c.json<ManagedUser>(userData);
 	} catch (error) {
 		if (error instanceof Error) {

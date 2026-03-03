@@ -367,7 +367,7 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValueOnce(testManagedUser).mockResolvedValueOnce(disabledUser);
 			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'disabled' });
 
-			const result = await service.updateUserStatus(1, { status: 'disabled', changedBy: 999 }, 999);
+			const result = await service.updateUserStatus(1, { status: 'disabled', changedBy: 999 });
 
 			expect(result.status).toBe('disabled');
 		});
@@ -378,13 +378,13 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValueOnce(disabledUser).mockResolvedValueOnce(reactivatedUser);
 			mockUpdateStatus.mockResolvedValue({ ...testUser, status: 'active' });
 
-			const result = await service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999);
+			const result = await service.updateUserStatus(1, { status: 'active', changedBy: 999 });
 
 			expect(result.status).toBe('active');
 		});
 
 		it('should throw SELF_LOCKOUT when changing own status', async () => {
-			await expect(service.updateUserStatus(1, { status: 'disabled', changedBy: 1 }, 1)).rejects.toThrow(
+			await expect(service.updateUserStatus(1, { status: 'disabled', changedBy: 1 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.SELF_LOCKOUT,
 			);
 		});
@@ -392,7 +392,7 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null);
 
-			await expect(service.updateUserStatus(999, { status: 'disabled', changedBy: 1 }, 1)).rejects.toThrow(
+			await expect(service.updateUserStatus(999, { status: 'disabled', changedBy: 1 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.NOT_FOUND,
 			);
 		});
@@ -401,7 +401,7 @@ describe('UserManagementService', () => {
 			const deletedUser = { ...testManagedUser, status: 'deleted' as const };
 			mockFindByIdWithRoles.mockResolvedValue(deletedUser);
 
-			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(
+			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
 			);
 		});
@@ -409,7 +409,7 @@ describe('UserManagementService', () => {
 		it('should throw INVALID_TRANSITION for same-status transition', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 
-			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 }, 999)).rejects.toThrow(
+			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
 			);
 		});

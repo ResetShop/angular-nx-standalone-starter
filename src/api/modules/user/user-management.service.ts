@@ -175,13 +175,12 @@ export class UserManagementService implements IUserManagementService {
 	 * Prevents self-lockout and invalid transitions.
 	 *
 	 * @param id - The user's primary key
-	 * @param params - Status change parameters
-	 * @param currentUserId - The ID of the admin performing the change
+	 * @param params - Status change parameters (includes changedBy for audit + self-lockout check)
 	 * @returns Updated user with roles
 	 * @throws Error if self-lockout or invalid transition
 	 */
-	async updateUserStatus(id: number, params: UpdateUserStatusParams, currentUserId: number): Promise<ManagedUserData> {
-		if (id === currentUserId) {
+	async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
+		if (id === params.changedBy) {
 			throw userManagementErrors.selfLockout();
 		}
 
