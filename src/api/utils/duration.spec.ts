@@ -302,11 +302,8 @@ describe('parseDurationToSeconds', () => {
 	});
 
 	describe('Consistency with parseDurationToMs', () => {
-		it('should return exactly 1/1000th of parseDurationToMs for all units', () => {
-			const durations = ['1s', '15m', '1h', '7d'];
-			for (const d of durations) {
-				expect(parseDurationToSeconds(d)).toBe(parseDurationToMs(d) / 1000);
-			}
+		it.each(['1s', '15m', '1h', '7d'])('should return exactly 1/1000th of parseDurationToMs for %s', (duration) => {
+			expect(parseDurationToSeconds(duration)).toBe(parseDurationToMs(duration) / 1000);
 		});
 	});
 
