@@ -1,4 +1,6 @@
+import { fn } from '@test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type { IUserRoleRepository } from '../../user/interfaces';
 import type { PermissionData, RoleData } from './interfaces';
 import { MockRoleRepository } from './role.repository.mock';
 import { InvalidPermissionIdsError, ROLE_ERRORS, RoleService } from './role.service';
@@ -33,9 +35,19 @@ describe('RoleService', () => {
 		{ id: 2, name: 'can_delete_users', description: 'Delete users', resource: 'users', action: 'delete' },
 	];
 
+	const mockUserRoleRepository: IUserRoleRepository = {
+		findRolesForUser: fn(),
+		findRolesWithPermissionsForUser: fn(),
+		findPermissionsForUser: fn(),
+		assignRoleToUser: fn(),
+		removeRoleFromUser: fn(),
+		findUserHasRole: fn(),
+		replaceUserRoles: fn(),
+	};
+
 	beforeEach(() => {
 		mockRoleRepo = new MockRoleRepository();
-		roleService = new RoleService({ roleRepository: mockRoleRepo });
+		roleService = new RoleService({ roleRepository: mockRoleRepo, userRoleRepository: mockUserRoleRepository });
 	});
 
 	afterEach(() => {

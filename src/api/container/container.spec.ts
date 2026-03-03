@@ -1,4 +1,4 @@
-import { clearAllMocks } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import { AuthService } from '../modules/auth/auth.service';
 import { container } from './container';
 import { MockContainer } from './container.mock';
@@ -89,7 +89,16 @@ describe('DI Container', () => {
 		});
 
 		it('should return mocked service when test cradle is set', () => {
-			const mockRoleService = { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'];
+			const mockRoleService = {
+				getAllRoles: fn(),
+				getRole: fn(),
+				getRoleByCode: fn(),
+				createRole: fn(),
+				updateRole: fn(),
+				deleteRole: fn(),
+				getRolePermissions: fn(),
+				assignPermissionsToRole: fn(),
+			} as Cradle['roleService'];
 			container.use(
 				new MockContainer({
 					roleService: mockRoleService,
@@ -102,7 +111,16 @@ describe('DI Container', () => {
 		it('should throw when accessing unmocked service in test mode', () => {
 			container.use(
 				new MockContainer({
-					roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
+					roleService: {
+						getAllRoles: fn(),
+						getRole: fn(),
+						getRoleByCode: fn(),
+						createRole: fn(),
+						updateRole: fn(),
+						deleteRole: fn(),
+						getRolePermissions: fn(),
+						assignPermissionsToRole: fn(),
+					} as Cradle['roleService'],
 				}),
 			);
 
@@ -113,7 +131,16 @@ describe('DI Container', () => {
 		it('should return real service after test cradle is reset', () => {
 			container.use(
 				new MockContainer({
-					roleService: { getAllRoles: () => Promise.resolve([]) } as Cradle['roleService'],
+					roleService: {
+						getAllRoles: fn(),
+						getRole: fn(),
+						getRoleByCode: fn(),
+						createRole: fn(),
+						updateRole: fn(),
+						deleteRole: fn(),
+						getRolePermissions: fn(),
+						assignPermissionsToRole: fn(),
+					} as Cradle['roleService'],
 				}),
 			);
 
