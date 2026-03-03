@@ -1,5 +1,5 @@
 {
-	"id": "9ac16402-9d0b-4f9f-941b-fe3ce4aa012d",
+	"id": "61387247-4e92-4b86-8fcc-95af11dfcd58",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -25,6 +25,13 @@
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true
+				},
+				"must_change_password": {
+					"name": "must_change_password",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
 				},
 				"last_password_changed_at": {
 					"name": "last_password_changed_at",
@@ -196,7 +203,23 @@
 					"default": "now()"
 				}
 			},
-			"indexes": {},
+			"indexes": {
+				"idx_permission_name": {
+					"name": "idx_permission_name",
+					"columns": [
+						{
+							"expression": "name",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
@@ -204,6 +227,116 @@
 					"name": "permission_name_unique",
 					"nullsNotDistinct": false,
 					"columns": ["name"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.refresh_token": {
+			"name": "refresh_token",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"user_id": {
+					"name": "user_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"token_family": {
+					"name": "token_family",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"token_hash": {
+					"name": "token_hash",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"expires_at": {
+					"name": "expires_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"is_revoked": {
+					"name": "is_revoked",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false,
+					"default": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false,
+					"default": "now()"
+				},
+				"revoked_at": {
+					"name": "revoked_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"refresh_token_user_id_idx": {
+					"name": "refresh_token_user_id_idx",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"refresh_token_expires_at_idx": {
+					"name": "refresh_token_expires_at_idx",
+					"columns": [
+						{
+							"expression": "expires_at",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"refresh_token_user_id_user_id_fk": {
+					"name": "refresh_token_user_id_user_id_fk",
+					"tableFrom": "refresh_token",
+					"tableTo": "user",
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"refresh_token_token_hash_unique": {
+					"name": "refresh_token_token_hash_unique",
+					"nullsNotDistinct": false,
+					"columns": ["token_hash"]
 				}
 			},
 			"policies": {},
@@ -226,11 +359,24 @@
 					"primaryKey": false,
 					"notNull": true
 				},
+				"code": {
+					"name": "code",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
 				"description": {
 					"name": "description",
 					"type": "text",
 					"primaryKey": false,
 					"notNull": false
+				},
+				"removable": {
+					"name": "removable",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": true
 				},
 				"created_at": {
 					"name": "created_at",
@@ -247,7 +393,23 @@
 					"default": "now()"
 				}
 			},
-			"indexes": {},
+			"indexes": {
+				"idx_role_code": {
+					"name": "idx_role_code",
+					"columns": [
+						{
+							"expression": "code",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
 			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
@@ -255,6 +417,11 @@
 					"name": "role_name_unique",
 					"nullsNotDistinct": false,
 					"columns": ["name"]
+				},
+				"role_code_unique": {
+					"name": "role_code_unique",
+					"nullsNotDistinct": false,
+					"columns": ["code"]
 				}
 			},
 			"policies": {},
@@ -299,7 +466,7 @@
 					"tableTo": "role",
 					"columnsFrom": ["role_id"],
 					"columnsTo": ["id"],
-					"onDelete": "restrict",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				},
 				"role_permission_permission_id_permission_id_fk": {
@@ -308,12 +475,18 @@
 					"tableTo": "permission",
 					"columnsFrom": ["permission_id"],
 					"columnsTo": ["id"],
-					"onDelete": "restrict",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
 			},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
+			"uniqueConstraints": {
+				"role_permission_role_id_permission_id_unique": {
+					"name": "role_permission_role_id_permission_id_unique",
+					"nullsNotDistinct": false,
+					"columns": ["role_id", "permission_id"]
+				}
+			},
 			"policies": {},
 			"checkConstraints": {},
 			"isRLSEnabled": false
@@ -346,6 +519,32 @@
 					"primaryKey": false,
 					"notNull": true
 				},
+				"status": {
+					"name": "status",
+					"type": "user_status",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'active'"
+				},
+				"status_changed_at": {
+					"name": "status_changed_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"status_changed_by": {
+					"name": "status_changed_by",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deleted_at": {
+					"name": "deleted_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
 				"created_at": {
 					"name": "created_at",
 					"type": "timestamp",
@@ -359,24 +558,20 @@
 					"primaryKey": false,
 					"notNull": false,
 					"default": "now()"
-				},
-				"enabled": {
-					"name": "enabled",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": false,
-					"default": true
-				},
-				"deleted": {
-					"name": "deleted",
-					"type": "boolean",
-					"primaryKey": false,
-					"notNull": false,
-					"default": false
 				}
 			},
 			"indexes": {},
-			"foreignKeys": {},
+			"foreignKeys": {
+				"user_status_changed_by_user_id_fk": {
+					"name": "user_status_changed_by_user_id_fk",
+					"tableFrom": "user",
+					"tableTo": "user",
+					"columnsFrom": ["status_changed_by"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				}
+			},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {
 				"user_email_unique": {
@@ -419,7 +614,23 @@
 					"default": "now()"
 				}
 			},
-			"indexes": {},
+			"indexes": {
+				"user_role_user_id_idx": {
+					"name": "user_role_user_id_idx",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
 			"foreignKeys": {
 				"user_role_user_id_user_id_fk": {
 					"name": "user_role_user_id_user_id_fk",
@@ -441,7 +652,13 @@
 				}
 			},
 			"compositePrimaryKeys": {},
-			"uniqueConstraints": {},
+			"uniqueConstraints": {
+				"user_role_user_id_role_id_unique": {
+					"name": "user_role_user_id_role_id_unique",
+					"nullsNotDistinct": false,
+					"columns": ["user_id", "role_id"]
+				}
+			},
 			"policies": {},
 			"checkConstraints": {},
 			"isRLSEnabled": false
@@ -452,6 +669,11 @@
 			"name": "route_type",
 			"schema": "public",
 			"values": ["api", "frontend"]
+		},
+		"public.user_status": {
+			"name": "user_status",
+			"schema": "public",
+			"values": ["active", "disabled", "deleted"]
 		}
 	},
 	"schemas": {},
