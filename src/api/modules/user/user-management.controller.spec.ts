@@ -1,3 +1,4 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import type { CreateUserResponse } from '@contracts/user/user.types';
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
@@ -42,7 +43,7 @@ describe('User Management Controller', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		status: 'active',
+		status: UserStatus.ACTIVE,
 		statusChangedAt: null,
 		statusChangedBy: null,
 		deletedAt: null,
@@ -371,18 +372,18 @@ describe('User Management Controller', () => {
 
 	describe('PATCH /users/:id/status', () => {
 		it('should update user status', async () => {
-			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
+			const disabledUser = { ...testManagedUser, status: UserStatus.DISABLED };
 			mockUpdateUserStatus.mockResolvedValue(disabledUser);
 
 			const res = await app.request('/users/1/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'disabled' }),
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
 			});
 
 			expect(res.status).toBe(200);
 			const data = await res.json();
-			expect(data.status).toBe('disabled');
+			expect(data.status).toBe(UserStatus.DISABLED);
 		});
 
 		it('should return 403 when trying to change own status', async () => {
@@ -391,7 +392,7 @@ describe('User Management Controller', () => {
 			const res = await app.request(`/users/${ADMIN_USER_ID}/status`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'disabled' }),
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
 			});
 
 			expect(res.status).toBe(403);
@@ -405,7 +406,7 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/999/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'disabled' }),
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
 			});
 
 			expect(res.status).toBe(404);
@@ -419,7 +420,7 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/1/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'active' }),
+				body: JSON.stringify({ status: UserStatus.ACTIVE }),
 			});
 
 			expect(res.status).toBe(422);
@@ -431,7 +432,7 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/invalid/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'disabled' }),
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
 			});
 
 			expect(res.status).toBe(400);

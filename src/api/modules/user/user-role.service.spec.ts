@@ -1,3 +1,4 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
@@ -54,7 +55,7 @@ describe('UserRoleService', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		status: 'active' as const,
+		status: UserStatus.ACTIVE,
 	};
 
 	const testRole: RoleData = {
