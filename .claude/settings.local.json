@@ -28,6 +28,7 @@
 			"Bash(git ls-tree:*)",
 			"Bash(git pull:*)",
 			"Bash(git push:*)",
+			"Bash(git stash:*)",
 			"Bash(git status:*)",
 			"Bash(grep:*)",
 			"Bash(ls:*)",
