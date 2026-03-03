@@ -31,10 +31,12 @@ Before reviewing, read ALL reference files to have full project context:
 
 ## Review Process
 
-1. **Identify changes** - Run `git diff main...HEAD` to see all changes on the branch
+1. **Identify changes** - Use `git diff main...HEAD` (via Bash, without prefixing `cd`) to see all changes on the branch
 2. **Review against CLAUDE.md and reference files** guidelines
 3. **Check test coverage** - Verify tests exist for new code
-4. **Run build and tests** - Ensure nothing is broken
+4. **Run build and tests** - Use `npm run ci` (via Bash, without prefixing `cd`) to ensure nothing is broken
+
+**IMPORTANT**: Never prefix Bash commands with `cd <project-root> &&`. The working directory is already set to the project root. Using `cd` changes the command signature and triggers unnecessary permission prompts.
 
 ## Review Checklist
 
