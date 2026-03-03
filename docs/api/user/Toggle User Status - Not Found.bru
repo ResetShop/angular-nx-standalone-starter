@@ -12,14 +12,14 @@ patch {
 
 body:json {
   {
-    "isActive": false
+    "status": "disabled"
   }
 }
 
 docs {
   # Toggle User Status - Not Found
 
-  Tests that toggling the status of a non-existent user returns 404.
+  Tests that updating the status of a non-existent user returns 404.
 }
 
 assert {
