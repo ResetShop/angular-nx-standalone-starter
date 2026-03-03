@@ -213,6 +213,6 @@ export interface IUserManagementService {
 	getUser(id: number): Promise<ManagedUserData>;
 	createUser(params: CreateUserParams): Promise<CreateUserResponse>;
 	updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData>;
-	updateUserStatus(id: number, params: UpdateUserStatusParams, currentUserId: number): Promise<ManagedUserData>;
+	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>;
 	deleteUser(id: number, currentUserId: number): Promise<void>;
 }
