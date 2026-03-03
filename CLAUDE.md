@@ -115,19 +115,20 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint             | Limit                                                                                     | Rationale                    |
-| ---------------------- | ----------------------------------------------------------------------------------------- | ---------------------------- |
-| Function length        | ≤ 50 lines                                                                                | Readability, SRP             |
-| File length            | ≤ 500 lines (spec files exempt)                                                           | Maintainability              |
-| Cyclomatic complexity  | ≤ 10                                                                                      | Testability                  |
-| Nesting depth          | ≤ 3 levels                                                                                | Readability                  |
-| Barrel imports/exports | Not allowed in any part of the project                                                    | Maintainability, Performance |
-| `any` type             | Forbidden without `// REASON:` comment                                                    | Type safety                  |
-| `// @ts-ignore`        | Forbidden without linked issue                                                            | Technical debt tracking      |
-| `console.log`          | Remove before commit                                                                      | Clean code                   |
-| TypeScript enums       | Forbidden - use `Object.freeze()` instead                                                 | Consistency, type safety     |
-| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations | Bundle size, clarity         |
-| `vi.fn()`/`vi.mock()`  | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                | Framework independence       |
+| Constraint             | Limit                                                                                                                      | Rationale                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Function length        | ≤ 50 lines                                                                                                                 | Readability, SRP             |
+| File length            | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability              |
+| Cyclomatic complexity  | ≤ 10                                                                                                                       | Testability                  |
+| Nesting depth          | ≤ 3 levels                                                                                                                 | Readability                  |
+| Barrel imports/exports | Not allowed in any part of the project                                                                                     | Maintainability, Performance |
+| `any` type             | Forbidden without `// REASON:` comment                                                                                     | Type safety                  |
+| `// @ts-ignore`        | Forbidden without linked issue                                                                                             | Technical debt tracking      |
+| `console.log`          | Remove before commit                                                                                                       | Clean code                   |
+| TypeScript enums       | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety     |
+| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
+| Raw time literals      | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
+| `vi.fn()`/`vi.mock()`  | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
 
 ### Object.freeze() Instead of Enums
 
@@ -205,6 +206,43 @@ import { User, IUserRepository } from './user.types';
 - Functions or constants
 - Anything used in expressions or statements
 
+### Duration String Convention
+
+All time-related constants must use duration string notation (`'{number}{unit}'`, e.g., `'1h'`, `'15m'`, `'7d'`) as their source of truth, resolved to milliseconds or seconds at the point of use via `parseDurationToMs()` / `parseDurationToSeconds()` from `src/api/utils/duration.ts`.
+
+**Rules:**
+
+1. **No `_MS` or `_SECONDS` suffixes** on constant names — the suffix encodes the resolved unit, which is an implementation detail of the expression that uses the value
+2. **Extract to named constants** — inline duration string literals used in more than one location (production or test code) must be extracted to a named constant in the appropriate constants file
+3. **Resolve at point of use** — call `parseDurationToMs()` or `parseDurationToSeconds()` directly in the expression that needs the numeric value; never store the resolved number in a constant
+
+```typescript
+// ✅ Correct — duration string constant, resolved at point of use
+export const REFRESH_TOKEN_EXPIRY_BUFFER = '1h';
+
+// In repository:
+const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER));
+
+// ❌ Incorrect — raw millisecond literal
+export const REFRESH_TOKEN_EXPIRY_BUFFER_MS = 3600000;
+
+// ❌ Incorrect — computed expression
+export const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+// ❌ Incorrect — suffix encodes the unit
+export const HEALTH_CHECK_TIMEOUT_MS = 5000;
+```
+
+**Existing compliant constants (reference as established pattern):**
+
+| Constant                       | File                                         | Value   |
+| ------------------------------ | -------------------------------------------- | ------- |
+| `DEFAULT_LOCKOUT_DURATION`     | `src/api/constants/auth.constants.ts`        | `'15m'` |
+| `DEFAULT_ACCESS_TOKEN_EXPIRY`  | `src/api/constants/auth.constants.ts`        | `'15m'` |
+| `DEFAULT_REFRESH_TOKEN_EXPIRY` | `src/api/constants/auth.constants.ts`        | `'7d'`  |
+| `REFRESH_TOKEN_EXPIRY_BUFFER`  | `src/api/constants/auth.constants.ts`        | `'1h'`  |
+| `HEALTH_CHECK_TIMEOUT`         | `src/api/modules/health/health.constants.ts` | `'5s'`  |
+
 ---
 
 ## Nx Guidelines
@@ -268,6 +306,7 @@ nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
 - **NEVER use** `querySelector`, `querySelectorAll`, `closest`, or `container` queries
 - Test **user behavior**, not implementation details
 - Use `fn()` from `@test-utils` for mock functions — **never** use `vi.fn()`, `vi.mock()`, or `jest.fn()` directly
+- **Always call `clearAllMocks()` from `@test-utils` in `beforeEach`** to reset all mock state between tests — never use `mockClear()` / `mockReset()` on individual mocks in `afterEach`
 - Add an updated entry in the Bruno API client workspace for each new endpoint
 - Update the entries in the Bruno API client workspace if an endpoint is updated
 

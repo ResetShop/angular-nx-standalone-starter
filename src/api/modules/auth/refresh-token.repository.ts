@@ -1,7 +1,8 @@
 import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 import { refreshToken } from '../../../db/schema/refresh-token';
-import { REFRESH_TOKEN_EXPIRY_BUFFER_MS } from '../../constants/auth.constants';
+import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants';
 import { BaseRepository } from '../../helpers/base.repository';
+import { parseDurationToMs } from '../../utils/duration';
 import { isServerless } from '../../utils/environment';
 import {
 	type CleanupResult,
@@ -209,8 +210,8 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 		let totalDeleted = 0;
 		let batchCount = 0;
 
-		// Only delete tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER_MS ago to avoid race conditions
-		const cutoffTime = new Date(Date.now() - REFRESH_TOKEN_EXPIRY_BUFFER_MS);
+		// Only delete tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER ago to avoid race conditions
+		const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER));
 
 		while (batchCount < maxBatches) {
 			// Select a batch of expired token IDs (with buffer)

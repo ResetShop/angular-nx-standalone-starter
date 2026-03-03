@@ -1,5 +1,6 @@
 import { MIN_CRON_SECRET_LENGTH } from './constants/auth.constants';
 import { container } from './container/container';
+import { parseDurationToMs } from './utils/duration';
 import { isServerless } from './utils/environment';
 
 let cleanupInterval: NodeJS.Timeout | null = null;
@@ -22,23 +23,28 @@ function validateCronSecret(): void {
  */
 function startTokenCleanupJob(): void {
 	try {
-		const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
-		const MIN_INTERVAL_MS = 60 * 1000; // 1 minute
-		const MAX_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+		const MIN_INTERVAL_MS = parseDurationToMs('1m');
+		const MAX_INTERVAL_MS = parseDurationToMs('7d');
+		const DEFAULT_INTERVAL_MS = parseDurationToMs('24h');
+
+		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS'];
+		const PARSED_ENV_INTERVAL_MS = parseInt(envValue ?? '', 10);
 
 		const { authService } = container.cradle;
-		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS'];
-		const raw = parseInt(envValue ?? '', 10);
-		const isValidInterval = Number.isFinite(raw) && raw >= MIN_INTERVAL_MS && raw <= MAX_INTERVAL_MS;
+		const isValidInterval =
+			Number.isFinite(PARSED_ENV_INTERVAL_MS) &&
+			PARSED_ENV_INTERVAL_MS >= MIN_INTERVAL_MS &&
+			PARSED_ENV_INTERVAL_MS <= MAX_INTERVAL_MS;
 
 		if (envValue && !isValidInterval) {
 			console.warn(
 				`[CronJobs] WARNING: TOKEN_CLEANUP_INTERVAL_MS="${envValue}" is invalid. ` +
-					`Must be a number between ${MIN_INTERVAL_MS} and ${MAX_INTERVAL_MS}. Using default: ${DEFAULT_INTERVAL_MS}ms`,
+					`Must be a number between ${MIN_INTERVAL_MS} and ${MAX_INTERVAL_MS}. ` +
+					`Using default: ${DEFAULT_INTERVAL_MS}ms`,
 			);
 		}
 
-		const intervalMs = isValidInterval ? raw : DEFAULT_INTERVAL_MS;
+		const intervalMs = isValidInterval ? PARSED_ENV_INTERVAL_MS : DEFAULT_INTERVAL_MS;
 		console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
 
 		// Run immediately, then at interval

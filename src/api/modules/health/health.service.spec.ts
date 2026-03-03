@@ -1,6 +1,7 @@
-import { advanceTimersByTimeAsync, fn, useFakeTimers, useRealTimers } from '@test-utils';
+import { advanceTimersByTimeAsync, clearAllMocks, fn, useFakeTimers, useRealTimers } from '@test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { HealthStatus } from './health.constants';
+import { parseDurationToMs } from '../../utils/duration';
+import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants';
 import { HealthService } from './health.service';
 
 describe('HealthService', () => {
@@ -8,11 +9,11 @@ describe('HealthService', () => {
 	const mockExecute = fn<[unknown], Promise<unknown>>();
 
 	beforeEach(() => {
+		clearAllMocks();
 		healthService = new HealthService({ db: { execute: mockExecute } as never });
 	});
 
 	afterEach(() => {
-		mockExecute.mockClear();
 		useRealTimers();
 	});
 
@@ -46,7 +47,7 @@ describe('HealthService', () => {
 
 			const healthPromise = healthService.checkHealth();
 
-			await advanceTimersByTimeAsync(5000);
+			await advanceTimersByTimeAsync(parseDurationToMs(HEALTH_CHECK_TIMEOUT));
 
 			const result = await healthPromise;
 

@@ -1,4 +1,5 @@
-import { REFRESH_TOKEN_EXPIRY_BUFFER_MS } from '../../constants/auth.constants';
+import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants';
+import { parseDurationToMs } from '../../utils/duration';
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
@@ -32,7 +33,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 			userId: data.userId ?? 1,
 			tokenFamily: data.tokenFamily ?? 'test-family',
 			tokenHash,
-			expiresAt: data.expiresAt ?? new Date(Date.now() + 86400000),
+			expiresAt: data.expiresAt ?? new Date(Date.now() + parseDurationToMs('1d')),
 			isRevoked: data.isRevoked ?? false,
 			createdAt: data.createdAt ?? new Date(),
 			revokedAt: data.revokedAt ?? null,
@@ -123,9 +124,9 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 
 	async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		this.deleteAllExpiredCalled = true;
-		// Count and remove tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER_MS ago (matches real repo)
+		// Count and remove tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER ago (matches real repo)
 		let count = 0;
-		const cutoffTime = new Date(Date.now() - REFRESH_TOKEN_EXPIRY_BUFFER_MS);
+		const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER));
 		for (const [hash, token] of this.tokens.entries()) {
 			if (token.expiresAt < cutoffTime) {
 				this.tokens.delete(hash);

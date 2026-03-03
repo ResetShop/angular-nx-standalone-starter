@@ -2,7 +2,9 @@ import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/
 import { fn } from '@test-utils';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
+import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
+import { parseDurationToMs } from '../../utils/duration';
 import { MockUserRepository } from '../user/user.repository.mock';
 import { AuthService } from './auth.service';
 import { MockAuthenticationRepository } from './authentication.repository.mock';
@@ -243,7 +245,7 @@ describe('AuthService', () => {
 			mockAuthRepo.addAuthRecord(testUser.id, {
 				passwordHash: testPasswordHash,
 				failedLoginAttempts: 5,
-				lockedUntil: new Date(Date.now() + 900000), // 15 minutes from now
+				lockedUntil: new Date(Date.now() + parseDurationToMs(DEFAULT_LOCKOUT_DURATION)),
 			});
 
 			await expect(
@@ -260,7 +262,7 @@ describe('AuthService', () => {
 			mockAuthRepo.addAuthRecord(testUser.id, {
 				passwordHash: testPasswordHash,
 				failedLoginAttempts: 5,
-				lockedUntil: new Date(Date.now() - 1000), // 1 second ago (expired)
+				lockedUntil: new Date(Date.now() - parseDurationToMs('1s')), // 1 second ago (expired)
 			});
 
 			const result = await authService.authenticate({
@@ -355,7 +357,7 @@ describe('AuthService', () => {
 				userId: testUser.id,
 				tokenFamily,
 				isRevoked: false,
-				expiresAt: new Date(Date.now() + 86400000), // 1 day from now
+				expiresAt: new Date(Date.now() + parseDurationToMs('1d')), // 1 day from now
 			});
 		});
 
@@ -402,7 +404,7 @@ describe('AuthService', () => {
 				userId: testUser.id,
 				tokenFamily,
 				isRevoked: true,
-				expiresAt: new Date(Date.now() + 86400000),
+				expiresAt: new Date(Date.now() + parseDurationToMs('1d')),
 			});
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
@@ -418,7 +420,7 @@ describe('AuthService', () => {
 				userId: testUser.id,
 				tokenFamily,
 				isRevoked: false,
-				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+				expiresAt: new Date(Date.now() - parseDurationToMs('1d')), // 1 day ago
 			});
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
@@ -503,15 +505,15 @@ describe('AuthService', () => {
 			// Add some expired tokens
 			mockRefreshTokenRepo.addToken('expired-1', {
 				userId: 1,
-				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+				expiresAt: new Date(Date.now() - parseDurationToMs('1d')), // 1 day ago
 			});
 			mockRefreshTokenRepo.addToken('expired-2', {
 				userId: 2,
-				expiresAt: new Date(Date.now() - 86400000), // 1 day ago
+				expiresAt: new Date(Date.now() - parseDurationToMs('1d')), // 1 day ago
 			});
 			mockRefreshTokenRepo.addToken('valid', {
 				userId: 3,
-				expiresAt: new Date(Date.now() + 86400000), // 1 day from now
+				expiresAt: new Date(Date.now() + parseDurationToMs('1d')), // 1 day from now
 			});
 
 			const result = await authService.cleanupExpiredTokens();
