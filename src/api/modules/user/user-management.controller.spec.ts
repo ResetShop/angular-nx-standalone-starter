@@ -375,18 +375,18 @@ describe('User Management Controller', () => {
 
 	describe('PATCH /users/:id/status', () => {
 		it('should update user status', async () => {
-			const suspendedUser = { ...testManagedUser, status: 'suspended' as const };
-			mockUpdateUserStatus.mockResolvedValue(suspendedUser);
+			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
+			mockUpdateUserStatus.mockResolvedValue(disabledUser);
 
 			const res = await app.request('/users/1/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'suspended' }),
+				body: JSON.stringify({ status: 'disabled' }),
 			});
 
 			expect(res.status).toBe(200);
 			const data = await res.json();
-			expect(data.status).toBe('suspended');
+			expect(data.status).toBe('disabled');
 		});
 
 		it('should return 403 when trying to change own status', async () => {
@@ -395,7 +395,7 @@ describe('User Management Controller', () => {
 			const res = await app.request(`/users/${ADMIN_USER_ID}/status`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'suspended' }),
+				body: JSON.stringify({ status: 'disabled' }),
 			});
 
 			expect(res.status).toBe(403);
@@ -409,26 +409,12 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/999/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'suspended' }),
+				body: JSON.stringify({ status: 'disabled' }),
 			});
 
 			expect(res.status).toBe(404);
 			const data = await res.json();
 			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.NOT_FOUND);
-		});
-
-		it('should return 409 when account is in terminal state', async () => {
-			mockUpdateUserStatus.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.TERMINAL_STATE));
-
-			const res = await app.request('/users/1/status', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'active' }),
-			});
-
-			expect(res.status).toBe(409);
-			const data = await res.json();
-			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.TERMINAL_STATE);
 		});
 
 		it('should return 422 for invalid state transition', async () => {
@@ -449,7 +435,7 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/invalid/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'suspended' }),
+				body: JSON.stringify({ status: 'disabled' }),
 			});
 
 			expect(res.status).toBe(400);
@@ -461,7 +447,7 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/1/status', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ status: 'pending' }),
+				body: JSON.stringify({ status: 'suspended' }),
 			});
 
 			expect(res.status).toBe(400);

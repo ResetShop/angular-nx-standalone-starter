@@ -206,9 +206,7 @@ export class AuthService implements IAuthService {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND));
 		} else if (user.status === UserStatus.DELETED) {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED));
-		} else if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.BANNED) {
-			// Both suspended and banned map to ACCOUNT_DISABLED to avoid
-			// leaking specific account state to unauthenticated callers.
+		} else if (user.status === UserStatus.DISABLED) {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED));
 		} else {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
@@ -298,7 +296,6 @@ export class AuthService implements IAuthService {
 		}
 
 		if (user.status !== UserStatus.ACTIVE) {
-			// Covers suspended, banned — any non-active non-deleted state
 			throw new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED);
 		}
 

@@ -19,7 +19,6 @@ export const USER_MANAGEMENT_ERRORS = {
 	EMAIL_EXISTS: 'A user with this email already exists',
 	SELF_LOCKOUT: 'Cannot change status of your own account',
 	INVALID_TRANSITION: 'Invalid status transition',
-	TERMINAL_STATE: 'Account is in a terminal state and cannot be modified',
 } as const;
 
 /**
@@ -32,13 +31,12 @@ export const userManagementErrors = {
 	selfLockout: () => new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT),
 	invalidTransition: (from: string, to: string) =>
 		new Error(`${USER_MANAGEMENT_ERRORS.INVALID_TRANSITION}: ${from} -> ${to}`),
-	terminalState: (status: string) => new Error(`${USER_MANAGEMENT_ERRORS.TERMINAL_STATE} (status: ${status})`),
 };
 
 function isValidTransition(from: UserStatus, to: UserStatus): boolean {
 	const allowed: Partial<Record<UserStatus, UserStatus[]>> = {
-		[UserStatusValue.ACTIVE]: [UserStatusValue.SUSPENDED, UserStatusValue.BANNED],
-		[UserStatusValue.SUSPENDED]: [UserStatusValue.ACTIVE],
+		[UserStatusValue.ACTIVE]: [UserStatusValue.DISABLED],
+		[UserStatusValue.DISABLED]: [UserStatusValue.ACTIVE],
 	};
 	return allowed[from]?.includes(to) ?? false;
 }
@@ -189,7 +187,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @param params - Status change parameters
 	 * @param currentUserId - The ID of the admin performing the change
 	 * @returns Updated user with roles
-	 * @throws Error if self-lockout, terminal state, or invalid transition
+	 * @throws Error if self-lockout or invalid transition
 	 */
 	async updateUserStatus(id: number, params: UpdateUserStatusParams, currentUserId: number): Promise<ManagedUserData> {
 		if (id === currentUserId) {
@@ -199,11 +197,6 @@ export class UserManagementService implements IUserManagementService {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id);
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id);
-		}
-
-		const terminalStatuses: UserStatus[] = [UserStatusValue.DELETED, UserStatusValue.BANNED];
-		if (terminalStatuses.includes(existingUser.status)) {
-			throw userManagementErrors.terminalState(existingUser.status);
 		}
 
 		if (!isValidTransition(existingUser.status, params.status)) {
