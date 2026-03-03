@@ -2,6 +2,7 @@ import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/
 import { fn } from '@test-utils';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
+import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
 import { parseDurationToMs } from '../../utils/duration';
 import { MockUserRepository } from '../user/user.repository.mock';
@@ -245,7 +246,7 @@ describe('AuthService', () => {
 			mockAuthRepo.addAuthRecord(testUser.id, {
 				passwordHash: testPasswordHash,
 				failedLoginAttempts: 5,
-				lockedUntil: new Date(Date.now() + parseDurationToMs('15m')), // 15 minutes from now
+				lockedUntil: new Date(Date.now() + parseDurationToMs(DEFAULT_LOCKOUT_DURATION)),
 			});
 
 			await expect(
