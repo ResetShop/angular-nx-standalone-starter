@@ -240,9 +240,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	}
 
 	/**
-	 * Soft deletes a user by setting deleted=true and enabled=false.
+	 * Soft deletes a user by setting status to `deleted` and recording the audit trail.
 	 *
 	 * @param id - The user's primary key
+	 * @param changedBy - The ID of the admin performing the deletion
 	 * @returns true if the user was deleted, false if not found
 	 */
 	async softDelete(id: number, changedBy: number): Promise<boolean> {

@@ -220,10 +220,11 @@ export class UserManagementService implements IUserManagementService {
 	}
 
 	/**
-	 * Soft deletes a user by setting deleted=true.
+	 * Soft deletes a user by setting status to `deleted`.
 	 *
 	 * @param id - The user's primary key
-	 * @throws Error if user not found
+	 * @param currentUserId - The ID of the admin performing the deletion
+	 * @throws Error if self-lockout or user not found
 	 */
 	async deleteUser(id: number, currentUserId: number): Promise<void> {
 		if (id === currentUserId) {
