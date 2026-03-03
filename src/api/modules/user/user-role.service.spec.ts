@@ -1,8 +1,9 @@
 import { UserStatus } from '@contracts/user/user.schemas';
 import { clearAllMocks, fn } from '@test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
-import type { IUserRoleRepository, PaginatedResponse, UserData } from './interfaces';
+import type { PaginatedResponse } from '../../interfaces';
+import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
+import type { IUserRepository, IUserRoleRepository, UserData } from './interfaces';
 import { USER_ROLE_ERRORS } from './user-role.errors';
 import { UserRoleService } from './user-role.service';
 
@@ -31,19 +32,21 @@ describe('UserRoleService', () => {
 		replaceUserRoles: mockReplaceUserRoles,
 	};
 
-	const mockUserRepository = {
+	const mockUserRepository: IUserRepository = {
 		findById: mockFindUserById,
 		findByEmail: fn(),
 	};
 
-	const mockRoleRepository = {
+	const mockRoleRepository: IRoleRepository = {
 		findById: mockFindRoleById,
+		findByName: fn(),
 		findByCode: fn(),
 		findAll: fn(),
 		create: fn(),
 		update: fn(),
 		delete: fn(),
 		findPermissionsForRole: fn(),
+		findPermissionsByIds: fn(),
 		assignPermissions: fn(),
 		removeAllPermissions: fn(),
 	};
