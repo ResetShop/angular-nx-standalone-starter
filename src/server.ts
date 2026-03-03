@@ -20,12 +20,6 @@ import { verifyHealth } from './api/modules/health/verify-health';
 import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
 import { buildSwaggerHtml } from './api/swagger-ui';
 
-/**
- * Max-age for static asset caching.
- * Used for immutable static files served from /browser.
- */
-const STATIC_CACHE_MAX_AGE = '365d';
-
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
 import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
@@ -128,7 +122,7 @@ app.use(
 	serveStatic({
 		root: join(import.meta.dirname, '../browser'),
 		onFound: (path, c) => {
-			c.header('Cache-Control', `public, immutable, max-age=${parseDurationToSeconds(STATIC_CACHE_MAX_AGE)}`);
+			c.header('Cache-Control', `public, immutable, max-age=${parseDurationToSeconds('365d')}`);
 		},
 		onNotFound: () => {
 			// Optionally log or handle the case where a static file is not found
