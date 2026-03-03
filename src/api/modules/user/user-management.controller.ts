@@ -1,7 +1,11 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import { createUserRequestSchema, updateUserRequestSchema } from '@contracts/user/user.schemas';
-import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types';
+import {
+	createUserRequestSchema,
+	updateUserRequestSchema,
+	updateUserStatusRequestSchema,
+} from '@contracts/user/user.schemas';
+import type { CreateUserResponse, ManagedUser, UpdateUserStatusRequest } from '@contracts/user/user.types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -15,7 +19,9 @@ import { USER_MANAGEMENT_ERRORS } from './user-management.service';
 const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
 	[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
-	[USER_MANAGEMENT_ERRORS.SELF_DISABLE, 403],
+	[USER_MANAGEMENT_ERRORS.SELF_LOCKOUT, 403],
+	[USER_MANAGEMENT_ERRORS.TERMINAL_STATE, 409],
+	[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
 ] as const;
 
 const idParamSchema = z.object({ id: z.coerce.number().int().positive() });
@@ -115,10 +121,48 @@ app.patch(
 		const { userManagementService } = container.cradle;
 		const { id } = c.req.valid('param');
 		const body = c.req.valid('json');
+
+		try {
+			const userData = await userManagementService.updateUser(id, body);
+			return c.json<ManagedUser>(userData);
+		} catch (error) {
+			if (error instanceof Error) {
+				for (const [prefix, status] of ERROR_STATUS_MAP) {
+					if (error.message.startsWith(prefix)) {
+						return c.json<ErrorResponse>({ error: error.message }, status);
+					}
+				}
+			}
+			throw error;
+		}
+	},
+);
+
+/**
+ * PATCH /api/user/:id/status
+ * Update user account status (state machine enforcement)
+ */
+app.patch(
+	'/:id/status',
+	requirePermission(ADMIN_USER_PERMISSIONS.DISABLE),
+	zValidator('param', idParamSchema, (result, c) => {
+		if (!result.success) {
+			return c.json<ErrorResponse>({ error: 'Invalid user ID' }, 400);
+		}
+	}),
+	zValidator('json', updateUserStatusRequestSchema),
+	async (c) => {
+		const { userManagementService } = container.cradle;
+		const { id } = c.req.valid('param');
+		const body: UpdateUserStatusRequest = c.req.valid('json');
 		const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
 		try {
-			const userData = await userManagementService.updateUser(id, body, currentUserId);
+			const userData = await userManagementService.updateUserStatus(
+				id,
+				{ status: body.status, changedBy: currentUserId },
+				currentUserId,
+			);
 			return c.json<ManagedUser>(userData);
 		} catch (error) {
 			if (error instanceof Error) {
@@ -148,13 +192,18 @@ app.delete(
 	async (c) => {
 		const { userManagementService } = container.cradle;
 		const { id } = c.req.valid('param');
+		const currentUserId = Number((c as AuthenticatedContext).user?.sub);
 
 		try {
-			await userManagementService.deleteUser(id);
+			await userManagementService.deleteUser(id, currentUserId);
 			return c.json<SuccessMessage>({ message: 'User deleted successfully' });
 		} catch (error) {
-			if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.NOT_FOUND)) {
-				return c.json<ErrorResponse>({ error: error.message }, 404);
+			if (error instanceof Error) {
+				for (const [prefix, status] of ERROR_STATUS_MAP) {
+					if (error.message.startsWith(prefix)) {
+						return c.json<ErrorResponse>({ error: error.message }, status);
+					}
+				}
 			}
 			throw error;
 		}

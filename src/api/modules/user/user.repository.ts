@@ -22,8 +22,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
 			})
 			.from(user)
 			.where(eq(user.email, email))
@@ -46,8 +45,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
 			})
 			.from(user)
 			.where(eq(user.id, id))

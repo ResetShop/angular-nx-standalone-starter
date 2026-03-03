@@ -1,4 +1,5 @@
 import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors';
+import { UserStatus } from '@contracts/user/user.schemas';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
 import { type IPasetoService } from '../../services/paseto/interfaces';
@@ -153,7 +154,7 @@ export class AuthService implements IAuthService {
 		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy';
 		const passwordMatch = await compare(password, hashToCompare);
 
-		if (!user || !authRecord || !passwordMatch || user.deleted || !user.enabled) {
+		if (!user || !authRecord || !passwordMatch || user.status !== UserStatus.ACTIVE) {
 			await this.handleFailedLogin(user, authRecord);
 			throw new AuthError(InternalAuthErrorCode.INVALID_CREDENTIALS);
 		}
@@ -203,9 +204,11 @@ export class AuthService implements IAuthService {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND));
 		} else if (!authRecord) {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND));
-		} else if (user.deleted) {
+		} else if (user.status === UserStatus.DELETED) {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED));
-		} else if (!user.enabled) {
+		} else if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.BANNED) {
+			// Both suspended and banned map to ACCOUNT_DISABLED to avoid
+			// leaking specific account state to unauthenticated callers.
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED));
 		} else {
 			console.error(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
@@ -290,11 +293,12 @@ export class AuthService implements IAuthService {
 
 		// 5. Get user data and validate account status
 		const user = await this.userRepository.findById(Number(payload.sub));
-		if (!user || user.deleted) {
+		if (!user || user.status === UserStatus.DELETED) {
 			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND);
 		}
 
-		if (!user.enabled) {
+		if (user.status !== UserStatus.ACTIVE) {
+			// Covers suspended, banned — any non-active non-deleted state
 			throw new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED);
 		}
 

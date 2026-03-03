@@ -6,6 +6,7 @@ import type {
 	createUserResponseSchema,
 	managedUserSchema,
 	updateUserRequestSchema,
+	updateUserStatusRequestSchema,
 	userDataSchema,
 } from './user.schemas';
 
@@ -30,3 +31,4 @@ export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>;
 // ============================================================================
 
 export type AssignRoleToUserRequest = z.infer<typeof assignRoleToUserRequestSchema>;
+export type UpdateUserStatusRequest = z.infer<typeof updateUserStatusRequestSchema>;

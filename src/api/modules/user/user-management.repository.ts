@@ -1,4 +1,4 @@
-import { and, count, eq, ilike, inArray, or } from 'drizzle-orm';
+import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { role } from '../../../db/schema/role';
 import { user, userRole } from '../../../db/schema/user';
@@ -11,6 +11,7 @@ import type {
 	IUserManagementRepository,
 	ManagedUserData,
 	UpdateUserParams,
+	UpdateUserStatusParams,
 	UserData,
 } from './interfaces';
 
@@ -19,8 +20,10 @@ interface UserProjection {
 	email: string;
 	firstName: string;
 	lastName: string;
-	enabled: boolean | null;
-	deleted: boolean | null;
+	status: 'active' | 'suspended' | 'deleted' | 'banned';
+	statusChangedAt: Date | null;
+	statusChangedBy: number | null;
+	deletedAt: Date | null;
 	createdAt: Date | null;
 	updatedAt: Date | null;
 }
@@ -53,7 +56,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
 		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
 
-		const baseCondition = eq(user.deleted, false);
+		const baseCondition = ne(user.status, 'deleted');
 
 		const whereClause = search
 			? and(
@@ -73,8 +76,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 					email: user.email,
 					firstName: user.firstName,
 					lastName: user.lastName,
-					enabled: user.enabled,
-					deleted: user.deleted,
+					status: user.status,
+					statusChangedAt: user.statusChangedAt,
+					statusChangedBy: user.statusChangedBy,
+					deletedAt: user.deletedAt,
 					createdAt: user.createdAt,
 					updatedAt: user.updatedAt,
 				})
@@ -109,13 +114,15 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
+				statusChangedAt: user.statusChangedAt,
+				statusChangedBy: user.statusChangedBy,
+				deletedAt: user.deletedAt,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,
 			})
 			.from(user)
-			.where(and(eq(user.id, id), eq(user.deleted, false)))
+			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
 			.limit(1);
 
 		if (result.length === 0) {
@@ -139,11 +146,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
 			})
 			.from(user)
-			.where(and(eq(user.email, email), eq(user.deleted, false)))
+			.where(and(eq(user.email, email), ne(user.status, 'deleted')))
 			.limit(1);
 
 		return result.length > 0 ? result[0] : null;
@@ -170,8 +176,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 					email: user.email,
 					firstName: user.firstName,
 					lastName: user.lastName,
-					enabled: user.enabled,
-					deleted: user.deleted,
+					status: user.status,
+					statusChangedAt: user.statusChangedAt,
+					statusChangedBy: user.statusChangedBy,
+					deletedAt: user.deletedAt,
 					createdAt: user.createdAt,
 					updatedAt: user.updatedAt,
 				});
@@ -214,21 +222,17 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		if (params.lastName !== undefined) {
 			updateData.lastName = params.lastName;
 		}
-		if (params.enabled !== undefined) {
-			updateData.enabled = params.enabled;
-		}
 
 		const result = await this.db
 			.update(user)
 			.set(updateData)
-			.where(and(eq(user.id, id), eq(user.deleted, false)))
+			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
 			.returning({
 				id: user.id,
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
 			});
 
 		return result.length > 0 ? result[0] : null;
@@ -240,14 +244,51 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param id - The user's primary key
 	 * @returns true if the user was deleted, false if not found
 	 */
-	async softDelete(id: number): Promise<boolean> {
+	async softDelete(id: number, changedBy: number): Promise<boolean> {
+		const now = new Date();
 		const result = await this.db
 			.update(user)
-			.set({ deleted: true, enabled: false, updatedAt: new Date() })
-			.where(and(eq(user.id, id), eq(user.deleted, false)))
+			.set({
+				status: 'deleted',
+				statusChangedAt: now,
+				statusChangedBy: changedBy,
+				deletedAt: now,
+				updatedAt: now,
+			})
+			.where(and(eq(user.id, id), ne(user.status, 'deleted')))
 			.returning({ id: user.id });
 
 		return result.length > 0;
+	}
+
+	/**
+	 * Updates a user's account status with audit trail.
+	 * Terminal states (deleted, banned) cannot be changed.
+	 *
+	 * @param id - The user's primary key
+	 * @param params - Status change parameters including the new status and who changed it
+	 * @returns Updated user data, or null if not found or in a terminal state
+	 */
+	async updateStatus(id: number, params: UpdateUserStatusParams): Promise<UserData | null> {
+		const now = new Date();
+		const result = await this.db
+			.update(user)
+			.set({
+				status: params.status,
+				statusChangedAt: now,
+				statusChangedBy: params.changedBy,
+				updatedAt: now,
+			})
+			.where(and(eq(user.id, id), ne(user.status, 'deleted'), ne(user.status, 'banned')))
+			.returning({
+				id: user.id,
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				status: user.status,
+			});
+
+		return result.length > 0 ? result[0] : null;
 	}
 
 	/**
@@ -280,8 +321,6 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 
 		return users.map((u) => ({
 			...u,
-			enabled: u.enabled ?? true,
-			deleted: u.deleted ?? false,
 			roles: rolesByUserId.get(u.id) ?? [],
 		}));
 	}

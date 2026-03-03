@@ -2,6 +2,21 @@ import { z } from 'zod';
 import { roleDataSchema } from '../role/role.schemas';
 
 // ============================================================================
+// User Status
+// ============================================================================
+
+export const UserStatus = Object.freeze({
+	ACTIVE: 'active',
+	SUSPENDED: 'suspended',
+	DELETED: 'deleted',
+	BANNED: 'banned',
+} as const);
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
+
+export const userStatusSchema = z.enum(['active', 'suspended', 'deleted', 'banned']);
+
+// ============================================================================
 // User Data Schemas
 // ============================================================================
 
@@ -13,8 +28,7 @@ export const userDataSchema = z.object({
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
-	enabled: z.boolean(),
-	deleted: z.boolean(),
+	status: userStatusSchema,
 });
 
 /**
@@ -41,8 +55,10 @@ export const managedUserSchema = z.object({
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
-	enabled: z.boolean(),
-	deleted: z.boolean(),
+	status: userStatusSchema,
+	statusChangedAt: z.coerce.date().nullable(),
+	statusChangedBy: z.number().nullable(),
+	deletedAt: z.coerce.date().nullable(),
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
 	roles: z.array(roleDataSchema),
@@ -81,8 +97,15 @@ export const updateUserRequestSchema = z.object({
 	email: z.email().optional(),
 	firstName: z.string().min(1).max(100).optional(),
 	lastName: z.string().min(1).max(100).optional(),
-	enabled: z.boolean().optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),
+});
+
+/**
+ * Update user status request body schema.
+ * Only allows non-terminal transitions — use DELETE endpoint for deletion.
+ */
+export const updateUserStatusRequestSchema = z.object({
+	status: z.enum(['active', 'suspended', 'banned']),
 });
 
 // ============================================================================
