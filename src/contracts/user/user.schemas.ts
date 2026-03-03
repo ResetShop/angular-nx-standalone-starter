@@ -14,7 +14,7 @@ export const UserStatus = Object.freeze({
 
 export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 
-export const userStatusSchema = z.enum(['active', 'disabled', 'deleted']);
+export const userStatusSchema = z.enum([UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED]);
 
 // ============================================================================
 // User Data Schemas
@@ -105,7 +105,7 @@ export const updateUserRequestSchema = z.object({
  * Only allows non-terminal transitions — use DELETE endpoint for deletion.
  */
 export const updateUserStatusRequestSchema = z.object({
-	status: z.enum(['active', 'disabled']),
+	status: z.enum([UserStatus.ACTIVE, UserStatus.DISABLED]),
 });
 
 // ============================================================================
