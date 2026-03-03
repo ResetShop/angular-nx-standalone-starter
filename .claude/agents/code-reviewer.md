@@ -31,10 +31,12 @@ Before reviewing, read ALL reference files to have full project context:
 
 ## Review Process
 
-1. **Identify changes** - Run `git diff main...HEAD` to see all changes on the branch
+1. **Identify changes** - Use `git diff main...HEAD` (via Bash, without prefixing `cd`) to see all changes on the branch
 2. **Review against CLAUDE.md and reference files** guidelines
 3. **Check test coverage** - Verify tests exist for new code
-4. **Run build and tests** - Ensure nothing is broken
+4. **Run build and tests** - Use `npm run ci` (via Bash, without prefixing `cd`) to ensure nothing is broken
+
+**IMPORTANT**: Never prefix Bash commands with `cd <project-root> &&`. The working directory is already set to the project root. Using `cd` changes the command signature and triggers unnecessary permission prompts.
 
 ## Review Checklist
 
@@ -50,6 +52,7 @@ Before reviewing, read ALL reference files to have full project context:
 - [ ] No `console.log` (remove before commit)
 - [ ] No direct `vi.fn()`, `vi.mock()`, or timer calls (use `@test-utils` wrappers)
 - [ ] No module-level constants/variables that are only used by a single function — keep them local (see CLAUDE.md Scope Rules)
+- [ ] No raw millisecond/second literals for time intervals — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` (see CLAUDE.md Duration String Convention)
 - [ ] Repository methods use `find*()` for reads, services use `get[Entity]()`/`getAll[Entities]()` — never `list()` or bare CRUD names (see CLAUDE.md Backend API Naming Conventions)
 - [ ] Inline query result types in repository method signatures (3+ fields) extracted into file-local `Projection` interfaces (see CLAUDE.md Repository Projection Types)
 - [ ] Backend routes defined in `*.routes.ts` using `createRoute()`, handlers in `*.controller.ts` using `registerRoute()` — never inline route+handler in a single file

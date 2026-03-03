@@ -13,18 +13,13 @@ import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
+import { parseDurationToMs, parseDurationToSeconds } from './api/utils/duration';
 
 // Health verification - runs all startup checks (DI container, database, etc.)
 import { ACCESS_TOKEN_COOKIE_NAME } from './api/constants/auth.constants';
 import { verifyHealth } from './api/modules/health/verify-health';
 import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
 import { buildSwaggerHtml } from './api/swagger-ui';
-
-/**
- * Max-age for static asset caching (1 year in seconds).
- * Used for immutable static files served from /browser.
- */
-const STATIC_CACHE_MAX_AGE_SECONDS = 31536000;
 
 // Token middlewares
 import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
@@ -46,7 +41,7 @@ app.use(
 		credentials: true,
 		allowHeaders: ['Content-Type', 'Authorization'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-		maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Cache preflight requests (default: 24 hours)
+		maxAge: Number(process.env['CORS_MAX_AGE']) || parseDurationToSeconds('24h'), // Cache preflight requests
 	}),
 );
 app.use(secureHeaders());
@@ -127,7 +122,7 @@ app.use(
 	serveStatic({
 		root: join(import.meta.dirname, '../browser'),
 		onFound: (path, c) => {
-			c.header('Cache-Control', `public, immutable, max-age=${STATIC_CACHE_MAX_AGE_SECONDS}`);
+			c.header('Cache-Control', `public, immutable, max-age=${parseDurationToSeconds('365d')}`);
 		},
 		onNotFound: () => {
 			// Optionally log or handle the case where a static file is not found
@@ -193,7 +188,6 @@ if (isMainModule(import.meta.url)) {
 		);
 
 		// Graceful shutdown handler with timeout
-		const SHUTDOWN_TIMEOUT_MS = 10000; // 10 seconds
 		const gracefulShutdown = (signal: string) => {
 			console.log(`\n${signal} received. Starting graceful shutdown...`);
 			stopCronJobs();
@@ -202,7 +196,7 @@ if (isMainModule(import.meta.url)) {
 			const forceExitTimeout = setTimeout(() => {
 				console.error('Graceful shutdown timed out. Forcing exit...');
 				process.exit(1);
-			}, SHUTDOWN_TIMEOUT_MS);
+			}, parseDurationToMs('10s'));
 
 			server.close(() => {
 				clearTimeout(forceExitTimeout);
