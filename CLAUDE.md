@@ -467,8 +467,10 @@ interface UserProjection {
 	email: string;
 	firstName: string;
 	lastName: string;
-	enabled: boolean | null;
-	deleted: boolean | null;
+	status: UserStatus;
+	statusChangedAt: Date | null;
+	statusChangedBy: number | null;
+	deletedAt: Date | null;
 	createdAt: Date | null;
 	updatedAt: Date | null;
 }

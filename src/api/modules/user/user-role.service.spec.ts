@@ -54,8 +54,7 @@ describe('UserRoleService', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		enabled: true,
-		deleted: false,
+		status: 'active' as const,
 	};
 
 	const testRole: RoleData = {

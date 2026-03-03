@@ -46,8 +46,10 @@ docs {
   | email | string | Email address |
   | firstName | string | First name |
   | lastName | string | Last name |
-  | enabled | boolean | Whether the user is enabled |
-  | deleted | boolean | Whether the user is soft-deleted |
+  | status | string | Account status: 'active', 'disabled', or 'deleted' |
+  | statusChangedAt | string | ISO 8601 timestamp of last status change |
+  | statusChangedBy | number | User ID of admin who changed status |
+  | deletedAt | string | ISO 8601 soft-deletion timestamp |
   | createdAt | string | ISO 8601 creation timestamp |
   | updatedAt | string | ISO 8601 update timestamp |
   | roles | array | Array of assigned role objects |
