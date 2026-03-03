@@ -35,7 +35,8 @@ const app = createOpenAPIApp();
  */
 registerRoute(app, listUsersRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const { offset, limit, search } = c.req.valid('query');
+	// TODO: Replace inline type with SearchPaginationParams once defined in contracts (prototype branch)
+	const { offset, limit, search }: { offset?: number; limit?: number; search?: string } = c.req.valid('query');
 
 	const users = await userManagementService.getAllUsers({ offset, limit }, search);
 	return c.json<PaginatedResponse<ManagedUser>>(users);
