@@ -1,3 +1,4 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import { relations } from 'drizzle-orm';
 import { foreignKey, index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { role } from './role';
@@ -11,7 +12,7 @@ export const user = pgTable(
 		firstName: text('first_name').notNull(),
 		lastName: text('last_name').notNull(),
 		email: text('email').notNull().unique(),
-		status: userStatusEnum('status').notNull().default('active'),
+		status: userStatusEnum('status').notNull().default(UserStatus.ACTIVE),
 		statusChangedAt: timestamp('status_changed_at'),
 		// Standalone FK avoids circular type inference from inline .references()
 		// on a self-referencing column (breaks Drizzle relational query types).
