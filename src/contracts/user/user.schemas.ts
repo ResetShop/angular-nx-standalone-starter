@@ -32,7 +32,7 @@ export const userDataSchema = z.object({
 
 /**
  * Auth user schema (subset of user data for authentication responses).
- * Excludes `enabled` and `deleted` fields which are internal.
+ * Excludes `status` and audit fields which belong to the management layer only.
  */
 export const authUserSchema = z.object({
 	id: z.number(),
