@@ -202,11 +202,11 @@ export class UserManagementService implements IUserManagementService {
 		}
 
 		const terminalStatuses: UserStatus[] = [UserStatusValue.DELETED, UserStatusValue.BANNED];
-		if (terminalStatuses.includes(existingUser.status as UserStatus)) {
+		if (terminalStatuses.includes(existingUser.status)) {
 			throw userManagementErrors.terminalState(existingUser.status);
 		}
 
-		if (!isValidTransition(existingUser.status as UserStatus, params.status)) {
+		if (!isValidTransition(existingUser.status, params.status)) {
 			throw userManagementErrors.invalidTransition(existingUser.status, params.status);
 		}
 
