@@ -1,3 +1,4 @@
+import type { UserStatus } from '@contracts/user/user.schemas';
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { role } from '../../../db/schema/role';
@@ -20,7 +21,7 @@ interface UserProjection {
 	email: string;
 	firstName: string;
 	lastName: string;
-	status: 'active' | 'suspended' | 'deleted' | 'banned';
+	status: UserStatus;
 	statusChangedAt: Date | null;
 	statusChangedBy: number | null;
 	deletedAt: Date | null;
