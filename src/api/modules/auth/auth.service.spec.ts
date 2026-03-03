@@ -1,4 +1,5 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
+import { UserStatus } from '@contracts/user/user.schemas';
 import { fn } from '@test-utils';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
@@ -26,7 +27,7 @@ describe('AuthService', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		status: 'active' as const,
+		status: UserStatus.ACTIVE,
 	};
 
 	const expectedAuthUser = {
@@ -125,7 +126,7 @@ describe('AuthService', () => {
 
 		it('should throw INVALID_CREDENTIALS error when user is deleted', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, status: 'deleted' as const });
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DELETED });
 
 			await expect(
 				authService.authenticate({
@@ -137,7 +138,7 @@ describe('AuthService', () => {
 
 		it('should throw INVALID_CREDENTIALS error when user is disabled', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, status: 'disabled' as const });
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DISABLED });
 
 			await expect(
 				authService.authenticate({
@@ -438,7 +439,7 @@ describe('AuthService', () => {
 
 		it('should throw USER_NOT_FOUND error when user is deleted', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, status: 'deleted' as const });
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DELETED });
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
@@ -447,7 +448,7 @@ describe('AuthService', () => {
 
 		it('should throw ACCOUNT_DISABLED error when user is disabled', async () => {
 			mockUserRepo.clear();
-			mockUserRepo.addUser({ ...testUser, status: 'disabled' as const });
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DISABLED });
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED),
