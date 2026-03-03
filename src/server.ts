@@ -188,7 +188,6 @@ if (isMainModule(import.meta.url)) {
 		);
 
 		// Graceful shutdown handler with timeout
-		const SHUTDOWN_TIMEOUT = '10s';
 		const gracefulShutdown = (signal: string) => {
 			console.log(`\n${signal} received. Starting graceful shutdown...`);
 			stopCronJobs();
@@ -197,7 +196,7 @@ if (isMainModule(import.meta.url)) {
 			const forceExitTimeout = setTimeout(() => {
 				console.error('Graceful shutdown timed out. Forcing exit...');
 				process.exit(1);
-			}, parseDurationToMs(SHUTDOWN_TIMEOUT));
+			}, parseDurationToMs('10s'));
 
 			server.close(() => {
 				clearTimeout(forceExitTimeout);
