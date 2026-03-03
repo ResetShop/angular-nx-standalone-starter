@@ -1,3 +1,4 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import { clearAllMocks, fn } from '@test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { IEmailService, SendEmailParams } from '../../services/email/interfaces';
@@ -63,7 +64,7 @@ describe('UserManagementService', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		status: 'active',
+		status: UserStatus.ACTIVE,
 	};
 
 	const testManagedUser: ManagedUserData = {
@@ -363,28 +364,28 @@ describe('UserManagementService', () => {
 
 	describe('updateUserStatus', () => {
 		it('should update status from active to disabled', async () => {
-			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
+			const disabledUser = { ...testManagedUser, status: UserStatus.DISABLED };
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 			mockUpdateStatus.mockResolvedValue(disabledUser);
 
-			const result = await service.updateUserStatus(1, { status: 'disabled', changedBy: 999 });
+			const result = await service.updateUserStatus(1, { status: UserStatus.DISABLED, changedBy: 999 });
 
-			expect(result.status).toBe('disabled');
+			expect(result.status).toBe(UserStatus.DISABLED);
 		});
 
 		it('should update status from disabled to active', async () => {
-			const disabledUser = { ...testManagedUser, status: 'disabled' as const };
-			const reactivatedUser = { ...testManagedUser, status: 'active' as const };
+			const disabledUser = { ...testManagedUser, status: UserStatus.DISABLED };
+			const reactivatedUser = { ...testManagedUser, status: UserStatus.ACTIVE };
 			mockFindByIdWithRoles.mockResolvedValue(disabledUser);
 			mockUpdateStatus.mockResolvedValue(reactivatedUser);
 
-			const result = await service.updateUserStatus(1, { status: 'active', changedBy: 999 });
+			const result = await service.updateUserStatus(1, { status: UserStatus.ACTIVE, changedBy: 999 });
 
-			expect(result.status).toBe('active');
+			expect(result.status).toBe(UserStatus.ACTIVE);
 		});
 
 		it('should throw SELF_LOCKOUT when changing own status', async () => {
-			await expect(service.updateUserStatus(1, { status: 'disabled', changedBy: 1 })).rejects.toThrow(
+			await expect(service.updateUserStatus(1, { status: UserStatus.DISABLED, changedBy: 1 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.SELF_LOCKOUT,
 			);
 		});
@@ -392,16 +393,16 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null);
 
-			await expect(service.updateUserStatus(999, { status: 'disabled', changedBy: 1 })).rejects.toThrow(
+			await expect(service.updateUserStatus(999, { status: UserStatus.DISABLED, changedBy: 1 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.NOT_FOUND,
 			);
 		});
 
 		it('should throw INVALID_TRANSITION when user is deleted', async () => {
-			const deletedUser = { ...testManagedUser, status: 'deleted' as const };
+			const deletedUser = { ...testManagedUser, status: UserStatus.DELETED };
 			mockFindByIdWithRoles.mockResolvedValue(deletedUser);
 
-			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 })).rejects.toThrow(
+			await expect(service.updateUserStatus(1, { status: UserStatus.ACTIVE, changedBy: 999 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
 			);
 		});
@@ -409,7 +410,7 @@ describe('UserManagementService', () => {
 		it('should throw INVALID_TRANSITION for same-status transition', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 
-			await expect(service.updateUserStatus(1, { status: 'active', changedBy: 999 })).rejects.toThrow(
+			await expect(service.updateUserStatus(1, { status: UserStatus.ACTIVE, changedBy: 999 })).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
 			);
 		});
