@@ -111,7 +111,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const { userManagementService } = container.cradle;
 	const id = Number(c.req.param('id'));
 	const body: UpdateUserStatusRequest = c.req.valid('json');
-	const currentUserId = Number((c as AuthenticatedContext).user?.sub);
+	const currentUserId = Number((c as AuthenticatedContext).user.sub);
 
 	try {
 		const userData = await userManagementService.updateUserStatus(
@@ -139,7 +139,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 registerRoute(app, deleteUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
 	const id = Number(c.req.param('id'));
-	const currentUserId = Number((c as AuthenticatedContext).user?.sub);
+	const currentUserId = Number((c as AuthenticatedContext).user.sub);
 
 	try {
 		await userManagementService.deleteUser(id, currentUserId);
