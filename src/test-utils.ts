@@ -18,6 +18,8 @@ export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> 
 	mockReturnValue: (value: TReturn) => MockFn<TArgs, TReturn>;
 	/** Set a custom implementation function */
 	mockImplementation: (impl: (...args: TArgs) => TReturn) => MockFn<TArgs, TReturn>;
+	/** Set a rejected promise as the return value for the next call only */
+	mockRejectedValueOnce: (error: unknown) => MockFn<TArgs, TReturn>;
 	/** Set a custom implementation function for the next call only */
 	mockImplementationOnce: (impl: (...args: TArgs) => TReturn) => MockFn<TArgs, TReturn>;
 	/** Set a direct return value for the next call only */
@@ -89,6 +91,11 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 
 	mockFn.mockImplementation = (impl: (...args: TArgs) => TReturn) => {
 		viFn.mockImplementation(impl);
+		return mockFn;
+	};
+
+	mockFn.mockRejectedValueOnce = (error: unknown) => {
+		viFn.mockRejectedValueOnce(error);
 		return mockFn;
 	};
 
