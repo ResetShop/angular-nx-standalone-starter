@@ -24,6 +24,17 @@ docs {
   ## Response
 
   Returns a success message.
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 403 | Self-lockout | Cannot delete your own account |
+  | 404 | User not found | No user exists with this ID |
+
+  ## Required Permission
+
+  `admin:users:delete`
 }
 
 assert {
