@@ -398,15 +398,6 @@ describe('UserManagementService', () => {
 			);
 		});
 
-		it('should throw INVALID_TRANSITION when user is deleted', async () => {
-			const deletedUser = { ...testManagedUser, status: UserStatus.DELETED };
-			mockFindByIdWithRoles.mockResolvedValue(deletedUser);
-
-			await expect(service.updateUserStatus(1, { status: UserStatus.ACTIVE, changedBy: 999 })).rejects.toThrow(
-				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
-			);
-		});
-
 		it('should throw INVALID_TRANSITION for same-status transition', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser);
 

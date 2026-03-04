@@ -9,7 +9,7 @@ import {
 } from '@contracts/user/user.schemas';
 import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { commonSecuredResponses, idParamSchema } from '../../openapi-config';
+import { commonResponses, idParamSchema } from '../../openapi-config';
 import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
 
 export const listUsersRoute = createRoute({
@@ -25,7 +25,7 @@ export const listUsersRoute = createRoute({
 			description: 'Paginated list of users',
 			content: { 'application/json': { schema: paginatedResponseSchema(managedUserSchema) } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -50,7 +50,7 @@ export const getUserRoute = createRoute({
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -76,7 +76,7 @@ export const createUserRoute = createRoute({
 			description: 'Email already exists',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -111,7 +111,7 @@ export const updateUserRoute = createRoute({
 			description: 'Email already exists',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -150,7 +150,7 @@ export const updateUserStatusRoute = createRoute({
 			description: 'Invalid status transition',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -175,6 +175,6 @@ export const deleteUserRoute = createRoute({
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });

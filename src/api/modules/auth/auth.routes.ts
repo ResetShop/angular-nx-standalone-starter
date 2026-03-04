@@ -9,7 +9,7 @@ import {
 } from '@contracts/auth/auth.schemas';
 import { errorResponseSchema } from '@contracts/common/error.schemas';
 import { createRoute } from '@hono/zod-openapi';
-import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonSecuredResponses } from '../../openapi-config';
+import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonResponses } from '../../openapi-config';
 
 export const loginRoute = createRoute({
 	method: 'post',
@@ -70,7 +70,7 @@ export const meRoute = createRoute({
 			description: 'Current user information',
 			content: { 'application/json': { schema: meResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 

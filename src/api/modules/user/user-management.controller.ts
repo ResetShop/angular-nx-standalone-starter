@@ -27,6 +27,14 @@ const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
 ] as const;
 
+function resolveErrorStatus(error: unknown): { message: string; status: 403 | 404 | 409 | 422 } | null {
+	if (!(error instanceof Error)) return null;
+	for (const [prefix, status] of ERROR_STATUS_MAP) {
+		if (error.message.startsWith(prefix)) return { message: error.message, status };
+	}
+	return null;
+}
+
 const app = createOpenAPIApp();
 
 /**
@@ -48,7 +56,7 @@ registerRoute(app, listUsersRoute, async (c) => {
  */
 registerRoute(app, getUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 
 	try {
 		const userData = await userManagementService.getUser(id);
@@ -86,20 +94,15 @@ registerRoute(app, createUserRoute, async (c) => {
  */
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 	const body: UpdateUserRequest = c.req.valid('json');
 
 	try {
 		const userData = await userManagementService.updateUser(id, body);
 		return c.json<ManagedUser>(userData);
 	} catch (error) {
-		if (error instanceof Error) {
-			for (const [prefix, status] of ERROR_STATUS_MAP) {
-				if (error.message.startsWith(prefix)) {
-					return c.json<ErrorResponse>({ error: error.message }, status);
-				}
-			}
-		}
+		const mapped = resolveErrorStatus(error);
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status);
 		throw error;
 	}
 });
@@ -110,7 +113,7 @@ registerRoute(app, updateUserRoute, async (c) => {
  */
 registerRoute(app, updateUserStatusRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 	const body: UpdateUserStatusRequest = c.req.valid('json');
 	const currentUserId = Number((c as AuthenticatedContext).user.sub);
 
@@ -121,13 +124,8 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 		});
 		return c.json<ManagedUser>(userData);
 	} catch (error) {
-		if (error instanceof Error) {
-			for (const [prefix, status] of ERROR_STATUS_MAP) {
-				if (error.message.startsWith(prefix)) {
-					return c.json<ErrorResponse>({ error: error.message }, status);
-				}
-			}
-		}
+		const mapped = resolveErrorStatus(error);
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status);
 		throw error;
 	}
 });
@@ -138,20 +136,15 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
  */
 registerRoute(app, deleteUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 	const currentUserId = Number((c as AuthenticatedContext).user.sub);
 
 	try {
 		await userManagementService.deleteUser(id, currentUserId);
 		return c.json<SuccessMessage>({ message: 'User deleted successfully' });
 	} catch (error) {
-		if (error instanceof Error) {
-			for (const [prefix, status] of ERROR_STATUS_MAP) {
-				if (error.message.startsWith(prefix)) {
-					return c.json<ErrorResponse>({ error: error.message }, status);
-				}
-			}
-		}
+		const mapped = resolveErrorStatus(error);
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status);
 		throw error;
 	}
 });
