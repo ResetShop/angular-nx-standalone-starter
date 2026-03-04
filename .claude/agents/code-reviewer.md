@@ -38,6 +38,12 @@ Before reviewing, read ALL reference files to have full project context:
 
 **IMPORTANT**: Never prefix Bash commands with `cd <project-root> &&`. The working directory is already set to the project root. Using `cd` changes the command signature and triggers unnecessary permission prompts.
 
+## Known False Positives — Do NOT Flag
+
+These patterns are intentional and correct. Do NOT report them as issues:
+
+- **Bruno files with `auth: none`**: This project uses httpOnly cookie-based authentication (PASETO tokens in cookies), NOT Authorization headers. Bruno's `auth` field controls the `Authorization` header, which is unused. All Bruno `.bru` files correctly use `auth: none` — the cookie is sent automatically. Never flag `auth: none` as a missing-auth bug.
+
 ## Review Checklist
 
 ### Hard Constraints (Blocking)
