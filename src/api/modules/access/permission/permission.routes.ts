@@ -2,7 +2,7 @@ import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/comm
 import { permissionDataSchema } from '@contracts/role/role.schemas';
 import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
-import { commonSecuredResponses } from '../../../openapi-config';
+import { commonResponses } from '../../../openapi-config';
 import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
 
 export const listPermissionsRoute = createRoute({
@@ -20,6 +20,6 @@ export const listPermissionsRoute = createRoute({
 			description: 'Paginated list of permissions',
 			content: { 'application/json': { schema: paginatedResponseSchema(permissionDataSchema) } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });

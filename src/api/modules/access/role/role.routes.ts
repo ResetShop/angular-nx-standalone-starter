@@ -14,7 +14,7 @@ import {
 } from '@contracts/role/role.schemas';
 import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
-import { commonSecuredResponses, idParamSchema } from '../../../openapi-config';
+import { commonResponses, idParamSchema } from '../../../openapi-config';
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
 
 export const listRolesRoute = createRoute({
@@ -30,7 +30,7 @@ export const listRolesRoute = createRoute({
 			description: 'Paginated list of roles',
 			content: { 'application/json': { schema: paginatedResponseSchema(roleDataSchema) } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -55,7 +55,7 @@ export const getRoleRoute = createRoute({
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -81,7 +81,7 @@ export const createRoleRoute = createRoute({
 			description: 'Duplicate role name or code',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -116,7 +116,7 @@ export const updateRoleRoute = createRoute({
 			description: 'Duplicate role name',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -145,7 +145,7 @@ export const deleteRoleRoute = createRoute({
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -173,7 +173,7 @@ export const getRolePermissionsRoute = createRoute({
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -208,6 +208,6 @@ export const assignPermissionsRoute = createRoute({
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });

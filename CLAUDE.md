@@ -412,7 +412,7 @@ The backend uses **OpenAPIHono** (`@hono/zod-openapi`). Every endpoint is a type
 - **Separate** route definitions (`*.routes.ts`) from handlers (`*.controller.ts`) — never inline both
 - Path parameters use `{id}` syntax (OpenAPI), not `:id` (Express)
 - **Always** add explicit type annotations to `c.req.valid()` calls
-- Use `commonSecuredResponses` (write endpoints) or `commonAuthResponses` (read endpoints) for standard error responses
+- Use `commonResponses` for standard error responses (401, 403, 500) on all protected endpoints
 
 ### Security Convention
 
