@@ -83,7 +83,7 @@ export const ADMIN_PERMISSIONS_SEED_DATA = [
 	},
 	{
 		name: ADMIN_USER_PERMISSIONS.DISABLE,
-		description: 'Disable user accounts',
+		description: 'Manage user account status',
 		resource: 'users',
 		action: 'disable',
 	},

@@ -1,3 +1,4 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import type { CreateUserResponse } from '@contracts/user/user.types';
 import { clearAllMocks, fn } from '@test-utils';
 import { Hono } from 'hono';
@@ -8,7 +9,7 @@ import type { PaginatedResponse } from '../../interfaces';
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware';
 import type { PermissionData, RoleData } from '../access/role/interfaces';
 import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
-import type { CreateUserParams, ManagedUserData, UpdateUserParams } from './interfaces';
+import type { CreateUserParams, ManagedUserData, UpdateUserParams, UpdateUserStatusParams } from './interfaces';
 import userManagementController from './user-management.controller';
 import { USER_MANAGEMENT_ERRORS } from './user-management.service';
 
@@ -20,8 +21,9 @@ describe('User Management Controller', () => {
 	>();
 	const mockGetUser = fn<[number], Promise<ManagedUserData>>();
 	const mockCreateUser = fn<[CreateUserParams], Promise<CreateUserResponse>>();
-	const mockUpdateUser = fn<[number, UpdateUserParams, number], Promise<ManagedUserData>>();
-	const mockDeleteUser = fn<[number], Promise<void>>();
+	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>();
+	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>();
+	const mockDeleteUser = fn<[number, number], Promise<void>>();
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>();
 
 	let app: Hono;
@@ -41,8 +43,10 @@ describe('User Management Controller', () => {
 		email: 'test@example.com',
 		firstName: 'Test',
 		lastName: 'User',
-		enabled: true,
-		deleted: false,
+		status: UserStatus.ACTIVE,
+		statusChangedAt: null,
+		statusChangedBy: null,
+		deletedAt: null,
 		createdAt: new Date('2024-01-01'),
 		updatedAt: new Date('2024-01-01'),
 		roles: [testRole],
@@ -54,6 +58,13 @@ describe('User Management Controller', () => {
 		{ id: 2, name: ADMIN_USER_PERMISSIONS.CREATE, description: 'Create users', resource: 'users', action: 'create' },
 		{ id: 3, name: ADMIN_USER_PERMISSIONS.UPDATE, description: 'Update users', resource: 'users', action: 'update' },
 		{ id: 4, name: ADMIN_USER_PERMISSIONS.DELETE, description: 'Delete users', resource: 'users', action: 'delete' },
+		{
+			id: 5,
+			name: ADMIN_USER_PERMISSIONS.DISABLE,
+			description: 'Manage user status',
+			resource: 'users',
+			action: 'disable',
+		},
 	];
 
 	const ADMIN_USER_ID = 999;
@@ -70,6 +81,7 @@ describe('User Management Controller', () => {
 					getUser: mockGetUser,
 					createUser: mockCreateUser,
 					updateUser: mockUpdateUser,
+					updateUserStatus: mockUpdateUserStatus,
 					deleteUser: mockDeleteUser,
 				},
 				userRoleService: {
@@ -347,25 +359,91 @@ describe('User Management Controller', () => {
 			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS);
 		});
 
-		it('should return 403 when trying to self-disable', async () => {
-			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_DISABLE));
-
-			const res = await app.request('/users/999', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ enabled: false }),
-			});
-
-			expect(res.status).toBe(403);
-			const data = await res.json();
-			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.SELF_DISABLE);
-		});
-
 		it('should return 400 for invalid ID', async () => {
 			const res = await app.request('/users/invalid', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ firstName: 'Updated' }),
+			});
+
+			expect(res.status).toBe(400);
+		});
+	});
+
+	describe('PATCH /users/:id/status', () => {
+		it('should update user status', async () => {
+			const disabledUser = { ...testManagedUser, status: UserStatus.DISABLED };
+			mockUpdateUserStatus.mockResolvedValue(disabledUser);
+
+			const res = await app.request('/users/1/status', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
+			});
+
+			expect(res.status).toBe(200);
+			const data = await res.json();
+			expect(data.status).toBe(UserStatus.DISABLED);
+			expect(mockUpdateUserStatus.calls[0]).toEqual([1, { status: UserStatus.DISABLED, changedBy: ADMIN_USER_ID }]);
+		});
+
+		it('should return 403 when trying to change own status', async () => {
+			mockUpdateUserStatus.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT));
+
+			const res = await app.request(`/users/${ADMIN_USER_ID}/status`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
+			});
+
+			expect(res.status).toBe(403);
+			const data = await res.json();
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT);
+		});
+
+		it('should return 404 when user not found', async () => {
+			mockUpdateUserStatus.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND));
+
+			const res = await app.request('/users/999/status', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
+			});
+
+			expect(res.status).toBe(404);
+			const data = await res.json();
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.NOT_FOUND);
+		});
+
+		it('should return 422 for invalid state transition', async () => {
+			mockUpdateUserStatus.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.INVALID_TRANSITION));
+
+			const res = await app.request('/users/1/status', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.ACTIVE }),
+			});
+
+			expect(res.status).toBe(422);
+			const data = await res.json();
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.INVALID_TRANSITION);
+		});
+
+		it('should return 400 for invalid ID', async () => {
+			const res = await app.request('/users/invalid/status', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
+			});
+
+			expect(res.status).toBe(400);
+		});
+
+		it('should return 400 for invalid status value', async () => {
+			const res = await app.request('/users/1/status', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: 'suspended' }),
 			});
 
 			expect(res.status).toBe(400);
@@ -395,6 +473,18 @@ describe('User Management Controller', () => {
 			expect(res.status).toBe(404);
 			const data = await res.json();
 			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.NOT_FOUND);
+		});
+
+		it('should return 403 when trying to self-delete', async () => {
+			mockDeleteUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT));
+
+			const res = await app.request(`/users/${ADMIN_USER_ID}`, {
+				method: 'DELETE',
+			});
+
+			expect(res.status).toBe(403);
+			const data = await res.json();
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT);
 		});
 
 		it('should return 400 for invalid ID', async () => {

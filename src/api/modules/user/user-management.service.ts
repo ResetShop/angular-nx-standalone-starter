@@ -1,3 +1,4 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import type { CreateUserResponse } from '@contracts/user/user.types';
 import { hash } from 'bcryptjs';
 import { BCRYPT_SALT_ROUNDS } from '../../constants/auth.constants';
@@ -10,12 +11,14 @@ import type {
 	IUserManagementService,
 	ManagedUserData,
 	UpdateUserParams,
+	UpdateUserStatusParams,
 } from './interfaces';
 
 export const USER_MANAGEMENT_ERRORS = {
 	NOT_FOUND: 'User not found',
 	EMAIL_EXISTS: 'A user with this email already exists',
-	SELF_DISABLE: 'Cannot disable your own account',
+	SELF_LOCKOUT: 'Cannot change status of your own account',
+	INVALID_TRANSITION: 'Invalid status transition',
 } as const;
 
 /**
@@ -25,7 +28,9 @@ export const USER_MANAGEMENT_ERRORS = {
 export const userManagementErrors = {
 	notFound: (id: number) => new Error(`${USER_MANAGEMENT_ERRORS.NOT_FOUND} (id: ${id})`),
 	emailExists: (email: string) => new Error(`${USER_MANAGEMENT_ERRORS.EMAIL_EXISTS} (email: ${email})`),
-	selfDisable: () => new Error(USER_MANAGEMENT_ERRORS.SELF_DISABLE),
+	selfLockout: () => new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT),
+	invalidTransition: (from: string, to: string) =>
+		new Error(`${USER_MANAGEMENT_ERRORS.INVALID_TRANSITION}: ${from} -> ${to}`),
 };
 
 interface UserManagementServiceDeps {
@@ -134,25 +139,17 @@ export class UserManagementService implements IUserManagementService {
 
 	/**
 	 * Updates an existing user's details and/or role assignments.
-	 * Prevents users from disabling their own account (self-lockout prevention).
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
-	 * @param currentUserId - The ID of the user performing the update
 	 * @returns Updated user with roles
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
-	 * @throws Error if attempting self-disable
 	 */
-	async updateUser(id: number, params: UpdateUserParams, currentUserId: number): Promise<ManagedUserData> {
+	async updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData> {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id);
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id);
-		}
-
-		// Self-lockout prevention: cannot disable own account
-		if (params.enabled === false && id === currentUserId) {
-			throw userManagementErrors.selfDisable();
 		}
 
 		// Check email uniqueness if changing email
@@ -174,15 +171,58 @@ export class UserManagementService implements IUserManagementService {
 	}
 
 	/**
-	 * Soft deletes a user by setting deleted=true.
+	 * Updates a user's account status with state machine enforcement.
+	 * Prevents self-lockout and invalid transitions.
 	 *
 	 * @param id - The user's primary key
-	 * @throws Error if user not found
+	 * @param params - Status change parameters (includes changedBy for audit + self-lockout check)
+	 * @returns Updated user with roles
+	 * @throws Error if self-lockout or invalid transition
 	 */
-	async deleteUser(id: number): Promise<void> {
-		const deleted = await this.userManagementRepository.softDelete(id);
+	async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
+		if (id === params.changedBy) {
+			throw userManagementErrors.selfLockout();
+		}
+
+		const existingUser = await this.userManagementRepository.findByIdWithRoles(id);
+		if (!existingUser) {
+			throw userManagementErrors.notFound(id);
+		}
+
+		if (!this.isValidTransition(existingUser.status, params.status)) {
+			throw userManagementErrors.invalidTransition(existingUser.status, params.status);
+		}
+
+		const updatedUser = await this.userManagementRepository.updateStatus(id, params);
+		if (!updatedUser) {
+			throw userManagementErrors.notFound(id);
+		}
+		return updatedUser;
+	}
+
+	/**
+	 * Soft deletes a user by setting status to `deleted`.
+	 *
+	 * @param id - The user's primary key
+	 * @param currentUserId - The ID of the admin performing the deletion
+	 * @throws Error if self-lockout or user not found
+	 */
+	async deleteUser(id: number, currentUserId: number): Promise<void> {
+		if (id === currentUserId) {
+			throw userManagementErrors.selfLockout();
+		}
+		const deleted = await this.userManagementRepository.softDelete(id, currentUserId);
 		if (!deleted) {
 			throw userManagementErrors.notFound(id);
 		}
+	}
+
+	private isValidTransition(from: UserStatus, to: UserStatus): boolean {
+		// DELETED intentionally omitted — no transitions out of a terminal deleted state
+		const allowed: Partial<Record<UserStatus, UserStatus[]>> = {
+			[UserStatus.ACTIVE]: [UserStatus.DISABLED],
+			[UserStatus.DISABLED]: [UserStatus.ACTIVE],
+		};
+		return allowed[from]?.includes(to) ?? false;
 	}
 }

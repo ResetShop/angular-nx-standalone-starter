@@ -1,3 +1,4 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import {
 	AuthError,
 	getInternalErrorMessage,
@@ -324,7 +325,7 @@ describe('Auth Errors', () => {
 
 				expect(response.message).toBe('Authentication failed');
 				expect(response.message).not.toContain('Token');
-				expect(response.message).not.toContain('disabled');
+				expect(response.message).not.toContain(UserStatus.DISABLED);
 			}
 		});
 	});

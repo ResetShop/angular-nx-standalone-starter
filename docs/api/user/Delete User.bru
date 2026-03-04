@@ -13,7 +13,7 @@ delete {
 docs {
   # Delete User
 
-  Soft deletes a user (sets deleted=true, enabled=false).
+  Soft deletes a user by setting status to `deleted`.
 
   ## Path Parameters
 
@@ -24,6 +24,17 @@ docs {
   ## Response
 
   Returns a success message.
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 403 | Self-lockout | Cannot delete your own account |
+  | 404 | User not found | No user exists with this ID |
+
+  ## Required Permission
+
+  `admin:users:delete`
 }
 
 assert {

@@ -1,5 +1,5 @@
 meta {
-  name: Toggle User Status
+  name: Update User Status
   type: http
   seq: 6
 }
@@ -7,23 +7,21 @@ meta {
 patch {
   url: {{baseUrl}}/user/{{testUserId}}/status
   body: json
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{accessToken}}
+  auth: none
 }
 
 body:json {
   {
-    "isActive": false
+    "status": "disabled"
   }
 }
 
 docs {
-  # Toggle User Status
+  # Update User Status
 
-  Enables or disables a user account. Disabled users cannot log in.
+  Updates a user's account status with state machine enforcement. Disabled users cannot log in.
+
+  Valid transitions: `active` ↔ `disabled`. Use the DELETE endpoint for deletion.
 
   ## Path Parameters
 
@@ -35,11 +33,11 @@ docs {
 
   | Field | Type | Required | Description |
   |-------|------|----------|-------------|
-  | isActive | boolean | Yes | `true` to enable, `false` to disable |
+  | status | string | Yes | `"active"` or `"disabled"` |
 
   ## Response
 
-  Returns the updated user object.
+  Returns the updated user object with status, roles, and audit fields.
 
   ## Errors
 
@@ -47,7 +45,9 @@ docs {
   |--------|-------|-------------|
   | 400 | Invalid user ID | ID is not a valid number |
   | 400 | Validation error | Invalid input format |
+  | 403 | Self-lockout | Cannot change status of your own account |
   | 404 | User not found | No user exists with this ID |
+  | 422 | Invalid transition | Status transition not allowed by state machine |
 
   ## Required Permission
 
@@ -56,15 +56,15 @@ docs {
 
 assert {
   res.status: eq 200
-  res.body.isActive: eq false
+  res.body.status: eq disabled
 }
 
 tests {
-  test("should return 200 on successful status toggle", function() {
+  test("should return 200 on successful status update", function() {
     expect(res.status).to.equal(200);
   });
 
-  test("should return user with updated isActive status", function() {
-    expect(res.body.isActive).to.be.false;
+  test("should return user with updated status", function() {
+    expect(res.body.status).to.equal("disabled");
   });
 }

@@ -168,16 +168,15 @@ app.doc('/api/openapi.json', {
 
 Reusable schemas and constants from `src/api/openapi-config.ts`:
 
-| Export                   | Type         | Purpose                                                        |
-| ------------------------ | ------------ | -------------------------------------------------------------- |
-| `idParamSchema`          | `z.object`   | `{ id: z.coerce.number().int().positive() }` for `{id}` params |
-| `commonSecuredResponses` | Response map | 401 + 403 + 500 — for write endpoints and non-trivial paths    |
-| `commonAuthResponses`    | Response map | 401 + 403 — lighter variant for read-only endpoints            |
+| Export            | Type         | Purpose                                                        |
+| ----------------- | ------------ | -------------------------------------------------------------- |
+| `idParamSchema`   | `z.object`   | `{ id: z.coerce.number().int().positive() }` for `{id}` params |
+| `commonResponses` | Response map | 401 + 403 + 500 — standard error responses for endpoints       |
 
 **Usage in route definitions:**
 
 ```typescript
-import { commonSecuredResponses, idParamSchema } from '../../../openapi-config';
+import { commonResponses, idParamSchema } from '../../../openapi-config';
 
 export const getRoleRoute = createRoute({
   // ...
@@ -185,7 +184,7 @@ export const getRoleRoute = createRoute({
   responses: {
     200: { description: 'Role details', content: { ... } },
     404: { description: 'Role not found', content: { ... } },
-    ...commonSecuredResponses,
+    ...commonResponses,
   },
 });
 ```
@@ -376,7 +375,7 @@ The `as const` assertion is required for TypeScript to correctly infer the middl
 3. **Separate** route definitions (`*.routes.ts`) from handlers (`*.controller.ts`)
 4. Protected routes **inherit** global security — don't repeat the security scheme
 5. Public routes **must** set `security: []` explicitly
-6. Response schemas **must** use `commonSecuredResponses` (write) or `commonAuthResponses` (read)
+6. Response schemas **must** use `commonResponses` for standard error responses (401, 403, 500)
 7. Request body/param/query schemas come from `src/contracts/` (shared) or module-local `*.schemas.ts`
 8. Path parameters use `{id}` syntax (OpenAPI), not `:id` (Express)
 9. **Always** add type annotations to `c.req.valid()` calls
