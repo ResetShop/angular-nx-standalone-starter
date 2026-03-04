@@ -15,14 +15,12 @@ describe('NavSection', () => {
 				name: 'Route 1',
 				route: '/route1',
 				icon: { featherHome },
-				children: [],
 			},
 			{
 				id: 'route2',
 				name: 'Route 2',
 				route: '/route2',
 				icon: { featherActivity },
-				children: [],
 			},
 		],
 	};
@@ -42,28 +40,24 @@ describe('NavSection', () => {
 				name: 'Home',
 				route: '/home',
 				icon: { featherHome },
-				children: [],
 			},
 			{
 				id: 'activity',
 				name: 'Activity',
 				route: '/activity',
 				icon: { featherActivity },
-				children: [],
 			},
 			{
 				id: 'settings',
 				name: 'Settings',
 				route: '/settings',
 				icon: { featherSettings },
-				children: [],
 			},
 			{
 				id: 'refresh',
 				name: 'Refresh',
 				route: '/refresh',
 				icon: { featherRefreshCw },
-				children: [],
 			},
 		],
 	};
@@ -196,7 +190,6 @@ describe('NavSection', () => {
 					id: 'route-no-icon',
 					name: 'Route Without Icon',
 					route: '/no-icon',
-					children: [],
 				},
 			],
 		};
@@ -219,7 +212,6 @@ describe('NavSection', () => {
 					name: 'New Route',
 					route: '/new',
 					icon: { featherActivity },
-					children: [],
 				},
 			],
 		};
