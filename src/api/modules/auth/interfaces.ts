@@ -116,6 +116,9 @@ export interface IAuthService {
  * Separated from IAuthService per Interface Segregation Principle:
  * consumers like cron jobs and the cleanup endpoint only need this method,
  * not the full authentication surface.
+ *
+ * Future token maintenance operations (e.g., bulk revocation) should be
+ * added here rather than to IAuthService.
  */
 export interface ITokenMaintenanceService {
 	cleanupExpiredTokens(): Promise<CleanupResult | null>;
