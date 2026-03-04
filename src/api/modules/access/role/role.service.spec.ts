@@ -1,4 +1,4 @@
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { IUserRoleRepository } from '../../user/interfaces';
 import type { PermissionData, RoleData } from './interfaces';
@@ -46,6 +46,7 @@ describe('RoleService', () => {
 	};
 
 	beforeEach(() => {
+		clearAllMocks();
 		mockRoleRepo = new MockRoleRepository();
 		roleService = new RoleService({ roleRepository: mockRoleRepo, userRoleRepository: mockUserRoleRepository });
 	});
