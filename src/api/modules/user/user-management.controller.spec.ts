@@ -384,6 +384,7 @@ describe('User Management Controller', () => {
 			expect(res.status).toBe(200);
 			const data = await res.json();
 			expect(data.status).toBe(UserStatus.DISABLED);
+			expect(mockUpdateUserStatus.calls[0]).toEqual([1, { status: UserStatus.DISABLED, changedBy: ADMIN_USER_ID }]);
 		});
 
 		it('should return 403 when trying to change own status', async () => {
