@@ -27,6 +27,14 @@ const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
 ] as const;
 
+function resolveErrorStatus(error: unknown): { message: string; status: 403 | 404 | 409 | 422 } | null {
+	if (!(error instanceof Error)) return null;
+	for (const [prefix, status] of ERROR_STATUS_MAP) {
+		if (error.message.startsWith(prefix)) return { message: error.message, status };
+	}
+	return null;
+}
+
 const app = createOpenAPIApp();
 
 /**
@@ -93,13 +101,8 @@ registerRoute(app, updateUserRoute, async (c) => {
 		const userData = await userManagementService.updateUser(id, body);
 		return c.json<ManagedUser>(userData);
 	} catch (error) {
-		if (error instanceof Error) {
-			for (const [prefix, status] of ERROR_STATUS_MAP) {
-				if (error.message.startsWith(prefix)) {
-					return c.json<ErrorResponse>({ error: error.message }, status);
-				}
-			}
-		}
+		const mapped = resolveErrorStatus(error);
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status);
 		throw error;
 	}
 });
@@ -121,13 +124,8 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 		});
 		return c.json<ManagedUser>(userData);
 	} catch (error) {
-		if (error instanceof Error) {
-			for (const [prefix, status] of ERROR_STATUS_MAP) {
-				if (error.message.startsWith(prefix)) {
-					return c.json<ErrorResponse>({ error: error.message }, status);
-				}
-			}
-		}
+		const mapped = resolveErrorStatus(error);
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status);
 		throw error;
 	}
 });
@@ -145,13 +143,8 @@ registerRoute(app, deleteUserRoute, async (c) => {
 		await userManagementService.deleteUser(id, currentUserId);
 		return c.json<SuccessMessage>({ message: 'User deleted successfully' });
 	} catch (error) {
-		if (error instanceof Error) {
-			for (const [prefix, status] of ERROR_STATUS_MAP) {
-				if (error.message.startsWith(prefix)) {
-					return c.json<ErrorResponse>({ error: error.message }, status);
-				}
-			}
-		}
+		const mapped = resolveErrorStatus(error);
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status);
 		throw error;
 	}
 });
