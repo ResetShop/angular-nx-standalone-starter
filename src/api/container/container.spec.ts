@@ -12,6 +12,19 @@ import type { Cradle } from './container.types';
  * is missing or invalid, the container will throw on first access (when
  * container.cradle or container.verify() is called), causing these tests to fail.
  */
+function createMockRoleService(): Cradle['roleService'] {
+	return {
+		getAllRoles: fn(),
+		getRole: fn(),
+		getRoleByCode: fn(),
+		createRole: fn(),
+		updateRole: fn(),
+		deleteRole: fn(),
+		getRolePermissions: fn(),
+		assignPermissionsToRole: fn(),
+	} as Cradle['roleService'];
+}
+
 describe('DI Container', () => {
 	beforeEach(() => {
 		clearAllMocks();
@@ -89,16 +102,7 @@ describe('DI Container', () => {
 		});
 
 		it('should return mocked service when test cradle is set', () => {
-			const mockRoleService = {
-				getAllRoles: fn(),
-				getRole: fn(),
-				getRoleByCode: fn(),
-				createRole: fn(),
-				updateRole: fn(),
-				deleteRole: fn(),
-				getRolePermissions: fn(),
-				assignPermissionsToRole: fn(),
-			} as Cradle['roleService'];
+			const mockRoleService = createMockRoleService();
 			container.use(
 				new MockContainer({
 					roleService: mockRoleService,
@@ -111,16 +115,7 @@ describe('DI Container', () => {
 		it('should throw when accessing unmocked service in test mode', () => {
 			container.use(
 				new MockContainer({
-					roleService: {
-						getAllRoles: fn(),
-						getRole: fn(),
-						getRoleByCode: fn(),
-						createRole: fn(),
-						updateRole: fn(),
-						deleteRole: fn(),
-						getRolePermissions: fn(),
-						assignPermissionsToRole: fn(),
-					} as Cradle['roleService'],
+					roleService: createMockRoleService(),
 				}),
 			);
 
@@ -131,16 +126,7 @@ describe('DI Container', () => {
 		it('should return real service after test cradle is reset', () => {
 			container.use(
 				new MockContainer({
-					roleService: {
-						getAllRoles: fn(),
-						getRole: fn(),
-						getRoleByCode: fn(),
-						createRole: fn(),
-						updateRole: fn(),
-						deleteRole: fn(),
-						getRolePermissions: fn(),
-						assignPermissionsToRole: fn(),
-					} as Cradle['roleService'],
+					roleService: createMockRoleService(),
 				}),
 			);
 
