@@ -96,9 +96,12 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
     ```
   - **Set in production:** Configure in your Vercel project environment variables
 
+**Required Environment Variables:**
+
+- **`PASETO_ISSUER`**: Token issuer claim (e.g., "my-app")
+
 **Optional Environment Variables:**
 
-- **`PASETO_ISSUER`**: Token issuer claim (default: "Reset Shop")
 - **`PASETO_ACCESS_TOKEN_EXPIRY`**: Access token lifetime (default: "15m")
 - **`PASETO_REFRESH_TOKEN_EXPIRY`**: Refresh token lifetime (default: "7d")
   - Supported formats: "15m" (minutes), "24h" (hours), "7d" (days), "30s" (seconds)

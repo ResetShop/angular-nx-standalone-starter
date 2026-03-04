@@ -1,17 +1,13 @@
 import { V3 } from 'paseto';
-import {
-	DEFAULT_ACCESS_TOKEN_EXPIRY,
-	DEFAULT_PASETO_ISSUER,
-	DEFAULT_REFRESH_TOKEN_EXPIRY,
-} from '../../constants/auth.constants';
+import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants';
 import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces';
 
 /**
  * Service to interact with PASETO tokens. It allows for the generation and validation of access and refresh tokens
  * using Paseto v3. This class acts as an abstraction layer above the PASETO library.
  *
- * For this service to work properly, the PASETO_SECRET_KEY env var is mandatory.
- * Optionally, the PASETO_ISSUER and PASETO_ACCESS_TOKEN_EXPIRY env vars can also be defined.
+ * For this service to work properly, the PASETO_SECRET_KEY and PASETO_ISSUER env vars are mandatory.
+ * Optionally, the PASETO_ACCESS_TOKEN_EXPIRY env var can also be defined.
  *
  * */
 export class PasetoService implements IPasetoService {
@@ -35,7 +31,12 @@ export class PasetoService implements IPasetoService {
 		}
 
 		this.secretKey = Buffer.from(keyHex, 'hex');
-		this.issuer = process.env['PASETO_ISSUER'] || DEFAULT_PASETO_ISSUER;
+
+		const issuer = process.env['PASETO_ISSUER'];
+		if (!issuer) {
+			throw new Error('PASETO_ISSUER not configured');
+		}
+		this.issuer = issuer;
 	}
 
 	/**
