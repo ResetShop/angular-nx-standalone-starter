@@ -21,6 +21,7 @@
 			"Bash(gh pr edit:*)",
 			"Bash(gh pr list:*)",
 			"Bash(gh pr view:*)",
+			"Bash(gh search:*)",
 			"Bash(git add:*)",
 			"Bash(git checkout:*)",
 			"Bash(git cherry-pick:*)",
