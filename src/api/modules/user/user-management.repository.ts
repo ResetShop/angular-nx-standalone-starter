@@ -31,6 +31,14 @@ interface UserProjection {
 	updatedAt: Date | null;
 }
 
+interface FindByEmailProjection {
+	id: number;
+	email: string;
+	firstName: string;
+	lastName: string;
+	status: UserStatus;
+}
+
 interface RoleAssignmentProjection {
 	userId: number;
 	roleId: number;
@@ -143,7 +151,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @returns User data if found, null otherwise
 	 */
 	async findByEmail(email: string): Promise<UserData | null> {
-		const result: UserData[] = await this.db
+		const result: FindByEmailProjection[] = await this.db
 			.select({
 				id: user.id,
 				email: user.email,
