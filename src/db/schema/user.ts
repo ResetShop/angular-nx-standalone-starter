@@ -22,6 +22,7 @@ export const user = pgTable(
 		updatedAt: timestamp('updated_at').defaultNow(),
 	},
 	(table) => ({
+		statusIdx: index('user_status_idx').on(table.status),
 		statusChangedByFk: foreignKey({
 			columns: [table.statusChangedBy],
 			foreignColumns: [table.id],
