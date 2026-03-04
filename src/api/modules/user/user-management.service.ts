@@ -218,6 +218,7 @@ export class UserManagementService implements IUserManagementService {
 	}
 
 	private isValidTransition(from: UserStatus, to: UserStatus): boolean {
+		// DELETED intentionally omitted — no transitions out of a terminal deleted state
 		const allowed: Partial<Record<UserStatus, UserStatus[]>> = {
 			[UserStatus.ACTIVE]: [UserStatus.DISABLED],
 			[UserStatus.DISABLED]: [UserStatus.ACTIVE],

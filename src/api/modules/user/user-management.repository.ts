@@ -16,6 +16,8 @@ import type {
 	UserData,
 } from './interfaces';
 
+// Mirrors UserWithTimestamps but kept file-local per Repository Projection Types convention.
+// Drizzle .select() returns this shape; it may diverge from the domain interface over time.
 interface UserProjection {
 	id: number;
 	email: string;

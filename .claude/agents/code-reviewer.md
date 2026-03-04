@@ -38,6 +38,12 @@ Before reviewing, read ALL reference files to have full project context:
 
 **IMPORTANT**: Never prefix Bash commands with `cd <project-root> &&`. The working directory is already set to the project root. Using `cd` changes the command signature and triggers unnecessary permission prompts.
 
+## Known False Positives — Do NOT Flag
+
+These patterns are intentional and correct. Do NOT report them as issues:
+
+- **Bruno files with `auth: none`**: This project uses httpOnly cookie-based authentication (PASETO tokens in cookies), NOT Authorization headers. Bruno's `auth` field controls the `Authorization` header, which is unused. All Bruno `.bru` files correctly use `auth: none` — the cookie is sent automatically. Never flag `auth: none` as a missing-auth bug.
+
 ## Review Checklist
 
 ### Hard Constraints (Blocking)
@@ -57,7 +63,7 @@ Before reviewing, read ALL reference files to have full project context:
 - [ ] Inline query result types in repository method signatures (3+ fields) extracted into file-local `Projection` interfaces (see CLAUDE.md Repository Projection Types)
 - [ ] Backend routes defined in `*.routes.ts` using `createRoute()`, handlers in `*.controller.ts` using `registerRoute()` — never inline route+handler in a single file
 - [ ] Protected routes inherit global security; public routes explicitly set `security: []`
-- [ ] Response schemas use `commonSecuredResponses` (write ops) or `commonAuthResponses` (read ops)
+- [ ] Response schemas use `commonResponses` for standard error responses
 - [ ] Request/response Zod schemas live in `src/contracts/` (shared) or module-local `*.schemas.ts` (domain-specific)
 - [ ] Documentation files (`docs/`, `docs/api/*.bru`, `CLAUDE.md`, `.claude/references/`) updated when schemas, types, columns, or API contracts change — no stale references to renamed/removed entities
 

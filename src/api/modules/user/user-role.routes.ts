@@ -4,7 +4,7 @@ import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schem
 import { assignRoleToUserRequestSchema, replaceUserRolesRequestSchema } from '@contracts/user/user.schemas';
 import { createRoute, z } from '@hono/zod-openapi';
 import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { commonSecuredResponses } from '../../openapi-config';
+import { commonResponses } from '../../openapi-config';
 import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
 
 const userIdField = z.coerce.number().int().positive().openapi({ description: 'User ID', example: 1 });
@@ -40,7 +40,7 @@ export const getUserRolesRoute = createRoute({
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -65,7 +65,7 @@ export const getUserPermissionsRoute = createRoute({
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -100,7 +100,7 @@ export const assignRoleRoute = createRoute({
 			description: 'Role already assigned',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -133,7 +133,7 @@ export const replaceUserRolesRoute = createRoute({
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -158,6 +158,6 @@ export const removeRoleRoute = createRoute({
 			description: 'User or role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
