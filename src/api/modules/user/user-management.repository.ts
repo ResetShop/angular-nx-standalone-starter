@@ -141,7 +141,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @returns User data if found, null otherwise
 	 */
 	async findByEmail(email: string): Promise<UserData | null> {
-		const result = await this.db
+		const result: UserData[] = await this.db
 			.select({
 				id: user.id,
 				email: user.email,
