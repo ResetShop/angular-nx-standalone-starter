@@ -22,7 +22,7 @@ function createMockRoleService(): Cradle['roleService'] {
 		deleteRole: fn(),
 		getRolePermissions: fn(),
 		assignPermissionsToRole: fn(),
-	} as Cradle['roleService'];
+	};
 }
 
 describe('DI Container', () => {
