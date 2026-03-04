@@ -116,7 +116,7 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 
 		container.use(
 			new MockContainer({
-				authService: {
+				tokenMaintenanceService: {
 					cleanupExpiredTokens: mockCleanupExpiredTokens,
 				},
 			}),
