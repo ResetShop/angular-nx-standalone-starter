@@ -35,19 +35,18 @@ describe('RoleService', () => {
 		{ id: 2, name: 'can_delete_users', description: 'Delete users', resource: 'users', action: 'delete' },
 	];
 
-	const mockUserRoleRepository: IUserRoleRepository = {
-		findRolesForUser: fn(),
-		findRolesWithPermissionsForUser: fn(),
-		findPermissionsForUser: fn(),
-		assignRoleToUser: fn(),
-		removeRoleFromUser: fn(),
-		findUserHasRole: fn(),
-		replaceUserRoles: fn(),
-	};
-
 	beforeEach(() => {
 		clearAllMocks();
 		mockRoleRepo = new MockRoleRepository();
+		const mockUserRoleRepository: IUserRoleRepository = {
+			findRolesForUser: fn(),
+			findRolesWithPermissionsForUser: fn(),
+			findPermissionsForUser: fn(),
+			assignRoleToUser: fn(),
+			removeRoleFromUser: fn(),
+			findUserHasRole: fn(),
+			replaceUserRoles: fn(),
+		};
 		roleService = new RoleService({ roleRepository: mockRoleRepo, userRoleRepository: mockUserRoleRepository });
 	});
 
