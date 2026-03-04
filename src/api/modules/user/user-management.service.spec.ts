@@ -1,6 +1,6 @@
 import { UserStatus } from '@contracts/user/user.schemas';
-import { clearAllMocks, fn } from '@test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { IEmailService, SendEmailParams } from '../../services/email/interfaces';
 import type { RoleData } from '../access/role/interfaces';
 import type {
@@ -44,8 +44,7 @@ describe('UserManagementService', () => {
 	const mockGeneratePassword = fn<[], Promise<string>>();
 
 	// Suppress console.error in tests that trigger non-blocking email failures
-	const consoleErrorSpy = fn<Parameters<typeof console.error>, void>();
-	const originalConsoleError = console.error;
+	let consoleErrorSpy: MockFn;
 
 	let service: UserManagementService;
 
@@ -79,7 +78,7 @@ describe('UserManagementService', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
-		console.error = consoleErrorSpy as typeof console.error;
+		consoleErrorSpy = spyOn(console, 'error');
 
 		mockGeneratePassword.mockResolvedValue('indigo.rabbit.troop');
 		mockSend.mockResolvedValue(undefined);
@@ -89,10 +88,6 @@ describe('UserManagementService', () => {
 			emailService: mockEmailService,
 			generatePassword: mockGeneratePassword,
 		});
-	});
-
-	afterEach(() => {
-		console.error = originalConsoleError;
 	});
 
 	describe('getAllUsers', () => {
