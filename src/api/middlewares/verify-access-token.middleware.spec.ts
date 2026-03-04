@@ -12,6 +12,7 @@ import verifyAccessToken, { type AuthenticatedContext } from './verify-access-to
 
 describe('verifyAccessToken middleware', () => {
 	let app: Hono;
+	let originalConsoleError: typeof console.error;
 	const mockVerifyAccessToken = fn<[string], Promise<TokenPayload>>();
 
 	const testPayload: TokenPayload = {
@@ -23,6 +24,8 @@ describe('verifyAccessToken middleware', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
+		originalConsoleError = console.error;
+		console.error = fn();
 
 		app = new Hono();
 		app.use('/protected/*', verifyAccessToken);
@@ -41,6 +44,7 @@ describe('verifyAccessToken middleware', () => {
 	});
 
 	afterEach(() => {
+		console.error = originalConsoleError;
 		container.restore();
 	});
 

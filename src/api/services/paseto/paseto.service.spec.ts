@@ -5,7 +5,6 @@ import { PasetoService } from './paseto.service';
 describe('PasetoService', () => {
 	let pasetoService: PasetoService;
 
-	const validKey = 'a'.repeat(64); // 32 bytes in hex
 	const testPayload = {
 		sub: '1',
 		email: 'test@example.com',
@@ -15,6 +14,7 @@ describe('PasetoService', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
+		const validKey = 'a'.repeat(64);
 		process.env['PASETO_SECRET_KEY'] = validKey;
 		delete process.env['PASETO_ISSUER'];
 		delete process.env['PASETO_ACCESS_TOKEN_EXPIRY'];
