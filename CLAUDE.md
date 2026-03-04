@@ -130,6 +130,7 @@ These are non-negotiable rules. Violations require explicit justification.
 | Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
 | Raw time literals      | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
 | `vi.fn()`/`vi.mock()`  | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
+| External repo issues   | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette         |
 
 ### Object.freeze() Instead of Enums
 
