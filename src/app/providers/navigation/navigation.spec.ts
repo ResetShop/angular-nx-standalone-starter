@@ -26,15 +26,13 @@ describe('Navigation Provider', () => {
 						id: 'welcome',
 						name: 'Configuración inicial',
 						route: 'welcome',
-						icon: 'featherHome',
-						children: [],
+						icon: { featherHome: 'featherHome' },
 					},
 					{
 						id: 'health',
 						name: 'Salud',
 						route: 'health',
-						icon: 'featherActivity',
-						children: [],
+						icon: { featherActivity: 'featherActivity' },
 					},
 				],
 			},
@@ -112,10 +110,10 @@ describe('Navigation Provider', () => {
 			expect(settingsSection.routes).toHaveLength(2);
 			expect(settingsSection.routes[0].id).toBe('welcome');
 			expect(settingsSection.routes[0].name).toBe('Configuración inicial');
-			expect(settingsSection.routes[0].icon).toBe('featherHome');
+			expect(settingsSection.routes[0].icon).toEqual({ featherHome: 'featherHome' });
 			expect(settingsSection.routes[1].id).toBe('health');
 			expect(settingsSection.routes[1].name).toBe('Salud');
-			expect(settingsSection.routes[1].icon).toBe('featherActivity');
+			expect(settingsSection.routes[1].icon).toEqual({ featherActivity: 'featherActivity' });
 		});
 
 		it('should be reactive (computed signal)', () => {
@@ -196,8 +194,7 @@ describe('Navigation Provider', () => {
 				id: 'welcome',
 				name: 'Configuración inicial',
 				route: 'welcome',
-				icon: 'featherHome',
-				children: [],
+				icon: { featherHome: 'featherHome' },
 			});
 		});
 	});

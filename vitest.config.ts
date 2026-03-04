@@ -1,7 +1,6 @@
-/// <reference types="vitest" />
 import angular from '@analogjs/vite-plugin-angular';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [angular(), nxViteTsPaths()],
@@ -49,6 +48,7 @@ export default defineConfig({
 			'@models': '/src/app/models',
 			'@pages': '/src/app/pages',
 			'@providers': '/src/app/providers',
+			'@store': '/src/app/store',
 			'@utils': '/src/app/utils',
 			'@test-utils': '/src/test-utils',
 		},

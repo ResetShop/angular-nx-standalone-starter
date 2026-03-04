@@ -42,14 +42,12 @@ describe('Dashboard', () => {
 				name: 'Configuración inicial',
 				route: 'welcome',
 				icon: { featherHome: featherHome },
-				children: [],
 			},
 			{
 				id: 'health',
 				name: 'Salud',
 				route: 'health',
 				icon: { featherActivity: featherActivity },
-				children: [],
 			},
 		],
 	};

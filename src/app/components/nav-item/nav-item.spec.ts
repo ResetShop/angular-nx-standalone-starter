@@ -355,12 +355,12 @@ describe('NavItem - Expandable Behavior', () => {
 	});
 
 	it('should treat empty children array as leaf node', async () => {
-		const emptyChildrenRoute: NavigationRoute = {
+		const emptyChildrenRoute = {
 			id: 'empty',
 			name: 'Empty Children',
 			route: '/empty',
 			children: [],
-		};
+		} as NavigationRoute;
 
 		await render(NavItem, {
 			inputs: { item: emptyChildrenRoute },
