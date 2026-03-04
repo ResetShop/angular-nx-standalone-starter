@@ -1,7 +1,7 @@
 /**
  * @vitest-environment node
  */
-import { clearAllMocks, fn } from '@test-utils';
+import { clearAllMocks, fn, spyOn } from '@test-utils';
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ACCESS_TOKEN_COOKIE_NAME } from '../constants/auth.constants';
@@ -12,7 +12,6 @@ import verifyAccessToken, { type AuthenticatedContext } from './verify-access-to
 
 describe('verifyAccessToken middleware', () => {
 	let app: Hono;
-	let originalConsoleError: typeof console.error;
 	const mockVerifyAccessToken = fn<[string], Promise<TokenPayload>>();
 
 	const testPayload: TokenPayload = {
@@ -24,8 +23,7 @@ describe('verifyAccessToken middleware', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
-		originalConsoleError = console.error;
-		console.error = fn();
+		spyOn(console, 'error');
 
 		app = new Hono();
 		app.use('/protected/*', verifyAccessToken);
@@ -44,7 +42,6 @@ describe('verifyAccessToken middleware', () => {
 	});
 
 	afterEach(() => {
-		console.error = originalConsoleError;
 		container.restore();
 	});
 

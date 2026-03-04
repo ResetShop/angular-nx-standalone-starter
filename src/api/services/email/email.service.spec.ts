@@ -1,12 +1,11 @@
-import { clearAllMocks, fn } from '@test-utils';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { EmailService } from './email.service';
 import type { IEmailRepository, SendEmailParams } from './interfaces';
 
 describe('EmailService', () => {
 	const mockSend = fn<[SendEmailParams], Promise<void>>();
-	const consoleErrorSpy = fn<Parameters<typeof console.error>, void>();
-	const originalConsoleError = console.error;
+	let consoleErrorSpy: MockFn;
 
 	const mockEmailRepository: IEmailRepository = {
 		send: mockSend,
@@ -23,16 +22,11 @@ describe('EmailService', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
+		consoleErrorSpy = spyOn(console, 'error');
 
 		emailService = new EmailService({
 			emailRepository: mockEmailRepository,
 		});
-
-		console.error = consoleErrorSpy as typeof console.error;
-	});
-
-	afterEach(() => {
-		console.error = originalConsoleError;
 	});
 
 	describe('validation', () => {

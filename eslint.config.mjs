@@ -84,7 +84,7 @@ const viRestrictedSyntax = [
 	// Spying
 	{
 		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="spyOn"]',
-		message: 'vi.spyOn() is forbidden. Reassign the method directly with fn() from test-utils.ts instead.',
+		message: 'vi.spyOn() is forbidden. Use spyOn() from test-utils.ts instead.',
 	},
 	// Type casting
 	{
