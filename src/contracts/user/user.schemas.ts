@@ -3,6 +3,20 @@ import { QUERY_DEFAULTS } from '../common/query.constants';
 import { roleDataSchema } from '../role/role.schemas';
 
 // ============================================================================
+// User Status
+// ============================================================================
+
+export const UserStatus = Object.freeze({
+	ACTIVE: 'active',
+	DISABLED: 'disabled',
+	DELETED: 'deleted',
+} as const);
+
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
+
+export const userStatusSchema = z.enum([UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED]);
+
+// ============================================================================
 // User Data Schemas
 // ============================================================================
 
@@ -14,13 +28,12 @@ export const userDataSchema = z.object({
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
-	enabled: z.boolean(),
-	deleted: z.boolean(),
+	status: userStatusSchema,
 });
 
 /**
  * Auth user schema (subset of user data for authentication responses).
- * Excludes `enabled` and `deleted` fields which are internal.
+ * Excludes `status` and audit fields which belong to the management layer only.
  */
 export const authUserSchema = z.object({
 	id: z.number(),
@@ -42,8 +55,10 @@ export const managedUserSchema = z.object({
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
-	enabled: z.boolean(),
-	deleted: z.boolean(),
+	status: userStatusSchema,
+	statusChangedAt: z.coerce.date().nullable(),
+	statusChangedBy: z.number().nullable(),
+	deletedAt: z.coerce.date().nullable(),
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
 	roles: z.array(roleDataSchema),
@@ -82,8 +97,15 @@ export const updateUserRequestSchema = z.object({
 	email: z.email().optional(),
 	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
-	enabled: z.boolean().optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),
+});
+
+/**
+ * Update user status request body schema.
+ * Only allows non-terminal transitions — use DELETE endpoint for deletion.
+ */
+export const updateUserStatusRequestSchema = z.object({
+	status: z.enum([UserStatus.ACTIVE, UserStatus.DISABLED]),
 });
 
 // ============================================================================

@@ -68,8 +68,8 @@ PASETO was chosen over JWT for the following reasons:
 │  │  │            │    │                  │    │                     │   │   │
 │  │  │ - id       │    │ - user_id (FK)   │    │ - user_id (FK)      │   │   │
 │  │  │ - email    │    │ - password_hash  │    │ - token_hash        │   │   │
-│  │  │ - enabled  │    │                  │    │ - token_family      │   │   │
-│  │  │ - deleted  │    │                  │    │ - expires_at        │   │   │
+│  │  │ - status   │    │                  │    │ - token_family      │   │   │
+│  │  │ - deleted_at│   │                  │    │ - expires_at        │   │   │
 │  │  │            │    │                  │    │ - is_revoked        │   │   │
 │  │  └────────────┘    └──────────────────┘    └─────────────────────┘   │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
@@ -84,7 +84,7 @@ PASETO was chosen over JWT for the following reasons:
 ```
 1. User submits email/password
 2. Backend validates credentials
-3. Backend checks user is enabled and not deleted
+3. Backend checks user status is active (rejects disabled or deleted)
 4. Backend generates access token (15min) and refresh token (7 days)
 5. Refresh token is stored in database (hashed)
 6. Refresh token is set as HttpOnly cookie

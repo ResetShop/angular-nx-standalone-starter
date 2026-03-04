@@ -5,10 +5,11 @@ import {
 	createUserResponseSchema,
 	managedUserSchema,
 	updateUserRequestSchema,
+	updateUserStatusRequestSchema,
 } from '@contracts/user/user.schemas';
 import { createRoute } from '@hono/zod-openapi';
 import { requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { commonSecuredResponses, idParamSchema } from '../../openapi-config';
+import { commonResponses, idParamSchema } from '../../openapi-config';
 import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
 
 export const listUsersRoute = createRoute({
@@ -24,7 +25,7 @@ export const listUsersRoute = createRoute({
 			description: 'Paginated list of users',
 			content: { 'application/json': { schema: paginatedResponseSchema(managedUserSchema) } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -49,7 +50,7 @@ export const getUserRoute = createRoute({
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -75,7 +76,7 @@ export const createUserRoute = createRoute({
 			description: 'Email already exists',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });
 
@@ -84,7 +85,7 @@ export const updateUserRoute = createRoute({
 	path: '/{id}',
 	tags: ['Users'],
 	summary: 'Update a user',
-	description: 'Update user details, roles, or status.',
+	description: 'Update user details or role assignments.',
 	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.UPDATE)] as const,
 	request: {
 		params: idParamSchema,
@@ -102,10 +103,6 @@ export const updateUserRoute = createRoute({
 			description: 'Invalid user ID',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		403: {
-			description: 'Cannot disable own account',
-			content: { 'application/json': { schema: errorResponseSchema } },
-		},
 		404: {
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
@@ -114,7 +111,46 @@ export const updateUserRoute = createRoute({
 			description: 'Email already exists',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
+	},
+});
+
+export const updateUserStatusRoute = createRoute({
+	method: 'patch',
+	path: '/{id}/status',
+	tags: ['Users'],
+	summary: 'Update user status',
+	description: 'Update user account status with state machine enforcement.',
+	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.DISABLE)] as const,
+	request: {
+		params: idParamSchema,
+		body: {
+			content: { 'application/json': { schema: updateUserStatusRequestSchema } },
+			required: true,
+		},
+	},
+	responses: {
+		200: {
+			description: 'User status updated',
+			content: { 'application/json': { schema: managedUserSchema } },
+		},
+		400: {
+			description: 'Invalid user ID',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		403: {
+			description: 'Cannot change status of own account',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: 'User not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		422: {
+			description: 'Invalid status transition',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonResponses,
 	},
 });
 
@@ -139,6 +175,6 @@ export const deleteUserRoute = createRoute({
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		...commonSecuredResponses,
+		...commonResponses,
 	},
 });

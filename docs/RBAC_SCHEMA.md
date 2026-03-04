@@ -25,16 +25,18 @@ Authentication (one-to-one with User)
 
 Stores user profile information.
 
-| Column    | Type      | Constraints      |
-| --------- | --------- | ---------------- |
-| id        | serial    | PRIMARY KEY      |
-| firstName | text      | NOT NULL         |
-| lastName  | text      | NOT NULL         |
-| email     | text      | NOT NULL, UNIQUE |
-| enabled   | boolean   | DEFAULT true     |
-| deleted   | boolean   | DEFAULT false    |
-| createdAt | timestamp | DEFAULT NOW()    |
-| updatedAt | timestamp | DEFAULT NOW()    |
+| Column          | Type      | Constraints                                        |
+| --------------- | --------- | -------------------------------------------------- |
+| id              | serial    | PRIMARY KEY                                        |
+| firstName       | text      | NOT NULL                                           |
+| lastName        | text      | NOT NULL                                           |
+| email           | text      | NOT NULL, UNIQUE                                   |
+| status          | enum      | DEFAULT 'active' ('active', 'disabled', 'deleted') |
+| statusChangedAt | timestamp | optional                                           |
+| statusChangedBy | integer   | FK → User.id (self-ref, SET NULL)                  |
+| deletedAt       | timestamp | optional                                           |
+| createdAt       | timestamp | DEFAULT NOW()                                      |
+| updatedAt       | timestamp | DEFAULT NOW()                                      |
 
 **Relations:**
 
@@ -202,8 +204,10 @@ id: 1
 email: "john@example.com"
 firstName: "John"
 lastName: "Doe"
-enabled: true
-deleted: false
+status: "active"
+statusChangedAt: null
+statusChangedBy: null
+deletedAt: null
 ```
 
 #### Authentication Table

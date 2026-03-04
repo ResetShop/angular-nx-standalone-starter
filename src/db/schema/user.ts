@@ -1,17 +1,34 @@
+import { UserStatus } from '@contracts/user/user.schemas';
 import { relations } from 'drizzle-orm';
-import { boolean, index, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { foreignKey, index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 import { role } from './role';
 
-export const user = pgTable('user', {
-	id: serial('id').primaryKey(),
-	firstName: text('first_name').notNull(),
-	lastName: text('last_name').notNull(),
-	email: text('email').notNull().unique(),
-	createdAt: timestamp('created_at').defaultNow(),
-	updatedAt: timestamp('updated_at').defaultNow(),
-	enabled: boolean('enabled').default(true),
-	deleted: boolean('deleted').default(false),
-});
+export const userStatusEnum = pgEnum('user_status', [UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED]);
+
+export const user = pgTable(
+	'user',
+	{
+		id: serial('id').primaryKey(),
+		firstName: text('first_name').notNull(),
+		lastName: text('last_name').notNull(),
+		email: text('email').notNull().unique(),
+		status: userStatusEnum('status').notNull().default(UserStatus.ACTIVE),
+		statusChangedAt: timestamp('status_changed_at'),
+		// Standalone FK avoids circular type inference from inline .references()
+		// on a self-referencing column (breaks Drizzle relational query types).
+		statusChangedBy: integer('status_changed_by'),
+		deletedAt: timestamp('deleted_at'),
+		createdAt: timestamp('created_at').defaultNow(),
+		updatedAt: timestamp('updated_at').defaultNow(),
+	},
+	(table) => ({
+		statusIdx: index('user_status_idx').on(table.status),
+		statusChangedByFk: foreignKey({
+			columns: [table.statusChangedBy],
+			foreignColumns: [table.id],
+		}).onDelete('set null'),
+	}),
+);
 
 export const userRole = pgTable(
 	'user_role',

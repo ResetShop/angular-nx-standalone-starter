@@ -1,5 +1,6 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
-import { and, count, eq, ilike, inArray, or } from 'drizzle-orm';
+import { UserStatus } from '@contracts/user/user.schemas';
+import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { role } from '../../../db/schema/role';
 import { user, userRole } from '../../../db/schema/user';
@@ -11,16 +12,21 @@ import type {
 	IUserManagementRepository,
 	ManagedUserData,
 	UpdateUserParams,
+	UpdateUserStatusParams,
 	UserData,
 } from './interfaces';
 
+// Mirrors UserWithTimestamps but kept file-local per Repository Projection Types convention.
+// Drizzle .select() returns this shape; it may diverge from the domain interface over time.
 interface UserProjection {
 	id: number;
 	email: string;
 	firstName: string;
 	lastName: string;
-	enabled: boolean | null;
-	deleted: boolean | null;
+	status: UserStatus;
+	statusChangedAt: Date | null;
+	statusChangedBy: number | null;
+	deletedAt: Date | null;
 	createdAt: Date | null;
 	updatedAt: Date | null;
 }
@@ -53,7 +59,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
 		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
 
-		const baseCondition = eq(user.deleted, false);
+		const baseCondition = ne(user.status, UserStatus.DELETED);
 
 		const whereClause = search
 			? and(
@@ -73,8 +79,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 					email: user.email,
 					firstName: user.firstName,
 					lastName: user.lastName,
-					enabled: user.enabled,
-					deleted: user.deleted,
+					status: user.status,
+					statusChangedAt: user.statusChangedAt,
+					statusChangedBy: user.statusChangedBy,
+					deletedAt: user.deletedAt,
 					createdAt: user.createdAt,
 					updatedAt: user.updatedAt,
 				})
@@ -109,13 +117,15 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
+				statusChangedAt: user.statusChangedAt,
+				statusChangedBy: user.statusChangedBy,
+				deletedAt: user.deletedAt,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,
 			})
 			.from(user)
-			.where(and(eq(user.id, id), eq(user.deleted, false)))
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
 			.limit(1);
 
 		if (result.length === 0) {
@@ -139,11 +149,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
 			})
 			.from(user)
-			.where(and(eq(user.email, email), eq(user.deleted, false)))
+			.where(and(eq(user.email, email), ne(user.status, UserStatus.DELETED)))
 			.limit(1);
 
 		return result.length > 0 ? result[0] : null;
@@ -170,8 +179,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 					email: user.email,
 					firstName: user.firstName,
 					lastName: user.lastName,
-					enabled: user.enabled,
-					deleted: user.deleted,
+					status: user.status,
+					statusChangedAt: user.statusChangedAt,
+					statusChangedBy: user.statusChangedBy,
+					deletedAt: user.deletedAt,
 					createdAt: user.createdAt,
 					updatedAt: user.updatedAt,
 				});
@@ -214,40 +225,84 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 		if (params.lastName !== undefined) {
 			updateData.lastName = params.lastName;
 		}
-		if (params.enabled !== undefined) {
-			updateData.enabled = params.enabled;
-		}
 
 		const result = await this.db
 			.update(user)
 			.set(updateData)
-			.where(and(eq(user.id, id), eq(user.deleted, false)))
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
 			.returning({
 				id: user.id,
 				email: user.email,
 				firstName: user.firstName,
 				lastName: user.lastName,
-				enabled: user.enabled,
-				deleted: user.deleted,
+				status: user.status,
 			});
 
 		return result.length > 0 ? result[0] : null;
 	}
 
 	/**
-	 * Soft deletes a user by setting deleted=true and enabled=false.
+	 * Soft deletes a user by setting status to `deleted` and recording the audit trail.
 	 *
 	 * @param id - The user's primary key
+	 * @param changedBy - The ID of the admin performing the deletion
 	 * @returns true if the user was deleted, false if not found
 	 */
-	async softDelete(id: number): Promise<boolean> {
+	async softDelete(id: number, changedBy: number): Promise<boolean> {
+		const now = new Date();
 		const result = await this.db
 			.update(user)
-			.set({ deleted: true, enabled: false, updatedAt: new Date() })
-			.where(and(eq(user.id, id), eq(user.deleted, false)))
+			.set({
+				status: UserStatus.DELETED,
+				statusChangedAt: now,
+				statusChangedBy: changedBy,
+				deletedAt: now,
+				updatedAt: now,
+			})
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
 			.returning({ id: user.id });
 
 		return result.length > 0;
+	}
+
+	/**
+	 * Updates a user's account status with audit trail.
+	 * Deleted users cannot be modified.
+	 *
+	 * @param id - The user's primary key
+	 * @param params - Status change parameters including the new status and who changed it
+	 * @returns Updated user data with roles, or null if not found or deleted
+	 */
+	async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
+		const now = new Date();
+		const result = await this.db
+			.update(user)
+			.set({
+				status: params.status,
+				statusChangedAt: now,
+				statusChangedBy: params.changedBy,
+				updatedAt: now,
+			})
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
+			.returning({
+				id: user.id,
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				status: user.status,
+				statusChangedAt: user.statusChangedAt,
+				statusChangedBy: user.statusChangedBy,
+				deletedAt: user.deletedAt,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+			});
+
+		if (result.length === 0) {
+			return null;
+		}
+
+		const [updatedWithRoles] = await this.attachRolesToUsers(result);
+		return updatedWithRoles;
 	}
 
 	/**
@@ -280,8 +335,6 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 
 		return users.map((u) => ({
 			...u,
-			enabled: u.enabled ?? true,
-			deleted: u.deleted ?? false,
 			roles: rolesByUserId.get(u.id) ?? [],
 		}));
 	}

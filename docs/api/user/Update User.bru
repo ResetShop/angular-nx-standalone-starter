@@ -20,7 +20,7 @@ body:json {
 docs {
   # Update User
 
-  Updates user details, roles, or status. All fields are optional.
+  Updates user details or role assignments. All fields are optional.
 
   ## Path Parameters
 
@@ -35,12 +35,9 @@ docs {
   | email | string | No | New email address |
   | firstName | string | No | New first name (1-100 characters) |
   | lastName | string | No | New last name (1-100 characters) |
-  | enabled | boolean | No | Enable or disable the user |
   | roleIds | number[] | No | Replace all role assignments |
 
   ## Business Rules
-
-  - Cannot disable your own account (returns 403)
   - Email must be unique (returns 409 if taken)
   - Returns 404 if user not found
 }

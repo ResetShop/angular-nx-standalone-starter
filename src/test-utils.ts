@@ -10,6 +10,8 @@ export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> 
 	readonly calls: readonly TArgs[];
 	/** Set a resolved promise as the return value */
 	mockResolvedValue: (value: Awaited<TReturn>) => MockFn<TArgs, TReturn>;
+	/** Set a resolved promise as the return value for the next call only */
+	mockResolvedValueOnce: (value: Awaited<TReturn>) => MockFn<TArgs, TReturn>;
 	/** Set a rejected promise as the return value */
 	mockRejectedValue: (error: unknown) => MockFn<TArgs, TReturn>;
 	/** Set a direct return value */
@@ -63,6 +65,11 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 
 	mockFn.mockResolvedValue = (value: Awaited<TReturn>) => {
 		viFn.mockResolvedValue(value as Awaited<TReturn>);
+		return mockFn;
+	};
+
+	mockFn.mockResolvedValueOnce = (value: Awaited<TReturn>) => {
+		viFn.mockResolvedValueOnce(value as Awaited<TReturn>);
 		return mockFn;
 	};
 
