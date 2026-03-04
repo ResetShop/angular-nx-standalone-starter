@@ -55,7 +55,7 @@ describe('verifyAccessToken middleware', () => {
 	}
 
 	it('should return 401 when no access token cookie is present', async () => {
-		const res = await app.request('/protected/resource');
+		const res = await app.fetch(new Request('http://localhost/protected/resource'));
 
 		expect(res.status).toBe(401);
 		const data = await res.json();
@@ -87,7 +87,7 @@ describe('verifyAccessToken middleware', () => {
 	});
 
 	it('should return 401 when token verification fails', async () => {
-		mockVerifyAccessToken.mockRejectedValue(new Error('Invalid or expired token'));
+		mockVerifyAccessToken.mockRejectedValueOnce(new Error('Invalid or expired token'));
 
 		const res = await app.fetch(requestWithCookie('expired-token'));
 
@@ -97,7 +97,7 @@ describe('verifyAccessToken middleware', () => {
 	});
 
 	it('should return 401 when verification throws a non-Error', async () => {
-		mockVerifyAccessToken.mockRejectedValue('unexpected');
+		mockVerifyAccessToken.mockRejectedValueOnce('unexpected');
 
 		const res = await app.fetch(requestWithCookie('bad-token'));
 

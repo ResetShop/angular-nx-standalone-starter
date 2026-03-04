@@ -1,5 +1,9 @@
 import { V3 } from 'paseto';
-import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants';
+import {
+	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_PASETO_ISSUER,
+	DEFAULT_REFRESH_TOKEN_EXPIRY,
+} from '../../constants/auth.constants';
 import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces';
 
 /**
@@ -31,7 +35,7 @@ export class PasetoService implements IPasetoService {
 		}
 
 		this.secretKey = Buffer.from(keyHex, 'hex');
-		this.issuer = process.env['PASETO_ISSUER'] || 'Reset Shop';
+		this.issuer = process.env['PASETO_ISSUER'] || DEFAULT_PASETO_ISSUER;
 	}
 
 	/**

@@ -1,9 +1,11 @@
 import { clearAllMocks } from '@test-utils';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { DEFAULT_PASETO_ISSUER } from '../../constants/auth.constants';
 import { PasetoService } from './paseto.service';
 
 describe('PasetoService', () => {
 	let pasetoService: PasetoService;
+	let originalEnv: NodeJS.ProcessEnv;
 
 	const testPayload = {
 		sub: '1',
@@ -11,6 +13,14 @@ describe('PasetoService', () => {
 		firstName: 'Test',
 		lastName: 'User',
 	};
+
+	beforeAll(() => {
+		originalEnv = { ...process.env };
+	});
+
+	afterAll(() => {
+		process.env = originalEnv;
+	});
 
 	beforeEach(() => {
 		clearAllMocks();
@@ -31,7 +41,7 @@ describe('PasetoService', () => {
 		});
 
 		it('should throw when secret key is too short', () => {
-			process.env['PASETO_SECRET_KEY'] = 'abcd';
+			process.env['PASETO_SECRET_KEY'] = 'a'.repeat(63);
 
 			expect(() => new PasetoService()).toThrow('PASETO_SECRET_KEY must be at least 32 bytes');
 		});
@@ -68,6 +78,13 @@ describe('PasetoService', () => {
 
 			expect(token).toMatch(/^v3\.local\./);
 		});
+
+		it('should generate different tokens for the same userId', async () => {
+			const token1 = await pasetoService.generateRefreshToken('1');
+			const token2 = await pasetoService.generateRefreshToken('1');
+
+			expect(token1).not.toBe(token2);
+		});
 	});
 
 	describe('verifyAccessToken', () => {
@@ -87,7 +104,7 @@ describe('PasetoService', () => {
 
 			const result = await pasetoService.verifyAccessToken(token);
 
-			expect(result.iss).toBe('Reset Shop');
+			expect(result.iss).toBe(DEFAULT_PASETO_ISSUER);
 		});
 
 		it('should respect custom issuer from env', async () => {
