@@ -1,6 +1,5 @@
 import { clearAllMocks } from '@test-utils';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_PASETO_ISSUER } from '../../constants/auth.constants';
 import { PasetoService } from './paseto.service';
 
 describe('PasetoService', () => {
@@ -26,7 +25,7 @@ describe('PasetoService', () => {
 		clearAllMocks();
 		const validKey = 'a'.repeat(64);
 		process.env['PASETO_SECRET_KEY'] = validKey;
-		delete process.env['PASETO_ISSUER'];
+		process.env['PASETO_ISSUER'] = 'Test Issuer';
 		delete process.env['PASETO_ACCESS_TOKEN_EXPIRY'];
 		delete process.env['PASETO_REFRESH_TOKEN_EXPIRY'];
 		delete process.env['PASETO_CLOCK_TOLERANCE'];
@@ -46,7 +45,13 @@ describe('PasetoService', () => {
 			expect(() => new PasetoService()).toThrow('PASETO_SECRET_KEY must be at least 32 bytes');
 		});
 
-		it('should accept a valid 32-byte hex key', () => {
+		it('should throw when PASETO_ISSUER is not configured', () => {
+			delete process.env['PASETO_ISSUER'];
+
+			expect(() => new PasetoService()).toThrow('PASETO_ISSUER not configured');
+		});
+
+		it('should accept valid configuration', () => {
 			expect(() => new PasetoService()).not.toThrow();
 		});
 	});
@@ -104,17 +109,7 @@ describe('PasetoService', () => {
 
 			const result = await pasetoService.verifyAccessToken(token);
 
-			expect(result.iss).toBe(DEFAULT_PASETO_ISSUER);
-		});
-
-		it('should respect custom issuer from env', async () => {
-			process.env['PASETO_ISSUER'] = 'Custom Issuer';
-			const customService = new PasetoService();
-			const token = await customService.generateAccessToken(testPayload);
-
-			const result = await customService.verifyAccessToken(token);
-
-			expect(result.iss).toBe('Custom Issuer');
+			expect(result.iss).toBe('Test Issuer');
 		});
 
 		it('should throw for a tampered token', async () => {

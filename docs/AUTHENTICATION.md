@@ -180,7 +180,7 @@ if (authStore.isTokenRefreshing()) {
 | Variable                      | Required | Default                 | Description                                             |
 | ----------------------------- | -------- | ----------------------- | ------------------------------------------------------- |
 | `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                          |
-| `PASETO_ISSUER`               | No       | "Reset Shop"            | Token issuer claim                                      |
+| `PASETO_ISSUER`               | Yes      | -                       | Token issuer claim                                      |
 | `PASETO_ACCESS_TOKEN_EXPIRY`  | No       | "15m"                   | Access token lifetime                                   |
 | `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                                  |
 | `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation              |

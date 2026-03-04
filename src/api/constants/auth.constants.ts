@@ -42,12 +42,6 @@ export const DEFAULT_ACCESS_TOKEN_EXPIRY = '15m';
  */
 export const DEFAULT_REFRESH_TOKEN_EXPIRY = '7d';
 
-/**
- * Default PASETO token issuer claim.
- * Configurable via PASETO_ISSUER environment variable.
- */
-export const DEFAULT_PASETO_ISSUER = 'Reset Shop';
-
 /** HttpOnly cookie name for the PASETO refresh token. */
 export const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
 
