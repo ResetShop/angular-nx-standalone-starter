@@ -48,7 +48,7 @@ registerRoute(app, listUsersRoute, async (c) => {
  */
 registerRoute(app, getUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 
 	try {
 		const userData = await userManagementService.getUser(id);
@@ -86,7 +86,7 @@ registerRoute(app, createUserRoute, async (c) => {
  */
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 	const body: UpdateUserRequest = c.req.valid('json');
 
 	try {
@@ -110,7 +110,7 @@ registerRoute(app, updateUserRoute, async (c) => {
  */
 registerRoute(app, updateUserStatusRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 	const body: UpdateUserStatusRequest = c.req.valid('json');
 	const currentUserId = Number((c as AuthenticatedContext).user.sub);
 
@@ -138,7 +138,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
  */
 registerRoute(app, deleteUserRoute, async (c) => {
 	const { userManagementService } = container.cradle;
-	const id = Number(c.req.param('id'));
+	const { id }: { id: number } = c.req.valid('param');
 	const currentUserId = Number((c as AuthenticatedContext).user.sub);
 
 	try {
