@@ -4,10 +4,10 @@ This document describes the authentication system implemented in this Angular + 
 
 ## Overview
 
-The authentication system uses a dual-token approach:
+The authentication system uses a dual-token approach with **HttpOnly cookies** — JavaScript never reads or stores tokens:
 
-- **Access Token**: Short-lived PASETO token (default: 15 minutes) for API authentication
-- **Refresh Token**: Long-lived PASETO token (default: 7 days) for obtaining new access tokens
+- **Access Token**: Short-lived PASETO token (default: 15 minutes) for API authentication, set as an HttpOnly cookie
+- **Refresh Token**: Long-lived PASETO token (default: 7 days) for obtaining new access tokens, set as an HttpOnly cookie
 
 ## Why PASETO over JWT?
 
@@ -26,12 +26,12 @@ PASETO was chosen over JWT for the following reasons:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌─────────────────┐    ┌────────────────────┐    ┌──────────────────────┐  │
-│  │   Auth Provider │    │  Auth Interceptor  │    │ Token Refresh        │  │
-│  │                 │    │                    │    │ Interceptor          │  │
-│  │ - login()       │    │ - Attaches Bearer  │    │                      │  │
-│  │ - logout()      │    │   token to API     │    │ - Handles 401 errors │  │
-│  │ - refreshToken()│    │   requests         │    │ - Mutex pattern for  │  │
-│  │ - currentUser   │    │ - Sets credentials │    │   concurrent refresh │  │
+│  │  Auth Store     │    │  Auth Interceptor  │    │ Token Refresh        │  │
+│  │  (Signal Store) │    │                    │    │ Interceptor          │  │
+│  │ - login()       │    │ - Sets             │    │                      │  │
+│  │ - logout()      │    │   withCredentials  │    │ - Handles 401 errors │  │
+│  │ - refreshToken()│    │   for cookie-based │    │ - Mutex pattern for  │  │
+│  │ - currentUser   │    │   auth             │    │   concurrent refresh │  │
 │  └─────────────────┘    └────────────────────┘    └──────────────────────┘  │
 │                                                                              │
 └───────────────────────────────────┬─────────────────────────────────────────┘
@@ -45,7 +45,7 @@ PASETO was chosen over JWT for the following reasons:
 │  ┌──────────────────────────────────────────────────────────────────────┐   │
 │  │                    Authentication Middleware                          │   │
 │  │                                                                       │   │
-│  │  - Verifies access token on protected routes                         │   │
+│  │  - Reads access token from HttpOnly cookie on protected routes       │   │
 │  │  - Extracts user info and attaches to request context                │   │
 │  │  - Public paths: /api/auth/login                                     │   │
 │  └──────────────────────────────────────────────────────────────────────┘   │
@@ -87,17 +87,17 @@ PASETO was chosen over JWT for the following reasons:
 3. Backend checks user status is active (rejects disabled or deleted)
 4. Backend generates access token (15min) and refresh token (7 days)
 5. Refresh token is stored in database (hashed)
-6. Refresh token is set as HttpOnly cookie
-7. Access token is returned in response body
-8. Frontend stores access token in memory/localStorage
+6. Both tokens are set as HttpOnly cookies via Set-Cookie headers
+7. Response body contains only user object (never tokens)
+8. Frontend stores user object in NgRx Signal Store (never tokens)
 ```
 
 ### API Request Flow
 
 ```
 1. Frontend makes API request
-2. Auth interceptor attaches Authorization header with access token
-3. Backend middleware verifies access token
+2. Auth interceptor sets withCredentials: true (cookies sent automatically)
+3. Backend middleware reads access token from HttpOnly cookie
 4. If valid, request proceeds to handler
 5. If 401, token refresh interceptor kicks in
 ```
@@ -113,8 +113,8 @@ PASETO was chosen over JWT for the following reasons:
 6. Backend validates refresh token
 7. Backend generates new access + refresh tokens
 8. Old refresh token is revoked
-9. New tokens are returned/set
-10. Original request is retried with new access token
+9. New tokens are set as HttpOnly cookies via Set-Cookie headers
+10. Original request is retried (cookies sent automatically)
 ```
 
 ### Logout Flow
@@ -125,7 +125,7 @@ PASETO was chosen over JWT for the following reasons:
 3. Backend request is sent (no access token needed)
 4. Backend reads refresh token from HttpOnly cookie
 5. Backend revokes all refresh tokens for user
-6. Backend deletes refresh token cookie
+6. Backend deletes both token cookies
 7. Logout always succeeds (fail-safe design)
 ```
 
@@ -157,20 +157,21 @@ PASETO was chosen over JWT for the following reasons:
 
 ### Race Condition Protection
 
-The token refresh interceptor implements a mutex pattern to prevent multiple concurrent refresh attempts. The state is managed in the `Auth` service (not module-level) to ensure proper cleanup when the Angular app is destroyed and recreated:
+The token refresh interceptor implements a mutex pattern to prevent multiple concurrent refresh attempts. The state is managed in the `AuthStore` (NgRx Signal Store) to ensure proper cleanup when the Angular app is destroyed and recreated:
 
 ```typescript
-// Auth service manages refresh state
-public refreshTokenSubject = new BehaviorSubject<string | null>(null);
-readonly isTokenRefreshing = signal(false);
+// AuthStore manages refresh state via signals
+authStore.isTokenRefreshing(); // signal<boolean>
+authStore.startTokenRefresh(); // sets isTokenRefreshing to true
+authStore.completeTokenRefresh(); // sets isTokenRefreshing to false
 
-// Interceptor checks service state
-if (authService.isTokenRefreshing()) {
-  return authService.refreshTokenSubject.pipe(
-    filter(token => token !== null),
-    take(1),
-    switchMap(token => /* retry with new token */)
-  );
+// Interceptor checks store state
+if (authStore.isTokenRefreshing()) {
+	return toObservable(authStore.isTokenRefreshing).pipe(
+		filter((refreshing) => !refreshing),
+		take(1),
+		switchMap(() => next(req)),
+	);
 }
 ```
 
@@ -217,6 +218,8 @@ Authenticate user with email and password.
 
 **Response (200):**
 
+Both access and refresh tokens are set as HttpOnly cookies via `Set-Cookie` headers. The response body contains only the user object:
+
 ```json
 {
 	"user": {
@@ -225,7 +228,7 @@ Authenticate user with email and password.
 		"firstName": "John",
 		"lastName": "Doe"
 	},
-	"token": "v3.local.xxx..."
+	"mustChangePassword": false
 }
 ```
 
@@ -239,14 +242,12 @@ Authenticate user with email and password.
 
 ### POST /api/auth/refresh
 
-Exchange refresh token for new access + refresh tokens. Refresh token is read from HttpOnly cookie.
+Exchange refresh token for new access + refresh tokens. Refresh token is read from HttpOnly cookie. New tokens are set as HttpOnly cookies via `Set-Cookie` headers.
 
 **Response (200):**
 
 ```json
-{
-	"token": "v3.local.xxx..."
-}
+{}
 ```
 
 ### GET /api/auth/me
@@ -460,34 +461,31 @@ CREATE TABLE refresh_tokens (
 
 ## Frontend Integration
 
-### Auth Provider
+### Auth Store (Signal Store)
 
-The `Auth` provider (`src/app/providers/auth/auth.ts`) manages authentication state:
+The `AuthStore` (`src/app/store/auth/auth.store.ts`) manages authentication state using NgRx Signal Store:
 
 ```typescript
 // Login
-auth.login({ email, password }).subscribe({
-	next: () => console.log('Logged in'),
-	error: (err) => console.error(err),
-});
+authStore.login({ email, password });
 
 // Check authentication
-if (auth.isAuthenticated()) {
+if (authStore.isAuthenticated()) {
 	// User is logged in
 }
 
 // Get current user
-const user = auth.currentUser();
+const user = authStore.currentUser();
 
 // Logout
-auth.logout();
+authStore.logout();
 ```
 
 ### Interceptors
 
 Two HTTP interceptors handle authentication:
 
-1. **Auth Interceptor** (`auth.interceptor.ts`): Attaches Bearer token to API requests
+1. **Auth Interceptor** (`auth.interceptor.ts`): Sets `withCredentials: true` so cookies are sent automatically with API requests
 2. **Token Refresh Interceptor** (`token-refresh.interceptor.ts`): Handles 401 errors and token refresh
 
 ### Route Guards
@@ -555,14 +553,6 @@ If OPTIONS requests are failing:
 1. Verify the CORS middleware is positioned early in the middleware chain
 2. Check that your reverse proxy (if any) is forwarding OPTIONS requests
 
-### Token Storage (Frontend)
-
-Currently, access tokens are stored in localStorage. Consider:
-
-- **sessionStorage**: Clears on browser close (more secure, less convenient)
-- **In-memory only**: Most secure but lost on page refresh
-- **Document trade-offs**: Understand XSS risks with localStorage
-
 ## Troubleshooting
 
 ### "PASETO_SECRET_KEY not configured"
@@ -593,6 +583,7 @@ If you see repeated refresh attempts:
 - `src/api/modules/auth/auth.service.ts` - Authentication business logic
 - `src/api/modules/auth/auth.controller.ts` - Auth API endpoints
 - `src/api/middlewares/verify-access-token.middleware.ts` - Access token middleware
-- `src/app/providers/auth/auth.ts` - Frontend auth provider
-- `src/app/interceptors/auth.interceptor.ts` - Frontend auth interceptor
-- `src/app/interceptors/token-refresh.interceptor.ts` - Frontend token refresh
+- `src/app/store/auth/auth.store.ts` - Frontend auth state (NgRx Signal Store)
+- `src/app/interceptors/auth.interceptor.ts` - Sets withCredentials for cookie-based auth
+- `src/app/interceptors/token-refresh.interceptor.ts` - Handles 401 errors and token refresh
+- `src/app/interceptors/ssr-cookie.interceptor.ts` - Forwards cookies during SSR
