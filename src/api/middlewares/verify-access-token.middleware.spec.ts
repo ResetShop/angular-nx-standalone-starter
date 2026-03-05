@@ -104,7 +104,7 @@ describe('verifyAccessToken middleware', () => {
 	});
 
 	it('should only attach sub, email, firstName, lastName to context', async () => {
-		mockVerifyAccessToken.mockResolvedValue({
+		mockVerifyAccessToken.mockResolvedValueOnce({
 			...testPayload,
 			iss: 'Reset Shop',
 			iat: '2026-01-01T00:00:00.000Z',
