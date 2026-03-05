@@ -17,16 +17,24 @@ jobs:
           node-version: 22.12
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4.2.3
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Generate testing environment file
-        run: npm run config
-        env:
-          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts
 
       - name: Rebuild and prepare
         run: npm rebuild && npm run prepare --if-present
+        env:
+          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
+
+      - name: Generate testing environment file
+        run: npm run config
         env:
           PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
 
