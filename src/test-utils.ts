@@ -193,14 +193,38 @@ export function spyOn<T extends object>(obj: T, method: string & keyof T): MockF
 		enumerable: true,
 	});
 	mockFn.mockClear = () => spy.mockClear();
-	mockFn.mockResolvedValue = () => mockFn;
-	mockFn.mockResolvedValueOnce = () => mockFn;
-	mockFn.mockRejectedValue = () => mockFn;
-	mockFn.mockRejectedValueOnce = () => mockFn;
-	mockFn.mockReturnValue = () => mockFn;
-	mockFn.mockReturnValueOnce = () => mockFn;
-	mockFn.mockImplementation = () => mockFn;
-	mockFn.mockImplementationOnce = () => mockFn;
+	mockFn.mockResolvedValue = (val) => {
+		spy.mockResolvedValue(val);
+		return mockFn;
+	};
+	mockFn.mockResolvedValueOnce = (val) => {
+		spy.mockResolvedValueOnce(val);
+		return mockFn;
+	};
+	mockFn.mockRejectedValue = (val) => {
+		spy.mockRejectedValue(val);
+		return mockFn;
+	};
+	mockFn.mockRejectedValueOnce = (val) => {
+		spy.mockRejectedValueOnce(val);
+		return mockFn;
+	};
+	mockFn.mockReturnValue = (val) => {
+		spy.mockReturnValue(val);
+		return mockFn;
+	};
+	mockFn.mockReturnValueOnce = (val) => {
+		spy.mockReturnValueOnce(val);
+		return mockFn;
+	};
+	mockFn.mockImplementation = (impl) => {
+		spy.mockImplementation(impl);
+		return mockFn;
+	};
+	mockFn.mockImplementationOnce = (impl) => {
+		spy.mockImplementationOnce(impl);
+		return mockFn;
+	};
 
 	return mockFn;
 }
