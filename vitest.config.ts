@@ -4,6 +4,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [angular(), nxViteTsPaths()],
+	css: false, // Disable CSS processing — avoids ENAMETOOLONG on Linux CI from @tailwindcss/postcss base64 cache filenames
 	test: {
 		globals: true,
 		environment: 'happy-dom',
