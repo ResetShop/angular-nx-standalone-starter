@@ -12,6 +12,7 @@ import verifyAccessToken, { type AuthenticatedContext } from './verify-access-to
 
 describe('verifyAccessToken middleware', () => {
 	let app: Hono;
+	// Shared across tests — registered once in MockContainer per beforeEach, call history cleared by clearAllMocks()
 	const mockVerifyAccessToken = fn<[string], Promise<TokenPayload>>();
 
 	const testPayload: TokenPayload = {
