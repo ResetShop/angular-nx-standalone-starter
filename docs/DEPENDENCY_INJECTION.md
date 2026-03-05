@@ -229,13 +229,13 @@ For service tests, you can inject mocks directly via the constructor:
 
 ```typescript
 import { MyService } from './my.service';
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 
 describe('MyService', () => {
 	const mockFindById = fn<[number], Promise<MyData | null>>();
 
 	beforeEach(() => {
-		mockFindById.mockClear();
+		clearAllMocks();
 	});
 
 	it('should do something', async () => {
