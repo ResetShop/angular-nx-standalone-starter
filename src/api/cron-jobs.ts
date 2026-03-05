@@ -30,7 +30,7 @@ function startTokenCleanupJob(): void {
 		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS'];
 		const PARSED_ENV_INTERVAL_MS = parseInt(envValue ?? '', 10);
 
-		const { authService } = container.cradle;
+		const { tokenMaintenanceService } = container.cradle;
 		const isValidInterval =
 			Number.isFinite(PARSED_ENV_INTERVAL_MS) &&
 			PARSED_ENV_INTERVAL_MS >= MIN_INTERVAL_MS &&
@@ -48,8 +48,11 @@ function startTokenCleanupJob(): void {
 		console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`);
 
 		// Run immediately, then at interval
-		authService.cleanupExpiredTokens().catch(console.error);
-		cleanupInterval = setInterval(() => authService.cleanupExpiredTokens().catch(console.error), intervalMs);
+		tokenMaintenanceService.cleanupExpiredTokens().catch(console.error);
+		cleanupInterval = setInterval(
+			() => tokenMaintenanceService.cleanupExpiredTokens().catch(console.error),
+			intervalMs,
+		);
 	} catch (error) {
 		console.error('[CronJobs] Failed to start token cleanup job:', error);
 		// Don't crash the server - cron jobs are not critical for basic operation

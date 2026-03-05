@@ -4,7 +4,7 @@ This project uses [Awilix](https://github.com/jeffijoe/awilix) for dependency in
 
 ## Overview
 
-The DI container is configured in `src/api/container.ts` and provides:
+The DI container is configured in `src/api/container/container.ts` and provides:
 
 - **Type-safe dependency resolution** via the `Cradle` interface
 - **Singleton lifecycle** for all services and repositories
@@ -13,11 +13,13 @@ The DI container is configured in `src/api/container.ts` and provides:
 ## Dependency Graph
 
 ```
-AuthService
+AuthService (implements IAuthService + ITokenMaintenanceService)
   ├── UserRepository ──────► db
   ├── AuthRepository ──────► db
   ├── RefreshTokenRepository ► db
   └── PasetoService (no deps)
+
+TokenMaintenanceService ──► AuthService (same instance, narrower interface)
 
 Middleware/Controllers resolve services inside handler functions.
 ```
@@ -53,7 +55,7 @@ export class MyService {
 
 ### 2. Add to Cradle Interface
 
-Update the `Cradle` interface in `src/api/container.ts`:
+Update the `Cradle` interface in `src/api/container/container.types.ts`:
 
 ```typescript
 export interface Cradle {
@@ -143,19 +145,20 @@ Mock utilities are split across two modules:
 - **`resetAllMocks()`** — Clears call history and removes all mock references
 - **`useFakeTimers()`** / **`advanceTimersByTime(ms)`** / **`useRealTimers()`** — Timer wrappers
 
-**`container.mock.ts`** — DI-specific cradle utilities for backend tests:
+**`container.mock.ts`** — DI-specific mock container for backend tests:
 
-- **`setTestCradle()`** — Sets mock services for tests
-- **`resetTestCradle()`** — Clears mock services after tests
-- **`createMockCradle()`** — Type-safe builder for partial cradle objects
+- **`MockContainer`** — Accepts a partial cradle object; throws for unmocked services
+- **`container.use(mockContainer)`** — Redirects all resolution to the mock
+- **`container.restore()`** — Reverts to the real Awilix container
 
 ### Unit Testing Controllers
 
-Use `setTestCradle()` to provide mock services without `vi.mock`:
+Use `container.use(new MockContainer(...))` to provide mock services without `vi.mock`:
 
 ```typescript
 import { clearAllMocks, fn } from '@test-utils';
-import { resetTestCradle, setTestCradle } from '../../container.mock';
+import { container } from '../../container/container';
+import { MockContainer } from '../../container/container.mock';
 
 describe('MyController', () => {
 	// Create typed mock functions
@@ -164,16 +167,18 @@ describe('MyController', () => {
 
 	beforeEach(() => {
 		clearAllMocks();
-		setTestCradle({
-			myService: {
-				getAll: mockGetAll,
-				create: mockCreate,
-			},
-		});
+		container.use(
+			new MockContainer({
+				myService: {
+					getAll: mockGetAll,
+					create: mockCreate,
+				},
+			}),
+		);
 	});
 
 	afterEach(() => {
-		resetTestCradle();
+		container.restore();
 	});
 
 	it('should return data', async () => {
@@ -224,13 +229,13 @@ For service tests, you can inject mocks directly via the constructor:
 
 ```typescript
 import { MyService } from './my.service';
-import { fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils';
 
 describe('MyService', () => {
 	const mockFindById = fn<[number], Promise<MyData | null>>();
 
 	beforeEach(() => {
-		mockFindById.mockClear();
+		clearAllMocks();
 	});
 
 	it('should do something', async () => {

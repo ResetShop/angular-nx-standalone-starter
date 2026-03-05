@@ -1,7 +1,12 @@
 import type { DrizzlePgConnector } from '../helpers/drizzle-postgres-connector';
 import type { IPermissionRepository, IPermissionService } from '../modules/access/permission/interfaces';
 import type { IRoleRepository, IRoleService } from '../modules/access/role/interfaces';
-import type { IAuthenticationRepository, IAuthService, IRefreshTokenRepository } from '../modules/auth/interfaces';
+import type {
+	IAuthService,
+	IAuthenticationRepository,
+	IRefreshTokenRepository,
+	ITokenMaintenanceService,
+} from '../modules/auth/interfaces';
 import type { IHealthService } from '../modules/health/interfaces';
 import type {
 	IUserManagementRepository,
@@ -21,11 +26,13 @@ import type { IPasetoService } from '../services/paseto/interfaces';
  *
  * HealthService ──────────────► db
  *
- * AuthService
+ * AuthService (implements IAuthService + ITokenMaintenanceService)
  *   ├── UserRepository ──────► db
  *   ├── AuthRepository ──────► db
  *   ├── RefreshTokenRepository ► db
  *   └── PasetoService (no deps)
+ *
+ * TokenMaintenanceService ──► AuthService (same instance, narrower interface)
  *
  * RoleService
  *   ├── RoleRepository ──────► db
@@ -70,7 +77,8 @@ export interface Cradle {
 	healthService: IHealthService;
 	emailService: IEmailService;
 	pasetoService: IPasetoService;
-	authService: IAuthService;
+	authService: IAuthService & ITokenMaintenanceService;
+	tokenMaintenanceService: ITokenMaintenanceService;
 	roleService: IRoleService;
 	permissionService: IPermissionService;
 	userRoleService: IUserRoleService;

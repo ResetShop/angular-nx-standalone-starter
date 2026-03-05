@@ -14,6 +14,7 @@ import {
 	type IAuthService,
 	type IAuthenticationRepository,
 	type IRefreshTokenRepository,
+	type ITokenMaintenanceService,
 	type RefreshResult,
 } from './interfaces';
 
@@ -29,7 +30,7 @@ interface AuthServiceDeps {
  * Handles login, logout, token refresh, and expired token cleanup.
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
-export class AuthService implements IAuthService {
+export class AuthService implements IAuthService, ITokenMaintenanceService {
 	private userRepository: IUserRepository;
 	private authRepository: IAuthenticationRepository;
 	private refreshTokenRepository: IRefreshTokenRepository;
