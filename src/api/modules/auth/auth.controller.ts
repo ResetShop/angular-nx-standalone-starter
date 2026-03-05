@@ -216,8 +216,8 @@ registerRoute(app, cleanupTokensRoute, async (c) => {
 	}
 
 	try {
-		const { authService } = container.cradle;
-		const result = await authService.cleanupExpiredTokens();
+		const { tokenMaintenanceService } = container.cradle;
+		const result = await tokenMaintenanceService.cleanupExpiredTokens();
 
 		if (result === null) {
 			return c.json({

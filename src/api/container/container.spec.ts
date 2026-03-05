@@ -62,6 +62,10 @@ describe('DI Container', () => {
 		it('should resolve authService', () => {
 			expect(container.cradle.authService).toBeDefined();
 		});
+
+		it('should resolve tokenMaintenanceService', () => {
+			expect(container.cradle.tokenMaintenanceService).toBeDefined();
+		});
 	});
 
 	describe('singleton behavior', () => {
@@ -87,6 +91,10 @@ describe('DI Container', () => {
 			const repo1 = container.cradle.userRepository;
 			const repo2 = container.cradle.userRepository;
 			expect(repo1).toBe(repo2);
+		});
+
+		it('should resolve tokenMaintenanceService to the same instance as authService', () => {
+			expect(container.cradle.tokenMaintenanceService).toBe(container.cradle.authService);
 		});
 	});
 
