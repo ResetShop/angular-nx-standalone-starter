@@ -103,11 +103,23 @@ export interface RefreshResult {
 }
 
 /**
- * Service interface for authentication operations: login, logout, token refresh, and cleanup.
+ * Service interface for authentication operations: login, logout, and token refresh.
  */
 export interface IAuthService {
 	authenticate(credentials: AuthCredentials): Promise<AuthResult>;
 	refreshToken(token: string): Promise<RefreshResult>;
 	logout(userId: number): Promise<void>;
+}
+
+/**
+ * Service interface for token maintenance operations.
+ * Separated from IAuthService per Interface Segregation Principle:
+ * consumers like cron jobs and the cleanup endpoint only need this method,
+ * not the full authentication surface.
+ *
+ * Future token maintenance operations (e.g., bulk revocation) should be
+ * added here rather than to IAuthService.
+ */
+export interface ITokenMaintenanceService {
 	cleanupExpiredTokens(): Promise<CleanupResult | null>;
 }

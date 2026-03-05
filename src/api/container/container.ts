@@ -1,4 +1,4 @@
-import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix';
+import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix';
 import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector';
 import { PermissionRepository } from '../modules/access/permission/permission.repository';
 import { PermissionService } from '../modules/access/permission/permission.service';
@@ -52,6 +52,7 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 		healthService: asClass(HealthService).singleton(),
 		pasetoService: asClass(PasetoService).singleton(),
 		authService: asClass(AuthService).singleton(),
+		tokenMaintenanceService: asFunction(({ authService }: Pick<Cradle, 'authService'>) => authService).singleton(),
 		roleService: asClass(RoleService).singleton(),
 		permissionService: asClass(PermissionService).singleton(),
 		userRoleService: asClass(UserRoleService).singleton(),
