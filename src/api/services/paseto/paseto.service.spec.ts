@@ -1,5 +1,5 @@
 import { clearAllMocks } from '@test-utils';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { PasetoService } from './paseto.service';
 
 describe('PasetoService', () => {
@@ -17,10 +17,6 @@ describe('PasetoService', () => {
 		originalEnv = { ...process.env };
 	});
 
-	afterAll(() => {
-		process.env = originalEnv;
-	});
-
 	beforeEach(() => {
 		clearAllMocks();
 		const validKey = 'a'.repeat(64);
@@ -30,6 +26,14 @@ describe('PasetoService', () => {
 		delete process.env['PASETO_REFRESH_TOKEN_EXPIRY'];
 		delete process.env['PASETO_CLOCK_TOLERANCE'];
 		pasetoService = new PasetoService();
+	});
+
+	afterEach(() => {
+		process.env['PASETO_SECRET_KEY'] = originalEnv['PASETO_SECRET_KEY'];
+		process.env['PASETO_ISSUER'] = originalEnv['PASETO_ISSUER'];
+		process.env['PASETO_ACCESS_TOKEN_EXPIRY'] = originalEnv['PASETO_ACCESS_TOKEN_EXPIRY'];
+		process.env['PASETO_REFRESH_TOKEN_EXPIRY'] = originalEnv['PASETO_REFRESH_TOKEN_EXPIRY'];
+		process.env['PASETO_CLOCK_TOLERANCE'] = originalEnv['PASETO_CLOCK_TOLERANCE'];
 	});
 
 	describe('constructor', () => {
