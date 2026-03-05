@@ -118,7 +118,8 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 }
 
 /**
- * Clear all recorded calls from every mock function created with fn().
+ * Clear all recorded calls from every mock function created with fn()
+ * and every spy created with spyOn().
  * Call this in beforeEach to ensure clean state between tests.
  *
  * Only clears call history — configured return values and implementations
@@ -127,6 +128,9 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 export function clearAllMocks(): void {
 	for (const mock of mockRegistry) {
 		mock.mockClear();
+	}
+	for (const spy of spyRegistry) {
+		spy.mockClear();
 	}
 }
 
