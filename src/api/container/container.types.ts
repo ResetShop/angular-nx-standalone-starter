@@ -77,7 +77,7 @@ export interface Cradle {
 	healthService: IHealthService;
 	emailService: IEmailService;
 	pasetoService: IPasetoService;
-	authService: IAuthService;
+	authService: IAuthService & ITokenMaintenanceService;
 	tokenMaintenanceService: ITokenMaintenanceService;
 	roleService: IRoleService;
 	permissionService: IPermissionService;

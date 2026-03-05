@@ -6,7 +6,6 @@ import { RoleRepository } from '../modules/access/role/role.repository';
 import { RoleService } from '../modules/access/role/role.service';
 import { AuthService } from '../modules/auth/auth.service';
 import { AuthenticationRepository } from '../modules/auth/authentication.repository';
-import type { IAuthService, ITokenMaintenanceService } from '../modules/auth/interfaces';
 import { RefreshTokenRepository } from '../modules/auth/refresh-token.repository';
 import { HealthService } from '../modules/health/health.service';
 import { UserManagementRepository } from '../modules/user/user-management.repository';
@@ -53,9 +52,7 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 		healthService: asClass(HealthService).singleton(),
 		pasetoService: asClass(PasetoService).singleton(),
 		authService: asClass(AuthService).singleton(),
-		tokenMaintenanceService: asFunction(
-			({ authService }: { authService: IAuthService & ITokenMaintenanceService }) => authService,
-		).singleton(),
+		tokenMaintenanceService: asFunction(({ authService }: Pick<Cradle, 'authService'>) => authService).singleton(),
 		roleService: asClass(RoleService).singleton(),
 		permissionService: asClass(PermissionService).singleton(),
 		userRoleService: asClass(UserRoleService).singleton(),
