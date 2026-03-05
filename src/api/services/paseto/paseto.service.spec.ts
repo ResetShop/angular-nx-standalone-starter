@@ -29,11 +29,21 @@ describe('PasetoService', () => {
 	});
 
 	afterEach(() => {
-		process.env['PASETO_SECRET_KEY'] = originalEnv['PASETO_SECRET_KEY'];
-		process.env['PASETO_ISSUER'] = originalEnv['PASETO_ISSUER'];
-		process.env['PASETO_ACCESS_TOKEN_EXPIRY'] = originalEnv['PASETO_ACCESS_TOKEN_EXPIRY'];
-		process.env['PASETO_REFRESH_TOKEN_EXPIRY'] = originalEnv['PASETO_REFRESH_TOKEN_EXPIRY'];
-		process.env['PASETO_CLOCK_TOLERANCE'] = originalEnv['PASETO_CLOCK_TOLERANCE'];
+		const keys = [
+			'PASETO_SECRET_KEY',
+			'PASETO_ISSUER',
+			'PASETO_ACCESS_TOKEN_EXPIRY',
+			'PASETO_REFRESH_TOKEN_EXPIRY',
+			'PASETO_CLOCK_TOLERANCE',
+		] as const;
+
+		for (const key of keys) {
+			if (originalEnv[key] === undefined) {
+				delete process.env[key];
+			} else {
+				process.env[key] = originalEnv[key];
+			}
+		}
 	});
 
 	describe('constructor', () => {
