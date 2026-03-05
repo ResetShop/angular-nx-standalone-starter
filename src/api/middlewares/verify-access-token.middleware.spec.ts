@@ -60,7 +60,7 @@ describe('verifyAccessToken middleware', () => {
 	});
 
 	it('should attach user to context and call next when token is valid', async () => {
-		mockVerifyAccessToken.mockResolvedValue(testPayload);
+		mockVerifyAccessToken.mockResolvedValueOnce(testPayload);
 
 		const res = await app.fetch(requestWithCookie('valid-token'));
 
@@ -75,7 +75,7 @@ describe('verifyAccessToken middleware', () => {
 	});
 
 	it('should pass the cookie value to pasetoService.verifyAccessToken', async () => {
-		mockVerifyAccessToken.mockResolvedValue(testPayload);
+		mockVerifyAccessToken.mockResolvedValueOnce(testPayload);
 
 		await app.fetch(requestWithCookie('my-specific-token'));
 
