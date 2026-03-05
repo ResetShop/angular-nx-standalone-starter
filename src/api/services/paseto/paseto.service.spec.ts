@@ -169,6 +169,26 @@ describe('PasetoService', () => {
 			await expect(pasetoService.verifyRefreshToken('not-a-token')).rejects.toThrow('Invalid or expired refresh token');
 		});
 
+		it('should reject a refresh token generated with a different key', async () => {
+			const token = await pasetoService.generateRefreshToken('1');
+
+			process.env['PASETO_SECRET_KEY'] = 'b'.repeat(64);
+			const otherService = new PasetoService();
+
+			await expect(otherService.verifyRefreshToken(token)).rejects.toThrow('Invalid or expired refresh token');
+		});
+
+		it('should reject a refresh token with wrong issuer', async () => {
+			process.env['PASETO_ISSUER'] = 'Issuer A';
+			const serviceA = new PasetoService();
+			const token = await serviceA.generateRefreshToken('1');
+
+			process.env['PASETO_ISSUER'] = 'Issuer B';
+			const serviceB = new PasetoService();
+
+			await expect(serviceB.verifyRefreshToken(token)).rejects.toThrow('Invalid or expired refresh token');
+		});
+
 		it('should generate a token family UUID when none is provided', async () => {
 			const token = await pasetoService.generateRefreshToken('1');
 
