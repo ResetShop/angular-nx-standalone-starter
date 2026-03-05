@@ -184,7 +184,10 @@ export function spyOn<T extends object>(obj: T, method: string & keyof T): MockF
 	const spy = vi.spyOn(obj as any, method as any).mockImplementation((() => {}) as any);
 	spyRegistry.add(spy);
 
-	const mockFn = ((...args: unknown[]) => spy(...args)) as MockFn;
+	// REASON: the build tsconfig resolves vi.spyOn's return type differently than the spec tsconfig, making spy() not directly callable
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const callSpy = spy as any as (...args: unknown[]) => unknown;
+	const mockFn = ((...args: unknown[]) => callSpy(...args)) as MockFn;
 	Object.defineProperty(mockFn, 'calls', {
 		get: () => spy.mock.calls,
 		enumerable: true,
