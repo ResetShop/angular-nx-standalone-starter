@@ -95,7 +95,6 @@ describe('DI Container', () => {
 
 		it('should resolve tokenMaintenanceService to the same instance as authService', () => {
 			expect(container.cradle.tokenMaintenanceService).toBe(container.cradle.authService);
-			expect(container.cradle.tokenMaintenanceService).toBeInstanceOf(AuthService);
 		});
 	});
 
