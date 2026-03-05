@@ -4,7 +4,7 @@ This project uses [Awilix](https://github.com/jeffijoe/awilix) for dependency in
 
 ## Overview
 
-The DI container is configured in `src/api/container.ts` and provides:
+The DI container is configured in `src/api/container/container.ts` and provides:
 
 - **Type-safe dependency resolution** via the `Cradle` interface
 - **Singleton lifecycle** for all services and repositories
@@ -55,7 +55,7 @@ export class MyService {
 
 ### 2. Add to Cradle Interface
 
-Update the `Cradle` interface in `src/api/container.ts`:
+Update the `Cradle` interface in `src/api/container/container.types.ts`:
 
 ```typescript
 export interface Cradle {
