@@ -91,6 +91,23 @@ These patterns are intentional and correct. Do NOT report them as issues:
 - [ ] Zod validation for external data
 - [ ] O(1) lookups using Set for frequent checks
 
+### Performance Considerations
+
+- [ ] No unnecessary re-renders or redundant API calls
+- [ ] Database queries are efficient (no N+1, proper indexing considerations)
+- [ ] No synchronous blocking operations in async handlers
+- [ ] Large data sets use pagination (not unbounded queries)
+- [ ] No redundant object/array copies or allocations in hot paths
+
+### Security Concerns
+
+- [ ] No hardcoded secrets, API keys, or credentials
+- [ ] User input validated at system boundaries (Zod schemas)
+- [ ] No SQL injection vectors (parameterized queries via Drizzle ORM)
+- [ ] No XSS vectors in server-rendered content
+- [ ] Authentication/authorization checks present on protected endpoints
+- [ ] Sensitive data not leaked in error messages or logs
+
 ### Testing Guidelines
 
 - [ ] Uses Angular Testing Library (not ComponentFixture)
