@@ -16,12 +16,16 @@ jobs:
         with:
           node-version: 22.12
 
+      - name: Get Node.js version
+        id: node-version
+        run: echo "version=$(node -v)" >> $GITHUB_OUTPUT
+
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4.2.3
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-22.12-${{ hashFiles('**/package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ steps.node-version.outputs.version }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
