@@ -33,6 +33,8 @@ jobs:
 
       - name: Rebuild and prepare
         run: npm rebuild && npm run prepare --if-present
+        env:
+          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
 
       - name: Generate testing environment file
         run: npm run config
