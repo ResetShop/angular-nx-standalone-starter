@@ -424,15 +424,12 @@ describe('RoleService', () => {
 		it('should include invalid IDs in the error', async () => {
 			mockRoleRepo.addRole(testRole);
 
-			try {
-				await roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000]);
-				expect.fail('Expected error to be thrown');
-			} catch (error) {
-				expect(error).toBeInstanceOf(InvalidPermissionIdsError);
-				const invalidError = error as InvalidPermissionIdsError;
-				expect(invalidError.invalidIds).toEqual([999, 1000]);
-				expect(invalidError.message).toBe(ROLE_ERRORS.INVALID_PERMISSION_IDS);
-			}
+			const error = await roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000]).catch((e: unknown) => e);
+
+			expect(error).toBeInstanceOf(InvalidPermissionIdsError);
+			const invalidError = error as InvalidPermissionIdsError;
+			expect(invalidError.invalidIds).toEqual([999, 1000]);
+			expect(invalidError.message).toBe(ROLE_ERRORS.INVALID_PERMISSION_IDS);
 		});
 
 		it('should allow assigning empty permissions array', async () => {
