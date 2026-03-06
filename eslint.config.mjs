@@ -1,10 +1,10 @@
 import nx from '@nx/eslint-plugin';
 import stylisticJs from '@stylistic/eslint-plugin';
+import vitest from '@vitest/eslint-plugin';
 import noBarrelFiles from 'eslint-plugin-no-barrel-files';
 import playwright from 'eslint-plugin-playwright';
 import storybook from 'eslint-plugin-storybook';
 import testingLibrary from 'eslint-plugin-testing-library';
-import vitest from 'eslint-plugin-vitest';
 
 const commonRestrictedSyntax = [
 	{
