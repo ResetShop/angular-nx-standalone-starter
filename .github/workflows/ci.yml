@@ -15,18 +15,29 @@ jobs:
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 22.12
-          cache: 'npm'
+
+      - name: Get Node.js version
+        id: node-version
+        run: echo "version=$(node -v)" >> $GITHUB_OUTPUT
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4.2.3
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ steps.node-version.outputs.version }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Generate testing environment file
-        run: npm run config
-        env:
-          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --ignore-scripts # Lifecycle scripts run separately via npm rebuild and npm run prepare below
 
       - name: Rebuild and prepare
         run: npm rebuild && npm run prepare --if-present
+        env:
+          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
+
+      - name: Generate testing environment file
+        run: npm run config
         env:
           PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
 
@@ -54,7 +65,6 @@ jobs:
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 22.12
-          cache: 'npm'
 
       - name: Run Tests
         run: npx nx test --skip-nx-cache
@@ -75,7 +85,6 @@ jobs:
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 22.12
-          cache: 'npm'
 
       - name: Run Linter
         run: npx nx lint --skip-nx-cache
@@ -96,7 +105,6 @@ jobs:
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 22.12
-          cache: 'npm'
 
       - name: Run stylelint
         run: npx nx stylelint app --skip-nx-cache
@@ -117,7 +125,6 @@ jobs:
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 22.12
-          cache: 'npm'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -151,7 +158,6 @@ jobs:
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 22.12
-          cache: 'npm'
 
       - name: Generate PASETO key for CI
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
@@ -175,7 +181,6 @@ jobs:
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 22.12
-          cache: 'npm'
 
       - name: Run Storybook build
         run: npx nx run app:build-storybook --skip-nx-cache
