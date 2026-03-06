@@ -4,9 +4,6 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [angular(), nxViteTsPaths()],
-	// Disable PostCSS plugins during tests — avoids ENAMETOOLONG on Linux CI
-	// where @tailwindcss/postcss base64-encodes inline CSS as cache filenames exceeding the 255-byte limit
-	css: { postcss: { plugins: [] } },
 	test: {
 		globals: true,
 		environment: 'happy-dom',
