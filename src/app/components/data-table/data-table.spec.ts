@@ -1,6 +1,6 @@
 import { Translation } from '@providers/i18n/translation';
 import { type ColumnDef } from '@tanstack/angular-table';
-import { fn } from '@test-utils';
+import { fn, spyOn } from '@test-utils';
 import { type RenderResult, render, screen, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { DataTable } from './data-table';
@@ -439,20 +439,14 @@ describe('DataTable', () => {
 		});
 
 		it('should warn when grouping column ID does not match any column definition', async () => {
-			const originalWarn = console.warn;
-			const warnMock = fn<[string], void>();
-			console.warn = warnMock;
+			const warnSpy = spyOn(console, 'warn');
 
-			try {
-				await renderGroupedTable({ grouping: ['nonexistent'] });
+			await renderGroupedTable({ grouping: ['nonexistent'] });
 
-				expect(warnMock.calls).toHaveLength(1);
-				expect(warnMock.calls[0][0]).toBe(
-					'DataTable: grouping column "nonexistent" does not match any column definition.',
-				);
-			} finally {
-				console.warn = originalWarn;
-			}
+			expect(warnSpy.calls).toHaveLength(1);
+			expect(warnSpy.calls[0][0]).toBe(
+				'DataTable: grouping column "nonexistent" does not match any column definition.',
+			);
 		});
 	});
 });

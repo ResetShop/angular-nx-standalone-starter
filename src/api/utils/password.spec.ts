@@ -1,19 +1,18 @@
-import { clearAllMocks, fn } from '@test-utils';
+import { clearAllMocks, type MockFn, spyOn } from '@test-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { generatePassword } from './password';
 
 describe('generatePassword', () => {
 	const originalAppLanguage = process.env['APP_LANGUAGE'];
-	const consoleErrorSpy = fn<Parameters<typeof console.error>, void>();
-	const originalConsoleError = console.error;
+	let consoleErrorSpy: MockFn;
 
 	beforeEach(() => {
 		clearAllMocks();
 		delete process.env['APP_LANGUAGE'];
-		console.error = consoleErrorSpy as typeof console.error;
+		consoleErrorSpy = spyOn(console, 'error');
 	});
 
 	afterEach(() => {
-		console.error = originalConsoleError;
 		if (originalAppLanguage !== undefined) {
 			process.env['APP_LANGUAGE'] = originalAppLanguage;
 		} else {

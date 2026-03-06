@@ -8,6 +8,7 @@
 	"exclude": [
 		"jest.config.ts",
 		"src/test-setup.ts",
+		"src/test-utils.ts",
 		"src/**/*.test.ts",
 		"src/**/*.spec.ts",
 		"**/*.stories.ts",
