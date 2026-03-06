@@ -67,7 +67,7 @@ jobs:
           node-version: 22.12
 
       - name: Run Tests
-        run: npx nx test --skip-nx-cache --verbose
+        run: npx nx test --skip-nx-cache
 
   lint:
     needs: setup
