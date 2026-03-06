@@ -56,9 +56,34 @@ describe('validateEnvironment', () => {
 		});
 	});
 
+	describe('PASETO_ISSUER', () => {
+		beforeEach(() => {
+			process.env['PASETO_SECRET_KEY'] = 'a'.repeat(64);
+		});
+
+		it('should throw when PASETO_ISSUER is missing', () => {
+			delete process.env['PASETO_ISSUER'];
+
+			expect(() => validateEnvironment()).toThrow('PASETO_ISSUER environment variable is required');
+		});
+
+		it('should throw when PASETO_ISSUER is empty', () => {
+			process.env['PASETO_ISSUER'] = '';
+
+			expect(() => validateEnvironment()).toThrow('PASETO_ISSUER environment variable is required');
+		});
+
+		it('should accept a valid issuer string', () => {
+			process.env['PASETO_ISSUER'] = 'my-app';
+
+			expect(() => validateEnvironment()).not.toThrow();
+		});
+	});
+
 	describe('EMAIL_PROVIDER', () => {
 		beforeEach(() => {
 			process.env['PASETO_SECRET_KEY'] = 'a'.repeat(64);
+			process.env['PASETO_ISSUER'] = 'test-issuer';
 		});
 
 		it('should accept when EMAIL_PROVIDER is not set', () => {
