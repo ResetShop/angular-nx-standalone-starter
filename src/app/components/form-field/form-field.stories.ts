@@ -15,7 +15,7 @@ import { FormField } from './form-field';
 
 // --- Story wrapper components ---
 
-type InputType = 'email' | 'text' | 'select' | 'checkboxes';
+type InputType = 'email' | 'text' | 'select';
 
 @Component({
 	selector: 'app-story-playground',
@@ -78,29 +78,6 @@ type InputType = 'email' | 'text' | 'select' | 'checkboxes';
 						</select>
 					</app-form-field>
 				}
-				@case ('checkboxes') {
-					<app-form-field
-						[label]="'Notification preferences'"
-						[field]="prefsField"
-						[hint]="resolvedHint()"
-						[showRequired]="showRequired()"
-					>
-						<div class="space-y-2">
-							<label class="flex items-center gap-2 text-sm">
-								<input [formField]="prefsField.emailNotifs" type="checkbox" class="border-input rounded" />
-								Email notifications
-							</label>
-							<label class="flex items-center gap-2 text-sm">
-								<input [formField]="prefsField.smsNotifs" type="checkbox" class="border-input rounded" />
-								SMS notifications
-							</label>
-							<label class="flex items-center gap-2 text-sm">
-								<input [formField]="prefsField.pushNotifs" type="checkbox" class="border-input rounded" />
-								Push notifications
-							</label>
-						</div>
-					</app-form-field>
-				}
 			}
 		}
 	`,
@@ -148,18 +125,12 @@ class StoryPlayground {
 	);
 	readonly optionalSelectField: FieldTree<string> = form(this.selectModel);
 
-	private readonly prefsModel = signal({ emailNotifs: true, smsNotifs: false, pushNotifs: true });
-	readonly prefsField: FieldTree<{ emailNotifs: boolean; smsNotifs: boolean; pushNotifs: boolean }> = form(
-		this.prefsModel,
-	);
-
 	protected readonly resolvedHint = computed(() => {
 		if (!this.showHint()) return undefined;
 		const hints: Record<InputType, string> = {
 			email: 'Enter your work email',
 			text: 'Choose a unique username',
 			select: 'Select your country of residence',
-			checkboxes: 'Choose how you want to be notified',
 		};
 		return hints[this.inputType()];
 	});
@@ -205,7 +176,7 @@ export const Playground: StoryObj = {
 	argTypes: {
 		inputType: {
 			control: 'select',
-			options: ['email', 'text', 'select', 'checkboxes'],
+			options: ['email', 'text', 'select'],
 			description: 'Type of form input to display',
 			table: {
 				type: { summary: 'InputType' },

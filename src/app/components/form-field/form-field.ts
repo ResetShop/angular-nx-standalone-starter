@@ -3,7 +3,9 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	effect,
 	ElementRef,
+	ErrorHandler,
 	inject,
 	input,
 	viewChild,
@@ -29,7 +31,7 @@ import { NgpFormField } from 'ng-primitives/form-field';
 		</label>
 
 		<div #contentWrapper class="mt-2">
-			<ng-content />
+			<ng-content select="input, select, textarea" />
 		</div>
 
 		@if (hint() && !showErrors()) {
@@ -42,9 +44,15 @@ import { NgpFormField } from 'ng-primitives/form-field';
 			</p>
 		}
 	`,
+	styles: `
+		app-form-field ::ng-deep [aria-invalid='true'] {
+			border-color: var(--destructive);
+		}
+	`,
 })
 export class FormField {
 	private readonly autoId = `form-field-${crypto.randomUUID().slice(0, 8)}`;
+	private readonly errorHandler = inject(ErrorHandler);
 	private readonly translation = inject(Translation);
 	private readonly contentWrapper = viewChild<ElementRef<HTMLElement>>('contentWrapper');
 
@@ -76,12 +84,38 @@ export class FormField {
 	});
 
 	constructor() {
+		// TODO (#66): Replace errorHandler.handleError with logging service when available
+		effect(() => {
+			const supportedControls = 'input, select, textarea';
+			const wrapper = this.contentWrapper()?.nativeElement;
+			if (!wrapper) return;
+
+			const directChildren = wrapper.children;
+
+			if (directChildren.length > 1) {
+				this.errorHandler.handleError(
+					new Error(`FormField expects a single projected element, but received ${directChildren.length}.`),
+				);
+			}
+
+			if (directChildren.length === 1 && !directChildren[0].matches(supportedControls)) {
+				this.errorHandler.handleError(
+					new Error(
+						`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
+							`Supported elements: ${supportedControls}.`,
+					),
+				);
+			}
+		});
+
 		afterRenderEffect(() => {
-			const hasErrors = this.showErrors();
-			const el = this.contentWrapper()?.nativeElement.querySelector<HTMLElement>('input, select, textarea');
+			const wrapper = this.contentWrapper()?.nativeElement;
+			if (!wrapper) return;
+
+			const el = wrapper.querySelector('input, select, textarea');
 			if (!el) return;
 
-			el.style.borderColor = hasErrors ? 'var(--destructive)' : '';
+			el.setAttribute('aria-invalid', String(this.showErrors()));
 		});
 	}
 

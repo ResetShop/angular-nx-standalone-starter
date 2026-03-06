@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, ErrorHandler, signal } from '@angular/core';
 import {
 	email,
 	form,
@@ -192,6 +192,41 @@ class TestHostCustomErrorNoMessage {
 			});
 		}),
 	);
+}
+
+@Component({
+	selector: 'app-test-host-multiple-children',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<!-- Intentionally projects multiple children to test runtime validation -->
+		<!-- eslint-disable-next-line custom-template/form-field-allowed-content -->
+		<app-form-field [label]="'Multi'" [field]="field" #ff="formField">
+			<input [id]="ff.resolvedId()" [formField]="field" type="text" />
+			<input [formField]="field" type="text" />
+		</app-form-field>
+	`,
+})
+class TestHostMultipleChildren {
+	private readonly model = signal('');
+	readonly field: FieldTree<string> = form(this.model);
+}
+
+@Component({
+	selector: 'app-test-host-unsupported-element',
+	standalone: true,
+	imports: [FormField],
+	template: `
+		<!-- Intentionally projects an unsupported element to test runtime validation -->
+		<app-form-field [label]="'Bad'" [field]="field">
+			<!-- eslint-disable-next-line custom-template/form-field-allowed-content -->
+			<span>Not a form control</span>
+		</app-form-field>
+	`,
+})
+class TestHostUnsupportedElement {
+	private readonly model = signal('');
+	readonly field: FieldTree<string> = form(this.model);
 }
 
 describe('FormField', () => {
@@ -429,6 +464,50 @@ describe('FormField', () => {
 
 			expect(label.getAttribute('for')).toBe('my-field');
 			expect(input.getAttribute('id')).toBe('my-field');
+		});
+	});
+
+	describe('aria-invalid', () => {
+		it('should set aria-invalid to true when field has errors and is touched', async () => {
+			const { fixture } = await renderTestHost();
+
+			fixture.componentInstance.emailField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByLabelText(/email/i)).toHaveAttribute('aria-invalid', 'true');
+		});
+
+		it('should set aria-invalid to false when field has no errors', async () => {
+			await renderTestHost();
+
+			expect(screen.getByLabelText(/email/i)).toHaveAttribute('aria-invalid', 'false');
+		});
+	});
+
+	describe('projected content validation', () => {
+		it('should throw when multiple direct children are projected', async () => {
+			const errors: unknown[] = [];
+			const errorHandler = { handleError: (e: unknown) => errors.push(e) };
+
+			await render(TestHostMultipleChildren, {
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: ErrorHandler, useValue: errorHandler },
+					...provideSignalFormsConfig({}),
+				],
+			});
+
+			expect(
+				errors.some((e) => e instanceof Error && e.message.includes('FormField expects a single projected element')),
+			).toBe(true);
+		});
+
+		it('should silently drop unsupported elements via ng-content select', async () => {
+			await render(TestHostUnsupportedElement, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			expect(screen.queryByText('Not a form control')).not.toBeInTheDocument();
 		});
 	});
 });
