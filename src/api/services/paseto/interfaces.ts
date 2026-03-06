@@ -11,6 +11,7 @@ export interface TokenPayload {
 export interface RefreshTokenPayload {
 	sub: string; // Subject (user ID)
 	tokenFamily?: string; // For refresh token rotation
+	iss?: string; // Issuer
 }
 
 export interface IPasetoService {

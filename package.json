@@ -67,8 +67,8 @@
 		"zod": "^4.2.1"
 	},
 	"devDependencies": {
-		"@analogjs/vite-plugin-angular": "^2.1.0",
-		"@analogjs/vitest-angular": "^2.1.0",
+		"@analogjs/vite-plugin-angular": "2.3.1-beta.1",
+		"@analogjs/vitest-angular": "2.3.1-beta.1",
 		"@angular-devkit/core": "21.1.5",
 		"@angular-devkit/schematics": "21.1.5",
 		"@angular/build": "21.1.5",
@@ -96,7 +96,7 @@
 		"@swc-node/register": "1.11.1",
 		"@swc/core": "~1.15.7",
 		"@swc/helpers": "0.5.18",
-		"@testing-library/angular": "^18.1.1",
+		"@testing-library/angular": "^19.1.0",
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/user-event": "^14.6.1",
@@ -117,7 +117,7 @@
 		"eslint-plugin-testing-library": "^7.15.3",
 		"happy-dom": "^20.0.11",
 		"husky": "^9.1.7",
-		"ng-primitives": "^0.96.0",
+		"ng-primitives": "^0.110.1",
 		"nx": "22.5.4",
 		"nx-stylelint": "^18.0.2",
 		"only-allow": "^1.2.2",

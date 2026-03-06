@@ -15,6 +15,11 @@ export function validateEnvironment(): void {
 		);
 	}
 
+	const pasetoIssuer = process.env['PASETO_ISSUER'];
+	if (!pasetoIssuer) {
+		throw new Error('PASETO_ISSUER environment variable is required');
+	}
+
 	const emailProvider = process.env['EMAIL_PROVIDER'];
 	if (emailProvider && !isEmailProvider(emailProvider)) {
 		throw new Error(
