@@ -24,6 +24,15 @@ const es: TranslationSchema = {
 		GO_TO_NEXT: 'Ir a la página siguiente',
 		GO_TO_PAGE: 'Ir a la página {page}',
 	},
+	VALIDATION: {
+		REQUIRED: 'Este campo es requerido',
+		EMAIL: 'Ingrese un email válido',
+		MIN_LENGTH: 'Debe tener al menos {min} caracteres',
+		MAX_LENGTH: 'No debe tener más de {max} caracteres',
+		MIN: 'Debe ser al menos {min}',
+		MAX: 'No debe ser más de {max}',
+		PATTERN: 'Formato inválido',
+	},
 };
 
 export default es;

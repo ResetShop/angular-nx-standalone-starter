@@ -25,6 +25,15 @@ export interface TranslationSchema {
 		GO_TO_NEXT: string;
 		GO_TO_PAGE: string;
 	};
+	VALIDATION: {
+		REQUIRED: string;
+		EMAIL: string;
+		MIN_LENGTH: string;
+		MAX_LENGTH: string;
+		MIN: string;
+		MAX: string;
+		PATTERN: string;
+	};
 }
 
 /**
