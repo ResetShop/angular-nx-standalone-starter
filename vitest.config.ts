@@ -7,6 +7,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'happy-dom',
+		reporters: ['verbose'],
 		setupFiles: ['src/test-setup.ts'],
 		include: ['src/**/*.{test,spec}.ts'],
 		exclude: ['node_modules', 'dist', '.nx', 'coverage', '**/node_modules/**', '**/dist/**'],
