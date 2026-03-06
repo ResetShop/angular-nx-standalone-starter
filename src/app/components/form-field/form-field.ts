@@ -9,15 +9,9 @@ import {
 	viewChild,
 } from '@angular/core';
 import type { ValidationError } from '@angular/forms/signals';
-import { type FieldTree, REQUIRED } from '@angular/forms/signals';
+import { NgValidationError, REQUIRED, type FieldTree } from '@angular/forms/signals';
 import { Translation } from '@providers/i18n/translation';
-import type { TranslationKey } from '@providers/i18n/translations.schema';
 import { NgpFormField } from 'ng-primitives/form-field';
-
-interface ErrorMapping {
-	readonly key: TranslationKey;
-	readonly param?: string;
-}
 
 @Component({
 	selector: 'app-form-field',
@@ -91,28 +85,26 @@ export class FormField {
 		});
 	}
 
-	private interpolate(template: string, params: Record<string, string | number>): string {
-		return template.replace(/\{(\w+)}/g, (_, key: string) => String(params[key] ?? `{${key}}`));
-	}
-
 	private mapErrorToMessage(error: ValidationError): string {
-		const errorMap: Record<string, ErrorMapping> = {
-			required: { key: 'VALIDATION.REQUIRED' },
-			email: { key: 'VALIDATION.EMAIL' },
-			minLength: { key: 'VALIDATION.MIN_LENGTH', param: 'min' },
-			maxLength: { key: 'VALIDATION.MAX_LENGTH', param: 'max' },
-			min: { key: 'VALIDATION.MIN', param: 'min' },
-			max: { key: 'VALIDATION.MAX', param: 'max' },
-			pattern: { key: 'VALIDATION.PATTERN' },
-		};
+		if (!(error instanceof NgValidationError)) return error.message ?? error.kind;
 
-		const mapping = errorMap[error.kind];
-		if (!mapping) return error.message ?? error.kind;
-
-		const template = this.translation.instant(mapping.key);
-		if (!mapping.param) return template;
-
-		const value = (error as unknown as Record<string, number>)[error.kind];
-		return this.interpolate(template, { [mapping.param]: value });
+		switch (error.kind) {
+			case 'required':
+				return this.translation.instant('VALIDATION.REQUIRED');
+			case 'email':
+				return this.translation.instant('VALIDATION.EMAIL');
+			case 'minLength':
+				return this.translation.instant('VALIDATION.MIN_LENGTH').replace('{min}', String(error.minLength));
+			case 'maxLength':
+				return this.translation.instant('VALIDATION.MAX_LENGTH').replace('{max}', String(error.maxLength));
+			case 'min':
+				return this.translation.instant('VALIDATION.MIN').replace('{min}', String(error.min));
+			case 'max':
+				return this.translation.instant('VALIDATION.MAX').replace('{max}', String(error.max));
+			case 'pattern':
+				return this.translation.instant('VALIDATION.PATTERN');
+			default:
+				return error.message ?? error.kind;
+		}
 	}
 }
