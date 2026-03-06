@@ -2,12 +2,18 @@ import { Component, signal } from '@angular/core';
 import {
 	email,
 	form,
+	max,
+	maxLength,
+	min,
 	minLength,
+	pattern,
 	provideSignalFormsConfig,
 	required,
 	schema,
 	FormField as SignalFormField,
+	validate,
 	type FieldTree,
+	type ValidationError,
 } from '@angular/forms/signals';
 import { Translation } from '@providers/i18n/translation';
 import { clearAllMocks } from '@test-utils';
@@ -79,6 +85,111 @@ class TestHostMinLength {
 		schema<string>((passwordPath) => {
 			required(passwordPath);
 			minLength(passwordPath, 8);
+		}),
+	);
+}
+
+@Component({
+	selector: 'app-test-host-max-length',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Bio'" [field]="bioField" #ff="formField">
+			<input [id]="ff.resolvedId()" [formField]="bioField" type="text" />
+		</app-form-field>
+	`,
+})
+class TestHostMaxLength {
+	readonly model = signal('');
+	readonly bioField: FieldTree<string> = form(
+		this.model,
+		schema<string>((bioPath) => {
+			maxLength(bioPath, 20);
+		}),
+	);
+}
+
+@Component({
+	selector: 'app-test-host-min-max',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Age'" [field]="ageField" #ff="formField">
+			<input [id]="ff.resolvedId()" [formField]="ageField" type="number" />
+		</app-form-field>
+	`,
+})
+class TestHostMinMax {
+	private readonly model = signal(0);
+	readonly ageField: FieldTree<number> = form(
+		this.model,
+		schema<number>((agePath) => {
+			min(agePath, 18);
+			max(agePath, 120);
+		}),
+	);
+}
+
+@Component({
+	selector: 'app-test-host-pattern',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Code'" [field]="codeField" #ff="formField">
+			<input [id]="ff.resolvedId()" [formField]="codeField" type="text" />
+		</app-form-field>
+	`,
+})
+class TestHostPattern {
+	private readonly model = signal('');
+	readonly codeField: FieldTree<string> = form(
+		this.model,
+		schema<string>((codePath) => {
+			pattern(codePath, /^[A-Z]{3}$/);
+		}),
+	);
+}
+
+@Component({
+	selector: 'app-test-host-custom-error',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Username'" [field]="usernameField" #ff="formField">
+			<input [id]="ff.resolvedId()" [formField]="usernameField" type="text" />
+		</app-form-field>
+	`,
+})
+class TestHostCustomError {
+	private readonly model = signal('');
+	readonly usernameField: FieldTree<string> = form(
+		this.model,
+		schema<string>((usernamePath) => {
+			validate(usernamePath, (ctx): ValidationError | void => {
+				if (ctx.value().includes('admin')) return { kind: 'forbidden', message: 'Username cannot contain "admin"' };
+			});
+		}),
+	);
+}
+
+@Component({
+	selector: 'app-test-host-custom-error-no-message',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Tag'" [field]="tagField" #ff="formField">
+			<input [id]="ff.resolvedId()" [formField]="tagField" type="text" />
+		</app-form-field>
+	`,
+})
+class TestHostCustomErrorNoMessage {
+	private readonly model = signal('');
+	readonly tagField: FieldTree<string> = form(
+		this.model,
+		schema<string>((tagPath) => {
+			validate(tagPath, (ctx): ValidationError | void => {
+				if (ctx.value().length > 0) return { kind: 'unknownKind' };
+			});
 		}),
 	);
 }
@@ -207,6 +318,91 @@ describe('FormField', () => {
 			fixture.detectChanges();
 
 			expect(screen.getByRole('alert')).toHaveTextContent('Must be at least 8 characters');
+		});
+
+		it('should map maxLength error with interpolated value', async () => {
+			const { fixture } = await render(TestHostMaxLength, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			// Set model directly — the HTML maxlength attribute prevents typing beyond the limit
+			fixture.componentInstance.model.set('This text exceeds the twenty char limit');
+			fixture.componentInstance.bioField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Must be no more than 20 characters');
+		});
+
+		it('should map min error with interpolated value', async () => {
+			const { fixture } = await render(TestHostMinMax, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			fixture.componentInstance.ageField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Must be at least 18');
+		});
+
+		it('should map max error with interpolated value', async () => {
+			const { fixture } = await render(TestHostMinMax, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			const input = screen.getByLabelText(/age/i);
+			const user = userEvent.setup();
+
+			await user.clear(input);
+			await user.type(input, '200');
+			fixture.componentInstance.ageField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Must be no more than 120');
+		});
+
+		it('should map pattern error to translated message', async () => {
+			const { fixture } = await render(TestHostPattern, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			const input = screen.getByLabelText(/code/i);
+			const user = userEvent.setup();
+
+			await user.type(input, 'abc');
+			fixture.componentInstance.codeField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Invalid format');
+		});
+
+		it('should display custom validation error message', async () => {
+			const { fixture } = await render(TestHostCustomError, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			const input = screen.getByLabelText(/username/i);
+			const user = userEvent.setup();
+
+			await user.type(input, 'admin123');
+			fixture.componentInstance.usernameField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Username cannot contain "admin"');
+		});
+
+		it('should fall back to error kind when custom error has no message', async () => {
+			const { fixture } = await render(TestHostCustomErrorNoMessage, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			const input = screen.getByLabelText(/tag/i);
+			const user = userEvent.setup();
+
+			await user.type(input, 'x');
+			fixture.componentInstance.tagField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('unknownKind');
 		});
 	});
 
