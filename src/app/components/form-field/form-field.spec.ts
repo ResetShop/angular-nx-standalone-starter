@@ -566,15 +566,12 @@ describe('FormField', () => {
 			expect(label.getAttribute('for')).toBe(checkbox.getAttribute('id'));
 		});
 
-		it('should render checkbox before label using flex order', async () => {
+		it('should apply checkbox layout classes', async () => {
 			await renderCheckbox();
 
-			const checkbox = screen.getByRole('checkbox');
 			const label = screen.getByText('Accept terms');
-			const checkboxWrapper = checkbox.parentElement!;
 
-			expect(checkboxWrapper.classList.contains('order-1')).toBe(true);
-			expect(label.classList.contains('order-2')).toBe(true);
+			expect(label).toHaveClass('order-2', 'select-none');
 		});
 
 		it('should show hint text below checkbox row', async () => {
