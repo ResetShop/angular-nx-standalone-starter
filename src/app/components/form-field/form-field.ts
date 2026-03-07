@@ -3,6 +3,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	contentChild,
 	effect,
 	ElementRef,
 	ErrorHandler,
@@ -11,7 +12,7 @@ import {
 	viewChild,
 } from '@angular/core';
 import type { ValidationError } from '@angular/forms/signals';
-import { NgValidationError, REQUIRED, type FieldTree } from '@angular/forms/signals';
+import { NgValidationError, REQUIRED, FormField as SignalFormField } from '@angular/forms/signals';
 import { Translation } from '@providers/i18n/translation';
 import { NgpFormField } from 'ng-primitives/form-field';
 
@@ -55,27 +56,33 @@ export class FormField {
 	private readonly errorHandler = inject(ErrorHandler);
 	private readonly translation = inject(Translation);
 	private readonly contentWrapper = viewChild<ElementRef<HTMLElement>>('contentWrapper');
+	private readonly formFieldDirective = contentChild(SignalFormField);
 
 	readonly label = input.required<string>();
-	readonly field = input.required<FieldTree<unknown>>();
 	readonly hint = input<string | undefined>(undefined);
 	readonly fieldId = input<string | undefined>(undefined);
 	readonly showRequired = input<boolean | undefined>(undefined);
 
 	protected readonly resolvedId = computed(() => this.fieldId() ?? this.autoId);
 
-	protected readonly fieldState = computed(() => this.field()());
+	protected readonly fieldState = computed(() => this.formFieldDirective()?.state());
 
 	protected readonly isRequired = computed(() => {
 		const override = this.showRequired();
 		if (override !== undefined) return override;
-		const requiredSignal = this.fieldState().metadata(REQUIRED);
+		const state = this.fieldState();
+		if (!state) return false;
+		const requiredSignal = state.metadata(REQUIRED);
 		return requiredSignal ? requiredSignal() : false;
 	});
 
-	protected readonly errors = computed(() => this.fieldState().errors());
+	protected readonly errors = computed(() => this.fieldState()?.errors() ?? []);
 
-	protected readonly showErrors = computed(() => this.fieldState().touched() && this.errors().length > 0);
+	protected readonly showErrors = computed(() => {
+		const state = this.fieldState();
+		if (!state) return false;
+		return state.touched() && this.errors().length > 0;
+	});
 
 	protected readonly translatedError = computed(() => {
 		const errors = this.errors();
@@ -103,6 +110,15 @@ export class FormField {
 					new Error(
 						`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
 							`Supported elements: ${supportedControls}.`,
+					),
+				);
+			}
+
+			if (directChildren.length === 1 && directChildren[0].matches(supportedControls) && !this.formFieldDirective()) {
+				this.errorHandler.handleError(
+					new Error(
+						'FormField requires a [formField] directive on the projected form control. ' +
+							'Add [formField]="yourField" to the input, select, or textarea element.',
 					),
 				);
 			}

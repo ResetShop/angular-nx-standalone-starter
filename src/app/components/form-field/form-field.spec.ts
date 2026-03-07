@@ -42,7 +42,6 @@ const mockTranslation = {
 	template: `
 		<app-form-field
 			[label]="label()"
-			[field]="emailField"
 			[hint]="hint()"
 			[fieldId]="fieldId()"
 			[showRequired]="showRequired()"
@@ -73,7 +72,7 @@ class TestHostRequiredEmail {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Password'" [field]="passwordField" #ff="formField">
+		<app-form-field [label]="'Password'" #ff="formField">
 			<input [id]="ff.resolvedId()" [formField]="passwordField" type="password" />
 		</app-form-field>
 	`,
@@ -94,7 +93,7 @@ class TestHostMinLength {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Bio'" [field]="bioField" #ff="formField">
+		<app-form-field [label]="'Bio'" #ff="formField">
 			<input [id]="ff.resolvedId()" [formField]="bioField" type="text" />
 		</app-form-field>
 	`,
@@ -114,7 +113,7 @@ class TestHostMaxLength {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Age'" [field]="ageField" #ff="formField">
+		<app-form-field [label]="'Age'" #ff="formField">
 			<input [id]="ff.resolvedId()" [formField]="ageField" type="number" />
 		</app-form-field>
 	`,
@@ -135,7 +134,7 @@ class TestHostMinMax {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Code'" [field]="codeField" #ff="formField">
+		<app-form-field [label]="'Code'" #ff="formField">
 			<input [id]="ff.resolvedId()" [formField]="codeField" type="text" />
 		</app-form-field>
 	`,
@@ -155,7 +154,7 @@ class TestHostPattern {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Username'" [field]="usernameField" #ff="formField">
+		<app-form-field [label]="'Username'" #ff="formField">
 			<input [id]="ff.resolvedId()" [formField]="usernameField" type="text" />
 		</app-form-field>
 	`,
@@ -177,7 +176,7 @@ class TestHostCustomError {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Tag'" [field]="tagField" #ff="formField">
+		<app-form-field [label]="'Tag'" #ff="formField">
 			<input [id]="ff.resolvedId()" [formField]="tagField" type="text" />
 		</app-form-field>
 	`,
@@ -201,7 +200,7 @@ class TestHostCustomErrorNoMessage {
 	template: `
 		<!-- Intentionally projects multiple children to test runtime validation -->
 		<!-- eslint-disable-next-line custom-template/form-field-allowed-content -->
-		<app-form-field [label]="'Multi'" [field]="field" #ff="formField">
+		<app-form-field [label]="'Multi'" #ff="formField">
 			<input [id]="ff.resolvedId()" [formField]="field" type="text" />
 			<input [formField]="field" type="text" />
 		</app-form-field>
@@ -218,16 +217,26 @@ class TestHostMultipleChildren {
 	imports: [FormField],
 	template: `
 		<!-- Intentionally projects an unsupported element to test runtime validation -->
-		<app-form-field [label]="'Bad'" [field]="field">
+		<app-form-field [label]="'Bad'">
 			<!-- eslint-disable-next-line custom-template/form-field-allowed-content -->
 			<span>Not a form control</span>
 		</app-form-field>
 	`,
 })
-class TestHostUnsupportedElement {
-	private readonly model = signal('');
-	readonly field: FieldTree<string> = form(this.model);
-}
+class TestHostUnsupportedElement {}
+
+@Component({
+	selector: 'app-test-host-missing-directive',
+	standalone: true,
+	imports: [FormField],
+	template: `
+		<!-- Intentionally omits [formField] directive to test runtime validation -->
+		<app-form-field [label]="'No Directive'">
+			<input type="text" />
+		</app-form-field>
+	`,
+})
+class TestHostMissingDirective {}
 
 describe('FormField', () => {
 	beforeEach(() => {
@@ -508,6 +517,23 @@ describe('FormField', () => {
 			});
 
 			expect(screen.queryByText('Not a form control')).not.toBeInTheDocument();
+		});
+
+		it('should error when projected form control has no [formField] directive', async () => {
+			const errors: unknown[] = [];
+			const errorHandler = { handleError: (e: unknown) => errors.push(e) };
+
+			await render(TestHostMissingDirective, {
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: ErrorHandler, useValue: errorHandler },
+					...provideSignalFormsConfig({}),
+				],
+			});
+
+			expect(
+				errors.some((e) => e instanceof Error && e.message.includes('FormField requires a [formField] directive')),
+			).toBe(true);
 		});
 	});
 });

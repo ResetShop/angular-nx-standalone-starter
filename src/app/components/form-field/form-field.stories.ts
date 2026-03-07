@@ -25,13 +25,7 @@ type InputType = 'email' | 'text' | 'select';
 		@if (isReady()) {
 			@switch (inputType()) {
 				@case ('email') {
-					<app-form-field
-						[label]="'Email'"
-						[field]="resolvedRequired() ? emailField : optionalEmailField"
-						[hint]="resolvedHint()"
-						[showRequired]="showRequired()"
-						#ff="formField"
-					>
+					<app-form-field [label]="'Email'" [hint]="resolvedHint()" [showRequired]="showRequired()" #ff="formField">
 						<input
 							[id]="ff.resolvedId()"
 							[formField]="resolvedRequired() ? emailField : optionalEmailField"
@@ -42,13 +36,7 @@ type InputType = 'email' | 'text' | 'select';
 					</app-form-field>
 				}
 				@case ('text') {
-					<app-form-field
-						[label]="'Username'"
-						[field]="resolvedRequired() ? textField : optionalTextField"
-						[hint]="resolvedHint()"
-						[showRequired]="showRequired()"
-						#ff="formField"
-					>
+					<app-form-field [label]="'Username'" [hint]="resolvedHint()" [showRequired]="showRequired()" #ff="formField">
 						<input
 							[id]="ff.resolvedId()"
 							[formField]="resolvedRequired() ? textField : optionalTextField"
@@ -59,13 +47,7 @@ type InputType = 'email' | 'text' | 'select';
 					</app-form-field>
 				}
 				@case ('select') {
-					<app-form-field
-						[label]="'Country'"
-						[field]="resolvedRequired() ? selectField : optionalSelectField"
-						[hint]="resolvedHint()"
-						[showRequired]="showRequired()"
-						#ff="formField"
-					>
+					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()" #ff="formField">
 						<select
 							[id]="ff.resolvedId()"
 							[formField]="resolvedRequired() ? selectField : optionalSelectField"
