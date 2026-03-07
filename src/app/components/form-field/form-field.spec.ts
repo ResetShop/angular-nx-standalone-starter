@@ -40,21 +40,14 @@ const mockTranslation = {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field
-			[label]="label()"
-			[hint]="hint()"
-			[fieldId]="fieldId()"
-			[showRequired]="showRequired()"
-			#ff="formField"
-		>
-			<input [id]="ff.resolvedId()" [formField]="emailField" type="email" />
+		<app-form-field [label]="label()" [hint]="hint()" [showRequired]="showRequired()">
+			<input [formField]="emailField" type="email" />
 		</app-form-field>
 	`,
 })
 class TestHostRequiredEmail {
 	readonly label = signal('Email');
 	readonly hint = signal<string | undefined>(undefined);
-	readonly fieldId = signal<string | undefined>(undefined);
 	readonly showRequired = signal<boolean | undefined>(undefined);
 
 	private readonly model = signal('');
@@ -72,8 +65,8 @@ class TestHostRequiredEmail {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Password'" #ff="formField">
-			<input [id]="ff.resolvedId()" [formField]="passwordField" type="password" />
+		<app-form-field [label]="'Password'">
+			<input [formField]="passwordField" type="password" />
 		</app-form-field>
 	`,
 })
@@ -93,8 +86,8 @@ class TestHostMinLength {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Bio'" #ff="formField">
-			<input [id]="ff.resolvedId()" [formField]="bioField" type="text" />
+		<app-form-field [label]="'Bio'">
+			<input [formField]="bioField" type="text" />
 		</app-form-field>
 	`,
 })
@@ -113,8 +106,8 @@ class TestHostMaxLength {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Age'" #ff="formField">
-			<input [id]="ff.resolvedId()" [formField]="ageField" type="number" />
+		<app-form-field [label]="'Age'">
+			<input [formField]="ageField" type="number" />
 		</app-form-field>
 	`,
 })
@@ -134,8 +127,8 @@ class TestHostMinMax {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Code'" #ff="formField">
-			<input [id]="ff.resolvedId()" [formField]="codeField" type="text" />
+		<app-form-field [label]="'Code'">
+			<input [formField]="codeField" type="text" />
 		</app-form-field>
 	`,
 })
@@ -154,8 +147,8 @@ class TestHostPattern {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Username'" #ff="formField">
-			<input [id]="ff.resolvedId()" [formField]="usernameField" type="text" />
+		<app-form-field [label]="'Username'">
+			<input [formField]="usernameField" type="text" />
 		</app-form-field>
 	`,
 })
@@ -176,8 +169,8 @@ class TestHostCustomError {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		<app-form-field [label]="'Tag'" #ff="formField">
-			<input [id]="ff.resolvedId()" [formField]="tagField" type="text" />
+		<app-form-field [label]="'Tag'">
+			<input [formField]="tagField" type="text" />
 		</app-form-field>
 	`,
 })
@@ -194,14 +187,35 @@ class TestHostCustomErrorNoMessage {
 }
 
 @Component({
+	selector: 'app-test-host-custom-id',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Email'">
+			<input [formField]="emailField" id="custom-email-id" type="email" />
+		</app-form-field>
+	`,
+})
+class TestHostCustomId {
+	private readonly model = signal('');
+	readonly emailField: FieldTree<string> = form(
+		this.model,
+		schema<string>((emailPath) => {
+			required(emailPath);
+			email(emailPath);
+		}),
+	);
+}
+
+@Component({
 	selector: 'app-test-host-multiple-children',
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
 		<!-- Intentionally projects multiple children to test runtime validation -->
 		<!-- eslint-disable-next-line custom-template/form-field-allowed-content -->
-		<app-form-field [label]="'Multi'" #ff="formField">
-			<input [id]="ff.resolvedId()" [formField]="field" type="text" />
+		<app-form-field [label]="'Multi'">
+			<input [formField]="field" type="text" />
 			<input [formField]="field" type="text" />
 		</app-form-field>
 	`,
@@ -238,14 +252,35 @@ class TestHostUnsupportedElement {}
 })
 class TestHostMissingDirective {}
 
+@Component({
+	selector: 'app-test-host-checkbox',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Accept terms'" [hint]="hint()" [showRequired]="showRequired()">
+			<input [formField]="termsField" type="checkbox" />
+		</app-form-field>
+	`,
+})
+class TestHostCheckbox {
+	readonly hint = signal<string | undefined>(undefined);
+	readonly showRequired = signal<boolean | undefined>(undefined);
+
+	private readonly model = signal(false);
+	readonly termsField: FieldTree<boolean> = form(
+		this.model,
+		schema<boolean>((termsPath) => {
+			required(termsPath);
+		}),
+	);
+}
+
 describe('FormField', () => {
 	beforeEach(() => {
 		clearAllMocks();
 	});
 
-	async function renderTestHost(
-		overrides?: Partial<{ label: string; hint: string; fieldId: string; showRequired: boolean }>,
-	) {
+	async function renderTestHost(overrides?: Partial<{ label: string; hint: string; showRequired: boolean }>) {
 		const { fixture } = await render(TestHostRequiredEmail, {
 			providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
 		});
@@ -253,7 +288,6 @@ describe('FormField', () => {
 		const host = fixture.componentInstance;
 		if (overrides?.label !== undefined) host.label.set(overrides.label);
 		if (overrides?.hint !== undefined) host.hint.set(overrides.hint);
-		if (overrides?.fieldId !== undefined) host.fieldId.set(overrides.fieldId);
 		if (overrides?.showRequired !== undefined) host.showRequired.set(overrides.showRequired);
 		fixture.detectChanges();
 
@@ -451,28 +485,36 @@ describe('FormField', () => {
 	});
 
 	describe('id management', () => {
-		it('should use custom fieldId on the label for attribute', async () => {
-			await renderTestHost({ fieldId: 'custom-email-id' });
+		it('should read custom id from the projected input and set it on the label for attribute', async () => {
+			await render(TestHostCustomId, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
 
 			const label = screen.getByText(/email/i);
 			expect(label).toHaveAttribute('for', 'custom-email-id');
 		});
 
-		it('should auto-generate unique id when fieldId not provided', async () => {
+		it('should auto-generate unique id when input has no id', async () => {
 			await renderTestHost();
-
-			const label = screen.getByText(/email/i);
-			expect(label.getAttribute('for') ?? '').toMatch(/^form-field-[a-f0-9]{8}$/);
-		});
-
-		it('should match label for attribute with input id', async () => {
-			await renderTestHost({ fieldId: 'my-field' });
 
 			const label = screen.getByText(/email/i);
 			const input = screen.getByLabelText(/email/i);
 
-			expect(label.getAttribute('for')).toBe('my-field');
-			expect(input.getAttribute('id')).toBe('my-field');
+			const generatedId = input.getAttribute('id') ?? '';
+			expect(generatedId).toMatch(/^form-field-[a-f0-9]{8}$/);
+			expect(label).toHaveAttribute('for', generatedId);
+		});
+
+		it('should match label for attribute with input id when custom id is set', async () => {
+			await render(TestHostCustomId, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			const label = screen.getByText(/email/i);
+			const input = screen.getByLabelText(/email/i);
+
+			expect(label.getAttribute('for')).toBe('custom-email-id');
+			expect(input.getAttribute('id')).toBe('custom-email-id');
 		});
 	});
 
@@ -490,6 +532,73 @@ describe('FormField', () => {
 			await renderTestHost();
 
 			expect(screen.getByLabelText(/email/i)).toHaveAttribute('aria-invalid', 'false');
+		});
+	});
+
+	describe('checkbox layout', () => {
+		async function renderCheckbox(overrides?: Partial<{ hint: string; showRequired: boolean }>) {
+			const { fixture } = await render(TestHostCheckbox, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			const host = fixture.componentInstance;
+			if (overrides?.hint !== undefined) host.hint.set(overrides.hint);
+			if (overrides?.showRequired !== undefined) host.showRequired.set(overrides.showRequired);
+			fixture.detectChanges();
+
+			return { fixture, host };
+		}
+
+		it('should render checkbox with label beside it', async () => {
+			await renderCheckbox();
+
+			expect(screen.getByRole('checkbox')).toBeInTheDocument();
+			expect(screen.getByText('Accept terms')).toBeInTheDocument();
+		});
+
+		it('should associate label with checkbox via for/id', async () => {
+			await renderCheckbox();
+
+			const checkbox = screen.getByRole('checkbox');
+			const label = screen.getByText('Accept terms');
+
+			expect(checkbox.getAttribute('id')).toBeTruthy();
+			expect(label.getAttribute('for')).toBe(checkbox.getAttribute('id'));
+		});
+
+		it('should render checkbox before label using flex order', async () => {
+			await renderCheckbox();
+
+			const checkbox = screen.getByRole('checkbox');
+			const label = screen.getByText('Accept terms');
+			const checkboxWrapper = checkbox.parentElement!;
+
+			expect(checkboxWrapper.classList.contains('order-1')).toBe(true);
+			expect(label.classList.contains('order-2')).toBe(true);
+		});
+
+		it('should show hint text below checkbox row', async () => {
+			await renderCheckbox({ hint: 'You must agree to continue' });
+
+			expect(screen.getByText('You must agree to continue')).toBeInTheDocument();
+		});
+
+		it('should show validation error when checkbox is touched and invalid', async () => {
+			const { fixture } = await renderCheckbox();
+
+			fixture.componentInstance.termsField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('This field is required');
+		});
+
+		it('should set aria-invalid on the checkbox', async () => {
+			const { fixture } = await renderCheckbox();
+
+			fixture.componentInstance.termsField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.getByRole('checkbox')).toHaveAttribute('aria-invalid', 'true');
 		});
 	});
 

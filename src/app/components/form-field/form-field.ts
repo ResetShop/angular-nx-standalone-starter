@@ -9,6 +9,7 @@ import {
 	ErrorHandler,
 	inject,
 	input,
+	signal,
 	viewChild,
 } from '@angular/core';
 import type { ValidationError } from '@angular/forms/signals';
@@ -20,19 +21,27 @@ import { NgpFormField } from 'ng-primitives/form-field';
 	selector: 'app-form-field',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	exportAs: 'formField',
 	hostDirectives: [NgpFormField],
 	host: { class: 'block' },
 	template: `
-		<label [for]="resolvedId()" class="text-foreground block text-sm/6 font-medium">
-			{{ label() }}
-			@if (isRequired()) {
-				<span aria-hidden="true" class="ml-0.5">*</span>
-			}
-		</label>
+		<div [class]="isCheckbox() ? 'flex items-center gap-3' : ''">
+			<label
+				[for]="resolvedId()"
+				[class]="
+					isCheckbox()
+						? 'text-foreground order-2 text-sm/6 font-medium select-none'
+						: 'text-foreground block text-sm/6 font-medium'
+				"
+			>
+				{{ label() }}
+				@if (isRequired()) {
+					<span aria-hidden="true" class="ml-0.5">*</span>
+				}
+			</label>
 
-		<div #contentWrapper class="mt-2">
-			<ng-content select="input, select, textarea" />
+			<div [class]="isCheckbox() ? 'order-1 flex items-center' : 'mt-2'" #contentWrapper>
+				<ng-content select="input, select, textarea" />
+			</div>
 		</div>
 
 		@if (hint() && !showErrors()) {
@@ -52,7 +61,6 @@ import { NgpFormField } from 'ng-primitives/form-field';
 	`,
 })
 export class FormField {
-	private readonly autoId = `form-field-${crypto.randomUUID().slice(0, 8)}`;
 	private readonly errorHandler = inject(ErrorHandler);
 	private readonly translation = inject(Translation);
 	private readonly contentWrapper = viewChild<ElementRef<HTMLElement>>('contentWrapper');
@@ -60,10 +68,10 @@ export class FormField {
 
 	readonly label = input.required<string>();
 	readonly hint = input<string | undefined>(undefined);
-	readonly fieldId = input<string | undefined>(undefined);
 	readonly showRequired = input<boolean | undefined>(undefined);
 
-	protected readonly resolvedId = computed(() => this.fieldId() ?? this.autoId);
+	protected readonly resolvedId = signal('');
+	protected readonly isCheckbox = signal(false);
 
 	protected readonly fieldState = computed(() => this.formFieldDirective()?.state());
 
@@ -130,6 +138,14 @@ export class FormField {
 
 			const el = wrapper.querySelector('input, select, textarea');
 			if (!el) return;
+
+			let id = el.getAttribute('id');
+			if (!id) {
+				id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
+				el.setAttribute('id', id);
+			}
+			this.resolvedId.set(id);
+			this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox');
 
 			el.setAttribute('aria-invalid', String(this.showErrors()));
 		});
