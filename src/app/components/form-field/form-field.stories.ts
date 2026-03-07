@@ -15,7 +15,7 @@ import { FormField } from './form-field';
 
 // --- Story wrapper components ---
 
-type InputType = 'email' | 'text' | 'select';
+type InputType = 'email' | 'text' | 'select' | 'checkbox';
 
 @Component({
 	selector: 'app-story-playground',
@@ -25,9 +25,8 @@ type InputType = 'email' | 'text' | 'select';
 		@if (isReady()) {
 			@switch (inputType()) {
 				@case ('email') {
-					<app-form-field [label]="'Email'" [hint]="resolvedHint()" [showRequired]="showRequired()" #ff="formField">
+					<app-form-field [label]="'Email'" [hint]="resolvedHint()" [showRequired]="showRequired()">
 						<input
-							[id]="ff.resolvedId()"
 							[formField]="resolvedRequired() ? emailField : optionalEmailField"
 							type="email"
 							class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
@@ -36,9 +35,8 @@ type InputType = 'email' | 'text' | 'select';
 					</app-form-field>
 				}
 				@case ('text') {
-					<app-form-field [label]="'Username'" [hint]="resolvedHint()" [showRequired]="showRequired()" #ff="formField">
+					<app-form-field [label]="'Username'" [hint]="resolvedHint()" [showRequired]="showRequired()">
 						<input
-							[id]="ff.resolvedId()"
 							[formField]="resolvedRequired() ? textField : optionalTextField"
 							type="text"
 							class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
@@ -47,9 +45,8 @@ type InputType = 'email' | 'text' | 'select';
 					</app-form-field>
 				}
 				@case ('select') {
-					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()" #ff="formField">
+					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
 						<select
-							[id]="ff.resolvedId()"
 							[formField]="resolvedRequired() ? selectField : optionalSelectField"
 							class="border-input bg-background focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
 						>
@@ -58,6 +55,19 @@ type InputType = 'email' | 'text' | 'select';
 							<option value="uk">United Kingdom</option>
 							<option value="ca">Canada</option>
 						</select>
+					</app-form-field>
+				}
+				@case ('checkbox') {
+					<app-form-field
+						[label]="'Accept terms and conditions'"
+						[hint]="resolvedHint()"
+						[showRequired]="showRequired()"
+					>
+						<input
+							[formField]="resolvedRequired() ? checkboxField : optionalCheckboxField"
+							type="checkbox"
+							class="border-input text-primary focus:ring-ring h-4 w-4 rounded"
+						/>
 					</app-form-field>
 				}
 			}
@@ -107,12 +117,22 @@ class StoryPlayground {
 	);
 	readonly optionalSelectField: FieldTree<string> = form(this.selectModel);
 
+	private readonly checkboxModel = signal(false);
+	readonly checkboxField: FieldTree<boolean> = form(
+		this.checkboxModel,
+		schema<boolean>((path) => {
+			required(path);
+		}),
+	);
+	readonly optionalCheckboxField: FieldTree<boolean> = form(this.checkboxModel);
+
 	protected readonly resolvedHint = computed(() => {
 		if (!this.showHint()) return undefined;
 		const hints: Record<InputType, string> = {
 			email: 'Enter your work email',
 			text: 'Choose a unique username',
 			select: 'Select your country of residence',
+			checkbox: 'Required to proceed',
 		};
 		return hints[this.inputType()];
 	});
@@ -158,7 +178,7 @@ export const Playground: StoryObj = {
 	argTypes: {
 		inputType: {
 			control: 'select',
-			options: ['email', 'text', 'select'],
+			options: ['email', 'text', 'select', 'checkbox'],
 			description: 'Type of form input to display',
 			table: {
 				type: { summary: 'InputType' },
