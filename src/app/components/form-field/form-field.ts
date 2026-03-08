@@ -67,8 +67,8 @@ export class FormField {
 	private readonly formFieldDirective = contentChild(SignalFormField);
 
 	readonly label = input.required<string>();
-	readonly hint = input<string | undefined>(undefined);
-	readonly showRequired = input<boolean | undefined>(undefined);
+	readonly hint = input<string>();
+	readonly showRequired = input<boolean>();
 
 	protected readonly resolvedId = signal('');
 	protected readonly isCheckbox = signal(false);
