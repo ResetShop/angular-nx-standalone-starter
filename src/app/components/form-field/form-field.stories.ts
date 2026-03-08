@@ -10,7 +10,7 @@ import {
 } from '@angular/forms/signals';
 import { Translation, type Language } from '@providers/i18n/translation';
 import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig, moduleMetadata } from '@storybook/angular';
+import { applicationConfig } from '@storybook/angular';
 import { FormField } from './form-field';
 
 // --- Story wrapper components ---
@@ -148,11 +148,11 @@ class StoryPlayground {
 
 // --- Meta ---
 
-const meta: Meta = {
+const meta: Meta<StoryPlayground> = {
 	title: 'Components/FormField',
 	tags: ['autodocs'],
+	component: StoryPlayground,
 	decorators: [
-		moduleMetadata({ imports: [StoryPlayground] }),
 		applicationConfig({
 			providers: [Translation, ...provideSignalFormsConfig({})],
 		}),
@@ -173,8 +173,8 @@ export default meta;
 
 // --- Stories ---
 
-export const Playground: StoryObj = {
-	args: { inputType: 'email', showHint: false, required: true, showRequired: undefined, language: 'en' },
+export const Playground: StoryObj<StoryPlayground> = {
+	args: { inputType: 'email', showHint: false, resolvedRequired: true, showRequired: undefined, language: 'en' },
 	argTypes: {
 		inputType: {
 			control: 'select',
@@ -193,7 +193,7 @@ export const Playground: StoryObj = {
 				defaultValue: { summary: 'false' },
 			},
 		},
-		required: {
+		resolvedRequired: {
 			control: 'boolean',
 			description: 'Whether the field has required validation (affects actual validation behavior)',
 			table: {
@@ -211,7 +211,5 @@ export const Playground: StoryObj = {
 			},
 		},
 	},
-	render: (args) => ({
-		template: `<app-story-playground [inputType]="'${args['inputType']}'" [showHint]="${args['showHint']}" [resolvedRequired]="${args['required']}" [showRequired]="${args['showRequired']}" [language]="'${args['language']}'" />`,
-	}),
+	render: (args) => ({ props: args }),
 };
