@@ -110,7 +110,6 @@ export class FormField {
 	 * 1. The length of children is exactly one (i.e. only one element is projected inside an instance of form-field)
 	 * 2. The single child is a supported HTML element
 	 * 3. The child element has the formField directive attached
-	 * @private
 	 */
 	private setupContentValidation() {
 		const wrapper = this.contentWrapper()?.nativeElement;
@@ -150,7 +149,6 @@ export class FormField {
 
 	/**
 	 * Sets up the content child id and aria-invalid attribute when the child is in an invalid status
-	 * @private
 	 */
 	private setupIdAndAriaSync() {
 		const wrapper = this.contentWrapper()?.nativeElement;
