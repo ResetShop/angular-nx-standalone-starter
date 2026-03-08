@@ -1,20 +1,21 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { email, form, required, schema, FormField as SignalFormField, type FieldTree } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
+import { FormField } from '@components/form-field/form-field';
 
 interface ResetPasswordForm {
-	email: FormControl<string>;
+	email: string;
 }
 
 @Component({
 	selector: 'app-reset-password-page',
-	imports: [Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
+	imports: [Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" [formGroup]="resetPasswordForm" class="z-10">
+			<form (ngSubmit)="onSubmit()" class="z-10">
 				<app-card [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 				<ng-template #cardTitle>
 					<div class="mt-4 flex flex-col gap-4">
@@ -25,41 +26,20 @@ interface ResetPasswordForm {
 
 				<ng-template #cardContent>
 					<div class="flex w-96 flex-col gap-6">
-						<div>
-							<label for="email" class="text-foreground block text-sm/6 font-medium">Dirección de email</label>
-							<div class="mt-2">
-								<input
-									id="email"
-									type="email"
-									formControlName="email"
-									autocomplete="email"
-									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
-								/>
-								@if (resetPasswordForm.controls.email.invalid && resetPasswordForm.controls.email.touched) {
-									<p class="text-destructive mt-2 text-sm">
-										@if (resetPasswordForm.controls.email.errors?.['required']) {
-											El email es requerido
-										}
-										@if (resetPasswordForm.controls.email.errors?.['email']) {
-											Ingrese un email válido
-										}
-									</p>
-								}
-							</div>
-						</div>
+						<app-form-field [label]="'Dirección de email'">
+							<input
+								[formField]="resetPasswordForm.email"
+								type="email"
+								autocomplete="email"
+								class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
+							/>
+						</app-form-field>
 					</div>
 				</ng-template>
 
 				<ng-template #cardFooter>
 					<div class="flex flex-col gap-4 font-semibold">
-						<button
-							[fullWidth]="true"
-							[disabled]="resetPasswordForm.invalid"
-							appButton
-							variant="default"
-							size="md"
-							type="submit"
-						>
+						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton variant="default" size="md" type="submit">
 							Enviar enlace de restablecimiento
 						</button>
 
@@ -80,20 +60,24 @@ interface ResetPasswordForm {
 	`,
 })
 export default class ResetPassword {
-	router = inject(Router);
+	private readonly router = inject(Router);
 
 	readonly loginUrl = this.router.createUrlTree(['/auth/login']);
 
-	readonly resetPasswordForm = new FormGroup<ResetPasswordForm>({
-		email: new FormControl('', {
-			nonNullable: true,
-			validators: [Validators.required, Validators.email],
+	private readonly model = signal<ResetPasswordForm>({ email: '' });
+	readonly resetPasswordForm: FieldTree<ResetPasswordForm> = form(
+		this.model,
+		schema<ResetPasswordForm>((resetPassword) => {
+			required(resetPassword.email);
+			email(resetPassword.email);
 		}),
-	});
+	);
+
+	protected readonly isFormValid = computed(() => this.resetPasswordForm().errors().length === 0);
 
 	onSubmit() {
-		if (this.resetPasswordForm.invalid) {
-			this.resetPasswordForm.markAllAsTouched();
+		if (!this.isFormValid()) {
+			this.resetPasswordForm.email().markAsTouched();
 			return;
 		}
 
