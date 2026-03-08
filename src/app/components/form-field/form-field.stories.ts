@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, ErrorHandler, inject, input, signal } from '@angular/core';
 import {
 	email,
 	form,
@@ -75,6 +75,7 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox';
 	`,
 })
 class StoryPlayground {
+	private readonly errorHandler = inject(ErrorHandler);
 	private readonly translation = inject(Translation);
 
 	readonly inputType = input<InputType>('email');
@@ -141,7 +142,10 @@ class StoryPlayground {
 		effect(() => {
 			const lang = this.language();
 			this.isReady.set(false);
-			this.translation.setLanguage(lang).then(() => this.isReady.set(true));
+			this.translation
+				.setLanguage(lang)
+				.then(() => this.isReady.set(true))
+				.catch((error: unknown) => this.errorHandler.handleError(error));
 		});
 	}
 }
