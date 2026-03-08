@@ -98,57 +98,76 @@ export class FormField {
 		return this.mapErrorToMessage(errors[0]);
 	});
 
+	private readonly supportedControls = 'input, select, textarea';
+
 	constructor() {
-		// TODO (#66): Replace errorHandler.handleError with logging service when available
-		effect(() => {
-			const supportedControls = 'input, select, textarea';
-			const wrapper = this.contentWrapper()?.nativeElement;
-			if (!wrapper) return;
+		effect(() => this.setupContentValidation());
+		afterRenderEffect(() => this.setupIdAndAriaSync());
+	}
 
-			const directChildren = wrapper.children;
+	/**
+	 * This method verifies that:
+	 * 1. The length of children is exactly one (i.e. only one element is projected inside an instance of form-field)
+	 * 2. The single child is a supported HTML element
+	 * 3. The child element has the formField directive attached
+	 * @private
+	 */
+	private setupContentValidation() {
+		const wrapper = this.contentWrapper()?.nativeElement;
+		if (!wrapper) return;
 
-			if (directChildren.length > 1) {
-				this.errorHandler.handleError(
-					new Error(`FormField expects a single projected element, but received ${directChildren.length}.`),
-				);
-			}
+		const directChildren = wrapper.children;
 
-			if (directChildren.length === 1 && !directChildren[0].matches(supportedControls)) {
-				this.errorHandler.handleError(
-					new Error(
-						`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
-							`Supported elements: ${supportedControls}.`,
-					),
-				);
-			}
+		if (directChildren.length > 1) {
+			// TODO (#66): Replace errorHandler.handleError with logging service when available
+			this.errorHandler.handleError(
+				new Error(`FormField expects a single projected element, but received ${directChildren.length}.`),
+			);
+		}
 
-			if (directChildren.length === 1 && directChildren[0].matches(supportedControls) && !this.formFieldDirective()) {
-				this.errorHandler.handleError(
-					new Error(
-						'FormField requires a [formField] directive on the projected form control. ' +
-							'Add [formField]="yourField" to the input, select, or textarea element.',
-					),
-				);
-			}
-		});
+		if (directChildren.length === 1 && !directChildren[0].matches(this.supportedControls)) {
+			this.errorHandler.handleError(
+				new Error(
+					`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
+						`Supported elements: ${this.supportedControls}.`,
+				),
+			);
+		}
 
-		afterRenderEffect(() => {
-			const wrapper = this.contentWrapper()?.nativeElement;
-			if (!wrapper) return;
+		if (
+			directChildren.length === 1 &&
+			directChildren[0].matches(this.supportedControls) &&
+			!this.formFieldDirective()
+		) {
+			this.errorHandler.handleError(
+				new Error(
+					'FormField requires a [formField] directive on the projected form control. ' +
+						'Add [formField]="yourField" to the input, select, or textarea element.',
+				),
+			);
+		}
+	}
 
-			const el = wrapper.querySelector('input, select, textarea');
-			if (!el) return;
+	/**
+	 * Sets up the content child id and aria-invalid attribute when the child is in an invalid status
+	 * @private
+	 */
+	private setupIdAndAriaSync() {
+		const wrapper = this.contentWrapper()?.nativeElement;
+		if (!wrapper) return;
 
-			let id = el.getAttribute('id');
-			if (!id) {
-				id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
-				el.setAttribute('id', id);
-			}
-			this.resolvedId.set(id);
-			this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox');
+		const el = wrapper.querySelector(this.supportedControls);
+		if (!el) return;
 
-			el.setAttribute('aria-invalid', String(this.showErrors()));
-		});
+		let id = el.getAttribute('id');
+		if (!id) {
+			id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
+			el.setAttribute('id', id);
+		}
+		this.resolvedId.set(id);
+		this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox');
+
+		el.setAttribute('aria-invalid', String(this.showErrors()));
 	}
 
 	private mapErrorToMessage(error: ValidationError): string {
