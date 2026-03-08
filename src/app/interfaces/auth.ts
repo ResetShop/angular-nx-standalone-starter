@@ -1,10 +1,8 @@
-import { FormControl } from '@angular/forms';
-
 /**
- * Angular reactive form interface for login form.
- * This is Angular-specific (uses FormControl) and cannot be shared with backend.
+ * Data shape for the login form fields.
+ * Used as the generic parameter for signal forms `FieldTree<LoginForm>`.
  */
 export interface LoginForm {
-	email: FormControl<string>;
-	password: FormControl<string>;
+	email: string;
+	password: string;
 }

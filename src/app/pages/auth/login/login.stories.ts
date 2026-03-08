@@ -1,6 +1,5 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
 import { LoginErrorCode } from '@contracts/auth/auth.errors';
@@ -21,7 +20,7 @@ type ErrorCodeOption = LoginErrorCode | null;
 @Component({
 	selector: 'app-login-story',
 	standalone: true,
-	imports: [Card, Button, NgOptimizedImage, ReactiveFormsModule],
+	imports: [Card, Button, NgOptimizedImage],
 	template: `
 		<div class="flex h-[600px] w-full items-center justify-center bg-black/95">
 			<dialog open class="align-self-center flex justify-self-center bg-transparent">
@@ -124,7 +123,7 @@ const meta: Meta<LoginStoryComponent> = {
 	tags: ['autodocs'],
 	decorators: [
 		moduleMetadata({
-			imports: [Card, Button, NgOptimizedImage, ReactiveFormsModule],
+			imports: [Card, Button, NgOptimizedImage],
 		}),
 		applicationConfig({
 			providers: [Translation],
