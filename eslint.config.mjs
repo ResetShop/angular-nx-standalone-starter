@@ -5,6 +5,7 @@ import noBarrelFiles from 'eslint-plugin-no-barrel-files';
 import playwright from 'eslint-plugin-playwright';
 import storybook from 'eslint-plugin-storybook';
 import testingLibrary from 'eslint-plugin-testing-library';
+import formFieldAllowedContent from './tools/form-field-allowed-content.eslint-rule.js';
 
 const commonRestrictedSyntax = [
 	{
@@ -176,10 +177,18 @@ export default [
 	{
 		name: 'html',
 		files: ['**/*.html'],
+		plugins: {
+			'custom-template': {
+				rules: {
+					'form-field-allowed-content': formFieldAllowedContent,
+				},
+			},
+		},
 		rules: {
 			'@angular-eslint/template/prefer-control-flow': 'error',
 			'@angular-eslint/template/prefer-self-closing-tags': 'error',
 			'@angular-eslint/template/prefer-ngsrc': 'error',
+			'custom-template/form-field-allowed-content': 'error',
 		},
 	},
 	{

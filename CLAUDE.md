@@ -636,6 +636,29 @@ Which `.claude/references/` files each agent loads in Step 0:
 
 **Rule:** If `git diff` shows changes to types, schemas, or database definitions, grep for the old names across documentation before committing. This prevents documentation staleness — a recurring source of review findings.
 
+### FormField Component
+
+`src/app/components/form-field/form-field.ts` — A wrapper component for standardized form inputs with signal forms integration. It provides label rendering, required indicator (auto-detected via `REQUIRED` metadata or manually overridden), hint text, translated validation error display, and error border styling via `aria-invalid`.
+
+**Supported form control elements:** `input`, `select`, `textarea`
+
+The component reads the `FormField` directive from the projected child via `contentChild(SignalFormField)` — consumers only need `[formField]` on the child element, not on `<app-form-field>` itself.
+
+The component enforces three runtime constraints via `effect()`:
+
+1. Only a **single direct child** may be projected into `<ng-content>`
+2. The projected child must be a **supported form control**
+3. The projected child must have a `[formField]` directive assigned
+
+**When adding a new form control element type** (e.g., a custom web component), update these locations in `form-field.ts`:
+
+| What to update                                         | Purpose                                           |
+| ------------------------------------------------------ | ------------------------------------------------- |
+| `ng-content select` attribute in the template          | Compile-time projection filtering                 |
+| `private readonly supportedControls` class field       | Runtime validation of projected content           |
+| `querySelector` selector in `afterRenderEffect()` body | `aria-invalid` attribute management               |
+| `::ng-deep [aria-invalid='true']` style                | No change needed — targets attribute, not element |
+
 ---
 
 ## Automated Code Review
