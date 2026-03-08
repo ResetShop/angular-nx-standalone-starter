@@ -1,22 +1,43 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideSignalFormsConfig } from '@angular/forms/signals';
 import { provideRouter } from '@angular/router';
+import { Translation } from '@providers/i18n/translation';
+import { clearAllMocks } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import Login from './login';
 
-describe('Login', () => {
-	const defaultProviders = () => [provideRouter([]), provideHttpClient(), provideHttpClientTesting()];
+const TRANSLATIONS: Record<string, string> = {
+	'VALIDATION.REQUIRED': 'This field is required',
+	'VALIDATION.EMAIL': 'Please enter a valid email address',
+	'VALIDATION.MIN_LENGTH': 'Must be at least {min} characters',
+};
 
-	const renderLogin = async () =>
-		render(Login, {
-			providers: defaultProviders(),
-		});
+const mockTranslation = {
+	instant: (key: string) => TRANSLATIONS[key] ?? key,
+};
+
+describe('Login', () => {
+	beforeEach(() => clearAllMocks());
+
+	const defaultProviders = () => [
+		provideRouter([]),
+		provideHttpClient(),
+		provideHttpClientTesting(),
+		{ provide: Translation, useValue: mockTranslation },
+		...provideSignalFormsConfig({}),
+	];
+
+	const renderLogin = async () => {
+		const view = await render(Login, { providers: defaultProviders() });
+		return { ...view, host: view.fixture.componentInstance };
+	};
 
 	it('should create the login component', async () => {
-		const { fixture } = await renderLogin();
+		const { host } = await renderLogin();
 
-		expect(fixture.componentInstance).toBeTruthy();
+		expect(host).toBeTruthy();
 	});
 
 	it('should render the login form with email and password fields', async () => {
@@ -33,57 +54,51 @@ describe('Login', () => {
 			name: /iniciar sesión/i,
 		});
 
-		// Check that the button has the appButton directive classes
 		expect(submitButton).toHaveClass('bg-default');
 		expect(submitButton).toHaveClass('inline-flex');
 		expect(submitButton).toHaveClass('w-full');
 	});
 
-	it('should show required error for email when dirty and empty', async () => {
-		const user = userEvent.setup();
+	it('should show required error for email when touched and empty', async () => {
+		const { fixture, host } = await renderLogin();
 
-		await renderLogin();
+		host.loginForm.email().markAsTouched();
+		fixture.detectChanges();
 
-		const emailInput = screen.getByLabelText(/dirección de email/i);
-		await user.type(emailInput, 'a');
-		await user.clear(emailInput);
-
-		expect(screen.getByText(/el email es requerido/i)).toBeInTheDocument();
+		expect(screen.getByText(/this field is required/i)).toBeInTheDocument();
 	});
 
-	it('should show invalid email error when email format is incorrect and dirty', async () => {
+	it('should show invalid email error when email format is incorrect', async () => {
 		const user = userEvent.setup();
-
-		await renderLogin();
+		const { fixture, host } = await renderLogin();
 
 		const emailInput = screen.getByLabelText(/dirección de email/i);
 		await user.type(emailInput, 'invalid-email');
+		host.loginForm.email().markAsTouched();
+		fixture.detectChanges();
 
-		expect(screen.getByText(/ingrese un email válido/i)).toBeInTheDocument();
+		expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument();
 	});
 
-	it('should show required error for password when dirty and empty', async () => {
-		const user = userEvent.setup();
+	it('should show required error for password when touched and empty', async () => {
+		const { fixture, host } = await renderLogin();
 
-		await renderLogin();
+		host.loginForm.password().markAsTouched();
+		fixture.detectChanges();
 
-		const passwordInput = screen.getByLabelText(/contraseña/i);
-		await user.type(passwordInput, 'a');
-		await user.clear(passwordInput);
-
-		expect(screen.getByText(/la contraseña es requerida/i)).toBeInTheDocument();
+		expect(screen.getByText(/this field is required/i)).toBeInTheDocument();
 	});
 
-	it('should show minlength error when password is too short and dirty', async () => {
+	it('should show minlength error when password is too short', async () => {
 		const user = userEvent.setup();
-
-		await renderLogin();
+		const { fixture, host } = await renderLogin();
 
 		const passwordInput = screen.getByLabelText(/contraseña/i);
 		await user.type(passwordInput, '1234567');
-		await user.tab();
+		host.loginForm.password().markAsTouched();
+		fixture.detectChanges();
 
-		expect(screen.getByText(/la contraseña debe tener al menos 8 caracteres/i)).toBeInTheDocument();
+		expect(screen.getByText(/must be at least/i)).toBeInTheDocument();
 	});
 
 	it('should enable submit button when form is valid', async () => {
@@ -110,10 +125,9 @@ describe('Login', () => {
 		expect(forgotPasswordLink).toBeInTheDocument();
 	});
 
-	it('should have correct form structure with formGroup directive', async () => {
+	it('should have correct form structure', async () => {
 		await renderLogin();
 
-		// Verify form inputs exist using semantic queries
 		const emailInput = screen.getByLabelText(/dirección de email/i);
 		const passwordInput = screen.getByLabelText(/contraseña/i);
 
@@ -124,13 +138,13 @@ describe('Login', () => {
 	it('should not show email error when form is pristine', async () => {
 		await renderLogin();
 
-		expect(screen.queryByText(/el email es requerido/i)).not.toBeInTheDocument();
-		expect(screen.queryByText(/ingrese un email válido/i)).not.toBeInTheDocument();
+		expect(screen.queryByText(/this field is required/i)).not.toBeInTheDocument();
+		expect(screen.queryByText(/please enter a valid email address/i)).not.toBeInTheDocument();
 	});
 
 	it('should not show password error when form is untouched', async () => {
 		await renderLogin();
 
-		expect(screen.queryByText(/la contraseña es requerida/i)).not.toBeInTheDocument();
+		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 	});
 });
