@@ -655,7 +655,7 @@ The component enforces three runtime constraints via `effect()`:
 | What to update                                         | Purpose                                           |
 | ------------------------------------------------------ | ------------------------------------------------- |
 | `ng-content select` attribute in the template          | Compile-time projection filtering                 |
-| `supportedControls` constant in the `effect()` body    | Runtime validation of projected content           |
+| `private readonly supportedControls` class field       | Runtime validation of projected content           |
 | `querySelector` selector in `afterRenderEffect()` body | `aria-invalid` attribute management               |
 | `::ng-deep [aria-invalid='true']` style                | No change needed — targets attribute, not element |
 
