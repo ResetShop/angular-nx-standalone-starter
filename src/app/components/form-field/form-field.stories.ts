@@ -27,7 +27,7 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox';
 				@case ('email') {
 					<app-form-field [label]="'Email'" [hint]="resolvedHint()" [showRequired]="showRequired()">
 						<input
-							[formField]="resolvedRequired() ? emailField : optionalEmailField"
+							[formField]="hasRequired() ? emailField : optionalEmailField"
 							type="email"
 							class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
 							placeholder="you@example.com"
@@ -37,7 +37,7 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox';
 				@case ('text') {
 					<app-form-field [label]="'Username'" [hint]="resolvedHint()" [showRequired]="showRequired()">
 						<input
-							[formField]="resolvedRequired() ? textField : optionalTextField"
+							[formField]="hasRequired() ? textField : optionalTextField"
 							type="text"
 							class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
 							placeholder="johndoe"
@@ -47,7 +47,7 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox';
 				@case ('select') {
 					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
 						<select
-							[formField]="resolvedRequired() ? selectField : optionalSelectField"
+							[formField]="hasRequired() ? selectField : optionalSelectField"
 							class="border-input bg-background focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
 						>
 							<option value="" disabled>Select a country</option>
@@ -64,7 +64,7 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox';
 						[showRequired]="showRequired()"
 					>
 						<input
-							[formField]="resolvedRequired() ? checkboxField : optionalCheckboxField"
+							[formField]="hasRequired() ? checkboxField : optionalCheckboxField"
 							type="checkbox"
 							class="border-input text-primary focus:ring-ring h-4 w-4 rounded"
 						/>
@@ -79,7 +79,7 @@ class StoryPlayground {
 
 	readonly inputType = input<InputType>('email');
 	readonly showHint = input<boolean>(false);
-	readonly resolvedRequired = input<boolean>(true);
+	readonly hasRequired = input<boolean>(true);
 	readonly showRequired = input<boolean | undefined>(undefined);
 	readonly language = input<Language>('en');
 	readonly isReady = signal(false);
@@ -174,7 +174,7 @@ export default meta;
 // --- Stories ---
 
 export const Playground: StoryObj<StoryPlayground> = {
-	args: { inputType: 'email', showHint: false, resolvedRequired: true, showRequired: undefined, language: 'en' },
+	args: { inputType: 'email', showHint: false, hasRequired: true, showRequired: undefined, language: 'en' },
 	argTypes: {
 		inputType: {
 			control: 'select',
@@ -193,7 +193,7 @@ export const Playground: StoryObj<StoryPlayground> = {
 				defaultValue: { summary: 'false' },
 			},
 		},
-		resolvedRequired: {
+		hasRequired: {
 			control: 'boolean',
 			description: 'Whether the field has required validation (affects actual validation behavior)',
 			table: {
