@@ -43,7 +43,7 @@ export default {
 								allowed: allowedChildren.join(', '),
 							},
 						});
-						continue;
+						continue; // skip missingDirective check; unsupported elements are already reported above
 					}
 
 					const hasFormField = child.inputs.some((input) => input.name === 'formField');
