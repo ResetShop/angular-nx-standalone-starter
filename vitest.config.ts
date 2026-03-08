@@ -9,7 +9,7 @@ export default defineConfig({
 		environment: 'happy-dom',
 		reporters: ['verbose'],
 		setupFiles: ['src/test-setup.ts'],
-		include: ['src/**/*.{test,spec}.ts'],
+		include: ['src/**/*.{test,spec}.ts', 'tools/**/*.spec.js'],
 		exclude: ['node_modules', 'dist', '.nx', 'coverage', '**/node_modules/**', '**/dist/**'],
 		coverage: {
 			provider: 'v8',

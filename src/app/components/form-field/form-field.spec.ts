@@ -246,6 +246,7 @@ class TestHostUnsupportedElement {}
 	template: `
 		<!-- Intentionally omits [formField] directive to test runtime validation -->
 		<app-form-field [label]="'No Directive'">
+			<!-- eslint-disable-next-line custom-template/form-field-allowed-content -->
 			<input type="text" />
 		</app-form-field>
 	`,

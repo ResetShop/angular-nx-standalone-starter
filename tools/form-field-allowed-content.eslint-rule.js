@@ -12,6 +12,8 @@ export default {
 			unsupportedElement:
 				'<{{ element }}> is not a supported form control for <app-form-field>. Allowed: {{ allowed }}.',
 			multipleChildren: '<app-form-field> accepts a single projected element. Found {{ count }} direct children.',
+			missingDirective:
+				'<{{ element }}> inside <app-form-field> must have a [formField] directive. Add [formField]="yourField" to the element.',
 		},
 	},
 	create(context) {
@@ -40,6 +42,16 @@ export default {
 								element: child.name,
 								allowed: allowedChildren.join(', '),
 							},
+						});
+						continue;
+					}
+
+					const hasFormField = child.inputs.some((input) => input.name === 'formField');
+					if (!hasFormField) {
+						context.report({
+							loc: parserServices.convertNodeSourceSpanToLoc(child.sourceSpan),
+							messageId: 'missingDirective',
+							data: { element: child.name },
 						});
 					}
 				}
