@@ -6,6 +6,7 @@ import {
 	provideBrowserGlobalErrorListeners,
 	provideZonelessChangeDetection,
 } from '@angular/core';
+import { provideSignalFormsConfig } from '@angular/forms/signals';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter, TitleStrategy } from '@angular/router';
 import { Analytics } from '@providers/analytics/analytics';
@@ -41,6 +42,9 @@ export const appConfig: ApplicationConfig = {
 		// Initializers
 		provideAppInitializer(initializeAnalytics()),
 		provideAppInitializer(initializeTranslation()),
+
+		// Signal forms
+		...provideSignalFormsConfig({}),
 
 		// Custom providers
 		Analytics,
