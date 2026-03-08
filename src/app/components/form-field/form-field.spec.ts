@@ -629,11 +629,19 @@ describe('FormField', () => {
 		});
 
 		it('should silently drop unsupported elements via ng-content select', async () => {
+			const errors: unknown[] = [];
+			const errorHandler = { handleError: (e: unknown) => errors.push(e) };
+
 			await render(TestHostUnsupportedElement, {
-				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: ErrorHandler, useValue: errorHandler },
+					...provideSignalFormsConfig({}),
+				],
 			});
 
 			expect(screen.queryByText('Not a form control')).not.toBeInTheDocument();
+			expect(errors).toHaveLength(0);
 		});
 
 		it('should error when projected form control has no [formField] directive', async () => {
