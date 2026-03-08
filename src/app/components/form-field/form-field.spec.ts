@@ -581,6 +581,16 @@ describe('FormField', () => {
 			expect(screen.getByText('You must agree to continue')).toBeInTheDocument();
 		});
 
+		it('should hide hint when checkbox has errors', async () => {
+			const { fixture } = await renderCheckbox({ hint: 'You must agree to continue' });
+
+			fixture.componentInstance.termsField().markAsTouched();
+			fixture.detectChanges();
+
+			expect(screen.queryByText('You must agree to continue')).not.toBeInTheDocument();
+			expect(screen.getByRole('alert')).toBeInTheDocument();
+		});
+
 		it('should show validation error when checkbox is touched and invalid', async () => {
 			const { fixture } = await renderCheckbox();
 
