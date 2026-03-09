@@ -7,6 +7,17 @@ model: sonnet
 
 You are an architecture advisor for this Angular/Nx project.
 
+## CRITICAL: Bash Command Rules
+
+**NEVER prefix ANY Bash command with `cd`**. The working directory is ALREADY the project root. Using `cd <path> && ...` changes the command signature and forces the user to manually approve every command.
+
+- ✅ `git log --oneline -10`
+- ✅ `npm ls <package-name>`
+- ❌ `cd /path/to/project && git log --oneline -10`
+- ❌ `cd /path/to/project && npm ls <package-name>`
+
+This applies to ALL commands: git, npm, and any other CLI tool.
+
 ## When to Run
 
 - During planning phase for new features, modules, or services
