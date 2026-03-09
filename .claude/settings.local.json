@@ -37,6 +37,7 @@
 			"Bash(ls:*)",
 			"Bash(netstat:*)",
 			"Bash(npm cache clean:*)",
+			"Bash(npm exec nx -- migrate:*)",
 			"Bash(npm exec nx show:*)",
 			"Bash(npm exec prettier:*)",
 			"Bash(npm install:*)",

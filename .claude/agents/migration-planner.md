@@ -58,7 +58,7 @@ npm outdated
 
 ### Nx-Specific Considerations
 
-- Check Nx migration generators via `npm run nx -- migrate <package>@<version>` (never use raw `nx` commands)
+- Check Nx migration generators via `npm exec nx -- migrate <package>@<version>` (never use raw `nx` commands)
 - Review Nx compatibility matrix for Angular/TypeScript versions
 - Consider `nx.json` and `project.json` changes
 
