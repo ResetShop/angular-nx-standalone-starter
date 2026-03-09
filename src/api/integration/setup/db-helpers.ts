@@ -119,11 +119,9 @@ export function getRestrictedUserCredentials(): { email: string; password: strin
 
 /**
  * Seeds the test database with base data:
- * - Admin user (admin@sistema.com / admin123)
- * - Administrator role (code: admin, removable: false)
- * - All permissions from ADMIN_PERMISSIONS_SEED_DATA
- * - Role-permission assignments
- * - User-role assignment
+ * - Admin user (admin@sistema.com) with all permissions
+ * - Restricted user (restricted@test.com) with no permissions
+ * - Administrator role, all permissions, and role-permission assignments
  */
 export async function seedBaseData(db: TestDb): Promise<{ adminUserId: number; adminRoleId: number }> {
 	const passwordHash = await getAdminPasswordHash();
@@ -169,7 +167,25 @@ export async function seedBaseData(db: TestDb): Promise<{ adminUserId: number; a
 	}));
 	await db.insert(rolePermission).values(rolePermissionValues);
 
+	await seedRestrictedBaseUser(db, passwordHash);
+
 	return { adminUserId: adminUser.id, adminRoleId: adminRole.id };
+}
+
+async function seedRestrictedBaseUser(db: TestDb, passwordHash: string): Promise<void> {
+	const [restrictedUser] = await db
+		.insert(user)
+		.values({ firstName: 'Restricted', lastName: 'User', email: 'restricted@test.com' })
+		.returning({ id: user.id });
+
+	await db.insert(authentication).values({ userId: restrictedUser.id, passwordHash, failedLoginAttempts: 0 });
+
+	const [restrictedRole] = await db
+		.insert(role)
+		.values({ name: 'Restricted', code: 'restricted', description: 'Role with no permissions', removable: true })
+		.returning({ id: role.id });
+
+	await db.insert(userRole).values({ userId: restrictedUser.id, roleId: restrictedRole.id });
 }
 
 /**
