@@ -55,7 +55,21 @@ import { NgpFormField } from 'ng-primitives/form-field';
 		}
 	`,
 	styles: `
-		app-form-field ::ng-deep [aria-invalid='true'] {
+		@reference "#tailwind-theme";
+
+		:host ::ng-deep input:not([type='checkbox']),
+		:host ::ng-deep select,
+		:host ::ng-deep textarea {
+			@apply border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none;
+		}
+
+		:host ::ng-deep input[type='checkbox'] {
+			@apply border-input text-default focus:ring-ring h-4 w-4 rounded;
+		}
+
+		:host ::ng-deep input[aria-invalid='true'],
+		:host ::ng-deep select[aria-invalid='true'],
+		:host ::ng-deep textarea[aria-invalid='true'] {
 			border-color: var(--destructive);
 		}
 	`,

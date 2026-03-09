@@ -40,22 +40,12 @@ import { AuthStore } from '@store/auth/auth.store';
 				<ng-template #cardContent>
 					<div class="flex w-96 flex-col gap-6">
 						<app-form-field [label]="'Dirección de email'" [showRequired]="false">
-							<input
-								[formField]="loginForm.email"
-								type="email"
-								autocomplete="email"
-								class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
-							/>
+							<input [formField]="loginForm.email" type="email" autocomplete="email" />
 						</app-form-field>
 
 						<div>
 							<app-form-field [label]="'Contraseña'" [showRequired]="false">
-								<input
-									[formField]="loginForm.password"
-									type="password"
-									autocomplete="current-password"
-									class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
-								/>
+								<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
 							</app-form-field>
 							<div class="mt-1 text-right text-sm">
 								<a
