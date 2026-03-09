@@ -1,19 +1,28 @@
 import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+	email as emailValidator,
+	form,
+	minLength,
+	required,
+	schema,
+	FormField as SignalFormField,
+	type FieldTree,
+} from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
-import { LoginForm } from '@interfaces/auth';
+import { FormField } from '@components/form-field/form-field';
+import type { LoginForm } from '@interfaces/auth';
 import { Translation } from '@providers/i18n/translation';
 import { AuthStore } from '@store/auth/auth.store';
 
 @Component({
 	selector: 'app-login-page',
-	imports: [Card, Button, NgOptimizedImage, RouterLink, ReactiveFormsModule],
+	imports: [Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" [formGroup]="loginForm" class="z-10 sm:h-[420px] sm:w-[420px]">
+			<form (ngSubmit)="onSubmit()" class="z-10 sm:h-[420px] sm:w-[420px]">
 				<app-card
 					[titleTemplate]="cardTitle"
 					[contentTemplate]="cardContent"
@@ -30,58 +39,21 @@ import { AuthStore } from '@store/auth/auth.store';
 
 				<ng-template #cardContent>
 					<div class="flex w-96 flex-col gap-6">
+						<app-form-field [label]="'Dirección de email'" [showRequired]="false">
+							<input [formField]="loginForm.email" type="email" autocomplete="email" />
+						</app-form-field>
+
 						<div>
-							<label for="email" class="text-foreground block text-sm/6 font-medium">Dirección de email</label>
-							<div class="mt-2">
-								<input
-									id="email"
-									type="email"
-									formControlName="email"
-									autocomplete="email"
-									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
-								/>
-								@if (loginForm.controls.email.invalid && loginForm.controls.email.dirty) {
-									<p class="text-destructive mt-2 text-sm">
-										@if (loginForm.controls.email.errors?.['required']) {
-											El email es requerido
-										}
-										@if (loginForm.controls.email.errors?.['email']) {
-											Ingrese un email válido
-										}
-									</p>
-								}
-							</div>
-						</div>
-						<div>
-							<div class="flex items-center justify-between">
-								<label for="password" class="text-foreground block text-sm/6 font-medium">Contraseña</label>
-								<div class="text-sm">
-									<a
-										[routerLink]="resetPassword"
-										class="text-default hover:text-default/90 font-semibold hover:underline"
-									>
-										¿Olvidaste tu contraseña?
-									</a>
-								</div>
-							</div>
-							<div class="mt-2">
-								<input
-									id="password"
-									type="password"
-									formControlName="password"
-									autocomplete="current-password"
-									class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
-								/>
-								@if (loginForm.controls.password.invalid && loginForm.controls.password.dirty) {
-									<p class="text-destructive mt-2 text-sm">
-										@if (loginForm.controls.password.errors?.['required']) {
-											La contraseña es requerida
-										}
-										@if (loginForm.controls.password.errors?.['minlength']) {
-											La contraseña debe tener al menos 8 caracteres
-										}
-									</p>
-								}
+							<app-form-field [label]="'Contraseña'" [showRequired]="false">
+								<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
+							</app-form-field>
+							<div class="mt-1 text-right text-sm">
+								<a
+									[routerLink]="resetPassword"
+									class="text-default hover:text-default/90 font-semibold hover:underline"
+								>
+									¿Olvidaste tu contraseña?
+								</a>
 							</div>
 						</div>
 					</div>
@@ -98,7 +70,7 @@ import { AuthStore } from '@store/auth/auth.store';
 
 				<ng-template #cardFooter>
 					<div class="flex justify-center font-semibold">
-						<button [fullWidth]="true" [disabled]="loginForm.invalid" appButton size="md" type="submit">
+						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton size="md" type="submit">
 							Iniciar sesión
 						</button>
 					</div>
@@ -115,36 +87,35 @@ import { AuthStore } from '@store/auth/auth.store';
 	`,
 })
 export default class Login {
-	private authStore = inject(AuthStore);
-	private router = inject(Router);
-	private translation = inject(Translation);
+	private readonly authStore = inject(AuthStore);
+	private readonly router = inject(Router);
+	private readonly translation = inject(Translation);
 
 	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password']);
 	readonly errorMessage = signal<string | null>(null);
 
-	readonly loginForm = new FormGroup<LoginForm>({
-		email: new FormControl('', {
-			nonNullable: true,
-			validators: [Validators.required, Validators.email],
+	private readonly model = signal<LoginForm>({ email: '', password: '' });
+	readonly loginForm: FieldTree<LoginForm> = form(
+		this.model,
+		schema<LoginForm>((login) => {
+			required(login.email);
+			emailValidator(login.email);
+			required(login.password);
+			minLength(login.password, 8);
 		}),
-		password: new FormControl('', {
-			nonNullable: true,
-			validators: [Validators.required, Validators.minLength(8)],
-		}),
-	});
+	);
+
+	protected readonly isFormValid = computed(() => this.loginForm().errors().length === 0);
 
 	constructor() {
-		// Handle login state changes: navigation on success, error display on failure
 		effect(() => {
 			const user = this.authStore.currentUser();
 			const error = this.authStore.loginError();
 
 			if (user) {
-				// Clear any previous error and navigate to dashboard
 				this.errorMessage.set(null);
 				this.router.navigate(['/dashboard']);
 			} else if (error) {
-				// Display translated error message
 				this.errorMessage.set(
 					this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'),
 				);
@@ -153,15 +124,17 @@ export default class Login {
 	}
 
 	onSubmit() {
-		if (this.loginForm.invalid) {
-			this.loginForm.markAllAsTouched();
+		if (!this.isFormValid()) {
+			// Signal forms FieldState.markAsTouched() only marks a single field;
+			// there is no markAllAsTouched() equivalent — each field must be touched individually.
+			this.loginForm.email().markAsTouched();
+			this.loginForm.password().markAsTouched();
 			return;
 		}
 
-		// Clear previous error
 		this.errorMessage.set(null);
 
-		const { email, password } = this.loginForm.value;
+		const { email, password } = this.model();
 		this.authStore.login({ email, password });
 	}
 }
