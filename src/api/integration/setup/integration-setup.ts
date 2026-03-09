@@ -18,6 +18,7 @@ process.env['PASETO_ACCESS_TOKEN_EXPIRY'] = '5m';
 process.env['PASETO_REFRESH_TOKEN_EXPIRY'] = '10m';
 process.env['COOKIE_SECURE'] = 'false';
 process.env['EMAIL_PROVIDER'] = 'noop';
+process.env['BCRYPT_COST'] = '1';
 
 // Must run before any schema or controller import
 import { extendZodWithOpenApi } from '@hono/zod-openapi';

@@ -20,8 +20,9 @@ export const DEFAULT_LOCKOUT_DURATION = '15m';
 /**
  * Number of salt rounds used for bcrypt password hashing.
  * Higher values increase security but also computation time.
+ * Override via BCRYPT_COST env var for integration tests (e.g., BCRYPT_COST=1).
  */
-export const BCRYPT_SALT_ROUNDS = 12;
+export const BCRYPT_SALT_ROUNDS = Number(process.env['BCRYPT_COST']) || 12;
 
 /**
  * Expiry buffer for refresh token cleanup (duration string notation).
