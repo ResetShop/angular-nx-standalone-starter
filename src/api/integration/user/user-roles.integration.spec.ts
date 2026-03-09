@@ -3,7 +3,7 @@ import { authenticatedRequest, loginAs, loginAsAdmin } from '../setup/auth-helpe
 import { getTestDb, seedRestrictedUser } from '../setup/db-helpers';
 import { createTestApp } from '../setup/test-app';
 
-describe('User role endpoints (/api/user/:userId/roles)', () => {
+describe('User role endpoints (/api/user/{userId}/roles)', () => {
 	let app: OpenAPIHono;
 	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
 	let adminUserId: number;
