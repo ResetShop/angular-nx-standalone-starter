@@ -24,10 +24,8 @@ describe('POST /api/auth/logout', () => {
 			expect(body.message).toBe('Logged out successfully');
 
 			const setCookieHeaders = response.headers.getSetCookie();
-			const clearHeaders = setCookieHeaders.filter(
-				(h) => h.includes('max-age=0') || h.includes('Max-Age=0') || h.includes('=;'),
-			);
-			expect(clearHeaders.length).toBeGreaterThan(0);
+			const clearHeaders = setCookieHeaders.filter((h) => h.includes('max-age=0') || h.includes('Max-Age=0'));
+			expect(clearHeaders.length).toBe(2);
 		});
 
 		it('returns 200 even without refresh token (graceful)', async () => {
