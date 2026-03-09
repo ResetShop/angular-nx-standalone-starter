@@ -113,6 +113,25 @@ describe('User management endpoints (/api/user)', () => {
 			});
 			expect(response.status).toBe(409);
 		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request('/api/user', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: 'unauth@test.com', firstName: 'U', lastName: 'A' }),
+			});
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: restrictedCookies,
+				body: { email: 'forbidden@test.com', firstName: 'F', lastName: 'B' },
+			});
+			expect(response.status).toBe(403);
+		});
 	});
 
 	// ── Get User ──────────────────────────────────────────────────
@@ -133,6 +152,19 @@ describe('User management endpoints (/api/user)', () => {
 				cookies: adminCookies,
 			});
 			expect(response.status).toBe(404);
+		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/user/${adminUserId}`);
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}`, {
+				cookies: restrictedCookies,
+			});
+			expect(response.status).toBe(403);
 		});
 	});
 
@@ -188,6 +220,25 @@ describe('User management endpoints (/api/user)', () => {
 			});
 			expect(response.status).toBe(409);
 		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/user/${adminUserId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ firstName: 'Unauth' }),
+			});
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}`, {
+				method: 'PATCH',
+				cookies: restrictedCookies,
+				body: { firstName: 'Forbidden' },
+			});
+			expect(response.status).toBe(403);
+		});
 	});
 
 	// ── Update User Status ────────────────────────────────────────
@@ -218,6 +269,25 @@ describe('User management endpoints (/api/user)', () => {
 			});
 			expect(response.status).toBe(404);
 		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/user/${adminUserId}/status`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: 'disabled' }),
+			});
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/status`, {
+				method: 'PATCH',
+				cookies: restrictedCookies,
+				body: { status: 'disabled' },
+			});
+			expect(response.status).toBe(403);
+		});
 	});
 
 	// ── Delete User ───────────────────────────────────────────────
@@ -245,6 +315,20 @@ describe('User management endpoints (/api/user)', () => {
 				cookies: adminCookies,
 			});
 			expect(response.status).toBe(404);
+		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request('/api/user/99999', { method: 'DELETE' });
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}`, {
+				method: 'DELETE',
+				cookies: restrictedCookies,
+			});
+			expect(response.status).toBe(403);
 		});
 	});
 });

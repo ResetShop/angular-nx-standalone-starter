@@ -85,6 +85,25 @@ describe('Role endpoints (/api/access/roles)', () => {
 			});
 			expect(response.status).toBe(409);
 		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request('/api/access/roles', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: 'Unauth', code: 'unauth' }),
+			});
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, '/api/access/roles', {
+				method: 'POST',
+				cookies: restrictedCookies,
+				body: { name: 'Forbidden', code: 'forbidden' },
+			});
+			expect(response.status).toBe(403);
+		});
 	});
 
 	// ── Get Role ──────────────────────────────────────────────────
@@ -103,6 +122,19 @@ describe('Role endpoints (/api/access/roles)', () => {
 				cookies: adminCookies,
 			});
 			expect(response.status).toBe(404);
+		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/access/roles/${adminRoleId}`);
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}`, {
+				cookies: restrictedCookies,
+			});
+			expect(response.status).toBe(403);
 		});
 	});
 
@@ -158,6 +190,25 @@ describe('Role endpoints (/api/access/roles)', () => {
 			});
 			expect(response.status).toBe(409);
 		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/access/roles/${adminRoleId}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: 'Unauth' }),
+			});
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}`, {
+				method: 'PUT',
+				cookies: restrictedCookies,
+				body: { name: 'Forbidden' },
+			});
+			expect(response.status).toBe(403);
+		});
 	});
 
 	// ── Delete Role ───────────────────────────────────────────────
@@ -194,6 +245,20 @@ describe('Role endpoints (/api/access/roles)', () => {
 			});
 			expect(response.status).toBe(404);
 		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request('/api/access/roles/99999', { method: 'DELETE' });
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}`, {
+				method: 'DELETE',
+				cookies: restrictedCookies,
+			});
+			expect(response.status).toBe(403);
+		});
 	});
 
 	// ── Role Permissions ──────────────────────────────────────────
@@ -214,6 +279,19 @@ describe('Role endpoints (/api/access/roles)', () => {
 				cookies: adminCookies,
 			});
 			expect(response.status).toBe(404);
+		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/access/roles/${adminRoleId}/permissions`);
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}/permissions`, {
+				cookies: restrictedCookies,
+			});
+			expect(response.status).toBe(403);
 		});
 	});
 
@@ -265,6 +343,25 @@ describe('Role endpoints (/api/access/roles)', () => {
 				body: { permissionIds: [1] },
 			});
 			expect(response.status).toBe(404);
+		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/access/roles/${adminRoleId}/permissions`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ permissionIds: [1] }),
+			});
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}/permissions`, {
+				method: 'PUT',
+				cookies: restrictedCookies,
+				body: { permissionIds: [1] },
+			});
+			expect(response.status).toBe(403);
 		});
 	});
 });
