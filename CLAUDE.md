@@ -37,22 +37,23 @@
 
 Use `npm` for all package management and script execution:
 
-| Command                   | Description                                    |
-| ------------------------- | ---------------------------------------------- |
-| `npm install`             | Install dependencies                           |
-| `npm run ci`              | Run all CI checks locally (required before PR) |
-| `npm run build`           | Build the project                              |
-| `npm run dev`             | Start development server                       |
-| `npm run lint`            | Run linting                                    |
-| `npm run storybook`       | Run storybook dev server                       |
-| `npm run storybook:build` | Build storybook                                |
-| `npm run stylelint`       | Run stylelint                                  |
-| `npm run typecheck`       | Type-check spec files (tsc --noEmit)           |
-| `npm run test`            | Run all unit tests                             |
-| `npm run test:e2e`        | Run all end-to-end tests                       |
-| `npm install <pkg>`       | Add a dependency                               |
-| `npm install -D <pkg>`    | Add a dev dependency                           |
-| `npm install -g <pkg>`    | Add a global dependency                        |
+| Command                    | Description                                    |
+| -------------------------- | ---------------------------------------------- |
+| `npm install`              | Install dependencies                           |
+| `npm run ci`               | Run all CI checks locally (required before PR) |
+| `npm run build`            | Build the project                              |
+| `npm run dev`              | Start development server                       |
+| `npm run lint`             | Run linting                                    |
+| `npm run storybook`        | Run storybook dev server                       |
+| `npm run storybook:build`  | Build storybook                                |
+| `npm run stylelint`        | Run stylelint                                  |
+| `npm run typecheck`        | Type-check spec files (tsc --noEmit)           |
+| `npm run test`             | Run all unit tests                             |
+| `npm run test:integration` | Run backend integration tests (requires DB)    |
+| `npm run test:e2e`         | Run all end-to-end tests                       |
+| `npm install <pkg>`        | Add a dependency                               |
+| `npm install -D <pkg>`     | Add a dev dependency                           |
+| `npm install -g <pkg>`     | Add a global dependency                        |
 
 #### CRITICAL: Command Execution Policy
 
@@ -311,6 +312,7 @@ nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
 - **Always call `clearAllMocks()` from `@test-utils` in `beforeEach`** to reset all mock state between tests — never use `mockClear()` / `mockReset()` on individual mocks in `afterEach`
 - Add an updated entry in the Bruno API client workspace for each new endpoint
 - Update the entries in the Bruno API client workspace if an endpoint is updated
+- **Backend endpoints require integration tests** — every new or modified API endpoint must have corresponding integration tests in `src/api/integration/`. See `.claude/references/testing.md` for conventions.
 
 ### Query Priority
 

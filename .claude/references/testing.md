@@ -196,3 +196,107 @@ it('should debounce calls', () => {
 ### ESLint Enforcement
 
 The `viRestrictedSyntax` ESLint rules forbid direct usage of `vi.fn()`, `vi.mock()`, `vi.useFakeTimers()`, and related Vitest globals. Use the `@test-utils` wrappers instead.
+
+---
+
+## Backend Integration Tests
+
+Integration tests verify API endpoints against a real PostgreSQL database. They are **mandatory** for every backend endpoint — new or modified.
+
+### Running Integration Tests
+
+```bash
+npm run test:integration    # Run all integration tests
+npm run test                # Unit tests only (integration tests excluded)
+```
+
+### File Structure
+
+```
+src/api/integration/
+  setup/
+    global-setup.ts         # Schema push + seed (runs once)
+    integration-setup.ts    # Env vars + Zod extension (per file)
+    test-app.ts             # createTestApp() factory
+    db-helpers.ts           # DB utilities (getTestDb, seedBaseData, etc.)
+    auth-helpers.ts         # Auth utilities (loginAsAdmin, etc.)
+    load-env.ts             # .env file parser
+  health/
+    health.integration.spec.ts
+  auth/
+    login.integration.spec.ts
+    me.integration.spec.ts
+    refresh.integration.spec.ts
+    logout.integration.spec.ts
+  access/
+    roles.integration.spec.ts
+    permissions.integration.spec.ts
+  user/
+    user-management.integration.spec.ts
+    user-roles.integration.spec.ts
+```
+
+### Setup Helpers
+
+| Helper                                  | Purpose                                                                 |
+| --------------------------------------- | ----------------------------------------------------------------------- |
+| `createTestApp()`                       | Creates an OpenAPIHono instance with all middleware and routes          |
+| `loginAsAdmin(app)`                     | Logs in as the seeded admin user, returns cookies                       |
+| `loginAsRestricted(app)`                | Logs in as the seeded restricted user (no permissions), returns cookies |
+| `authenticatedRequest(app, path, opts)` | Makes an HTTP request with auth cookies attached                        |
+| `getTestDb()`                           | Returns a Drizzle instance connected to the test database               |
+| `getSeededAdminIds(db)`                 | Returns `{ adminUserId, adminRoleId }` via direct DB lookup             |
+| `getRestrictedUserCredentials()`        | Returns email/password for the pre-seeded restricted user               |
+| `truncateAllTables(db)`                 | Truncates all tables with CASCADE                                       |
+| `seedBaseData(db)`                      | Seeds admin user, restricted user, roles, and permissions               |
+
+### Test Pattern
+
+```typescript
+import type { OpenAPIHono } from '@hono/zod-openapi';
+import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers';
+import { getSeededAdminIds, getTestDb } from '../setup/db-helpers';
+import { createTestApp } from '../setup/test-app';
+
+describe('Endpoint description (/api/path)', () => {
+	let app: OpenAPIHono;
+	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
+
+	beforeAll(async () => {
+		app = createTestApp();
+		adminCookies = await loginAsAdmin(app);
+	});
+
+	describe('GET /api/path', () => {
+		it('returns expected data', async () => {
+			const response = await authenticatedRequest(app, '/api/path', {
+				cookies: adminCookies,
+			});
+			expect(response.status).toBe(200);
+		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request('/api/path');
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app);
+			const response = await authenticatedRequest(app, '/api/path', {
+				cookies: restrictedCookies,
+			});
+			expect(response.status).toBe(403);
+		});
+	});
+});
+```
+
+### Key Rules
+
+- **Never** create per-test users for auth — use `loginAsAdmin()` / `loginAsRestricted()`
+- **Never** resolve IDs via HTTP list calls — use `getSeededAdminIds()` for direct DB lookup
+- **Always** use `authenticatedRequest()` to attach cookies
+- Tests run sequentially (`fileParallelism: false`) to avoid DB race conditions
+- Noop email provider and bcrypt cost 1 are configured automatically in the test environment
+- Group tests by HTTP method + path inside `describe` blocks
+- Cover: happy path, 400 (validation), 401 (unauth), 403 (forbidden), 404 (not found), 409 (conflict)
