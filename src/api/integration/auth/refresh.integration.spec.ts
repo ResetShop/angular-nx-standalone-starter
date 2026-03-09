@@ -25,6 +25,13 @@ describe('POST /api/auth/refresh', () => {
 			expect(newCookies.refreshToken).toBeTruthy();
 			expect(newCookies.accessToken).not.toBe(adminCookies.accessToken);
 			expect(newCookies.refreshToken).not.toBe(adminCookies.refreshToken);
+
+			// Verify the old refresh token is rejected after rotation
+			const replayResponse = await app.request('/api/auth/refresh', {
+				method: 'POST',
+				headers: { Cookie: `refresh_token=${adminCookies.refreshToken}` },
+			});
+			expect(replayResponse.status).toBe(401);
 		});
 	});
 
