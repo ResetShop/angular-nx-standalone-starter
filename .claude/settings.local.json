@@ -3,7 +3,9 @@
 		"allow": [
 			"Bash create files",
 			"Bash(cat:*)",
-			"Bash(cd:*)",
+			"Bash(git branch:*)",
+			"Bash(git diff:*)",
+			"Bash(git log:*)",
 			"Bash(echo:*)",
 			"Bash(find:*)",
 			"Bash(findstr:*)",
@@ -38,6 +40,7 @@
 			"Bash(npm exec nx show:*)",
 			"Bash(npm exec prettier:*)",
 			"Bash(npm install:*)",
+			"Bash(npm ls:*)",
 			"Bash(npm outdated:*)",
 			"Bash(npm run build:*)",
 			"Bash(npm run ci:*)",
