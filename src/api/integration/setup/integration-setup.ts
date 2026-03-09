@@ -17,7 +17,7 @@ if (process.env['PG_TEST_CONNECTION_STRING']) {
 process.env['PASETO_ACCESS_TOKEN_EXPIRY'] = '5m';
 process.env['PASETO_REFRESH_TOKEN_EXPIRY'] = '10m';
 process.env['COOKIE_SECURE'] = 'false';
-process.env['EMAIL_PROVIDER'] = 'ethereal';
+process.env['EMAIL_PROVIDER'] = 'noop';
 
 // Must run before any schema or controller import
 import { extendZodWithOpenApi } from '@hono/zod-openapi';

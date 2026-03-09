@@ -27,7 +27,7 @@ function configureEnvVars(testConnectionString: string): void {
 		process.env['PASETO_ISSUER'] = 'integration-test';
 	}
 	process.env['COOKIE_SECURE'] = 'false';
-	process.env['EMAIL_PROVIDER'] = 'ethereal';
+	process.env['EMAIL_PROVIDER'] = 'noop';
 }
 
 async function pushSchemaToTestDb(connectionString: string): Promise<void> {
