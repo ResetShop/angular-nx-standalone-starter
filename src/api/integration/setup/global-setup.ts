@@ -3,32 +3,10 @@
  * Pushes the DB schema to the test database and seeds base data.
  * On teardown, truncates all tables.
  */
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { loadEnvFile } from './load-env';
 
-function loadEnvFile(): void {
-	try {
-		const envPath = resolve(process.cwd(), '.env');
-		const envContent = readFileSync(envPath, 'utf-8');
-		for (const line of envContent.split('\n')) {
-			const trimmed = line.trim();
-			if (!trimmed || trimmed.startsWith('#')) continue;
-			const eqIndex = trimmed.indexOf('=');
-			if (eqIndex === -1) continue;
-			const key = trimmed.slice(0, eqIndex).trim();
-			const value = trimmed.slice(eqIndex + 1).trim();
-			if (!process.env[key]) {
-				process.env[key] = value;
-			}
-		}
-	} catch {
-		// .env not found — rely on existing env vars
-	}
-}
-
-export async function setup(): Promise<void> {
-	loadEnvFile();
-
+function getTestConnectionString(): string {
 	const testConnectionString = process.env['PG_TEST_CONNECTION_STRING'];
 	if (!testConnectionString) {
 		throw new Error(
@@ -36,11 +14,12 @@ export async function setup(): Promise<void> {
 				'Set it in .env or export it before running tests.',
 		);
 	}
+	return testConnectionString;
+}
 
-	// Override PG_CONNECTION_STRING so drizzle-kit and the app use the test DB
+function configureEnvVars(testConnectionString: string): void {
 	process.env['PG_CONNECTION_STRING'] = testConnectionString;
 
-	// Set required env vars for container initialization
 	if (!process.env['PASETO_SECRET_KEY']) {
 		process.env['PASETO_SECRET_KEY'] = 'a'.repeat(64);
 	}
@@ -49,31 +28,23 @@ export async function setup(): Promise<void> {
 	}
 	process.env['COOKIE_SECURE'] = 'false';
 	process.env['EMAIL_PROVIDER'] = 'ethereal';
+}
 
-	// Step 1: Push schema to the test database using drizzle-kit's programmatic API
+async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 	console.log('[Integration] Pushing schema to test database...');
 	const { pushSchema } = await import('drizzle-kit/api');
 	const { drizzle } = await import('drizzle-orm/node-postgres');
 
-	// Import all schema objects
-	const schemaImports = await import('../../../db/schema/user');
-	const roleSchema = await import('../../../db/schema/role');
-	const permSchema = await import('../../../db/schema/permission');
-	const authSchema = await import('../../../db/schema/authentication');
-	const refreshSchema = await import('../../../db/schema/refresh-token');
-	const permRouteSchema = await import('../../../db/schema/permission-route');
-
 	const allSchemaImports: Record<string, unknown> = {
-		...schemaImports,
-		...roleSchema,
-		...permSchema,
-		...authSchema,
-		...refreshSchema,
-		...permRouteSchema,
+		...(await import('../../../db/schema/user')),
+		...(await import('../../../db/schema/role')),
+		...(await import('../../../db/schema/permission')),
+		...(await import('../../../db/schema/authentication')),
+		...(await import('../../../db/schema/refresh-token')),
+		...(await import('../../../db/schema/permission-route')),
 	};
 
-	const db = drizzle(testConnectionString);
-
+	const db = drizzle(connectionString);
 	const pushResult = await pushSchema(allSchemaImports, db);
 
 	if (pushResult.warnings.length > 0) {
@@ -81,16 +52,19 @@ export async function setup(): Promise<void> {
 	}
 
 	await pushResult.apply();
+	await db.$client.end();
 	console.log('[Integration] Schema pushed successfully.');
+}
 
-	// Step 2: Seed base data
+async function seedAdminUser(connectionString: string): Promise<void> {
 	console.log('[Integration] Seeding base data...');
+	const { drizzle } = await import('drizzle-orm/node-postgres');
 	const { sql, inArray } = await import('drizzle-orm');
-	const { user, userRole } = schemaImports;
-	const { authentication } = authSchema;
-	const { role, rolePermission } = roleSchema;
-	const { permission } = permSchema;
 
+	const { user, userRole } = await import('../../../db/schema/user');
+	const { authentication } = await import('../../../db/schema/authentication');
+	const { role, rolePermission } = await import('../../../db/schema/role');
+	const { permission } = await import('../../../db/schema/permission');
 	const { ADMIN_PERMISSIONS_SEED_DATA } = await import('../../modules/access/role/permissions.constants');
 
 	const adminPassword = process.env['INTEGRATION_TEST_ADMIN_PASSWORD'];
@@ -100,41 +74,49 @@ export async function setup(): Promise<void> {
 				'Set it in .env or export it before running tests.',
 		);
 	}
+
 	const bcrypt = await import('bcryptjs');
-	const ADMIN_PASSWORD_HASH = await bcrypt.hash(adminPassword, 10);
+	const passwordHash = await bcrypt.hash(adminPassword, 10);
+	const db = drizzle(connectionString);
 
-	// Truncate in case there's leftover data
-	await db.execute(sql`
-		TRUNCATE TABLE
-			permission_route,
-			role_permission,
-			user_role,
-			refresh_token,
-			authentication,
-			permission,
-			role,
-			"user"
-		CASCADE
-	`);
-
-	// Create admin user
-	const [adminUser] = await db
-		.insert(user)
-		.values({
-			firstName: 'Administrador',
-			lastName: 'Sistema',
-			email: 'admin@sistema.com',
-		})
-		.returning({ id: user.id });
-
-	// Create authentication record
-	await db.insert(authentication).values({
-		userId: adminUser.id,
-		passwordHash: ADMIN_PASSWORD_HASH,
-		failedLoginAttempts: 0,
+	await truncateTestTables(db);
+	await insertAdminData(db, {
+		user,
+		authentication,
+		role,
+		userRole,
+		permission,
+		rolePermission,
+		inArray,
+		passwordHash,
+		ADMIN_PERMISSIONS_SEED_DATA,
 	});
 
-	// Create Administrator role
+	await db.$client.end();
+	console.log('[Integration] Base data seeded successfully.');
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic schema imports
+async function insertAdminData(db: NodePgDatabase, deps: Record<string, any>): Promise<void> {
+	const {
+		user,
+		authentication,
+		role,
+		userRole,
+		permission,
+		rolePermission,
+		inArray,
+		passwordHash,
+		ADMIN_PERMISSIONS_SEED_DATA,
+	} = deps;
+
+	const [adminUser] = await db
+		.insert(user)
+		.values({ firstName: 'Administrador', lastName: 'Sistema', email: 'admin@sistema.com' })
+		.returning({ id: user.id });
+
+	await db.insert(authentication).values({ userId: adminUser.id, passwordHash, failedLoginAttempts: 0 });
+
 	const [adminRole] = await db
 		.insert(role)
 		.values({
@@ -145,27 +127,38 @@ export async function setup(): Promise<void> {
 		})
 		.returning({ id: role.id });
 
-	// Assign role to admin user
 	await db.insert(userRole).values({ userId: adminUser.id, roleId: adminRole.id });
-
-	// Create all permissions
 	await db.insert(permission).values([...ADMIN_PERMISSIONS_SEED_DATA]);
 
-	// Get all permission IDs and assign to Administrator role
 	const permissionNames = ADMIN_PERMISSIONS_SEED_DATA.map((p: { name: string }) => p.name);
 	const createdPermissions = await db
 		.select({ id: permission.id })
 		.from(permission)
 		.where(inArray(permission.name, permissionNames));
-
 	const rolePermissionValues = createdPermissions.map((p: { id: number }) => ({
 		roleId: adminRole.id,
 		permissionId: p.id,
 	}));
 	await db.insert(rolePermission).values(rolePermissionValues);
+}
 
-	await db.$client.end();
-	console.log('[Integration] Base data seeded successfully.');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped drizzle instance in global setup
+async function truncateTestTables(db: NodePgDatabase): Promise<void> {
+	const { sql } = await import('drizzle-orm');
+	await db.execute(sql`
+		TRUNCATE TABLE
+			permission_route, role_permission, user_role, refresh_token,
+			authentication, permission, role, "user"
+		CASCADE
+	`);
+}
+
+export async function setup(): Promise<void> {
+	loadEnvFile();
+	const connectionString = getTestConnectionString();
+	configureEnvVars(connectionString);
+	await pushSchemaToTestDb(connectionString);
+	await seedAdminUser(connectionString);
 }
 
 export async function teardown(): Promise<void> {
@@ -174,23 +167,8 @@ export async function teardown(): Promise<void> {
 
 	console.log('[Integration] Cleaning up test database...');
 	const { drizzle } = await import('drizzle-orm/node-postgres');
-	const { sql } = await import('drizzle-orm');
-
 	const db = drizzle(testConnectionString);
-
-	await db.execute(sql`
-		TRUNCATE TABLE
-			permission_route,
-			role_permission,
-			user_role,
-			refresh_token,
-			authentication,
-			permission,
-			role,
-			"user"
-		CASCADE
-	`);
-
+	await truncateTestTables(db);
 	await db.$client.end();
 	console.log('[Integration] Test database cleaned up.');
 }
