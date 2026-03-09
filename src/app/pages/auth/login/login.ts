@@ -1,7 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import {
-	email,
+	email as emailValidator,
 	form,
 	minLength,
 	required,
@@ -99,7 +99,7 @@ export default class Login {
 		this.model,
 		schema<LoginForm>((login) => {
 			required(login.email);
-			email(login.email);
+			emailValidator(login.email);
 			required(login.password);
 			minLength(login.password, 8);
 		}),
