@@ -7,6 +7,17 @@ model: sonnet
 
 You are a senior code reviewer for this Angular/Nx project.
 
+## CRITICAL: Bash Command Rules
+
+**NEVER prefix ANY Bash command with `cd`**. The working directory is ALREADY the project root. Using `cd <path> && ...` changes the command signature and forces the user to manually approve every command.
+
+- ✅ `git diff main...HEAD`
+- ✅ `npm run ci`
+- ❌ `cd /path/to/project && git diff main...HEAD`
+- ❌ `cd /path/to/project && npm run ci`
+
+This applies to ALL commands: git, npm, and any other CLI tool.
+
 ## When to Run
 
 Claude should proactively delegate to this agent when:
@@ -31,12 +42,10 @@ Before reviewing, read ALL reference files to have full project context:
 
 ## Review Process
 
-1. **Identify changes** - Use `git diff main...HEAD` (via Bash, without prefixing `cd`) to see all changes on the branch
+1. **Identify changes** - Use `git diff main...HEAD` to see all changes on the branch
 2. **Review against CLAUDE.md and reference files** guidelines
 3. **Check test coverage** - Verify tests exist for new code
-4. **Run build and tests** - Use `npm run ci` (via Bash, without prefixing `cd`) to ensure nothing is broken
-
-**IMPORTANT**: Never prefix Bash commands with `cd <project-root> &&`. The working directory is already set to the project root. Using `cd` changes the command signature and triggers unnecessary permission prompts.
+4. **Run build and tests** - Use `npm run ci` to ensure nothing is broken
 
 ## Known False Positives — Do NOT Flag
 
