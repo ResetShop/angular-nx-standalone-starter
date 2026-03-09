@@ -411,7 +411,7 @@ The backend uses **OpenAPIHono** (`@hono/zod-openapi`). Every endpoint is a type
 
 ### Key Rules
 
-- **Always** use `createOpenAPIApp()` — never `new OpenAPIHono()` (except root app in `server.ts`)
+- **Always** use `createOpenAPIApp()` — never `new OpenAPIHono()` (except root apps: `server.ts` and `test-app.ts`)
 - **Always** use `registerRoute(app, route, handler)` — never `app.openapi()` directly
 - **Separate** route definitions (`*.routes.ts`) from handlers (`*.controller.ts`) — never inline both
 - Path parameters use `{id}` syntax (OpenAPI), not `:id` (Express)
