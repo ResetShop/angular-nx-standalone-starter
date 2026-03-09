@@ -172,6 +172,21 @@ export async function seedBaseData(db: TestDb): Promise<{ adminUserId: number; a
 	return { adminUserId: adminUser.id, adminRoleId: adminRole.id };
 }
 
+/**
+ * Resets only the lockout state of the admin user's authentication record.
+ * Use this instead of truncateAllTables + seedBaseData when only the lockout
+ * fields need resetting (e.g., after account lockout tests).
+ */
+export async function resetAdminLockout(db: TestDb): Promise<void> {
+	const [adminUser] = await db.select({ id: user.id }).from(user).where(eq(user.email, 'admin@sistema.com'));
+	if (!adminUser) return;
+
+	await db
+		.update(authentication)
+		.set({ failedLoginAttempts: 0, lockedUntil: null })
+		.where(eq(authentication.userId, adminUser.id));
+}
+
 async function seedRestrictedBaseUser(db: TestDb, passwordHash: string): Promise<void> {
 	const [restrictedUser] = await db
 		.insert(user)

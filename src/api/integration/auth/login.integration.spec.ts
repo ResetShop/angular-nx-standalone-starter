@@ -1,6 +1,6 @@
 import type { OpenAPIHono } from '@hono/zod-openapi';
 import { loginAs } from '../setup/auth-helpers';
-import { getTestDb, seedBaseData, truncateAllTables } from '../setup/db-helpers';
+import { getTestDb, resetAdminLockout } from '../setup/db-helpers';
 import { createTestApp } from '../setup/test-app';
 
 describe('POST /api/auth/login', () => {
@@ -68,9 +68,7 @@ describe('POST /api/auth/login', () => {
 
 	describe('account lockout', () => {
 		afterEach(async () => {
-			const db = getTestDb();
-			await truncateAllTables(db);
-			await seedBaseData(db);
+			await resetAdminLockout(getTestDb());
 		});
 
 		it('locks account after multiple failed login attempts', async () => {
