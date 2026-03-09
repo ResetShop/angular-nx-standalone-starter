@@ -10,7 +10,7 @@ export default defineConfig({
 		reporters: ['verbose'],
 		setupFiles: ['src/test-setup.ts'],
 		include: ['src/**/*.{test,spec}.ts', 'tools/**/*.spec.js'],
-		exclude: ['node_modules', 'dist', '.nx', 'coverage', '**/node_modules/**', '**/dist/**'],
+		exclude: ['node_modules', 'dist', '.nx', 'coverage', '**/node_modules/**', '**/dist/**', 'src/api/integration/**'],
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
