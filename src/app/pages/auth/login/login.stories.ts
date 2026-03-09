@@ -1,11 +1,23 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import {
+	email,
+	form,
+	minLength,
+	provideSignalFormsConfig,
+	required,
+	schema,
+	FormField as SignalFormField,
+	type FieldTree,
+} from '@angular/forms/signals';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
+import { FormField } from '@components/form-field/form-field';
 import { LoginErrorCode } from '@contracts/auth/auth.errors';
-import { type Language, Translation } from '@providers/i18n/translation';
+import type { LoginForm } from '@interfaces/auth';
+import { Translation, type Language } from '@providers/i18n/translation';
 import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig, moduleMetadata } from '@storybook/angular';
+import { applicationConfig } from '@storybook/angular';
 
 /**
  * Error code options for the story.
@@ -20,7 +32,7 @@ type ErrorCodeOption = LoginErrorCode | null;
 @Component({
 	selector: 'app-login-story',
 	standalone: true,
-	imports: [Card, Button, NgOptimizedImage],
+	imports: [Card, Button, NgOptimizedImage, FormField, SignalFormField],
 	template: `
 		<div class="flex h-[600px] w-full items-center justify-center bg-black/95">
 			<dialog open class="align-self-center flex justify-self-center bg-transparent">
@@ -35,33 +47,18 @@ type ErrorCodeOption = LoginErrorCode | null;
 
 					<ng-template #cardContent>
 						<div class="flex w-96 flex-col gap-6">
+							<app-form-field [label]="'Dirección de email'" [showRequired]="false">
+								<input [formField]="loginForm.email" type="email" autocomplete="email" />
+							</app-form-field>
+
 							<div>
-								<label for="email" class="text-foreground block text-sm/6 font-medium">Dirección de email</label>
-								<div class="mt-2">
-									<input
-										id="email"
-										type="email"
-										autocomplete="email"
-										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
-									/>
-								</div>
-							</div>
-							<div>
-								<div class="flex items-center justify-between">
-									<label for="password" class="text-foreground block text-sm/6 font-medium">Contraseña</label>
-									<div class="text-sm">
-										<a href="#" class="text-default hover:text-default/90 font-semibold hover:underline">
-											¿Olvidaste tu contraseña?
-										</a>
-									</div>
-								</div>
-								<div class="mt-2">
-									<input
-										id="password"
-										type="password"
-										autocomplete="current-password"
-										class="text-foreground outline-input placeholder:text-muted-foreground focus:outline-ring bg-background block w-full rounded-md px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
-									/>
+								<app-form-field [label]="'Contraseña'" [showRequired]="false">
+									<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
+								</app-form-field>
+								<div class="mt-1 text-right text-sm">
+									<a href="#" class="text-default hover:text-default/90 font-semibold hover:underline">
+										¿Olvidaste tu contraseña?
+									</a>
 								</div>
 							</div>
 						</div>
@@ -92,6 +89,17 @@ class LoginStoryComponent {
 	readonly errorCode = input<ErrorCodeOption>(null);
 	readonly language = input<Language>('es');
 
+	private readonly model = signal<LoginForm>({ email: '', password: '' });
+	readonly loginForm: FieldTree<LoginForm> = form(
+		this.model,
+		schema<LoginForm>((login) => {
+			required(login.email);
+			email(login.email);
+			required(login.password);
+			minLength(login.password, 8);
+		}),
+	);
+
 	/**
 	 * Tracks when translations are loaded and ready for use.
 	 * This signal triggers re-computation of errorMessage when language changes.
@@ -106,7 +114,6 @@ class LoginStoryComponent {
 	});
 
 	constructor() {
-		// Load language when it changes
 		effect(() => {
 			const lang = this.language();
 			this.isReady.set(false);
@@ -122,11 +129,8 @@ const meta: Meta<LoginStoryComponent> = {
 	title: 'Pages/Auth/Login',
 	tags: ['autodocs'],
 	decorators: [
-		moduleMetadata({
-			imports: [Card, Button, NgOptimizedImage],
-		}),
 		applicationConfig({
-			providers: [Translation],
+			providers: [Translation, ...provideSignalFormsConfig({})],
 		}),
 	],
 	parameters: {

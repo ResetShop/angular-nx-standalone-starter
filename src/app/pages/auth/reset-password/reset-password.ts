@@ -27,12 +27,7 @@ interface ResetPasswordForm {
 				<ng-template #cardContent>
 					<div class="flex w-96 flex-col gap-6">
 						<app-form-field [label]="'Dirección de email'">
-							<input
-								[formField]="resetPasswordForm.email"
-								type="email"
-								autocomplete="email"
-								class="border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none"
-							/>
+							<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" />
 						</app-form-field>
 					</div>
 				</ng-template>
