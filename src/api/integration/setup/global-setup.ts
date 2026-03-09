@@ -85,7 +85,7 @@ export async function setup(): Promise<void> {
 
 	// Step 2: Seed base data
 	console.log('[Integration] Seeding base data...');
-	const { sql, eq, inArray } = await import('drizzle-orm');
+	const { sql, inArray } = await import('drizzle-orm');
 	const { user, userRole } = schemaImports;
 	const { authentication } = authSchema;
 	const { role, rolePermission } = roleSchema;
