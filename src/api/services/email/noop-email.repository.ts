@@ -5,7 +5,8 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * Used in integration tests to avoid Ethereal SMTP round-trips.
  */
 export class NoopEmailRepository implements IEmailRepository {
-	async send(_params: SendEmailParams): Promise<void> {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	async send(params: SendEmailParams): Promise<void> {
 		// Intentionally empty — emails are not sent in this mode
 	}
 }
