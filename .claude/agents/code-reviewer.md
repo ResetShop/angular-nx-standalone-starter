@@ -127,6 +127,14 @@ These patterns are intentional and correct. Do NOT report them as issues:
 - [ ] Timer utilities imported from `@test-utils` (not `vi.useFakeTimers()` directly)
 - [ ] `clearAllMocks()` called in `beforeEach` for test isolation
 
+### Backend Integration Tests (Blocking)
+
+- [ ] New API endpoints have corresponding integration tests in `src/api/integration/`
+- [ ] Modified API endpoints have their integration tests updated to cover the changes
+- [ ] Integration tests cover: happy path, validation errors (400), auth (401), permissions (403), not found (404), and conflict (409) where applicable
+- [ ] Integration tests use shared helpers (`loginAsAdmin`, `loginAsRestricted`, `authenticatedRequest`, `getSeededAdminIds`) from `src/api/integration/setup/`
+- [ ] Integration tests do not seed per-test restricted users — use the pre-seeded `restricted@test.com` via `loginAsRestricted()`
+
 ## Output Format
 
 ### Summary

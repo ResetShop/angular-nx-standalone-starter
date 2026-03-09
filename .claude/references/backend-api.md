@@ -368,6 +368,51 @@ The `as const` assertion is required for TypeScript to correctly infer the middl
 
 ---
 
+## Integration Testing
+
+Every API endpoint **must** have integration tests that verify behavior against a real PostgreSQL database. Integration tests live in `src/api/integration/` mirroring the module structure.
+
+### Test Infrastructure
+
+| File                                             | Purpose                                                                                |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `vitest.integration.config.ts`                   | Vitest config (`environment: 'node'`, `fileParallelism: false`, `testTimeout: 30_000`) |
+| `src/api/integration/setup/global-setup.ts`      | Schema push + base data seeding (runs once before all tests)                           |
+| `src/api/integration/setup/integration-setup.ts` | Env vars + Zod OpenAPI extension (runs per test file)                                  |
+| `src/api/integration/setup/test-app.ts`          | `createTestApp()` — OpenAPIHono instance with all middleware and routes                |
+| `src/api/integration/setup/db-helpers.ts`        | `getTestDb()`, `truncateAllTables()`, `seedBaseData()`, `getSeededAdminIds()`          |
+| `src/api/integration/setup/auth-helpers.ts`      | `loginAsAdmin()`, `loginAsRestricted()`, `authenticatedRequest()`                      |
+
+### Required Coverage per Endpoint
+
+| Status Code | Scenario           | Required                                |
+| ----------- | ------------------ | --------------------------------------- |
+| 200/201     | Happy path         | Always                                  |
+| 400         | Validation errors  | When endpoint accepts body/query params |
+| 401         | Unauthenticated    | All protected endpoints                 |
+| 403         | Missing permission | All permission-guarded endpoints        |
+| 404         | Resource not found | All endpoints with path params          |
+| 409         | Duplicate/conflict | When uniqueness constraints exist       |
+
+### Key Conventions
+
+- Use `loginAsAdmin()` / `loginAsRestricted()` for auth — never seed per-test users for authentication
+- Use `getSeededAdminIds()` for admin user/role IDs — never resolve via HTTP list calls
+- Use `authenticatedRequest()` to attach cookies
+- Run via `npm run test:integration` (separate from `npm run test`)
+- Tests run sequentially (`fileParallelism: false`) to avoid DB race conditions
+- The noop email provider and bcrypt cost 1 are configured automatically in the test environment
+
+### Adding Tests for a New Module
+
+1. Create `src/api/integration/<module>/` directory
+2. Create `<module>.integration.spec.ts` following existing patterns
+3. Use `createTestApp()`, `loginAsAdmin()`, `authenticatedRequest()` from setup helpers
+4. Cover all status codes listed above for each endpoint
+5. Verify with `npm run test:integration`
+
+---
+
 ## Key Rules Summary
 
 1. **Always** use `createOpenAPIApp()` — never `new OpenAPIHono()` (except root app in `server.ts`)
@@ -380,3 +425,4 @@ The `as const` assertion is required for TypeScript to correctly infer the middl
 8. Path parameters use `{id}` syntax (OpenAPI), not `:id` (Express)
 9. **Always** add type annotations to `c.req.valid()` calls
 10. Controller files export `default app` — module routers compose them via `app.route()`
+11. **Every** new or modified endpoint **must** have integration tests in `src/api/integration/`

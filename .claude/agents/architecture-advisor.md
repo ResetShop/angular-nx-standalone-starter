@@ -69,6 +69,14 @@ Before providing architecture advice, read these reference files:
 - **Idiomatic** — Follows Angular/Nx conventions (standalone components, signal-based reactivity, Nx library types)
 - **Domain-Based** — Structure reflects business concepts, not technical layers; code tells the domain story
 
+### Backend API Completeness
+
+When evaluating new backend modules or endpoints, verify the plan includes:
+
+- [ ] Integration tests in `src/api/integration/<module>/` covering all status codes (200, 400, 401, 403, 404, 409)
+- [ ] Bruno API client entries in `docs/api/`
+- [ ] Contract schemas in `src/contracts/`
+
 ### Nx Workspace Structure
 
 | Library Type   | Purpose                            | Example                        |
