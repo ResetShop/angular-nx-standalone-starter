@@ -110,6 +110,14 @@ export async function getSeededAdminIds(db: TestDb): Promise<{ adminUserId: numb
 }
 
 /**
+ * Returns the seeded restricted user credentials for 403 tests.
+ * This user is created once in global setup — no per-test seeding needed.
+ */
+export function getRestrictedUserCredentials(): { email: string; password: string } {
+	return { email: 'restricted@test.com', password: getAdminPassword() };
+}
+
+/**
  * Seeds the test database with base data:
  * - Admin user (admin@sistema.com / admin123)
  * - Administrator role (code: admin, removable: false)

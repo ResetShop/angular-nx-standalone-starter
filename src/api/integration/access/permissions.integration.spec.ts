@@ -1,7 +1,6 @@
 import type { OpenAPIHono } from '@hono/zod-openapi';
 import { ADMIN_PERMISSIONS_SEED_DATA } from '../../modules/access/role/permissions.constants';
-import { authenticatedRequest, loginAs, loginAsAdmin } from '../setup/auth-helpers';
-import { getTestDb, seedRestrictedUser } from '../setup/db-helpers';
+import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers';
 import { createTestApp } from '../setup/test-app';
 
 describe('Permission endpoints (/api/access/permissions)', () => {
@@ -53,11 +52,9 @@ describe('Permission endpoints (/api/access/permissions)', () => {
 		});
 
 		it('returns 403 without required permission', async () => {
-			const db = getTestDb();
-			const restricted = await seedRestrictedUser(db);
-			const { cookies } = await loginAs(app, restricted.email, restricted.password);
+			const restrictedCookies = await loginAsRestricted(app);
 
-			const response = await authenticatedRequest(app, '/api/access/permissions', { cookies });
+			const response = await authenticatedRequest(app, '/api/access/permissions', { cookies: restrictedCookies });
 			expect(response.status).toBe(403);
 		});
 	});
