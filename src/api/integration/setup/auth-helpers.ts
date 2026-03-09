@@ -9,6 +9,8 @@ interface ParsedCookies {
 
 /**
  * Parses Set-Cookie headers from a response to extract access and refresh tokens.
+ * The `raw` field is a combined `Cookie:` request header value built from all
+ * `Set-Cookie` response headers, suitable for passing in subsequent requests.
  */
 export function parseCookies(response: Response): ParsedCookies {
 	const setCookieHeaders = response.headers.getSetCookie();
