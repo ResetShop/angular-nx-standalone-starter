@@ -60,7 +60,7 @@ export function createTestApp(): OpenAPIHono {
 
 	app.notFound((c) => c.text('404 - Not found', 404));
 	app.onError((error, c) => {
-		console.error(`[Integration Test Error] ${error}`);
+		console.error('[Integration Test Error]', error);
 		return c.text('Internal Server Error', 500);
 	});
 
