@@ -76,7 +76,7 @@ async function seedAdminUser(connectionString: string): Promise<void> {
 	}
 
 	const bcrypt = await import('bcryptjs');
-	const passwordHash = await bcrypt.hash(adminPassword, 10);
+	const passwordHash = await bcrypt.hash(adminPassword, 1);
 	const db = drizzle(connectionString);
 
 	await truncateTestTables(db);

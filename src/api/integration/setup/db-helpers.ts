@@ -46,7 +46,7 @@ function getAdminPassword(): string {
 }
 
 async function getAdminPasswordHash(): Promise<string> {
-	return hash(getAdminPassword(), 10);
+	return hash(getAdminPassword(), 1);
 }
 
 /**
