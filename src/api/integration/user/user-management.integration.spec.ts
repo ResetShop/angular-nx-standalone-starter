@@ -123,6 +123,24 @@ describe('User management endpoints (/api/user)', () => {
 			expect(response.status).toBe(401);
 		});
 
+		it('returns 400 for missing required fields', async () => {
+			const response = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'incomplete@test.com' },
+			});
+			expect(response.status).toBe(400);
+		});
+
+		it('returns 400 for invalid email format', async () => {
+			const response = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'not-an-email', firstName: 'Bad', lastName: 'Email' },
+			});
+			expect(response.status).toBe(400);
+		});
+
 		it('returns 403 without required permission', async () => {
 			const restrictedCookies = await loginAsRestricted(app);
 			const response = await authenticatedRequest(app, '/api/user', {
@@ -221,6 +239,15 @@ describe('User management endpoints (/api/user)', () => {
 			expect(response.status).toBe(409);
 		});
 
+		it('returns 400 for invalid email format', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { email: 'not-an-email' },
+			});
+			expect(response.status).toBe(400);
+		});
+
 		it('returns 401 without authentication', async () => {
 			const response = await app.request(`/api/user/${adminUserId}`, {
 				method: 'PATCH',
@@ -268,6 +295,15 @@ describe('User management endpoints (/api/user)', () => {
 				body: { status: 'disabled' },
 			});
 			expect(response.status).toBe(404);
+		});
+
+		it('returns 400 for invalid status value', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/status`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { status: 'invalid_status' },
+			});
+			expect(response.status).toBe(400);
 		});
 
 		it('returns 401 without authentication', async () => {

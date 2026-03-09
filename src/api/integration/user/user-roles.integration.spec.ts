@@ -146,6 +146,24 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 			expect(response.status).toBe(404);
 		});
 
+		it('returns 400 for missing roleId', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+				method: 'POST',
+				cookies: adminCookies,
+				body: {},
+			});
+			expect(response.status).toBe(400);
+		});
+
+		it('returns 400 for invalid roleId type', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { roleId: 'not-a-number' },
+			});
+			expect(response.status).toBe(400);
+		});
+
 		it('returns 401 without authentication', async () => {
 			const response = await app.request(`/api/user/${adminUserId}/roles`, {
 				method: 'POST',
@@ -207,6 +225,24 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 				body: { roleIds: [1] },
 			});
 			expect(response.status).toBe(404);
+		});
+
+		it('returns 400 for missing roleIds', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+				method: 'PUT',
+				cookies: adminCookies,
+				body: {},
+			});
+			expect(response.status).toBe(400);
+		});
+
+		it('returns 400 for duplicate roleIds', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+				method: 'PUT',
+				cookies: adminCookies,
+				body: { roleIds: [1, 1] },
+			});
+			expect(response.status).toBe(400);
 		});
 
 		it('returns 401 without authentication', async () => {
