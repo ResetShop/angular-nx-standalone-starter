@@ -92,6 +92,8 @@ async function seedAdminUser(connectionString: string): Promise<void> {
 		ADMIN_PERMISSIONS_SEED_DATA,
 	});
 
+	await insertRestrictedUser(db, { user, authentication, role, userRole, passwordHash });
+
 	await db.$client.end();
 	console.log('[Integration] Base data seeded successfully.');
 }
@@ -140,6 +142,25 @@ async function insertAdminData(db: NodePgDatabase, deps: Record<string, any>): P
 		permissionId: p.id,
 	}));
 	await db.insert(rolePermission).values(rolePermissionValues);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic schema imports
+async function insertRestrictedUser(db: NodePgDatabase, deps: Record<string, any>): Promise<void> {
+	const { user, authentication, role, userRole, passwordHash } = deps;
+
+	const [restrictedUser] = await db
+		.insert(user)
+		.values({ firstName: 'Restricted', lastName: 'User', email: 'restricted@test.com' })
+		.returning({ id: user.id });
+
+	await db.insert(authentication).values({ userId: restrictedUser.id, passwordHash, failedLoginAttempts: 0 });
+
+	const [restrictedRole] = await db
+		.insert(role)
+		.values({ name: 'Restricted', code: 'restricted', description: 'Role with no permissions', removable: true })
+		.returning({ id: role.id });
+
+	await db.insert(userRole).values({ userId: restrictedUser.id, roleId: restrictedRole.id });
 }
 
 async function truncateTestTables(db: NodePgDatabase): Promise<void> {

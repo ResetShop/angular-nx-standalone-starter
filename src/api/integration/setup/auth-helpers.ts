@@ -1,4 +1,5 @@
 import type { OpenAPIHono } from '@hono/zod-openapi';
+import { getRestrictedUserCredentials } from './db-helpers';
 
 interface ParsedCookies {
 	accessToken: string;
@@ -60,6 +61,20 @@ export async function loginAsAdmin(app: OpenAPIHono): Promise<ParsedCookies> {
 	if (response.status !== 200) {
 		const body = await response.json();
 		throw new Error(`Admin login failed (${response.status}): ${JSON.stringify(body)}`);
+	}
+	return cookies;
+}
+
+/**
+ * Logs in as the pre-seeded restricted user (no permissions) for 403 tests.
+ * This user is created once in global setup — no per-test seeding needed.
+ */
+export async function loginAsRestricted(app: OpenAPIHono): Promise<ParsedCookies> {
+	const { email, password } = getRestrictedUserCredentials();
+	const { response, cookies } = await loginAs(app, email, password);
+	if (response.status !== 200) {
+		const body = await response.json();
+		throw new Error(`Restricted user login failed (${response.status}): ${JSON.stringify(body)}`);
 	}
 	return cookies;
 }
