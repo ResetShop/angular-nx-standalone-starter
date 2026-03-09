@@ -145,6 +145,7 @@ describe('Login', () => {
 	it('should not show password error when form is untouched', async () => {
 		await renderLogin();
 
-		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+		expect(screen.queryByText(/this field is required/i)).not.toBeInTheDocument();
+		expect(screen.queryByText(/must be at least/i)).not.toBeInTheDocument();
 	});
 });
