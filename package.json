@@ -24,6 +24,7 @@
 		"stylelint": "nx stylelint app --skip-nx-cache",
 		"typecheck": "tsc --noEmit -p tsconfig.spec.json",
 		"test": "nx test --skip-nx-cache",
+		"test:integration": "vitest run --config vitest.integration.config.ts",
 		"test:watch": "nx test --watch",
 		"test:ui": "nx test --configuration=ui -- --ui",
 		"test:e2e": "nx run app:e2e",
