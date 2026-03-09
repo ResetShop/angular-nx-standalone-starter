@@ -1,0 +1,63 @@
+import type { OpenAPIHono } from '@hono/zod-openapi';
+import { authenticatedRequest, loginAs, loginAsAdmin } from '../setup/auth-helpers';
+import { getTestDb, seedRestrictedUser } from '../setup/db-helpers';
+import { createTestApp } from '../setup/test-app';
+
+describe('Permission endpoints (/api/access/permissions)', () => {
+	let app: OpenAPIHono;
+	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
+
+	beforeAll(async () => {
+		app = createTestApp();
+		adminCookies = await loginAsAdmin(app);
+	});
+
+	describe('GET /api/access/permissions', () => {
+		it('returns paginated list of permissions', async () => {
+			const response = await authenticatedRequest(app, '/api/access/permissions', {
+				cookies: adminCookies,
+			});
+
+			expect(response.status).toBe(200);
+			const body = await response.json();
+			expect(body.data).toBeInstanceOf(Array);
+			expect(body.data.length).toBeGreaterThan(0);
+			expect(body.total).toBeGreaterThanOrEqual(13);
+		});
+
+		it('supports search parameter', async () => {
+			const response = await authenticatedRequest(app, '/api/access/permissions?search=roles', {
+				cookies: adminCookies,
+			});
+
+			expect(response.status).toBe(200);
+			const body = await response.json();
+			expect(body.data.length).toBeGreaterThan(0);
+		});
+
+		it('supports pagination parameters', async () => {
+			const response = await authenticatedRequest(app, '/api/access/permissions?offset=0&limit=2', {
+				cookies: adminCookies,
+			});
+
+			expect(response.status).toBe(200);
+			const body = await response.json();
+			expect(body.data.length).toBeLessThanOrEqual(2);
+			expect(body.total).toBeGreaterThanOrEqual(13);
+		});
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request('/api/access/permissions');
+			expect(response.status).toBe(401);
+		});
+
+		it('returns 403 without required permission', async () => {
+			const db = getTestDb();
+			const restricted = await seedRestrictedUser(db);
+			const { cookies } = await loginAs(app, restricted.email, restricted.password);
+
+			const response = await authenticatedRequest(app, '/api/access/permissions', { cookies });
+			expect(response.status).toBe(403);
+		});
+	});
+});
