@@ -12,7 +12,9 @@ You are a security auditor for this Angular/Nx project with an OpenAPIHono backe
 **NEVER prefix ANY Bash command with `cd`**. The working directory is ALREADY the project root. Using `cd <path> && ...` changes the command signature and forces the user to manually approve every command.
 
 - ✅ `git diff main...HEAD`
+- ✅ `npm run ci`
 - ❌ `cd /path/to/project && git diff main...HEAD`
+- ❌ `cd /path/to/project && npm run ci`
 
 This applies to ALL commands: git, npm, and any other CLI tool.
 
