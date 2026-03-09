@@ -3,15 +3,16 @@ import { loginAs } from '../setup/auth-helpers';
 import { getTestDb, seedBaseData, truncateAllTables } from '../setup/db-helpers';
 import { createTestApp } from '../setup/test-app';
 
-const adminPassword = process.env['INTEGRATION_TEST_ADMIN_PASSWORD'];
-if (!adminPassword) {
-	throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD environment variable is required.');
-}
-
 describe('POST /api/auth/login', () => {
 	let app: OpenAPIHono;
+	let adminPassword: string;
 
 	beforeAll(() => {
+		const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD'];
+		if (!password) {
+			throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD environment variable is required.');
+		}
+		adminPassword = password;
 		app = createTestApp();
 	});
 
