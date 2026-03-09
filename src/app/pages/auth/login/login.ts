@@ -125,6 +125,8 @@ export default class Login {
 
 	onSubmit() {
 		if (!this.isFormValid()) {
+			// Signal forms FieldState.markAsTouched() only marks a single field;
+			// there is no markAllAsTouched() equivalent — each field must be touched individually.
 			this.loginForm.email().markAsTouched();
 			this.loginForm.password().markAsTouched();
 			return;

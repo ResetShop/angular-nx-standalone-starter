@@ -72,6 +72,8 @@ export default class ResetPassword {
 
 	onSubmit() {
 		if (!this.isFormValid()) {
+			// Signal forms FieldState.markAsTouched() only marks a single field;
+			// there is no markAllAsTouched() equivalent — each field must be touched individually.
 			this.resetPasswordForm.email().markAsTouched();
 			return;
 		}
