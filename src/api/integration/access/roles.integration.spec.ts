@@ -86,6 +86,24 @@ describe('Role endpoints (/api/access/roles)', () => {
 			expect(response.status).toBe(409);
 		});
 
+		it('returns 400 for missing required fields', async () => {
+			const response = await authenticatedRequest(app, '/api/access/roles', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { name: 'MissingCode' },
+			});
+			expect(response.status).toBe(400);
+		});
+
+		it('returns 400 for empty body', async () => {
+			const response = await authenticatedRequest(app, '/api/access/roles', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: {},
+			});
+			expect(response.status).toBe(400);
+		});
+
 		it('returns 401 without authentication', async () => {
 			const response = await app.request('/api/access/roles', {
 				method: 'POST',
