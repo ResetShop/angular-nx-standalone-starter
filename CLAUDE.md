@@ -691,8 +691,9 @@ The `npm run ci` command runs all CI checks serially:
 2. `npm run lint` — TypeScript/ESLint linting
 3. `npm run typecheck` — Type-check spec files (`tsc --noEmit`)
 4. `npm run test` — Unit tests
-5. `npm run build` — Production build
-6. `npm run storybook:build` — Storybook build
+5. `npm run test:integration` — Integration tests (requires PostgreSQL)
+6. `npm run build` — Production build
+7. `npm run storybook:build` — Storybook build
 
 If any step fails, the entire command fails. Fix all issues before proceeding to code review.
 
