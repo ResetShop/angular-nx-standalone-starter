@@ -67,12 +67,13 @@ describe('POST /api/auth/login', () => {
 	});
 
 	describe('account lockout', () => {
-		it('locks account after multiple failed login attempts', async () => {
-			// Reset DB state — failed attempts mutate the admin user
+		afterEach(async () => {
 			const db = getTestDb();
 			await truncateAllTables(db);
 			await seedBaseData(db);
+		});
 
+		it('locks account after multiple failed login attempts', async () => {
 			// Attempt 5 failed logins (default MAX_FAILED_ATTEMPTS = 5)
 			for (let i = 0; i < 5; i++) {
 				await loginAs(app, 'admin@sistema.com', 'wrongpassword');
@@ -84,10 +85,6 @@ describe('POST /api/auth/login', () => {
 			expect(response.status).toBe(401);
 			const body = await response.json();
 			expect(body.code).toBe('ACCOUNT_LOCKED');
-
-			// Restore clean state for subsequent test files
-			await truncateAllTables(db);
-			await seedBaseData(db);
 		});
 	});
 });
