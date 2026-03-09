@@ -1,20 +1,20 @@
 import type { OpenAPIHono } from '@hono/zod-openapi';
 import { authenticatedRequest, loginAs, loginAsAdmin } from '../setup/auth-helpers';
-import { getTestDb, seedRestrictedUser } from '../setup/db-helpers';
+import { getSeededAdminIds, getTestDb, seedRestrictedUser } from '../setup/db-helpers';
 import { createTestApp } from '../setup/test-app';
 
 describe('User role endpoints (/api/user/{userId}/roles)', () => {
 	let app: OpenAPIHono;
 	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
 	let adminUserId: number;
+	let adminRoleId: number;
 
 	beforeAll(async () => {
 		app = createTestApp();
 		adminCookies = await loginAsAdmin(app);
-
-		// Get admin user ID from /me endpoint
-		const meResponse = await authenticatedRequest(app, '/api/auth/me', { cookies: adminCookies });
-		adminUserId = (await meResponse.json()).id;
+		const ids = await getSeededAdminIds(getTestDb());
+		adminUserId = ids.adminUserId;
+		adminRoleId = ids.adminRoleId;
 	});
 
 	// ── Get User Roles ────────────────────────────────────────────
@@ -107,11 +107,6 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		});
 
 		it('returns 409 when role is already assigned', async () => {
-			const rolesResponse = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
-				cookies: adminCookies,
-			});
-			const adminRoleId = (await rolesResponse.json()).data[0].id;
-
 			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
 				method: 'POST',
 				cookies: adminCookies,
