@@ -149,16 +149,13 @@ export async function seedBaseData(db: TestDb): Promise<{ adminUserId: number; a
 	return { adminUserId: adminUser.id, adminRoleId: adminRole.id };
 }
 
-let restrictedUserCounter = 0;
-
 /**
  * Creates a user with no permissions for testing 403 responses.
  * Each call generates a unique email/code to avoid constraint violations.
  */
 export async function seedRestrictedUser(db: TestDb): Promise<{ userId: number; email: string; password: string }> {
-	restrictedUserCounter++;
-	const suffix = `${Date.now()}-${restrictedUserCounter}`;
-	const email = `restricted-${suffix}@test.com`;
+	const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+	const email = `restricted_${suffix}@test.com`;
 
 	const passwordHash = await getAdminPasswordHash();
 
@@ -180,8 +177,8 @@ export async function seedRestrictedUser(db: TestDb): Promise<{ userId: number; 
 	const [restrictedRole] = await db
 		.insert(role)
 		.values({
-			name: `Restricted-${suffix}`,
-			code: `restricted-${suffix}`,
+			name: `Restricted ${suffix}`,
+			code: `restricted_${suffix}`,
 			description: 'Role with no permissions',
 			removable: true,
 		})
