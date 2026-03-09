@@ -59,7 +59,7 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 async function seedAdminUser(connectionString: string): Promise<void> {
 	console.log('[Integration] Seeding base data...');
 	const { drizzle } = await import('drizzle-orm/node-postgres');
-	const { sql, inArray } = await import('drizzle-orm');
+	const { inArray } = await import('drizzle-orm');
 
 	const { user, userRole } = await import('../../../db/schema/user');
 	const { authentication } = await import('../../../db/schema/authentication');
@@ -142,7 +142,6 @@ async function insertAdminData(db: NodePgDatabase, deps: Record<string, any>): P
 	await db.insert(rolePermission).values(rolePermissionValues);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped drizzle instance in global setup
 async function truncateTestTables(db: NodePgDatabase): Promise<void> {
 	const { sql } = await import('drizzle-orm');
 	await db.execute(sql`
