@@ -11,6 +11,11 @@ You are a migration planning specialist for this Angular/Nx project.
 
 **NEVER prefix ANY Bash command with `cd`**. The working directory is ALREADY the project root. Using `cd <path> && ...` changes the command signature and forces the user to manually approve every command.
 
+- ✅ `npm ls <package-name>`
+- ✅ `npm outdated`
+- ❌ `cd /path/to/project && npm ls <package-name>`
+- ❌ `cd /path/to/project && npm outdated`
+
 This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## When to Run

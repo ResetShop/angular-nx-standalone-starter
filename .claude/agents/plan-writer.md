@@ -11,6 +11,11 @@ You are a software architect for this Angular/Nx project.
 
 **NEVER prefix ANY Bash command with `cd`**. The working directory is ALREADY the project root. Using `cd <path> && ...` changes the command signature and forces the user to manually approve every command.
 
+- ✅ `git log --oneline -10`
+- ✅ `npm run build`
+- ❌ `cd /path/to/project && git log --oneline -10`
+- ❌ `cd /path/to/project && npm run build`
+
 This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## When to Run
