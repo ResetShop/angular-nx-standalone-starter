@@ -415,7 +415,7 @@ Every API endpoint **must** have integration tests that verify behavior against 
 
 ## Key Rules Summary
 
-1. **Always** use `createOpenAPIApp()` — never `new OpenAPIHono()` (except root app in `server.ts`)
+1. **Always** use `createOpenAPIApp()` — never `new OpenAPIHono()` (except root apps: `server.ts` and `test-app.ts`)
 2. **Always** use `registerRoute(app, route, handler)` — never `app.openapi()` directly
 3. **Separate** route definitions (`*.routes.ts`) from handlers (`*.controller.ts`)
 4. Protected routes **inherit** global security — don't repeat the security scheme
