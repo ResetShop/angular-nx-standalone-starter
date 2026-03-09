@@ -1,15 +1,18 @@
 import type { OpenAPIHono } from '@hono/zod-openapi';
 import { authenticatedRequest, loginAs, loginAsAdmin } from '../setup/auth-helpers';
-import { getTestDb, seedRestrictedUser } from '../setup/db-helpers';
+import { getSeededAdminIds, getTestDb, seedRestrictedUser } from '../setup/db-helpers';
 import { createTestApp } from '../setup/test-app';
 
 describe('Role endpoints (/api/access/roles)', () => {
 	let app: OpenAPIHono;
 	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
+	let adminRoleId: number;
 
 	beforeAll(async () => {
 		app = createTestApp();
 		adminCookies = await loginAsAdmin(app);
+		const ids = await getSeededAdminIds(getTestDb());
+		adminRoleId = ids.adminRoleId;
 	});
 
 	// ── List Roles ────────────────────────────────────────────────
@@ -89,17 +92,12 @@ describe('Role endpoints (/api/access/roles)', () => {
 	// ── Get Role ──────────────────────────────────────────────────
 	describe('GET /api/access/roles/{id}', () => {
 		it('returns role details', async () => {
-			const listResponse = await authenticatedRequest(app, '/api/access/roles', {
-				cookies: adminCookies,
-			});
-			const roles = (await listResponse.json()).data;
-
-			const response = await authenticatedRequest(app, `/api/access/roles/${roles[0].id}`, {
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}`, {
 				cookies: adminCookies,
 			});
 
 			expect(response.status).toBe(200);
-			expect((await response.json()).id).toBe(roles[0].id);
+			expect((await response.json()).id).toBe(adminRoleId);
 		});
 
 		it('returns 404 for non-existent role', async () => {
@@ -184,12 +182,7 @@ describe('Role endpoints (/api/access/roles)', () => {
 		});
 
 		it('returns 403 for non-removable role (Administrator)', async () => {
-			const listResponse = await authenticatedRequest(app, '/api/access/roles?search=Administrator', {
-				cookies: adminCookies,
-			});
-			const adminRole = (await listResponse.json()).data.find((r: { code: string }) => r.code === 'admin');
-
-			const response = await authenticatedRequest(app, `/api/access/roles/${adminRole.id}`, {
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}`, {
 				method: 'DELETE',
 				cookies: adminCookies,
 			});
@@ -208,12 +201,7 @@ describe('Role endpoints (/api/access/roles)', () => {
 	// ── Role Permissions ──────────────────────────────────────────
 	describe('GET /api/access/roles/{id}/permissions', () => {
 		it('returns paginated permissions for a role', async () => {
-			const listResponse = await authenticatedRequest(app, '/api/access/roles?search=Administrator', {
-				cookies: adminCookies,
-			});
-			const adminRole = (await listResponse.json()).data.find((r: { code: string }) => r.code === 'admin');
-
-			const response = await authenticatedRequest(app, `/api/access/roles/${adminRole.id}/permissions`, {
+			const response = await authenticatedRequest(app, `/api/access/roles/${adminRoleId}/permissions`, {
 				cookies: adminCookies,
 			});
 

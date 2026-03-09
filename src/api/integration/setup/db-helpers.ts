@@ -1,5 +1,5 @@
 import { hash } from 'bcryptjs';
-import { inArray, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { authentication } from '../../../db/schema/authentication';
 import { permission } from '../../../db/schema/permission';
@@ -92,6 +92,21 @@ export async function truncateAllTables(db: TestDb): Promise<void> {
 			"user"
 		CASCADE
 	`);
+}
+
+/**
+ * Returns the seeded admin user and role IDs from the test database.
+ * Use this in beforeAll() instead of making HTTP list calls to resolve IDs.
+ */
+export async function getSeededAdminIds(db: TestDb): Promise<{ adminUserId: number; adminRoleId: number }> {
+	const [adminUser] = await db.select({ id: user.id }).from(user).where(eq(user.email, 'admin@sistema.com'));
+	const [adminRole] = await db.select({ id: role.id }).from(role).where(eq(role.code, 'admin'));
+
+	if (!adminUser || !adminRole) {
+		throw new Error('Seeded admin user or role not found. Ensure global setup has run.');
+	}
+
+	return { adminUserId: adminUser.id, adminRoleId: adminRole.id };
 }
 
 /**

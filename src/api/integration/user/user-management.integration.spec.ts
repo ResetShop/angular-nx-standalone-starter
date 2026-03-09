@@ -1,15 +1,20 @@
 import type { OpenAPIHono } from '@hono/zod-openapi';
 import { authenticatedRequest, loginAs, loginAsAdmin } from '../setup/auth-helpers';
-import { getTestDb, seedRestrictedUser } from '../setup/db-helpers';
+import { getSeededAdminIds, getTestDb, seedRestrictedUser } from '../setup/db-helpers';
 import { createTestApp } from '../setup/test-app';
 
 describe('User management endpoints (/api/user)', () => {
 	let app: OpenAPIHono;
 	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
+	let adminUserId: number;
+	let adminRoleId: number;
 
 	beforeAll(async () => {
 		app = createTestApp();
 		adminCookies = await loginAsAdmin(app);
+		const ids = await getSeededAdminIds(getTestDb());
+		adminUserId = ids.adminUserId;
+		adminRoleId = ids.adminRoleId;
 	});
 
 	// ── List Users ────────────────────────────────────────────────
@@ -75,11 +80,6 @@ describe('User management endpoints (/api/user)', () => {
 		});
 
 		it('creates a user with role assignments', async () => {
-			const rolesResponse = await authenticatedRequest(app, '/api/access/roles', {
-				cookies: adminCookies,
-			});
-			const roleId = (await rolesResponse.json()).data[0].id;
-
 			const response = await authenticatedRequest(app, '/api/user', {
 				method: 'POST',
 				cookies: adminCookies,
@@ -87,7 +87,7 @@ describe('User management endpoints (/api/user)', () => {
 					email: 'withrole@test.com',
 					firstName: 'With',
 					lastName: 'Role',
-					roleIds: [roleId],
+					roleIds: [adminRoleId],
 				},
 			});
 
@@ -120,18 +120,13 @@ describe('User management endpoints (/api/user)', () => {
 	// ── Get User ──────────────────────────────────────────────────
 	describe('GET /api/user/{id}', () => {
 		it('returns user details with roles', async () => {
-			const listResponse = await authenticatedRequest(app, '/api/user', {
-				cookies: adminCookies,
-			});
-			const userId = (await listResponse.json()).data[0].id;
-
-			const response = await authenticatedRequest(app, `/api/user/${userId}`, {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}`, {
 				cookies: adminCookies,
 			});
 
 			expect(response.status).toBe(200);
 			const body = await response.json();
-			expect(body.id).toBe(userId);
+			expect(body.id).toBe(adminUserId);
 			expect(body.roles).toBeInstanceOf(Array);
 		});
 
