@@ -19,7 +19,6 @@ function createMockPermissionData(overrides: Partial<PermissionData> = {}): Perm
 describe('PermissionsStore', () => {
 	let store: InstanceType<typeof PermissionsStore>;
 	let permissionsApiMock: {
-		getAll: MockFn<[], Observable<unknown>>;
 		getAllUnpaginated: MockFn<[], Observable<PermissionData[]>>;
 	};
 
@@ -27,7 +26,6 @@ describe('PermissionsStore', () => {
 		clearAllMocks();
 
 		permissionsApiMock = {
-			getAll: fn(),
 			getAllUnpaginated: fn(),
 		};
 

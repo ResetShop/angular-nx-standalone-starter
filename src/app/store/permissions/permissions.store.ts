@@ -22,13 +22,13 @@ export const PermissionsStore = signalStore(
 				return map;
 			}, new Map<string, PermissionData[]>());
 		}),
+	})),
+	withComputed((store) => ({
 		permissionsGroupedArray: computed(() => {
-			const grouped = store.permissions().reduce((map, permission) => {
-				const existing = map.get(permission.resource) ?? [];
-				map.set(permission.resource, [...existing, permission]);
-				return map;
-			}, new Map<string, PermissionData[]>());
-			return Array.from(grouped.entries()).map(([resource, permissions]) => ({ resource, permissions }));
+			return Array.from(store.permissionsGroupedByResource().entries()).map(([resource, permissions]) => ({
+				resource,
+				permissions,
+			}));
 		}),
 	})),
 	withMethods((store) => {
