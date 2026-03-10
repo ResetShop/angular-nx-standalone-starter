@@ -66,8 +66,15 @@ Before providing architecture advice, read these reference files:
 - **Composable** — Components combine easily through clear interfaces and minimal coupling
 - **Unix Philosophy** — Each module/service does one thing well; avoid god classes or kitchen-sink libraries
 - **Predictable** — Architecture follows the principle of least astonishment; standard patterns over clever abstractions
-- **Idiomatic** — Follows Angular/Nx conventions (standalone components, signal-based reactivity, Nx library types)
+- **Idiomatic** — Follows Angular/Nx conventions (standalone components, signal-based reactivity, `rxMethod` for async operations, Nx library types)
 - **Domain-Based** — Structure reflects business concepts, not technical layers; code tells the domain story
+
+### Signals-First State Management
+
+- **No promises in Angular stores** — `firstValueFrom`, `lastValueFrom`, `toPromise`, and `async/await` on observables are forbidden in `src/app/` store methods
+- **Use `rxMethod` from `@ngrx/signals/rxjs-interop`** for all async store operations (API calls, side effects)
+- **Reactive reads** — computed signals + `withHooks.onInit` for auto-fetching on state changes (pagination, search)
+- **Imperative mutations** — `rxMethod<T>` called with static values for create/update/delete
 
 ### Backend API Completeness
 
