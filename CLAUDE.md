@@ -211,7 +211,7 @@ import { User, IUserRepository } from './user.types';
 
 ### Duration String Convention
 
-All time-related constants must use duration string notation (`'{number}{unit}'`, e.g., `'1h'`, `'15m'`, `'7d'`) as their source of truth, resolved to milliseconds or seconds at the point of use via `parseDurationToMs()` / `parseDurationToSeconds()` from `src/api/utils/duration.ts`.
+All time-related constants must use duration string notation (`'{number}{unit}'`, e.g., `'1h'`, `'15m'`, `'7d'`) as their source of truth, resolved to milliseconds or seconds at the point of use via `parseDurationToMs()` / `parseDurationToSeconds()` from `src/utils/duration.ts` (path alias: `@utils/duration`).
 
 **Rules:**
 

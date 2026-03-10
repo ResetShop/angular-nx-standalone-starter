@@ -1,6 +1,6 @@
 import { computed } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { parseDurationToMs } from '../../../api/utils/duration';
+import { parseDurationToMs } from '@utils/duration';
 import { initialUIState, type UINotification } from './ui.types';
 
 /**
