@@ -18,5 +18,6 @@ export const refreshToken = pgTable(
 	(table) => [
 		index('refresh_token_user_id_idx').on(table.userId),
 		index('refresh_token_expires_at_idx').on(table.expiresAt),
+		index('refresh_token_token_family_idx').on(table.tokenFamily),
 	],
 );

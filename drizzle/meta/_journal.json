@@ -8,6 +8,13 @@
 			"when": 1772544375207,
 			"tag": "0000_dear_tiger_shark",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1773104878566,
+			"tag": "0001_military_valkyrie",
+			"breakpoints": true
 		}
 	]
 }
