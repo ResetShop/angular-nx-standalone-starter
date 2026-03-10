@@ -17,6 +17,7 @@ import { EmailService } from '../services/email/email.service';
 import { EtherealEmailRepository } from '../services/email/ethereal-email.repository';
 import { EMAIL_PROVIDERS } from '../services/email/interfaces';
 import { NodemailerRepository } from '../services/email/nodemailer.repository';
+import { NoopEmailRepository } from '../services/email/noop-email.repository';
 import { PasetoService } from '../services/paseto/paseto.service';
 import { generatePassword } from '../utils/password';
 import type { IContainer } from './container.interface';
@@ -30,12 +31,16 @@ function registerValues(c: AwilixContainer<Cradle>): void {
 	});
 }
 
+function resolveEmailRepository() {
+	const provider = process.env['EMAIL_PROVIDER'];
+	if (provider === EMAIL_PROVIDERS.NOOP) return asClass(NoopEmailRepository).singleton();
+	if (provider === EMAIL_PROVIDERS.ETHEREAL) return asClass(EtherealEmailRepository).singleton();
+	return asClass(NodemailerRepository).singleton();
+}
+
 function registerRepositories(c: AwilixContainer<Cradle>): void {
 	c.register({
-		emailRepository:
-			process.env['EMAIL_PROVIDER'] === EMAIL_PROVIDERS.ETHEREAL
-				? asClass(EtherealEmailRepository).singleton()
-				: asClass(NodemailerRepository).singleton(),
+		emailRepository: resolveEmailRepository(),
 		userRepository: asClass(UserRepository).singleton(),
 		authRepository: asClass(AuthenticationRepository).singleton(),
 		refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),

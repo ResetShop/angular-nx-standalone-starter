@@ -1,7 +1,7 @@
 import { UserStatus } from '@contracts/user/user.schemas';
 import type { CreateUserResponse } from '@contracts/user/user.types';
 import { hash } from 'bcryptjs';
-import { BCRYPT_SALT_ROUNDS } from '../../constants/auth.constants';
+import { getBcryptSaltRounds } from '../../constants/auth.constants';
 import type { PaginatedResponse, PaginationParams } from '../../interfaces';
 import type { IEmailService } from '../../services/email/interfaces';
 import { buildWelcomeEmail } from '../../services/email/welcome-email.builder';
@@ -97,7 +97,7 @@ export class UserManagementService implements IUserManagementService {
 		}
 
 		const plainPassword = await this.generatePassword();
-		const passwordHash = await hash(plainPassword, BCRYPT_SALT_ROUNDS);
+		const passwordHash = await hash(plainPassword, getBcryptSaltRounds());
 
 		const mustChangePassword = params.mustChangePassword ?? true;
 

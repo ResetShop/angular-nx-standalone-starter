@@ -100,8 +100,9 @@ Write the plan to `/workspace/PLAN.md` with this structure:
 
 ## Testing Strategy
 
-- <What tests need to be written or updated>
+- <What unit tests need to be written or updated>
 - <Testing approach and query priority>
+- <Integration tests required in `src/api/integration/` for new/modified backend endpoints — list each endpoint and its expected test coverage (200, 400, 401, 403, 404, 409)>
 
 ## Risks and Considerations
 

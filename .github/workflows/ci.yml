@@ -109,6 +109,43 @@ jobs:
       - name: Run stylelint
         run: npx nx stylelint app --skip-nx-cache
 
+  test-integration:
+    needs: setup
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Restore repository
+        uses: actions/cache@v4.2.3
+        with:
+          path: .
+          key: repo-${{ github.sha }}
+          restore-keys: |
+            repo-${{ github.sha }}
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22.12
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          PG_TEST_CONNECTION_STRING: ${{ secrets.PG_TEST_CONNECTION_STRING }}
+          INTEGRATION_TEST_ADMIN_PASSWORD: ${{ secrets.INTEGRATION_TEST_ADMIN_PASSWORD }}
+
   e2e:
     needs: setup
     runs-on: ubuntu-latest
