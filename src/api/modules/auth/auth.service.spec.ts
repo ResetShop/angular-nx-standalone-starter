@@ -397,7 +397,7 @@ describe('AuthService', () => {
 			);
 		});
 
-		it('should throw TOKEN_REVOKED error when token is revoked', async () => {
+		it('should throw TOKEN_REUSE_DETECTED and revoke token family when replaying a revoked token', async () => {
 			// Clear and add a revoked token
 			mockRefreshTokenRepo.clear();
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex');
@@ -409,8 +409,50 @@ describe('AuthService', () => {
 			});
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.TOKEN_REUSE_DETECTED),
+			);
+
+			expect(mockRefreshTokenRepo.revokedTokenFamilies).toContain(tokenFamily);
+		});
+
+		it('should throw TOKEN_REVOKED when token is not found in database', async () => {
+			// Clear the repository so no tokens exist
+			mockRefreshTokenRepo.clear();
+
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.TOKEN_REVOKED),
 			);
+
+			// No family revocation should occur (no token family info available)
+			expect(mockRefreshTokenRepo.revokedTokenFamilies).toHaveLength(0);
+		});
+
+		it('should revoke all sibling tokens in the same family when reuse is detected', async () => {
+			mockRefreshTokenRepo.clear();
+			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex');
+
+			// Add the revoked (old) token
+			mockRefreshTokenRepo.addToken(tokenHash, {
+				userId: testUser.id,
+				tokenFamily,
+				isRevoked: true,
+				expiresAt: new Date(Date.now() + parseDurationToMs('1d')),
+			});
+
+			// Add a sibling token in the same family (the current valid one)
+			const siblingToken = mockRefreshTokenRepo.addToken('sibling-hash', {
+				userId: testUser.id,
+				tokenFamily,
+				isRevoked: false,
+				expiresAt: new Date(Date.now() + parseDurationToMs('1d')),
+			});
+
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.TOKEN_REUSE_DETECTED),
+			);
+
+			// The sibling token should also be revoked
+			expect(siblingToken.isRevoked).toBe(true);
 		});
 
 		it('should throw REFRESH_TOKEN_EXPIRED error when token is expired', async () => {
@@ -529,13 +571,15 @@ describe('AuthService', () => {
 			const releaseFn = fn<[], Promise<void>>().mockRejectedValue(new Error('Connection lost'));
 			mockRefreshTokenRepo.releaseCleanupLock = releaseFn;
 
-			const result = await authService.cleanupExpiredTokens();
+			try {
+				const result = await authService.cleanupExpiredTokens();
 
-			expect(result).not.toBeNull();
-			expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
-			expect(releaseFn.calls).toHaveLength(1);
-
-			mockRefreshTokenRepo.releaseCleanupLock = originalRelease;
+				expect(result).not.toBeNull();
+				expect(result?.deletedCount).toBeGreaterThanOrEqual(0);
+				expect(releaseFn.calls).toHaveLength(1);
+			} finally {
+				mockRefreshTokenRepo.releaseCleanupLock = originalRelease;
+			}
 		});
 	});
 });
