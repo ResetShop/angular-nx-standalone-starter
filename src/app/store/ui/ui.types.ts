@@ -11,7 +11,7 @@ export interface UINotification {
 	readonly id: string;
 	readonly type: NotificationType;
 	readonly message: string;
-	readonly duration?: number;
+	readonly duration?: string;
 }
 
 export interface UIState {
