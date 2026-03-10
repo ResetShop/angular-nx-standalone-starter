@@ -471,6 +471,26 @@ describe('AuthService', () => {
 			);
 		});
 
+		it('should throw REFRESH_TOKEN_EXPIRED (not TOKEN_REUSE_DETECTED) when token is both expired and revoked', async () => {
+			// Regression guard: expiry check must run before reuse detection.
+			// An expired+revoked token is a routine lifecycle outcome, not an attack.
+			mockRefreshTokenRepo.clear();
+			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex');
+			mockRefreshTokenRepo.addToken(tokenHash, {
+				userId: testUser.id,
+				tokenFamily,
+				isRevoked: true,
+				expiresAt: new Date(Date.now() - parseDurationToMs('1d')),
+			});
+
+			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED),
+			);
+
+			// Family must NOT be revoked — expired tokens are routine, not attacks
+			expect(mockRefreshTokenRepo.revokedTokenFamilies).toHaveLength(0);
+		});
+
 		it('should throw USER_NOT_FOUND error when user not found', async () => {
 			mockUserRepo.clear();
 
