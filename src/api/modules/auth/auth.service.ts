@@ -282,16 +282,39 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 		const tokenHash = createHash('sha256').update(token).digest('hex');
 		const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash);
 
-		if (!storedToken || storedToken.isRevoked) {
+		// Treat missing tokens as revoked — covers garbage-collected, never-stored, or deleted token cases
+		if (!storedToken) {
 			throw new AuthError(InternalAuthErrorCode.TOKEN_REVOKED);
 		}
 
-		// 4. Check if token is expired
+		// 4. Check if token is expired (before reuse detection, so expired+revoked tokens
+		// don't trigger family revocation — expiry is the expected lifecycle outcome)
 		if (storedToken.expiresAt < new Date()) {
 			throw new AuthError(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED);
 		}
 
-		// 5. Get user data and validate account status
+		// 5. Token reuse detection: if a non-expired revoked token is replayed, an attacker
+		// may have stolen it. Revoke the entire token family to protect the user.
+		if (storedToken.isRevoked) {
+			// TODO(#66): Replace with structured logging service
+			console.log(
+				JSON.stringify({
+					event: 'token_reuse_detected',
+					userId: storedToken.userId,
+					tokenFamily: storedToken.tokenFamily,
+					timestamp: new Date().toISOString(),
+				}),
+			);
+			try {
+				await this.refreshTokenRepository.revokeTokenFamily(storedToken.tokenFamily);
+			} catch (error) {
+				// TODO(#66): Replace with structured logging service
+				console.error('[TokenReuse] Failed to revoke token family:', error);
+			}
+			throw new AuthError(InternalAuthErrorCode.TOKEN_REUSE_DETECTED);
+		}
+
+		// 6. Get user data and validate account status
 		const user = await this.userRepository.findById(Number(payload.sub));
 		if (!user || user.status === UserStatus.DELETED) {
 			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND);
@@ -301,7 +324,7 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 			throw new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED);
 		}
 
-		// 6. Generate new tokens
+		// 7. Generate new tokens
 		const newAccessToken = await this.pasetoService.generateAccessToken({
 			sub: user.id.toString(),
 			email: user.email,
@@ -314,10 +337,10 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 			payload.tokenFamily, // Maintain token family for rotation
 		);
 
-		// 7. Revoke old refresh token
+		// 8. Revoke old refresh token
 		await this.refreshTokenRepository.revokeToken(storedToken.id);
 
-		// 8. Store new refresh token
+		// 9. Store new refresh token
 		const newTokenHash = createHash('sha256').update(newRefreshToken).digest('hex');
 		await this.refreshTokenRepository.create({
 			userId: user.id,

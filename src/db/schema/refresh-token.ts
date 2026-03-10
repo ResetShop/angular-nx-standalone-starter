@@ -11,12 +11,13 @@ export const refreshToken = pgTable(
 		tokenFamily: text('token_family').notNull(),
 		tokenHash: text('token_hash').notNull().unique(),
 		expiresAt: timestamp('expires_at').notNull(),
-		isRevoked: boolean('is_revoked').default(false),
+		isRevoked: boolean('is_revoked').notNull().default(false),
 		createdAt: timestamp('created_at').defaultNow(),
 		revokedAt: timestamp('revoked_at'),
 	},
 	(table) => [
 		index('refresh_token_user_id_idx').on(table.userId),
 		index('refresh_token_expires_at_idx').on(table.expiresAt),
+		index('refresh_token_token_family_idx').on(table.tokenFamily),
 	],
 );
