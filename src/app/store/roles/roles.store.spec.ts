@@ -122,6 +122,7 @@ describe('RolesStore', () => {
 		});
 
 		it('should send correct offset based on currentPage and pageSize', () => {
+			// of() resolves synchronously — required for asserting on calls after setPage
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 0)));
 			store.setPage(3);
 
