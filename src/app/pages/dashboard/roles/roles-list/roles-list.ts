@@ -28,8 +28,4 @@ import { RolesStore } from '@store/roles/roles.store';
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore);
-
-	constructor() {
-		void this.store.loadRoles();
-	}
 }

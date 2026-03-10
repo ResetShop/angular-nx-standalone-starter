@@ -31,7 +31,7 @@
 | **Monorepo Tool**    | Nx                                  |
 | **Package Manager**  | npm                                 |
 | **Testing**          | Vitest + Angular Testing Library    |
-| **State Management** | NgRx                                |
+| **State Management** | NgRx Signal Store + `rxMethod`      |
 
 ### Common Commands
 
@@ -117,21 +117,23 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint             | Limit                                                                                                                      | Rationale                    |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| Function length        | ≤ 50 lines                                                                                                                 | Readability, SRP             |
-| File length            | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability              |
-| Cyclomatic complexity  | ≤ 10                                                                                                                       | Testability                  |
-| Nesting depth          | ≤ 3 levels                                                                                                                 | Readability                  |
-| Barrel imports/exports | Not allowed in any part of the project                                                                                     | Maintainability, Performance |
-| `any` type             | Forbidden without `// REASON:` comment                                                                                     | Type safety                  |
-| `// @ts-ignore`        | Forbidden without linked issue                                                                                             | Technical debt tracking      |
-| `console.log`          | Remove before commit                                                                                                       | Clean code                   |
-| TypeScript enums       | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety     |
-| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
-| Raw time literals      | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
-| `vi.fn()`/`vi.mock()`  | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
-| External repo issues   | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette         |
+| Constraint                   | Limit                                                                                                                      | Rationale                    |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Function length              | ≤ 50 lines                                                                                                                 | Readability, SRP             |
+| File length                  | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability              |
+| Cyclomatic complexity        | ≤ 10                                                                                                                       | Testability                  |
+| Nesting depth                | ≤ 3 levels                                                                                                                 | Readability                  |
+| Barrel imports/exports       | Not allowed in any part of the project                                                                                     | Maintainability, Performance |
+| `any` type                   | Forbidden without `// REASON:` comment                                                                                     | Type safety                  |
+| `// @ts-ignore`              | Forbidden without linked issue                                                                                             | Technical debt tracking      |
+| `console.log`                | Remove before commit                                                                                                       | Clean code                   |
+| TypeScript enums             | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety     |
+| Type-only imports            | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
+| Raw time literals            | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
+| `vi.fn()`/`vi.mock()`        | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
+| `firstValueFrom`/`toPromise` | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                      | Signals-first, no promises   |
+| `TestBed.flushEffects()`     | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                 | API deprecation              |
+| External repo issues         | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette         |
 
 ### Object.freeze() Instead of Enums
 
@@ -245,6 +247,98 @@ export const HEALTH_CHECK_TIMEOUT_MS = 5000;
 | `DEFAULT_REFRESH_TOKEN_EXPIRY` | `src/api/constants/auth.constants.ts`        | `'7d'`  |
 | `REFRESH_TOKEN_EXPIRY_BUFFER`  | `src/api/constants/auth.constants.ts`        | `'1h'`  |
 | `HEALTH_CHECK_TIMEOUT`         | `src/api/modules/health/health.constants.ts` | `'5s'`  |
+
+### Signals-First State Management (No Promises)
+
+The Angular frontend (`src/app/`) uses `@ngrx/signals` with `rxMethod` from `@ngrx/signals/rxjs-interop` for all async operations. **Promises are forbidden** — never use `firstValueFrom`, `lastValueFrom`, `toPromise`, or `async/await` on observables in store methods.
+
+**References:** [NgRx RxJS integration guide](https://ngrx.io/guide/signals/rxjs-integration) | [rxMethod source](https://github.com/ngrx/platform/blob/main/modules/signals/rxjs-interop/src/rx-method.ts) | [rxMethod tests](https://github.com/ngrx/platform/blob/main/modules/signals/rxjs-interop/spec/rx-method.spec.ts)
+
+**Rules:**
+
+1. **Use `rxMethod<T>(pipe(...))` for all store methods** that call API services returning observables
+2. **Use `tap` for side effects** (state patches via `patchState`) and `catchError(() => EMPTY)` for error handling
+3. **Use `switchMap` as the default flattening operator** — cancels stale in-flight requests
+4. **Reactive reads use computed signals + `withHooks.onInit`** — pass a computed signal to `rxMethod` so state changes automatically trigger re-fetches (e.g., pagination, search)
+5. **Imperative mutations accept static values** — `rxMethod<CreateUserRequest>` called directly with data
+
+```typescript
+// ✅ Correct — rxMethod with observable pipe
+createUser: rxMethod<CreateUserRequest>(
+  pipe(
+    tap(() => patchState(store, { isCreating: true, mutationError: null })),
+    switchMap((body) =>
+      usersApi.create(body).pipe(
+        tap({
+          next: (response) => patchState(store, { ... }),
+          error: () => patchState(store, { isCreating: false, mutationError: '...' }),
+        }),
+        catchError(() => EMPTY),
+      ),
+    ),
+  ),
+),
+
+// ❌ Incorrect — promise-based with firstValueFrom
+async createUser(body: CreateUserRequest): Promise<void> {
+  try {
+    const response = await firstValueFrom(usersApi.create(body));
+    patchState(store, { ... });
+  } catch { ... }
+}
+```
+
+**Reactive list pattern (pagination/search):**
+
+```typescript
+// Computed signal derives request params from state
+withComputed((store) => ({
+  listParams: computed(() => ({
+    offset: (store.currentPage() - 1) * store.pageSize(),
+    limit: store.pageSize(),
+    search: store.searchQuery() || undefined,
+  })),
+})),
+
+// rxMethod watches the signal — re-fires on any param change
+withHooks({
+  onInit(store) {
+    store.loadUsers(store.listParams);
+  },
+}),
+```
+
+**`rxMethod` invocation modes:**
+
+`rxMethod` accepts both signal references (reactive) and static values (imperative). Use this to support explicit reloads without inventing counter-based workarounds:
+
+```typescript
+// ✅ Reactive — pass a signal reference, rxMethod watches and re-fires on changes
+store.loadUsers(store.listParams);
+
+// ✅ Imperative — pass the current value (static), triggers a one-shot fetch
+store.loadUsers(store.listParams());
+
+// ❌ NEVER use counter/trigger signals to force re-evaluation of rxMethod
+// reloadCounter, _reload, forceRefresh, etc. are unnecessary workarounds
+```
+
+For explicit reload methods, use a second `withMethods` block (which has access to methods from prior blocks):
+
+```typescript
+withMethods((store) => ({
+  reload(): void {
+    store.loadUsers(store.listParams());  // imperative call with current value
+  },
+})),
+```
+
+**Existing stores following this pattern:**
+
+| Store        | File                                 |
+| ------------ | ------------------------------------ |
+| `AuthStore`  | `src/app/store/auth/auth.store.ts`   |
+| `UsersStore` | `src/app/store/users/users.store.ts` |
 
 ---
 
