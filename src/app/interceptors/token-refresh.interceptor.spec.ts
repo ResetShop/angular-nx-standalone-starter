@@ -161,7 +161,7 @@ describe('tokenRefreshInterceptor', () => {
 
 			// Simulate the concurrent refresh completing
 			authStoreMock.isTokenRefreshing.set(false);
-			TestBed.flushEffects();
+			TestBed.tick();
 
 			// Interceptor retries the original request
 			httpMock.expectOne('/api/users').flush({ data: 'after-concurrent-refresh' });
