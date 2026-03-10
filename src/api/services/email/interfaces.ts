@@ -1,6 +1,7 @@
 export const EMAIL_PROVIDERS = Object.freeze({
 	NODEMAILER: 'nodemailer',
 	ETHEREAL: 'ethereal',
+	NOOP: 'noop',
 } as const);
 
 export type EmailProvider = (typeof EMAIL_PROVIDERS)[keyof typeof EMAIL_PROVIDERS];

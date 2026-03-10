@@ -23,13 +23,14 @@ This applies to ALL commands: git, npm, and any other CLI tool.
 - After a new component, service, or feature is implemented
 - When existing code is refactored and tests need updating
 - When test coverage gaps are identified during code review
+- After a new or modified backend API endpoint (integration tests required)
 - On demand when the user needs test scaffolding
 
 ## Step 0: Load Reference Files
 
 Before generating tests, read these reference files for project conventions:
 
-1. Read `.claude/references/testing.md` — Test patterns, mock infrastructure, query priority
+1. Read `.claude/references/testing.md` — Test patterns, mock infrastructure, query priority, integration test conventions
 
 ## Test Generation Process
 
@@ -90,15 +91,79 @@ beforeEach(() => useFakeTimers());
 afterEach(() => useRealTimers());
 ```
 
+## Backend Integration Tests
+
+When generating tests for backend API endpoints, create integration test files in `src/api/integration/`:
+
+### File Organization
+
+| Module                      | Test location                 |
+| --------------------------- | ----------------------------- |
+| Health                      | `src/api/integration/health/` |
+| Auth                        | `src/api/integration/auth/`   |
+| Access (roles, permissions) | `src/api/integration/access/` |
+| User                        | `src/api/integration/user/`   |
+
+### Integration Test Structure
+
+```typescript
+import type { OpenAPIHono } from '@hono/zod-openapi';
+import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers';
+import { getSeededAdminIds, getTestDb } from '../setup/db-helpers';
+import { createTestApp } from '../setup/test-app';
+
+describe('<Endpoint description>', () => {
+	let app: OpenAPIHono;
+	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
+
+	beforeAll(async () => {
+		app = createTestApp();
+		adminCookies = await loginAsAdmin(app);
+	});
+
+	// Group by HTTP method + path
+	describe('GET /api/<path>', () => {
+		it('happy path', async () => {
+			/* ... */
+		});
+		it('returns 401 without authentication', async () => {
+			/* ... */
+		});
+		it('returns 403 without required permission', async () => {
+			/* ... */
+		});
+		it('returns 404 for non-existent resource', async () => {
+			/* ... */
+		});
+	});
+});
+```
+
+### Required Coverage per Endpoint
+
+- **Happy path** — verify status code and response shape
+- **400** — validation errors (missing/invalid body, query params)
+- **401** — unauthenticated requests (no cookie)
+- **403** — requests from `loginAsRestricted()` user (no permissions)
+- **404** — non-existent resources
+- **409** — duplicate/conflict scenarios where applicable
+
+### Key Rules
+
+- Use `loginAsAdmin()` / `loginAsRestricted()` — never create per-test users for auth
+- Use `getSeededAdminIds()` for admin user/role IDs — never resolve via HTTP list calls
+- Use `authenticatedRequest()` to attach cookies to requests
+- Run with `npm run test:integration` (not `npm run test`)
+
 ## Output Format
 
 Generate test files that:
 
-1. Follow the naming convention: `<component-name>.component.spec.ts` or `<service-name>.service.spec.ts`
-2. Import from `@testing-library/angular` and `@test-utils`
+1. Follow the naming convention: `<component-name>.component.spec.ts`, `<service-name>.service.spec.ts`, or `<module>.integration.spec.ts`
+2. Import from `@testing-library/angular` and `@test-utils` (unit tests) or from `../setup/*` helpers (integration tests)
 3. Cover all public behavior (not private methods)
 4. Include both happy-path and error scenarios
-5. Compile and pass when run with `npm run test`
+5. Compile and pass when run with `npm run test` (unit) or `npm run test:integration` (integration)
 
 After generating tests, report:
 
