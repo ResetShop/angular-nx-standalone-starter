@@ -75,6 +75,7 @@ These patterns are intentional and correct. Do NOT report them as issues:
 - [ ] Response schemas use `commonResponses` for standard error responses
 - [ ] Request/response Zod schemas live in `src/contracts/` (shared) or module-local `*.schemas.ts` (domain-specific)
 - [ ] Documentation files (`docs/`, `docs/api/*.bru`, `CLAUDE.md`, `.claude/references/`) updated when schemas, types, columns, or API contracts change — no stale references to renamed/removed entities
+- [ ] No `firstValueFrom`, `lastValueFrom`, `toPromise`, or `async/await` on observables in Angular frontend store methods (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead
 
 ### SOLID Principles
 
