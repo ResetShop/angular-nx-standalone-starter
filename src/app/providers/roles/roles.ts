@@ -34,10 +34,6 @@ export class RolesApiService {
 			.pipe(map((r) => r.data));
 	}
 
-	getById(id: number): Observable<RoleData> {
-		return this.http.get<RoleData>(`/api/access/roles/${id}`);
-	}
-
 	getByIdWithPermissions(id: number): Observable<RoleWithPermissions> {
 		return forkJoin({
 			role: this.http.get<RoleData>(`/api/access/roles/${id}`),
