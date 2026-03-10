@@ -13,10 +13,11 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	private tokenIdCounter = 1;
 
 	// Track method calls for assertions
-	public revokedTokenIds: number[] = [];
-	public revokedUserIds: number[] = [];
-	public deletedExpiredForUsers: number[] = [];
-	public createdTokens: RefreshTokenData[] = [];
+	public readonly revokedTokenIds: number[] = [];
+	public readonly revokedUserIds: number[] = [];
+	public readonly deletedExpiredForUsers: number[] = [];
+	public readonly revokedTokenFamilies: string[] = [];
+	public readonly createdTokens: RefreshTokenData[] = [];
 	public cleanupLockAcquired = false;
 	public deleteAllExpiredCalled = false;
 	public releaseCleanupLockError: Error | null = null;
@@ -49,10 +50,11 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	clear(): void {
 		this.tokens.clear();
 		this.tokensById.clear();
-		this.revokedTokenIds = [];
-		this.revokedUserIds = [];
-		this.deletedExpiredForUsers = [];
-		this.createdTokens = [];
+		this.revokedTokenIds.length = 0;
+		this.revokedUserIds.length = 0;
+		this.deletedExpiredForUsers.length = 0;
+		this.revokedTokenFamilies.length = 0;
+		this.createdTokens.length = 0;
 		this.cleanupLockAcquired = false;
 		this.deleteAllExpiredCalled = false;
 		this.releaseCleanupLockError = null;
@@ -86,6 +88,16 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		this.revokedUserIds.push(userId);
 		for (const token of this.tokens.values()) {
 			if (token.userId === userId) {
+				token.isRevoked = true;
+				token.revokedAt = new Date();
+			}
+		}
+	}
+
+	async revokeTokenFamily(tokenFamily: string): Promise<void> {
+		this.revokedTokenFamilies.push(tokenFamily);
+		for (const token of this.tokens.values()) {
+			if (token.tokenFamily === tokenFamily) {
 				token.isRevoked = true;
 				token.revokedAt = new Date();
 			}

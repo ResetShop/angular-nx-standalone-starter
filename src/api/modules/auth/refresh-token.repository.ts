@@ -176,6 +176,19 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	}
 
 	/**
+	 * Revoke all refresh tokens in a token family.
+	 * Used for token reuse detection: when a revoked token is replayed,
+	 * the entire family is revoked to protect against stolen tokens.
+	 * @param tokenFamily Token family identifier to revoke
+	 */
+	async revokeTokenFamily(tokenFamily: string): Promise<void> {
+		await this.db
+			.update(refreshToken)
+			.set({ isRevoked: true, revokedAt: new Date() })
+			.where(eq(refreshToken.tokenFamily, tokenFamily));
+	}
+
+	/**
 	 * Delete all expired refresh tokens for a user
 	 * @param userId User ID to delete expired tokens for
 	 * @returns Count of deleted tokens
