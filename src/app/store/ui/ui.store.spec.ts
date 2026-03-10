@@ -106,7 +106,7 @@ describe('UIStore', () => {
 			useRealTimers();
 		});
 
-		it('should auto-dismiss after default duration (5000ms)', async () => {
+		it('should auto-dismiss after default duration (5s)', async () => {
 			spyOn(crypto, 'randomUUID').mockReturnValue('auto-id');
 
 			store.showNotification({ type: NotificationType.SUCCESS, message: 'Auto' });
@@ -122,7 +122,7 @@ describe('UIStore', () => {
 		it('should auto-dismiss after custom duration', async () => {
 			spyOn(crypto, 'randomUUID').mockReturnValue('custom-id');
 
-			store.showNotification({ type: NotificationType.WARNING, message: 'Quick', duration: 3000 });
+			store.showNotification({ type: NotificationType.WARNING, message: 'Quick', duration: '3s' });
 
 			await advanceTimersByTimeAsync(2999);
 			expect(store.notifications()).toHaveLength(1);

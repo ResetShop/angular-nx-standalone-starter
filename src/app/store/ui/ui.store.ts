@@ -1,5 +1,6 @@
 import { computed } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { parseDurationToMs } from '../../../api/utils/duration';
 import { initialUIState, type UINotification } from './ui.types';
 
 /**
@@ -33,7 +34,7 @@ export const UIStore = signalStore(
 			showNotification(notification: Omit<UINotification, 'id'>): void {
 				const id = crypto.randomUUID();
 				patchState(store, { notifications: [...store.notifications(), { ...notification, id }] });
-				const delay = notification.duration ?? 5000;
+				const delay = parseDurationToMs(notification.duration ?? '5s');
 				const handle = setTimeout(() => dismissNotification(id), delay);
 				timeouts.set(id, handle);
 			},
