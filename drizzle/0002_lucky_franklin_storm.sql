@@ -1,0 +1,1 @@
+ALTER TABLE "refresh_token" ALTER COLUMN "is_revoked" SET NOT NULL;

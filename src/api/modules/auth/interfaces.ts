@@ -35,7 +35,7 @@ export interface RefreshTokenData {
 	tokenFamily: string;
 	tokenHash: string;
 	expiresAt: Date;
-	isRevoked: boolean | null;
+	isRevoked: boolean;
 	createdAt: Date | null;
 	revokedAt: Date | null;
 }
