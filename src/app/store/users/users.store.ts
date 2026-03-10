@@ -2,9 +2,10 @@ import { computed, inject } from '@angular/core';
 import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types';
 import type { IManagedUser } from '@domain/user-management/managed-user.interface';
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
+import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { UsersApiService } from '@providers/users/users';
-import { firstValueFrom } from 'rxjs';
+import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
 import { initialUsersState } from './users.types';
 
 /**
@@ -13,6 +14,9 @@ import { initialUsersState } from './users.types';
  * Manages the user list, pagination, search, and CRUD operations.
  * Components inject this store directly for all user management operations.
  * Uses UsersApiService for HTTP calls and mapManagedUserResponse for domain mapping.
+ *
+ * The list load is reactive: changing currentPage, pageSize, or searchQuery
+ * automatically triggers a re-fetch via rxMethod watching the computed listParams signal.
  */
 export const UsersStore = signalStore(
 	{ providedIn: 'root' },
@@ -23,119 +27,92 @@ export const UsersStore = signalStore(
 		isAnyLoading: computed(
 			() => store.isLoadingList() || store.isCreating() || store.isUpdating() || store.isDeleting(),
 		),
+		/** Reactive params for list fetch — any change triggers loadUsers via rxMethod */
+		listParams: computed(() => ({
+			offset: (store.currentPage() - 1) * store.pageSize(),
+			limit: store.pageSize(),
+			search: store.searchQuery() || undefined,
+		})),
 	})),
 	withMethods((store) => {
 		const usersApi = inject(UsersApiService);
 
-		// Named function declaration — referenced by setPage/setPageSize/setSearchQuery/deleteUser
-		async function loadUsers(): Promise<void> {
-			const offset = (store.currentPage() - 1) * store.pageSize();
-			patchState(store, { isLoadingList: true, listError: null });
-			try {
-				const response = await firstValueFrom(
-					usersApi.getAll({
-						offset,
-						limit: store.pageSize(),
-						search: store.searchQuery() || undefined,
-					}),
-				);
-				const users = response.data.map(mapManagedUserResponse);
-				const totalPages = Math.ceil(response.total / store.pageSize());
-				patchState(store, { users, totalItems: response.total, totalPages, isLoadingList: false });
-			} catch {
-				patchState(store, { isLoadingList: false, listError: 'Failed to load users' });
-			}
-		}
-
 		return {
-			loadUsers,
+			loadUsers: rxMethod<{ offset: number; limit: number; search?: string }>(
+				pipe(
+					tap(() => patchState(store, { isLoadingList: true, listError: null })),
+					switchMap(({ offset, limit, search }) =>
+						usersApi.getAll({ offset, limit, search }).pipe(
+							tap({
+								next: (response) => {
+									const users = response.data.map(mapManagedUserResponse);
+									const totalPages = Math.ceil(response.total / store.pageSize());
+									patchState(store, { users, totalItems: response.total, totalPages, isLoadingList: false });
+								},
+								error: () => patchState(store, { isLoadingList: false, listError: 'Failed to load users' }),
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
 
-			async createUser(body: CreateUserRequest): Promise<void> {
-				patchState(store, { isCreating: true, mutationError: null });
-				try {
-					const response = await firstValueFrom(usersApi.create(body));
-					const newUser = mapManagedUserResponse(response);
-					const newTotalItems = store.totalItems() + 1;
-					patchState(store, {
-						users: [newUser, ...store.users()],
-						totalItems: newTotalItems,
-						totalPages: Math.ceil(newTotalItems / store.pageSize()),
-						isCreating: false,
-					});
-				} catch {
-					patchState(store, { isCreating: false, mutationError: 'Failed to create user' });
-				}
-			},
+			updateUser: rxMethod<{ id: number; body: UpdateUserRequest }>(
+				pipe(
+					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
+					switchMap(({ id, body }) =>
+						usersApi.update(id, body).pipe(
+							tap({
+								next: (response) => {
+									const updatedUser = mapManagedUserResponse(response);
+									const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
+									patchState(store, {
+										users: store.users().map((u) => (u.id === id ? updatedUser : u)),
+										selectedUser: selectedUpdate,
+										isUpdating: false,
+									});
+								},
+								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user' }),
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
 
-			async updateUser(id: number, body: UpdateUserRequest): Promise<void> {
-				patchState(store, { isUpdating: true, mutationError: null });
-				try {
-					const response = await firstValueFrom(usersApi.update(id, body));
-					const updatedUser = mapManagedUserResponse(response);
-					const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
-					patchState(store, {
-						users: store.users().map((u) => (u.id === id ? updatedUser : u)),
-						selectedUser: selectedUpdate,
-						isUpdating: false,
-					});
-				} catch {
-					patchState(store, { isUpdating: false, mutationError: 'Failed to update user' });
-				}
-			},
-
-			async deleteUser(id: number): Promise<void> {
-				patchState(store, { isDeleting: true, mutationError: null });
-				try {
-					await firstValueFrom(usersApi.delete(id));
-					const remaining = store.users().filter((u) => u.id !== id);
-					const newTotalItems = store.totalItems() - 1;
-					const selectedUpdate = store.selectedUser()?.id === id ? null : store.selectedUser();
-					patchState(store, {
-						users: remaining,
-						totalItems: newTotalItems,
-						totalPages: Math.ceil(newTotalItems / store.pageSize()),
-						selectedUser: selectedUpdate,
-						isDeleting: false,
-					});
-
-					if (remaining.length === 0 && store.currentPage() > 1) {
-						patchState(store, { currentPage: store.currentPage() - 1 });
-						void loadUsers();
-					}
-				} catch {
-					patchState(store, { isDeleting: false, mutationError: 'Failed to delete user' });
-				}
-			},
-
-			async updateUserStatus(id: number, body: UpdateUserStatusRequest): Promise<void> {
-				patchState(store, { isUpdating: true, mutationError: null });
-				try {
-					const response = await firstValueFrom(usersApi.updateStatus(id, body));
-					const updatedUser = mapManagedUserResponse(response);
-					const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
-					patchState(store, {
-						users: store.users().map((u) => (u.id === id ? updatedUser : u)),
-						selectedUser: selectedUpdate,
-						isUpdating: false,
-					});
-				} catch {
-					patchState(store, { isUpdating: false, mutationError: 'Failed to update user status' });
-				}
-			},
+			updateUserStatus: rxMethod<{ id: number; body: UpdateUserStatusRequest }>(
+				pipe(
+					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
+					switchMap(({ id, body }) =>
+						usersApi.updateStatus(id, body).pipe(
+							tap({
+								next: (response) => {
+									const updatedUser = mapManagedUserResponse(response);
+									const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
+									patchState(store, {
+										users: store.users().map((u) => (u.id === id ? updatedUser : u)),
+										selectedUser: selectedUpdate,
+										isUpdating: false,
+									});
+								},
+								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user status' }),
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
 
 			setPage(page: number): void {
 				patchState(store, { currentPage: page });
-				void loadUsers();
 			},
 
 			setPageSize(size: number): void {
 				patchState(store, { pageSize: size, currentPage: 1 });
-				void loadUsers();
 			},
 
 			setSearchQuery(query: string): void {
 				patchState(store, { searchQuery: query, currentPage: 1 });
-				void loadUsers();
 			},
 
 			selectUser(user: IManagedUser | null): void {
@@ -146,5 +123,67 @@ export const UsersStore = signalStore(
 				patchState(store, { listError: null, mutationError: null });
 			},
 		};
+	}),
+	// Mutation methods that reload the list after success, plus explicit reload for external use
+	withMethods((store) => {
+		const usersApi = inject(UsersApiService);
+
+		return {
+			reload(): void {
+				store.loadUsers(store.listParams());
+			},
+
+			createUser: rxMethod<CreateUserRequest>(
+				pipe(
+					tap(() => patchState(store, { isCreating: true, mutationError: null })),
+					switchMap((body) =>
+						usersApi.create(body).pipe(
+							tap({
+								next: () => {
+									patchState(store, { isCreating: false });
+									store.loadUsers(store.listParams());
+								},
+								error: () => patchState(store, { isCreating: false, mutationError: 'Failed to create user' }),
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			deleteUser: rxMethod<number>(
+				pipe(
+					tap(() => patchState(store, { isDeleting: true, mutationError: null })),
+					switchMap((id) =>
+						usersApi.delete(id).pipe(
+							tap({
+								next: () => {
+									if (store.selectedUser()?.id === id) {
+										patchState(store, { selectedUser: null });
+									}
+									patchState(store, { isDeleting: false });
+
+									// When the last item on a page is deleted, navigate to previous page.
+									// Patching currentPage triggers the reactive loadUsers chain automatically.
+									if (store.users().length === 1 && store.currentPage() > 1) {
+										patchState(store, { currentPage: store.currentPage() - 1 });
+									} else {
+										store.loadUsers(store.listParams());
+									}
+								},
+								error: () => patchState(store, { isDeleting: false, mutationError: 'Failed to delete user' }),
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+		};
+	}),
+	withHooks({
+		onInit(store) {
+			// Pass the computed listParams signal — rxMethod watches it and re-fires on any change
+			store.loadUsers(store.listParams);
+		},
 	}),
 );
