@@ -16,13 +16,14 @@ export const PermissionsStore = signalStore(
 	withState(initialPermissionsState),
 	withComputed((store) => ({
 		permissionsGroupedByResource: computed(() => {
-			return store.permissions().reduce((map, permission) => {
-				const existing = map.get(permission.resource) ?? [];
-				map.set(permission.resource, [...existing, permission]);
-				return map;
+			return store.permissions().reduce((grouped, permission) => {
+				const existing = grouped.get(permission.resource) ?? [];
+				grouped.set(permission.resource, [...existing, permission]);
+				return grouped;
 			}, new Map<string, PermissionData[]>());
 		}),
 	})),
+	// Second block — derives from permissionsGroupedByResource, which is only available after the first withComputed
 	withComputed((store) => ({
 		permissionsGroupedArray: computed(() => {
 			return Array.from(store.permissionsGroupedByResource().entries()).map(([resource, permissions]) => ({

@@ -9,6 +9,7 @@ export class PermissionsApiService {
 	private readonly http = inject(HttpClient);
 
 	getAllUnpaginated(): Observable<PermissionData[]> {
+		// Backend-enforced maximum (QUERY_DEFAULTS.MAX_LIMIT); permissions are system-defined and expected to remain well below this cap
 		const UNBOUNDED_LIMIT = 500;
 		return this.http
 			.get<PaginatedResponse<PermissionData>>('/api/access/permissions', {
