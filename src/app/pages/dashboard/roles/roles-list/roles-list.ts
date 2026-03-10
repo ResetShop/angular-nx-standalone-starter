@@ -10,8 +10,8 @@ import { RolesStore } from '@store/roles/roles.store';
 	template: `
 		@if (store.isLoadingList()) {
 			<p>Loading roles...</p>
-		} @else if (store.listError()) {
-			<p>{{ store.listError() }}</p>
+		} @else if (store.readError()) {
+			<p>{{ store.readError() }}</p>
 		} @else {
 			@for (role of store.roles(); track role.id) {
 				<div>{{ role.name }} — {{ role.code }}</div>

@@ -11,6 +11,9 @@ import type {
 } from '@contracts/role/role.types';
 import { forkJoin, map, type Observable } from 'rxjs';
 
+/** Backend-enforced maximum from QUERY_DEFAULTS.MAX_LIMIT — used for "fetch all" calls */
+const UNBOUNDED_LIMIT = 500;
+
 interface ListRolesParams {
 	offset?: number;
 	limit?: number;
@@ -27,7 +30,7 @@ export class RolesApiService {
 
 	getAllUnpaginated(): Observable<RoleData[]> {
 		return this.http
-			.get<PaginatedResponse<RoleData>>('/api/access/roles', { params: { limit: 500, offset: 0 } })
+			.get<PaginatedResponse<RoleData>>('/api/access/roles', { params: { limit: UNBOUNDED_LIMIT, offset: 0 } })
 			.pipe(map((r) => r.data));
 	}
 
@@ -40,7 +43,7 @@ export class RolesApiService {
 			role: this.http.get<RoleData>(`/api/access/roles/${id}`),
 			permissions: this.http
 				.get<PaginatedResponse<PermissionData>>(`/api/access/roles/${id}/permissions`, {
-					params: { limit: 500, offset: 0 },
+					params: { limit: UNBOUNDED_LIMIT, offset: 0 },
 				})
 				.pipe(map((r) => r.data)),
 		}).pipe(
