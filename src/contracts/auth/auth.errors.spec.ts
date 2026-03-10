@@ -29,11 +29,12 @@ describe('Auth Errors', () => {
 			expect(InternalAuthErrorCode.TOKEN_INVALID).toBe('TOKEN_INVALID');
 			expect(InternalAuthErrorCode.TOKEN_MISSING_FAMILY).toBe('TOKEN_MISSING_FAMILY');
 			expect(InternalAuthErrorCode.TOKEN_REVOKED).toBe('TOKEN_REVOKED');
+			expect(InternalAuthErrorCode.TOKEN_REUSE_DETECTED).toBe('TOKEN_REUSE_DETECTED');
 			expect(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED).toBe('REFRESH_TOKEN_EXPIRED');
 		});
 
-		it('should have 11 error codes', () => {
-			expect(Object.keys(InternalAuthErrorCode)).toHaveLength(11);
+		it('should have 12 error codes', () => {
+			expect(Object.keys(InternalAuthErrorCode)).toHaveLength(12);
 		});
 	});
 
@@ -62,6 +63,7 @@ describe('Auth Errors', () => {
 			expect(publicCodes).not.toContain('AUTH_RECORD_NOT_FOUND');
 			expect(publicCodes).not.toContain('TOKEN_MISSING_FAMILY');
 			expect(publicCodes).not.toContain('TOKEN_REVOKED');
+			expect(publicCodes).not.toContain('TOKEN_REUSE_DETECTED');
 			expect(publicCodes).not.toContain('REFRESH_TOKEN_EXPIRED');
 		});
 	});
@@ -119,6 +121,12 @@ describe('Auth Errors', () => {
 
 		it('should map TOKEN_REVOKED to TOKEN_INVALID', () => {
 			expect(InternalToPublicErrorMap[InternalAuthErrorCode.TOKEN_REVOKED]).toBe(PublicAuthErrorCode.TOKEN_INVALID);
+		});
+
+		it('should map TOKEN_REUSE_DETECTED to TOKEN_INVALID', () => {
+			expect(InternalToPublicErrorMap[InternalAuthErrorCode.TOKEN_REUSE_DETECTED]).toBe(
+				PublicAuthErrorCode.TOKEN_INVALID,
+			);
 		});
 
 		it('should map REFRESH_TOKEN_EXPIRED to TOKEN_EXPIRED', () => {
@@ -316,6 +324,7 @@ describe('Auth Errors', () => {
 				InternalAuthErrorCode.TOKEN_EXPIRED,
 				InternalAuthErrorCode.TOKEN_INVALID,
 				InternalAuthErrorCode.TOKEN_REVOKED,
+				InternalAuthErrorCode.TOKEN_REUSE_DETECTED,
 				InternalAuthErrorCode.ACCOUNT_DISABLED,
 			];
 
