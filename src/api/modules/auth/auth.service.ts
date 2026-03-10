@@ -305,7 +305,12 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 					timestamp: new Date().toISOString(),
 				}),
 			);
-			await this.refreshTokenRepository.revokeTokenFamily(storedToken.tokenFamily);
+			try {
+				await this.refreshTokenRepository.revokeTokenFamily(storedToken.tokenFamily);
+			} catch (error) {
+				// TODO(#66): Replace with structured logging service
+				console.error('[TokenReuse] Failed to revoke token family:', error);
+			}
 			throw new AuthError(InternalAuthErrorCode.TOKEN_REUSE_DETECTED);
 		}
 
