@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import type {
 	AssignPermissionsRequest,
 	CreateRoleRequest,
@@ -10,9 +11,6 @@ import type {
 	UpdateRoleRequest,
 } from '@contracts/role/role.types';
 import { forkJoin, map, type Observable } from 'rxjs';
-
-/** Backend-enforced maximum from QUERY_DEFAULTS.MAX_LIMIT — used for "fetch all" calls */
-const UNBOUNDED_LIMIT = 500;
 
 interface ListRolesParams {
 	offset?: number;
@@ -30,7 +28,7 @@ export class RolesApiService {
 
 	getAllUnpaginated(): Observable<RoleData[]> {
 		return this.http
-			.get<PaginatedResponse<RoleData>>('/api/access/roles', { params: { limit: UNBOUNDED_LIMIT, offset: 0 } })
+			.get<PaginatedResponse<RoleData>>('/api/access/roles', { params: { limit: QUERY_DEFAULTS.MAX_LIMIT, offset: 0 } })
 			.pipe(map((r) => r.data));
 	}
 
@@ -39,7 +37,7 @@ export class RolesApiService {
 			role: this.http.get<RoleData>(`/api/access/roles/${id}`),
 			permissions: this.http
 				.get<PaginatedResponse<PermissionData>>(`/api/access/roles/${id}/permissions`, {
-					params: { limit: UNBOUNDED_LIMIT, offset: 0 },
+					params: { limit: QUERY_DEFAULTS.MAX_LIMIT, offset: 0 },
 				})
 				.pipe(map((r) => r.data)),
 		}).pipe(

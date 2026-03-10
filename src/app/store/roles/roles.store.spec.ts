@@ -57,6 +57,20 @@ describe('RolesStore', () => {
 		assignPermissions: MockFn<[number, AssignPermissionsRequest], Observable<void>>;
 	};
 
+	/**
+	 * Configures TestBed and injects the store.
+	 * withHooks.onInit triggers loadRoles immediately, so getAll must be mocked
+	 * before calling this. A default empty-list mock is set in beforeEach as a
+	 * safety net — override it before calling setupStore() when needed.
+	 */
+	function setupStore(): void {
+		TestBed.configureTestingModule({
+			providers: [RolesStore, { provide: RolesApiService, useValue: rolesApiMock }],
+		});
+		store = TestBed.inject(RolesStore);
+		TestBed.tick();
+	}
+
 	beforeEach(() => {
 		clearAllMocks();
 
@@ -70,15 +84,16 @@ describe('RolesStore', () => {
 			assignPermissions: fn(),
 		};
 
-		TestBed.configureTestingModule({
-			providers: [RolesStore, { provide: RolesApiService, useValue: rolesApiMock }],
-		});
-
-		store = TestBed.inject(RolesStore);
+		// Default mock — prevents onInit from firing against an unmocked fn().
+		// Tests that need a different initial response override before calling setupStore().
+		rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 	});
 
 	describe('initial state', () => {
-		it('should have correct initial state', () => {
+		it('should start loading immediately via onInit', () => {
+			rolesApiMock.getAll.mockReturnValue(NEVER);
+			setupStore();
+
 			expect(store.roles()).toEqual([]);
 			expect(store.allRoles()).toEqual([]);
 			expect(store.selectedRole()).toBeNull();
@@ -87,7 +102,7 @@ describe('RolesStore', () => {
 			expect(store.totalItems()).toBe(0);
 			expect(store.totalPages()).toBe(0);
 			expect(store.searchQuery()).toBe('');
-			expect(store.isLoadingList()).toBe(false);
+			expect(store.isLoadingList()).toBe(true);
 			expect(store.isLoadingAll()).toBe(false);
 			expect(store.isLoadingDetail()).toBe(false);
 			expect(store.isCreating()).toBe(false);
@@ -98,7 +113,17 @@ describe('RolesStore', () => {
 			expect(store.mutationError()).toBeNull();
 		});
 
+		it('should have correct state after initial load completes', () => {
+			setupStore();
+
+			expect(store.roles()).toEqual([]);
+			expect(store.isLoadingList()).toBe(false);
+			expect(store.readError()).toBeNull();
+		});
+
 		it('should have correct computed signals', () => {
+			setupStore();
+
 			expect(store.hasNextPage()).toBe(false);
 			expect(store.hasPreviousPage()).toBe(false);
 			expect(store.isAnyLoading()).toBe(false);
@@ -106,11 +131,10 @@ describe('RolesStore', () => {
 	});
 
 	describe('loadRoles', () => {
-		it('should load roles and update state on success', async () => {
+		it('should load roles and update state on success', () => {
 			const mockRole = createMockRoleData();
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([mockRole], 1)));
-
-			await store.loadRoles();
+			setupStore();
 
 			expect(store.roles()).toHaveLength(1);
 			expect(store.roles()[0].name).toBe('Admin');
@@ -122,26 +146,26 @@ describe('RolesStore', () => {
 		});
 
 		it('should send correct offset based on currentPage and pageSize', () => {
-			// of() resolves synchronously — required for asserting on calls after setPage
+			setupStore();
+
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 0)));
 			store.setPage(3);
+			TestBed.tick();
 
 			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
 			expect(lastCall[0]).toEqual({ offset: 20, limit: 10, search: undefined });
 		});
 
-		it('should compute totalPages correctly', async () => {
+		it('should compute totalPages correctly', () => {
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
-
-			await store.loadRoles();
+			setupStore();
 
 			expect(store.totalPages()).toBe(3);
 		});
 
-		it('should set readError on failure', async () => {
+		it('should set readError on failure', () => {
 			rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')));
-
-			await store.loadRoles();
+			setupStore();
 
 			expect(store.isLoadingList()).toBe(false);
 			expect(store.readError()).toBe('Failed to load roles');
@@ -149,45 +173,61 @@ describe('RolesStore', () => {
 
 		it('should pass search query when set', () => {
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			setupStore();
+
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			store.setSearchQuery('admin');
+			TestBed.tick();
 
 			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
 			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
 		});
 
-		it('should not send search param when query is empty', async () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
-
-			await store.loadRoles();
+		it('should not send search param when query is empty', () => {
+			setupStore();
 
 			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
 			expect(lastCall[0]).toEqual(expect.objectContaining({ search: undefined }));
 		});
+
+		it('should set isLoadingList while request is in flight', () => {
+			rolesApiMock.getAll.mockReturnValue(NEVER);
+			setupStore();
+
+			expect(store.isLoadingList()).toBe(true);
+			expect(store.isAnyLoading()).toBe(true);
+		});
 	});
 
 	describe('loadAllRoles', () => {
-		it('should load all roles and update allRoles state', async () => {
+		it('should load all roles and update allRoles state', () => {
+			setupStore();
+
 			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })];
 			rolesApiMock.getAllUnpaginated.mockReturnValue(of(roles));
 
-			await store.loadAllRoles();
+			store.loadAllRoles();
 
 			expect(store.allRoles()).toHaveLength(2);
 			expect(store.isLoadingAll()).toBe(false);
 		});
 
 		it('should set isLoadingAll during load', () => {
+			setupStore();
+
 			rolesApiMock.getAllUnpaginated.mockReturnValue(NEVER);
 
-			void store.loadAllRoles();
+			store.loadAllRoles();
 
 			expect(store.isLoadingAll()).toBe(true);
 		});
 
-		it('should set readError on failure', async () => {
+		it('should set readError on failure', () => {
+			setupStore();
+
 			rolesApiMock.getAllUnpaginated.mockReturnValue(throwError(() => new Error('Error')));
 
-			await store.loadAllRoles();
+			store.loadAllRoles();
 
 			expect(store.isLoadingAll()).toBe(false);
 			expect(store.readError()).toBe('Failed to load roles');
@@ -195,11 +235,13 @@ describe('RolesStore', () => {
 	});
 
 	describe('loadRole', () => {
-		it('should load role with permissions and set selectedRole', async () => {
+		it('should load role with permissions and set selectedRole', () => {
+			setupStore();
+
 			const roleWithPerms = createMockRoleWithPermissions();
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
 
-			await store.loadRole(1);
+			store.loadRole(1);
 
 			const selected = store.selectedRole();
 			expect(selected).not.toBeNull();
@@ -211,17 +253,21 @@ describe('RolesStore', () => {
 		});
 
 		it('should set isLoadingDetail during load', () => {
+			setupStore();
+
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(NEVER);
 
-			void store.loadRole(1);
+			store.loadRole(1);
 
 			expect(store.isLoadingDetail()).toBe(true);
 		});
 
-		it('should set readError on failure', async () => {
+		it('should set readError on failure', () => {
+			setupStore();
+
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(throwError(() => new Error('Not found')));
 
-			await store.loadRole(999);
+			store.loadRole(999);
 
 			expect(store.isLoadingDetail()).toBe(false);
 			expect(store.readError()).toBe('Failed to load role');
@@ -229,40 +275,31 @@ describe('RolesStore', () => {
 	});
 
 	describe('createRole', () => {
-		it('should prepend new role and increment totalItems on success', async () => {
+		it('should reload the list from the server on success', () => {
 			const existingRole = createMockRoleData({ id: 1 });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([existingRole], 1)));
-			await store.loadRoles();
+			setupStore();
 
 			const newRole = createMockRoleData({ id: 2, name: 'Editor', code: 'editor' });
 			rolesApiMock.create.mockReturnValue(of(newRole));
 
-			await store.createRole({ name: 'Editor', code: 'editor' });
+			// After create, the store reloads — mock the server-authoritative response
+			const reloadedRoles = [existingRole, createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })];
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(reloadedRoles, 2)));
+
+			store.createRole({ name: 'Editor', code: 'editor' });
 
 			expect(store.roles()).toHaveLength(2);
-			expect(store.roles()[0].name).toBe('Editor');
 			expect(store.totalItems()).toBe(2);
 			expect(store.isCreating()).toBe(false);
 		});
 
-		it('should recalculate totalPages after create', async () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 10)));
-			await store.loadRoles();
-			expect(store.totalPages()).toBe(1);
+		it('should set mutationError on failure', () => {
+			setupStore();
 
-			const newRole = createMockRoleData({ id: 11 });
-			rolesApiMock.create.mockReturnValue(of(newRole));
-
-			await store.createRole({ name: 'New', code: 'new_role' });
-
-			// 11 items / 10 per page = 2 pages
-			expect(store.totalPages()).toBe(2);
-		});
-
-		it('should set mutationError on failure', async () => {
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Conflict')));
 
-			await store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRole({ name: 'Fail', code: 'fail' });
 
 			expect(store.isCreating()).toBe(false);
 			expect(store.mutationError()).toBe('Failed to create role');
@@ -270,29 +307,29 @@ describe('RolesStore', () => {
 	});
 
 	describe('updateRole', () => {
-		it('should replace the updated role in the list on success', async () => {
+		it('should replace the updated role in the list on success', () => {
 			const role = createMockRoleData({ id: 5, name: 'Old Name' });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 1)));
-			await store.loadRoles();
+			setupStore();
 
 			const updatedRole = createMockRoleData({ id: 5, name: 'Updated Name' });
 			rolesApiMock.update.mockReturnValue(of(updatedRole));
 
-			await store.updateRole(5, { name: 'Updated Name' });
+			store.updateRole({ id: 5, body: { name: 'Updated Name' } });
 
 			expect(store.roles()[0].name).toBe('Updated Name');
 			expect(store.isUpdating()).toBe(false);
 		});
 
-		it('should reload detail when the updated role is selected', async () => {
+		it('should reload detail when the updated role is selected', () => {
 			const role = createMockRoleData({ id: 5 });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 1)));
-			await store.loadRoles();
+			setupStore();
 
 			// Load role detail to set selectedRole
 			const roleWithPerms = createMockRoleWithPermissions({ id: 5 });
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			await store.loadRole(5);
+			store.loadRole(5);
 
 			const updatedRole = createMockRoleData({ id: 5, name: 'Updated' });
 			rolesApiMock.update.mockReturnValue(of(updatedRole));
@@ -301,7 +338,7 @@ describe('RolesStore', () => {
 				of(createMockRoleWithPermissions({ id: 5, name: 'Updated' })),
 			);
 
-			await store.updateRole(5, { name: 'Updated' });
+			store.updateRole({ id: 5, body: { name: 'Updated' } });
 
 			// Verify getByIdWithPermissions was called for the reload
 			const detailCalls = rolesApiMock.getByIdWithPermissions.calls;
@@ -309,30 +346,32 @@ describe('RolesStore', () => {
 			expect(detailCalls[detailCalls.length - 1][0]).toBe(5);
 		});
 
-		it('should not reload detail when a different role is updated', async () => {
+		it('should not reload detail when a different role is updated', () => {
 			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2 })];
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-			await store.loadRoles();
+			setupStore();
 
 			// Select role 1
 			const roleWithPerms = createMockRoleWithPermissions({ id: 1 });
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			await store.loadRole(1);
+			store.loadRole(1);
 			const detailCallsBefore = rolesApiMock.getByIdWithPermissions.calls.length;
 
 			const updatedRole = createMockRoleData({ id: 2, name: 'Changed' });
 			rolesApiMock.update.mockReturnValue(of(updatedRole));
 
-			await store.updateRole(2, { name: 'Changed' });
+			store.updateRole({ id: 2, body: { name: 'Changed' } });
 
 			// No additional detail call should have been made
 			expect(rolesApiMock.getByIdWithPermissions.calls).toHaveLength(detailCallsBefore);
 		});
 
-		it('should set mutationError on failure', async () => {
+		it('should set mutationError on failure', () => {
+			setupStore();
+
 			rolesApiMock.update.mockReturnValue(throwError(() => new Error('Not found')));
 
-			await store.updateRole(1, { name: 'Fail' });
+			store.updateRole({ id: 1, body: { name: 'Fail' } });
 
 			expect(store.isUpdating()).toBe(false);
 			expect(store.mutationError()).toBe('Failed to update role');
@@ -340,14 +379,17 @@ describe('RolesStore', () => {
 	});
 
 	describe('deleteRole', () => {
-		it('should remove role from list and decrement totalItems on success', async () => {
+		it('should reload the list from the server on success', () => {
 			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })];
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-			await store.loadRoles();
+			setupStore();
 
 			rolesApiMock.delete.mockReturnValue(of(undefined));
+			rolesApiMock.getAll.mockReturnValue(
+				of(createMockListResponse([createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })], 1)),
+			);
 
-			await store.deleteRole(1);
+			store.deleteRole(1);
 
 			expect(store.roles()).toHaveLength(1);
 			expect(store.roles()[0].id).toBe(2);
@@ -355,84 +397,84 @@ describe('RolesStore', () => {
 			expect(store.isDeleting()).toBe(false);
 		});
 
-		it('should clear selectedRole when the deleted role is selected', async () => {
+		it('should clear selectedRole when the deleted role is selected', () => {
 			const role = createMockRoleData({ id: 1 });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role, createMockRoleData({ id: 2 })], 2)));
-			await store.loadRoles();
+			setupStore();
 
 			const roleWithPerms = createMockRoleWithPermissions({ id: 1 });
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			await store.loadRole(1);
+			store.loadRole(1);
 
 			rolesApiMock.delete.mockReturnValue(of(undefined));
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData({ id: 2 })], 1)));
 
-			await store.deleteRole(1);
+			store.deleteRole(1);
 
 			expect(store.selectedRole()).toBeNull();
 		});
 
-		it('should not clear selectedRole when a different role is deleted', async () => {
+		it('should not clear selectedRole when a different role is deleted', () => {
 			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2 })];
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-			await store.loadRoles();
+			setupStore();
 
 			const roleWithPerms = createMockRoleWithPermissions({ id: 1 });
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			await store.loadRole(1);
+			store.loadRole(1);
 
 			rolesApiMock.delete.mockReturnValue(of(undefined));
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData({ id: 1 })], 1)));
 
-			await store.deleteRole(2);
+			store.deleteRole(2);
 
 			expect(store.selectedRole()?.id).toBe(1);
 		});
 
-		it('should remove from allRoles when deleted', async () => {
+		it('should remove from allRoles when deleted', () => {
 			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2 })];
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-			await store.loadRoles();
+			setupStore();
 
 			rolesApiMock.getAllUnpaginated.mockReturnValue(of(roles));
-			await store.loadAllRoles();
+			store.loadAllRoles();
 
 			rolesApiMock.delete.mockReturnValue(of(undefined));
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData({ id: 2 })], 1)));
 
-			await store.deleteRole(1);
+			store.deleteRole(1);
 
 			expect(store.allRoles()).toHaveLength(1);
 			expect(store.allRoles()[0].id).toBe(2);
 		});
 
-		it('should navigate to previous page when last item on current page is deleted', async () => {
+		it('should navigate to previous page when last item on current page is deleted', () => {
 			const role = createMockRoleData({ id: 10 });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 11)));
-			store.setPage(2);
+			setupStore();
 
+			// Move to page 2 — triggers reactive re-fetch
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 11)));
+			store.setPage(2);
+			TestBed.tick();
+
+			// Delete the only role on page 2 — patches currentPage to 1,
+			// which triggers the reactive loadRoles chain automatically
 			rolesApiMock.delete.mockReturnValue(of(undefined));
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 10)));
 
-			await store.deleteRole(10);
+			store.deleteRole(10);
+			TestBed.tick();
 
 			expect(store.currentPage()).toBe(1);
 		});
 
-		it('should recalculate totalPages on delete', async () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData({ id: 1 })], 11)));
-			await store.loadRoles();
-			expect(store.totalPages()).toBe(2);
+		it('should set mutationError on failure', () => {
+			setupStore();
 
-			rolesApiMock.delete.mockReturnValue(of(undefined));
-
-			await store.deleteRole(1);
-
-			// 10 items / 10 per page = 1 page
-			expect(store.totalPages()).toBe(1);
-		});
-
-		it('should set mutationError on failure', async () => {
 			rolesApiMock.delete.mockReturnValue(throwError(() => new Error('Forbidden')));
 
-			await store.deleteRole(1);
+			store.deleteRole(1);
 
 			expect(store.isDeleting()).toBe(false);
 			expect(store.mutationError()).toBe('Failed to delete role');
@@ -440,10 +482,12 @@ describe('RolesStore', () => {
 	});
 
 	describe('assignPermissions', () => {
-		it('should reload role detail after successful assignment', async () => {
+		it('should reload role detail after successful assignment', () => {
+			setupStore();
+
 			const roleWithPerms = createMockRoleWithPermissions({ id: 5 });
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			await store.loadRole(5);
+			store.loadRole(5);
 
 			rolesApiMock.assignPermissions.mockReturnValue(of(undefined));
 			// Re-mock for the detail reload after assignment
@@ -456,7 +500,7 @@ describe('RolesStore', () => {
 			});
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(updatedPerms));
 
-			await store.assignPermissions(5, { permissionIds: [1, 2] });
+			store.assignPermissions({ id: 5, body: { permissionIds: [1, 2] } });
 
 			expect(store.isAssigningPermissions()).toBe(false);
 			// Verify detail was reloaded
@@ -465,17 +509,21 @@ describe('RolesStore', () => {
 		});
 
 		it('should set isAssigningPermissions during assignment', () => {
+			setupStore();
+
 			rolesApiMock.assignPermissions.mockReturnValue(NEVER);
 
-			void store.assignPermissions(5, { permissionIds: [1] });
+			store.assignPermissions({ id: 5, body: { permissionIds: [1] } });
 
 			expect(store.isAssigningPermissions()).toBe(true);
 		});
 
-		it('should set mutationError on failure', async () => {
+		it('should set mutationError on failure', () => {
+			setupStore();
+
 			rolesApiMock.assignPermissions.mockReturnValue(throwError(() => new Error('Bad request')));
 
-			await store.assignPermissions(5, { permissionIds: [999] });
+			store.assignPermissions({ id: 5, body: { permissionIds: [999] } });
 
 			expect(store.isAssigningPermissions()).toBe(false);
 			expect(store.mutationError()).toBe('Failed to assign permissions');
@@ -483,22 +531,28 @@ describe('RolesStore', () => {
 	});
 
 	describe('setPage', () => {
-		it('should update currentPage and trigger loadRoles', () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+		it('should update currentPage and trigger reactive re-fetch', () => {
+			setupStore();
+			const callsBefore = rolesApiMock.getAll.calls.length;
 
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			store.setPage(3);
+			TestBed.tick();
 
 			expect(store.currentPage()).toBe(3);
-			expect(rolesApiMock.getAll.calls.length).toBeGreaterThan(0);
+			expect(rolesApiMock.getAll.calls).toHaveLength(callsBefore + 1);
 		});
 	});
 
 	describe('setPageSize', () => {
 		it('should reset to page 1 and update pageSize', () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			setupStore();
 
 			store.setPage(3);
+			TestBed.tick();
+
 			store.setPageSize(25);
+			TestBed.tick();
 
 			expect(store.currentPage()).toBe(1);
 			expect(store.pageSize()).toBe(25);
@@ -507,10 +561,13 @@ describe('RolesStore', () => {
 
 	describe('setSearchQuery', () => {
 		it('should reset to page 1 and update searchQuery', () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			setupStore();
 
 			store.setPage(3);
+			TestBed.tick();
+
 			store.setSearchQuery('test');
+			TestBed.tick();
 
 			expect(store.currentPage()).toBe(1);
 			expect(store.searchQuery()).toBe('test');
@@ -518,16 +575,20 @@ describe('RolesStore', () => {
 	});
 
 	describe('selectRole', () => {
-		it('should set selectedRole from loaded role', async () => {
+		it('should set selectedRole from loaded role', () => {
+			setupStore();
+
 			const roleWithPerms = createMockRoleWithPermissions({ id: 7 });
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			await store.loadRole(7);
+			store.loadRole(7);
 
 			expect(store.selectedRole()?.id).toBe(7);
 			expect(store.selectedRole()?.name).toBe('Admin');
 		});
 
 		it('should clear selectedRole when passed null', () => {
+			setupStore();
+
 			store.selectRole(null);
 
 			expect(store.selectedRole()).toBeNull();
@@ -535,13 +596,13 @@ describe('RolesStore', () => {
 	});
 
 	describe('clearErrors', () => {
-		it('should clear both readError and mutationError', async () => {
+		it('should clear both readError and mutationError', () => {
 			rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('List error')));
-			await store.loadRoles();
+			setupStore();
 			expect(store.readError()).toBe('Failed to load roles');
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
-			await store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRole({ name: 'Fail', code: 'fail' });
 			expect(store.mutationError()).toBe('Failed to create role');
 
 			store.clearErrors();
@@ -551,11 +612,23 @@ describe('RolesStore', () => {
 		});
 	});
 
-	describe('computed signals', () => {
-		it('should compute hasNextPage correctly', async () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
+	describe('reload', () => {
+		it('should imperatively re-fetch with current params', () => {
+			setupStore();
+			const callsBefore = rolesApiMock.getAll.calls.length;
 
-			await store.loadRoles();
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData()], 1)));
+			store.reload();
+
+			expect(rolesApiMock.getAll.calls).toHaveLength(callsBefore + 1);
+			expect(store.roles()).toHaveLength(1);
+		});
+	});
+
+	describe('computed signals', () => {
+		it('should compute hasNextPage correctly', () => {
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
+			setupStore();
 
 			// Page 1 of 3 → hasNextPage = true
 			expect(store.hasNextPage()).toBe(true);
@@ -564,25 +637,17 @@ describe('RolesStore', () => {
 
 		it('should compute hasPreviousPage correctly', () => {
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
+			setupStore();
+
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
 			store.setPage(2);
+			TestBed.tick();
 
 			expect(store.hasPreviousPage()).toBe(true);
 		});
 
-		it('should return true for isAnyLoading during a load operation', () => {
-			rolesApiMock.getAll.mockReturnValue(NEVER);
-
-			void store.loadRoles();
-
-			expect(store.isLoadingList()).toBe(true);
-			expect(store.isAnyLoading()).toBe(true);
-		});
-
-		it('should return false for isAnyLoading after all operations complete', async () => {
-			expect(store.isAnyLoading()).toBe(false);
-
-			rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('Error')));
-			await store.loadRoles();
+		it('should return false for isAnyLoading after all operations complete', () => {
+			setupStore();
 
 			expect(store.isAnyLoading()).toBe(false);
 		});

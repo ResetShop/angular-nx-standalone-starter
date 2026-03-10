@@ -193,6 +193,22 @@ it('should debounce calls', () => {
 });
 ```
 
+### Signal Effect Flushing in Tests
+
+Use `TestBed.tick()` to synchronously flush pending signal effects in tests. `TestBed.flushEffects()` is **deprecated since Angular 20** — always use `tick()` instead.
+
+```typescript
+// ✅ Correct — use tick()
+store.setPage(2);
+TestBed.tick();
+
+// ❌ Deprecated — do not use flushEffects()
+store.setPage(2);
+TestBed.flushEffects();
+```
+
+**When to call `TestBed.tick()`:** After any state change that triggers a computed signal update which in turn causes a reactive side effect (e.g., `patchState` on `currentPage` updates the `listParams` computed signal, which causes `rxMethod` to re-fire).
+
 ### ESLint Enforcement
 
 The `viRestrictedSyntax` ESLint rules forbid direct usage of `vi.fn()`, `vi.mock()`, `vi.useFakeTimers()`, and related Vitest globals. Use the `@test-utils` wrappers instead.
