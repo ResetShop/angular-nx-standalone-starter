@@ -11,7 +11,7 @@ export const refreshToken = pgTable(
 		tokenFamily: text('token_family').notNull(),
 		tokenHash: text('token_hash').notNull().unique(),
 		expiresAt: timestamp('expires_at').notNull(),
-		isRevoked: boolean('is_revoked').default(false),
+		isRevoked: boolean('is_revoked').notNull().default(false),
 		createdAt: timestamp('created_at').defaultNow(),
 		revokedAt: timestamp('revoked_at'),
 	},

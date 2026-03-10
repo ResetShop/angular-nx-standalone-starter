@@ -15,6 +15,13 @@
 			"when": 1773104878566,
 			"tag": "0001_military_valkyrie",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1773109286674,
+			"tag": "0002_lucky_franklin_storm",
+			"breakpoints": true
 		}
 	]
 }
