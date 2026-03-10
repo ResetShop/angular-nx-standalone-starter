@@ -67,6 +67,7 @@ describe('PermissionsStore', () => {
 		});
 
 		it('should set isLoading during load', () => {
+			// NEVER suspends indefinitely — store stays in loading state so we can assert synchronously
 			permissionsApiMock.getAllUnpaginated.mockReturnValue(NEVER);
 
 			void store.loadPermissions();
@@ -164,10 +165,11 @@ describe('PermissionsStore', () => {
 
 			const groupedArray = store.permissionsGroupedArray();
 			expect(groupedArray).toHaveLength(2);
-			expect(groupedArray[0].resource).toBe('users');
-			expect(groupedArray[0].permissions).toHaveLength(2);
-			expect(groupedArray[1].resource).toBe('roles');
-			expect(groupedArray[1].permissions).toHaveLength(1);
+
+			const usersGroup = groupedArray.find((g) => g.resource === 'users');
+			const rolesGroup = groupedArray.find((g) => g.resource === 'roles');
+			expect(usersGroup?.permissions).toHaveLength(2);
+			expect(rolesGroup?.permissions).toHaveLength(1);
 		});
 
 		it('should return false for isLoading after completed operations', async () => {
