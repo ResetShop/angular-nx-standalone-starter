@@ -14,7 +14,8 @@
 			"@pages/*": ["src/app/pages/*"],
 			"@providers/*": ["src/app/providers/*"],
 			"@store/*": ["src/app/store/*"],
-			"@test-utils": ["src/test-utils"]
+			"@test-utils": ["src/test-utils"],
+			"@utils/*": ["src/utils/*"]
 		},
 		"target": "es2016",
 		"types": ["vitest/globals", "node", "@testing-library/jest-dom"],
