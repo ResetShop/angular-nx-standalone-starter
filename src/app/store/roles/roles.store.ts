@@ -1,5 +1,6 @@
 import { computed, inject } from '@angular/core';
 import type { AssignPermissionsRequest, CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types';
+import type { IRole } from '@domain/access/role.interface';
 import { mapRole } from '@domain/access/role.mapper';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { RolesApiService } from '@providers/roles/roles';
@@ -36,7 +37,7 @@ export const RolesStore = signalStore(
 		// Named function declaration — referenced by setPage/setPageSize/setSearchQuery/deleteRole
 		async function loadRoles(): Promise<void> {
 			const offset = (store.currentPage() - 1) * store.pageSize();
-			patchState(store, { isLoadingList: true, listError: null });
+			patchState(store, { isLoadingList: true, readError: null });
 			try {
 				const response = await firstValueFrom(
 					rolesApi.getAll({
@@ -53,17 +54,17 @@ export const RolesStore = signalStore(
 					isLoadingList: false,
 				});
 			} catch {
-				patchState(store, { isLoadingList: false, listError: 'Failed to load roles' });
+				patchState(store, { isLoadingList: false, readError: 'Failed to load roles' });
 			}
 		}
 
 		async function loadRole(id: number): Promise<void> {
-			patchState(store, { isLoadingDetail: true, listError: null });
+			patchState(store, { isLoadingDetail: true, readError: null });
 			try {
 				const response = await firstValueFrom(rolesApi.getByIdWithPermissions(id));
 				patchState(store, { selectedRole: mapRole(response), isLoadingDetail: false });
 			} catch {
-				patchState(store, { isLoadingDetail: false, listError: 'Failed to load role' });
+				patchState(store, { isLoadingDetail: false, readError: 'Failed to load role' });
 			}
 		}
 
@@ -72,12 +73,12 @@ export const RolesStore = signalStore(
 			loadRole,
 
 			async loadAllRoles(): Promise<void> {
-				patchState(store, { isLoadingAll: true, listError: null });
+				patchState(store, { isLoadingAll: true, readError: null });
 				try {
 					const roles = await firstValueFrom(rolesApi.getAllUnpaginated());
 					patchState(store, { allRoles: roles, isLoadingAll: false });
 				} catch {
-					patchState(store, { isLoadingAll: false, listError: 'Failed to load roles' });
+					patchState(store, { isLoadingAll: false, readError: 'Failed to load roles' });
 				}
 			},
 
@@ -97,6 +98,7 @@ export const RolesStore = signalStore(
 				}
 			},
 
+			/** If the updated role is currently selected, triggers a background `loadRole(id)` to refresh permissions. Reload failures land in `readError`. */
 			async updateRole(id: number, body: UpdateRoleRequest): Promise<void> {
 				patchState(store, { isUpdating: true, mutationError: null });
 				try {
@@ -138,6 +140,7 @@ export const RolesStore = signalStore(
 				}
 			},
 
+			/** After assignment, triggers a background `loadRole(id)` to refresh `selectedRole` permissions. Reload failures land in `readError`. */
 			async assignPermissions(id: number, body: AssignPermissionsRequest): Promise<void> {
 				patchState(store, { isAssigningPermissions: true, mutationError: null });
 				try {
@@ -167,12 +170,12 @@ export const RolesStore = signalStore(
 				void loadRoles();
 			},
 
-			selectRole(role: ReturnType<typeof mapRole> | null): void {
+			selectRole(role: IRole | null): void {
 				patchState(store, { selectedRole: role });
 			},
 
 			clearErrors(): void {
-				patchState(store, { listError: null, mutationError: null });
+				patchState(store, { readError: null, mutationError: null });
 			},
 		};
 	}),

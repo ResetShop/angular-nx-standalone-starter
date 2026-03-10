@@ -51,7 +51,6 @@ describe('RolesStore', () => {
 		getAll: MockFn<[{ offset?: number; limit?: number; search?: string }?], Observable<PaginatedResponse<RoleData>>>;
 		getAllUnpaginated: MockFn<[], Observable<RoleData[]>>;
 		getByIdWithPermissions: MockFn<[number], Observable<RoleWithPermissions>>;
-		getById: MockFn<[number], Observable<RoleData>>;
 		create: MockFn<[CreateRoleRequest], Observable<RoleData>>;
 		update: MockFn<[number, UpdateRoleRequest], Observable<RoleData>>;
 		delete: MockFn<[number], Observable<void>>;
@@ -65,7 +64,6 @@ describe('RolesStore', () => {
 			getAll: fn(),
 			getAllUnpaginated: fn(),
 			getByIdWithPermissions: fn(),
-			getById: fn(),
 			create: fn(),
 			update: fn(),
 			delete: fn(),
@@ -96,7 +94,7 @@ describe('RolesStore', () => {
 			expect(store.isUpdating()).toBe(false);
 			expect(store.isDeleting()).toBe(false);
 			expect(store.isAssigningPermissions()).toBe(false);
-			expect(store.listError()).toBeNull();
+			expect(store.readError()).toBeNull();
 			expect(store.mutationError()).toBeNull();
 		});
 
@@ -120,7 +118,7 @@ describe('RolesStore', () => {
 			expect(store.totalItems()).toBe(1);
 			expect(store.totalPages()).toBe(1);
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.listError()).toBeNull();
+			expect(store.readError()).toBeNull();
 		});
 
 		it('should send correct offset based on currentPage and pageSize', () => {
@@ -139,13 +137,13 @@ describe('RolesStore', () => {
 			expect(store.totalPages()).toBe(3);
 		});
 
-		it('should set listError on failure', async () => {
+		it('should set readError on failure', async () => {
 			rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')));
 
 			await store.loadRoles();
 
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.listError()).toBe('Failed to load roles');
+			expect(store.readError()).toBe('Failed to load roles');
 		});
 
 		it('should pass search query when set', () => {
@@ -185,13 +183,13 @@ describe('RolesStore', () => {
 			expect(store.isLoadingAll()).toBe(true);
 		});
 
-		it('should set listError on failure', async () => {
+		it('should set readError on failure', async () => {
 			rolesApiMock.getAllUnpaginated.mockReturnValue(throwError(() => new Error('Error')));
 
 			await store.loadAllRoles();
 
 			expect(store.isLoadingAll()).toBe(false);
-			expect(store.listError()).toBe('Failed to load roles');
+			expect(store.readError()).toBe('Failed to load roles');
 		});
 	});
 
@@ -219,13 +217,13 @@ describe('RolesStore', () => {
 			expect(store.isLoadingDetail()).toBe(true);
 		});
 
-		it('should set listError on failure', async () => {
+		it('should set readError on failure', async () => {
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(throwError(() => new Error('Not found')));
 
 			await store.loadRole(999);
 
 			expect(store.isLoadingDetail()).toBe(false);
-			expect(store.listError()).toBe('Failed to load role');
+			expect(store.readError()).toBe('Failed to load role');
 		});
 	});
 
@@ -536,10 +534,10 @@ describe('RolesStore', () => {
 	});
 
 	describe('clearErrors', () => {
-		it('should clear both listError and mutationError', async () => {
+		it('should clear both readError and mutationError', async () => {
 			rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('List error')));
 			await store.loadRoles();
-			expect(store.listError()).toBe('Failed to load roles');
+			expect(store.readError()).toBe('Failed to load roles');
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
 			await store.createRole({ name: 'Fail', code: 'fail' });
@@ -547,7 +545,7 @@ describe('RolesStore', () => {
 
 			store.clearErrors();
 
-			expect(store.listError()).toBeNull();
+			expect(store.readError()).toBeNull();
 			expect(store.mutationError()).toBeNull();
 		});
 	});
