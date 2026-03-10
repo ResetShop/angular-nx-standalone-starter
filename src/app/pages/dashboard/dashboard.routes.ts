@@ -17,6 +17,11 @@ export default [
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
 			},
+			{
+				path: 'roles',
+				title: 'Roles',
+				loadComponent: () => import('./roles/roles-list/roles-list'),
+			},
 			// TODO: Remove access to this route once the project setup is completed
 			{
 				path: 'welcome',
