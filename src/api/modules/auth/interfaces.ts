@@ -35,7 +35,7 @@ export interface RefreshTokenData {
 	tokenFamily: string;
 	tokenHash: string;
 	expiresAt: Date;
-	isRevoked: boolean | null;
+	isRevoked: boolean;
 	createdAt: Date | null;
 	revokedAt: Date | null;
 }
@@ -62,6 +62,7 @@ export interface IRefreshTokenRepository {
 	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>;
 	revokeToken(tokenId: number): Promise<void>;
 	revokeAllForUser(userId: number): Promise<void>;
+	revokeTokenFamily(tokenFamily: string): Promise<void>;
 	deleteExpiredTokensForUser(userId: number): Promise<number>;
 	tryAcquireCleanupLock(): Promise<boolean>;
 	releaseCleanupLock(): Promise<void>;
