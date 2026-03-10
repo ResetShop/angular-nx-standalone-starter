@@ -34,6 +34,7 @@ export const InternalAuthErrorCode = Object.freeze({
 	// Token errors (implementation details, map to public token errors)
 	TOKEN_MISSING_FAMILY: 'TOKEN_MISSING_FAMILY',
 	TOKEN_REVOKED: 'TOKEN_REVOKED',
+	TOKEN_REUSE_DETECTED: 'TOKEN_REUSE_DETECTED',
 	REFRESH_TOKEN_EXPIRED: 'REFRESH_TOKEN_EXPIRED',
 } as const);
 
@@ -94,6 +95,7 @@ export const InternalAuthErrorMessage = Object.freeze({
 	[InternalAuthErrorCode.TOKEN_INVALID]: 'Invalid token',
 	[InternalAuthErrorCode.TOKEN_MISSING_FAMILY]: 'Invalid refresh token: missing token family',
 	[InternalAuthErrorCode.TOKEN_REVOKED]: 'Refresh token has been revoked',
+	[InternalAuthErrorCode.TOKEN_REUSE_DETECTED]: 'Refresh token reuse detected: token family revoked',
 	[InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED]: 'Refresh token expired',
 } as const) satisfies Record<InternalAuthErrorCode, string>;
 
@@ -114,6 +116,7 @@ export const InternalToPublicErrorMap = Object.freeze({
 	[InternalAuthErrorCode.ACCOUNT_DELETED]: PublicAuthErrorCode.INVALID_CREDENTIALS,
 	[InternalAuthErrorCode.TOKEN_MISSING_FAMILY]: PublicAuthErrorCode.TOKEN_INVALID,
 	[InternalAuthErrorCode.TOKEN_REVOKED]: PublicAuthErrorCode.TOKEN_INVALID,
+	[InternalAuthErrorCode.TOKEN_REUSE_DETECTED]: PublicAuthErrorCode.TOKEN_INVALID,
 	[InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED]: PublicAuthErrorCode.TOKEN_EXPIRED,
 } as const) satisfies Record<InternalAuthErrorCode, PublicAuthErrorCode>;
 
