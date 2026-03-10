@@ -4,19 +4,9 @@ import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import type { PermissionData } from '@contracts/role/role.types';
 import { map, type Observable } from 'rxjs';
 
-interface ListPermissionsParams {
-	offset?: number;
-	limit?: number;
-	search?: string;
-}
-
 @Injectable({ providedIn: 'root' })
 export class PermissionsApiService {
 	private readonly http = inject(HttpClient);
-
-	getAll(params: ListPermissionsParams = {}): Observable<PaginatedResponse<PermissionData>> {
-		return this.http.get<PaginatedResponse<PermissionData>>('/api/access/permissions', { params: { ...params } });
-	}
 
 	getAllUnpaginated(): Observable<PermissionData[]> {
 		const UNBOUNDED_LIMIT = 500;
