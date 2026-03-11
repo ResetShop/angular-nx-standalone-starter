@@ -12,21 +12,6 @@ export default [
 				title: 'Salud',
 				loadComponent: () => import('./pages/health/health'),
 			},
-			{
-				path: 'users',
-				title: 'Usuarios',
-				loadComponent: () => import('./users/users-list/users-list'),
-			},
-			{
-				path: 'roles',
-				title: 'Roles',
-				loadComponent: () => import('./roles/roles-list/roles-list'),
-			},
-			{
-				path: 'permissions',
-				title: 'Permisos',
-				loadComponent: () => import('./permissions/permissions-list/permissions-list'),
-			},
 			// TODO: Remove access to this route once the project setup is completed
 			{
 				path: 'welcome',
