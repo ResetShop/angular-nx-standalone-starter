@@ -23,8 +23,7 @@ export const UsersStore = signalStore(
 	{ providedIn: 'root' },
 	withState(initialUsersState),
 	withComputed((store) => ({
-		hasNextPage: computed(() => store.currentPage() < store.totalPages()),
-		hasPreviousPage: computed(() => store.currentPage() > 1),
+		totalPages: computed(() => (store.totalItems() === 0 ? 0 : Math.ceil(store.totalItems() / store.pageSize()))),
 		isAnyLoading: computed(
 			() => store.isLoadingList() || store.isCreating() || store.isUpdating() || store.isDeleting(),
 		),
@@ -34,6 +33,10 @@ export const UsersStore = signalStore(
 			limit: store.pageSize(),
 			search: store.searchQuery() || undefined,
 		})),
+	})),
+	withComputed((store) => ({
+		hasNextPage: computed(() => store.currentPage() < store.totalPages()),
+		hasPreviousPage: computed(() => store.currentPage() > 1),
 	})),
 	withMethods((store) => {
 		const usersApi = inject(UsersApiService);
@@ -47,8 +50,7 @@ export const UsersStore = signalStore(
 							tap({
 								next: (response) => {
 									const users = response.data.map(mapManagedUserResponse);
-									const totalPages = Math.ceil(response.total / store.pageSize());
-									patchState(store, { users, totalItems: response.total, totalPages, isLoadingList: false });
+									patchState(store, { users, totalItems: response.total, isLoadingList: false });
 								},
 								error: () => patchState(store, { isLoadingList: false, listError: 'Failed to load users' }),
 							}),
