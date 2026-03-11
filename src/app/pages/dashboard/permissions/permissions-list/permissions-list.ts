@@ -22,8 +22,4 @@ import { PermissionsStore } from '@store/permissions/permissions.store';
 })
 export default class PermissionsList {
 	protected readonly store = inject(PermissionsStore);
-
-	constructor() {
-		void this.store.loadPermissions();
-	}
 }
