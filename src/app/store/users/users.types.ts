@@ -6,7 +6,6 @@ export interface UsersState {
 	currentPage: number;
 	pageSize: number;
 	totalItems: number;
-	totalPages: number;
 	searchQuery: string;
 	isLoadingList: boolean;
 	isCreating: boolean;
@@ -24,7 +23,6 @@ export const initialUsersState: UsersState = {
 	currentPage: 1,
 	pageSize: 10,
 	totalItems: 0,
-	totalPages: 0,
 	searchQuery: '',
 	isLoadingList: false,
 	isCreating: false,
