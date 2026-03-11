@@ -22,7 +22,7 @@ import { AuthStore } from '@store/auth/auth.store';
 	imports: [Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" class="z-10 sm:h-[420px] sm:w-[420px]">
+			<form (submit)="onSubmit($event)" class="z-10 sm:h-[420px] sm:w-[420px]">
 				<app-card
 					[titleTemplate]="cardTitle"
 					[contentTemplate]="cardContent"
@@ -123,7 +123,8 @@ export default class Login {
 		});
 	}
 
-	onSubmit() {
+	onSubmit(event: Event) {
+		event.preventDefault();
 		if (!this.isFormValid()) {
 			// Signal forms FieldState.markAsTouched() only marks a single field;
 			// there is no markAllAsTouched() equivalent — each field must be touched individually.
