@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import type { PaginatedResponse } from '@contracts/common/pagination.types';
+import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types';
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import type {
 	CreateUserRequest,
@@ -11,19 +11,15 @@ import type {
 } from '@contracts/user/user.types';
 import type { Observable } from 'rxjs';
 
-interface ListUsersParams {
-	offset?: number;
-	limit?: number;
-	search?: string;
-}
-
 @Injectable({ providedIn: 'root' })
 export class UsersApiService {
 	private readonly http = inject(HttpClient);
 
-	getAll({ offset = QUERY_DEFAULTS.OFFSET, limit = QUERY_DEFAULTS.LIMIT, search }: ListUsersParams = {}): Observable<
-		PaginatedResponse<ManagedUser>
-	> {
+	getAll({
+		offset = QUERY_DEFAULTS.OFFSET,
+		limit = QUERY_DEFAULTS.LIMIT,
+		search,
+	}: SearchPaginationParams = {}): Observable<PaginatedResponse<ManagedUser>> {
 		const params: Record<string, string | number> = { offset, limit };
 		if (search) {
 			params['search'] = search;

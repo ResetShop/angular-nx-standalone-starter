@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import type { PaginatedResponse } from '@contracts/common/pagination.types';
+import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types';
 import { UserStatus } from '@contracts/user/user.schemas';
 import type {
 	CreateUserRequest,
@@ -52,7 +52,7 @@ function createMockListResponse(users: ManagedUser[], total?: number): Paginated
 describe('UsersStore', () => {
 	let store: InstanceType<typeof UsersStore>;
 	let usersApiMock: {
-		getAll: MockFn<[{ offset?: number; limit?: number; search?: string }?], Observable<PaginatedResponse<ManagedUser>>>;
+		getAll: MockFn<[SearchPaginationParams?], Observable<PaginatedResponse<ManagedUser>>>;
 		create: MockFn<[CreateUserRequest], Observable<CreateUserResponse>>;
 		update: MockFn<[number, UpdateUserRequest], Observable<ManagedUser>>;
 		delete: MockFn<[number], Observable<void>>;

@@ -1,4 +1,5 @@
 import { computed, inject } from '@angular/core';
+import type { SearchPaginationParams } from '@contracts/common/pagination.types';
 import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types';
 import type { IManagedUser } from '@domain/user-management/managed-user.interface';
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper';
@@ -38,7 +39,7 @@ export const UsersStore = signalStore(
 		const usersApi = inject(UsersApiService);
 
 		return {
-			loadUsers: rxMethod<{ offset: number; limit: number; search?: string }>(
+			loadUsers: rxMethod<SearchPaginationParams>(
 				pipe(
 					tap(() => patchState(store, { isLoadingList: true, listError: null })),
 					switchMap(({ offset, limit, search }) =>
