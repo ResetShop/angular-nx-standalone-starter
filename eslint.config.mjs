@@ -155,6 +155,15 @@ export default [
 				},
 			],
 			'@angular-eslint/prefer-signals': 'error',
+			'@typescript-eslint/explicit-member-accessibility': [
+				'error',
+				{
+					accessibility: 'explicit',
+					overrides: {
+						constructors: 'no-public',
+					},
+				},
+			],
 			'@typescript-eslint/no-inferrable-types': 0,
 			'@typescript-eslint/no-unused-vars': 'error',
 			'@typescript-eslint/no-non-null-assertion': 'error',
