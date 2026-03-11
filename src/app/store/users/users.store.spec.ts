@@ -1,16 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types';
+import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import { UserStatus } from '@contracts/user/user.schemas';
-import type {
-	CreateUserRequest,
-	CreateUserResponse,
-	ManagedUser,
-	UpdateUserRequest,
-	UpdateUserStatusRequest,
-} from '@contracts/user/user.types';
+import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types';
 import { UsersApiService } from '@providers/users/users';
 import { clearAllMocks, fn, type MockFn } from '@test-utils';
-import { EMPTY, NEVER, of, throwError, type Observable } from 'rxjs';
+import { EMPTY, NEVER, of, throwError } from 'rxjs';
 import { UsersStore } from './users.store';
 
 function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUser {
@@ -51,13 +45,7 @@ function createMockListResponse(users: ManagedUser[], total?: number): Paginated
 
 describe('UsersStore', () => {
 	let store: InstanceType<typeof UsersStore>;
-	let usersApiMock: {
-		getAll: MockFn<[SearchPaginationParams?], Observable<PaginatedResponse<ManagedUser>>>;
-		create: MockFn<[CreateUserRequest], Observable<CreateUserResponse>>;
-		update: MockFn<[number, UpdateUserRequest], Observable<ManagedUser>>;
-		delete: MockFn<[number], Observable<void>>;
-		updateStatus: MockFn<[number, UpdateUserStatusRequest], Observable<ManagedUser>>;
-	};
+	let usersApiMock: Record<keyof UsersApiService, MockFn>;
 
 	/**
 	 * Helper: configures TestBed with the mock and injects the store.
@@ -77,6 +65,7 @@ describe('UsersStore', () => {
 
 		usersApiMock = {
 			getAll: fn(),
+			getById: fn(),
 			create: fn(),
 			update: fn(),
 			delete: fn(),
