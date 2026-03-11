@@ -22,8 +22,14 @@ interface ListRolesParams {
 export class RolesApiService {
 	private readonly http = inject(HttpClient);
 
-	getAll(params: ListRolesParams = {}): Observable<PaginatedResponse<RoleData>> {
-		return this.http.get<PaginatedResponse<RoleData>>('/api/access/roles', { params: { ...params } });
+	getAll({ offset = QUERY_DEFAULTS.OFFSET, limit = QUERY_DEFAULTS.LIMIT, search }: ListRolesParams = {}): Observable<
+		PaginatedResponse<RoleData>
+	> {
+		const params: Record<string, string | number> = { offset, limit };
+		if (search) {
+			params['search'] = search;
+		}
+		return this.http.get<PaginatedResponse<RoleData>>('/api/access/roles', { params });
 	}
 
 	getAllUnpaginated(): Observable<RoleData[]> {
