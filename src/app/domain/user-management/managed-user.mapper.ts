@@ -15,27 +15,6 @@ export function createManagedUserRole(options: CreateManagedUserRoleOptions): IM
 	return { ...options };
 }
 
-interface CreateManagedUserOptions {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	status: IManagedUser['status'];
-	statusChangedAt: Date | null;
-	statusChangedBy: number | null;
-	deletedAt: Date | null;
-	createdAt: Date | null;
-	updatedAt: Date | null;
-	roles: readonly IManagedUserRole[];
-}
-
-export function createManagedUser(options: CreateManagedUserOptions): IManagedUser {
-	return {
-		...options,
-		fullName: `${options.firstName} ${options.lastName}`.trim(),
-	};
-}
-
 export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 	const roles = data.roles.map((r) =>
 		createManagedUserRole({
@@ -49,11 +28,12 @@ export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 		}),
 	);
 
-	return createManagedUser({
+	return {
 		id: data.id,
 		email: data.email,
 		firstName: data.firstName,
 		lastName: data.lastName,
+		fullName: `${data.firstName} ${data.lastName}`.trim(),
 		status: data.status,
 		statusChangedAt: data.statusChangedAt,
 		statusChangedBy: data.statusChangedBy,
@@ -61,5 +41,5 @@ export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 		createdAt: data.createdAt,
 		updatedAt: data.updatedAt,
 		roles,
-	});
+	};
 }
