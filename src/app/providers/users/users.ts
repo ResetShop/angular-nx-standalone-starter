@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import type {
 	CreateUserRequest,
 	CreateUserResponse,
@@ -20,8 +21,14 @@ interface ListUsersParams {
 export class UsersApiService {
 	private readonly http = inject(HttpClient);
 
-	getAll(params: ListUsersParams = {}): Observable<PaginatedResponse<ManagedUser>> {
-		return this.http.get<PaginatedResponse<ManagedUser>>('/api/user', { params: { ...params } });
+	getAll({ offset = QUERY_DEFAULTS.OFFSET, limit = QUERY_DEFAULTS.LIMIT, search }: ListUsersParams = {}): Observable<
+		PaginatedResponse<ManagedUser>
+	> {
+		const params: Record<string, string | number> = { offset, limit };
+		if (search) {
+			params['search'] = search;
+		}
+		return this.http.get<PaginatedResponse<ManagedUser>>('/api/user', { params });
 	}
 
 	getById(id: number): Observable<ManagedUser> {
