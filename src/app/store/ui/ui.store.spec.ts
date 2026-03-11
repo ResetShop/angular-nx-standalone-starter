@@ -98,6 +98,9 @@ describe('UIStore', () => {
 	});
 
 	describe('auto-dismiss', () => {
+		// useFakeTimers/useRealTimers are scoped to this describe block.
+		// afterEach restores real timers before the outer beforeEach re-runs,
+		// ensuring store instantiation always happens under real timers.
 		beforeEach(() => {
 			useFakeTimers();
 		});
