@@ -1,6 +1,11 @@
 import { computed, inject } from '@angular/core';
 import type { SearchPaginationParams } from '@contracts/common/pagination.types';
-import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types';
+import type {
+	CreateUserRequest,
+	ManagedUser,
+	UpdateUserRequest,
+	UpdateUserStatusRequest,
+} from '@contracts/user/user.types';
 import type { IManagedUser } from '@domain/user-management/managed-user.interface';
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
@@ -41,6 +46,16 @@ export const UsersStore = signalStore(
 	withMethods((store) => {
 		const usersApi = inject(UsersApiService);
 
+		function applyUserUpdate(id: number, response: ManagedUser): void {
+			const updatedUser = mapManagedUserResponse(response);
+			const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
+			patchState(store, {
+				users: store.users().map((u) => (u.id === id ? updatedUser : u)),
+				selectedUser: selectedUpdate,
+				isUpdating: false,
+			});
+		}
+
 		return {
 			loadUsers: rxMethod<SearchPaginationParams>(
 				pipe(
@@ -66,15 +81,7 @@ export const UsersStore = signalStore(
 					switchMap(({ id, body }) =>
 						usersApi.update(id, body).pipe(
 							tap({
-								next: (response) => {
-									const updatedUser = mapManagedUserResponse(response);
-									const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
-									patchState(store, {
-										users: store.users().map((u) => (u.id === id ? updatedUser : u)),
-										selectedUser: selectedUpdate,
-										isUpdating: false,
-									});
-								},
+								next: (response) => applyUserUpdate(id, response),
 								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user' }),
 							}),
 							catchError(() => EMPTY),
@@ -89,15 +96,7 @@ export const UsersStore = signalStore(
 					switchMap(({ id, body }) =>
 						usersApi.updateStatus(id, body).pipe(
 							tap({
-								next: (response) => {
-									const updatedUser = mapManagedUserResponse(response);
-									const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
-									patchState(store, {
-										users: store.users().map((u) => (u.id === id ? updatedUser : u)),
-										selectedUser: selectedUpdate,
-										isUpdating: false,
-									});
-								},
+								next: (response) => applyUserUpdate(id, response),
 								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user status' }),
 							}),
 							catchError(() => EMPTY),
