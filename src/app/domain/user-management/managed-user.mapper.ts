@@ -1,5 +1,5 @@
 import type { ManagedUser } from '@contracts/user/user.types';
-import type { IManagedUser } from './managed-user.interface';
+import type { IManagedUser, IManagedUserRole } from './managed-user.interface';
 
 export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 	return {
@@ -14,6 +14,16 @@ export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 		deletedAt: data.deletedAt,
 		createdAt: data.createdAt,
 		updatedAt: data.updatedAt,
-		roles: data.roles.map((r) => ({ ...r })),
+		roles: data.roles.map(
+			(r): IManagedUserRole => ({
+				id: r.id,
+				name: r.name,
+				code: r.code,
+				description: r.description,
+				removable: r.removable,
+				createdAt: r.createdAt,
+				updatedAt: r.updatedAt,
+			}),
+		),
 	};
 }
