@@ -1,4 +1,4 @@
-import { computed } from '@angular/core';
+import { computed, DestroyRef, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { parseDurationToMs } from '@utils/duration';
 import { initialUIState, type UINotification } from './ui.types';
@@ -17,7 +17,13 @@ export const UIStore = signalStore(
 		latestNotification: computed(() => store.notifications().at(-1) ?? null),
 	})),
 	withMethods((store) => {
+		const destroyRef = inject(DestroyRef);
 		const timeouts = new Map<string, ReturnType<typeof setTimeout>>();
+
+		destroyRef.onDestroy(() => {
+			for (const handle of timeouts.values()) clearTimeout(handle);
+			timeouts.clear();
+		});
 
 		function dismissNotification(id: string): void {
 			const handle = timeouts.get(id);

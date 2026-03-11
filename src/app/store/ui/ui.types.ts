@@ -1,3 +1,5 @@
+import type { DurationString } from '@contracts/common/duration.schemas';
+
 export const NotificationType = Object.freeze({
 	SUCCESS: 'success',
 	ERROR: 'error',
@@ -11,7 +13,8 @@ export interface UINotification {
 	readonly id: string;
 	readonly type: NotificationType;
 	readonly message: string;
-	readonly duration?: string;
+	/** Auto-dismiss duration (e.g. '3s', '1m'). Defaults to '5s'. Must be a valid duration string matching /^\d+[dhms]$/. */
+	readonly duration?: DurationString;
 }
 
 export interface UIState {
