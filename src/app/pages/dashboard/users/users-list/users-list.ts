@@ -28,8 +28,4 @@ import { UsersStore } from '@store/users/users.store';
 })
 export default class UsersList {
 	protected readonly store = inject(UsersStore);
-
-	constructor() {
-		void this.store.loadUsers();
-	}
 }
