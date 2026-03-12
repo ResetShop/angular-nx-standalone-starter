@@ -94,8 +94,8 @@ describe('UsersStore', () => {
 			expect(store.isCreating()).toBe(false);
 			expect(store.isUpdating()).toBe(false);
 			expect(store.isDeleting()).toBe(false);
-			expect(store.listError()).toBeNull();
-			expect(store.mutationError()).toBeNull();
+			expect(store.readError()).toEqual({ list: null });
+			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null });
 		});
 
 		it('should have correct state after initial load completes', () => {
@@ -103,7 +103,7 @@ describe('UsersStore', () => {
 
 			expect(store.users()).toEqual([]);
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.listError()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should have correct computed signals', () => {
@@ -127,7 +127,7 @@ describe('UsersStore', () => {
 			expect(store.totalItems()).toBe(1);
 			expect(store.totalPages()).toBe(1);
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.listError()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should send correct offset based on currentPage and pageSize', () => {
@@ -148,12 +148,12 @@ describe('UsersStore', () => {
 			expect(store.totalPages()).toBe(3);
 		});
 
-		it('should set listError on failure', () => {
+		it('should set readError.list on failure', () => {
 			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')));
 			setupStore();
 
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.listError()).toBe('Failed to load users');
+			expect(store.readError().list).toBe('Failed to load users');
 		});
 
 		it('should pass search query when set', () => {
@@ -229,7 +229,7 @@ describe('UsersStore', () => {
 			});
 
 			expect(store.isCreating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to create user');
+			expect(store.mutationError().create).toBe('Failed to create user');
 		});
 	});
 
@@ -259,7 +259,7 @@ describe('UsersStore', () => {
 			store.updateUser({ id: 1, body: { firstName: 'Fail' } });
 
 			expect(store.isUpdating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to update user');
+			expect(store.mutationError().update).toBe('Failed to update user');
 		});
 	});
 
@@ -337,7 +337,7 @@ describe('UsersStore', () => {
 			store.deleteUser(1);
 
 			expect(store.isDeleting()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to delete user');
+			expect(store.mutationError().delete).toBe('Failed to delete user');
 		});
 	});
 
@@ -367,7 +367,7 @@ describe('UsersStore', () => {
 			store.updateUserStatus({ id: 1, body: { status: UserStatus.DISABLED } });
 
 			expect(store.isUpdating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to update user status');
+			expect(store.mutationError().updateStatus).toBe('Failed to update user status');
 		});
 	});
 
@@ -435,10 +435,10 @@ describe('UsersStore', () => {
 	});
 
 	describe('clearErrors', () => {
-		it('should clear both listError and mutationError', () => {
+		it('should clear both readError and mutationError', () => {
 			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('List error')));
 			setupStore();
-			expect(store.listError()).toBe('Failed to load users');
+			expect(store.readError().list).toBe('Failed to load users');
 
 			usersApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
 			store.createUser({
@@ -447,12 +447,12 @@ describe('UsersStore', () => {
 				lastName: 'L',
 				mustChangePassword: true,
 			});
-			expect(store.mutationError()).toBe('Failed to create user');
+			expect(store.mutationError().create).toBe('Failed to create user');
 
 			store.clearErrors();
 
-			expect(store.listError()).toBeNull();
-			expect(store.mutationError()).toBeNull();
+			expect(store.readError()).toEqual({ list: null });
+			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null });
 		});
 	});
 
