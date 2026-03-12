@@ -22,7 +22,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 	styles: `
 		@reference "tailwindcss";
 		:host {
-			@apply flex h-svh w-svw items-center justify-center bg-black/95;
+			@apply fixed inset-0 z-50 flex items-center justify-center bg-black/95;
 		}
 
 		.spinner-ring {

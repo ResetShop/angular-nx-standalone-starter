@@ -9,11 +9,11 @@ import { isMainModule } from '@angular/ssr/node';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { parseDurationToMs, parseDurationToSeconds } from '@utils/duration';
 import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
 import { secureHeaders } from 'hono/secure-headers';
 import { join } from 'node:path';
-import { parseDurationToMs, parseDurationToSeconds } from './api/utils/duration';
 
 // Health verification - runs all startup checks (DI container, database, etc.)
 import { ACCESS_TOKEN_COOKIE_NAME } from './api/constants/auth.constants';
