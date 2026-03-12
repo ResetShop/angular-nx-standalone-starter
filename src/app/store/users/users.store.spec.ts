@@ -48,9 +48,10 @@ describe('UsersStore', () => {
 	let usersApiMock: Record<keyof UsersApiService, MockFn>;
 
 	/**
-	 * Helper: configures TestBed with the mock and injects the store.
-	 * getAll must be mocked BEFORE calling this, because withHooks.onInit
-	 * triggers loadUsers immediately on store creation.
+	 * Configures TestBed and injects the store.
+	 * withHooks.onInit triggers loadUsers immediately, so getAll must be mocked
+	 * before calling this. A default empty-list mock is set in beforeEach as a
+	 * safety net — override it before calling setupStore() when needed.
 	 */
 	function setupStore(): void {
 		TestBed.configureTestingModule({
@@ -71,11 +72,15 @@ describe('UsersStore', () => {
 			delete: fn(),
 			updateStatus: fn(),
 		};
+
+		// Default mock — prevents onInit from firing against an unmocked fn().
+		// Tests that need a different initial response override before calling setupStore().
+		usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 	});
 
 	describe('initial state', () => {
-		it('should have correct initial state', () => {
-			usersApiMock.getAll.mockReturnValue(EMPTY);
+		it('should start loading immediately via onInit', () => {
+			usersApiMock.getAll.mockReturnValue(NEVER);
 			setupStore();
 
 			expect(store.users()).toEqual([]);
@@ -85,15 +90,23 @@ describe('UsersStore', () => {
 			expect(store.totalItems()).toBe(0);
 			expect(store.totalPages()).toBe(0);
 			expect(store.searchQuery()).toBe('');
+			expect(store.isLoadingList()).toBe(true);
 			expect(store.isCreating()).toBe(false);
 			expect(store.isUpdating()).toBe(false);
 			expect(store.isDeleting()).toBe(false);
-			expect(store.listError()).toBeNull();
-			expect(store.mutationError()).toBeNull();
+			expect(store.readError()).toEqual({ list: null });
+			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null });
+		});
+
+		it('should have correct state after initial load completes', () => {
+			setupStore();
+
+			expect(store.users()).toEqual([]);
+			expect(store.isLoadingList()).toBe(false);
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should have correct computed signals', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			expect(store.hasNextPage()).toBe(false);
@@ -114,12 +127,10 @@ describe('UsersStore', () => {
 			expect(store.totalItems()).toBe(1);
 			expect(store.totalPages()).toBe(1);
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.listError()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should send correct offset based on currentPage and pageSize', () => {
-			// Initial load with empty response
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 0)));
 			setupStore();
 
 			// setPage triggers reactive re-fetch via listParams signal change
@@ -137,16 +148,15 @@ describe('UsersStore', () => {
 			expect(store.totalPages()).toBe(3);
 		});
 
-		it('should set listError on failure', () => {
+		it('should set readError.list on failure', () => {
 			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')));
 			setupStore();
 
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.listError()).toBe('Failed to load users');
+			expect(store.readError().list).toBe('Failed to load users');
 		});
 
 		it('should pass search query when set', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			store.setSearchQuery('admin');
@@ -157,7 +167,6 @@ describe('UsersStore', () => {
 		});
 
 		it('should not send search param when query is empty', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1];
@@ -165,7 +174,6 @@ describe('UsersStore', () => {
 		});
 
 		it('should return totalPages 0 when total is 0', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 0)));
 			setupStore();
 
 			expect(store.totalPages()).toBe(0);
@@ -209,7 +217,6 @@ describe('UsersStore', () => {
 		});
 
 		it('should set mutationError on failure', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			usersApiMock.create.mockReturnValue(throwError(() => new Error('Conflict')));
@@ -222,7 +229,7 @@ describe('UsersStore', () => {
 			});
 
 			expect(store.isCreating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to create user');
+			expect(store.mutationError().create).toBe('Failed to create user');
 		});
 	});
 
@@ -245,7 +252,6 @@ describe('UsersStore', () => {
 		});
 
 		it('should set mutationError on failure', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			usersApiMock.update.mockReturnValue(throwError(() => new Error('Not found')));
@@ -253,7 +259,7 @@ describe('UsersStore', () => {
 			store.updateUser({ id: 1, body: { firstName: 'Fail' } });
 
 			expect(store.isUpdating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to update user');
+			expect(store.mutationError().update).toBe('Failed to update user');
 		});
 	});
 
@@ -324,7 +330,6 @@ describe('UsersStore', () => {
 		});
 
 		it('should set mutationError on failure', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			usersApiMock.delete.mockReturnValue(throwError(() => new Error('Forbidden')));
@@ -332,7 +337,7 @@ describe('UsersStore', () => {
 			store.deleteUser(1);
 
 			expect(store.isDeleting()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to delete user');
+			expect(store.mutationError().delete).toBe('Failed to delete user');
 		});
 	});
 
@@ -355,7 +360,6 @@ describe('UsersStore', () => {
 		});
 
 		it('should set mutationError on failure', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			usersApiMock.updateStatus.mockReturnValue(throwError(() => new Error('Error')));
@@ -363,27 +367,25 @@ describe('UsersStore', () => {
 			store.updateUserStatus({ id: 1, body: { status: UserStatus.DISABLED } });
 
 			expect(store.isUpdating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to update user status');
+			expect(store.mutationError().updateStatus).toBe('Failed to update user status');
 		});
 	});
 
 	describe('setPage', () => {
 		it('should update currentPage and trigger loadUsers reactively', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
-
 			const callsBefore = usersApiMock.getAll.calls.length;
+
 			store.setPage(3);
 			TestBed.tick();
 
 			expect(store.currentPage()).toBe(3);
-			expect(usersApiMock.getAll.calls.length).toBeGreaterThan(callsBefore);
+			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1);
 		});
 	});
 
 	describe('setPageSize', () => {
 		it('should reset to page 1 and update pageSize', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			store.setPage(3);
@@ -398,7 +400,6 @@ describe('UsersStore', () => {
 
 	describe('setSearchQuery', () => {
 		it('should reset to page 1 and update searchQuery', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
 
 			store.setPage(3);
@@ -434,10 +435,10 @@ describe('UsersStore', () => {
 	});
 
 	describe('clearErrors', () => {
-		it('should clear both listError and mutationError', () => {
+		it('should clear both readError and mutationError', () => {
 			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('List error')));
 			setupStore();
-			expect(store.listError()).toBe('Failed to load users');
+			expect(store.readError().list).toBe('Failed to load users');
 
 			usersApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
 			store.createUser({
@@ -446,12 +447,12 @@ describe('UsersStore', () => {
 				lastName: 'L',
 				mustChangePassword: true,
 			});
-			expect(store.mutationError()).toBe('Failed to create user');
+			expect(store.mutationError().create).toBe('Failed to create user');
 
 			store.clearErrors();
 
-			expect(store.listError()).toBeNull();
-			expect(store.mutationError()).toBeNull();
+			expect(store.readError()).toEqual({ list: null });
+			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null });
 		});
 	});
 
@@ -485,13 +486,12 @@ describe('UsersStore', () => {
 
 	describe('reload', () => {
 		it('should trigger a re-fetch with the same params via imperative call', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			setupStore();
-
 			const callsBefore = usersApiMock.getAll.calls.length;
+
 			store.reload();
 
-			expect(usersApiMock.getAll.calls.length).toBeGreaterThan(callsBefore);
+			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1);
 		});
 	});
 });
