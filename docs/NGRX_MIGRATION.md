@@ -125,7 +125,7 @@ These stores follow a consistent builder block structure documented in `CLAUDE.m
 The `AuthStore` is API-backed but follows a different pattern than CRUD stores:
 
 - **No pagination** — manages a single user session, not a collection
-- **Mixed method styles** — `login` uses `rxMethod`, while `logout`, `validateSession`, and `refreshToken` use direct observable subscriptions or return observables for the caller to handle. `logout` intentionally uses `.subscribe()` because it is fire-and-forget — the caller does not need to observe the result, and wrapping it in `rxMethod` with `switchMap` would risk cancelling an in-flight token revocation if called twice rapidly (e.g., interceptor + user click)
+- **Mixed method styles** — `login` and `logout` use `rxMethod`, while `validateSession` and `refreshToken` return observables for the caller to handle. `logout` uses `exhaustMap` (not `switchMap`) to guarantee the token revocation request completes — duplicate calls while one is in-flight are silently dropped
 - **No structured error types** — uses simpler `loginError` / `networkError` flags
 
 ### Client-Only Store (UIStore)
