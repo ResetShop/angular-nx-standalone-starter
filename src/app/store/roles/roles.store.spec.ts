@@ -95,8 +95,8 @@ describe('RolesStore', () => {
 			expect(store.isUpdating()).toBe(false);
 			expect(store.isDeleting()).toBe(false);
 			expect(store.isAssigningPermissions()).toBe(false);
-			expect(store.readError()).toBeNull();
-			expect(store.mutationError()).toBeNull();
+			expect(store.readError()).toEqual({ list: null, detail: null, all: null });
+			expect(store.mutationError()).toEqual({ create: null, update: null, delete: null, assignPermissions: null });
 		});
 
 		it('should have correct state after initial load completes', () => {
@@ -104,7 +104,7 @@ describe('RolesStore', () => {
 
 			expect(store.roles()).toEqual([]);
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.readError()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should have correct computed signals', () => {
@@ -128,7 +128,7 @@ describe('RolesStore', () => {
 			expect(store.totalItems()).toBe(1);
 			expect(store.totalPages()).toBe(1);
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.readError()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should send correct offset based on currentPage and pageSize', () => {
@@ -149,12 +149,12 @@ describe('RolesStore', () => {
 			expect(store.totalPages()).toBe(3);
 		});
 
-		it('should set readError on failure', () => {
+		it('should set readError.list on failure', () => {
 			rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')));
 			setupStore();
 
 			expect(store.isLoadingList()).toBe(false);
-			expect(store.readError()).toBe('Failed to load roles');
+			expect(store.readError().list).toBe('Failed to load roles');
 		});
 
 		it('should pass search query when set', () => {
@@ -208,7 +208,7 @@ describe('RolesStore', () => {
 			expect(store.isLoadingAll()).toBe(true);
 		});
 
-		it('should set readError on failure', () => {
+		it('should set readError.all on failure', () => {
 			setupStore();
 
 			rolesApiMock.getAllUnpaginated.mockReturnValue(throwError(() => new Error('Error')));
@@ -216,7 +216,7 @@ describe('RolesStore', () => {
 			store.loadAllRoles();
 
 			expect(store.isLoadingAll()).toBe(false);
-			expect(store.readError()).toBe('Failed to load roles');
+			expect(store.readError().all).toBe('Failed to load all roles');
 		});
 	});
 
@@ -248,7 +248,7 @@ describe('RolesStore', () => {
 			expect(store.isLoadingDetail()).toBe(true);
 		});
 
-		it('should set readError on failure', () => {
+		it('should set readError.detail on failure', () => {
 			setupStore();
 
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(throwError(() => new Error('Not found')));
@@ -256,7 +256,7 @@ describe('RolesStore', () => {
 			store.loadRole(999);
 
 			expect(store.isLoadingDetail()).toBe(false);
-			expect(store.readError()).toBe('Failed to load role');
+			expect(store.readError().detail).toBe('Failed to load role');
 		});
 	});
 
@@ -280,7 +280,7 @@ describe('RolesStore', () => {
 			expect(store.isCreating()).toBe(false);
 		});
 
-		it('should set mutationError on failure', () => {
+		it('should set mutationError.create on failure', () => {
 			setupStore();
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Conflict')));
@@ -288,7 +288,7 @@ describe('RolesStore', () => {
 			store.createRole({ name: 'Fail', code: 'fail' });
 
 			expect(store.isCreating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to create role');
+			expect(store.mutationError().create).toBe('Failed to create role');
 		});
 	});
 
@@ -353,7 +353,7 @@ describe('RolesStore', () => {
 			expect(rolesApiMock.getByIdWithPermissions.calls).toHaveLength(detailCallsBefore);
 		});
 
-		it('should set mutationError on failure', () => {
+		it('should set mutationError.update on failure', () => {
 			setupStore();
 
 			rolesApiMock.update.mockReturnValue(throwError(() => new Error('Not found')));
@@ -361,7 +361,7 @@ describe('RolesStore', () => {
 			store.updateRole({ id: 1, body: { name: 'Fail' } });
 
 			expect(store.isUpdating()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to update role');
+			expect(store.mutationError().update).toBe('Failed to update role');
 		});
 	});
 
@@ -439,7 +439,7 @@ describe('RolesStore', () => {
 			expect(store.currentPage()).toBe(1);
 		});
 
-		it('should set mutationError on failure', () => {
+		it('should set mutationError.delete on failure', () => {
 			setupStore();
 
 			rolesApiMock.delete.mockReturnValue(throwError(() => new Error('Forbidden')));
@@ -447,7 +447,7 @@ describe('RolesStore', () => {
 			store.deleteRole(1);
 
 			expect(store.isDeleting()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to delete role');
+			expect(store.mutationError().delete).toBe('Failed to delete role');
 		});
 	});
 
@@ -488,7 +488,7 @@ describe('RolesStore', () => {
 			expect(store.isAssigningPermissions()).toBe(true);
 		});
 
-		it('should set mutationError on failure', () => {
+		it('should set mutationError.assignPermissions on failure', () => {
 			setupStore();
 
 			rolesApiMock.assignPermissions.mockReturnValue(throwError(() => new Error('Bad request')));
@@ -496,7 +496,7 @@ describe('RolesStore', () => {
 			store.assignPermissions({ id: 5, body: { permissionIds: [999] } });
 
 			expect(store.isAssigningPermissions()).toBe(false);
-			expect(store.mutationError()).toBe('Failed to assign permissions');
+			expect(store.mutationError().assignPermissions).toBe('Failed to assign permissions');
 		});
 	});
 
@@ -569,16 +569,16 @@ describe('RolesStore', () => {
 		it('should clear both readError and mutationError', () => {
 			rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('List error')));
 			setupStore();
-			expect(store.readError()).toBe('Failed to load roles');
+			expect(store.readError().list).toBe('Failed to load roles');
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
 			store.createRole({ name: 'Fail', code: 'fail' });
-			expect(store.mutationError()).toBe('Failed to create role');
+			expect(store.mutationError().create).toBe('Failed to create role');
 
 			store.clearErrors();
 
-			expect(store.readError()).toBeNull();
-			expect(store.mutationError()).toBeNull();
+			expect(store.readError()).toEqual({ list: null, detail: null, all: null });
+			expect(store.mutationError()).toEqual({ create: null, update: null, delete: null, assignPermissions: null });
 		});
 	});
 
