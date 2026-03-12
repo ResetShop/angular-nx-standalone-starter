@@ -128,18 +128,15 @@ export const RolesStore = signalStore(
 				store.loadRoles(store.listParams());
 			},
 
-			/** If the updated role is currently selected, triggers a background loadRole to refresh permissions. */
 			updateRole: rxMethod<{ id: number; body: UpdateRoleRequest }>(
 				pipe(
 					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
 					switchMap(({ id, body }) =>
 						rolesApi.update(id, body).pipe(
 							tap({
-								next: (updatedRole) => {
-									patchState(store, {
-										roles: store.roles().map((r) => (r.id === id ? updatedRole : r)),
-										isUpdating: false,
-									});
+								next: () => {
+									patchState(store, { isUpdating: false });
+									store.loadRoles(store.listParams());
 									if (store.selectedRole()?.id === id) {
 										store.loadRole(id);
 									}
@@ -180,10 +177,7 @@ export const RolesStore = signalStore(
 									if (store.selectedRole()?.id === id) {
 										patchState(store, { selectedRole: null });
 									}
-									patchState(store, {
-										allRoles: store.allRoles().filter((r) => r.id !== id),
-										isDeleting: false,
-									});
+									patchState(store, { isDeleting: false });
 
 									// When the last item on a page is deleted, navigate to previous page.
 									// Patching currentPage triggers the reactive loadRoles chain automatically.
