@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { advanceTimersByTimeAsync, clearAllMocks, spyOn, useFakeTimers, useRealTimers } from '@test-utils';
+import { parseDurationToMs } from '@utils/duration';
 import { UIStore } from './ui.store';
-import { NotificationType } from './ui.types';
+import { DEFAULT_NOTIFICATION_DURATION, NotificationType } from './ui.types';
 
 describe('UIStore', () => {
 	let store: InstanceType<typeof UIStore>;
@@ -98,52 +99,58 @@ describe('UIStore', () => {
 	});
 
 	describe('auto-dismiss', () => {
-		// useFakeTimers/useRealTimers are scoped to this describe block.
-		// afterEach restores real timers before the outer beforeEach re-runs,
-		// ensuring store instantiation always happens under real timers.
+		// Store is created under fake timers so that setTimeout inside showNotification
+		// is intercepted deterministically. Each test gets a fresh store + fake timer context.
+		let timerStore: InstanceType<typeof UIStore>;
+
 		beforeEach(() => {
 			useFakeTimers();
+
+			TestBed.resetTestingModule();
+			TestBed.configureTestingModule({ providers: [UIStore] });
+			timerStore = TestBed.inject(UIStore);
 		});
 
 		afterEach(() => {
 			useRealTimers();
 		});
 
-		it('should auto-dismiss after default duration (5s)', async () => {
+		it('should auto-dismiss after default duration', async () => {
 			spyOn(crypto, 'randomUUID').mockReturnValue('auto-id');
+			const defaultMs = parseDurationToMs(DEFAULT_NOTIFICATION_DURATION);
 
-			store.showNotification({ type: NotificationType.SUCCESS, message: 'Auto' });
-			expect(store.notifications()).toHaveLength(1);
+			timerStore.showNotification({ type: NotificationType.SUCCESS, message: 'Auto' });
+			expect(timerStore.notifications()).toHaveLength(1);
 
-			await advanceTimersByTimeAsync(4999);
-			expect(store.notifications()).toHaveLength(1);
+			await advanceTimersByTimeAsync(defaultMs - 1);
+			expect(timerStore.notifications()).toHaveLength(1);
 
 			await advanceTimersByTimeAsync(1);
-			expect(store.notifications()).toHaveLength(0);
+			expect(timerStore.notifications()).toHaveLength(0);
 		});
 
 		it('should auto-dismiss after custom duration', async () => {
 			spyOn(crypto, 'randomUUID').mockReturnValue('custom-id');
 
-			store.showNotification({ type: NotificationType.WARNING, message: 'Quick', duration: '3s' });
+			timerStore.showNotification({ type: NotificationType.WARNING, message: 'Quick', duration: '3s' });
 
 			await advanceTimersByTimeAsync(2999);
-			expect(store.notifications()).toHaveLength(1);
+			expect(timerStore.notifications()).toHaveLength(1);
 
 			await advanceTimersByTimeAsync(1);
-			expect(store.notifications()).toHaveLength(0);
+			expect(timerStore.notifications()).toHaveLength(0);
 		});
 
 		it('should cancel timer when manually dismissed before auto-dismiss', async () => {
 			spyOn(crypto, 'randomUUID').mockReturnValue('manual-id');
 
-			store.showNotification({ type: NotificationType.INFO, message: 'Manual dismiss' });
-			store.dismissNotification('manual-id');
-			expect(store.notifications()).toHaveLength(0);
+			timerStore.showNotification({ type: NotificationType.INFO, message: 'Manual dismiss' });
+			timerStore.dismissNotification('manual-id');
+			expect(timerStore.notifications()).toHaveLength(0);
 
 			// Advancing past the original duration should not throw or re-add
 			await advanceTimersByTimeAsync(6000);
-			expect(store.notifications()).toHaveLength(0);
+			expect(timerStore.notifications()).toHaveLength(0);
 		});
 	});
 
