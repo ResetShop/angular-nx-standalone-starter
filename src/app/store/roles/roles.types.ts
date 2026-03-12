@@ -1,6 +1,19 @@
 import type { RoleData } from '@contracts/role/role.types';
 import type { IRole } from '@domain/access/role.interface';
 
+export interface RolesReadError {
+	list: string | null;
+	detail: string | null;
+	all: string | null;
+}
+
+export interface RolesMutationError {
+	create: string | null;
+	update: string | null;
+	delete: string | null;
+	assignPermissions: string | null;
+}
+
 export interface RolesState {
 	/** Paginated roles for the current page (plain DTO — no permissions) */
 	roles: RoleData[];
@@ -11,7 +24,6 @@ export interface RolesState {
 	currentPage: number;
 	pageSize: number;
 	totalItems: number;
-	totalPages: number;
 	searchQuery: string;
 	isLoadingList: boolean;
 	isLoadingAll: boolean;
@@ -20,10 +32,8 @@ export interface RolesState {
 	isUpdating: boolean;
 	isDeleting: boolean;
 	isAssigningPermissions: boolean;
-	/** Error from the last failed list/detail load */
-	readError: string | null;
-	/** Error from the last failed create/update/delete/assignPermissions operation */
-	mutationError: string | null;
+	readError: RolesReadError;
+	mutationError: RolesMutationError;
 }
 
 export const initialRolesState: RolesState = {
@@ -33,7 +43,6 @@ export const initialRolesState: RolesState = {
 	currentPage: 1,
 	pageSize: 10,
 	totalItems: 0,
-	totalPages: 0,
 	searchQuery: '',
 	isLoadingList: false,
 	isLoadingAll: false,
@@ -42,6 +51,6 @@ export const initialRolesState: RolesState = {
 	isUpdating: false,
 	isDeleting: false,
 	isAssigningPermissions: false,
-	readError: null,
-	mutationError: null,
+	readError: { list: null, detail: null, all: null },
+	mutationError: { create: null, update: null, delete: null, assignPermissions: null },
 };
