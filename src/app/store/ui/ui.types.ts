@@ -9,25 +9,22 @@ export const NotificationType = Object.freeze({
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
 
+export const DEFAULT_NOTIFICATION_DURATION: DurationString = '5s';
+
 export interface UINotification {
 	readonly id: string;
 	readonly type: NotificationType;
 	readonly message: string;
-	/** Auto-dismiss duration (e.g. '3s', '1m'). Defaults to '5s'. Must be a valid duration string matching /^\d+[dhms]$/. */
+	/** Auto-dismiss duration. Defaults to {@link DEFAULT_NOTIFICATION_DURATION}. Must be a valid duration string matching /^\d+[dhms]$/. */
 	readonly duration?: DurationString;
 }
 
 export interface UIState {
-	/** Whether the sidebar is open */
-	isSidebarOpen: boolean;
-	/** Whether the sidebar is in collapsed (icon-only) mode */
-	isSidebarCollapsed: boolean;
-	/** Which drawer is currently open (e.g., 'user-form', 'role-form'), or null */
-	activeDrawer: string | null;
-	/** Toast notification queue */
-	notifications: UINotification[];
-	/** App-wide loading indicator */
-	isGlobalLoading: boolean;
+	readonly isSidebarOpen: boolean;
+	readonly isSidebarCollapsed: boolean;
+	readonly activeDrawer: string | null;
+	readonly notifications: UINotification[];
+	readonly isGlobalLoading: boolean;
 }
 
 export const initialUIState: UIState = {
