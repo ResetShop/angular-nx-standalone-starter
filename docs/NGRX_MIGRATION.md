@@ -162,8 +162,8 @@ API services (`src/app/providers/`) are **pure HTTP clients**:
 
 **Current providers that remain as providers** (not stores):
 
-- `NavigationStateService` — sidebar/breadcrumb state scoped to the layout shell
-- `ThemeService` — dark/light mode toggle, persisted to `localStorage`
+- `NavigationState` — sidebar/breadcrumb state scoped to the layout shell
+- `Theme` — dark/light mode toggle, persisted to `localStorage`
 
 These are lightweight, UI-only concerns with no API dependencies. Converting them to Signal Stores would add unnecessary ceremony.
 
@@ -234,7 +234,10 @@ export const NotificationsStore = signalStore(
 								next: (items) => patchState(store, { items, isLoading: false }),
 								error: (err) => {
 									console.error('[NotificationsStore] loadNotifications failed:', err);
-									patchState(store, { isLoading: false });
+									patchState(store, {
+										isLoading: false,
+										readError: { list: 'Failed to load notifications' },
+									});
 								},
 							}),
 							catchError(() => EMPTY),
