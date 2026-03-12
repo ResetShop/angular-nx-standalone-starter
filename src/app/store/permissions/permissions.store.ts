@@ -15,6 +15,14 @@ function patchReadError(
 	return { ...current, [key]: value };
 }
 
+function groupPermissionsByResource(permissions: PermissionData[]): Map<string, PermissionData[]> {
+	return permissions.reduce((grouped, permission) => {
+		const existing = grouped.get(permission.resource) ?? [];
+		grouped.set(permission.resource, [...existing, permission]);
+		return grouped;
+	}, new Map<string, PermissionData[]>());
+}
+
 /**
  * PermissionsStore - Signal Store for system permissions
  *
@@ -27,13 +35,7 @@ export const PermissionsStore = signalStore(
 	withState(initialPermissionsState),
 	withComputed((store) => ({
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
-		permissionsGroupedByResource: computed(() => {
-			return store.permissions().reduce((grouped, permission) => {
-				const existing = grouped.get(permission.resource) ?? [];
-				grouped.set(permission.resource, [...existing, permission]);
-				return grouped;
-			}, new Map<string, PermissionData[]>());
-		}),
+		permissionsGroupedByResource: computed(() => groupPermissionsByResource(store.permissions())),
 	})),
 	// Second block — derives from permissionsGroupedByResource, which is only available after the first withComputed
 	withComputed((store) => ({
