@@ -83,7 +83,7 @@ export const PermissionsStore = signalStore(
 	}),
 	// Second withMethods block — needs access to store.loadPermissions from the first block
 	withMethods((store) => ({
-		refresh(): void {
+		reload(): void {
 			patchState(store, { isCached: false });
 			store.loadPermissions();
 		},
