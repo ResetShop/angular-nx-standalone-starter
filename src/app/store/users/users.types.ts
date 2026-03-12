@@ -1,5 +1,16 @@
 import type { IManagedUser } from '@domain/user-management/managed-user.interface';
 
+export interface UsersReadError {
+	list: string | null;
+}
+
+export interface UsersMutationError {
+	create: string | null;
+	update: string | null;
+	updateStatus: string | null;
+	delete: string | null;
+}
+
 export interface UsersState {
 	users: IManagedUser[];
 	selectedUser: IManagedUser | null;
@@ -11,10 +22,8 @@ export interface UsersState {
 	isCreating: boolean;
 	isUpdating: boolean;
 	isDeleting: boolean;
-	/** Error from the last failed list/search load */
-	listError: string | null;
-	/** Error from the last failed create/update/delete/updateStatus operation */
-	mutationError: string | null;
+	readError: UsersReadError;
+	mutationError: UsersMutationError;
 }
 
 export const initialUsersState: UsersState = {
@@ -28,6 +37,6 @@ export const initialUsersState: UsersState = {
 	isCreating: false,
 	isUpdating: false,
 	isDeleting: false,
-	listError: null,
-	mutationError: null,
+	readError: { list: null },
+	mutationError: { create: null, update: null, updateStatus: null, delete: null },
 };

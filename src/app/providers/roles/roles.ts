@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import type { PaginatedResponse } from '@contracts/common/pagination.types';
+import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types';
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
 import type {
 	AssignPermissionsRequest,
@@ -12,19 +12,15 @@ import type {
 } from '@contracts/role/role.types';
 import { forkJoin, map, type Observable } from 'rxjs';
 
-interface ListRolesParams {
-	offset?: number;
-	limit?: number;
-	search?: string;
-}
-
 @Injectable({ providedIn: 'root' })
 export class RolesApiService {
 	private readonly http = inject(HttpClient);
 
-	getAll({ offset = QUERY_DEFAULTS.OFFSET, limit = QUERY_DEFAULTS.LIMIT, search }: ListRolesParams = {}): Observable<
-		PaginatedResponse<RoleData>
-	> {
+	getAll({
+		offset = QUERY_DEFAULTS.OFFSET,
+		limit = QUERY_DEFAULTS.LIMIT,
+		search,
+	}: SearchPaginationParams = {}): Observable<PaginatedResponse<RoleData>> {
 		const params: Record<string, string | number> = { offset, limit };
 		if (search) {
 			params['search'] = search;

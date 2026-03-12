@@ -1,4 +1,5 @@
 import { computed, inject } from '@angular/core';
+import type { SearchPaginationParams } from '@contracts/common/pagination.types';
 import type { AssignPermissionsRequest, CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types';
 import type { IRole } from '@domain/access/role.interface';
 import { mapRole } from '@domain/access/role.mapper';
@@ -6,7 +7,20 @@ import { patchState, signalStore, withComputed, withHooks, withMethods, withStat
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { RolesApiService } from '@providers/roles/roles';
 import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
+import type { RolesMutationError, RolesReadError } from './roles.types';
 import { initialRolesState } from './roles.types';
+
+function patchReadError(current: RolesReadError, key: keyof RolesReadError, value: string | null): RolesReadError {
+	return { ...current, [key]: value };
+}
+
+function patchMutationError(
+	current: RolesMutationError,
+	key: keyof RolesMutationError,
+	value: string | null,
+): RolesMutationError {
+	return { ...current, [key]: value };
+}
 
 /**
  * RolesStore - Signal Store for role management state
@@ -22,8 +36,7 @@ export const RolesStore = signalStore(
 	{ providedIn: 'root' },
 	withState(initialRolesState),
 	withComputed((store) => ({
-		hasNextPage: computed(() => store.currentPage() < store.totalPages()),
-		hasPreviousPage: computed(() => store.currentPage() > 1),
+		totalPages: computed(() => (store.totalItems() === 0 ? 0 : Math.ceil(store.totalItems() / store.pageSize()))),
 		isAnyLoading: computed(
 			() =>
 				store.isLoadingList() ||
@@ -34,6 +47,8 @@ export const RolesStore = signalStore(
 				store.isDeleting() ||
 				store.isAssigningPermissions(),
 		),
+		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
+		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
 		/** Reactive params for list fetch — any change triggers loadRoles via rxMethod */
 		listParams: computed(() => ({
 			offset: (store.currentPage() - 1) * store.pageSize(),
@@ -41,26 +56,40 @@ export const RolesStore = signalStore(
 			search: store.searchQuery() || undefined,
 		})),
 	})),
+	withComputed((store) => ({
+		hasNextPage: computed(() => store.currentPage() < store.totalPages()),
+		hasPreviousPage: computed(() => store.currentPage() > 1),
+	})),
 	withMethods((store) => {
 		const rolesApi = inject(RolesApiService);
 
 		return {
-			loadRoles: rxMethod<{ offset: number; limit: number; search?: string }>(
+			loadRoles: rxMethod<SearchPaginationParams>(
 				pipe(
-					tap(() => patchState(store, { isLoadingList: true, readError: null })),
+					tap(() =>
+						patchState(store, {
+							isLoadingList: true,
+							readError: patchReadError(store.readError(), 'list', null),
+						}),
+					),
 					switchMap(({ offset, limit, search }) =>
 						rolesApi.getAll({ offset, limit, search }).pipe(
 							tap({
 								next: (response) => {
-									const totalPages = Math.ceil(response.total / store.pageSize());
 									patchState(store, {
 										roles: response.data,
 										totalItems: response.total,
-										totalPages,
 										isLoadingList: false,
 									});
 								},
-								error: () => patchState(store, { isLoadingList: false, readError: 'Failed to load roles' }),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] loadRoles failed:', err);
+									patchState(store, {
+										isLoadingList: false,
+										readError: patchReadError(store.readError(), 'list', 'Failed to load roles'),
+									});
+								},
 							}),
 							catchError(() => EMPTY),
 						),
@@ -70,12 +99,24 @@ export const RolesStore = signalStore(
 
 			loadRole: rxMethod<number>(
 				pipe(
-					tap(() => patchState(store, { isLoadingDetail: true, readError: null })),
+					tap(() =>
+						patchState(store, {
+							isLoadingDetail: true,
+							readError: patchReadError(store.readError(), 'detail', null),
+						}),
+					),
 					switchMap((id) =>
 						rolesApi.getByIdWithPermissions(id).pipe(
 							tap({
 								next: (response) => patchState(store, { selectedRole: mapRole(response), isLoadingDetail: false }),
-								error: () => patchState(store, { isLoadingDetail: false, readError: 'Failed to load role' }),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] loadRole failed:', err);
+									patchState(store, {
+										isLoadingDetail: false,
+										readError: patchReadError(store.readError(), 'detail', 'Failed to load role'),
+									});
+								},
 							}),
 							catchError(() => EMPTY),
 						),
@@ -85,12 +126,24 @@ export const RolesStore = signalStore(
 
 			loadAllRoles: rxMethod<void>(
 				pipe(
-					tap(() => patchState(store, { isLoadingAll: true, readError: null })),
+					tap(() =>
+						patchState(store, {
+							isLoadingAll: true,
+							readError: patchReadError(store.readError(), 'all', null),
+						}),
+					),
 					switchMap(() =>
 						rolesApi.getAllUnpaginated().pipe(
 							tap({
 								next: (roles) => patchState(store, { allRoles: roles, isLoadingAll: false }),
-								error: () => patchState(store, { isLoadingAll: false, readError: 'Failed to load roles' }),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] loadAllRoles failed:', err);
+									patchState(store, {
+										isLoadingAll: false,
+										readError: patchReadError(store.readError(), 'all', 'Failed to load all roles'),
+									});
+								},
 							}),
 							catchError(() => EMPTY),
 						),
@@ -115,11 +168,14 @@ export const RolesStore = signalStore(
 			},
 
 			clearErrors(): void {
-				patchState(store, { readError: null, mutationError: null });
+				patchState(store, {
+					readError: { list: null, detail: null, all: null },
+					mutationError: { create: null, update: null, delete: null, assignPermissions: null },
+				});
 			},
 		};
 	}),
-	// Mutation methods that reload after success, plus explicit reload for external use
+	// Mutation methods — all reload the list after success
 	withMethods((store) => {
 		const rolesApi = inject(RolesApiService);
 
@@ -128,33 +184,14 @@ export const RolesStore = signalStore(
 				store.loadRoles(store.listParams());
 			},
 
-			/** If the updated role is currently selected, triggers a background loadRole to refresh permissions. */
-			updateRole: rxMethod<{ id: number; body: UpdateRoleRequest }>(
-				pipe(
-					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
-					switchMap(({ id, body }) =>
-						rolesApi.update(id, body).pipe(
-							tap({
-								next: (updatedRole) => {
-									patchState(store, {
-										roles: store.roles().map((r) => (r.id === id ? updatedRole : r)),
-										isUpdating: false,
-									});
-									if (store.selectedRole()?.id === id) {
-										store.loadRole(id);
-									}
-								},
-								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update role' }),
-							}),
-							catchError(() => EMPTY),
-						),
-					),
-				),
-			),
-
 			createRole: rxMethod<CreateRoleRequest>(
 				pipe(
-					tap(() => patchState(store, { isCreating: true, mutationError: null })),
+					tap(() =>
+						patchState(store, {
+							isCreating: true,
+							mutationError: patchMutationError(store.mutationError(), 'create', null),
+						}),
+					),
 					switchMap((body) =>
 						rolesApi.create(body).pipe(
 							tap({
@@ -162,7 +199,47 @@ export const RolesStore = signalStore(
 									patchState(store, { isCreating: false });
 									store.loadRoles(store.listParams());
 								},
-								error: () => patchState(store, { isCreating: false, mutationError: 'Failed to create role' }),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] createRole failed:', err);
+									patchState(store, {
+										isCreating: false,
+										mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create role'),
+									});
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			updateRole: rxMethod<{ id: number; body: UpdateRoleRequest }>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isUpdating: true,
+							mutationError: patchMutationError(store.mutationError(), 'update', null),
+						}),
+					),
+					switchMap(({ id, body }) =>
+						rolesApi.update(id, body).pipe(
+							tap({
+								next: () => {
+									patchState(store, { isUpdating: false });
+									store.loadRoles(store.listParams());
+									if (store.selectedRole()?.id === id) {
+										store.loadRole(id);
+									}
+								},
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] updateRole failed:', err);
+									patchState(store, {
+										isUpdating: false,
+										mutationError: patchMutationError(store.mutationError(), 'update', 'Failed to update role'),
+									});
+								},
 							}),
 							catchError(() => EMPTY),
 						),
@@ -172,7 +249,12 @@ export const RolesStore = signalStore(
 
 			deleteRole: rxMethod<number>(
 				pipe(
-					tap(() => patchState(store, { isDeleting: true, mutationError: null })),
+					tap(() =>
+						patchState(store, {
+							isDeleting: true,
+							mutationError: patchMutationError(store.mutationError(), 'delete', null),
+						}),
+					),
 					switchMap((id) =>
 						rolesApi.delete(id).pipe(
 							tap({
@@ -180,10 +262,7 @@ export const RolesStore = signalStore(
 									if (store.selectedRole()?.id === id) {
 										patchState(store, { selectedRole: null });
 									}
-									patchState(store, {
-										allRoles: store.allRoles().filter((r) => r.id !== id),
-										isDeleting: false,
-									});
+									patchState(store, { isDeleting: false });
 
 									// When the last item on a page is deleted, navigate to previous page.
 									// Patching currentPage triggers the reactive loadRoles chain automatically.
@@ -193,7 +272,14 @@ export const RolesStore = signalStore(
 										store.loadRoles(store.listParams());
 									}
 								},
-								error: () => patchState(store, { isDeleting: false, mutationError: 'Failed to delete role' }),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] deleteRole failed:', err);
+									patchState(store, {
+										isDeleting: false,
+										mutationError: patchMutationError(store.mutationError(), 'delete', 'Failed to delete role'),
+									});
+								},
 							}),
 							catchError(() => EMPTY),
 						),
@@ -201,10 +287,14 @@ export const RolesStore = signalStore(
 				),
 			),
 
-			/** After assignment, triggers a background loadRole to refresh selectedRole permissions. */
 			assignPermissions: rxMethod<{ id: number; body: AssignPermissionsRequest }>(
 				pipe(
-					tap(() => patchState(store, { isAssigningPermissions: true, mutationError: null })),
+					tap(() =>
+						patchState(store, {
+							isAssigningPermissions: true,
+							mutationError: patchMutationError(store.mutationError(), 'assignPermissions', null),
+						}),
+					),
 					switchMap(({ id, body }) =>
 						rolesApi.assignPermissions(id, body).pipe(
 							tap({
@@ -212,11 +302,18 @@ export const RolesStore = signalStore(
 									patchState(store, { isAssigningPermissions: false });
 									store.loadRole(id);
 								},
-								error: () =>
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] assignPermissions failed:', err);
 									patchState(store, {
 										isAssigningPermissions: false,
-										mutationError: 'Failed to assign permissions',
-									}),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'assignPermissions',
+											'Failed to assign permissions',
+										),
+									});
+								},
 							}),
 							catchError(() => EMPTY),
 						),
