@@ -19,11 +19,12 @@ configureEnvVars(getTestConnectionString());
 // Safe to call here because setupFiles execute completely before test file imports.
 extendZodWithOpenApi(z);
 
-// Close all DB connection pools after each test file so the process can exit cleanly
+// Close test-helper DB pool after each test file so connections don't leak.
+// The app's drizzlePgConnector pool is NOT closed here — ending it mid-run
+// can cause subsequent queries to silently return empty results instead of
+// throwing, because node-postgres marks the Pool as ended. The process exit
+// handles final cleanup automatically.
 afterAll(async () => {
 	const { closeTestDb } = await import('./db-helpers');
 	await closeTestDb();
-
-	const { drizzlePgConnector } = await import('../../helpers/drizzle-postgres-connector');
-	await drizzlePgConnector.$client.end();
 });
