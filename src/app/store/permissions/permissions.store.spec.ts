@@ -132,7 +132,7 @@ describe('PermissionsStore', () => {
 		});
 	});
 
-	describe('refresh', () => {
+	describe('reload', () => {
 		it('should force re-fetch when already cached', () => {
 			setupStore();
 			const callsBefore = permissionsApiMock.getAllUnpaginated.calls.length;
@@ -141,18 +141,18 @@ describe('PermissionsStore', () => {
 				of([createMockPermissionData(), createMockPermissionData({ id: 2, name: 'Write Users', action: 'write' })]),
 			);
 
-			store.refresh();
+			store.reload();
 
 			expect(permissionsApiMock.getAllUnpaginated.calls).toHaveLength(callsBefore + 1);
 			expect(store.permissions()).toHaveLength(2);
 			expect(store.isCached()).toBe(true);
 		});
 
-		it('should set isCached true after successful refresh', () => {
+		it('should set isCached true after successful reload', () => {
 			setupStore();
 
 			permissionsApiMock.getAllUnpaginated.mockReturnValue(of([createMockPermissionData()]));
-			store.refresh();
+			store.reload();
 
 			expect(store.isCached()).toBe(true);
 		});
