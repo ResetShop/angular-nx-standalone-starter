@@ -7,33 +7,7 @@
  * insert logic. Dynamic imports are used because this file runs in a separate
  * process where env vars must be configured before any module reads them.
  */
-import { loadEnvFile } from './load-env';
-
-function getTestConnectionString(): string {
-	const testConnectionString = process.env['PG_TEST_CONNECTION_STRING'];
-	if (!testConnectionString) {
-		throw new Error(
-			'PG_TEST_CONNECTION_STRING environment variable is required for integration tests. ' +
-				'Set it in .env or export it before running tests.',
-		);
-	}
-	return testConnectionString;
-}
-
-function configureEnvVars(testConnectionString: string): void {
-	process.env['PG_CONNECTION_STRING'] = testConnectionString;
-
-	// Test-only predictable key — PASETO_SECRET_KEY should always be set in .env for non-ephemeral environments
-	if (!process.env['PASETO_SECRET_KEY']) {
-		process.env['PASETO_SECRET_KEY'] = 'a'.repeat(64);
-	}
-	if (!process.env['PASETO_ISSUER']) {
-		process.env['PASETO_ISSUER'] = 'integration-test';
-	}
-	process.env['COOKIE_SECURE'] = 'false';
-	process.env['EMAIL_PROVIDER'] = 'noop';
-	process.env['BCRYPT_COST'] = '1';
-}
+import { configureEnvVars, getTestConnectionString, loadEnvFile } from './env-helpers';
 
 async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 	console.log('[Integration] Pushing schema to test database...');
