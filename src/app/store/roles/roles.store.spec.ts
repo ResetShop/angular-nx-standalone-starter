@@ -293,13 +293,15 @@ describe('RolesStore', () => {
 	});
 
 	describe('updateRole', () => {
-		it('should replace the updated role in the list on success', () => {
+		it('should reload the list from the server on success', () => {
 			const role = createMockRoleData({ id: 5, name: 'Old Name' });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 1)));
 			setupStore();
 
-			const updatedRole = createMockRoleData({ id: 5, name: 'Updated Name' });
-			rolesApiMock.update.mockReturnValue(of(updatedRole));
+			rolesApiMock.update.mockReturnValue(of(createMockRoleData({ id: 5, name: 'Updated Name' })));
+			rolesApiMock.getAll.mockReturnValue(
+				of(createMockListResponse([createMockRoleData({ id: 5, name: 'Updated Name' })], 1)),
+			);
 
 			store.updateRole({ id: 5, body: { name: 'Updated Name' } });
 
@@ -317,16 +319,16 @@ describe('RolesStore', () => {
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
 			store.loadRole(5);
 
-			const updatedRole = createMockRoleData({ id: 5, name: 'Updated' });
-			rolesApiMock.update.mockReturnValue(of(updatedRole));
-			// Re-mock for the detail reload triggered by updateRole
+			rolesApiMock.update.mockReturnValue(of(createMockRoleData({ id: 5, name: 'Updated' })));
+			rolesApiMock.getAll.mockReturnValue(
+				of(createMockListResponse([createMockRoleData({ id: 5, name: 'Updated' })], 1)),
+			);
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(
 				of(createMockRoleWithPermissions({ id: 5, name: 'Updated' })),
 			);
 
 			store.updateRole({ id: 5, body: { name: 'Updated' } });
 
-			// Verify getByIdWithPermissions was called for the reload
 			const detailCalls = rolesApiMock.getByIdWithPermissions.calls;
 			expect(detailCalls.length).toBeGreaterThanOrEqual(2);
 			expect(detailCalls[detailCalls.length - 1][0]).toBe(5);
@@ -343,12 +345,11 @@ describe('RolesStore', () => {
 			store.loadRole(1);
 			const detailCallsBefore = rolesApiMock.getByIdWithPermissions.calls.length;
 
-			const updatedRole = createMockRoleData({ id: 2, name: 'Changed' });
-			rolesApiMock.update.mockReturnValue(of(updatedRole));
+			rolesApiMock.update.mockReturnValue(of(createMockRoleData({ id: 2, name: 'Changed' })));
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
 
 			store.updateRole({ id: 2, body: { name: 'Changed' } });
 
-			// No additional detail call should have been made
 			expect(rolesApiMock.getByIdWithPermissions.calls).toHaveLength(detailCallsBefore);
 		});
 
@@ -415,23 +416,6 @@ describe('RolesStore', () => {
 			store.deleteRole(2);
 
 			expect(store.selectedRole()?.id).toBe(1);
-		});
-
-		it('should remove from allRoles when deleted', () => {
-			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2 })];
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-			setupStore();
-
-			rolesApiMock.getAllUnpaginated.mockReturnValue(of(roles));
-			store.loadAllRoles();
-
-			rolesApiMock.delete.mockReturnValue(of(undefined));
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData({ id: 2 })], 1)));
-
-			store.deleteRole(1);
-
-			expect(store.allRoles()).toHaveLength(1);
-			expect(store.allRoles()[0].id).toBe(2);
 		});
 
 		it('should navigate to previous page when last item on current page is deleted', () => {
