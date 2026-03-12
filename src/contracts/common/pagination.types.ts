@@ -1,10 +1,15 @@
 import type { z } from 'zod';
-import type { paginatedResponseSchema, paginationParamsSchema } from './pagination.schemas';
+import type { paginatedResponseSchema, paginationParamsSchema, searchPaginationSchema } from './pagination.schemas';
 
 /**
  * Pagination query parameters type.
  */
 export type PaginationParams = z.infer<typeof paginationParamsSchema>;
+
+/**
+ * Pagination with optional search query parameter.
+ */
+export type SearchPaginationParams = z.infer<typeof searchPaginationSchema>;
 
 /**
  * Generic paginated response type.
