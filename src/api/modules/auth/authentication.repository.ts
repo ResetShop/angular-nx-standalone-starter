@@ -1,8 +1,8 @@
+import { parseDurationToMs } from '@utils/duration';
 import { eq, sql } from 'drizzle-orm';
 import { authentication } from '../../../db/schema/authentication';
 import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants';
 import { BaseRepository } from '../../helpers/base.repository';
-import { parseDurationToMs } from '../../utils/duration';
 import { type AuthenticationData, type IAuthenticationRepository, type IncrementAttemptsResult } from './interfaces';
 
 /**

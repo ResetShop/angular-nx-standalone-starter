@@ -1,5 +1,5 @@
+import { parseDurationToMs } from '@utils/duration';
 import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants';
-import { parseDurationToMs } from '../../utils/duration';
 import { type AuthenticationData, type IAuthenticationRepository, type IncrementAttemptsResult } from './interfaces';
 
 interface MockAuthRecord {
