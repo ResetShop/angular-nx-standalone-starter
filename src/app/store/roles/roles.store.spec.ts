@@ -1,15 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import type {
-	AssignPermissionsRequest,
-	CreateRoleRequest,
-	RoleData,
-	RoleWithPermissions,
-	UpdateRoleRequest,
-} from '@contracts/role/role.types';
+import type { RoleData, RoleWithPermissions } from '@contracts/role/role.types';
 import { RolesApiService } from '@providers/roles/roles';
 import { clearAllMocks, fn, type MockFn } from '@test-utils';
-import { NEVER, of, throwError, type Observable } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 import { RolesStore } from './roles.store';
 
 function createMockRoleData(overrides: Partial<RoleData> = {}): RoleData {
@@ -47,15 +41,7 @@ function createMockListResponse(roles: RoleData[], total?: number): PaginatedRes
 
 describe('RolesStore', () => {
 	let store: InstanceType<typeof RolesStore>;
-	let rolesApiMock: {
-		getAll: MockFn<[{ offset?: number; limit?: number; search?: string }?], Observable<PaginatedResponse<RoleData>>>;
-		getAllUnpaginated: MockFn<[], Observable<RoleData[]>>;
-		getByIdWithPermissions: MockFn<[number], Observable<RoleWithPermissions>>;
-		create: MockFn<[CreateRoleRequest], Observable<RoleData>>;
-		update: MockFn<[number, UpdateRoleRequest], Observable<RoleData>>;
-		delete: MockFn<[number], Observable<void>>;
-		assignPermissions: MockFn<[number, AssignPermissionsRequest], Observable<void>>;
-	};
+	let rolesApiMock: Record<keyof RolesApiService, MockFn>;
 
 	/**
 	 * Configures TestBed and injects the store.
