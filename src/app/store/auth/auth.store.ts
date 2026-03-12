@@ -5,7 +5,7 @@ import type { IUser } from '@domain/user/user.interface';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { AuthApiService } from '@providers/auth/auth';
-import { catchError, EMPTY, map, pipe, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs';
 import { initialAuthState } from './auth.types';
 
 /**
@@ -71,22 +71,30 @@ export const AuthStore = signalStore(
 			/**
 			 * Logout user - clear state and revoke tokens
 			 *
+			 * Uses exhaustMap to guarantee the revocation request completes —
+			 * duplicate calls while one is in-flight are silently dropped.
 			 * The server deletes the cookies. Navigation should be handled by the caller.
 			 */
-			logout() {
-				patchState(store, { currentUser: null, mustChangePassword: false, isLoggingOut: true });
-
-				authApi.logout().subscribe({
-					complete: () => patchState(store, { isLoggingOut: false }),
-					error: (error) => {
-						// TODO(#66): Replace with security event logging — HIGH priority
-						// Logout failures in a cookie-based auth flow may leave stale
-						// server sessions, so visibility into these errors is critical.
-						console.error('[AuthStore] Logout error:', error);
-						patchState(store, { isLoggingOut: false });
-					},
-				});
-			},
+			logout: rxMethod<void>(
+				pipe(
+					tap(() => patchState(store, { currentUser: null, mustChangePassword: false, isLoggingOut: true })),
+					exhaustMap(() =>
+						authApi.logout().pipe(
+							tap({
+								next: () => patchState(store, { isLoggingOut: false }),
+								// TODO(#66): Replace with security event logging — HIGH priority
+								// Logout failures in a cookie-based auth flow may leave stale
+								// server sessions, so visibility into these errors is critical.
+								error: (err) => {
+									console.error('[AuthStore] Logout error:', err);
+									patchState(store, { isLoggingOut: false });
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
 
 			/**
 			 * Refresh access token
