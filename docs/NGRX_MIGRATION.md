@@ -125,7 +125,7 @@ These stores follow a consistent builder block structure documented in `CLAUDE.m
 The `AuthStore` is API-backed but follows a different pattern than CRUD stores:
 
 - **No pagination** — manages a single user session, not a collection
-- **Mixed method styles** — `login` uses `rxMethod`, while `logout`, `validateSession`, and `refreshToken` use direct observable subscriptions or return observables for the caller to handle
+- **Mixed method styles** — `login` uses `rxMethod`, while `logout`, `validateSession`, and `refreshToken` use direct observable subscriptions or return observables for the caller to handle. `logout` intentionally uses `.subscribe()` because it is fire-and-forget — the caller does not need to observe the result, and wrapping it in `rxMethod` with `switchMap` would risk cancelling an in-flight token revocation if called twice rapidly (e.g., interceptor + user click)
 - **No structured error types** — uses simpler `loginError` / `networkError` flags
 
 ### Client-Only Store (UIStore)
@@ -185,6 +185,7 @@ These are lightweight, UI-only concerns with no API dependencies. Converting the
    - Use `rxMethod` for all API calls — never `firstValueFrom` or `async/await`
    - Add `patchReadError` / `patchMutationError` helper functions
    - Log errors with `console.error('[StoreName] methodName failed:', err)`
+   - Add `withHooks({ onInit(store) { store.loadX(store.listParams); } })` as the last block to trigger reactive initial data loading
 
 4. **Write tests** — `<domain>.store.spec.ts`:
    - Use `fn()` from `@test-utils`, never `vi.fn()`
@@ -201,6 +202,13 @@ These are lightweight, UI-only concerns with no API dependencies. Converting the
 // notifications.types.ts
 export interface NotificationsReadError {
 	readonly list: string | null;
+}
+
+// Replace with your actual domain type import
+// import type { NotificationData } from '@contracts/notification/notification.types';
+interface NotificationData {
+	id: number;
+	message: string;
 }
 
 export interface NotificationsState {
