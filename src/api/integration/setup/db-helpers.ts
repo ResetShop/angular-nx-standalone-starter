@@ -55,9 +55,9 @@ async function getAdminPasswordHash(): Promise<string> {
  */
 export function getTestDb(): TestDb {
 	if (!testDb) {
-		const connectionString = process.env['PG_CONNECTION_STRING'];
+		const connectionString = process.env['PG_TEST_CONNECTION_STRING'];
 		if (!connectionString) {
-			throw new Error('PG_CONNECTION_STRING environment variable is required.');
+			throw new Error('PG_TEST_CONNECTION_STRING environment variable is required.');
 		}
 		testDb = drizzle(connectionString, { schema });
 	}
