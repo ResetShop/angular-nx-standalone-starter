@@ -98,12 +98,18 @@ The Angular frontend is signals-first. `rxMethod` integrates naturally with `@ng
 - Use computed signals + `withHooks.onInit` for reactive data fetching (pagination, search, filters)
 - Use `tap` with `patchState` for state side effects; `catchError(() => EMPTY)` to swallow errors after handling
 - Use `switchMap` as the default flattening operator (cancels stale requests)
+- Reload the full list from the server after every mutation — no optimistic in-place updates
+- Use per-operation structured error objects (`readError: { list, detail }`, `mutationError: { create, update, delete }`)
+- Log errors via `console.error('[StoreName] methodName failed:', err)` in every error handler
+- Derive values like `totalPages` as computed signals — never store them in state
 
 **Don't:**
 
 - Use `firstValueFrom`, `lastValueFrom`, or `toPromise` to convert observables to promises
 - Use `async/await` in store methods that call API services
 - Use `subscribe()` manually in stores — let `rxMethod` manage subscriptions
+- Use optimistic in-place updates (e.g., `roles.map(r => r.id === id ? updated : r)`) — always reload from server
+- Use a single `string | null` for error state — use per-operation typed error objects
 
 **`rxMethod` invocation modes:**
 
