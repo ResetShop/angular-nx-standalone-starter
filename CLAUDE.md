@@ -261,17 +261,33 @@ The Angular frontend (`src/app/`) uses `@ngrx/signals` with `rxMethod` from `@ng
 3. **Use `switchMap` as the default flattening operator** — cancels stale in-flight requests
 4. **Reactive reads use computed signals + `withHooks.onInit`** — pass a computed signal to `rxMethod` so state changes automatically trigger re-fetches (e.g., pagination, search)
 5. **Imperative mutations accept static values** — `rxMethod<CreateUserRequest>` called directly with data
+6. **No optimistic in-place updates** — all mutations reload the full list from the server after success via `store.loadX(store.listParams())`
+7. **Derived values are computed signals, not stored state** — e.g., `totalPages` must be in `withComputed`, never in the state interface
+8. **Use `SearchPaginationParams` from `@contracts/common/pagination.types`** for `rxMethod` type params and provider method signatures — never define inline pagination types
 
 ```typescript
-// ✅ Correct — rxMethod with observable pipe
+// ✅ Correct — rxMethod with observable pipe, error logging, structured error
 createUser: rxMethod<CreateUserRequest>(
   pipe(
-    tap(() => patchState(store, { isCreating: true, mutationError: null })),
+    tap(() => patchState(store, {
+      isCreating: true,
+      mutationError: patchMutationError(store.mutationError(), 'create', null),
+    })),
     switchMap((body) =>
       usersApi.create(body).pipe(
         tap({
-          next: (response) => patchState(store, { ... }),
-          error: () => patchState(store, { isCreating: false, mutationError: '...' }),
+          next: () => {
+            patchState(store, { isCreating: false });
+            store.loadUsers(store.listParams()); // full reload, not optimistic
+          },
+          // TODO(#66): Replace with structured logging service
+          error: (err) => {
+            console.error('[UsersStore] createUser failed:', err);
+            patchState(store, {
+              isCreating: false,
+              mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create user'),
+            });
+          },
         }),
         catchError(() => EMPTY),
       ),
@@ -333,12 +349,56 @@ withMethods((store) => ({
 })),
 ```
 
+**Structured error tracking:**
+
+Error state uses per-operation typed objects, not single `string | null` fields. Each store defines `ReadError` and `MutationError` interfaces in its `*.types.ts`:
+
+```typescript
+// ✅ Correct — per-operation error keys
+export interface UsersReadError {
+	list: string | null;
+}
+export interface UsersMutationError {
+	create: string | null;
+	update: string | null;
+	delete: string | null;
+}
+
+// ❌ Incorrect — single shared error field
+readError: string | null;
+mutationError: string | null;
+```
+
+Helper functions `patchReadError` / `patchMutationError` in each store handle type-safe error patching. Computed signals `hasReadError` / `hasMutationError` provide boolean checks for the UI. Every error handler must log via `console.error` with `[StoreName] methodName failed:` prefix (until #66 introduces a structured logging service).
+
+**Store builder block structure:**
+
+Stores follow a consistent block ordering with two `withComputed` and two `withMethods` blocks:
+
+1. `withState(initialState)`
+2. `withComputed` — `totalPages`, `isAnyLoading`, `hasReadError`, `hasMutationError`, `listParams`
+3. `withComputed` — `hasNextPage`, `hasPreviousPage` (depends on `totalPages` from block 2)
+4. `withMethods` — read operations (`loadX` via `rxMethod`), sync setters (`setPage`, `setPageSize`, `setSearchQuery`), `selectX`, `clearErrors`
+5. `withMethods` — `reload()`, then mutation methods in CRUD order: `create` → `update` → `delete` → domain-specific (e.g., `assignPermissions`)
+6. `withHooks` — `onInit` passes `listParams` signal to reactive `rxMethod`
+
+**Store test mock typing:**
+
+```typescript
+// ✅ Correct — structurally linked to the real service
+let apiMock: Record<keyof UsersApiService, MockFn>;
+
+// ❌ Incorrect — inline object literal not linked to service
+let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
+```
+
 **Existing stores following this pattern:**
 
 | Store        | File                                 |
 | ------------ | ------------------------------------ |
 | `AuthStore`  | `src/app/store/auth/auth.store.ts`   |
 | `UsersStore` | `src/app/store/users/users.store.ts` |
+| `RolesStore` | `src/app/store/roles/roles.store.ts` |
 
 ---
 
