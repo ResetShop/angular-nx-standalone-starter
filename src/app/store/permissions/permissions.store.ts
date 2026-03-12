@@ -4,7 +4,16 @@ import { patchState, signalStore, withComputed, withHooks, withMethods, withStat
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { PermissionsApiService } from '@providers/permissions/permissions';
 import { catchError, EMPTY, filter, pipe, switchMap, tap } from 'rxjs';
+import type { PermissionsReadError } from './permissions.types';
 import { initialPermissionsState } from './permissions.types';
+
+function patchReadError(
+	current: PermissionsReadError,
+	key: keyof PermissionsReadError,
+	value: string | null,
+): PermissionsReadError {
+	return { ...current, [key]: value };
+}
 
 /**
  * PermissionsStore - Signal Store for system permissions
@@ -17,6 +26,7 @@ export const PermissionsStore = signalStore(
 	{ providedIn: 'root' },
 	withState(initialPermissionsState),
 	withComputed((store) => ({
+		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 		permissionsGroupedByResource: computed(() => {
 			return store.permissions().reduce((grouped, permission) => {
 				const existing = grouped.get(permission.resource) ?? [];
@@ -41,12 +51,24 @@ export const PermissionsStore = signalStore(
 			loadPermissions: rxMethod<void>(
 				pipe(
 					filter(() => !store.isCached()),
-					tap(() => patchState(store, { isLoading: true, error: null })),
+					tap(() =>
+						patchState(store, {
+							isLoading: true,
+							readError: patchReadError(store.readError(), 'list', null),
+						}),
+					),
 					switchMap(() =>
 						permissionsApi.getAllUnpaginated().pipe(
 							tap({
 								next: (permissions) => patchState(store, { permissions, isLoading: false, isCached: true }),
-								error: () => patchState(store, { isLoading: false, error: 'Failed to load permissions' }),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[PermissionsStore] loadPermissions failed:', err);
+									patchState(store, {
+										isLoading: false,
+										readError: patchReadError(store.readError(), 'list', 'Failed to load permissions'),
+									});
+								},
 							}),
 							catchError(() => EMPTY),
 						),
@@ -54,8 +76,8 @@ export const PermissionsStore = signalStore(
 				),
 			),
 
-			clearError(): void {
-				patchState(store, { error: null });
+			clearErrors(): void {
+				patchState(store, { readError: { list: null } });
 			},
 		};
 	}),
