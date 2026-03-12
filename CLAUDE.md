@@ -394,11 +394,13 @@ let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
 
 **Existing stores following this pattern:**
 
-| Store        | File                                 |
-| ------------ | ------------------------------------ |
-| `AuthStore`  | `src/app/store/auth/auth.store.ts`   |
-| `UsersStore` | `src/app/store/users/users.store.ts` |
-| `RolesStore` | `src/app/store/roles/roles.store.ts` |
+| Store              | File                                             |
+| ------------------ | ------------------------------------------------ |
+| `AuthStore`        | `src/app/store/auth/auth.store.ts`               |
+| `UsersStore`       | `src/app/store/users/users.store.ts`             |
+| `RolesStore`       | `src/app/store/roles/roles.store.ts`             |
+| `PermissionsStore` | `src/app/store/permissions/permissions.store.ts` |
+| `UIStore`          | `src/app/store/ui/ui.store.ts`                   |
 
 ---
 
