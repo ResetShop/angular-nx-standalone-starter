@@ -69,8 +69,8 @@ describe('PermissionsStore', () => {
 		it('should have correct computed signals', () => {
 			setupStore();
 
-			expect(store.permissionsGroupedByResource()).toEqual(new Map());
-			expect(store.permissionsGroupedArray()).toEqual([]);
+			expect(store.permissionsGroupedByResource().size).toBe(0);
+			expect(store.permissionsGroupedArray()).toHaveLength(0);
 			expect(store.hasReadError()).toBe(false);
 		});
 	});
