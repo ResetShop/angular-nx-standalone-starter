@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import type { PermissionData } from '@contracts/role/role.types';
 import { PermissionsApiService } from '@providers/permissions/permissions';
 import { clearAllMocks, fn, type MockFn } from '@test-utils';
-import { NEVER, of, throwError, type Observable } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 import { PermissionsStore } from './permissions.store';
 
 function createMockPermissionData(overrides: Partial<PermissionData> = {}): PermissionData {
@@ -18,9 +18,7 @@ function createMockPermissionData(overrides: Partial<PermissionData> = {}): Perm
 
 describe('PermissionsStore', () => {
 	let store: InstanceType<typeof PermissionsStore>;
-	let permissionsApiMock: {
-		getAllUnpaginated: MockFn<[], Observable<PermissionData[]>>;
-	};
+	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>;
 
 	/**
 	 * Configures TestBed and injects the store.
@@ -56,7 +54,7 @@ describe('PermissionsStore', () => {
 			expect(store.permissions()).toEqual([]);
 			expect(store.isLoading()).toBe(true);
 			expect(store.isCached()).toBe(false);
-			expect(store.error()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should have correct state after initial load completes', () => {
@@ -65,7 +63,7 @@ describe('PermissionsStore', () => {
 			expect(store.permissions()).toEqual([]);
 			expect(store.isLoading()).toBe(false);
 			expect(store.isCached()).toBe(true);
-			expect(store.error()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should have correct computed signals', () => {
@@ -73,6 +71,7 @@ describe('PermissionsStore', () => {
 
 			expect(store.permissionsGroupedByResource()).toEqual(new Map());
 			expect(store.permissionsGroupedArray()).toEqual([]);
+			expect(store.hasReadError()).toBe(false);
 		});
 	});
 
@@ -88,7 +87,7 @@ describe('PermissionsStore', () => {
 			expect(store.permissions()).toHaveLength(2);
 			expect(store.isCached()).toBe(true);
 			expect(store.isLoading()).toBe(false);
-			expect(store.error()).toBeNull();
+			expect(store.readError().list).toBeNull();
 		});
 
 		it('should set isLoading during load', () => {
@@ -103,7 +102,8 @@ describe('PermissionsStore', () => {
 			setupStore();
 
 			expect(store.isLoading()).toBe(false);
-			expect(store.error()).toBe('Failed to load permissions');
+			expect(store.readError().list).toBe('Failed to load permissions');
+			expect(store.hasReadError()).toBe(true);
 			expect(store.isCached()).toBe(false);
 		});
 
@@ -120,13 +120,14 @@ describe('PermissionsStore', () => {
 		it('should clear error on successful retry', () => {
 			permissionsApiMock.getAllUnpaginated.mockReturnValue(throwError(() => new Error('Error')));
 			setupStore();
-			expect(store.error()).toBe('Failed to load permissions');
+			expect(store.readError().list).toBe('Failed to load permissions');
 
 			// Retry succeeds — isCached is still false after error, so loadPermissions proceeds
 			permissionsApiMock.getAllUnpaginated.mockReturnValue(of([createMockPermissionData()]));
 			store.loadPermissions();
 
-			expect(store.error()).toBeNull();
+			expect(store.readError().list).toBeNull();
+			expect(store.hasReadError()).toBe(false);
 			expect(store.isCached()).toBe(true);
 		});
 	});
@@ -199,15 +200,17 @@ describe('PermissionsStore', () => {
 		});
 	});
 
-	describe('clearError', () => {
-		it('should clear the error field', () => {
+	describe('clearErrors', () => {
+		it('should clear the readError field', () => {
 			permissionsApiMock.getAllUnpaginated.mockReturnValue(throwError(() => new Error('Error')));
 			setupStore();
-			expect(store.error()).toBe('Failed to load permissions');
+			expect(store.readError().list).toBe('Failed to load permissions');
+			expect(store.hasReadError()).toBe(true);
 
-			store.clearError();
+			store.clearErrors();
 
-			expect(store.error()).toBeNull();
+			expect(store.readError().list).toBeNull();
+			expect(store.hasReadError()).toBe(false);
 		});
 	});
 });
