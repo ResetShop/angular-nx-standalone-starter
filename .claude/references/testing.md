@@ -209,6 +209,35 @@ TestBed.flushEffects();
 
 **When to call `TestBed.tick()`:** After any state change that triggers a computed signal update which in turn causes a reactive side effect (e.g., `patchState` on `currentPage` updates the `listParams` computed signal, which causes `rxMethod` to re-fire).
 
+### Store Test Mock Typing
+
+Type API mocks as `Record<keyof ServiceClass, MockFn>` to keep the mock structurally linked to the real service. If a method is added to the service, TypeScript will catch the missing mock key.
+
+```typescript
+// ✅ Correct — structurally linked to the real service
+let usersApiMock: Record<keyof UsersApiService, MockFn>;
+
+// ❌ Incorrect — inline object literal, silently drifts from the real service
+let usersApiMock: {
+	getAll: MockFn<[params?: SearchPaginationParams], Observable<PaginatedResponse<ManagedUser>>>;
+	create: MockFn<[CreateUserRequest], Observable<CreateUserResponse>>;
+};
+```
+
+### Store Error State Assertions
+
+With per-operation structured errors, assert the specific operation key rather than the whole object (except in initial-state and clearErrors tests where the full shape matters):
+
+```typescript
+// ✅ Correct — assert the specific operation key
+expect(store.mutationError().create).toBe('Failed to create user');
+expect(store.readError().list).toBe('Failed to load users');
+
+// ✅ Correct — assert full shape for initial state or clearErrors
+expect(store.readError()).toEqual({ list: null });
+expect(store.mutationError()).toEqual({ create: null, update: null, delete: null });
+```
+
 ### ESLint Enforcement
 
 The `viRestrictedSyntax` ESLint rules forbid direct usage of `vi.fn()`, `vi.mock()`, `vi.useFakeTimers()`, and related Vitest globals. Use the `@test-utils` wrappers instead.
