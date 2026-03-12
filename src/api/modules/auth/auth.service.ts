@@ -1,10 +1,10 @@
 import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors';
 import { UserStatus } from '@contracts/user/user.schemas';
+import { parseDurationToMs } from '@utils/duration';
 import { compare } from 'bcryptjs';
 import { createHash, randomUUID } from 'crypto';
 import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants';
 import { type IPasetoService } from '../../services/paseto/interfaces';
-import { parseDurationToMs } from '../../utils/duration';
 import { type IUserRepository, type UserData } from '../user/interfaces';
 import {
 	type AuthCredentials,
