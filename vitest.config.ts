@@ -50,7 +50,7 @@ export default defineConfig({
 			'@pages': '/src/app/pages',
 			'@providers': '/src/app/providers',
 			'@store': '/src/app/store',
-			'@utils': '/src/app/utils',
+			'@utils': '/src/utils',
 			'@test-utils': '/src/test-utils',
 		},
 	},
