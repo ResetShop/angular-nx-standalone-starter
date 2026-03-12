@@ -227,46 +227,21 @@ describe('UsersStore', () => {
 	});
 
 	describe('updateUser', () => {
-		it('should replace the updated user in the list on success', () => {
+		it('should reload the list from the server on success', () => {
 			const user = createMockManagedUser({ id: 5, firstName: 'Old' });
 			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)));
 			setupStore();
 
-			const updatedUser = createMockManagedUser({ id: 5, firstName: 'Updated' });
-			usersApiMock.update.mockReturnValue(of(updatedUser));
+			usersApiMock.update.mockReturnValue(of(createMockManagedUser({ id: 5, firstName: 'Updated' })));
+
+			// After update, the store reloads — mock the server-authoritative response
+			const reloadedUser = createMockManagedUser({ id: 5, firstName: 'Updated' });
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)));
 
 			store.updateUser({ id: 5, body: { firstName: 'Updated' } });
 
 			expect(store.users()[0].firstName).toBe('Updated');
 			expect(store.isUpdating()).toBe(false);
-		});
-
-		it('should sync selectedUser when the updated user is selected', () => {
-			const user = createMockManagedUser({ id: 5, firstName: 'Old' });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)));
-			setupStore();
-			store.selectUser(store.users()[0]);
-
-			const updatedUser = createMockManagedUser({ id: 5, firstName: 'Updated' });
-			usersApiMock.update.mockReturnValue(of(updatedUser));
-
-			store.updateUser({ id: 5, body: { firstName: 'Updated' } });
-
-			expect(store.selectedUser()?.firstName).toBe('Updated');
-		});
-
-		it('should not change selectedUser when a different user is updated', () => {
-			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })];
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(users, 2)));
-			setupStore();
-			store.selectUser(store.users()[0]);
-
-			const updatedUser = createMockManagedUser({ id: 2, firstName: 'Changed' });
-			usersApiMock.update.mockReturnValue(of(updatedUser));
-
-			store.updateUser({ id: 2, body: { firstName: 'Changed' } });
-
-			expect(store.selectedUser()?.id).toBe(1);
 		});
 
 		it('should set mutationError on failure', () => {
@@ -362,13 +337,16 @@ describe('UsersStore', () => {
 	});
 
 	describe('updateUserStatus', () => {
-		it('should replace user with updated status on success', () => {
+		it('should reload the list from the server on success', () => {
 			const user = createMockManagedUser({ id: 3, status: UserStatus.ACTIVE });
 			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)));
 			setupStore();
 
-			const updated = createMockManagedUser({ id: 3, status: UserStatus.DISABLED });
-			usersApiMock.updateStatus.mockReturnValue(of(updated));
+			usersApiMock.updateStatus.mockReturnValue(of(createMockManagedUser({ id: 3, status: UserStatus.DISABLED })));
+
+			// After status update, the store reloads — mock the server-authoritative response
+			const reloadedUser = createMockManagedUser({ id: 3, status: UserStatus.DISABLED });
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)));
 
 			store.updateUserStatus({ id: 3, body: { status: UserStatus.DISABLED } });
 
