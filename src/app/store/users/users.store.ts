@@ -1,4 +1,5 @@
 import { computed, inject } from '@angular/core';
+import type { SearchPaginationParams } from '@contracts/common/pagination.types';
 import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types';
 import type { IManagedUser } from '@domain/user-management/managed-user.interface';
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper';
@@ -22,8 +23,7 @@ export const UsersStore = signalStore(
 	{ providedIn: 'root' },
 	withState(initialUsersState),
 	withComputed((store) => ({
-		hasNextPage: computed(() => store.currentPage() < store.totalPages()),
-		hasPreviousPage: computed(() => store.currentPage() > 1),
+		totalPages: computed(() => (store.totalItems() === 0 ? 0 : Math.ceil(store.totalItems() / store.pageSize()))),
 		isAnyLoading: computed(
 			() => store.isLoadingList() || store.isCreating() || store.isUpdating() || store.isDeleting(),
 		),
@@ -34,11 +34,15 @@ export const UsersStore = signalStore(
 			search: store.searchQuery() || undefined,
 		})),
 	})),
+	withComputed((store) => ({
+		hasNextPage: computed(() => store.currentPage() < store.totalPages()),
+		hasPreviousPage: computed(() => store.currentPage() > 1),
+	})),
 	withMethods((store) => {
 		const usersApi = inject(UsersApiService);
 
 		return {
-			loadUsers: rxMethod<{ offset: number; limit: number; search?: string }>(
+			loadUsers: rxMethod<SearchPaginationParams>(
 				pipe(
 					tap(() => patchState(store, { isLoadingList: true, listError: null })),
 					switchMap(({ offset, limit, search }) =>
@@ -46,56 +50,9 @@ export const UsersStore = signalStore(
 							tap({
 								next: (response) => {
 									const users = response.data.map(mapManagedUserResponse);
-									const totalPages = Math.ceil(response.total / store.pageSize());
-									patchState(store, { users, totalItems: response.total, totalPages, isLoadingList: false });
+									patchState(store, { users, totalItems: response.total, isLoadingList: false });
 								},
 								error: () => patchState(store, { isLoadingList: false, listError: 'Failed to load users' }),
-							}),
-							catchError(() => EMPTY),
-						),
-					),
-				),
-			),
-
-			updateUser: rxMethod<{ id: number; body: UpdateUserRequest }>(
-				pipe(
-					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
-					switchMap(({ id, body }) =>
-						usersApi.update(id, body).pipe(
-							tap({
-								next: (response) => {
-									const updatedUser = mapManagedUserResponse(response);
-									const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
-									patchState(store, {
-										users: store.users().map((u) => (u.id === id ? updatedUser : u)),
-										selectedUser: selectedUpdate,
-										isUpdating: false,
-									});
-								},
-								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user' }),
-							}),
-							catchError(() => EMPTY),
-						),
-					),
-				),
-			),
-
-			updateUserStatus: rxMethod<{ id: number; body: UpdateUserStatusRequest }>(
-				pipe(
-					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
-					switchMap(({ id, body }) =>
-						usersApi.updateStatus(id, body).pipe(
-							tap({
-								next: (response) => {
-									const updatedUser = mapManagedUserResponse(response);
-									const selectedUpdate = store.selectedUser()?.id === id ? updatedUser : store.selectedUser();
-									patchState(store, {
-										users: store.users().map((u) => (u.id === id ? updatedUser : u)),
-										selectedUser: selectedUpdate,
-										isUpdating: false,
-									});
-								},
-								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user status' }),
 							}),
 							catchError(() => EMPTY),
 						),
@@ -124,7 +81,7 @@ export const UsersStore = signalStore(
 			},
 		};
 	}),
-	// Mutation methods that reload the list after success, plus explicit reload for external use
+	// Mutation methods — all reload the list after success
 	withMethods((store) => {
 		const usersApi = inject(UsersApiService);
 
@@ -144,6 +101,42 @@ export const UsersStore = signalStore(
 									store.loadUsers(store.listParams());
 								},
 								error: () => patchState(store, { isCreating: false, mutationError: 'Failed to create user' }),
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			updateUser: rxMethod<{ id: number; body: UpdateUserRequest }>(
+				pipe(
+					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
+					switchMap(({ id, body }) =>
+						usersApi.update(id, body).pipe(
+							tap({
+								next: () => {
+									patchState(store, { isUpdating: false });
+									store.loadUsers(store.listParams());
+								},
+								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user' }),
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			updateUserStatus: rxMethod<{ id: number; body: UpdateUserStatusRequest }>(
+				pipe(
+					tap(() => patchState(store, { isUpdating: true, mutationError: null })),
+					switchMap(({ id, body }) =>
+						usersApi.updateStatus(id, body).pipe(
+							tap({
+								next: () => {
+									patchState(store, { isUpdating: false });
+									store.loadUsers(store.listParams());
+								},
+								error: () => patchState(store, { isUpdating: false, mutationError: 'Failed to update user status' }),
 							}),
 							catchError(() => EMPTY),
 						),
