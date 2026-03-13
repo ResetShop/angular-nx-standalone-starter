@@ -15,7 +15,7 @@ An alert component for displaying important messages or feedback.
 
 - **2 Variants**: Default, Destructive
 - **Composable Slots**: Title and Description sub-components
-- **Accessible**: Uses \`role="alert"\` for screen readers
+- **Accessible**: Uses \`role="status"\` (polite) for default, \`role="alert"\` (assertive) for destructive
 - **Dark Mode Support**: Automatic dark mode styling
 - **Attribute Directive**: Applied via \`[appAlert]\` on div elements
 
