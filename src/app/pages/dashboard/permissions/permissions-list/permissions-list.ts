@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert';
 import { Badge } from '@components/badge/badge';
 import { DataTable } from '@components/data-table/data-table';
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def';
@@ -9,7 +10,7 @@ import type { ColumnDef } from '@tanstack/angular-table';
 @Component({
 	selector: 'app-permissions-list',
 	standalone: true,
-	imports: [Badge, DataTable, DataTableCellDef],
+	imports: [Alert, AlertTitle, AlertDescription, Badge, DataTable, DataTableCellDef],
 	template: `
 		<div class="space-y-6">
 			<div>
@@ -23,19 +24,26 @@ import type { ColumnDef } from '@tanstack/angular-table';
 				</p>
 			</div>
 
-			<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-				<app-data-table
-					[columns]="columns"
-					[data]="store.permissions()"
-					[loading]="store.isLoading()"
-					[grouping]="grouping"
-					caption="Permissions grouped by resource"
-				>
-					<ng-template appDataTableCellDef="identifier" let-value>
-						<span appBadge variant="secondary">{{ value }}</span>
-					</ng-template>
-				</app-data-table>
-			</div>
+			@if (store.hasReadError()) {
+				<div appAlert variant="destructive">
+					<h5 appAlertTitle>Error</h5>
+					<p appAlertDescription>{{ store.readError().list }}</p>
+				</div>
+			} @else {
+				<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+					<app-data-table
+						[columns]="columns"
+						[data]="store.permissions()"
+						[loading]="store.isLoading()"
+						[grouping]="grouping"
+						caption="Permissions grouped by resource"
+					>
+						<ng-template appDataTableCellDef="identifier" let-value>
+							<span appBadge variant="secondary">{{ value }}</span>
+						</ng-template>
+					</app-data-table>
+				</div>
+			}
 		</div>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
