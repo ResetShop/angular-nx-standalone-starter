@@ -42,14 +42,13 @@ describe('PermissionsList', () => {
 	});
 
 	async function renderComponent() {
-		const result = await render(PermissionsList, {
+		await render(PermissionsList, {
 			providers: [
 				{ provide: PermissionsApiService, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		});
 		TestBed.tick();
-		return result;
 	}
 
 	it('should render the page heading', async () => {

@@ -18,6 +18,11 @@ export type AlertVariant = 'default' | 'destructive';
 export class Alert {
 	readonly variant = input<AlertVariant>('default');
 
+	private readonly variantClasses: Record<AlertVariant, string[]> = {
+		default: ['bg-card', 'text-card-foreground'],
+		destructive: ['text-destructive', 'bg-card', '[&_[data-slot=alert-description]]:text-destructive/90'],
+	};
+
 	protected readonly role = computed(() => (this.variant() === 'destructive' ? 'alert' : 'status'));
 
 	protected readonly computedClasses = computed(() => {
@@ -39,12 +44,7 @@ export class Alert {
 			'[&>svg]:row-span-2',
 		];
 
-		const variantClasses: Record<AlertVariant, string[]> = {
-			default: ['bg-card', 'text-card-foreground'],
-			destructive: ['text-destructive', 'bg-card', '[&_[data-slot=alert-description]]:text-destructive/90'],
-		};
-
-		return [...baseClasses, ...variantClasses[this.variant()]].join(' ');
+		return [...baseClasses, ...this.variantClasses[this.variant()]].join(' ');
 	});
 }
 

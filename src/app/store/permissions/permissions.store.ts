@@ -36,21 +36,20 @@ export const PermissionsStore = signalStore(
 	withState(initialPermissionsState),
 	withComputed((store) => ({
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
-		permissions: computed(() => store._permissionsData().map(createPermission)),
 	})),
-	// Second block — derives from permissions, which is only available after the first withComputed
-	withComputed((store) => ({
-		permissionsGroupedByResource: computed(() => groupPermissionsByResource(store.permissions())),
-	})),
-	// Third block — derives from permissionsGroupedByResource
-	withComputed((store) => ({
-		permissionsGroupedArray: computed(() => {
-			return Array.from(store.permissionsGroupedByResource().entries()).map(([resource, permissions]) => ({
-				resource,
-				permissions,
-			}));
-		}),
-	})),
+	withComputed((store) => {
+		const permissionsGroupedByResource = computed(() => groupPermissionsByResource(store.permissions()));
+
+		return {
+			permissionsGroupedByResource,
+			permissionsGroupedArray: computed(() => {
+				return Array.from(permissionsGroupedByResource().entries()).map(([resource, permissions]) => ({
+					resource,
+					permissions,
+				}));
+			}),
+		};
+	}),
 	withMethods((store) => {
 		const permissionsApi = inject(PermissionsApiService);
 
@@ -67,8 +66,8 @@ export const PermissionsStore = signalStore(
 					switchMap(() =>
 						permissionsApi.getAllUnpaginated().pipe(
 							tap({
-								next: (permissions) =>
-									patchState(store, { _permissionsData: permissions, isLoading: false, isCached: true }),
+								next: (data) =>
+									patchState(store, { permissions: data.map(createPermission), isLoading: false, isCached: true }),
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
 									console.error('[PermissionsStore] loadPermissions failed:', err);
