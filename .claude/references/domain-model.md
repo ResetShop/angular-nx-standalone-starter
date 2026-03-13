@@ -120,6 +120,27 @@ if (result.success) {
 }
 ```
 
+## Component-Level Data Binding
+
+Components must bind exclusively to **domain interfaces** (`IPermission`, `IRole`, `IUser`) or their aggregate models. Contract DTOs (`PermissionData`, `RoleData`) belong to the API/provider layer only — they must never be imported or referenced in components.
+
+The boundary is clear: API services and store internals may use DTOs, but from the store's public surface upward (components, templates, column definitions), only domain interfaces are allowed. Domain models expose computed properties (e.g., `identifier`, `fullName`) and behavior methods that encode business rules in a single place.
+
+**Pattern:** The DTO → domain model mapping belongs in the store (e.g., a `withComputed` block), so the store's public signals already expose domain interfaces. Components simply consume them:
+
+```typescript
+// ✅ Correct — store exposes domain models, component binds to domain interface
+readonly columns: ColumnDef<IPermission, unknown>[] = [
+	{ accessorKey: 'identifier', header: 'Identifier' }, // computed getter on IPermission
+];
+```
+
+**Rules:**
+
+- Column definitions, template bindings, and any UI logic must reference domain interfaces, not contract types
+- DTO → domain model mapping is done in the store via factory functions (`createPermission`, `createUser`, etc.) from `@domain/<context>/<entity>.mapper.ts`
+- DTOs are confined to API services and store internals — they must never cross into the component layer
+
 ## Mappers
 
 Use mappers to transform between layers (API contracts ↔ domain models ↔ storage):

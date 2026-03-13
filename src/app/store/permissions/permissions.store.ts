@@ -1,5 +1,6 @@
 import { computed, inject } from '@angular/core';
-import type { PermissionData } from '@contracts/role/role.types';
+import type { IPermission } from '@domain/access/permission.interface';
+import { createPermission } from '@domain/access/permission.mapper';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { PermissionsApiService } from '@providers/permissions/permissions';
@@ -15,12 +16,12 @@ function patchReadError(
 	return { ...current, [key]: value };
 }
 
-function groupPermissionsByResource(permissions: PermissionData[]): Map<string, PermissionData[]> {
+function groupPermissionsByResource(permissions: IPermission[]): Map<string, IPermission[]> {
 	return permissions.reduce((grouped, permission) => {
 		const existing = grouped.get(permission.resource) ?? [];
 		grouped.set(permission.resource, [...existing, permission]);
 		return grouped;
-	}, new Map<string, PermissionData[]>());
+	}, new Map<string, IPermission[]>());
 }
 
 /**
@@ -35,9 +36,13 @@ export const PermissionsStore = signalStore(
 	withState(initialPermissionsState),
 	withComputed((store) => ({
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
+		permissions: computed(() => store._permissionsData().map(createPermission)),
+	})),
+	// Second block — derives from permissions, which is only available after the first withComputed
+	withComputed((store) => ({
 		permissionsGroupedByResource: computed(() => groupPermissionsByResource(store.permissions())),
 	})),
-	// Second block — derives from permissionsGroupedByResource, which is only available after the first withComputed
+	// Third block — derives from permissionsGroupedByResource
 	withComputed((store) => ({
 		permissionsGroupedArray: computed(() => {
 			return Array.from(store.permissionsGroupedByResource().entries()).map(([resource, permissions]) => ({
@@ -62,7 +67,8 @@ export const PermissionsStore = signalStore(
 					switchMap(() =>
 						permissionsApi.getAllUnpaginated().pipe(
 							tap({
-								next: (permissions) => patchState(store, { permissions, isLoading: false, isCached: true }),
+								next: (permissions) =>
+									patchState(store, { _permissionsData: permissions, isLoading: false, isCached: true }),
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
 									console.error('[PermissionsStore] loadPermissions failed:', err);

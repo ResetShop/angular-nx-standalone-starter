@@ -5,14 +5,14 @@ export interface PermissionsReadError {
 }
 
 export interface PermissionsState {
-	permissions: PermissionData[];
+	_permissionsData: PermissionData[];
 	isLoading: boolean;
 	isCached: boolean;
 	readError: PermissionsReadError;
 }
 
 export const initialPermissionsState: PermissionsState = {
-	permissions: [],
+	_permissionsData: [],
 	isLoading: false,
 	isCached: false,
 	readError: { list: null },
