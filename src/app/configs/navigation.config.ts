@@ -1,5 +1,5 @@
 import type { NavigationConfig } from '@interfaces/navigation';
-import { featherActivity, featherHome } from '@ng-icons/feather-icons';
+import { featherActivity, featherHome, featherShield } from '@ng-icons/feather-icons';
 
 /**
  * Navigation configuration for the application.
@@ -38,6 +38,25 @@ export const navigationConfig: NavigationConfig = {
 					name: 'Salud',
 					route: 'dashboard/health',
 					icon: { featherActivity },
+				},
+			],
+		},
+		{
+			id: 'admin',
+			name: 'Administración',
+			routes: [
+				{
+					id: 'authorization',
+					name: 'Autorización',
+					route: 'dashboard/authorization/permissions',
+					icon: { featherShield },
+					children: [
+						{
+							id: 'permissions',
+							name: 'Permisos',
+							route: 'dashboard/authorization/permissions',
+						},
+					],
 				},
 			],
 		},
