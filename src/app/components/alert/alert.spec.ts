@@ -13,12 +13,20 @@ describe('Alert', () => {
 				imports: [Alert],
 			});
 
-			expect(screen.getByRole('alert')).toBeInTheDocument();
+			expect(screen.getByRole('status')).toBeInTheDocument();
 			expect(screen.getByText('Alert message')).toBeInTheDocument();
 		});
 
-		it('should have role="alert" on the host element', async () => {
+		it('should have role="status" for the default variant', async () => {
 			await render(`<div appAlert>Content</div>`, {
+				imports: [Alert],
+			});
+
+			expect(screen.getByRole('status')).toBeInTheDocument();
+		});
+
+		it('should have role="alert" for the destructive variant', async () => {
+			await render(`<div appAlert variant="destructive">Content</div>`, {
 				imports: [Alert],
 			});
 
@@ -30,8 +38,8 @@ describe('Alert', () => {
 				imports: [Alert],
 			});
 
-			const alert = screen.getByRole('alert');
-			expect(alert).toHaveClass(
+			const el = screen.getByRole('status');
+			expect(el).toHaveClass(
 				'relative',
 				'grid',
 				'gap-0.5',
@@ -49,8 +57,8 @@ describe('Alert', () => {
 				imports: [Alert],
 			});
 
-			const alert = screen.getByRole('alert');
-			expect(alert).toHaveClass('bg-card', 'text-card-foreground');
+			const el = screen.getByRole('status');
+			expect(el).toHaveClass('bg-card', 'text-card-foreground');
 		});
 
 		it('should apply default variant classes when variant="default"', async () => {
@@ -58,8 +66,8 @@ describe('Alert', () => {
 				imports: [Alert],
 			});
 
-			const alert = screen.getByRole('alert');
-			expect(alert).toHaveClass('bg-card', 'text-card-foreground');
+			const el = screen.getByRole('status');
+			expect(el).toHaveClass('bg-card', 'text-card-foreground');
 		});
 
 		it('should apply destructive variant classes when variant="destructive"', async () => {
@@ -67,8 +75,8 @@ describe('Alert', () => {
 				imports: [Alert],
 			});
 
-			const alert = screen.getByRole('alert');
-			expect(alert).toHaveClass('text-destructive', 'bg-card');
+			const el = screen.getByRole('alert');
+			expect(el).toHaveClass('text-destructive', 'bg-card');
 		});
 
 		it('should not apply destructive classes for the default variant', async () => {
@@ -76,8 +84,8 @@ describe('Alert', () => {
 				imports: [Alert],
 			});
 
-			const alert = screen.getByRole('alert');
-			expect(alert).not.toHaveClass('text-destructive');
+			const el = screen.getByRole('status');
+			expect(el).not.toHaveClass('text-destructive');
 		});
 
 		it('should not apply default text class for the destructive variant', async () => {
@@ -85,8 +93,8 @@ describe('Alert', () => {
 				imports: [Alert],
 			});
 
-			const alert = screen.getByRole('alert');
-			expect(alert).not.toHaveClass('text-card-foreground');
+			const el = screen.getByRole('alert');
+			expect(el).not.toHaveClass('text-card-foreground');
 		});
 	});
 
@@ -156,7 +164,7 @@ describe('Alert', () => {
 				{ imports: [Alert, AlertTitle, AlertDescription] },
 			);
 
-			expect(screen.getByRole('alert')).toBeInTheDocument();
+			expect(screen.getByRole('status')).toBeInTheDocument();
 			expect(screen.getByText('Heads up!')).toBeInTheDocument();
 			expect(screen.getByText('You can add components here.')).toBeInTheDocument();
 		});
@@ -183,8 +191,8 @@ describe('Alert', () => {
 				{ imports: [Alert, AlertTitle, AlertDescription] },
 			);
 
-			const alert = screen.getByRole('alert');
-			expect(alert).toHaveClass('[&_[data-slot=alert-description]]:text-destructive/90');
+			const el = screen.getByRole('alert');
+			expect(el).toHaveClass('[&_[data-slot=alert-description]]:text-destructive/90');
 		});
 	});
 });

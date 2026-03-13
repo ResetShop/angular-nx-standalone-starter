@@ -10,7 +10,7 @@ export type AlertVariant = 'default' | 'destructive';
 		<ng-content />
 	`,
 	host: {
-		role: 'alert',
+		'[attr.role]': 'role()',
 		'[class]': 'computedClasses()',
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +35,8 @@ export class Alert {
 		'has-[>svg]:gap-x-2',
 		'[&>svg]:row-span-2',
 	];
+
+	protected readonly role = computed(() => (this.variant() === 'destructive' ? 'alert' : 'status'));
 
 	protected readonly computedClasses = computed(() => {
 		const variantClasses: Record<AlertVariant, string[]> = {
