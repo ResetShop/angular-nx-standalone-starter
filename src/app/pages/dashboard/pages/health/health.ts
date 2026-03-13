@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert';
 import { Badge } from '../../../../components/badge/badge';
 
 interface DatabaseCheck {
@@ -20,7 +21,7 @@ interface HealthApiResponse {
 
 @Component({
 	selector: 'app-health',
-	imports: [DatePipe, Badge],
+	imports: [Alert, AlertDescription, AlertTitle, DatePipe, Badge],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="rounded-md border-1 border-gray-200 p-5">
@@ -30,7 +31,10 @@ interface HealthApiResponse {
 			@if (healthResource.isLoading()) {
 				<p>Loading...</p>
 			} @else if (healthResource.error()) {
-				<p class="text-error-100">Error: {{ healthResource.error()?.message }}</p>
+				<div appAlert variant="destructive">
+					<h5 appAlertTitle>Error:</h5>
+					<p appAlertDescription>{{ healthResource.error()?.message }}</p>
+				</div>
 			} @else if (healthResource.value(); as data) {
 				<div class="mb-4 rounded-sm bg-gray-100 p-4">
 					<p class="mb-2 flex items-center gap-1">
@@ -60,10 +64,10 @@ interface HealthApiResponse {
 						</p>
 					}
 					@if (data.checks.database.error) {
-						<p class="text-error-100">
-							<strong>Error:</strong>
-							{{ data.checks.database.error }}
-						</p>
+						<div appAlert variant="destructive">
+							<h5 appAlertTitle>Error:</h5>
+							<p appAlertDescription>{{ data.checks.database.error }}</p>
+						</div>
 					}
 				</div>
 			}
