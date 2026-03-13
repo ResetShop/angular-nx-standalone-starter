@@ -5,6 +5,7 @@ export interface PermissionsReadError {
 }
 
 export interface PermissionsState {
+	/** Raw DTO backing store — use store.permissions() for the mapped domain objects */
 	_permissionsData: PermissionData[];
 	isLoading: boolean;
 	isCached: boolean;

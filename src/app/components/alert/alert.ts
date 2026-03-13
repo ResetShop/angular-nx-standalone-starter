@@ -18,33 +18,33 @@ export type AlertVariant = 'default' | 'destructive';
 export class Alert {
 	readonly variant = input<AlertVariant>('default');
 
-	private readonly baseClasses = [
-		'relative',
-		'grid',
-		'gap-0.5',
-		'rounded-lg',
-		'border',
-		'px-2.5',
-		'py-2',
-		'text-left',
-		'text-sm',
-		'[&>svg]:size-4',
-		'[&>svg]:translate-y-0.5',
-		'[&>svg]:text-current',
-		'has-[>svg]:grid-cols-[auto_1fr]',
-		'has-[>svg]:gap-x-2',
-		'[&>svg]:row-span-2',
-	];
-
 	protected readonly role = computed(() => (this.variant() === 'destructive' ? 'alert' : 'status'));
 
 	protected readonly computedClasses = computed(() => {
+		const baseClasses = [
+			'relative',
+			'grid',
+			'gap-0.5',
+			'rounded-lg',
+			'border',
+			'px-2.5',
+			'py-2',
+			'text-left',
+			'text-sm',
+			'[&>svg]:size-4',
+			'[&>svg]:translate-y-0.5',
+			'[&>svg]:text-current',
+			'has-[>svg]:grid-cols-[auto_1fr]',
+			'has-[>svg]:gap-x-2',
+			'[&>svg]:row-span-2',
+		];
+
 		const variantClasses: Record<AlertVariant, string[]> = {
 			default: ['bg-card', 'text-card-foreground'],
 			destructive: ['text-destructive', 'bg-card', '[&_[data-slot=alert-description]]:text-destructive/90'],
 		};
 
-		return [...this.baseClasses, ...variantClasses[this.variant()]].join(' ');
+		return [...baseClasses, ...variantClasses[this.variant()]].join(' ');
 	});
 }
 
