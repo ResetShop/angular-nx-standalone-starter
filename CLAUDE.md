@@ -505,6 +505,30 @@ Use queries in this order of preference:
 
 > Backend API Architecture: See `.claude/references/backend-api.md`
 
+### Component Field Visibility
+
+Component class fields must use `protected` — never leave them implicitly `public`. Angular templates can access `protected` members, so there is no reason to expose fields beyond the component boundary. Fields that are not used in the template should be `private`.
+
+```typescript
+// ✅ Correct — template-bound fields are protected
+export default class PermissionsList {
+	protected readonly store = inject(PermissionsStore);
+	protected readonly columns: ColumnDef<IPermission, unknown>[] = [...];
+}
+
+// ❌ Incorrect — public fields leak the component's internal API
+export default class PermissionsList {
+	readonly store = inject(PermissionsStore);
+	readonly columns: ColumnDef<IPermission, unknown>[] = [...];
+}
+```
+
+**Rules:**
+
+- `protected` for all fields and methods used in the template
+- `private` for internal fields and methods not referenced in the template
+- Never use `public` (implicit or explicit) on component class members
+
 ### App Initializer Pattern
 
 All `provideAppInitializer` calls **must** use a named factory function that returns an async closure. Never inline the initializer logic directly in `app.config.ts`.

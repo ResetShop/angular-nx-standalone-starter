@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Badge } from '@components/badge/badge';
 import { DataTable } from '@components/data-table/data-table';
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def';
-import type { PermissionData } from '@contracts/role/role.types';
+import type { IPermission } from '@domain/access/permission.interface';
 import { PermissionsStore } from '@store/permissions/permissions.store';
 import type { ColumnDef } from '@tanstack/angular-table';
 
@@ -41,14 +41,14 @@ import type { ColumnDef } from '@tanstack/angular-table';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class PermissionsList {
-	readonly store = inject(PermissionsStore);
+	protected readonly store = inject(PermissionsStore);
 
-	readonly columns: ColumnDef<PermissionData, unknown>[] = [
+	protected readonly columns: ColumnDef<IPermission, unknown>[] = [
 		{ accessorKey: 'resource', header: 'Resource' },
 		{ accessorKey: 'action', header: 'Action' },
-		{ accessorFn: (row) => row.name, id: 'identifier', header: 'Identifier' },
+		{ accessorKey: 'identifier', header: 'Identifier' },
 		{ accessorKey: 'description', header: 'Description' },
 	];
 
-	readonly grouping = ['resource'];
+	protected readonly grouping = ['resource'];
 }
