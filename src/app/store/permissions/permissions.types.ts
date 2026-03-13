@@ -1,19 +1,18 @@
-import type { PermissionData } from '@contracts/role/role.types';
+import type { IPermission } from '@domain/access/permission.interface';
 
 export interface PermissionsReadError {
 	list: string | null;
 }
 
 export interface PermissionsState {
-	/** Raw DTO backing store — use store.permissions() for the mapped domain objects */
-	_permissionsData: PermissionData[];
+	permissions: IPermission[];
 	isLoading: boolean;
 	isCached: boolean;
 	readError: PermissionsReadError;
 }
 
 export const initialPermissionsState: PermissionsState = {
-	_permissionsData: [],
+	permissions: [],
 	isLoading: false,
 	isCached: false,
 	readError: { list: null },
