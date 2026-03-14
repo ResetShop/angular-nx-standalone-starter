@@ -5,6 +5,7 @@ import {
 	computed,
 	contentChild,
 	ElementRef,
+	HostAttributeToken,
 	inject,
 	input,
 	OnDestroy,
@@ -55,6 +56,7 @@ export class Drawer implements OnDestroy {
 	/** Content child for custom footer */
 	readonly footerTemplate = contentChild(DrawerFooter);
 
+	private readonly hostClasses = inject(new HostAttributeToken('class'), { optional: true }) ?? '';
 	private readonly drawerTracker = inject(DrawerTracker);
 	private readonly closeTransition$ = new Subject<void>();
 	private readonly instanceId = this.drawerTracker.nextId();
@@ -110,7 +112,7 @@ export class Drawer implements OnDestroy {
 
 	/** Combined panel classes */
 	readonly panelClasses = computed(() => {
-		return `${this.layoutClasses()} ${this.positionClasses()} ${this.directionClass()}`;
+		return `${this.layoutClasses()} ${this.positionClasses()} ${this.directionClass()} ${this.hostClasses}`.trim();
 	});
 
 	ngOnDestroy(): void {
