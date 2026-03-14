@@ -29,7 +29,7 @@ interface CreateRoleFormModel {
 	standalone: true,
 	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector],
 	template: `
-		<app-drawer class="w-lg" title="Create Role" #drawer>
+		<app-drawer (closed)="onDrawerClosed()" class="w-lg" title="Create Role" #drawer>
 			<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
 				<app-form-field label="Name">
 					<input [formField]="roleForm.name" type="text" autocomplete="off" />
@@ -99,8 +99,11 @@ export class CreateRoleDrawer {
 	}
 
 	open(): void {
-		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
 		this.drawer().show();
+	}
+
+	protected onDrawerClosed(): void {
+		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
 	}
 
 	protected onSubmit(event: Event): void {
