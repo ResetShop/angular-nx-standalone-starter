@@ -2,7 +2,15 @@ import { TestBed } from '@angular/core/testing';
 import { Translation } from '@providers/i18n/translation';
 import { PermissionsApiService } from '@providers/permissions/permissions';
 import { RolesApiService } from '@providers/roles/roles';
-import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils';
+import {
+	advanceTimersByTimeAsync,
+	clearAllMocks,
+	fn,
+	type MockFn,
+	spyOn,
+	useFakeTimers,
+	useRealTimers,
+} from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import { of } from 'rxjs';
 import { CreateRoleDrawer } from './create-role-drawer';
@@ -22,6 +30,7 @@ describe('CreateRoleDrawer', () => {
 	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>;
 
 	beforeEach(() => {
+		useFakeTimers();
 		clearAllMocks();
 		spyOn(console, 'error');
 
@@ -43,6 +52,10 @@ describe('CreateRoleDrawer', () => {
 		permissionsApiMock.getAllUnpaginated.mockReturnValue(of([]));
 	});
 
+	afterEach(() => {
+		useRealTimers();
+	});
+
 	async function renderAndOpen() {
 		const { fixture } = await render(CreateRoleDrawer, {
 			providers: [
@@ -53,6 +66,7 @@ describe('CreateRoleDrawer', () => {
 		});
 		TestBed.tick();
 		fixture.componentInstance.open();
+		await advanceTimersByTimeAsync(500);
 		fixture.detectChanges();
 	}
 
