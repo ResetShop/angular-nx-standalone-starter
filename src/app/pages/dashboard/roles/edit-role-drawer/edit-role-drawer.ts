@@ -26,23 +26,21 @@ interface EditRoleFormModel {
 					<input [formField]="roleForm.name" type="text" autocomplete="off" />
 				</app-form-field>
 
-				<app-form-field label="Code" hint="Code cannot be changed">
+				<app-form-field [showRequired]="false" label="Code" hint="Code cannot be changed">
 					<input [formField]="roleForm.code" type="text" />
 				</app-form-field>
 
-				<app-form-field label="Description">
+				<app-form-field [showRequired]="false" label="Description">
 					<textarea [formField]="roleForm.description" rows="3"></textarea>
 				</app-form-field>
 
 				@if (permissionsStore.permissionsGroupedArray().length > 0) {
 					<div class="flex min-h-0 flex-1 flex-col">
 						<h3 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Permissions</h3>
-						<div class="min-h-0 flex-1 overflow-y-auto rounded-md border border-gray-200 p-3 dark:border-gray-700">
-							<app-permission-selector
-								[formField]="roleForm.permissionIds"
-								[groups]="permissionsStore.permissionsGroupedArray()"
-							/>
-						</div>
+						<app-permission-selector
+							[formField]="roleForm.permissionIds"
+							[groups]="permissionsStore.permissionsGroupedArray()"
+						/>
 					</div>
 				}
 			</form>
@@ -69,8 +67,6 @@ export class EditRoleDrawer {
 		this.model,
 		schema<EditRoleFormModel>((role) => {
 			required(role.name);
-			required(role.code);
-			required(role.description);
 			maxLength(role.name, 100);
 			disabled(role.code);
 			maxLength(role.description, 500);
