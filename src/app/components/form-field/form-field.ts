@@ -60,7 +60,7 @@ import { NgpFormField } from 'ng-primitives/form-field';
 		:host ::ng-deep input:not([type='checkbox']),
 		:host ::ng-deep select,
 		:host ::ng-deep textarea {
-			@apply border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none;
+			@apply text-foreground border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none;
 		}
 
 		:host ::ng-deep input[type='checkbox'] {
