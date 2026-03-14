@@ -11,7 +11,8 @@ import type { RoleData } from '@contracts/role/role.types';
 import { RolesStore } from '@store/roles/roles.store';
 import type { ColumnDef } from '@tanstack/angular-table';
 import { debounceTime, Subject } from 'rxjs';
-import { RoleFormDrawer } from '../role-form-drawer/role-form-drawer';
+import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer';
+import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
 
 @Component({
 	selector: 'app-roles-list',
@@ -23,10 +24,11 @@ import { RoleFormDrawer } from '../role-form-drawer/role-form-drawer';
 		Badge,
 		Button,
 		ConfirmDialog,
+		CreateRoleDrawer,
 		DataTable,
 		DataTableCellDef,
+		EditRoleDrawer,
 		Pagination,
-		RoleFormDrawer,
 	],
 	template: `
 		<div class="space-y-6">
@@ -50,7 +52,7 @@ import { RoleFormDrawer } from '../role-form-drawer/role-form-drawer';
 						placeholder="Search roles..."
 						class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 					/>
-					<button (click)="formDrawer.openForCreate()" appButton>Create Role</button>
+					<button (click)="createDrawer.open()" appButton>Create Role</button>
 				</div>
 
 				<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
@@ -66,7 +68,7 @@ import { RoleFormDrawer } from '../role-form-drawer/role-form-drawer';
 
 						<ng-template appDataTableCellDef="actions" let-value let-row="row">
 							<div class="flex gap-2">
-								<button (click)="formDrawer.openForEdit(row.id)" appButton variant="ghost" size="sm">Edit</button>
+								<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
 								@if (row.removable) {
 									<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
 										Delete
@@ -89,7 +91,8 @@ import { RoleFormDrawer } from '../role-form-drawer/role-form-drawer';
 			}
 		</div>
 
-		<app-role-form-drawer #formDrawer />
+		<app-create-role-drawer #createDrawer />
+		<app-edit-role-drawer #editDrawer />
 
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
