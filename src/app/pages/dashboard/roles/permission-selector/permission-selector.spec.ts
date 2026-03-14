@@ -50,11 +50,11 @@ describe('PermissionSelector', () => {
 		clearAllMocks();
 	});
 
-	async function renderComponent(selectedIds: number[] = []) {
+	async function renderComponent(value: number[] = []) {
 		return render(PermissionSelector, {
 			inputs: {
 				groups: createMockGroups(),
-				selectedIds,
+				value,
 			},
 		});
 	}
