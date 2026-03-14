@@ -1,5 +1,15 @@
-import type { RoleData } from '@contracts/role/role.types';
+import type { CreateRoleRequest, RoleData, UpdateRoleRequest } from '@contracts/role/role.types';
 import type { IRole } from '@domain/access/role.interface';
+
+export interface CreateRoleWithPermissionsRequest extends CreateRoleRequest {
+	permissionIds: number[];
+}
+
+export interface UpdateRoleWithPermissionsRequest {
+	id: number;
+	body: UpdateRoleRequest;
+	permissionIds: number[];
+}
 
 export interface RolesReadError {
 	list: string | null;

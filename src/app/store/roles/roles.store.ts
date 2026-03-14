@@ -7,7 +7,12 @@ import { patchState, signalStore, withComputed, withHooks, withMethods, withStat
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { RolesApiService } from '@providers/roles/roles';
 import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
-import type { RolesMutationError, RolesReadError } from './roles.types';
+import type {
+	CreateRoleWithPermissionsRequest,
+	RolesMutationError,
+	RolesReadError,
+	UpdateRoleWithPermissionsRequest,
+} from './roles.types';
 import { initialRolesState } from './roles.types';
 
 function patchReadError(current: RolesReadError, key: keyof RolesReadError, value: string | null): RolesReadError {
@@ -312,6 +317,73 @@ export const RolesStore = signalStore(
 											'assignPermissions',
 											'Failed to assign permissions',
 										),
+									});
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+			createRoleWithPermissions: rxMethod<CreateRoleWithPermissionsRequest>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isCreating: true,
+							mutationError: patchMutationError(store.mutationError(), 'create', null),
+						}),
+					),
+					switchMap(({ permissionIds, ...body }) =>
+						rolesApi.create(body).pipe(
+							switchMap((created) => {
+								if (permissionIds.length === 0) {
+									return [created];
+								}
+								return rolesApi.assignPermissions(created.id, { permissionIds }).pipe(switchMap(() => [created]));
+							}),
+							tap({
+								next: () => {
+									patchState(store, { isCreating: false });
+									store.loadRoles(store.listParams());
+								},
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] createRoleWithPermissions failed:', err);
+									patchState(store, {
+										isCreating: false,
+										mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create role'),
+									});
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			updateRoleWithPermissions: rxMethod<UpdateRoleWithPermissionsRequest>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isUpdating: true,
+							mutationError: patchMutationError(store.mutationError(), 'update', null),
+						}),
+					),
+					switchMap(({ id, body, permissionIds }) =>
+						rolesApi.update(id, body).pipe(
+							switchMap(() => rolesApi.assignPermissions(id, { permissionIds })),
+							tap({
+								next: () => {
+									patchState(store, { isUpdating: false });
+									store.loadRoles(store.listParams());
+									store.loadRole(id);
+								},
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[RolesStore] updateRoleWithPermissions failed:', err);
+									patchState(store, {
+										isUpdating: false,
+										mutationError: patchMutationError(store.mutationError(), 'update', 'Failed to update role'),
 									});
 								},
 							}),
