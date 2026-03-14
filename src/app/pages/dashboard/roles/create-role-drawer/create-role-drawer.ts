@@ -46,12 +46,10 @@ interface CreateRoleFormModel {
 				@if (permissionsStore.permissionsGroupedArray().length > 0) {
 					<div class="flex min-h-0 flex-1 flex-col">
 						<h3 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Permissions</h3>
-						<div class="min-h-0 flex-1 overflow-y-auto rounded-md border border-gray-200 p-3 dark:border-gray-700">
-							<app-permission-selector
-								[formField]="roleForm.permissionIds"
-								[groups]="permissionsStore.permissionsGroupedArray()"
-							/>
-						</div>
+						<app-permission-selector
+							[formField]="roleForm.permissionIds"
+							[groups]="permissionsStore.permissionsGroupedArray()"
+						/>
 					</div>
 				}
 			</form>

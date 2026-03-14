@@ -11,36 +11,38 @@ export interface PermissionGroup {
 	selector: 'app-permission-selector',
 	standalone: true,
 	template: `
-		@for (group of groups(); track group.resource) {
-			<div class="mb-4">
-				<div class="mb-2 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
-					<input
-						(change)="toggleResource(group)"
-						[checked]="isResourceFullySelected(group)"
-						[indeterminate]="isResourcePartiallySelected(group)"
-						type="checkbox"
-						class="border-input text-default focus:ring-ring h-4 w-4 rounded"
-					/>
-					<span class="text-sm font-semibold text-gray-900 dark:text-white">{{ group.resource }}</span>
+		<div class="min-h-0 flex-1 overflow-y-auto rounded-md border border-gray-200 p-3 dark:border-gray-700">
+			@for (group of groups(); track group.resource) {
+				<div class="mb-4">
+					<div class="mb-2 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
+						<input
+							(change)="toggleResource(group)"
+							[checked]="isResourceFullySelected(group)"
+							[indeterminate]="isResourcePartiallySelected(group)"
+							type="checkbox"
+							class="border-input text-default focus:ring-ring h-4 w-4 rounded"
+						/>
+						<span class="text-sm font-semibold text-gray-900 dark:text-white">{{ group.resource }}</span>
+					</div>
+					<div class="ml-6 space-y-1">
+						@for (permission of group.permissions; track permission.id) {
+							<label class="flex items-center gap-2">
+								<input
+									(change)="togglePermission(permission.id)"
+									[checked]="selectedSet().has(permission.id)"
+									type="checkbox"
+									class="border-input text-default focus:ring-ring h-4 w-4 rounded"
+								/>
+								<span class="text-sm text-gray-700 dark:text-gray-300">{{ permission.name }}</span>
+								@if (permission.description) {
+									<span class="text-xs text-gray-500 dark:text-gray-400">— {{ permission.description }}</span>
+								}
+							</label>
+						}
+					</div>
 				</div>
-				<div class="ml-6 space-y-1">
-					@for (permission of group.permissions; track permission.id) {
-						<label class="flex items-center gap-2">
-							<input
-								(change)="togglePermission(permission.id)"
-								[checked]="selectedSet().has(permission.id)"
-								type="checkbox"
-								class="border-input text-default focus:ring-ring h-4 w-4 rounded"
-							/>
-							<span class="text-sm text-gray-700 dark:text-gray-300">{{ permission.name }}</span>
-							@if (permission.description) {
-								<span class="text-xs text-gray-500 dark:text-gray-400">— {{ permission.description }}</span>
-							}
-						</label>
-					}
-				</div>
-			</div>
-		}
+			}
+		</div>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
