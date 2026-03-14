@@ -83,3 +83,32 @@ _How components relate to each other_
 5. **Main is dirty** — The main component instantiates everything and knows all dependencies
 
 _Source: Robert C. Martin, "Clean Architecture" (2018)_
+
+---
+
+## Project-Specific UI Architecture Rules
+
+### Create/Edit Drawer Separation
+
+Create and edit drawers for any entity **must be completely separate components**. Never share form fields between them via a wrapper component, shared form-fields component, or a single drawer with a `mode` signal.
+
+**Rules:**
+
+1. Each drawer owns its own form model, validation schema, template, and submit handler
+2. Each drawer has a single public method: `open()` for create, `open(entityId)` for edit
+3. No `mode` signal, no `@if (mode() === 'edit')` branching in templates
+4. Duplication between the two is acceptable — each form can evolve independently
+
+**Rationale:** Shared extractions add indirection (slot contracts, extra files, input/output wiring) for marginal duplication savings. Fully separate drawers are easier to read, test, and evolve independently. When create and edit diverge (different fields, validation rules, confirmation steps), there is no shared component to untangle.
+
+**Naming convention:** `CreateXDrawer` and `EditXDrawer` in separate directories:
+
+```
+pages/<domain>/
+├── create-<entity>-drawer/
+│   ├── create-<entity>-drawer.ts
+│   └── create-<entity>-drawer.spec.ts
+└── edit-<entity>-drawer/
+    ├── edit-<entity>-drawer.ts
+    └── edit-<entity>-drawer.spec.ts
+```
