@@ -22,11 +22,7 @@ interface EditRoleFormModel {
 	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector, Spinner],
 	template: `
 		<app-drawer class="w-lg" title="Edit Role" #drawer>
-			@if (rolesStore.isLoadingDetail()) {
-				<div class="flex h-full items-center justify-center">
-					<app-spinner />
-				</div>
-			} @else {
+			@defer (when !rolesStore.isLoadingDetail()) {
 				<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
 					<app-form-field label="Name">
 						<input [formField]="roleForm.name" type="text" autocomplete="off" />
@@ -52,6 +48,10 @@ interface EditRoleFormModel {
 						</div>
 					}
 				</form>
+			} @placeholder (minimum 500ms) {
+				<div class="flex h-full items-center justify-center">
+					<app-spinner />
+				</div>
 			}
 
 			<ng-template appDrawerFooter>

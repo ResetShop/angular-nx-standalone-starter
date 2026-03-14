@@ -1,8 +1,16 @@
-import { TestBed } from '@angular/core/testing';
+import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { Translation } from '@providers/i18n/translation';
 import { PermissionsApiService } from '@providers/permissions/permissions';
 import { RolesApiService } from '@providers/roles/roles';
-import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils';
+import {
+	advanceTimersByTimeAsync,
+	clearAllMocks,
+	fn,
+	type MockFn,
+	spyOn,
+	useFakeTimers,
+	useRealTimers,
+} from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import { of } from 'rxjs';
 import { EditRoleDrawer } from './edit-role-drawer';
@@ -22,6 +30,7 @@ describe('EditRoleDrawer', () => {
 	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>;
 
 	beforeEach(() => {
+		useFakeTimers();
 		clearAllMocks();
 		spyOn(console, 'error');
 
@@ -43,12 +52,17 @@ describe('EditRoleDrawer', () => {
 		permissionsApiMock.getAllUnpaginated.mockReturnValue(of([]));
 	});
 
+	afterEach(() => {
+		useRealTimers();
+	});
+
 	async function renderAndOpen(roleId = 1) {
 		rolesApiMock.getByIdWithPermissions.mockReturnValue(
 			of({ id: roleId, code: 'admin', name: 'Admin', description: 'Administrator role', permissions: [] }),
 		);
 
 		const { fixture } = await render(EditRoleDrawer, {
+			deferBlockBehavior: DeferBlockBehavior.Playthrough,
 			providers: [
 				{ provide: RolesApiService, useValue: rolesApiMock },
 				{ provide: PermissionsApiService, useValue: permissionsApiMock },
@@ -58,6 +72,7 @@ describe('EditRoleDrawer', () => {
 		TestBed.tick();
 		fixture.componentInstance.open(roleId);
 		TestBed.tick();
+		await advanceTimersByTimeAsync(500);
 		fixture.detectChanges();
 	}
 

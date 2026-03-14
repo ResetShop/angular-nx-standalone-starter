@@ -10,10 +10,12 @@ import {
 	input,
 	OnDestroy,
 	output,
+	signal,
 	viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
+import { Spinner } from '../spinner/spinner';
 import { DrawerFooter } from './drawer-footer';
 import { DrawerHeader } from './drawer-header';
 import { DrawerTracker } from './drawer-tracker';
@@ -23,7 +25,7 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom';
 @Component({
 	selector: 'app-drawer',
 	standalone: true,
-	imports: [NgTemplateOutlet],
+	imports: [NgTemplateOutlet, Spinner],
 	templateUrl: './drawer.html',
 	styleUrl: './drawer.css',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,6 +62,12 @@ export class Drawer implements OnDestroy {
 	private readonly drawerTracker = inject(DrawerTracker);
 	private readonly closeTransition$ = new Subject<void>();
 	private readonly instanceId = this.drawerTracker.nextId();
+	private readonly minimumElapsed = signal(true);
+	private readonly contentReady = signal(true);
+	private minimumTimer: ReturnType<typeof setTimeout> | null = null;
+
+	/** Whether the spinner should be shown */
+	readonly showSpinner = computed(() => !this.minimumElapsed() || !this.contentReady());
 
 	/** Unique ID for aria-labelledby */
 	readonly titleId = `drawer-title-${this.instanceId}`;
@@ -116,12 +124,15 @@ export class Drawer implements OnDestroy {
 	});
 
 	ngOnDestroy(): void {
+		this.clearMinimumTimer();
 		this.drawerTracker.unregister(this);
 	}
 
 	show(): void {
 		const drawer = this.drawerElement();
 		if (drawer.open) return;
+		this.contentReady.set(true);
+		this.startMinimumTimer();
 		this.drawerTracker.register(this);
 		drawer.showModal();
 		// Wait one frame so the browser applies `open` before `data-open` triggers the CSS transition
@@ -129,12 +140,49 @@ export class Drawer implements OnDestroy {
 		this.opened.emit();
 	}
 
+	/**
+	 * Opens the drawer with a loading state. The spinner stays visible until both
+	 * the 500ms minimum has elapsed AND `setContentReady()` is called.
+	 */
+	showWithLoading(): void {
+		const drawer = this.drawerElement();
+		if (drawer.open) return;
+		this.contentReady.set(false);
+		this.startMinimumTimer();
+		this.drawerTracker.register(this);
+		drawer.showModal();
+		requestAnimationFrame(() => drawer.setAttribute('data-open', ''));
+		this.opened.emit();
+	}
+
+	/** Signals that the consumer's async content is ready to display */
+	setContentReady(): void {
+		this.contentReady.set(true);
+	}
+
 	close(): void {
 		const drawer = this.drawerElement();
 		if (!drawer.open) return;
+		this.clearMinimumTimer();
+		// Hide content immediately to prevent validation flash during close animation
+		this.minimumElapsed.set(false);
+		this.contentReady.set(true);
 		drawer.removeAttribute('data-open');
 		this.closeTransition$.next();
 		this.closed.emit();
+	}
+
+	private startMinimumTimer(): void {
+		this.minimumElapsed.set(false);
+		this.clearMinimumTimer();
+		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), 500);
+	}
+
+	private clearMinimumTimer(): void {
+		if (this.minimumTimer) {
+			clearTimeout(this.minimumTimer);
+			this.minimumTimer = null;
+		}
 	}
 
 	onCancel(event: Event): void {

@@ -26,7 +26,13 @@
 
 	<!-- Body -->
 	<div class="flex-1 overflow-y-auto px-6 py-4">
+		@if (showSpinner()) {
+		<div class="flex h-full items-center justify-center">
+			<app-spinner />
+		</div>
+		} @else {
 		<ng-content />
+		}
 	</div>
 
 	<!-- Footer -->
