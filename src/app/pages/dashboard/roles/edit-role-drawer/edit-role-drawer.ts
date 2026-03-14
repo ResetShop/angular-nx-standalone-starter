@@ -21,7 +21,7 @@ interface EditRoleFormModel {
 	standalone: true,
 	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector, Spinner],
 	template: `
-		<app-drawer title="Edit Role" #drawer>
+		<app-drawer class="w-lg" title="Edit Role" #drawer>
 			@if (rolesStore.isLoadingDetail()) {
 				<div class="flex h-full items-center justify-center">
 					<app-spinner />
