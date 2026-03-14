@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, linkedSignal, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, linkedSignal, model } from '@angular/core';
+import type { FormValueControl } from '@angular/forms/signals';
 import type { IPermission } from '@domain/access/permission.interface';
 
 export interface PermissionGroup {
@@ -43,13 +44,12 @@ export interface PermissionGroup {
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PermissionSelector {
+export class PermissionSelector implements FormValueControl<number[]> {
 	readonly groups = input.required<PermissionGroup[]>();
-	readonly selectedIds = input<number[]>([]);
-	readonly selectionChange = output<number[]>();
+	readonly value = model<number[]>([]);
 
 	protected readonly selectedSet = linkedSignal<number[], Set<number>>({
-		source: this.selectedIds,
+		source: this.value,
 		computation: (ids) => new Set(ids),
 	});
 
@@ -72,7 +72,7 @@ export class PermissionSelector {
 			set.add(id);
 		}
 		this.selectedSet.set(set);
-		this.selectionChange.emit([...set]);
+		this.value.set([...set]);
 	}
 
 	protected toggleResource(group: PermissionGroup): void {
@@ -86,6 +86,6 @@ export class PermissionSelector {
 			}
 		}
 		this.selectedSet.set(set);
-		this.selectionChange.emit([...set]);
+		this.value.set([...set]);
 	}
 }
