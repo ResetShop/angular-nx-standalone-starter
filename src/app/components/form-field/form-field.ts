@@ -72,6 +72,12 @@ import { NgpFormField } from 'ng-primitives/form-field';
 		:host ::ng-deep textarea[aria-invalid='true'] {
 			border-color: var(--destructive);
 		}
+
+		:host ::ng-deep input:disabled,
+		:host ::ng-deep select:disabled,
+		:host ::ng-deep textarea:disabled {
+			@apply bg-muted cursor-not-allowed opacity-60;
+		}
 	`,
 })
 export class FormField {
