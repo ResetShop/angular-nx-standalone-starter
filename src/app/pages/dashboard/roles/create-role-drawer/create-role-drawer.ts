@@ -1,5 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
-import { form, maxLength, pattern, required, schema, FormField as SignalFormField } from '@angular/forms/signals';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	effect,
+	inject,
+	signal,
+	untracked,
+	viewChild,
+} from '@angular/core';
+import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals';
 import { Button } from '@components/button/button';
 import { Drawer } from '@components/drawer/drawer';
 import { DrawerFooter } from '@components/drawer/drawer-footer';
@@ -26,7 +35,7 @@ interface CreateRoleFormModel {
 					<input [formField]="roleForm.name" type="text" autocomplete="off" />
 				</app-form-field>
 
-				<app-form-field label="Code" hint="Lowercase alphanumeric with underscores">
+				<app-form-field [showRequired]="false" label="Code" hint="Auto-generated from name">
 					<input [formField]="roleForm.code" type="text" />
 				</app-form-field>
 
@@ -68,14 +77,26 @@ export class CreateRoleDrawer {
 		schema<CreateRoleFormModel>((role) => {
 			required(role.name);
 			maxLength(role.name, 100);
-			required(role.code);
-			maxLength(role.code, 50);
-			pattern(role.code, /^[a-z][a-z0-9_]*$/);
+			disabled(role.code);
 			maxLength(role.description, 500);
 		}),
 	);
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0);
+
+	private readonly nameValue = computed(() => this.model().name);
+
+	constructor() {
+		effect(() => {
+			const code = this.nameValue()
+				.trim()
+				.toLowerCase()
+				.replace(/[^a-z0-9\s]/g, '')
+				.replace(/\s+/g, '_')
+				.replace(/^[^a-z]+/, '');
+			untracked(() => this.model.update((m) => ({ ...m, code })));
+		});
+	}
 
 	open(): void {
 		this.model.set({ name: '', code: '', description: '', permissionIds: [] });

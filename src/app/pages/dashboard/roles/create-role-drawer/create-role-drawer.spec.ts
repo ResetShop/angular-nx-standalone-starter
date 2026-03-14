@@ -70,10 +70,10 @@ describe('CreateRoleDrawer', () => {
 		expect(screen.getByText('Description')).toBeInTheDocument();
 	});
 
-	it('should render code hint for format guidance', async () => {
+	it('should show code as disabled auto-generated field', async () => {
 		await renderAndOpen();
 
-		expect(screen.getByText(/lowercase alphanumeric/i)).toBeInTheDocument();
+		expect(screen.getByText(/auto-generated from name/i)).toBeInTheDocument();
 	});
 
 	it('should render create button', async () => {
