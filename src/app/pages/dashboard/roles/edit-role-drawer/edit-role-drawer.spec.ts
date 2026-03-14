@@ -1,4 +1,4 @@
-import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { Translation } from '@providers/i18n/translation';
 import { PermissionsApiService } from '@providers/permissions/permissions';
 import { RolesApiService } from '@providers/roles/roles';
@@ -62,7 +62,6 @@ describe('EditRoleDrawer', () => {
 		);
 
 		const { fixture } = await render(EditRoleDrawer, {
-			deferBlockBehavior: DeferBlockBehavior.Playthrough,
 			providers: [
 				{ provide: RolesApiService, useValue: rolesApiMock },
 				{ provide: PermissionsApiService, useValue: permissionsApiMock },

@@ -4,7 +4,6 @@ import { Button } from '@components/button/button';
 import { Drawer } from '@components/drawer/drawer';
 import { DrawerFooter } from '@components/drawer/drawer-footer';
 import { FormField } from '@components/form-field/form-field';
-import { Spinner } from '@components/spinner/spinner';
 import { PermissionsStore } from '@store/permissions/permissions.store';
 import { RolesStore } from '@store/roles/roles.store';
 import { PermissionSelector } from '../permission-selector/permission-selector';
@@ -19,47 +18,39 @@ interface EditRoleFormModel {
 @Component({
 	selector: 'app-edit-role-drawer',
 	standalone: true,
-	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector, Spinner],
+	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector],
 	template: `
-		<app-drawer class="w-lg" title="Edit Role" #drawer>
-			@defer (when !rolesStore.isLoadingDetail()) {
-				<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
-					<app-form-field label="Name">
-						<input [formField]="roleForm.name" type="text" autocomplete="off" />
-					</app-form-field>
+		<app-drawer (closed)="onDrawerClosed()" class="w-lg" title="Edit Role" #drawer>
+			<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
+				<app-form-field label="Name">
+					<input [formField]="roleForm.name" type="text" autocomplete="off" />
+				</app-form-field>
 
-					<app-form-field label="Code" hint="Code cannot be changed">
-						<input [formField]="roleForm.code" type="text" />
-					</app-form-field>
+				<app-form-field label="Code" hint="Code cannot be changed">
+					<input [formField]="roleForm.code" type="text" />
+				</app-form-field>
 
-					<app-form-field label="Description">
-						<textarea [formField]="roleForm.description" rows="3"></textarea>
-					</app-form-field>
+				<app-form-field label="Description">
+					<textarea [formField]="roleForm.description" rows="3"></textarea>
+				</app-form-field>
 
-					@if (permissionsStore.permissionsGroupedArray().length > 0) {
-						<div class="flex min-h-0 flex-1 flex-col">
-							<h3 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Permissions</h3>
-							<div class="min-h-0 flex-1 overflow-y-auto rounded-md border border-gray-200 p-3 dark:border-gray-700">
-								<app-permission-selector
-									[formField]="roleForm.permissionIds"
-									[groups]="permissionsStore.permissionsGroupedArray()"
-								/>
-							</div>
+				@if (permissionsStore.permissionsGroupedArray().length > 0) {
+					<div class="flex min-h-0 flex-1 flex-col">
+						<h3 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Permissions</h3>
+						<div class="min-h-0 flex-1 overflow-y-auto rounded-md border border-gray-200 p-3 dark:border-gray-700">
+							<app-permission-selector
+								[formField]="roleForm.permissionIds"
+								[groups]="permissionsStore.permissionsGroupedArray()"
+							/>
 						</div>
-					}
-				</form>
-			} @placeholder (minimum 500ms) {
-				<div class="flex h-full items-center justify-center">
-					<app-spinner />
-				</div>
-			}
+					</div>
+				}
+			</form>
 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
 					<button (click)="drawer.close()" appButton variant="outline">Cancel</button>
-					<button (click)="onSubmit($event)" [disabled]="rolesStore.isLoadingDetail() || !isFormValid()" appButton>
-						Save
-					</button>
+					<button (click)="onSubmit($event)" [disabled]="drawer.showSpinner() || !isFormValid()" appButton>Save</button>
 				</div>
 			</ng-template>
 		</app-drawer>
@@ -67,7 +58,7 @@ interface EditRoleFormModel {
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditRoleDrawer {
-	protected readonly rolesStore = inject(RolesStore);
+	private readonly rolesStore = inject(RolesStore);
 	protected readonly permissionsStore = inject(PermissionsStore);
 	private readonly drawer = viewChild.required<Drawer>('drawer');
 
@@ -99,6 +90,7 @@ export class EditRoleDrawer {
 					description: role.description ?? '',
 					permissionIds: role.permissions.map((p) => p.id),
 				});
+				this.drawer().setContentReady();
 			}
 		});
 	}
@@ -106,7 +98,12 @@ export class EditRoleDrawer {
 	open(roleId: number): void {
 		this.editRoleId.set(roleId);
 		this.rolesStore.loadRole(roleId);
-		this.drawer().show();
+		this.drawer().showWithLoading();
+	}
+
+	protected onDrawerClosed(): void {
+		this.editRoleId.set(null);
+		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
 	}
 
 	protected onSubmit(event: Event): void {
