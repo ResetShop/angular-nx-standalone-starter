@@ -59,7 +59,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
 					<app-data-table
 						[columns]="columns"
 						[data]="store.roles()"
-						[loading]="store.isLoadingList()"
+						[loading]="store.isLoadingList() || store.isCreating()"
 						caption="Roles list"
 					>
 						<ng-template appDataTableCellDef="code" let-value>
