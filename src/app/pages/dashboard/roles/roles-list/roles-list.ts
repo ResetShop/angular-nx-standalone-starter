@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert';
 import { Badge } from '@components/badge/badge';
 import { Button } from '@components/button/button';
@@ -10,7 +9,6 @@ import { Pagination } from '@components/pagination/pagination';
 import type { RoleData } from '@contracts/role/role.types';
 import { RolesStore } from '@store/roles/roles.store';
 import type { ColumnDef } from '@tanstack/angular-table';
-import { debounceTime, Subject } from 'rxjs';
 import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer';
 import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
 
@@ -123,17 +121,9 @@ export default class RolesList {
 		{ id: 'actions', header: '', enableSorting: false },
 	];
 
-	private readonly searchSubject = new Subject<string>();
-
-	constructor() {
-		this.searchSubject.pipe(debounceTime(300), takeUntilDestroyed()).subscribe((query) => {
-			this.store.setSearchQuery(query);
-		});
-	}
-
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement;
-		this.searchSubject.next(input.value);
+		this.store.setSearchQuery(input.value);
 	}
 
 	protected confirmDelete(role: RoleData): void {

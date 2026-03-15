@@ -6,7 +6,7 @@ import { mapRole } from '@domain/access/role.mapper';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { RolesApiService } from '@providers/roles/roles';
-import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs';
 import type {
 	CreateRoleWithPermissionsRequest,
 	RolesMutationError,
@@ -164,9 +164,12 @@ export const RolesStore = signalStore(
 				patchState(store, { pageSize: size, currentPage: 1 });
 			},
 
-			setSearchQuery(query: string): void {
-				patchState(store, { searchQuery: query, currentPage: 1 });
-			},
+			setSearchQuery: rxMethod<string>(
+				pipe(
+					debounceTime(300),
+					tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
+				),
+			),
 
 			selectRole(role: IRole | null): void {
 				patchState(store, { selectedRole: role });
