@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
-import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert';
 import { Badge } from '@components/badge/badge';
 import { Button } from '@components/button/button';
 import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog';
 import { DataTable } from '@components/data-table/data-table';
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def';
+import { PageShell } from '@components/page-shell/page-shell';
 import { Pagination } from '@components/pagination/pagination';
 import type { RoleData } from '@contracts/role/role.types';
 import { RolesStore } from '@store/roles/roles.store';
@@ -16,9 +16,6 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
 	selector: 'app-roles-list',
 	standalone: true,
 	imports: [
-		Alert,
-		AlertTitle,
-		AlertDescription,
 		Badge,
 		Button,
 		ConfirmDialog,
@@ -26,68 +23,52 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
 		DataTable,
 		DataTableCellDef,
 		EditRoleDrawer,
+		PageShell,
 		Pagination,
 	],
 	template: `
-		<div class="space-y-6">
-			<div>
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Roles</h1>
-				<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-					Manage system roles and their associated permissions.
-				</p>
+		<app-page-shell [loading]="store.isLoadingList()" [error]="store.readError().list" title="Roles">
+			<p pageDescription>Manage system roles and their associated permissions.</p>
+
+			<div class="flex items-center justify-between gap-4">
+				<input
+					(input)="onSearchInput($event)"
+					type="search"
+					placeholder="Search roles..."
+					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
+				/>
+				<button (click)="createDrawer.open()" appButton>Create Role</button>
 			</div>
 
-			@if (store.hasReadError()) {
-				<div appAlert variant="destructive">
-					<h5 appAlertTitle>Error</h5>
-					<p appAlertDescription>{{ store.readError().list }}</p>
-				</div>
-			} @else {
-				<div class="flex items-center justify-between gap-4">
-					<input
-						(input)="onSearchInput($event)"
-						type="search"
-						placeholder="Search roles..."
-						class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
-					/>
-					<button (click)="createDrawer.open()" appButton>Create Role</button>
-				</div>
+			<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+				<app-data-table [columns]="columns" [data]="store.roles()" [loading]="store.isCreating()" caption="Roles list">
+					<ng-template appDataTableCellDef="code" let-value>
+						<span appBadge variant="secondary">{{ value }}</span>
+					</ng-template>
 
-				<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-					<app-data-table
-						[columns]="columns"
-						[data]="store.roles()"
-						[loading]="store.isLoadingList() || store.isCreating()"
-						caption="Roles list"
-					>
-						<ng-template appDataTableCellDef="code" let-value>
-							<span appBadge variant="secondary">{{ value }}</span>
-						</ng-template>
+					<ng-template appDataTableCellDef="actions" let-value let-row="row">
+						<div class="flex gap-2">
+							<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
+							@if (row.removable) {
+								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
+									Delete
+								</button>
+							}
+						</div>
+					</ng-template>
+				</app-data-table>
+			</div>
 
-						<ng-template appDataTableCellDef="actions" let-value let-row="row">
-							<div class="flex gap-2">
-								<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-								@if (row.removable) {
-									<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-										Delete
-									</button>
-								}
-							</div>
-						</ng-template>
-					</app-data-table>
-				</div>
-
-				@if (store.totalPages() > 1) {
-					<app-pagination
-						(pageChange)="store.setPage($event)"
-						(pageSizeChange)="store.setPageSize($event)"
-						[currentPage]="store.currentPage()"
-						[totalPages]="store.totalPages()"
-						[pageSize]="store.pageSize()"
-					/>
-				}
+			@if (store.totalPages() > 1) {
+				<app-pagination
+					(pageChange)="store.setPage($event)"
+					(pageSizeChange)="store.setPageSize($event)"
+					[currentPage]="store.currentPage()"
+					[totalPages]="store.totalPages()"
+					[pageSize]="store.pageSize()"
+				/>
 			}
-		</div>
+		</app-page-shell>
 
 		<app-create-role-drawer #createDrawer />
 		<app-edit-role-drawer #editDrawer />
