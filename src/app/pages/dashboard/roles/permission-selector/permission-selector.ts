@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, linkedSignal, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core';
 import type { FormValueControl } from '@angular/forms/signals';
+import { FormFieldCustomControl } from '@components/form-field/form-field-custom-control';
 import type { IPermission } from '@domain/access/permission.interface';
 
 export interface PermissionGroup {
@@ -10,8 +11,9 @@ export interface PermissionGroup {
 @Component({
 	selector: 'app-permission-selector',
 	standalone: true,
+	providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => PermissionSelector) }],
 	template: `
-		<div class="min-h-0 flex-1 overflow-y-auto rounded-md border border-gray-200 p-3 dark:border-gray-700">
+		<div [class]="containerClasses()">
 			@for (group of groups(); track group.resource) {
 				<div class="mb-4">
 					<div class="mb-2 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
@@ -46,9 +48,14 @@ export interface PermissionGroup {
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PermissionSelector implements FormValueControl<number[]> {
+export class PermissionSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
 	readonly groups = input.required<PermissionGroup[]>();
 	readonly value = model<number[]>([]);
+
+	protected readonly containerClasses = computed(() => {
+		const base = 'min-h-0 flex-1 overflow-y-auto rounded-md border p-3';
+		return this.ariaInvalid() ? `${base} border-destructive` : `${base} border-gray-200 dark:border-gray-700`;
+	});
 
 	protected readonly selectedSet = linkedSignal<number[], Set<number>>({
 		source: this.value,

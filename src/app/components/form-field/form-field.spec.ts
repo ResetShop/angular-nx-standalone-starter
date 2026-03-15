@@ -1,4 +1,4 @@
-import { Component, ErrorHandler, signal } from '@angular/core';
+import { Component, ErrorHandler, forwardRef, model, signal } from '@angular/core';
 import {
 	email,
 	form,
@@ -13,6 +13,7 @@ import {
 	FormField as SignalFormField,
 	validate,
 	type FieldTree,
+	type FormValueControl,
 	type ValidationError,
 } from '@angular/forms/signals';
 import { Translation } from '@providers/i18n/translation';
@@ -20,6 +21,7 @@ import { clearAllMocks } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import { FormField } from './form-field';
+import { FormFieldCustomControl } from './form-field-custom-control';
 
 const TRANSLATIONS: Record<string, string> = {
 	'VALIDATION.REQUIRED': 'This field is required',
@@ -252,6 +254,38 @@ class TestHostUnsupportedElement {}
 	`,
 })
 class TestHostMissingDirective {}
+
+@Component({
+	selector: 'app-fake-custom-control',
+	standalone: true,
+	providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => FakeCustomControl) }],
+	template: `
+		<div data-testid="custom-control">Custom control</div>
+	`,
+})
+class FakeCustomControl extends FormFieldCustomControl implements FormValueControl<string> {
+	readonly value = model('');
+}
+
+@Component({
+	selector: 'app-test-host-custom-control',
+	standalone: true,
+	imports: [FormField, SignalFormField, FakeCustomControl],
+	template: `
+		<app-form-field [label]="'Permissions'">
+			<app-fake-custom-control [formField]="field" />
+		</app-form-field>
+	`,
+})
+class TestHostCustomControl {
+	private readonly model = signal('');
+	readonly field: FieldTree<string> = form(
+		this.model,
+		schema<string>((fieldPath) => {
+			required(fieldPath);
+		}),
+	);
+}
 
 @Component({
 	selector: 'app-test-host-checkbox',
@@ -628,7 +662,7 @@ describe('FormField', () => {
 			).toBe(true);
 		});
 
-		it('should silently drop unsupported elements via ng-content select', async () => {
+		it('should error when unsupported element is projected', async () => {
 			const errors: unknown[] = [];
 			const errorHandler = { handleError: (e: unknown) => errors.push(e) };
 
@@ -640,8 +674,9 @@ describe('FormField', () => {
 				],
 			});
 
-			expect(screen.queryByText('Not a form control')).not.toBeInTheDocument();
-			expect(errors).toHaveLength(0);
+			expect(
+				errors.some((e) => e instanceof Error && e.message.includes('FormField received an unsupported element')),
+			).toBe(true);
 		});
 
 		it('should error when projected form control has no [formField] directive', async () => {
@@ -659,6 +694,51 @@ describe('FormField', () => {
 			expect(
 				errors.some((e) => e instanceof Error && e.message.includes('FormField requires a [formField] directive')),
 			).toBe(true);
+		});
+	});
+
+	describe('custom control support', () => {
+		it('should render label for custom control', async () => {
+			await render(TestHostCustomControl, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			expect(screen.getByText('Permissions')).toBeInTheDocument();
+		});
+
+		it('should project custom control content', async () => {
+			await render(TestHostCustomControl, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			expect(screen.getByTestId('custom-control')).toBeInTheDocument();
+		});
+
+		it('should not report errors for custom control with [formField]', async () => {
+			const errors: unknown[] = [];
+			const errorHandler = { handleError: (e: unknown) => errors.push(e) };
+
+			await render(TestHostCustomControl, {
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: ErrorHandler, useValue: errorHandler },
+					...provideSignalFormsConfig({}),
+				],
+			});
+
+			expect(errors).toHaveLength(0);
+		});
+
+		it('should show validation error when custom control field is touched and invalid', async () => {
+			const { fixture } = await render(TestHostCustomControl, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			});
+
+			fixture.componentInstance.field().markAsTouched();
+			fixture.detectChanges();
+			await fixture.whenStable();
+
+			expect(screen.getByRole('alert')).toHaveTextContent('This field is required');
 		});
 	});
 });
