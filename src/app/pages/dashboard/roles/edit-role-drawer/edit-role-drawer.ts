@@ -26,11 +26,11 @@ interface EditRoleFormModel {
 					<input [formField]="roleForm.name" type="text" autocomplete="off" />
 				</app-form-field>
 
-				<app-form-field [showRequired]="false" label="Code" hint="Code cannot be changed">
+				<app-form-field label="Code" hint="Code cannot be changed">
 					<input [formField]="roleForm.code" type="text" />
 				</app-form-field>
 
-				<app-form-field [showRequired]="false" label="Description">
+				<app-form-field label="Description">
 					<textarea [formField]="roleForm.description" rows="3"></textarea>
 				</app-form-field>
 
@@ -67,6 +67,8 @@ export class EditRoleDrawer {
 		this.model,
 		schema<EditRoleFormModel>((role) => {
 			required(role.name);
+			required(role.code);
+			required(role.description);
 			maxLength(role.name, 100);
 			disabled(role.code);
 			maxLength(role.description, 500);
