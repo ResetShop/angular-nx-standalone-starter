@@ -135,6 +135,9 @@ export class Drawer implements OnDestroy {
 		this.startMinimumTimer();
 		this.drawerTracker.register(this);
 		drawer.showModal();
+		// Focus the dialog itself to prevent showModal() from auto-focusing the first input,
+		// which would trigger premature validation via blur/touched state
+		drawer.focus();
 		// Wait one frame so the browser applies `open` before `data-open` triggers the CSS transition
 		requestAnimationFrame(() => drawer.setAttribute('data-open', ''));
 		this.opened.emit();
@@ -151,6 +154,7 @@ export class Drawer implements OnDestroy {
 		this.startMinimumTimer();
 		this.drawerTracker.register(this);
 		drawer.showModal();
+		drawer.focus();
 		requestAnimationFrame(() => drawer.setAttribute('data-open', ''));
 		this.opened.emit();
 	}
