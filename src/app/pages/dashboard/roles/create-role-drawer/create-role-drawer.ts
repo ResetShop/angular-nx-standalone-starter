@@ -15,6 +15,7 @@ import { DrawerFooter } from '@components/drawer/drawer-footer';
 import { FormField } from '@components/form-field/form-field';
 import { PermissionsStore } from '@store/permissions/permissions.store';
 import { RolesStore } from '@store/roles/roles.store';
+import { toSnakeCode } from '@utils/slug';
 import { PermissionSelector } from '../permission-selector/permission-selector';
 
 interface CreateRoleFormModel {
@@ -44,13 +45,12 @@ interface CreateRoleFormModel {
 				</app-form-field>
 
 				@if (permissionsStore.permissionsGroupedArray().length > 0) {
-					<div class="flex min-h-0 flex-1 flex-col">
-						<h3 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Permissions</h3>
+					<app-form-field label="Permissions" class="flex min-h-0 flex-1 flex-col">
 						<app-permission-selector
 							[formField]="roleForm.permissionIds"
 							[groups]="permissionsStore.permissionsGroupedArray()"
 						/>
-					</div>
+					</app-form-field>
 				}
 			</form>
 
@@ -88,12 +88,7 @@ export class CreateRoleDrawer {
 
 	constructor() {
 		effect(() => {
-			const code = this.nameValue()
-				.trim()
-				.toLowerCase()
-				.replace(/[^a-z0-9\s]/g, '')
-				.replace(/\s+/g, '_')
-				.replace(/^[^a-z]+/, '');
+			const code = toSnakeCode(this.nameValue());
 			untracked(() => this.model.update((m) => ({ ...m, code })));
 		});
 	}
@@ -104,6 +99,7 @@ export class CreateRoleDrawer {
 
 	protected onDrawerClosed(): void {
 		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
+		this.roleForm().reset();
 	}
 
 	protected onSubmit(event: Event): void {
