@@ -35,13 +35,12 @@ interface EditRoleFormModel {
 				</app-form-field>
 
 				@if (permissionsStore.permissionsGroupedArray().length > 0) {
-					<div class="flex min-h-0 flex-1 flex-col">
-						<h3 class="mb-2 text-sm font-medium text-gray-900 dark:text-white">Permissions</h3>
+					<app-form-field label="Permissions" class="flex min-h-0 flex-1 flex-col">
 						<app-permission-selector
 							[formField]="roleForm.permissionIds"
 							[groups]="permissionsStore.permissionsGroupedArray()"
 						/>
-					</div>
+					</app-form-field>
 				}
 			</form>
 
@@ -102,6 +101,7 @@ export class EditRoleDrawer {
 	protected onDrawerClosed(): void {
 		this.editRoleId.set(null);
 		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
+		this.roleForm().reset();
 	}
 
 	protected onSubmit(event: Event): void {
