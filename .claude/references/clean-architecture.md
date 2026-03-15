@@ -112,3 +112,33 @@ pages/<domain>/
     ├── edit-<entity>-drawer.ts
     └── edit-<entity>-drawer.spec.ts
 ```
+
+### Search Debounce in the Store
+
+Search debounce logic belongs in the store's `setSearchQuery` as an `rxMethod` with `debounceTime`, not in the component. Components call `store.setSearchQuery(value)` directly on every input event — no `Subject`, `debounceTime` subscription, or `takeUntilDestroyed` in the component.
+
+**Rationale:** Centralizing debounce in the store keeps components thin and declarative — they fire events, the store decides timing. It also prevents duplicate debounce logic if multiple components trigger the same search.
+
+```typescript
+// ✅ Correct — store owns the debounce via rxMethod
+setSearchQuery: rxMethod<string>(
+  pipe(
+    debounceTime(300),
+    tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
+  ),
+),
+
+// Component — simple pass-through, no RxJS
+protected onSearchInput(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  this.store.setSearchQuery(input.value);
+}
+
+// ❌ Incorrect — component manages debounce with Subject
+private readonly searchSubject = new Subject<string>();
+constructor() {
+  this.searchSubject.pipe(debounceTime(300), takeUntilDestroyed()).subscribe((query) => {
+    this.store.setSearchQuery(query);
+  });
+}
+```

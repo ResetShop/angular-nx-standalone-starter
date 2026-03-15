@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import type { RoleData, RoleWithPermissions } from '@contracts/role/role.types';
 import { RolesApiService } from '@providers/roles/roles';
-import { clearAllMocks, fn, type MockFn } from '@test-utils';
+import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils';
 import { NEVER, of, throwError } from 'rxjs';
 import { RolesStore } from './roles.store';
 
@@ -157,16 +157,19 @@ describe('RolesStore', () => {
 			expect(store.readError().list).toBe('Failed to load roles');
 		});
 
-		it('should pass search query when set', () => {
+		it('should pass search query when set', async () => {
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			useFakeTimers();
 			setupStore();
 
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			store.setSearchQuery('admin');
+			await advanceTimersByTimeAsync(300);
 			TestBed.tick();
 
 			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
 			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
+			useRealTimers();
 		});
 
 		it('should not send search param when query is empty', () => {
@@ -530,17 +533,70 @@ describe('RolesStore', () => {
 	});
 
 	describe('setSearchQuery', () => {
-		it('should reset to page 1 and update searchQuery', () => {
+		beforeEach(() => useFakeTimers());
+		afterEach(() => useRealTimers());
+
+		it('should not update searchQuery before debounce period elapses', async () => {
+			setupStore();
+
+			store.setSearchQuery('test');
+			await advanceTimersByTimeAsync(299);
+
+			expect(store.searchQuery()).toBe('');
+		});
+
+		it('should update searchQuery after debounce period elapses', async () => {
+			setupStore();
+
+			store.setSearchQuery('test');
+			await advanceTimersByTimeAsync(300);
+
+			expect(store.searchQuery()).toBe('test');
+		});
+
+		it('should reset to page 1 when search query is applied', async () => {
 			setupStore();
 
 			store.setPage(3);
 			TestBed.tick();
 
 			store.setSearchQuery('test');
-			TestBed.tick();
+			await advanceTimersByTimeAsync(300);
 
 			expect(store.currentPage()).toBe(1);
 			expect(store.searchQuery()).toBe('test');
+		});
+
+		it('should only apply the last value when called rapidly', async () => {
+			setupStore();
+			const callsBefore = rolesApiMock.getAll.calls.length;
+
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			store.setSearchQuery('a');
+			await advanceTimersByTimeAsync(100);
+			store.setSearchQuery('ad');
+			await advanceTimersByTimeAsync(100);
+			store.setSearchQuery('admin');
+			await advanceTimersByTimeAsync(300);
+			TestBed.tick();
+
+			expect(store.searchQuery()).toBe('admin');
+			// Only one API call should have been made (for the final debounced value)
+			expect(rolesApiMock.getAll.calls).toHaveLength(callsBefore + 1);
+			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
+			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
+		});
+
+		it('should trigger a re-fetch after debounce', async () => {
+			setupStore();
+			const callsBefore = rolesApiMock.getAll.calls.length;
+
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			store.setSearchQuery('editor');
+			await advanceTimersByTimeAsync(300);
+			TestBed.tick();
+
+			expect(rolesApiMock.getAll.calls).toHaveLength(callsBefore + 1);
 		});
 	});
 
