@@ -14,6 +14,7 @@ import {
 	viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { parseDurationToMs } from '@utils/duration';
 import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
 import { Spinner } from '../spinner/spinner';
 import { DrawerFooter } from './drawer-footer';
@@ -176,7 +177,7 @@ export class Drawer implements OnDestroy {
 	private startMinimumTimer(): void {
 		this.minimumElapsed.set(false);
 		this.clearMinimumTimer();
-		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), 500);
+		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), parseDurationToMs('500ms'));
 	}
 
 	private clearMinimumTimer(): void {
