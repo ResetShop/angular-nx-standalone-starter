@@ -1,6 +1,6 @@
+import { parseDurationToMs } from '@utils/duration';
 import { sql } from 'drizzle-orm';
 import type { DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
-import { parseDurationToMs } from '../../utils/duration';
 import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants';
 import type { DatabaseCheck, HealthCheckResponse, IHealthService } from './interfaces';
 

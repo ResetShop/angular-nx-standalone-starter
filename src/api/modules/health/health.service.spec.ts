@@ -1,6 +1,6 @@
 import { advanceTimersByTimeAsync, clearAllMocks, fn, useFakeTimers, useRealTimers } from '@test-utils';
+import { parseDurationToMs } from '@utils/duration';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { parseDurationToMs } from '../../utils/duration';
 import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants';
 import { HealthService } from './health.service';
 

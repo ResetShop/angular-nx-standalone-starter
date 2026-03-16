@@ -1,3 +1,4 @@
+<!-- eslint-disable @angular-eslint/template/no-autofocus -- Intentional: prevents showModal() from auto-focusing the first input, which triggers premature validation -->
 <dialog
 	(cancel)="onCancel($event)"
 	(click)="onBackdropClick($event)"
@@ -6,6 +7,7 @@
 	[attr.aria-labelledby]="title() ? titleId : null"
 	[attr.aria-describedby]="description() ? descriptionId : null"
 	tabindex="-1"
+	autofocus
 	#drawerRef
 	class="m-0 flex max-h-full flex-col bg-white shadow-xl dark:bg-gray-900"
 >
@@ -26,7 +28,13 @@
 
 	<!-- Body -->
 	<div class="flex-1 overflow-y-auto px-6 py-4">
+		@if (showSpinner()) {
+		<div class="flex h-full items-center justify-center">
+			<app-spinner />
+		</div>
+		} @else {
 		<ng-content />
+		}
 	</div>
 
 	<!-- Footer -->

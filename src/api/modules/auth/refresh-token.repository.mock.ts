@@ -1,5 +1,5 @@
+import { parseDurationToMs } from '@utils/duration';
 import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants';
-import { parseDurationToMs } from '../../utils/duration';
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,

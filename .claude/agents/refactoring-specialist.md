@@ -73,6 +73,7 @@ Before refactoring, read these reference files for project principles:
 - [ ] Standard library used over custom implementations (KISS)
 - [ ] No unnecessary layers or indirection
 - [ ] No module-level constants/variables for single-function use — prefer local scope (see CLAUDE.md Scope Rules)
+- [ ] No `firstValueFrom`/`toPromise`/`async/await` on observables in Angular store methods — use `rxMethod` from `@ngrx/signals/rxjs-interop`
 
 ## Output Format
 

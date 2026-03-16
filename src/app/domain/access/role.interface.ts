@@ -5,6 +5,9 @@ export interface IRole {
 	readonly code: string;
 	readonly name: string;
 	readonly description: string | null;
+	readonly removable: boolean;
+	readonly createdAt: Date | null;
+	readonly updatedAt: Date | null;
 	readonly permissions: readonly IPermission[];
 
 	hasPermission(resource: string, action: string): boolean;

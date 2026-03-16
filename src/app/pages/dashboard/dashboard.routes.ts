@@ -18,6 +18,22 @@ export default [
 				title: 'Configuración Inicial',
 				loadComponent: () => import('./pages/welcome/welcome'),
 			},
+			{
+				path: 'authorization',
+				title: 'Autorización',
+				children: [
+					{
+						path: 'permissions',
+						title: 'Permisos',
+						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
+					},
+					{
+						path: 'roles',
+						title: 'Roles',
+						loadComponent: () => import('./roles/roles-list/roles-list'),
+					},
+				],
+			},
 		],
 	},
 ] satisfies NamedRoute[];

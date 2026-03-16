@@ -81,3 +81,41 @@ return api.getData().pipe(
 ```
 
 **Practical test:** If you removed the `subscribe()` call, would the operator still make sense? `map` should — it's just a data transformation. `tap` shouldn't — that's how you know the side effect is in the right place.
+
+---
+
+## Signals-First Async Operations (No Promises)
+
+**Use `rxMethod` from `@ngrx/signals/rxjs-interop` for all async store operations. Never convert observables to promises.**
+
+The Angular frontend is signals-first. `rxMethod` integrates naturally with `@ngrx/signals` stores — it accepts static values, signals, or observables as input, manages subscriptions via `DestroyRef`, and composes cleanly with RxJS operators for loading/error state management.
+
+**References:** [NgRx RxJS integration guide](https://ngrx.io/guide/signals/rxjs-integration) | [rxMethod source](https://github.com/ngrx/platform/blob/main/modules/signals/rxjs-interop/src/rx-method.ts) | [rxMethod tests](https://github.com/ngrx/platform/blob/main/modules/signals/rxjs-interop/spec/rx-method.spec.ts)
+
+**Do:**
+
+- Use `rxMethod<T>(pipe(tap(...), switchMap(...), catchError(() => EMPTY)))` for API calls in stores
+- Use computed signals + `withHooks.onInit` for reactive data fetching (pagination, search, filters)
+- Use `tap` with `patchState` for state side effects; `catchError(() => EMPTY)` to swallow errors after handling
+- Use `switchMap` as the default flattening operator (cancels stale requests)
+- Reload the full list from the server after every mutation — no optimistic in-place updates
+- Use per-operation structured error objects (`readError: { list, detail }`, `mutationError: { create, update, delete }`)
+- Log errors via `console.error('[StoreName] methodName failed:', err)` in every error handler
+- Derive values like `totalPages` as computed signals — never store them in state
+
+**Don't:**
+
+- Use `firstValueFrom`, `lastValueFrom`, or `toPromise` to convert observables to promises
+- Use `async/await` in store methods that call API services
+- Use `subscribe()` manually in stores — let `rxMethod` manage subscriptions
+- Use optimistic in-place updates (e.g., `roles.map(r => r.id === id ? updated : r)`) — always reload from server
+- Use a single `string | null` for error state — use per-operation typed error objects
+
+**`rxMethod` invocation modes:**
+
+- **Reactive** — pass a signal reference: `store.loadUsers(store.listParams)` — watches and re-fires on changes
+- **Imperative** — pass the current value: `store.loadUsers(store.listParams())` — one-shot fetch
+
+For explicit reloads, call `rxMethod` imperatively with the current signal value. **Never invent counter/trigger signals** (`reloadCounter`, `_reload`, `forceRefresh`) to force re-evaluation — they are unnecessary workarounds that pollute state.
+
+**Practical test:** If a store method has `async` in its signature or imports `firstValueFrom`, it should be refactored to `rxMethod` with a pipe-based approach.

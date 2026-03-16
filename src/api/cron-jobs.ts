@@ -1,6 +1,6 @@
+import { parseDurationToMs } from '@utils/duration';
 import { MIN_CRON_SECRET_LENGTH } from './constants/auth.constants';
 import { container } from './container/container';
-import { parseDurationToMs } from './utils/duration';
 import { isServerless } from './utils/environment';
 
 let cleanupInterval: NodeJS.Timeout | null = null;
