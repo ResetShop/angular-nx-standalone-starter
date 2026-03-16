@@ -8,7 +8,14 @@ import {
 	untracked,
 	viewChild,
 } from '@angular/core'
-import { form, maxLength, pattern, required, schema, FormField as SignalFormField } from '@angular/forms/signals'
+import {
+	email as emailValidator,
+	form,
+	maxLength,
+	required,
+	schema,
+	FormField as SignalFormField,
+} from '@angular/forms/signals'
 import { Alert, AlertDescription } from '@components/alert/alert'
 import { Button } from '@components/button/button'
 import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
@@ -74,15 +81,9 @@ const EMPTY_MODEL: CreateUserFormModel = {
 					<input [formField]="userForm.email" type="email" autocomplete="email" />
 				</app-form-field>
 
-				<label class="flex items-center gap-2">
-					<input
-						(change)="onMustChangePasswordChange($event)"
-						[checked]="model().mustChangePassword"
-						type="checkbox"
-						class="border-input text-default focus:ring-ring h-4 w-4 rounded"
-					/>
-					<span class="text-sm">Must change password on first login</span>
-				</label>
+				<app-form-field label="Must change password on first login">
+					<input [formField]="userForm.mustChangePassword" type="checkbox" />
+				</app-form-field>
 
 				@if (rolesStore.allRoles().length > 0) {
 					<app-form-field label="Roles" class="flex min-h-0 flex-1 flex-col">
@@ -126,7 +127,7 @@ export class CreateUserDrawer {
 		this.model,
 		schema<CreateUserFormModel>((user) => {
 			required(user.email)
-			pattern(user.email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+			emailValidator(user.email)
 			required(user.firstName)
 			maxLength(user.firstName, 100)
 			required(user.lastName)
@@ -180,11 +181,6 @@ export class CreateUserDrawer {
 		this.model.set({ ...EMPTY_MODEL })
 		this.userForm().reset()
 		this.usersStore.clearMutationError('create')
-	}
-
-	protected onMustChangePasswordChange(event: Event): void {
-		const checked = (event.target as HTMLInputElement).checked
-		this.model.update((m) => ({ ...m, mustChangePassword: checked }))
 	}
 
 	protected onSubmit(event: Event): void {

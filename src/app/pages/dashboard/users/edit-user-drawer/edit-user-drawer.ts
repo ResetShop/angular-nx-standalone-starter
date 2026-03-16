@@ -8,7 +8,14 @@ import {
 	untracked,
 	viewChild,
 } from '@angular/core'
-import { form, maxLength, pattern, required, schema, FormField as SignalFormField } from '@angular/forms/signals'
+import {
+	email as emailValidator,
+	form,
+	maxLength,
+	required,
+	schema,
+	FormField as SignalFormField,
+} from '@angular/forms/signals'
 import { Alert, AlertDescription } from '@components/alert/alert'
 import { Button } from '@components/button/button'
 import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
@@ -115,7 +122,7 @@ export class EditUserDrawer {
 		this.model,
 		schema<EditUserFormModel>((user) => {
 			required(user.email)
-			pattern(user.email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+			emailValidator(user.email)
 			required(user.firstName)
 			maxLength(user.firstName, 100)
 			required(user.lastName)
