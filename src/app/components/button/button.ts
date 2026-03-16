@@ -185,9 +185,9 @@ export class Button {
 	 */
 	protected readonly labelClasses = computed(() => {
 		const labelPadding: Record<ButtonSize, string> = {
-			sm: 'px-1',
-			md: 'px-1',
-			lg: 'px-2',
+			sm: 'btn-label px-1',
+			md: 'btn-label px-1',
+			lg: 'btn-label px-2',
 		}
 		return labelPadding[this.size()]
 	})
