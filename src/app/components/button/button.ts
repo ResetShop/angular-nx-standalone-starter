@@ -114,7 +114,7 @@ export class Button {
 			'cursor-pointer',
 		]
 
-		// Size classes — reduced px; the label span adds its own padding
+		// Size classes — reduced px; the label span adds its own padding (see labelClasses)
 		const sizeClasses: Record<ButtonSize, string[]> = {
 			sm: ['h-8', 'px-2', 'text-sm'],
 			md: ['h-10', 'px-3', 'text-base'],
@@ -181,7 +181,7 @@ export class Button {
 
 	/**
 	 * Computed classes for the label span — adds per-size padding
-	 * that compounds with the button's own padding.
+	 * that compounds with the button's own padding (see sizeClasses in computedClasses).
 	 */
 	protected readonly labelClasses = computed(() => {
 		const labelPadding: Record<ButtonSize, string> = {
