@@ -1,6 +1,8 @@
 import { computed, Directive, OnDestroy, signal } from '@angular/core';
 import { parseDurationToMs } from '@utils/duration';
 
+export const DRAWER_SPINNER_MIN_DISPLAY = '500ms';
+
 /**
  * Manages the loading spinner lifecycle for the Drawer component.
  *
@@ -23,7 +25,7 @@ export class DrawerLoading implements OnDestroy {
 		this.contentReady.set(false);
 		this.minimumElapsed.set(false);
 		this.clearTimer();
-		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), parseDurationToMs('500ms'));
+		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), parseDurationToMs(DRAWER_SPINNER_MIN_DISPLAY));
 	}
 
 	/** Signals that the consumer's async content is ready to display. */

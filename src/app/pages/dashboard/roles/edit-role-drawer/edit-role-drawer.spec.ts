@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { DRAWER_SPINNER_MIN_DISPLAY } from '@components/drawer/drawer-loading';
 import { Translation } from '@providers/i18n/translation';
 import { PermissionsApiService } from '@providers/permissions/permissions';
 import { RolesApiService } from '@providers/roles/roles';
@@ -13,6 +14,7 @@ import {
 	useRealTimers,
 } from '@test-utils';
 import { fireEvent, render, screen } from '@testing-library/angular';
+import { parseDurationToMs } from '@utils/duration';
 import { of, throwError } from 'rxjs';
 import { EditRoleDrawer } from './edit-role-drawer';
 
@@ -81,7 +83,7 @@ describe('EditRoleDrawer', () => {
 		TestBed.tick();
 		fixture.componentInstance.open(roleId);
 		TestBed.tick();
-		await advanceTimersByTimeAsync(500);
+		await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_SPINNER_MIN_DISPLAY));
 		fixture.detectChanges();
 		return { fixture };
 	}
