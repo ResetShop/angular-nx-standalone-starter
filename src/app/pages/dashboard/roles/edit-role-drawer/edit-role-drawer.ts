@@ -18,6 +18,7 @@ import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
+import { parseDurationToMs } from '@utils/duration'
 import { PermissionSelector } from '../permission-selector/permission-selector'
 
 interface EditRoleFormModel {
@@ -80,13 +81,13 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
 					<button
 						(click)="onSubmit($event)"
-						[disabled]="drawer.showSpinner() || isUpdating() || !isFormValid()"
+						[disabled]="drawer.showSpinner() || showSubmitSpinner() || !isFormValid()"
 						appButton
 					>
-						@if (isUpdating()) {
+						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
 						}
-						{{ isUpdating() ? 'Saving...' : 'Save' }}
+						{{ showSubmitSpinner() ? 'Saving...' : 'Save' }}
 					</button>
 				</div>
 			</ng-template>
@@ -125,8 +126,10 @@ export class EditRoleDrawer {
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
 	protected readonly isUpdating = computed(() => this.rolesStore.isUpdating())
+	protected readonly showSubmitSpinner = computed(() => this.isUpdating() || this.closingAfterSuccess())
 	protected readonly mutationError = computed(() => this.rolesStore.mutationError().update)
 
+	private readonly closingAfterSuccess = signal(false)
 	private submitted = false
 
 	constructor() {
@@ -153,7 +156,11 @@ export class EditRoleDrawer {
 		untracked(() => {
 			if (!updating && this.submitted && error === null) {
 				this.submitted = false
-				this.drawer().close()
+				this.closingAfterSuccess.set(true)
+				setTimeout(() => {
+					this.closingAfterSuccess.set(false)
+					this.drawer().close()
+				}, parseDurationToMs('1s'))
 			}
 		})
 	}

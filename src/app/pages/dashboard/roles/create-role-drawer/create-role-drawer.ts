@@ -18,6 +18,7 @@ import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
+import { parseDurationToMs } from '@utils/duration'
 import { toSnakeCode } from '@utils/slug'
 import { PermissionSelector } from '../permission-selector/permission-selector'
 
@@ -79,11 +80,11 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
 					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
-					<button (click)="onSubmit($event)" [disabled]="isCreating() || !isFormValid()" appButton>
-						@if (isCreating()) {
+					<button (click)="onSubmit($event)" [disabled]="showSubmitSpinner() || !isFormValid()" appButton>
+						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
 						}
-						{{ isCreating() ? 'Creating...' : 'Create' }}
+						{{ showSubmitSpinner() ? 'Creating...' : 'Create' }}
 					</button>
 				</div>
 			</ng-template>
@@ -120,8 +121,10 @@ export class CreateRoleDrawer {
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
 	protected readonly isCreating = computed(() => this.rolesStore.isCreating())
+	protected readonly showSubmitSpinner = computed(() => this.isCreating() || this.closingAfterSuccess())
 	protected readonly mutationError = computed(() => this.rolesStore.mutationError().create)
 
+	private readonly closingAfterSuccess = signal(false)
 	private readonly nameValue = computed(() => this.model().name)
 	private submitted = false
 
@@ -140,7 +143,11 @@ export class CreateRoleDrawer {
 		untracked(() => {
 			if (!creating && this.submitted && error === null) {
 				this.submitted = false
-				this.drawer().close()
+				this.closingAfterSuccess.set(true)
+				setTimeout(() => {
+					this.closingAfterSuccess.set(false)
+					this.drawer().close()
+				}, parseDurationToMs('1s'))
 			}
 		})
 	}
