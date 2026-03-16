@@ -52,7 +52,9 @@ class DrawerTestHost {
 
 async function renderAndOpenDrawer(inputs: Record<string, unknown> = {}) {
 	const view = await render(DrawerTestHost, { inputs, on: inputs['on'] as never });
-	view.fixture.componentInstance.drawer().show();
+	const drawer = view.fixture.componentInstance.drawer();
+	drawer.show();
+	drawer.setContentReady();
 	await advanceTimersByTimeAsync(500);
 	view.fixture.detectChanges();
 	return view;

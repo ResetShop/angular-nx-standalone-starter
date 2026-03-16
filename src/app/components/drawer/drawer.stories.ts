@@ -34,7 +34,7 @@ A slide-out drawer component using the native \`<dialog>\` element.
 ## Usage
 
 \`\`\`html
-<button (click)="drawer.show()">Open</button>
+<button (click)="drawer.show(); drawer.setContentReady()">Open</button>
 
 <app-drawer #drawer title="Edit User" direction="right">
   <form>...</form>
@@ -94,7 +94,7 @@ export const Default: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"
@@ -132,7 +132,7 @@ export const NoBackdropClose: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"
@@ -168,7 +168,7 @@ export const NoEscapeClose: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"
@@ -203,7 +203,7 @@ export const WithFormContent: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"
