@@ -1,10 +1,11 @@
 import { Button } from '@components/button/button';
 import type { Meta, StoryObj } from '@storybook/angular';
 import { moduleMetadata } from '@storybook/angular';
+import type { DrawerDirection } from './drawer';
 import { Drawer } from './drawer';
 import { DrawerFooter } from './drawer-footer';
 
-const meta: Meta<Drawer> = {
+const meta: Meta<Drawer & { direction: DrawerDirection }> = {
 	component: Drawer,
 	title: 'Components/Drawer',
 	tags: ['autodocs'],
@@ -34,7 +35,7 @@ A slide-out drawer component using the native \`<dialog>\` element.
 ## Usage
 
 \`\`\`html
-<button (click)="drawer.show()">Open</button>
+<button (click)="drawer.show(); drawer.setContentReady()">Open</button>
 
 <app-drawer #drawer title="Edit User" direction="right">
   <form>...</form>
@@ -79,7 +80,7 @@ A slide-out drawer component using the native \`<dialog>\` element.
 
 export default meta;
 
-type Story = StoryObj<Drawer>;
+type Story = StoryObj<Drawer & { direction: DrawerDirection }>;
 
 /**
  * Default drawer with configurable direction, title, and description.
@@ -94,7 +95,7 @@ export const Default: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"
@@ -132,7 +133,7 @@ export const NoBackdropClose: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"
@@ -168,7 +169,7 @@ export const NoEscapeClose: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"
@@ -203,7 +204,7 @@ export const WithFormContent: Story = {
 	render: (args) => ({
 		props: args,
 		template: `
-			<button appButton (click)="drawer.show()">Open Drawer</button>
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
 
 			<app-drawer #drawer
 				[direction]="direction"

@@ -48,6 +48,9 @@ export class RolesApiService {
 				code: role.code,
 				name: role.name,
 				description: role.description,
+				removable: role.removable,
+				createdAt: role.createdAt,
+				updatedAt: role.updatedAt,
 				permissions,
 			})),
 		);

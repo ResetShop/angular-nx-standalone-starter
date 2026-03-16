@@ -82,6 +82,9 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 			code: ur.role.code,
 			name: ur.role.name,
 			description: ur.role.description,
+			removable: ur.role.removable,
+			createdAt: ur.role.createdAt,
+			updatedAt: ur.role.updatedAt,
 			permissions: ur.role.permissions.map((rp) => ({
 				id: rp.permission.id,
 				name: rp.permission.name,

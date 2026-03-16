@@ -209,6 +209,55 @@ TestBed.flushEffects();
 
 **When to call `TestBed.tick()`:** After any state change that triggers a computed signal update which in turn causes a reactive side effect (e.g., `patchState` on `currentPage` updates the `listParams` computed signal, which causes `rxMethod` to re-fire).
 
+### Testing `@defer` Blocks
+
+Components using `@defer` with `@placeholder (minimum Xms)` require two test setup steps:
+
+1. **Enable playthrough behavior** via `deferBlockBehavior: DeferBlockBehavior.Playthrough` in the `render()` options — otherwise `@defer` blocks default to manual triggering in tests
+2. **Advance fake timers** past the `@placeholder` minimum duration so the deferred content renders
+
+```typescript
+import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
+import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@test-utils';
+import { render, screen } from '@testing-library/angular';
+
+describe('ComponentWithDefer', () => {
+	beforeEach(() => {
+		useFakeTimers();
+		clearAllMocks();
+	});
+
+	afterEach(() => {
+		useRealTimers();
+	});
+
+	async function renderComponent() {
+		const { fixture } = await render(MyComponent, {
+			deferBlockBehavior: DeferBlockBehavior.Playthrough,
+			providers: [
+				/* ... */
+			],
+		});
+		TestBed.tick();
+		// Advance past the @placeholder minimum (e.g., 500ms)
+		await advanceTimersByTimeAsync(500);
+		fixture.detectChanges();
+	}
+
+	it('should render deferred content after placeholder minimum', async () => {
+		await renderComponent();
+
+		expect(screen.getByText('Deferred content')).toBeInTheDocument();
+	});
+});
+```
+
+**Key rules:**
+
+- Use `DeferBlockBehavior.Playthrough` — the default `Manual` mode prevents `when` triggers from firing
+- Use `advanceTimersByTimeAsync` (not `advanceTimersByTime`) to properly flush async operations alongside timers
+- Always pair `useFakeTimers()` in `beforeEach` with `useRealTimers()` in `afterEach`
+
 ### Store Test Mock Typing
 
 Type API mocks as `Record<keyof ServiceClass, MockFn>` to keep the mock structurally linked to the real service. If a method is added to the service, TypeScript will catch the missing mock key.

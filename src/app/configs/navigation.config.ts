@@ -48,9 +48,14 @@ export const navigationConfig: NavigationConfig = {
 				{
 					id: 'authorization',
 					name: 'Autorización',
-					route: 'dashboard/authorization/permissions',
+					route: 'dashboard/authorization/roles',
 					icon: { featherShield },
 					children: [
+						{
+							id: 'roles',
+							name: 'Roles',
+							route: 'dashboard/authorization/roles',
+						},
 						{
 							id: 'permissions',
 							name: 'Permisos',
