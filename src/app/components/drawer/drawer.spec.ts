@@ -1,7 +1,9 @@
 import { Component, input, output, viewChild } from '@angular/core';
+import { DRAWER_SPINNER_MIN_DISPLAY } from '@components/drawer/drawer-loading';
 import { mockDialog } from '@mocks/dialog.mock';
 import { advanceTimersByTimeAsync, clearAllMocks, fn, useFakeTimers, useRealTimers } from '@test-utils';
 import { render, screen } from '@testing-library/angular';
+import { parseDurationToMs } from '@utils/duration';
 import { Drawer } from './drawer';
 import { DrawerFooter } from './drawer-footer';
 import { DrawerHeader } from './drawer-header';
@@ -55,7 +57,7 @@ async function renderAndOpenDrawer(inputs: Record<string, unknown> = {}) {
 	const drawer = view.fixture.componentInstance.drawer();
 	drawer.show();
 	drawer.setContentReady();
-	await advanceTimersByTimeAsync(500);
+	await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_SPINNER_MIN_DISPLAY));
 	view.fixture.detectChanges();
 	return view;
 }
@@ -147,7 +149,7 @@ describe('Drawer', () => {
 			});
 
 			view.fixture.componentInstance.drawer().show();
-			await advanceTimersByTimeAsync(500);
+			await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_SPINNER_MIN_DISPLAY));
 			view.fixture.detectChanges();
 
 			const dialog = screen.getByRole('dialog');
