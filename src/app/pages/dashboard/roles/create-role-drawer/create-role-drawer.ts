@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
 import { Drawer } from '@components/drawer/drawer'
 import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
+import { Spinner } from '@components/spinner/spinner'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { toSnakeCode } from '@utils/slug'
@@ -38,6 +39,7 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 		FormField,
 		SignalFormField,
 		Button,
+		Spinner,
 		PermissionSelector,
 		Alert,
 		AlertDescription,
@@ -77,7 +79,12 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
 					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
-					<button (click)="onSubmit($event)" [disabled]="!isFormValid()" appButton>Create</button>
+					<button (click)="onSubmit($event)" [disabled]="isCreating() || !isFormValid()" appButton>
+						@if (isCreating()) {
+							<app-spinner data-icon="start" />
+						}
+						{{ isCreating() ? 'Creating...' : 'Create' }}
+					</button>
 				</div>
 			</ng-template>
 		</app-drawer>
@@ -112,6 +119,7 @@ export class CreateRoleDrawer {
 	)
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
+	protected readonly isCreating = computed(() => this.rolesStore.isCreating())
 	protected readonly mutationError = computed(() => this.rolesStore.mutationError().create)
 
 	private readonly nameValue = computed(() => this.model().name)
