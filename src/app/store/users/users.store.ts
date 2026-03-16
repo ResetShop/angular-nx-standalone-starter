@@ -39,7 +39,12 @@ export const UsersStore = signalStore(
 	withComputed((store) => ({
 		totalPages: computed(() => (store.totalItems() === 0 ? 0 : Math.ceil(store.totalItems() / store.pageSize()))),
 		isAnyLoading: computed(
-			() => store.isLoadingList() || store.isCreating() || store.isUpdating() || store.isDeleting(),
+			() =>
+				store.isLoadingList() ||
+				store.isLoadingDetail() ||
+				store.isCreating() ||
+				store.isUpdating() ||
+				store.isDeleting(),
 		),
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
