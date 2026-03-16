@@ -67,7 +67,6 @@ export class EditRoleDrawer {
 		schema<EditRoleFormModel>((role) => {
 			required(role.name);
 			required(role.code);
-			required(role.description);
 			maxLength(role.name, 100);
 			disabled(role.code);
 			maxLength(role.description, 500);
