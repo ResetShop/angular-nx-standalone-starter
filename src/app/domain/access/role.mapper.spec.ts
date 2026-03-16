@@ -59,6 +59,7 @@ describe('Role Mapper', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: 'Full access',
+				removable: true,
 				permissions: [
 					{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' },
 					{ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' },
@@ -80,6 +81,7 @@ describe('Role Mapper', () => {
 				code: 'guest',
 				name: 'Guest',
 				description: null,
+				removable: true,
 				permissions: [],
 			}
 
@@ -94,6 +96,7 @@ describe('Role Mapper', () => {
 				code: 'guest',
 				name: 'Guest',
 				description: null,
+				removable: true,
 				permissions: [],
 			}
 
@@ -108,6 +111,7 @@ describe('Role Mapper', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
 				permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
 			}
 

@@ -49,8 +49,8 @@ export interface PermissionGroup {
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PermissionSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
-	protected readonly groups = input.required<PermissionGroup[]>()
-	protected readonly value = model<number[]>([])
+	public readonly groups = input.required<PermissionGroup[]>()
+	public readonly value = model<number[]>([])
 
 	protected readonly containerClasses = computed(() => {
 		const base = 'min-h-0 flex-1 overflow-y-auto rounded-md border p-3'

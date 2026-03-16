@@ -164,7 +164,8 @@ describe('Dashboard', () => {
 				],
 			})
 
-			const uiStore = fixture.componentInstance.uiStore
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const uiStore = (fixture.componentInstance as any).uiStore
 			uiStore.setGlobalLoading(true)
 			fixture.detectChanges()
 
@@ -179,7 +180,8 @@ describe('Dashboard', () => {
 				],
 			})
 
-			const uiStore = fixture.componentInstance.uiStore
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const uiStore = (fixture.componentInstance as any).uiStore
 			uiStore.setGlobalLoading(true)
 			fixture.detectChanges()
 			expect(screen.getByText('Cargando...')).toBeInTheDocument()

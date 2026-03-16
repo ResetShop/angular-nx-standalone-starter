@@ -26,7 +26,8 @@ describe('ResetPassword', () => {
 
 	const renderResetPassword = async () => {
 		const view = await render(ResetPassword, { providers: defaultProviders() })
-		return { ...view, host: view.fixture.componentInstance }
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return { ...view, host: view.fixture.componentInstance as any }
 	}
 
 	it('should create the reset password component', async () => {
