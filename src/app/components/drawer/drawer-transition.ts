@@ -33,8 +33,9 @@ export class DrawerTransition {
 			.subscribe();
 	}
 
-	/** Triggers the open animation by setting `data-open` after one frame. */
+	/** Opens the dialog and triggers the slide-in animation after one frame. */
 	open(element: HTMLDialogElement): void {
+		element.showModal();
 		requestAnimationFrame(() => element.setAttribute('data-open', ''));
 	}
 

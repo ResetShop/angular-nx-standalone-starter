@@ -89,21 +89,17 @@ export class Drawer implements OnDestroy {
 	show(): void {
 		const drawer = this.drawerElement();
 		if (drawer.open) return;
+
 		this.loading.start();
 		this.drawerTracker.register(this);
-		drawer.showModal();
 		this.transition.open(drawer);
 		this.opened.emit();
-	}
-
-	/** Signals that the consumer's async content is ready to display */
-	setContentReady(): void {
-		this.loading.setContentReady();
 	}
 
 	close(): void {
 		const drawer = this.drawerElement();
 		if (!drawer.open) return;
+
 		this.loading.reset();
 		this.drawerTracker.unregister(this);
 		this.transition.close(drawer);
@@ -123,5 +119,10 @@ export class Drawer implements OnDestroy {
 		if (event.target === this.drawerElement()) {
 			this.close();
 		}
+	}
+
+	/** Signals that the consumer's async content is ready to display */
+	setContentReady(): void {
+		this.loading.setContentReady();
 	}
 }
