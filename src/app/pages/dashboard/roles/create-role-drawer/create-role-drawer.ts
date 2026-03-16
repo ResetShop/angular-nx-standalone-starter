@@ -116,6 +116,7 @@ export class CreateRoleDrawer {
 
 	open(): void {
 		this.drawer().show();
+		this.drawer().setContentReady();
 	}
 
 	protected onDrawerClosed(): void {

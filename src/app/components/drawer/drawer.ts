@@ -10,15 +10,14 @@ import {
 	input,
 	OnDestroy,
 	output,
-	signal,
 	viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { parseDurationToMs } from '@utils/duration';
 import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
 import { Spinner } from '../spinner/spinner';
 import { DrawerFooter } from './drawer-footer';
 import { DrawerHeader } from './drawer-header';
+import { DrawerLoading } from './drawer-loading';
 import { DrawerTracker } from './drawer-tracker';
 
 export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom';
@@ -27,6 +26,7 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom';
 	selector: 'app-drawer',
 	standalone: true,
 	imports: [NgTemplateOutlet, Spinner],
+	hostDirectives: [DrawerLoading],
 	templateUrl: './drawer.html',
 	styleUrl: './drawer.css',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,12 +64,11 @@ export class Drawer implements OnDestroy {
 	private readonly drawerTracker = inject(DrawerTracker);
 	private readonly closeTransition$ = new Subject<void>();
 	private readonly instanceId = this.drawerTracker.nextId();
-	private readonly minimumElapsed = signal(false);
-	private readonly contentReady = signal(true);
-	private minimumTimer: ReturnType<typeof setTimeout> | null = null;
+
+	readonly loading = inject(DrawerLoading);
 
 	/** Whether the spinner should be shown */
-	readonly showSpinner = computed(() => !this.minimumElapsed() || !this.contentReady());
+	readonly showSpinner = this.loading.showSpinner;
 
 	/** Unique ID for aria-labelledby */
 	readonly titleId = `drawer-title-${this.instanceId}`;
@@ -126,15 +125,18 @@ export class Drawer implements OnDestroy {
 	});
 
 	ngOnDestroy(): void {
-		this.clearMinimumTimer();
 		this.drawerTracker.unregister(this);
 	}
 
+	/**
+	 * Opens the drawer with a loading spinner. The spinner stays visible until both
+	 * the 500ms minimum has elapsed AND `setContentReady()` is called.
+	 * For immediate content, call `setContentReady()` right after `show()`.
+	 */
 	show(): void {
 		const drawer = this.drawerElement();
 		if (drawer.open) return;
-		this.contentReady.set(true);
-		this.startMinimumTimer();
+		this.loading.start();
 		this.drawerTracker.register(this);
 		drawer.showModal();
 		// Wait one frame so the browser applies `open` before `data-open` triggers the CSS transition
@@ -142,49 +144,18 @@ export class Drawer implements OnDestroy {
 		this.opened.emit();
 	}
 
-	/**
-	 * Opens the drawer with a loading state. The spinner stays visible until both
-	 * the 500ms minimum has elapsed AND `setContentReady()` is called.
-	 */
-	showWithLoading(): void {
-		const drawer = this.drawerElement();
-		if (drawer.open) return;
-		this.contentReady.set(false);
-		this.startMinimumTimer();
-		this.drawerTracker.register(this);
-		drawer.showModal();
-		requestAnimationFrame(() => drawer.setAttribute('data-open', ''));
-		this.opened.emit();
-	}
-
 	/** Signals that the consumer's async content is ready to display */
 	setContentReady(): void {
-		this.contentReady.set(true);
+		this.loading.setContentReady();
 	}
 
 	close(): void {
 		const drawer = this.drawerElement();
 		if (!drawer.open) return;
-		this.clearMinimumTimer();
-		// Hide content immediately to prevent validation flash during close animation
-		this.minimumElapsed.set(false);
-		this.contentReady.set(true);
+		this.loading.reset();
 		drawer.removeAttribute('data-open');
 		this.closeTransition$.next();
 		this.closed.emit();
-	}
-
-	private startMinimumTimer(): void {
-		this.minimumElapsed.set(false);
-		this.clearMinimumTimer();
-		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), parseDurationToMs('500ms'));
-	}
-
-	private clearMinimumTimer(): void {
-		if (this.minimumTimer) {
-			clearTimeout(this.minimumTimer);
-			this.minimumTimer = null;
-		}
 	}
 
 	onCancel(event: Event): void {
