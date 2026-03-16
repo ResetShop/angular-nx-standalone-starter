@@ -17,7 +17,7 @@ import { Spinner } from '@components/spinner/spinner'
 
 			@if (loading()) {
 				<div class="flex justify-center py-12">
-					<app-spinner />
+					<app-spinner class="size-5" />
 				</div>
 			} @else if (error()) {
 				<div appAlert variant="destructive">
