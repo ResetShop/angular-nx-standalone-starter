@@ -16,6 +16,9 @@ describe('Role', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: 'Full access',
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions,
 			});
 
@@ -32,6 +35,9 @@ describe('Role', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [],
 			});
 
@@ -44,6 +50,9 @@ describe('Role', () => {
 				code: 'guest',
 				name: 'Guest',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [],
 			});
 
@@ -59,6 +68,9 @@ describe('Role', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions,
 			});
 
@@ -74,6 +86,9 @@ describe('Role', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions,
 			});
 
@@ -87,6 +102,9 @@ describe('Role', () => {
 				code: 'guest',
 				name: 'Guest',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [],
 			});
 
@@ -102,6 +120,9 @@ describe('Role', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions,
 			});
 
@@ -117,6 +138,9 @@ describe('Role', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions,
 			});
 
@@ -130,6 +154,9 @@ describe('Role', () => {
 				code: 'guest',
 				name: 'Guest',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [],
 			});
 

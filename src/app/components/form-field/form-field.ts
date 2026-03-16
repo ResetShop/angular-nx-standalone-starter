@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
 	afterRenderEffect,
 	ChangeDetectionStrategy,
@@ -16,33 +17,44 @@ import type { ValidationError } from '@angular/forms/signals';
 import { NgValidationError, REQUIRED, FormField as SignalFormField } from '@angular/forms/signals';
 import { Translation } from '@providers/i18n/translation';
 import { NgpFormField } from 'ng-primitives/form-field';
+import { FormFieldCustomControl } from './form-field-custom-control';
 
 @Component({
 	selector: 'app-form-field',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
+	imports: [NgTemplateOutlet],
 	hostDirectives: [NgpFormField],
 	host: { class: 'block' },
 	template: `
-		<div [class]="isCheckbox() ? 'flex items-center gap-3' : ''">
-			<label
-				[for]="resolvedId()"
-				[class]="
-					isCheckbox()
-						? 'text-foreground order-2 text-sm/6 font-medium select-none'
-						: 'text-foreground block text-sm/6 font-medium'
-				"
-			>
+		<ng-template #projectedContent>
+			<ng-content />
+		</ng-template>
+
+		<!--	Checkbox styles are handled differently to position the label right to the input -->
+		@if (isCheckbox()) {
+			<div class="flex items-center gap-3">
+				<div class="order-1 flex items-center" #contentWrapper>
+					<ng-container *ngTemplateOutlet="projectedContent" />
+				</div>
+				<label [for]="resolvedId()" class="text-foreground order-2 text-sm/6 font-medium select-none">
+					{{ label() }}
+					@if (isRequired()) {
+						<span aria-hidden="true" class="ml-0.5">*</span>
+					}
+				</label>
+			</div>
+		} @else {
+			<label [for]="resolvedId()" class="text-foreground block text-sm/6 font-medium">
 				{{ label() }}
 				@if (isRequired()) {
 					<span aria-hidden="true" class="ml-0.5">*</span>
 				}
 			</label>
-
-			<div [class]="isCheckbox() ? 'order-1 flex items-center' : 'mt-2'" #contentWrapper>
-				<ng-content select="input, select, textarea" />
+			<div class="mt-2" #contentWrapper>
+				<ng-container *ngTemplateOutlet="projectedContent" />
 			</div>
-		</div>
+		}
 
 		@if (hint() && !showErrors()) {
 			<p class="text-muted-foreground mt-1.5 text-sm">{{ hint() }}</p>
@@ -60,7 +72,7 @@ import { NgpFormField } from 'ng-primitives/form-field';
 		:host ::ng-deep input:not([type='checkbox']),
 		:host ::ng-deep select,
 		:host ::ng-deep textarea {
-			@apply border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none;
+			@apply text-foreground border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none;
 		}
 
 		:host ::ng-deep input[type='checkbox'] {
@@ -72,6 +84,12 @@ import { NgpFormField } from 'ng-primitives/form-field';
 		:host ::ng-deep textarea[aria-invalid='true'] {
 			border-color: var(--destructive);
 		}
+
+		:host ::ng-deep input:disabled,
+		:host ::ng-deep select:disabled,
+		:host ::ng-deep textarea:disabled {
+			@apply bg-muted cursor-not-allowed opacity-60;
+		}
 	`,
 })
 export class FormField {
@@ -79,6 +97,7 @@ export class FormField {
 	private readonly translation = inject(Translation);
 	private readonly contentWrapper = viewChild<ElementRef<HTMLElement>>('contentWrapper');
 	private readonly formFieldDirective = contentChild(SignalFormField);
+	private readonly customControl = contentChild(FormFieldCustomControl);
 
 	readonly label = input.required<string>();
 	readonly hint = input<string>();
@@ -116,7 +135,10 @@ export class FormField {
 
 	constructor() {
 		effect(() => this.setupContentValidation());
-		afterRenderEffect(() => this.setupIdAndAriaSync());
+		afterRenderEffect(() => {
+			this.resolveInputComponentType();
+			this.setupIdAndAriaSync();
+		});
 	}
 
 	/**
@@ -138,27 +160,35 @@ export class FormField {
 			);
 		}
 
-		if (directChildren.length === 1 && !directChildren[0].matches(this.supportedControls)) {
-			this.errorHandler.handleError(
-				new Error(
-					`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
-						`Supported elements: ${this.supportedControls}.`,
-				),
-			);
-		}
+		if (directChildren.length === 1) {
+			const isNativeControl = directChildren[0].matches(this.supportedControls);
+			const isCustomControl = !!this.customControl();
 
-		if (
-			directChildren.length === 1 &&
-			directChildren[0].matches(this.supportedControls) &&
-			!this.formFieldDirective()
-		) {
-			this.errorHandler.handleError(
-				new Error(
-					'FormField requires a [formField] directive on the projected form control. ' +
-						'Add [formField]="yourField" to the input, select, or textarea element.',
-				),
-			);
+			if (!isNativeControl && !isCustomControl) {
+				this.errorHandler.handleError(
+					new Error(
+						`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
+							`Supported elements: ${this.supportedControls}, or a FormFieldCustomControl provider.`,
+					),
+				);
+			}
+
+			if ((isNativeControl || isCustomControl) && !this.formFieldDirective()) {
+				this.errorHandler.handleError(
+					new Error(
+						'FormField requires a [formField] directive on the projected form control. ' +
+							'Add [formField]="yourField" to the element.',
+					),
+				);
+			}
 		}
+	}
+
+	private resolveInputComponentType() {
+		const wrapper = this.contentWrapper()?.nativeElement;
+		if (!wrapper) return;
+		const el = wrapper.querySelector(':scope > input');
+		this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox');
 	}
 
 	/**
@@ -168,18 +198,31 @@ export class FormField {
 		const wrapper = this.contentWrapper()?.nativeElement;
 		if (!wrapper) return;
 
-		const el = wrapper.querySelector(this.supportedControls);
-		if (!el) return;
-
-		let id = el.getAttribute('id');
-		if (!id) {
-			id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
-			el.setAttribute('id', id);
+		const nativeEl = wrapper.querySelector(`:scope > ${this.supportedControls}`);
+		if (nativeEl) {
+			let id = nativeEl.getAttribute('id');
+			if (!id) {
+				id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
+				nativeEl.setAttribute('id', id);
+			}
+			this.resolvedId.set(id);
+			nativeEl.setAttribute('aria-invalid', String(this.showErrors()));
+			return;
 		}
-		this.resolvedId.set(id);
-		this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox');
 
-		el.setAttribute('aria-invalid', String(this.showErrors()));
+		const custom = this.customControl();
+		if (custom) {
+			const firstChild = wrapper.children[0];
+			if (firstChild) {
+				let id = firstChild.getAttribute('id');
+				if (!id) {
+					id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
+					firstChild.setAttribute('id', id);
+				}
+				this.resolvedId.set(id);
+			}
+			custom.ariaInvalid.set(this.showErrors());
+		}
 	}
 
 	private mapErrorToMessage(error: ValidationError): string {

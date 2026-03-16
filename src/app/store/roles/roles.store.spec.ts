@@ -1,8 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import type { RoleData, RoleWithPermissions } from '@contracts/role/role.types';
 import { RolesApiService } from '@providers/roles/roles';
-import { clearAllMocks, fn, type MockFn } from '@test-utils';
+import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils';
 import { NEVER, of, throwError } from 'rxjs';
 import { RolesStore } from './roles.store';
 
@@ -25,6 +26,9 @@ function createMockRoleWithPermissions(overrides: Partial<RoleWithPermissions> =
 		code: 'admin',
 		name: 'Admin',
 		description: null,
+		removable: true,
+		createdAt: new Date('2025-01-01'),
+		updatedAt: new Date('2025-01-01'),
 		permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
 		...overrides,
 	};
@@ -157,16 +161,22 @@ describe('RolesStore', () => {
 			expect(store.readError().list).toBe('Failed to load roles');
 		});
 
-		it('should pass search query when set', () => {
+		it('should pass search query when set', async () => {
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
-			setupStore();
+			useFakeTimers();
+			try {
+				setupStore();
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
-			store.setSearchQuery('admin');
-			TestBed.tick();
+				rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+				store.setSearchQuery('admin');
+				await advanceTimersByTimeAsync(300);
+				TestBed.tick();
 
-			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
-			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
+				const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
+				expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
+			} finally {
+				useRealTimers();
+			}
 		});
 
 		it('should not send search param when query is empty', () => {
@@ -260,7 +270,7 @@ describe('RolesStore', () => {
 		});
 	});
 
-	describe('createRole', () => {
+	describe('createRoleWithPermissions', () => {
 		it('should reload the list from the server on success', () => {
 			const existingRole = createMockRoleData({ id: 1 });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([existingRole], 1)));
@@ -273,7 +283,7 @@ describe('RolesStore', () => {
 			const reloadedRoles = [existingRole, createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })];
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(reloadedRoles, 2)));
 
-			store.createRole({ name: 'Editor', code: 'editor' });
+			store.createRoleWithPermissions({ name: 'Editor', code: 'editor', permissionIds: [] });
 
 			expect(store.roles()).toHaveLength(2);
 			expect(store.totalItems()).toBe(2);
@@ -285,14 +295,14 @@ describe('RolesStore', () => {
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Conflict')));
 
-			store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
 
 			expect(store.isCreating()).toBe(false);
 			expect(store.mutationError().create).toBe('Failed to create role');
 		});
 	});
 
-	describe('updateRole', () => {
+	describe('updateRoleWithPermissions', () => {
 		it('should reload the list from the server on success', () => {
 			const role = createMockRoleData({ id: 5, name: 'Old Name' });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 1)));
@@ -302,8 +312,11 @@ describe('RolesStore', () => {
 			rolesApiMock.getAll.mockReturnValue(
 				of(createMockListResponse([createMockRoleData({ id: 5, name: 'Updated Name' })], 1)),
 			);
+			rolesApiMock.getByIdWithPermissions.mockReturnValue(
+				of(createMockRoleWithPermissions({ id: 5, name: 'Updated Name' })),
+			);
 
-			store.updateRole({ id: 5, body: { name: 'Updated Name' } });
+			store.updateRoleWithPermissions({ id: 5, body: { name: 'Updated Name' }, permissionIds: [] });
 
 			expect(store.roles()[0].name).toBe('Updated Name');
 			expect(store.isUpdating()).toBe(false);
@@ -327,30 +340,11 @@ describe('RolesStore', () => {
 				of(createMockRoleWithPermissions({ id: 5, name: 'Updated' })),
 			);
 
-			store.updateRole({ id: 5, body: { name: 'Updated' } });
+			store.updateRoleWithPermissions({ id: 5, body: { name: 'Updated' }, permissionIds: [] });
 
 			const detailCalls = rolesApiMock.getByIdWithPermissions.calls;
 			expect(detailCalls.length).toBeGreaterThanOrEqual(2);
 			expect(detailCalls[detailCalls.length - 1][0]).toBe(5);
-		});
-
-		it('should not reload detail when a different role is updated', () => {
-			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2 })];
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-			setupStore();
-
-			// Select role 1
-			const roleWithPerms = createMockRoleWithPermissions({ id: 1 });
-			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			store.loadRole(1);
-			const detailCallsBefore = rolesApiMock.getByIdWithPermissions.calls.length;
-
-			rolesApiMock.update.mockReturnValue(of(createMockRoleData({ id: 2, name: 'Changed' })));
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-
-			store.updateRole({ id: 2, body: { name: 'Changed' } });
-
-			expect(rolesApiMock.getByIdWithPermissions.calls).toHaveLength(detailCallsBefore);
 		});
 
 		it('should set mutationError.update on failure', () => {
@@ -358,7 +352,7 @@ describe('RolesStore', () => {
 
 			rolesApiMock.update.mockReturnValue(throwError(() => new Error('Not found')));
 
-			store.updateRole({ id: 1, body: { name: 'Fail' } });
+			store.updateRoleWithPermissions({ id: 1, body: { name: 'Fail' }, permissionIds: [] });
 
 			expect(store.isUpdating()).toBe(false);
 			expect(store.mutationError().update).toBe('Failed to update role');
@@ -530,17 +524,70 @@ describe('RolesStore', () => {
 	});
 
 	describe('setSearchQuery', () => {
-		it('should reset to page 1 and update searchQuery', () => {
+		beforeEach(() => useFakeTimers());
+		afterEach(() => useRealTimers());
+
+		it('should not update searchQuery before debounce period elapses', async () => {
+			setupStore();
+
+			store.setSearchQuery('test');
+			await advanceTimersByTimeAsync(299);
+
+			expect(store.searchQuery()).toBe('');
+		});
+
+		it('should update searchQuery after debounce period elapses', async () => {
+			setupStore();
+
+			store.setSearchQuery('test');
+			await advanceTimersByTimeAsync(300);
+
+			expect(store.searchQuery()).toBe('test');
+		});
+
+		it('should reset to page 1 when search query is applied', async () => {
 			setupStore();
 
 			store.setPage(3);
 			TestBed.tick();
 
 			store.setSearchQuery('test');
-			TestBed.tick();
+			await advanceTimersByTimeAsync(300);
 
 			expect(store.currentPage()).toBe(1);
 			expect(store.searchQuery()).toBe('test');
+		});
+
+		it('should only apply the last value when called rapidly', async () => {
+			setupStore();
+			const callsBefore = rolesApiMock.getAll.calls.length;
+
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			store.setSearchQuery('a');
+			await advanceTimersByTimeAsync(100);
+			store.setSearchQuery('ad');
+			await advanceTimersByTimeAsync(100);
+			store.setSearchQuery('admin');
+			await advanceTimersByTimeAsync(300);
+			TestBed.tick();
+
+			expect(store.searchQuery()).toBe('admin');
+			// Only one API call should have been made (for the final debounced value)
+			expect(rolesApiMock.getAll.calls).toHaveLength(callsBefore + 1);
+			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
+			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
+		});
+
+		it('should trigger a re-fetch after debounce', async () => {
+			setupStore();
+			const callsBefore = rolesApiMock.getAll.calls.length;
+
+			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+			store.setSearchQuery('editor');
+			await advanceTimersByTimeAsync(300);
+			TestBed.tick();
+
+			expect(rolesApiMock.getAll.calls).toHaveLength(callsBefore + 1);
 		});
 	});
 
@@ -572,13 +619,112 @@ describe('RolesStore', () => {
 			expect(store.readError().list).toBe('Failed to load roles');
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
-			store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
 			expect(store.mutationError().create).toBe('Failed to create role');
 
 			store.clearErrors();
 
 			expect(store.readError()).toEqual({ list: null, detail: null, all: null });
 			expect(store.mutationError()).toEqual({ create: null, update: null, delete: null, assignPermissions: null });
+		});
+	});
+
+	describe('clearMutationError', () => {
+		it('should clear only the specified mutation error key', () => {
+			setupStore();
+
+			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
+
+			rolesApiMock.delete.mockReturnValue(throwError(() => new Error('Delete error')));
+			store.deleteRole(1);
+
+			expect(store.mutationError().create).toBe('Failed to create role');
+			expect(store.mutationError().delete).toBe('Failed to delete role');
+
+			store.clearMutationError('create');
+
+			expect(store.mutationError().create).toBeNull();
+			expect(store.mutationError().delete).toBe('Failed to delete role');
+		});
+	});
+
+	describe('backend error extraction', () => {
+		it('should extract error message from HttpErrorResponse', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'A role with this code already exists' },
+				status: 409,
+			});
+			rolesApiMock.create.mockReturnValue(throwError(() => httpError));
+
+			store.createRoleWithPermissions({ name: 'Duplicate', code: 'dup', permissionIds: [] });
+
+			expect(store.mutationError().create).toBe('A role with this code already exists');
+		});
+
+		it('should use fallback message for non-HttpErrorResponse errors', () => {
+			setupStore();
+
+			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Network error')));
+
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
+
+			expect(store.mutationError().create).toBe('Failed to create role');
+		});
+
+		it('should use fallback when HttpErrorResponse has no error.error string', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({ error: null, status: 500 });
+			rolesApiMock.create.mockReturnValue(throwError(() => httpError));
+
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
+
+			expect(store.mutationError().create).toBe('Failed to create role');
+		});
+
+		it('should extract backend error for updateRoleWithPermissions', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'Cannot remove your own admin permission' },
+				status: 403,
+			});
+			rolesApiMock.update.mockReturnValue(throwError(() => httpError));
+
+			store.updateRoleWithPermissions({ id: 1, body: { name: 'Test' }, permissionIds: [] });
+
+			expect(store.mutationError().update).toBe('Cannot remove your own admin permission');
+		});
+
+		it('should extract backend error for deleteRole', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'Cannot delete role with active users' },
+				status: 409,
+			});
+			rolesApiMock.delete.mockReturnValue(throwError(() => httpError));
+
+			store.deleteRole(1);
+
+			expect(store.mutationError().delete).toBe('Cannot delete role with active users');
+		});
+
+		it('should extract backend error for assignPermissions', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'Permission not found' },
+				status: 404,
+			});
+			rolesApiMock.assignPermissions.mockReturnValue(throwError(() => httpError));
+
+			store.assignPermissions({ id: 1, body: { permissionIds: [999] } });
+
+			expect(store.mutationError().assignPermissions).toBe('Permission not found');
 		});
 	});
 

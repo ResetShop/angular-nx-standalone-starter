@@ -14,8 +14,26 @@ describe('User', () => {
 		];
 
 		return [
-			createRole({ id: 1, code: 'admin', name: 'Administrator', description: null, permissions: adminPermissions }),
-			createRole({ id: 2, code: 'editor', name: 'Editor', description: null, permissions: editorPermissions }),
+			createRole({
+				id: 1,
+				code: 'admin',
+				name: 'Administrator',
+				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+				permissions: adminPermissions,
+			}),
+			createRole({
+				id: 2,
+				code: 'editor',
+				name: 'Editor',
+				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+				permissions: editorPermissions,
+			}),
 		];
 	};
 
@@ -103,6 +121,9 @@ describe('User', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [sharedPermission],
 			});
 			const role2 = createRole({
@@ -110,6 +131,9 @@ describe('User', () => {
 				code: 'viewer',
 				name: 'Viewer',
 				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [sharedPermission],
 			});
 

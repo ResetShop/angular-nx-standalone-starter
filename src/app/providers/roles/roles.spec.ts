@@ -162,6 +162,9 @@ describe('RolesApiService', () => {
 					code: 'editor',
 					name: 'Editor',
 					description: null,
+					removable: true,
+					createdAt: null,
+					updatedAt: null,
 					permissions: mockPermissions,
 				});
 			});

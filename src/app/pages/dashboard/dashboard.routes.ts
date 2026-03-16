@@ -27,6 +27,11 @@ export default [
 						title: 'Permisos',
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
 					},
+					{
+						path: 'roles',
+						title: 'Roles',
+						loadComponent: () => import('./roles/roles-list/roles-list'),
+					},
 				],
 			},
 		],
