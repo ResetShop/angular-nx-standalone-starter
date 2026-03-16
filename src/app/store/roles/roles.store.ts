@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject } from '@angular/core';
 import type { SearchPaginationParams } from '@contracts/common/pagination.types';
-import type { AssignPermissionsRequest, CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types';
+import type { AssignPermissionsRequest } from '@contracts/role/role.types';
 import type { IRole } from '@domain/access/role.interface';
 import { mapRole, mapRoleFromData } from '@domain/access/role.mapper';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
@@ -205,77 +205,6 @@ export const RolesStore = signalStore(
 			reload(): void {
 				store.loadRoles(store.listParams());
 			},
-
-			createRole: rxMethod<CreateRoleRequest>(
-				pipe(
-					tap(() =>
-						patchState(store, {
-							isCreating: true,
-							mutationError: patchMutationError(store.mutationError(), 'create', null),
-						}),
-					),
-					switchMap((body) =>
-						rolesApi.create(body).pipe(
-							tap({
-								next: () => {
-									patchState(store, { isCreating: false });
-									store.loadRoles(store.listParams());
-								},
-								// TODO(#66): Replace with structured logging service
-								error: (err) => {
-									console.error('[RolesStore] createRole failed:', err);
-									patchState(store, {
-										isCreating: false,
-										mutationError: patchMutationError(
-											store.mutationError(),
-											'create',
-											extractErrorMessage(err, 'Failed to create role'),
-										),
-									});
-								},
-							}),
-							catchError(() => EMPTY),
-						),
-					),
-				),
-			),
-
-			updateRole: rxMethod<{ id: number; body: UpdateRoleRequest }>(
-				pipe(
-					tap(() =>
-						patchState(store, {
-							isUpdating: true,
-							mutationError: patchMutationError(store.mutationError(), 'update', null),
-						}),
-					),
-					switchMap(({ id, body }) =>
-						rolesApi.update(id, body).pipe(
-							tap({
-								next: () => {
-									patchState(store, { isUpdating: false });
-									store.loadRoles(store.listParams());
-									if (store.selectedRole()?.id === id) {
-										store.loadRole(id);
-									}
-								},
-								// TODO(#66): Replace with structured logging service
-								error: (err) => {
-									console.error('[RolesStore] updateRole failed:', err);
-									patchState(store, {
-										isUpdating: false,
-										mutationError: patchMutationError(
-											store.mutationError(),
-											'update',
-											extractErrorMessage(err, 'Failed to update role'),
-										),
-									});
-								},
-							}),
-							catchError(() => EMPTY),
-						),
-					),
-				),
-			),
 
 			deleteRole: rxMethod<number>(
 				pipe(

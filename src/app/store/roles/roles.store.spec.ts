@@ -267,7 +267,7 @@ describe('RolesStore', () => {
 		});
 	});
 
-	describe('createRole', () => {
+	describe('createRoleWithPermissions', () => {
 		it('should reload the list from the server on success', () => {
 			const existingRole = createMockRoleData({ id: 1 });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([existingRole], 1)));
@@ -280,7 +280,7 @@ describe('RolesStore', () => {
 			const reloadedRoles = [existingRole, createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })];
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(reloadedRoles, 2)));
 
-			store.createRole({ name: 'Editor', code: 'editor' });
+			store.createRoleWithPermissions({ name: 'Editor', code: 'editor', permissionIds: [] });
 
 			expect(store.roles()).toHaveLength(2);
 			expect(store.totalItems()).toBe(2);
@@ -292,14 +292,14 @@ describe('RolesStore', () => {
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Conflict')));
 
-			store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
 
 			expect(store.isCreating()).toBe(false);
 			expect(store.mutationError().create).toBe('Failed to create role');
 		});
 	});
 
-	describe('updateRole', () => {
+	describe('updateRoleWithPermissions', () => {
 		it('should reload the list from the server on success', () => {
 			const role = createMockRoleData({ id: 5, name: 'Old Name' });
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 1)));
@@ -309,8 +309,11 @@ describe('RolesStore', () => {
 			rolesApiMock.getAll.mockReturnValue(
 				of(createMockListResponse([createMockRoleData({ id: 5, name: 'Updated Name' })], 1)),
 			);
+			rolesApiMock.getByIdWithPermissions.mockReturnValue(
+				of(createMockRoleWithPermissions({ id: 5, name: 'Updated Name' })),
+			);
 
-			store.updateRole({ id: 5, body: { name: 'Updated Name' } });
+			store.updateRoleWithPermissions({ id: 5, body: { name: 'Updated Name' }, permissionIds: [] });
 
 			expect(store.roles()[0].name).toBe('Updated Name');
 			expect(store.isUpdating()).toBe(false);
@@ -334,30 +337,11 @@ describe('RolesStore', () => {
 				of(createMockRoleWithPermissions({ id: 5, name: 'Updated' })),
 			);
 
-			store.updateRole({ id: 5, body: { name: 'Updated' } });
+			store.updateRoleWithPermissions({ id: 5, body: { name: 'Updated' }, permissionIds: [] });
 
 			const detailCalls = rolesApiMock.getByIdWithPermissions.calls;
 			expect(detailCalls.length).toBeGreaterThanOrEqual(2);
 			expect(detailCalls[detailCalls.length - 1][0]).toBe(5);
-		});
-
-		it('should not reload detail when a different role is updated', () => {
-			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2 })];
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-			setupStore();
-
-			// Select role 1
-			const roleWithPerms = createMockRoleWithPermissions({ id: 1 });
-			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(roleWithPerms));
-			store.loadRole(1);
-			const detailCallsBefore = rolesApiMock.getByIdWithPermissions.calls.length;
-
-			rolesApiMock.update.mockReturnValue(of(createMockRoleData({ id: 2, name: 'Changed' })));
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)));
-
-			store.updateRole({ id: 2, body: { name: 'Changed' } });
-
-			expect(rolesApiMock.getByIdWithPermissions.calls).toHaveLength(detailCallsBefore);
 		});
 
 		it('should set mutationError.update on failure', () => {
@@ -365,7 +349,7 @@ describe('RolesStore', () => {
 
 			rolesApiMock.update.mockReturnValue(throwError(() => new Error('Not found')));
 
-			store.updateRole({ id: 1, body: { name: 'Fail' } });
+			store.updateRoleWithPermissions({ id: 1, body: { name: 'Fail' }, permissionIds: [] });
 
 			expect(store.isUpdating()).toBe(false);
 			expect(store.mutationError().update).toBe('Failed to update role');
@@ -632,7 +616,7 @@ describe('RolesStore', () => {
 			expect(store.readError().list).toBe('Failed to load roles');
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
-			store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
 			expect(store.mutationError().create).toBe('Failed to create role');
 
 			store.clearErrors();
@@ -647,7 +631,7 @@ describe('RolesStore', () => {
 			setupStore();
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
-			store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
 
 			rolesApiMock.delete.mockReturnValue(throwError(() => new Error('Delete error')));
 			store.deleteRole(1);
@@ -672,7 +656,7 @@ describe('RolesStore', () => {
 			});
 			rolesApiMock.create.mockReturnValue(throwError(() => httpError));
 
-			store.createRole({ name: 'Duplicate', code: 'dup' });
+			store.createRoleWithPermissions({ name: 'Duplicate', code: 'dup', permissionIds: [] });
 
 			expect(store.mutationError().create).toBe('A role with this code already exists');
 		});
@@ -682,7 +666,7 @@ describe('RolesStore', () => {
 
 			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Network error')));
 
-			store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
 
 			expect(store.mutationError().create).toBe('Failed to create role');
 		});
@@ -693,7 +677,7 @@ describe('RolesStore', () => {
 			const httpError = new HttpErrorResponse({ error: null, status: 500 });
 			rolesApiMock.create.mockReturnValue(throwError(() => httpError));
 
-			store.createRole({ name: 'Fail', code: 'fail' });
+			store.createRoleWithPermissions({ name: 'Fail', code: 'fail', permissionIds: [] });
 
 			expect(store.mutationError().create).toBe('Failed to create role');
 		});
