@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
 import type { SearchPaginationParams } from '@contracts/common/pagination.types'
 import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types'
@@ -21,6 +22,13 @@ function patchMutationError(
 	value: string | null,
 ): UsersMutationError {
 	return { ...current, [key]: value }
+}
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+	if (err instanceof HttpErrorResponse && typeof err.error?.error === 'string') {
+		return err.error.error
+	}
+	return fallback
 }
 
 /**
@@ -185,7 +193,11 @@ export const UsersStore = signalStore(
 									console.error('[UsersStore] createUser failed:', err)
 									patchState(store, {
 										isCreating: false,
-										mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create user'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'create',
+											extractErrorMessage(err, 'Failed to create user'),
+										),
 									})
 								},
 							}),
@@ -215,7 +227,11 @@ export const UsersStore = signalStore(
 									console.error('[UsersStore] updateUser failed:', err)
 									patchState(store, {
 										isUpdating: false,
-										mutationError: patchMutationError(store.mutationError(), 'update', 'Failed to update user'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'update',
+											extractErrorMessage(err, 'Failed to update user'),
+										),
 									})
 								},
 							}),
@@ -248,7 +264,7 @@ export const UsersStore = signalStore(
 										mutationError: patchMutationError(
 											store.mutationError(),
 											'updateStatus',
-											'Failed to update user status',
+											extractErrorMessage(err, 'Failed to update user status'),
 										),
 									})
 								},
@@ -289,7 +305,11 @@ export const UsersStore = signalStore(
 									console.error('[UsersStore] deleteUser failed:', err)
 									patchState(store, {
 										isDeleting: false,
-										mutationError: patchMutationError(store.mutationError(), 'delete', 'Failed to delete user'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'delete',
+											extractErrorMessage(err, 'Failed to delete user'),
+										),
 									})
 								},
 							}),
