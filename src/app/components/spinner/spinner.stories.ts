@@ -81,10 +81,10 @@ export const Colors: Story = {
 	render: () => ({
 		template: `
 			<div class="flex gap-6 items-center">
-				<span class="text-gray-500"><app-spinner /></span>
-				<span class="text-default"><app-spinner /></span>
-				<span class="text-destructive"><app-spinner /></span>
-				<span class="text-green-500"><app-spinner /></span>
+				<span class="text-gray-500"><app-spinner class="size-5" /></span>
+				<span class="text-default"><app-spinner class="size-5" /></span>
+				<span class="text-destructive"><app-spinner class="size-5" /></span>
+				<span class="text-green-500"><app-spinner class="size-5" /></span>
 			</div>
 		`,
 	}),
