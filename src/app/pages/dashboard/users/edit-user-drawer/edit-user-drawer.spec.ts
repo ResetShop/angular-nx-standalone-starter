@@ -176,7 +176,7 @@ describe('EditUserDrawer', () => {
 		fixture.detectChanges()
 
 		expect(screen.getByRole('alert')).toBeInTheDocument()
-		expect(screen.getByText('Failed to update user')).toBeInTheDocument()
+		expect(screen.getByText('Email already exists')).toBeInTheDocument()
 	})
 
 	it('should keep drawer open when update fails', async () => {
