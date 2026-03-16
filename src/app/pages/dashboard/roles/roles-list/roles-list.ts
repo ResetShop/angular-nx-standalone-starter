@@ -41,7 +41,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
 			</div>
 
 			<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-				<app-data-table [columns]="columns" [data]="store.roles()" [loading]="store.isCreating()" caption="Roles list">
+				<app-data-table [columns]="columns" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
 					<ng-template appDataTableCellDef="code" let-value>
 						<span appBadge variant="secondary">{{ value }}</span>
 					</ng-template>
