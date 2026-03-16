@@ -1,23 +1,23 @@
-import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
-import type { PermissionData } from '../role/interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
+import type { PermissionData } from '../role/interfaces'
 
 /**
  * Parameters for listing permissions with optional search filtering.
  */
 export interface ListPermissionsParams extends PaginationParams {
-	search?: string;
+	search?: string
 }
 
 /**
  * Permission repository interface for querying system permissions.
  */
 export interface IPermissionRepository {
-	findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>;
+	findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>
 }
 
 /**
  * Permission service interface for listing system permissions.
  */
 export interface IPermissionService {
-	getAllPermissions(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>;
+	getAllPermissions(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>
 }

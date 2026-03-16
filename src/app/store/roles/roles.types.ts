@@ -1,49 +1,49 @@
-import type { CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types';
-import type { IRole } from '@domain/access/role.interface';
+import type { CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types'
+import type { IRole } from '@domain/access/role.interface'
 
 export interface CreateRoleWithPermissionsRequest extends CreateRoleRequest {
-	permissionIds: number[];
+	permissionIds: number[]
 }
 
 export interface UpdateRoleWithPermissionsRequest {
-	id: number;
-	body: UpdateRoleRequest;
-	permissionIds: number[];
+	id: number
+	body: UpdateRoleRequest
+	permissionIds: number[]
 }
 
 export interface RolesReadError {
-	list: string | null;
-	detail: string | null;
-	all: string | null;
+	list: string | null
+	detail: string | null
+	all: string | null
 }
 
 export interface RolesMutationError {
-	create: string | null;
-	update: string | null;
-	delete: string | null;
-	assignPermissions: string | null;
+	create: string | null
+	update: string | null
+	delete: string | null
+	assignPermissions: string | null
 }
 
 export interface RolesState {
 	/** Paginated roles for the current page, mapped from RoleData */
-	roles: IRole[];
+	roles: IRole[]
 	/** Unpaginated roles for dropdowns, mapped from RoleData */
-	allRoles: IRole[];
+	allRoles: IRole[]
 	/** Full domain model with permissions, loaded via getByIdWithPermissions() */
-	selectedRole: IRole | null;
-	currentPage: number;
-	pageSize: number;
-	totalItems: number;
-	searchQuery: string;
-	isLoadingList: boolean;
-	isLoadingAll: boolean;
-	isLoadingDetail: boolean;
-	isCreating: boolean;
-	isUpdating: boolean;
-	isDeleting: boolean;
-	isAssigningPermissions: boolean;
-	readError: RolesReadError;
-	mutationError: RolesMutationError;
+	selectedRole: IRole | null
+	currentPage: number
+	pageSize: number
+	totalItems: number
+	searchQuery: string
+	isLoadingList: boolean
+	isLoadingAll: boolean
+	isLoadingDetail: boolean
+	isCreating: boolean
+	isUpdating: boolean
+	isDeleting: boolean
+	isAssigningPermissions: boolean
+	readError: RolesReadError
+	mutationError: RolesMutationError
 }
 
 export const initialRolesState: RolesState = {
@@ -63,4 +63,4 @@ export const initialRolesState: RolesState = {
 	isAssigningPermissions: false,
 	readError: { list: null, detail: null, all: null },
 	mutationError: { create: null, update: null, delete: null, assignPermissions: null },
-};
+}

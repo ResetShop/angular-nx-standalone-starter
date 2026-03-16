@@ -1,5 +1,5 @@
-import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
-import type { IUserRoleRepository } from '../../user/interfaces';
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
+import type { IUserRoleRepository } from '../../user/interfaces'
 import type {
 	CreateRoleParams,
 	IRoleRepository,
@@ -8,8 +8,8 @@ import type {
 	PermissionData,
 	RoleData,
 	UpdateRoleParams,
-} from './interfaces';
-import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
+} from './interfaces'
+import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants'
 
 export const ROLE_ERRORS = {
 	NOT_FOUND: 'Role not found',
@@ -18,7 +18,7 @@ export const ROLE_ERRORS = {
 	NOT_REMOVABLE: 'This role cannot be deleted',
 	INVALID_PERMISSION_IDS: 'Invalid permission IDs',
 	SELF_LOCKOUT: 'Cannot remove role management permission from your own role',
-} as const;
+} as const
 
 /**
  * Error factory functions that include entity IDs for better debugging.
@@ -29,18 +29,18 @@ export const roleErrors = {
 	codeExists: (code: string) => new Error(`${ROLE_ERRORS.CODE_EXISTS} (code: ${code})`),
 	nameExists: (name: string) => new Error(`${ROLE_ERRORS.NAME_EXISTS} (name: ${name})`),
 	notRemovable: (id: number) => new Error(`${ROLE_ERRORS.NOT_REMOVABLE} (id: ${id})`),
-};
+}
 
 /**
  * Error thrown when invalid permission IDs are provided
  */
 export class InvalidPermissionIdsError extends Error {
-	public readonly invalidIds: number[];
+	public readonly invalidIds: number[]
 
 	constructor(invalidIds: number[]) {
-		super(ROLE_ERRORS.INVALID_PERMISSION_IDS);
-		this.name = 'InvalidPermissionIdsError';
-		this.invalidIds = invalidIds;
+		super(ROLE_ERRORS.INVALID_PERMISSION_IDS)
+		this.name = 'InvalidPermissionIdsError'
+		this.invalidIds = invalidIds
 	}
 }
 
@@ -49,14 +49,14 @@ export class InvalidPermissionIdsError extends Error {
  */
 export class SelfLockoutError extends Error {
 	constructor() {
-		super(ROLE_ERRORS.SELF_LOCKOUT);
-		this.name = 'SelfLockoutError';
+		super(ROLE_ERRORS.SELF_LOCKOUT)
+		this.name = 'SelfLockoutError'
 	}
 }
 
 interface RoleServiceDeps {
-	roleRepository: IRoleRepository;
-	userRoleRepository: IUserRoleRepository;
+	roleRepository: IRoleRepository
+	userRoleRepository: IUserRoleRepository
 }
 
 /**
@@ -65,12 +65,12 @@ interface RoleServiceDeps {
  * Enforces business rules like unique codes/names and non-removable system roles.
  */
 export class RoleService implements IRoleService {
-	private roleRepository: IRoleRepository;
-	private userRoleRepository: IUserRoleRepository;
+	private roleRepository: IRoleRepository
+	private userRoleRepository: IUserRoleRepository
 
 	constructor({ roleRepository, userRoleRepository }: RoleServiceDeps) {
-		this.roleRepository = roleRepository;
-		this.userRoleRepository = userRoleRepository;
+		this.roleRepository = roleRepository
+		this.userRoleRepository = userRoleRepository
 	}
 
 	/**
@@ -79,8 +79,8 @@ export class RoleService implements IRoleService {
 	 * @param id - The role's primary key
 	 * @returns The role data if found, null otherwise
 	 */
-	async getRole(id: number): Promise<RoleData | null> {
-		return this.roleRepository.findById(id);
+	public async getRole(id: number): Promise<RoleData | null> {
+		return this.roleRepository.findById(id)
 	}
 
 	/**
@@ -89,8 +89,8 @@ export class RoleService implements IRoleService {
 	 * @param code - The role's unique code (e.g., 'admin', 'editor')
 	 * @returns The role data if found, null otherwise
 	 */
-	async getRoleByCode(code: string): Promise<RoleData | null> {
-		return this.roleRepository.findByCode(code);
+	public async getRoleByCode(code: string): Promise<RoleData | null> {
+		return this.roleRepository.findByCode(code)
 	}
 
 	/**
@@ -99,8 +99,8 @@ export class RoleService implements IRoleService {
 	 * @param params - Optional parameters (offset, limit, search)
 	 * @returns Paginated response containing roles and metadata
 	 */
-	async getAllRoles(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
-		return this.roleRepository.findAll(params);
+	public async getAllRoles(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
+		return this.roleRepository.findAll(params)
 	}
 
 	/**
@@ -111,20 +111,20 @@ export class RoleService implements IRoleService {
 	 * @returns The newly created role data
 	 * @throws Error if a role with the same code or name already exists
 	 */
-	async createRole(params: CreateRoleParams): Promise<RoleData> {
+	public async createRole(params: CreateRoleParams): Promise<RoleData> {
 		// Check if code already exists
-		const existingByCode = await this.roleRepository.findByCode(params.code);
+		const existingByCode = await this.roleRepository.findByCode(params.code)
 		if (existingByCode) {
-			throw roleErrors.codeExists(params.code);
+			throw roleErrors.codeExists(params.code)
 		}
 
 		// Check if name already exists
-		const existingByName = await this.roleRepository.findByName(params.name);
+		const existingByName = await this.roleRepository.findByName(params.name)
 		if (existingByName) {
-			throw roleErrors.nameExists(params.name);
+			throw roleErrors.nameExists(params.name)
 		}
 
-		return this.roleRepository.create(params);
+		return this.roleRepository.create(params)
 	}
 
 	/**
@@ -136,28 +136,28 @@ export class RoleService implements IRoleService {
 	 * @returns The updated role data
 	 * @throws Error if role not found or new name conflicts with existing role
 	 */
-	async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
+	public async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
 		// Check if role exists
-		const existingRole = await this.roleRepository.findById(id);
+		const existingRole = await this.roleRepository.findById(id)
 		if (!existingRole) {
-			throw roleErrors.notFound(id);
+			throw roleErrors.notFound(id)
 		}
 
 		// Check if name already exists (if updating name)
 		if (params.name !== undefined && params.name !== existingRole.name) {
-			const roleWithName = await this.roleRepository.findByName(params.name);
+			const roleWithName = await this.roleRepository.findByName(params.name)
 			if (roleWithName) {
-				throw roleErrors.nameExists(params.name);
+				throw roleErrors.nameExists(params.name)
 			}
 		}
 
-		const updatedRole = await this.roleRepository.update(id, params);
+		const updatedRole = await this.roleRepository.update(id, params)
 
 		if (!updatedRole) {
-			throw roleErrors.notFound(id);
+			throw roleErrors.notFound(id)
 		}
 
-		return updatedRole;
+		return updatedRole
 	}
 
 	/**
@@ -167,18 +167,18 @@ export class RoleService implements IRoleService {
 	 * @param id - The role's primary key
 	 * @throws Error if role not found or is a non-removable system role
 	 */
-	async deleteRole(id: number): Promise<void> {
-		const existingRole = await this.roleRepository.findById(id);
+	public async deleteRole(id: number): Promise<void> {
+		const existingRole = await this.roleRepository.findById(id)
 
 		if (!existingRole) {
-			throw roleErrors.notFound(id);
+			throw roleErrors.notFound(id)
 		}
 
 		if (!existingRole.removable) {
-			throw roleErrors.notRemovable(id);
+			throw roleErrors.notRemovable(id)
 		}
 
-		await this.roleRepository.delete(id);
+		await this.roleRepository.delete(id)
 	}
 
 	/**
@@ -189,14 +189,17 @@ export class RoleService implements IRoleService {
 	 * @returns Paginated response containing permissions and metadata
 	 * @throws Error if role not found
 	 */
-	async getRolePermissions(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>> {
-		const existingRole = await this.roleRepository.findById(roleId);
+	public async getRolePermissions(
+		roleId: number,
+		pagination?: PaginationParams,
+	): Promise<PaginatedResponse<PermissionData>> {
+		const existingRole = await this.roleRepository.findById(roleId)
 
 		if (!existingRole) {
-			throw roleErrors.notFound(roleId);
+			throw roleErrors.notFound(roleId)
 		}
 
-		return this.roleRepository.findPermissionsForRole(roleId, pagination);
+		return this.roleRepository.findPermissionsForRole(roleId, pagination)
 	}
 
 	/**
@@ -211,22 +214,22 @@ export class RoleService implements IRoleService {
 	 * @throws InvalidPermissionIdsError if any permission IDs don't exist in database
 	 * @throws SelfLockoutError if update would remove user's ability to manage roles
 	 */
-	async assignPermissionsToRole(roleId: number, permissionIds: number[], userId?: number): Promise<void> {
-		const existingRole = await this.roleRepository.findById(roleId);
+	public async assignPermissionsToRole(roleId: number, permissionIds: number[], userId?: number): Promise<void> {
+		const existingRole = await this.roleRepository.findById(roleId)
 
 		if (!existingRole) {
-			throw roleErrors.notFound(roleId);
+			throw roleErrors.notFound(roleId)
 		}
 
 		// Validate permission IDs exist and get permission data
-		let foundPermissions: PermissionData[] = [];
+		let foundPermissions: PermissionData[] = []
 		if (permissionIds.length > 0) {
-			foundPermissions = await this.roleRepository.findPermissionsByIds(permissionIds);
-			const foundIds = new Set(foundPermissions.map((p) => p.id));
-			const invalidIds = permissionIds.filter((id) => !foundIds.has(id));
+			foundPermissions = await this.roleRepository.findPermissionsByIds(permissionIds)
+			const foundIds = new Set(foundPermissions.map((p) => p.id))
+			const invalidIds = permissionIds.filter((id) => !foundIds.has(id))
 
 			if (invalidIds.length > 0) {
-				throw new InvalidPermissionIdsError(invalidIds);
+				throw new InvalidPermissionIdsError(invalidIds)
 			}
 		}
 
@@ -237,25 +240,25 @@ export class RoleService implements IRoleService {
 				this.userRoleRepository.findPermissionsForUser(userId),
 				this.userRoleRepository.findUserHasRole(userId, roleId),
 				this.roleRepository.findPermissionsForRole(roleId, { limit: 1000 }),
-			]);
+			])
 
 			// Only need to check for lockout if the user is assigned to the role being modified
 			if (userHasRole) {
-				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === ADMIN_ROLE_PERMISSIONS.UPDATE);
+				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === ADMIN_ROLE_PERMISSIONS.UPDATE)
 
 				if (!newPermissionsIncludeUpdate) {
 					// Check if user has UPDATE permission from other roles
-					const currentRolePermissionNames = new Set(currentRolePermissions.data.map((p) => p.name));
-					const otherRolePermissions = userPermissions.filter((p) => !currentRolePermissionNames.has(p.name));
-					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === ADMIN_ROLE_PERMISSIONS.UPDATE);
+					const currentRolePermissionNames = new Set(currentRolePermissions.data.map((p) => p.name))
+					const otherRolePermissions = userPermissions.filter((p) => !currentRolePermissionNames.has(p.name))
+					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === ADMIN_ROLE_PERMISSIONS.UPDATE)
 
 					if (!hasUpdateFromOtherRole) {
-						throw new SelfLockoutError();
+						throw new SelfLockoutError()
 					}
 				}
 			}
 		}
 
-		await this.roleRepository.assignPermissions(roleId, permissionIds);
+		await this.roleRepository.assignPermissions(roleId, permissionIds)
 	}
 }

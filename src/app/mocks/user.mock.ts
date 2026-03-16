@@ -1,4 +1,4 @@
-import type { IUser } from '@domain/user/user.interface';
+import type { IUser } from '@domain/user/user.interface'
 
 /**
  * Create a minimal IUser stub for tests. Override specific fields as needed.
@@ -21,5 +21,5 @@ export function createMockUser(overrides: Partial<IUser> = {}): IUser {
 		hasPermissionByIdentifier: () => false,
 		hasRole: () => false,
 		...overrides,
-	};
+	}
 }

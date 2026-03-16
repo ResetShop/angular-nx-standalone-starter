@@ -1,75 +1,75 @@
-import { Injectable, signal, effect, inject, PLATFORM_ID, computed } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { ThemeProvider } from './theme.abstract';
+import { isPlatformBrowser } from '@angular/common'
+import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core'
+import { ThemeProvider } from './theme.abstract'
 
 export const provideTheme = () => [
 	{
 		provide: ThemeProvider,
 		useClass: Theme,
 	},
-];
+]
 
 @Injectable()
 export class Theme extends ThemeProvider {
-	private readonly THEME_STORAGE_KEY = 'theme-preference';
-	private readonly platformId = inject(PLATFORM_ID);
-	private readonly isBrowser = isPlatformBrowser(this.platformId);
+	private readonly THEME_STORAGE_KEY = 'theme-preference'
+	private readonly platformId = inject(PLATFORM_ID)
+	private readonly isBrowser = isPlatformBrowser(this.platformId)
 
-	readonly isDarkMode = computed(() => this._isDarkMode());
-	private readonly _isDarkMode = signal<boolean>(this.getInitialTheme());
+	public override readonly isDarkMode = computed(() => this._isDarkMode())
+	private readonly _isDarkMode = signal<boolean>(this.getInitialTheme())
 
 	constructor() {
-		super();
+		super()
 		effect(() => {
-			this.persistTheme(this._isDarkMode());
-		});
+			this.persistTheme(this._isDarkMode())
+		})
 	}
 
-	toggleTheme(): void {
-		this._isDarkMode.update((current) => !current);
-		this.applyTheme();
+	public override toggleTheme(): void {
+		this._isDarkMode.update((current) => !current)
+		this.applyTheme()
 	}
 
-	applyTheme(): void {
+	public override applyTheme(): void {
 		if (!this.isBrowser) {
-			return;
+			return
 		}
 
-		const transition = document.startViewTransition.bind(document);
+		const transition = document.startViewTransition.bind(document)
 		const updateTheme = () => {
-			const htmlElement = document.documentElement;
+			const htmlElement = document.documentElement
 			if (this._isDarkMode()) {
-				htmlElement.classList.add('dark');
+				htmlElement.classList.add('dark')
 			} else {
-				htmlElement.classList.remove('dark');
+				htmlElement.classList.remove('dark')
 			}
-		};
+		}
 
 		if (transition) {
-			transition(updateTheme);
+			transition(updateTheme)
 		} else {
-			updateTheme();
+			updateTheme()
 		}
 	}
 
 	private getInitialTheme(): boolean {
 		if (!this.isBrowser) {
-			return false;
+			return false
 		}
 
-		const stored = localStorage.getItem(this.THEME_STORAGE_KEY);
+		const stored = localStorage.getItem(this.THEME_STORAGE_KEY)
 		if (stored !== null) {
-			return stored === 'dark';
+			return stored === 'dark'
 		}
 
-		return window.matchMedia('(prefers-color-scheme: dark)').matches;
+		return window.matchMedia('(prefers-color-scheme: dark)').matches
 	}
 
 	private persistTheme(isDark: boolean): void {
 		if (!this.isBrowser) {
-			return;
+			return
 		}
 
-		localStorage.setItem(this.THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+		localStorage.setItem(this.THEME_STORAGE_KEY, isDark ? 'dark' : 'light')
 	}
 }

@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { Brand } from '@components/brand/brand';
-import { Button } from '@components/button/button';
-import NavSection from '@components/nav-section/nav-section';
-import { Navigation } from '@providers/navigation/navigation';
-import { NavigationState } from '@providers/navigation/navigation-state';
-import { AuthStore } from '@store/auth/auth.store';
+import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core'
+import { Router } from '@angular/router'
+import { Brand } from '@components/brand/brand'
+import { Button } from '@components/button/button'
+import NavSection from '@components/nav-section/nav-section'
+import { Navigation } from '@providers/navigation/navigation'
+import { NavigationState } from '@providers/navigation/navigation-state'
+import { AuthStore } from '@store/auth/auth.store'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -34,25 +34,25 @@ import { AuthStore } from '@store/auth/auth.store';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
-	authStore = inject(AuthStore);
-	navigation = inject(Navigation);
-	router = inject(Router);
-	readonly sections = computed(() => this.navigation.sections());
+	private readonly authStore = inject(AuthStore)
+	private readonly navigation = inject(Navigation)
+	private readonly router = inject(Router)
+	protected readonly sections = computed(() => this.navigation.sections())
 
 	constructor() {
 		// React to logout: navigate when user becomes null and logout is complete
 		effect(() => {
-			const user = this.authStore.currentUser();
-			const isLoggingOut = this.authStore.isLoggingOut();
+			const user = this.authStore.currentUser()
+			const isLoggingOut = this.authStore.isLoggingOut()
 
 			// Only navigate after logout completes (user is null and no longer logging out)
 			if (!user && !isLoggingOut) {
-				this.router.navigate(['/auth/login']);
+				this.router.navigate(['/auth/login'])
 			}
-		});
+		})
 	}
 
-	logout() {
-		this.authStore.logout();
+	protected logout(): void {
+		this.authStore.logout()
 	}
 }

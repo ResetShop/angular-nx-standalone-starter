@@ -1,5 +1,5 @@
-import type { LoginResponse, MeResponse } from '@contracts/auth/auth.types';
-import { mapLoginResponseToUser, mapMeResponseToUser } from './auth.mapper';
+import type { LoginResponse, MeResponse } from '@contracts/auth/auth.types'
+import { mapLoginResponseToUser, mapMeResponseToUser } from './auth.mapper'
 
 describe('Auth Mapper', () => {
 	describe('mapLoginResponseToUser', () => {
@@ -12,17 +12,17 @@ describe('Auth Mapper', () => {
 					lastName: 'Doe',
 				},
 				mustChangePassword: false,
-			};
+			}
 
-			const user = mapLoginResponseToUser(response);
+			const user = mapLoginResponseToUser(response)
 
-			expect(user.id).toBe(1);
-			expect(user.email).toBe('john@example.com');
-			expect(user.firstName).toBe('John');
-			expect(user.lastName).toBe('Doe');
-			expect(user.roles).toEqual([]);
-		});
-	});
+			expect(user.id).toBe(1)
+			expect(user.email).toBe('john@example.com')
+			expect(user.firstName).toBe('John')
+			expect(user.lastName).toBe('Doe')
+			expect(user.roles).toEqual([])
+		})
+	})
 
 	describe('mapMeResponseToUser', () => {
 		it('should map MeResponse to IUser with roles', () => {
@@ -37,21 +37,22 @@ describe('Auth Mapper', () => {
 						code: 'admin',
 						name: 'Administrator',
 						description: null,
+						removable: true,
 						permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
 					},
 				],
-			};
+			}
 
-			const user = mapMeResponseToUser(response);
+			const user = mapMeResponseToUser(response)
 
-			expect(user.id).toBe(1);
-			expect(user.email).toBe('john@example.com');
-			expect(user.firstName).toBe('John');
-			expect(user.lastName).toBe('Doe');
-			expect(user.roles).toHaveLength(1);
-			expect(user.roles[0].code).toBe('admin');
-			expect(user.hasPermission('users', 'read')).toBe(true);
-		});
+			expect(user.id).toBe(1)
+			expect(user.email).toBe('john@example.com')
+			expect(user.firstName).toBe('John')
+			expect(user.lastName).toBe('Doe')
+			expect(user.roles).toHaveLength(1)
+			expect(user.roles[0].code).toBe('admin')
+			expect(user.hasPermission('users', 'read')).toBe(true)
+		})
 
 		it('should handle empty roles', () => {
 			const response: MeResponse = {
@@ -60,11 +61,11 @@ describe('Auth Mapper', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-			};
+			}
 
-			const user = mapMeResponseToUser(response);
+			const user = mapMeResponseToUser(response)
 
-			expect(user.roles).toEqual([]);
-		});
-	});
-});
+			expect(user.roles).toEqual([])
+		})
+	})
+})

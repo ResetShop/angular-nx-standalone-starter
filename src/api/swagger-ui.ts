@@ -1,6 +1,6 @@
 /** Generates the HTML page for Swagger UI using CDN-hosted assets. */
 export function buildSwaggerHtml(): string {
-	const specUrl = '/api/openapi.json';
+	const specUrl = '/api/openapi.json'
 
 	return `<!DOCTYPE html>
 <html lang="en">
@@ -16,5 +16,5 @@ export function buildSwaggerHtml(): string {
 		SwaggerUIBundle({ url: '${specUrl}', dom_id: '#swagger-ui' });
 	</script>
 </body>
-</html>`;
+</html>`
 }

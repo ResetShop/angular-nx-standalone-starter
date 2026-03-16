@@ -1,31 +1,31 @@
-import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { NavigationRoute } from '@interfaces/navigation';
-import { provideIcons } from '@ng-icons/core';
-import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons';
-import { NavigationState } from '@providers/navigation/navigation-state';
-import { clearAllMocks } from '@test-utils';
-import { render, screen } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
-import NavItem from './nav-item';
+import { TestBed } from '@angular/core/testing'
+import { provideRouter, Router } from '@angular/router'
+import { NavigationRoute } from '@interfaces/navigation'
+import { provideIcons } from '@ng-icons/core'
+import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons'
+import { NavigationState } from '@providers/navigation/navigation-state'
+import { clearAllMocks } from '@test-utils'
+import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
+import NavItem from './nav-item'
 
 describe('NavItem', () => {
 	beforeEach(() => {
-		clearAllMocks();
-	});
+		clearAllMocks()
+	})
 
 	const mockRoute: NavigationRoute = {
 		id: 'test-route',
 		name: 'Test Route',
 		route: '/test',
 		icon: { featherHome },
-	};
+	}
 
 	const mockRouteWithoutIcon: NavigationRoute = {
 		id: 'no-icon-route',
 		name: 'No Icon Route',
 		route: '/no-icon',
-	};
+	}
 
 	it('should create the nav item component', async () => {
 		await render(NavItem, {
@@ -35,10 +35,10 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		expect(screen.getByRole('link', { name: /test route/i })).toBeInTheDocument();
-	});
+		expect(screen.getByRole('link', { name: /test route/i })).toBeInTheDocument()
+	})
 
 	it('should render the navigation item name', async () => {
 		await render(NavItem, {
@@ -48,10 +48,10 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		expect(screen.getByText('Test Route')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Test Route')).toBeInTheDocument()
+	})
 
 	it('should render as a link with correct routerLink', async () => {
 		await render(NavItem, {
@@ -61,12 +61,12 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		const link = screen.getByRole('link', { name: /test route/i });
-		expect(link).toBeInTheDocument();
-		expect(link).toHaveAttribute('href', '/test');
-	});
+		const link = screen.getByRole('link', { name: /test route/i })
+		expect(link).toBeInTheDocument()
+		expect(link).toHaveAttribute('href', '/test')
+	})
 
 	it('should render icon when icon is provided', async () => {
 		await render(NavItem, {
@@ -76,11 +76,11 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		const icon = screen.getByTestId('item-icon');
-		expect(icon).toBeInTheDocument();
-	});
+		const icon = screen.getByTestId('item-icon')
+		expect(icon).toBeInTheDocument()
+	})
 
 	it('should not render icon when icon is empty', async () => {
 		await render(NavItem, {
@@ -90,11 +90,11 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		const icon = screen.queryByTestId('item-icon');
-		expect(icon).not.toBeInTheDocument();
-	});
+		const icon = screen.queryByTestId('item-icon')
+		expect(icon).not.toBeInTheDocument()
+	})
 
 	it('should render navigation item with different route data', async () => {
 		const customRoute: NavigationRoute = {
@@ -102,7 +102,7 @@ describe('NavItem', () => {
 			name: 'Custom Page',
 			route: '/custom/path',
 			icon: { featherActivity },
-		};
+		}
 
 		await render(NavItem, {
 			inputs: { item: customRoute },
@@ -111,13 +111,13 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		const link = screen.getByRole('link', { name: /custom page/i });
-		expect(link).toBeInTheDocument();
-		expect(link).toHaveAttribute('href', '/custom/path');
-		expect(screen.getByText('Custom Page')).toBeInTheDocument();
-	});
+		const link = screen.getByRole('link', { name: /custom page/i })
+		expect(link).toBeInTheDocument()
+		expect(link).toHaveAttribute('href', '/custom/path')
+		expect(screen.getByText('Custom Page')).toBeInTheDocument()
+	})
 
 	it('should render link with routerLink and routerLinkActive directives', async () => {
 		await render(NavItem, {
@@ -127,12 +127,12 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		const link = screen.getByRole('link');
-		expect(link).toBeInTheDocument();
-		expect(link).toHaveAttribute('href', '/test');
-	});
+		const link = screen.getByRole('link')
+		expect(link).toBeInTheDocument()
+		expect(link).toHaveAttribute('href', '/test')
+	})
 
 	it('should apply routerLinkActive classes when the route is active', async () => {
 		await render(NavItem, {
@@ -142,16 +142,16 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		const link = screen.getByRole('link', { name: /test route/i });
-		expect(link).not.toHaveClass('bg-accent');
+		const link = screen.getByRole('link', { name: /test route/i })
+		expect(link).not.toHaveClass('bg-accent')
 
-		const router = TestBed.inject(Router);
-		await router.navigate(['/test']);
+		const router = TestBed.inject(Router)
+		await router.navigate(['/test'])
 
-		expect(link).toHaveClass('bg-accent', 'text-accent-foreground', 'font-medium');
-	});
+		expect(link).toHaveClass('bg-accent', 'text-accent-foreground', 'font-medium')
+	})
 
 	it('should handle navigation items with children property', async () => {
 		const routeWithChildren: NavigationRoute = {
@@ -167,7 +167,7 @@ describe('NavItem', () => {
 					icon: { featherActivity },
 				},
 			],
-		};
+		}
 
 		await render(NavItem, {
 			inputs: { item: routeWithChildren },
@@ -176,10 +176,10 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		expect(screen.getByText('Parent Route')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Parent Route')).toBeInTheDocument()
+	})
 
 	it('should render multiple nav items with different icons', async () => {
 		const route1: NavigationRoute = {
@@ -187,14 +187,14 @@ describe('NavItem', () => {
 			name: 'Route 1',
 			route: '/route1',
 			icon: { featherHome },
-		};
+		}
 
 		const route2: NavigationRoute = {
 			id: 'route2',
 			name: 'Route 2',
 			route: '/route2',
 			icon: { featherActivity },
-		};
+		}
 
 		const { rerender } = await render(NavItem, {
 			inputs: { item: route1 },
@@ -203,22 +203,22 @@ describe('NavItem', () => {
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
 			],
-		});
+		})
 
-		let icon = screen.getByTestId('item-icon');
-		expect(icon).toBeInTheDocument();
+		let icon = screen.getByTestId('item-icon')
+		expect(icon).toBeInTheDocument()
 
-		await rerender({ inputs: { item: route2 } });
+		await rerender({ inputs: { item: route2 } })
 
-		icon = screen.getByTestId('item-icon');
-		expect(icon).toBeInTheDocument();
-	});
-});
+		icon = screen.getByTestId('item-icon')
+		expect(icon).toBeInTheDocument()
+	})
+})
 
 describe('NavItem - Expandable Behavior', () => {
 	beforeEach(() => {
-		clearAllMocks();
-	});
+		clearAllMocks()
+	})
 
 	const parentRoute: NavigationRoute = {
 		id: 'parent',
@@ -237,122 +237,122 @@ describe('NavItem - Expandable Behavior', () => {
 				route: '/parent/child2',
 			},
 		],
-	};
+	}
 
 	it('should render expand button when item has children', async () => {
 		await render(NavItem, {
 			inputs: { item: parentRoute },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
-		});
+		})
 
-		const button = screen.getByRole('button', { name: /parent route/i });
-		expect(button).toBeInTheDocument();
-		expect(button).toHaveAttribute('aria-expanded', 'false');
-	});
+		const button = screen.getByRole('button', { name: /parent route/i })
+		expect(button).toBeInTheDocument()
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
 
 	it('should expand and show children when button is clicked', async () => {
-		const user = userEvent.setup();
+		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
-		});
+		})
 
-		const button = screen.getByRole('button', { name: /parent route/i });
-		await user.click(button);
+		const button = screen.getByRole('button', { name: /parent route/i })
+		await user.click(button)
 
-		expect(button).toHaveAttribute('aria-expanded', 'true');
-		expect(screen.getByText('Child 1')).toBeInTheDocument();
-		expect(screen.getByText('Child 2')).toBeInTheDocument();
-	});
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+		expect(screen.getByText('Child 1')).toBeInTheDocument()
+		expect(screen.getByText('Child 2')).toBeInTheDocument()
+	})
 
 	it('should collapse children when clicked again', async () => {
-		const user = userEvent.setup();
+		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
-		});
+		})
 
-		const button = screen.getByRole('button');
-		await user.click(button); // Expand
-		await user.click(button); // Collapse
+		const button = screen.getByRole('button')
+		await user.click(button) // Expand
+		await user.click(button) // Collapse
 
-		expect(button).toHaveAttribute('aria-expanded', 'false');
-	});
+		expect(button).toHaveAttribute('aria-expanded', 'false')
+	})
 
 	it('should support keyboard navigation with Enter key', async () => {
-		const user = userEvent.setup();
+		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
-		});
+		})
 
-		const button = screen.getByRole('button');
-		button.focus();
-		await user.keyboard('{Enter}');
+		const button = screen.getByRole('button')
+		button.focus()
+		await user.keyboard('{Enter}')
 
-		expect(button).toHaveAttribute('aria-expanded', 'true');
-	});
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+	})
 
 	it('should support keyboard navigation with Space key', async () => {
-		const user = userEvent.setup();
+		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
-		});
+		})
 
-		const button = screen.getByRole('button');
-		button.focus();
-		await user.keyboard(' ');
+		const button = screen.getByRole('button')
+		button.focus()
+		await user.keyboard(' ')
 
-		expect(button).toHaveAttribute('aria-expanded', 'true');
-	});
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+	})
 
 	it('should have chevron icon that rotates when expanded', async () => {
-		const user = userEvent.setup();
+		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
-		});
+		})
 
-		const button = screen.getByRole('button');
-		const chevron = screen.getByTestId('chevron-icon');
+		const button = screen.getByRole('button')
+		const chevron = screen.getByTestId('chevron-icon')
 
-		expect(chevron).not.toHaveClass('rotate-90');
+		expect(chevron).not.toHaveClass('rotate-90')
 
-		await user.click(button);
-		expect(chevron).toHaveClass('rotate-90');
-	});
+		await user.click(button)
+		expect(chevron).toHaveClass('rotate-90')
+	})
 
 	it('should render leaf items as links', async () => {
 		const leafRoute: NavigationRoute = {
 			id: 'leaf',
 			name: 'Leaf Route',
 			route: '/leaf',
-		};
+		}
 
 		await render(NavItem, {
 			inputs: { item: leafRoute },
 			providers: [provideRouter([]), NavigationState],
-		});
+		})
 
-		const link = screen.getByRole('link', { name: /leaf route/i });
-		expect(link).toBeInTheDocument();
-	});
+		const link = screen.getByRole('link', { name: /leaf route/i })
+		expect(link).toBeInTheDocument()
+	})
 
 	it('should indent child navigation items', async () => {
-		const user = userEvent.setup();
+		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
 			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
-		});
+		})
 
-		const button = screen.getByRole('button');
-		await user.click(button);
+		const button = screen.getByRole('button')
+		await user.click(button)
 
 		// Check that children container has proper structure
-		const childrenContainer = screen.getByRole('list', { hidden: true });
-		expect(childrenContainer).toHaveAttribute('id', 'nav-children-parent');
-	});
+		const childrenContainer = screen.getByRole('list', { hidden: true })
+		expect(childrenContainer).toHaveAttribute('id', 'nav-children-parent')
+	})
 
 	it('should treat empty children array as leaf node', async () => {
 		const emptyChildrenRoute = {
@@ -360,14 +360,14 @@ describe('NavItem - Expandable Behavior', () => {
 			name: 'Empty Children',
 			route: '/empty',
 			children: [],
-		} as NavigationRoute;
+		} as NavigationRoute
 
 		await render(NavItem, {
 			inputs: { item: emptyChildrenRoute },
 			providers: [provideRouter([]), NavigationState],
-		});
+		})
 
-		const link = screen.getByRole('link', { name: /empty children/i });
-		expect(link).toBeInTheDocument();
-	});
-});
+		const link = screen.getByRole('link', { name: /empty children/i })
+		expect(link).toBeInTheDocument()
+	})
+})

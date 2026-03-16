@@ -7,27 +7,27 @@ import {
 	signal,
 	untracked,
 	viewChild,
-} from '@angular/core';
-import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals';
-import { Alert, AlertDescription } from '@components/alert/alert';
-import { Button } from '@components/button/button';
-import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog';
-import { Drawer } from '@components/drawer/drawer';
-import { DrawerFooter } from '@components/drawer/drawer-footer';
-import { FormField } from '@components/form-field/form-field';
-import { PermissionsStore } from '@store/permissions/permissions.store';
-import { RolesStore } from '@store/roles/roles.store';
-import { toSnakeCode } from '@utils/slug';
-import { PermissionSelector } from '../permission-selector/permission-selector';
+} from '@angular/core'
+import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals'
+import { Alert, AlertDescription } from '@components/alert/alert'
+import { Button } from '@components/button/button'
+import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
+import { Drawer } from '@components/drawer/drawer'
+import { DrawerFooter } from '@components/drawer/drawer-footer'
+import { FormField } from '@components/form-field/form-field'
+import { PermissionsStore } from '@store/permissions/permissions.store'
+import { RolesStore } from '@store/roles/roles.store'
+import { toSnakeCode } from '@utils/slug'
+import { PermissionSelector } from '../permission-selector/permission-selector'
 
 interface CreateRoleFormModel {
-	name: string;
-	code: string;
-	description: string;
-	permissionIds: number[];
+	name: string
+	code: string
+	description: string
+	permissionIds: number[]
 }
 
-const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', permissionIds: [] };
+const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', permissionIds: [] }
 
 @Component({
 	selector: 'app-create-role-drawer',
@@ -94,80 +94,80 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateRoleDrawer {
-	private readonly rolesStore = inject(RolesStore);
-	protected readonly permissionsStore = inject(PermissionsStore);
-	protected readonly drawer = viewChild.required<Drawer>('drawer');
-	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog');
+	private readonly rolesStore = inject(RolesStore)
+	protected readonly permissionsStore = inject(PermissionsStore)
+	protected readonly drawer = viewChild.required<Drawer>('drawer')
+	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
-	private readonly model = signal<CreateRoleFormModel>({ ...EMPTY_MODEL });
+	private readonly model = signal<CreateRoleFormModel>({ ...EMPTY_MODEL })
 	protected readonly roleForm = form(
 		this.model,
 		schema<CreateRoleFormModel>((role) => {
-			required(role.name);
-			required(role.code);
-			maxLength(role.name, 100);
-			disabled(role.code);
-			maxLength(role.description, 500);
+			required(role.name)
+			required(role.code)
+			maxLength(role.name, 100)
+			disabled(role.code)
+			maxLength(role.description, 500)
 		}),
-	);
+	)
 
-	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0);
-	protected readonly mutationError = computed(() => this.rolesStore.mutationError().create);
+	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
+	protected readonly mutationError = computed(() => this.rolesStore.mutationError().create)
 
-	private readonly nameValue = computed(() => this.model().name);
-	private submitted = false;
+	private readonly nameValue = computed(() => this.model().name)
+	private submitted = false
 
 	constructor() {
 		effect(() => {
-			const code = toSnakeCode(this.nameValue());
-			untracked(() => this.model.update((m) => ({ ...m, code })));
-		});
+			const code = toSnakeCode(this.nameValue())
+			untracked(() => this.model.update((m) => ({ ...m, code })))
+		})
 
-		effect(() => this.closeOnSuccess());
+		effect(() => this.closeOnSuccess())
 	}
 
 	private closeOnSuccess(): void {
-		const creating = this.rolesStore.isCreating();
-		const error = this.rolesStore.mutationError().create;
+		const creating = this.rolesStore.isCreating()
+		const error = this.rolesStore.mutationError().create
 		untracked(() => {
 			if (!creating && this.submitted && error === null) {
-				this.submitted = false;
-				this.drawer().close();
+				this.submitted = false
+				this.drawer().close()
 			}
-		});
+		})
 	}
 
-	open(): void {
-		this.drawer().show();
-		this.drawer().setContentReady();
+	public open(): void {
+		this.drawer().show()
+		this.drawer().setContentReady()
 	}
 
 	protected onCancel(): void {
 		if (this.roleForm().dirty()) {
-			this.discardDialog().show();
+			this.discardDialog().show()
 		} else {
-			this.drawer().close();
+			this.drawer().close()
 		}
 	}
 
 	protected onDrawerClosed(): void {
-		this.submitted = false;
-		this.model.set({ ...EMPTY_MODEL });
-		this.roleForm().reset();
-		this.rolesStore.clearMutationError('create');
+		this.submitted = false
+		this.model.set({ ...EMPTY_MODEL })
+		this.roleForm().reset()
+		this.rolesStore.clearMutationError('create')
 	}
 
 	protected onSubmit(event: Event): void {
-		event.preventDefault();
-		if (!this.isFormValid()) return;
+		event.preventDefault()
+		if (!this.isFormValid()) return
 
-		const { name, code, description, permissionIds } = this.model();
-		this.submitted = true;
+		const { name, code, description, permissionIds } = this.model()
+		this.submitted = true
 		this.rolesStore.createRoleWithPermissions({
 			name,
 			code,
 			description: description || undefined,
 			permissionIds,
-		});
+		})
 	}
 }

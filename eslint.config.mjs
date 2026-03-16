@@ -1,11 +1,11 @@
-import nx from '@nx/eslint-plugin';
-import stylisticJs from '@stylistic/eslint-plugin';
-import vitest from '@vitest/eslint-plugin';
-import noBarrelFiles from 'eslint-plugin-no-barrel-files';
-import playwright from 'eslint-plugin-playwright';
-import storybook from 'eslint-plugin-storybook';
-import testingLibrary from 'eslint-plugin-testing-library';
-import formFieldAllowedContent from './tools/form-field-allowed-content.eslint-rule.js';
+import nx from '@nx/eslint-plugin'
+import stylisticJs from '@stylistic/eslint-plugin'
+import vitest from '@vitest/eslint-plugin'
+import noBarrelFiles from 'eslint-plugin-no-barrel-files'
+import playwright from 'eslint-plugin-playwright'
+import storybook from 'eslint-plugin-storybook'
+import testingLibrary from 'eslint-plugin-testing-library'
+import formFieldAllowedContent from './tools/form-field-allowed-content.eslint-rule.js'
 
 const commonRestrictedSyntax = [
 	{
@@ -52,7 +52,7 @@ const commonRestrictedSyntax = [
 		selector: 'PropertyDefinition[static=true]',
 		message: 'Static properties are forbidden. Use a singleton service with providedIn: root instead.',
 	},
-];
+]
 
 const viRestrictedSyntax = [
 	// Mocking
@@ -92,7 +92,7 @@ const viRestrictedSyntax = [
 		selector: 'CallExpression[callee.object.name="vi"][callee.property.name="mocked"]',
 		message: 'vi.mocked() is forbidden. Cast the auto-mocked function directly using Mock type.',
 	},
-];
+]
 
 export default [
 	{
@@ -155,6 +155,15 @@ export default [
 				},
 			],
 			'@angular-eslint/prefer-signals': 'error',
+			'@typescript-eslint/explicit-member-accessibility': [
+				'error',
+				{
+					accessibility: 'explicit',
+					overrides: {
+						constructors: 'no-public',
+					},
+				},
+			],
 			'@typescript-eslint/no-inferrable-types': 0,
 			'@typescript-eslint/no-unused-vars': 'error',
 			'@typescript-eslint/no-non-null-assertion': 'error',
@@ -196,4 +205,4 @@ export default [
 		// Override or add rules here
 		rules: {},
 	},
-];
+]

@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { Brand } from '@components/brand/brand';
-import { Button } from '@components/button/button';
-import NavItem from '@components/nav-item/nav-item';
-import NavSection from '@components/nav-section/nav-section';
-import { NAVIGATION_CONFIG } from '@interfaces/navigation';
-import { mockSidebarNavigationConfig } from '@mocks/navigation.mock';
-import { provideIcons } from '@ng-icons/core';
+import { Component } from '@angular/core'
+import { provideRouter } from '@angular/router'
+import { Brand } from '@components/brand/brand'
+import { Button } from '@components/button/button'
+import NavItem from '@components/nav-item/nav-item'
+import NavSection from '@components/nav-section/nav-section'
+import { NAVIGATION_CONFIG } from '@interfaces/navigation'
+import { mockSidebarNavigationConfig } from '@mocks/navigation.mock'
+import { provideIcons } from '@ng-icons/core'
 import {
 	featherActivity,
 	featherChevronRight,
@@ -14,12 +14,12 @@ import {
 	featherRefreshCw,
 	featherSettings,
 	featherUser,
-} from '@ng-icons/feather-icons';
-import { Navigation } from '@providers/navigation/navigation';
-import { NavigationState } from '@providers/navigation/navigation-state';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig, moduleMetadata } from '@storybook/angular';
-import { Sidebar } from './sidebar';
+} from '@ng-icons/feather-icons'
+import { Navigation } from '@providers/navigation/navigation'
+import { NavigationState } from '@providers/navigation/navigation-state'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig, moduleMetadata } from '@storybook/angular'
+import { Sidebar } from './sidebar'
 
 @Component({
 	selector: 'app-dummy',
@@ -144,11 +144,11 @@ The sidebar below shows the full component in action with navigation sections fr
 		},
 		layout: 'fullscreen',
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Sidebar>;
+type Story = StoryObj<Sidebar>
 
 /**
  * Complete sidebar with all navigation features.
@@ -201,7 +201,7 @@ export const Default: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Realistic application layout showing sidebar in context.
@@ -293,4 +293,4 @@ export const Playground: Story = {
 			</div>
 		`,
 	}),
-};
+}

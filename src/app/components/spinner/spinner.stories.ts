@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { Spinner } from './spinner';
+import type { Meta, StoryObj } from '@storybook/angular'
+import { Spinner } from './spinner'
 
 const meta: Meta<Spinner> = {
 	component: Spinner,
@@ -30,11 +30,11 @@ A lightweight spinner component for indicating loading states.
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Spinner & { size: string }>;
+type Story = StoryObj<Spinner & { size: string }>
 
 /**
  * Default spinner with interactive size control.
@@ -72,7 +72,7 @@ export const Default: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Spinner inherits the parent's text color, making it easy to match any context.
@@ -88,4 +88,4 @@ export const Colors: Story = {
 			</div>
 		`,
 	}),
-};
+}

@@ -1,4 +1,4 @@
-import { fn } from '@test-utils';
+import { fn } from '@test-utils'
 
 /**
  * Create a mock AuthApiService for tests.
@@ -10,5 +10,5 @@ export function createAuthApiMock() {
 		logout: fn(),
 		refreshToken: fn(),
 		getMe: fn(),
-	};
+	}
 }

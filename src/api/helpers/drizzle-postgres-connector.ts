@@ -1,13 +1,13 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { authentication, authenticationRelations } from '../../db/schema/authentication';
-import { permission, permissionRelations } from '../../db/schema/permission';
-import { permissionRoute, permissionRouteRelations } from '../../db/schema/permission-route';
-import { refreshToken } from '../../db/schema/refresh-token';
-import { role, rolePermission, rolePermissionRelations, roleRelations } from '../../db/schema/role';
-import { user, userRelations, userRole, userRoleRelations } from '../../db/schema/user';
-import { environment } from './environment';
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { authentication, authenticationRelations } from '../../db/schema/authentication'
+import { permission, permissionRelations } from '../../db/schema/permission'
+import { permissionRoute, permissionRouteRelations } from '../../db/schema/permission-route'
+import { refreshToken } from '../../db/schema/refresh-token'
+import { role, rolePermission, rolePermissionRelations, roleRelations } from '../../db/schema/role'
+import { user, userRelations, userRole, userRoleRelations } from '../../db/schema/user'
+import { environment } from './environment'
 
-const { connectionString } = environment.database.pg;
+const { connectionString } = environment.database.pg
 
 // Schema object for Drizzle's relational query API
 const schema = {
@@ -26,10 +26,10 @@ const schema = {
 	userRole,
 	userRelations,
 	userRoleRelations,
-};
+}
 
 // Initialize Drizzle with schema for relational query API support
-export const drizzlePgConnector = drizzle(connectionString, { schema });
+export const drizzlePgConnector = drizzle(connectionString, { schema })
 
 // Type export for DI container
-export type DrizzlePgConnector = typeof drizzlePgConnector;
+export type DrizzlePgConnector = typeof drizzlePgConnector

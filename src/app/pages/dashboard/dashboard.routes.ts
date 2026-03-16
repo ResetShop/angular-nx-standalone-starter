@@ -1,5 +1,5 @@
-import { NamedRoute } from '@interfaces/navigation';
-import Dashboard from '@pages/dashboard/dashboard';
+import { NamedRoute } from '@interfaces/navigation'
+import Dashboard from '@pages/dashboard/dashboard'
 
 export default [
 	{
@@ -36,4 +36,4 @@ export default [
 			},
 		],
 	},
-] satisfies NamedRoute[];
+] satisfies NamedRoute[]

@@ -1,27 +1,27 @@
-import { computed, inject } from '@angular/core';
-import type { IPermission } from '@domain/access/permission.interface';
-import { createPermission } from '@domain/access/permission.mapper';
-import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
-import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { PermissionsApiService } from '@providers/permissions/permissions';
-import { catchError, EMPTY, filter, pipe, switchMap, tap } from 'rxjs';
-import type { PermissionsReadError } from './permissions.types';
-import { initialPermissionsState } from './permissions.types';
+import { computed, inject } from '@angular/core'
+import type { IPermission } from '@domain/access/permission.interface'
+import { createPermission } from '@domain/access/permission.mapper'
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
+import { rxMethod } from '@ngrx/signals/rxjs-interop'
+import { PermissionsApiService } from '@providers/permissions/permissions'
+import { catchError, EMPTY, filter, pipe, switchMap, tap } from 'rxjs'
+import type { PermissionsReadError } from './permissions.types'
+import { initialPermissionsState } from './permissions.types'
 
 function patchReadError(
 	current: PermissionsReadError,
 	key: keyof PermissionsReadError,
 	value: string | null,
 ): PermissionsReadError {
-	return { ...current, [key]: value };
+	return { ...current, [key]: value }
 }
 
 function groupPermissionsByResource(permissions: IPermission[]): Map<string, IPermission[]> {
 	return permissions.reduce((grouped, permission) => {
-		const existing = grouped.get(permission.resource) ?? [];
-		grouped.set(permission.resource, [...existing, permission]);
-		return grouped;
-	}, new Map<string, IPermission[]>());
+		const existing = grouped.get(permission.resource) ?? []
+		grouped.set(permission.resource, [...existing, permission])
+		return grouped
+	}, new Map<string, IPermission[]>())
 }
 
 /**
@@ -38,7 +38,7 @@ export const PermissionsStore = signalStore(
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 	})),
 	withComputed((store) => {
-		const permissionsGroupedByResource = computed(() => groupPermissionsByResource(store.permissions()));
+		const permissionsGroupedByResource = computed(() => groupPermissionsByResource(store.permissions()))
 
 		return {
 			permissionsGroupedByResource,
@@ -46,12 +46,12 @@ export const PermissionsStore = signalStore(
 				return Array.from(permissionsGroupedByResource().entries()).map(([resource, permissions]) => ({
 					resource,
 					permissions,
-				}));
+				}))
 			}),
-		};
+		}
 	}),
 	withMethods((store) => {
-		const permissionsApi = inject(PermissionsApiService);
+		const permissionsApi = inject(PermissionsApiService)
 
 		return {
 			loadPermissions: rxMethod<void>(
@@ -70,11 +70,11 @@ export const PermissionsStore = signalStore(
 									patchState(store, { permissions: data.map(createPermission), isLoading: false, isCached: true }),
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[PermissionsStore] loadPermissions failed:', err);
+									console.error('[PermissionsStore] loadPermissions failed:', err)
 									patchState(store, {
 										isLoading: false,
 										readError: patchReadError(store.readError(), 'list', 'Failed to load permissions'),
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -84,21 +84,21 @@ export const PermissionsStore = signalStore(
 			),
 
 			clearErrors(): void {
-				patchState(store, { readError: { list: null } });
+				patchState(store, { readError: { list: null } })
 			},
-		};
+		}
 	}),
 	// Second withMethods block — needs access to store.loadPermissions from the first block
 	withMethods((store) => ({
 		reload(): void {
-			patchState(store, { isCached: false });
-			store.loadPermissions();
+			patchState(store, { isCached: false })
+			store.loadPermissions()
 		},
 	})),
 	withHooks({
 		onInit(store) {
 			// Imperative — no reactive params; cache guard in the filter() operator prevents redundant fetches
-			store.loadPermissions();
+			store.loadPermissions()
 		},
 	}),
-);
+)

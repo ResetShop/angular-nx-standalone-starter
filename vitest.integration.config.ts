@@ -1,5 +1,5 @@
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { defineConfig } from 'vitest/config';
+import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
 	plugins: [nxViteTsPaths()],
@@ -31,4 +31,4 @@ export default defineConfig({
 			'@test-utils': '/src/test-utils',
 		},
 	},
-});
+})

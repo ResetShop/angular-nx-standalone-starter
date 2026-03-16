@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { Alert, AlertDescription, AlertTitle } from './alert';
+import type { Meta, StoryObj } from '@storybook/angular'
+import { Alert, AlertDescription, AlertTitle } from './alert'
 
 const meta: Meta<Alert & { title: string; description: string; showDescription: boolean }> = {
 	component: Alert,
@@ -57,11 +57,11 @@ An alert component for displaying important messages or feedback.
 			description: 'Whether to show the description slot',
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Alert & { title: string; description: string; showDescription: boolean }>;
+type Story = StoryObj<Alert & { title: string; description: string; showDescription: boolean }>
 
 /**
  * The default alert with configurable title, description, and variant.
@@ -105,4 +105,4 @@ export const Default: Story = {
 			</div>
 		`,
 	}),
-};
+}

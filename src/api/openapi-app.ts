@@ -1,6 +1,6 @@
-import type { RouteConfig } from '@hono/zod-openapi';
-import { OpenAPIHono } from '@hono/zod-openapi';
-import type { Context, Env } from 'hono';
+import type { RouteConfig } from '@hono/zod-openapi'
+import { OpenAPIHono } from '@hono/zod-openapi'
+import type { Context, Env } from 'hono'
 
 /**
  * Factory for creating OpenAPIHono instances used by controllers and routers.
@@ -8,7 +8,7 @@ import type { Context, Env } from 'hono';
  * be added in one place without touching every module.
  */
 export function createOpenAPIApp<E extends Env = Env>(): OpenAPIHono<E> {
-	return new OpenAPIHono<E>();
+	return new OpenAPIHono<E>()
 }
 
 /**
@@ -22,11 +22,11 @@ export function createOpenAPIApp<E extends Env = Env>(): OpenAPIHono<E> {
  * c.html(), c.req.param(), etc.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- REASON: @hono/zod-openapi type resolution issue — see AnyValidationInput above
-type AnyValidationInput = { out: { json: any; query: any; form: any; param: any; header: any; cookie: any } };
+type AnyValidationInput = { out: { json: any; query: any; form: any; param: any; header: any; cookie: any } }
 
 /** Context with relaxed validation types — see AnyValidationInput. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- REASON: @hono/zod-openapi type resolution issue — see AnyValidationInput above
-type OpenAPIContext<E extends Env = Env> = Context<E, any, AnyValidationInput>;
+type OpenAPIContext<E extends Env = Env> = Context<E, any, AnyValidationInput>
 
 /**
  * Wrapper for app.openapi() that relaxes handler types.
@@ -44,5 +44,5 @@ export function registerRoute<E extends Env>(
 	handler: (c: OpenAPIContext<E>) => Promise<Response>,
 ): void {
 	// REASON: app.openapi() expects strictly typed handler — see AnyValidationInput above
-	(app as any).openapi(route, handler); // eslint-disable-line @typescript-eslint/no-explicit-any
+	;(app as any).openapi(route, handler) // eslint-disable-line @typescript-eslint/no-explicit-any
 }

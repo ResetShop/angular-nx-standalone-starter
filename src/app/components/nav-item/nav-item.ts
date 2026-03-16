@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { isParentRoute, type NavigationRoute } from '@interfaces/navigation';
-import { NgIcon } from '@ng-icons/core';
-import { NavigationState } from '@providers/navigation/navigation-state';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core'
+import { Router, RouterLink, RouterLinkActive } from '@angular/router'
+import { isParentRoute, type NavigationRoute } from '@interfaces/navigation'
+import { NgIcon } from '@ng-icons/core'
+import { NavigationState } from '@providers/navigation/navigation-state'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -91,57 +91,57 @@ import { NavigationState } from '@providers/navigation/navigation-state';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavItem {
-	readonly item = input.required<NavigationRoute>();
+	public readonly item = input.required<NavigationRoute>()
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.
 	 * @default 200
 	 */
-	readonly transitionDuration = input<number>(200);
+	public readonly transitionDuration = input<number>(200)
 
-	private readonly router = inject(Router);
-	private readonly navState = inject(NavigationState);
+	private readonly router = inject(Router)
+	private readonly navState = inject(NavigationState)
 
 	/**
 	 * Determines if this navigation item has child routes.
 	 * @returns True if the item has at least one child route
 	 */
-	readonly hasChildren = computed(() => isParentRoute(this.item()));
+	protected readonly hasChildren = computed(() => isParentRoute(this.item()))
 
 	/**
 	 * Returns the children navigation routes for parent routes
 	 * @returns An array of NavigationRoute, which can be empty
 	 */
-	readonly children = computed((): NavigationRoute[] => {
-		const route = this.item();
+	protected readonly children = computed((): NavigationRoute[] => {
+		const route = this.item()
 		if (isParentRoute(route)) {
-			return route.children;
+			return route.children
 		}
-		return [];
-	});
+		return []
+	})
 
 	/**
 	 * Checks if this navigation item is currently expanded.
 	 * Always returns false for leaf items (items without children).
 	 * @returns True if expanded, false if collapsed or has no children
 	 */
-	readonly isExpanded = computed(() => this.navState.isExpanded(this.item().id));
+	protected readonly isExpanded = computed(() => this.navState.isExpanded(this.item().id))
 
 	/**
 	 * Extracts the icon name from the navigation route's icon object.
 	 * @returns The icon name as a string, or null if no icon is provided
 	 */
-	readonly iconName = computed(() => {
-		const icon = this.item().icon;
-		return icon ? Object.keys(icon)[0] : null; // Get the key name
-	});
+	protected readonly iconName = computed(() => {
+		const icon = this.item().icon
+		return icon ? Object.keys(icon)[0] : null // Get the key name
+	})
 
 	constructor() {
 		// Auto-expand when child route is active
 		effect(
 			() => {
-				const item = this.item();
-				if (!isParentRoute(item)) return;
+				const item = this.item()
+				if (!isParentRoute(item)) return
 
 				const hasActiveChild = item.children.some((child) =>
 					this.router.isActive(child.route, {
@@ -150,14 +150,14 @@ export default class NavItem {
 						fragment: 'ignored',
 						matrixParams: 'ignored',
 					}),
-				);
+				)
 
 				if (hasActiveChild && !this.isExpanded()) {
-					this.navState.expand(item.id);
+					this.navState.expand(item.id)
 				}
 			},
 			{ manualCleanup: false },
-		);
+		)
 	}
 
 	/**
@@ -165,7 +165,7 @@ export default class NavItem {
 	 * Only applicable to parent items with children. For leaf items, this method has no effect.
 	 * The expansion state is managed by the NavigationStateService at the sidebar level.
 	 */
-	toggleExpanded(): void {
-		this.navState.toggle(this.item().id);
+	protected toggleExpanded(): void {
+		this.navState.toggle(this.item().id)
 	}
 }

@@ -1,31 +1,31 @@
-import { afterAll, afterEach, vi } from 'vitest';
+import { afterAll, afterEach, vi } from 'vitest'
 
 /**
  * Mock function interface - provides call tracking and return value control.
  * Wraps vi.fn() internally while exposing a framework-agnostic API.
  */
 export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> {
-	(...args: TArgs): TReturn;
+	(...args: TArgs): TReturn
 	/** All recorded calls to this mock function */
-	readonly calls: readonly TArgs[];
+	readonly calls: readonly TArgs[]
 	/** Set a resolved promise as the return value */
-	mockResolvedValue: (value: Awaited<TReturn>) => MockFn<TArgs, TReturn>;
+	mockResolvedValue: (value: Awaited<TReturn>) => MockFn<TArgs, TReturn>
 	/** Set a resolved promise as the return value for the next call only */
-	mockResolvedValueOnce: (value: Awaited<TReturn>) => MockFn<TArgs, TReturn>;
+	mockResolvedValueOnce: (value: Awaited<TReturn>) => MockFn<TArgs, TReturn>
 	/** Set a rejected promise as the return value */
-	mockRejectedValue: (error: unknown) => MockFn<TArgs, TReturn>;
+	mockRejectedValue: (error: unknown) => MockFn<TArgs, TReturn>
 	/** Set a direct return value */
-	mockReturnValue: (value: TReturn) => MockFn<TArgs, TReturn>;
+	mockReturnValue: (value: TReturn) => MockFn<TArgs, TReturn>
 	/** Set a custom implementation function */
-	mockImplementation: (impl: (...args: TArgs) => TReturn) => MockFn<TArgs, TReturn>;
+	mockImplementation: (impl: (...args: TArgs) => TReturn) => MockFn<TArgs, TReturn>
 	/** Set a rejected promise as the return value for the next call only */
-	mockRejectedValueOnce: (error: unknown) => MockFn<TArgs, TReturn>;
+	mockRejectedValueOnce: (error: unknown) => MockFn<TArgs, TReturn>
 	/** Set a custom implementation function for the next call only */
-	mockImplementationOnce: (impl: (...args: TArgs) => TReturn) => MockFn<TArgs, TReturn>;
+	mockImplementationOnce: (impl: (...args: TArgs) => TReturn) => MockFn<TArgs, TReturn>
 	/** Set a direct return value for the next call only */
-	mockReturnValueOnce: (value: TReturn) => MockFn<TArgs, TReturn>;
+	mockReturnValueOnce: (value: TReturn) => MockFn<TArgs, TReturn>
 	/** Clear all recorded calls */
-	mockClear: () => void;
+	mockClear: () => void
 }
 
 /**
@@ -36,11 +36,11 @@ export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> 
  * module load time automatically clears the registry when the suite
  * completes, preventing memory leaks without manual cleanup.
  */
-const mockRegistry: Set<MockFn> = new Set();
+const mockRegistry: Set<MockFn> = new Set()
 
 afterAll(() => {
-	resetAllMocks();
-});
+	resetAllMocks()
+})
 
 /**
  * Create a mock function that tracks calls and supports return value configuration.
@@ -56,65 +56,65 @@ afterAll(() => {
  * ```
  */
 export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): MockFn<TArgs, TReturn> {
-	const viFn = vi.fn<(...args: TArgs) => TReturn>();
+	const viFn = vi.fn<(...args: TArgs) => TReturn>()
 
 	// Use a regular function to preserve `this` context when called as a method
 	const mockFn = function (this: unknown, ...args: TArgs): TReturn {
-		return viFn.apply(this, args);
-	} as MockFn<TArgs, TReturn>;
+		return viFn.apply(this, args)
+	} as MockFn<TArgs, TReturn>
 
 	// Expose calls via getter that delegates to vi.fn()'s internal tracking
 	Object.defineProperty(mockFn, 'calls', {
 		get: () => viFn.mock.calls as readonly TArgs[],
 		enumerable: true,
-	});
+	})
 
 	mockFn.mockResolvedValue = (value: Awaited<TReturn>) => {
-		viFn.mockResolvedValue(value as Awaited<TReturn>);
-		return mockFn;
-	};
+		viFn.mockResolvedValue(value as Awaited<TReturn>)
+		return mockFn
+	}
 
 	mockFn.mockResolvedValueOnce = (value: Awaited<TReturn>) => {
-		viFn.mockResolvedValueOnce(value as Awaited<TReturn>);
-		return mockFn;
-	};
+		viFn.mockResolvedValueOnce(value as Awaited<TReturn>)
+		return mockFn
+	}
 
 	mockFn.mockRejectedValue = (error: unknown) => {
-		viFn.mockRejectedValue(error);
-		return mockFn;
-	};
+		viFn.mockRejectedValue(error)
+		return mockFn
+	}
 
 	mockFn.mockReturnValue = (value: TReturn) => {
-		viFn.mockReturnValue(value);
-		return mockFn;
-	};
+		viFn.mockReturnValue(value)
+		return mockFn
+	}
 
 	mockFn.mockImplementation = (impl: (...args: TArgs) => TReturn) => {
-		viFn.mockImplementation(impl);
-		return mockFn;
-	};
+		viFn.mockImplementation(impl)
+		return mockFn
+	}
 
 	mockFn.mockRejectedValueOnce = (error: unknown) => {
-		viFn.mockRejectedValueOnce(error);
-		return mockFn;
-	};
+		viFn.mockRejectedValueOnce(error)
+		return mockFn
+	}
 
 	mockFn.mockImplementationOnce = (impl: (...args: TArgs) => TReturn) => {
-		viFn.mockImplementationOnce(impl);
-		return mockFn;
-	};
+		viFn.mockImplementationOnce(impl)
+		return mockFn
+	}
 
 	mockFn.mockReturnValueOnce = (value: TReturn) => {
-		viFn.mockReturnValueOnce(value);
-		return mockFn;
-	};
+		viFn.mockReturnValueOnce(value)
+		return mockFn
+	}
 
 	mockFn.mockClear = () => {
-		viFn.mockClear();
-	};
+		viFn.mockClear()
+	}
 
-	mockRegistry.add(mockFn as MockFn);
-	return mockFn;
+	mockRegistry.add(mockFn as MockFn)
+	return mockFn
 }
 
 /**
@@ -127,10 +127,10 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
  */
 export function clearAllMocks(): void {
 	for (const mock of mockRegistry) {
-		mock.mockClear();
+		mock.mockClear()
 	}
 	for (const spy of spyRegistry) {
-		spy.mockClear();
+		spy.mockClear()
 	}
 }
 
@@ -140,9 +140,9 @@ export function clearAllMocks(): void {
  */
 export function resetAllMocks(): void {
 	for (const mock of mockRegistry) {
-		mock.mockClear();
+		mock.mockClear()
 	}
-	mockRegistry.clear();
+	mockRegistry.clear()
 }
 
 /**
@@ -151,14 +151,14 @@ export function resetAllMocks(): void {
  * Each spy is restored via afterEach so tests don't need manual cleanup.
  * The registry is cleared after restoration to prevent double-restoring.
  */
-const spyRegistry: Set<ReturnType<typeof vi.spyOn>> = new Set();
+const spyRegistry: Set<ReturnType<typeof vi.spyOn>> = new Set()
 
 afterEach(() => {
 	for (const spy of spyRegistry) {
-		spy.mockRestore();
+		spy.mockRestore()
 	}
-	spyRegistry.clear();
-});
+	spyRegistry.clear()
+})
 
 /**
  * Spy on an object method, replacing it with a no-op by default.
@@ -185,52 +185,52 @@ afterEach(() => {
 export function spyOn<T extends object>(obj: T, method: string & keyof T): MockFn {
 	// REASON: vi.spyOn's generic constraints are too complex to propagate through a wrapper; the runtime call is type-safe via the obj+method pair
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-function
-	const spy = vi.spyOn(obj as any, method as any).mockImplementation((() => {}) as any);
-	spyRegistry.add(spy);
+	const spy = vi.spyOn(obj as any, method as any).mockImplementation((() => {}) as any)
+	spyRegistry.add(spy)
 
 	// REASON: the build tsconfig resolves vi.spyOn's return type differently than the spec tsconfig, making spy() not directly callable
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const callSpy = spy as any as (...args: unknown[]) => unknown;
-	const mockFn = ((...args: unknown[]) => callSpy(...args)) as MockFn;
+	const callSpy = spy as any as (...args: unknown[]) => unknown
+	const mockFn = ((...args: unknown[]) => callSpy(...args)) as MockFn
 	Object.defineProperty(mockFn, 'calls', {
 		get: () => spy.mock.calls,
 		enumerable: true,
-	});
-	mockFn.mockClear = () => spy.mockClear();
+	})
+	mockFn.mockClear = () => spy.mockClear()
 	mockFn.mockResolvedValue = (val) => {
-		spy.mockResolvedValue(val);
-		return mockFn;
-	};
+		spy.mockResolvedValue(val)
+		return mockFn
+	}
 	mockFn.mockResolvedValueOnce = (val) => {
-		spy.mockResolvedValueOnce(val);
-		return mockFn;
-	};
+		spy.mockResolvedValueOnce(val)
+		return mockFn
+	}
 	mockFn.mockRejectedValue = (val) => {
-		spy.mockRejectedValue(val);
-		return mockFn;
-	};
+		spy.mockRejectedValue(val)
+		return mockFn
+	}
 	mockFn.mockRejectedValueOnce = (val) => {
-		spy.mockRejectedValueOnce(val);
-		return mockFn;
-	};
+		spy.mockRejectedValueOnce(val)
+		return mockFn
+	}
 	mockFn.mockReturnValue = (val) => {
-		spy.mockReturnValue(val);
-		return mockFn;
-	};
+		spy.mockReturnValue(val)
+		return mockFn
+	}
 	mockFn.mockReturnValueOnce = (val) => {
-		spy.mockReturnValueOnce(val);
-		return mockFn;
-	};
+		spy.mockReturnValueOnce(val)
+		return mockFn
+	}
 	mockFn.mockImplementation = (impl) => {
-		spy.mockImplementation(impl);
-		return mockFn;
-	};
+		spy.mockImplementation(impl)
+		return mockFn
+	}
 	mockFn.mockImplementationOnce = (impl) => {
-		spy.mockImplementationOnce(impl);
-		return mockFn;
-	};
+		spy.mockImplementationOnce(impl)
+		return mockFn
+	}
 
-	return mockFn;
+	return mockFn
 }
 
 /**
@@ -238,7 +238,7 @@ export function spyOn<T extends object>(obj: T, method: string & keyof T): MockF
  * Wraps vi.useFakeTimers() to centralize Vitest dependencies.
  */
 export function useFakeTimers(): void {
-	vi.useFakeTimers();
+	vi.useFakeTimers()
 }
 
 /**
@@ -246,7 +246,7 @@ export function useFakeTimers(): void {
  * Wraps vi.advanceTimersByTime() to centralize Vitest dependencies.
  */
 export function advanceTimersByTime(ms: number): void {
-	vi.advanceTimersByTime(ms);
+	vi.advanceTimersByTime(ms)
 }
 
 /**
@@ -254,7 +254,7 @@ export function advanceTimersByTime(ms: number): void {
  * Wraps vi.advanceTimersByTimeAsync() to centralize Vitest dependencies.
  */
 export async function advanceTimersByTimeAsync(ms: number): Promise<void> {
-	await vi.advanceTimersByTimeAsync(ms);
+	await vi.advanceTimersByTimeAsync(ms)
 }
 
 /**
@@ -262,5 +262,5 @@ export async function advanceTimersByTimeAsync(ms: number): Promise<void> {
  * Wraps vi.useRealTimers() to centralize Vitest dependencies.
  */
 export function useRealTimers(): void {
-	vi.useRealTimers();
+	vi.useRealTimers()
 }

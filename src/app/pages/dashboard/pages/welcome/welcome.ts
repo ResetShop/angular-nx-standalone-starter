@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
 
 @Component({
 	selector: 'app-welcome',
@@ -45,5 +45,5 @@ import { RouterOutlet } from '@angular/router';
 	`,
 })
 export default class Welcome {
-	protected title = 'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋';
+	protected title = 'Welcome to the Reset Dev Nx + Angular SSR starter repo 👋'
 }

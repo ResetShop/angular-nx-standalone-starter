@@ -1,23 +1,30 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Component, computed, effect, inject, input, signal, viewChild } from '@angular/core';
-import { provideSignalFormsConfig } from '@angular/forms/signals';
-import { provideRouter } from '@angular/router';
-import { LoginErrorCode } from '@contracts/auth/auth.errors';
-import { Translation, type Language } from '@providers/i18n/translation';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import Login from './login';
+import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { Component, effect, inject, input, signal } from '@angular/core'
+import { provideSignalFormsConfig } from '@angular/forms/signals'
+import { provideRouter } from '@angular/router'
+import { LoginErrorCode } from '@contracts/auth/auth.errors'
+import { Translation, type Language } from '@providers/i18n/translation'
+import { AuthStore } from '@store/auth/auth.store'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import Login from './login'
 
 /**
  * Error code options for the story.
  * null represents no error state.
  */
-type ErrorCodeOption = LoginErrorCode | null;
+type ErrorCodeOption = LoginErrorCode | null
+
+/**
+ * Shared signal that drives the mock AuthStore's loginError state.
+ * The story wrapper writes to it; the Login component's effect reads it via AuthStore.
+ */
+const storyLoginError = signal<{ code: string } | null>(null)
 
 /**
  * Thin wrapper that renders the actual Login page component and
- * drives its error state via the errorMessage signal, avoiding template/form duplication.
+ * drives its error state via a mock AuthStore provider.
  */
 @Component({
 	selector: 'app-login-story',
@@ -28,31 +35,28 @@ type ErrorCodeOption = LoginErrorCode | null;
 	`,
 })
 class LoginStoryComponent {
-	private readonly translation = inject(Translation);
-	private readonly loginPage = viewChild(Login);
+	private readonly translation = inject(Translation)
 
-	readonly errorCode = input<ErrorCodeOption>(null);
-	readonly language = input<Language>('es');
+	public readonly errorCode = input<ErrorCodeOption>(null)
+	public readonly language = input<Language>('es')
 
-	private readonly isReady = signal(false);
-
-	protected readonly resolvedError = computed(() => {
-		const code = this.errorCode();
-		if (!code || !this.isReady()) return null;
-		return this.translation.instant(`AUTH.ERRORS.${code}`);
-	});
+	private readonly isReady = signal(false)
 
 	constructor() {
 		effect(() => {
-			const message = this.resolvedError();
-			this.loginPage()?.errorMessage.set(message);
-		});
+			const code = this.errorCode()
+			if (!this.isReady()) {
+				storyLoginError.set(null)
+				return
+			}
+			storyLoginError.set(code ? { code } : null)
+		})
 
 		effect(() => {
-			const lang = this.language();
-			this.isReady.set(false);
-			this.translation.setLanguage(lang).then(() => this.isReady.set(true));
-		});
+			const lang = this.language()
+			this.isReady.set(false)
+			this.translation.setLanguage(lang).then(() => this.isReady.set(true))
+		})
 	}
 }
 
@@ -68,6 +72,15 @@ const meta: Meta<LoginStoryComponent> = {
 				provideRouter([]),
 				provideHttpClient(),
 				provideHttpClientTesting(),
+				{
+					provide: AuthStore,
+					useFactory: () => ({
+						currentUser: signal(null),
+						loginError: storyLoginError,
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						login: () => {},
+					}),
+				},
 			],
 		}),
 	],
@@ -134,11 +147,11 @@ Error messages will automatically update to the selected language.
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<LoginStoryComponent>;
+type Story = StoryObj<LoginStoryComponent>
 
 /**
  * Default login page state with no error message.
@@ -148,4 +161,4 @@ export const Default: Story = {
 		errorCode: null,
 		language: 'es',
 	},
-};
+}

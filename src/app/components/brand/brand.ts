@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { Button } from '@components/button/button';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { RouterLink } from '@angular/router';
-import { featherRefreshCw } from '@ng-icons/feather-icons';
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { RouterLink } from '@angular/router'
+import { Button } from '@components/button/button'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherRefreshCw } from '@ng-icons/feather-icons'
 
 @Component({
 	selector: 'app-brand',

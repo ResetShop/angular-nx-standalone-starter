@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { HealthStatus } from './health.constants';
+import { z } from 'zod'
+import { HealthStatus } from './health.constants'
 
 /** Zod schema matching the HealthCheckResponse interface in interfaces.ts. */
 export const healthCheckResponseSchema = z.object({
@@ -18,4 +18,4 @@ export const healthCheckResponseSchema = z.object({
 			}),
 		]),
 	}),
-});
+})

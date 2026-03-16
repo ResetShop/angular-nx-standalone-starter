@@ -1,14 +1,14 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
-import { NavigationSection } from '@interfaces/navigation';
-import { featherActivity, featherHome } from '@ng-icons/feather-icons';
-import { Navigation } from '@providers/navigation/navigation';
-import { NavigationState } from '@providers/navigation/navigation-state';
-import { provideMockTheme } from '@providers/theme/theme.mock';
-import { render, screen } from '@testing-library/angular';
-import { userEvent } from '@testing-library/user-event';
-import { Sidebar } from './sidebar';
+import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { provideRouter } from '@angular/router'
+import { NavigationSection } from '@interfaces/navigation'
+import { featherActivity, featherHome } from '@ng-icons/feather-icons'
+import { Navigation } from '@providers/navigation/navigation'
+import { NavigationState } from '@providers/navigation/navigation-state'
+import { provideMockTheme } from '@providers/theme/theme.mock'
+import { render, screen } from '@testing-library/angular'
+import { userEvent } from '@testing-library/user-event'
+import { Sidebar } from './sidebar'
 
 describe('Sidebar', () => {
 	const defaultProviders = () => [
@@ -23,7 +23,7 @@ describe('Sidebar', () => {
 		provideHttpClient(),
 		provideHttpClientTesting(),
 		NavigationState,
-	];
+	]
 
 	const createNavigationWithSections = (sections: NavigationSection[]) => ({
 		provide: Navigation,
@@ -31,7 +31,7 @@ describe('Sidebar', () => {
 			sections: () => sections,
 			breadcrumbs: () => [],
 		},
-	});
+	})
 
 	const mockSettingsSection: NavigationSection = {
 		id: 'settings',
@@ -50,7 +50,7 @@ describe('Sidebar', () => {
 				icon: { featherActivity: featherActivity },
 			},
 		],
-	};
+	}
 
 	const mockAdminSection: NavigationSection = {
 		id: 'admin',
@@ -69,114 +69,114 @@ describe('Sidebar', () => {
 				icon: { featherActivity: featherActivity },
 			},
 		],
-	};
+	}
 
 	it('should render the sidebar with navigation sections', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		});
+		})
 
-		expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: /salud/i })).toBeInTheDocument();
-	});
+		expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument()
+		expect(screen.getByRole('link', { name: /salud/i })).toBeInTheDocument()
+	})
 
 	it('should display navigation section titles', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		});
+		})
 
-		const sectionTitle = screen.getByText('Ajustes y mantenimiento');
-		expect(sectionTitle).toBeInTheDocument();
-	});
+		const sectionTitle = screen.getByText('Ajustes y mantenimiento')
+		expect(sectionTitle).toBeInTheDocument()
+	})
 
 	it('should render navigation route links with correct text', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		});
+		})
 
-		const healthLink = screen.getByRole('link', { name: /salud/i });
-		expect(healthLink).toBeInTheDocument();
+		const healthLink = screen.getByRole('link', { name: /salud/i })
+		expect(healthLink).toBeInTheDocument()
 
-		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i });
-		expect(welcomeLink).toBeInTheDocument();
-	});
+		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i })
+		expect(welcomeLink).toBeInTheDocument()
+	})
 
 	it('should render sign out button with link variant styling', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		});
+		})
 
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
-		expect(signOutButton).toBeInTheDocument();
-		expect(signOutButton).toHaveAttribute('variant', 'link');
-	});
+		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		expect(signOutButton).toBeInTheDocument()
+		expect(signOutButton).toHaveAttribute('variant', 'link')
+	})
 
 	it('should have correct route on navigation items', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		});
+		})
 
-		const healthLink = screen.getByRole('link', { name: /salud/i });
-		expect(healthLink).toHaveAttribute('href', '/health');
+		const healthLink = screen.getByRole('link', { name: /salud/i })
+		expect(healthLink).toHaveAttribute('href', '/health')
 
-		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i });
-		expect(welcomeLink).toHaveAttribute('href', '/welcome');
-	});
+		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i })
+		expect(welcomeLink).toHaveAttribute('href', '/welcome')
+	})
 
 	it('should route to login page on sign out', async () => {
-		const user = userEvent.setup();
+		const user = userEvent.setup()
 
 		const { detectChanges } = await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		});
+		})
 
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
-		expect(signOutButton).toBeInTheDocument();
+		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		expect(signOutButton).toBeInTheDocument()
 
-		await user.click(signOutButton);
-		await detectChanges();
+		await user.click(signOutButton)
+		await detectChanges()
 
 		// The logout method is called on the component
-		expect(signOutButton).toBeInTheDocument();
-	});
+		expect(signOutButton).toBeInTheDocument()
+	})
 
 	it('should render multiple navigation sections with different content', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection, mockAdminSection])],
-		});
+		})
 
-		expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument();
-		expect(screen.getByText('Administración')).toBeInTheDocument();
+		expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument()
+		expect(screen.getByText('Administración')).toBeInTheDocument()
 
-		const adminUsersLink = screen.getByRole('link', { name: /gestión de usuarios/i });
-		expect(adminUsersLink).toBeInTheDocument();
-		expect(adminUsersLink).toHaveAttribute('href', '/admin/users');
-	});
+		const adminUsersLink = screen.getByRole('link', { name: /gestión de usuarios/i })
+		expect(adminUsersLink).toBeInTheDocument()
+		expect(adminUsersLink).toHaveAttribute('href', '/admin/users')
+	})
 
 	it('should render brand component at the top of sidebar', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		});
+		})
 
 		// Verify Brand component is rendered by looking for its unique "Reset Starter Repo" link
-		const brandLink = screen.getByRole('link', { name: /reset starter repo/i });
-		expect(brandLink).toBeInTheDocument();
+		const brandLink = screen.getByRole('link', { name: /reset starter repo/i })
+		expect(brandLink).toBeInTheDocument()
 
 		// Verify it has the correct routing to the welcome page
-		expect(brandLink).toHaveAttribute('href', '/welcome');
-	});
+		expect(brandLink).toHaveAttribute('href', '/welcome')
+	})
 
 	it('should have proper structure with all sections and sign out button', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection, mockAdminSection])],
-		});
+		})
 
-		const sectionTitles = screen.getByText('Ajustes y mantenimiento');
-		const adminTitle = screen.getByText('Administración');
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
+		const sectionTitles = screen.getByText('Ajustes y mantenimiento')
+		const adminTitle = screen.getByText('Administración')
+		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
 
-		expect(sectionTitles).toBeInTheDocument();
-		expect(adminTitle).toBeInTheDocument();
-		expect(signOutButton).toBeInTheDocument();
-	});
-});
+		expect(sectionTitles).toBeInTheDocument()
+		expect(adminTitle).toBeInTheDocument()
+		expect(signOutButton).toBeInTheDocument()
+	})
+})

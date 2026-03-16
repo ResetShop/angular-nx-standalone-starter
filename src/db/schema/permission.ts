@@ -1,7 +1,7 @@
-import { relations } from 'drizzle-orm';
-import { index, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
-import { permissionRoute } from './permission-route';
-import { rolePermission } from './role';
+import { relations } from 'drizzle-orm'
+import { index, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
+import { permissionRoute } from './permission-route'
+import { rolePermission } from './role'
 
 export const permission = pgTable(
 	'permission',
@@ -15,9 +15,9 @@ export const permission = pgTable(
 		updatedAt: timestamp('updated_at').defaultNow(),
 	},
 	(table) => [index('idx_permission_name').on(table.name)],
-);
+)
 
 export const permissionRelations = relations(permission, ({ many }) => ({
 	roles: many(rolePermission),
 	routes: many(permissionRoute),
-}));
+}))

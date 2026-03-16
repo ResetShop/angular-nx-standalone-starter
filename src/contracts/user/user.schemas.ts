@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { QUERY_DEFAULTS } from '../common/query.constants';
-import { roleDataSchema } from '../role/role.schemas';
+import { z } from 'zod'
+import { QUERY_DEFAULTS } from '../common/query.constants'
+import { roleDataSchema } from '../role/role.schemas'
 
 // ============================================================================
 // User Status
@@ -10,11 +10,11 @@ export const UserStatus = Object.freeze({
 	ACTIVE: 'active',
 	DISABLED: 'disabled',
 	DELETED: 'deleted',
-} as const);
+} as const)
 
-export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
 
-export const userStatusSchema = z.enum([UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED]);
+export const userStatusSchema = z.enum([UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED])
 
 // ============================================================================
 // User Data Schemas
@@ -29,7 +29,7 @@ export const userDataSchema = z.object({
 	firstName: z.string(),
 	lastName: z.string(),
 	status: userStatusSchema,
-});
+})
 
 /**
  * Auth user schema (subset of user data for authentication responses).
@@ -40,7 +40,7 @@ export const authUserSchema = z.object({
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
-});
+})
 
 // ============================================================================
 // Managed User Schemas (User Management API)
@@ -62,7 +62,7 @@ export const managedUserSchema = z.object({
 	createdAt: z.coerce.date().nullable(),
 	updatedAt: z.coerce.date().nullable(),
 	roles: z.array(roleDataSchema),
-});
+})
 
 // ============================================================================
 // User Management Request Schemas
@@ -79,7 +79,7 @@ export const createUserRequestSchema = z.object({
 	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
 	roleIds: z.array(z.number().int().positive()).optional(),
 	mustChangePassword: z.boolean().optional().default(true),
-});
+})
 
 /**
  * Create user response schema.
@@ -87,7 +87,7 @@ export const createUserRequestSchema = z.object({
  */
 export const createUserResponseSchema = managedUserSchema.extend({
 	passwordEmailSent: z.boolean(),
-});
+})
 
 /**
  * Update user request body schema.
@@ -98,7 +98,7 @@ export const updateUserRequestSchema = z.object({
 	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),
-});
+})
 
 /**
  * Update user status request body schema.
@@ -106,7 +106,7 @@ export const updateUserRequestSchema = z.object({
  */
 export const updateUserStatusRequestSchema = z.object({
 	status: z.enum([UserStatus.ACTIVE, UserStatus.DISABLED]),
-});
+})
 
 // ============================================================================
 // User Role Request Schemas
@@ -117,7 +117,7 @@ export const updateUserStatusRequestSchema = z.object({
  */
 export const assignRoleToUserRequestSchema = z.object({
 	roleId: z.number().int().positive(),
-});
+})
 
 /**
  * Replace all role assignments for a user request body schema.
@@ -127,4 +127,4 @@ export const replaceUserRolesRequestSchema = z.object({
 		.array(z.number().int().positive())
 		.max(QUERY_DEFAULTS.MAX_ROLE_IDS_PER_REQUEST)
 		.refine((ids) => new Set(ids).size === ids.length, 'roleIds must be unique'),
-});
+})

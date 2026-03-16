@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { Breadcrumb } from '@components/breadcrumb/breadcrumb';
+import { Component } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
+import { Breadcrumb } from '@components/breadcrumb/breadcrumb'
 
 // Navigation test mock components
 @Component({

@@ -1,6 +1,6 @@
-import { provideMockTheme } from '@providers/theme/theme.mock';
-import { applicationConfig, Meta, StoryObj } from '@storybook/angular';
-import { ThemeToggle } from './theme-toggle';
+import { provideMockTheme } from '@providers/theme/theme.mock'
+import { applicationConfig, Meta, StoryObj } from '@storybook/angular'
+import { ThemeToggle } from './theme-toggle'
 
 const meta: Meta<ThemeToggle> = {
 	component: ThemeToggle,
@@ -52,11 +52,11 @@ The component uses the \`Theme\` service which:
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<ThemeToggle>;
+type Story = StoryObj<ThemeToggle>
 
 /**
  * Theme toggle in header context
@@ -74,4 +74,4 @@ export const InHeader: Story = {
 			</header>
 		`,
 	}),
-};
+}

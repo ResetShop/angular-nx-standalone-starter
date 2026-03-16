@@ -1,12 +1,12 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { computed, inject } from '@angular/core';
-import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper';
-import type { IUser } from '@domain/user/user.interface';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { AuthApiService } from '@providers/auth/auth';
-import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs';
-import { initialAuthState } from './auth.types';
+import { HttpErrorResponse } from '@angular/common/http'
+import { computed, inject } from '@angular/core'
+import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper'
+import type { IUser } from '@domain/user/user.interface'
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
+import { rxMethod } from '@ngrx/signals/rxjs-interop'
+import { AuthApiService } from '@providers/auth/auth'
+import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs'
+import { initialAuthState } from './auth.types'
 
 /**
  * AuthStore - Signal Store for authentication state
@@ -28,7 +28,7 @@ export const AuthStore = signalStore(
 		userRoles: computed(() => store.currentUser()?.roles ?? []),
 	})),
 	withMethods((store) => {
-		const authApi = inject(AuthApiService);
+		const authApi = inject(AuthApiService)
 
 		return {
 			/**
@@ -44,22 +44,22 @@ export const AuthStore = signalStore(
 						authApi.login(params).pipe(
 							tap({
 								next: (response) => {
-									const user = mapLoginResponseToUser(response);
+									const user = mapLoginResponseToUser(response)
 									patchState(store, {
 										currentUser: user,
 										mustChangePassword: response.mustChangePassword,
 										isLoggingIn: false,
 										loginError: null,
 										networkError: false,
-									});
+									})
 								},
 								error: (error: HttpErrorResponse) => {
-									const isNetworkError = error.status === 0 || error.status >= 500;
+									const isNetworkError = error.status === 0 || error.status >= 500
 									patchState(store, {
 										isLoggingIn: false,
 										loginError: isNetworkError ? null : error.error,
 										networkError: isNetworkError,
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -86,8 +86,8 @@ export const AuthStore = signalStore(
 								// Logout failures in a cookie-based auth flow may leave stale
 								// server sessions, so visibility into these errors is critical.
 								error: (err) => {
-									console.error('[AuthStore] Logout error:', err);
-									patchState(store, { isLoggingOut: false });
+									console.error('[AuthStore] Logout error:', err)
+									patchState(store, { isLoggingOut: false })
 								},
 							}),
 							catchError(() => EMPTY),
@@ -103,28 +103,28 @@ export const AuthStore = signalStore(
 			 * The server sets the new cookies — no client-side token handling needed.
 			 */
 			refreshToken() {
-				return authApi.refreshToken();
+				return authApi.refreshToken()
 			},
 
 			/**
 			 * Start token refresh - sets refreshing flag
 			 */
 			startTokenRefresh() {
-				patchState(store, { isTokenRefreshing: true });
+				patchState(store, { isTokenRefreshing: true })
 			},
 
 			/**
 			 * Complete token refresh - clears refreshing flag
 			 */
 			completeTokenRefresh() {
-				patchState(store, { isTokenRefreshing: false });
+				patchState(store, { isTokenRefreshing: false })
 			},
 
 			/**
 			 * Handle token refresh failure - resets refresh state
 			 */
 			failTokenRefresh() {
-				patchState(store, { isTokenRefreshing: false });
+				patchState(store, { isTokenRefreshing: false })
 			},
 
 			/**
@@ -138,15 +138,15 @@ export const AuthStore = signalStore(
 				return authApi.getMe().pipe(
 					map((response) => mapMeResponseToUser(response)),
 					tap((user) => patchState(store, { currentUser: user })),
-				);
+				)
 			},
 
 			/**
 			 * Update current user
 			 */
 			updateCurrentUser(user: IUser) {
-				patchState(store, { currentUser: user });
+				patchState(store, { currentUser: user })
 			},
-		};
+		}
 	}),
-);
+)

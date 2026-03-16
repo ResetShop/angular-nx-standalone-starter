@@ -1,7 +1,7 @@
-import { Route } from '@angular/router';
-import { authGuard } from '@guards/auth.guard';
-import { noAuthGuard } from '@guards/no-auth.guard';
-import { NamedRoute } from '@interfaces/navigation';
+import { Route } from '@angular/router'
+import { authGuard } from '@guards/auth.guard'
+import { noAuthGuard } from '@guards/no-auth.guard'
+import { NamedRoute } from '@interfaces/navigation'
 
 export const appRoutes: Route[] = [
 	{
@@ -22,4 +22,4 @@ export const appRoutes: Route[] = [
 		redirectTo: 'auth/login',
 		pathMatch: 'full',
 	},
-] satisfies NamedRoute[];
+] satisfies NamedRoute[]

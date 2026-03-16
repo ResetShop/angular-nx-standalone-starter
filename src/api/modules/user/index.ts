@@ -1,13 +1,13 @@
-import { createOpenAPIApp } from '../../openapi-app';
-import userManagementController from './user-management.controller';
-import userRoleController from './user-role.controller';
+import { createOpenAPIApp } from '../../openapi-app'
+import userManagementController from './user-management.controller'
+import userRoleController from './user-role.controller'
 
-const app = createOpenAPIApp();
+const app = createOpenAPIApp()
 
 // User CRUD management endpoints: /, /:id
-app.route('/', userManagementController);
+app.route('/', userManagementController)
 
 // User role assignment endpoints: /:userId/roles, /:userId/permissions
-app.route('/', userRoleController);
+app.route('/', userRoleController)
 
-export default app;
+export default app
