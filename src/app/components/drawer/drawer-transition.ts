@@ -13,41 +13,34 @@ import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
  */
 @Directive({ standalone: true })
 export class DrawerTransition {
-	private element: HTMLDialogElement | null = null;
-	private readonly closeTransition$ = new Subject<void>();
-	private onCloseComplete: (() => void) | null = null;
+	private readonly close$ = new Subject<HTMLDialogElement>();
 
 	constructor() {
-		this.closeTransition$
+		this.close$
 			.pipe(
-				switchMap(() =>
-					fromEvent(this.element!, 'transitionend').pipe(
-						filter((e) => e.target === this.element),
+				switchMap((element) =>
+					fromEvent(element, 'transitionend').pipe(
+						filter((e) => e.target === element),
 						take(1),
+						switchMap(() => {
+							element.close();
+							return [];
+						}),
 					),
 				),
 				takeUntilDestroyed(),
 			)
-			.subscribe(() => {
-				this.element!.close();
-				this.onCloseComplete?.();
-			});
-	}
-
-	/** Binds the directive to a dialog element. Must be called before open/close. */
-	init(element: HTMLDialogElement, onCloseComplete: () => void): void {
-		this.element = element;
-		this.onCloseComplete = onCloseComplete;
+			.subscribe();
 	}
 
 	/** Triggers the open animation by setting `data-open` after one frame. */
-	open(): void {
-		requestAnimationFrame(() => this.element!.setAttribute('data-open', ''));
+	open(element: HTMLDialogElement): void {
+		requestAnimationFrame(() => element.setAttribute('data-open', ''));
 	}
 
 	/** Triggers the close animation and waits for `transitionend` to finalize. */
-	close(): void {
-		this.element!.removeAttribute('data-open');
-		this.closeTransition$.next();
+	close(element: HTMLDialogElement): void {
+		element.removeAttribute('data-open');
+		this.close$.next(element);
 	}
 }

@@ -90,10 +90,9 @@ export class Drawer implements OnDestroy {
 		const drawer = this.drawerElement();
 		if (drawer.open) return;
 		this.loading.start();
-		this.transition.init(drawer, () => this.drawerTracker.unregister(this));
 		this.drawerTracker.register(this);
 		drawer.showModal();
-		this.transition.open();
+		this.transition.open(drawer);
 		this.opened.emit();
 	}
 
@@ -106,7 +105,8 @@ export class Drawer implements OnDestroy {
 		const drawer = this.drawerElement();
 		if (!drawer.open) return;
 		this.loading.reset();
-		this.transition.close();
+		this.drawerTracker.unregister(this);
+		this.transition.close(drawer);
 		this.closed.emit();
 	}
 
