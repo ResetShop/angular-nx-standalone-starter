@@ -156,17 +156,20 @@ describe('UsersStore', () => {
 			expect(store.readError().list).toBe('Failed to load users')
 		})
 
-		it('should pass search query when set', async () => {
-			useFakeTimers()
-			setupStore()
+		describe('with debounced search', () => {
+			beforeEach(() => useFakeTimers())
+			afterEach(() => useRealTimers())
 
-			store.setSearchQuery('admin')
-			await advanceTimersByTimeAsync(300)
-			TestBed.tick()
+			it('should pass search query when set', async () => {
+				setupStore()
 
-			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
-			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }))
-			useRealTimers()
+				store.setSearchQuery('admin')
+				await advanceTimersByTimeAsync(300)
+				TestBed.tick()
+
+				const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
+				expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }))
+			})
 		})
 
 		it('should not send search param when query is empty', () => {
