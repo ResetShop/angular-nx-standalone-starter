@@ -48,7 +48,7 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 	],
 	template: `
 		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Create Role" #drawer>
-			<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
+			<form (submit)="onSubmit($event)" id="create-role-form" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
 						<p appAlertDescription>{{ mutationError() }}</p>
@@ -80,7 +80,7 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
 					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
-					<button (click)="onSubmit($event)" [disabled]="showSubmitSpinner() || !isFormValid()" appButton>
+					<button [disabled]="showSubmitSpinner() || !isFormValid()" appButton type="submit" form="create-role-form">
 						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
 						}
