@@ -11,7 +11,7 @@ import {
 	useFakeTimers,
 	useRealTimers,
 } from '@test-utils';
-import { render, screen } from '@testing-library/angular';
+import { fireEvent, render, screen } from '@testing-library/angular';
 import { of } from 'rxjs';
 import { CreateRoleDrawer } from './create-role-drawer';
 
@@ -56,7 +56,7 @@ describe('CreateRoleDrawer', () => {
 		useRealTimers();
 	});
 
-	async function renderAndOpen() {
+	async function renderAndOpenRaw() {
 		const { fixture } = await render(CreateRoleDrawer, {
 			providers: [
 				{ provide: RolesApiService, useValue: rolesApiMock },
@@ -68,6 +68,11 @@ describe('CreateRoleDrawer', () => {
 		fixture.componentInstance.open();
 		await advanceTimersByTimeAsync(500);
 		fixture.detectChanges();
+		return { fixture };
+	}
+
+	async function renderAndOpen() {
+		await renderAndOpenRaw();
 	}
 
 	it('should render drawer with create title', async () => {
@@ -100,5 +105,23 @@ describe('CreateRoleDrawer', () => {
 		await renderAndOpen();
 
 		expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
+	});
+
+	it('should call createRoleWithPermissions with correct params on submit', async () => {
+		rolesApiMock.create.mockReturnValue(
+			of({ id: 1, name: 'Admin', code: 'admin', description: null, removable: true, createdAt: null, updatedAt: null }),
+		);
+		rolesApiMock.assignPermissions.mockReturnValue(of({}));
+		const { fixture } = await renderAndOpenRaw();
+
+		const nameInput = screen.getByRole('textbox', { name: /name/i });
+		fireEvent.input(nameInput, { target: { value: 'Admin' } });
+		fixture.detectChanges();
+
+		fireEvent.click(screen.getByRole('button', { name: /create/i }));
+		fixture.detectChanges();
+
+		expect(rolesApiMock.create.calls.length).toBe(1);
+		expect(rolesApiMock.create.calls[0][0]).toEqual(expect.objectContaining({ name: 'Admin' }));
 	});
 });
