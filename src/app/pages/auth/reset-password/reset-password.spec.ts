@@ -24,16 +24,12 @@ describe('ResetPassword', () => {
 		...provideSignalFormsConfig({}),
 	]
 
-	const renderResetPassword = async () => {
-		const view = await render(ResetPassword, { providers: defaultProviders() })
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return { ...view, host: view.fixture.componentInstance as any }
-	}
+	const renderResetPassword = () => render(ResetPassword, { providers: defaultProviders() })
 
 	it('should create the reset password component', async () => {
-		const { host } = await renderResetPassword()
+		const { fixture } = await renderResetPassword()
 
-		expect(host).toBeTruthy()
+		expect(fixture.componentInstance).toBeTruthy()
 	})
 
 	it('should render the reset password form with email field', async () => {
@@ -45,32 +41,31 @@ describe('ResetPassword', () => {
 	it('should render submit button with appButton directive', async () => {
 		await renderResetPassword()
 
-		const submitButton = screen.getByRole('button', {
-			name: /enviar enlace de restablecimiento/i,
-		})
+		const submitButton = screen.getByRole('button', { name: /enviar enlace de restablecimiento/i })
 
 		expect(submitButton).toHaveClass('bg-default')
 		expect(submitButton).toHaveClass('inline-flex')
 		expect(submitButton).toHaveClass('w-full')
 	})
 
-	it('should show required error for email when touched and empty', async () => {
-		const { fixture, host } = await renderResetPassword()
+	it('should show required error for email when focused and blurred empty', async () => {
+		const user = userEvent.setup()
+		await renderResetPassword()
 
-		host.resetPasswordForm.email().markAsTouched()
-		fixture.detectChanges()
+		const emailInput = screen.getByLabelText(/dirección de email/i)
+		await user.click(emailInput)
+		await user.tab()
 
 		expect(screen.getByText(/this field is required/i)).toBeInTheDocument()
 	})
 
 	it('should show invalid email error when email format is incorrect', async () => {
 		const user = userEvent.setup()
-		const { fixture, host } = await renderResetPassword()
+		await renderResetPassword()
 
 		const emailInput = screen.getByLabelText(/dirección de email/i)
 		await user.type(emailInput, 'invalid-email')
-		host.resetPasswordForm.email().markAsTouched()
-		fixture.detectChanges()
+		await user.tab()
 
 		expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument()
 	})
@@ -83,9 +78,7 @@ describe('ResetPassword', () => {
 		const emailInput = screen.getByLabelText(/dirección de email/i)
 		await user.type(emailInput, 'test@example.com')
 
-		const submitButton = screen.getByRole('button', {
-			name: /enviar enlace de restablecimiento/i,
-		})
+		const submitButton = screen.getByRole('button', { name: /enviar enlace de restablecimiento/i })
 		expect(submitButton).toBeEnabled()
 	})
 
@@ -124,17 +117,17 @@ describe('ResetPassword', () => {
 		expect(screen.queryByText(/please enter a valid email address/i)).not.toBeInTheDocument()
 	})
 
-	it('should clear error when valid email is entered', async () => {
+	it('should clear error when valid email is entered after blur', async () => {
 		const user = userEvent.setup()
-		const { fixture, host } = await renderResetPassword()
-
-		host.resetPasswordForm.email().markAsTouched()
-		fixture.detectChanges()
-		expect(screen.getByText(/this field is required/i)).toBeInTheDocument()
+		await renderResetPassword()
 
 		const emailInput = screen.getByLabelText(/dirección de email/i)
+		await user.click(emailInput)
+		await user.tab()
+		expect(screen.getByText(/this field is required/i)).toBeInTheDocument()
+
+		await user.click(emailInput)
 		await user.type(emailInput, 'valid@example.com')
-		fixture.detectChanges()
 
 		expect(screen.queryByText(/this field is required/i)).not.toBeInTheDocument()
 		expect(screen.queryByText(/please enter a valid email address/i)).not.toBeInTheDocument()

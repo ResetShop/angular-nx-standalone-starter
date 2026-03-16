@@ -1,15 +1,24 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
+import { UIStore } from '@store/ui/ui.store'
 import { render, screen } from '@testing-library/angular'
 import Dashboard from './dashboard'
 
 describe('Dashboard', () => {
+	const mockGlobalLoading = signal(false)
+
+	const mockUIStore = {
+		isGlobalLoading: mockGlobalLoading,
+		setGlobalLoading: (value: boolean) => mockGlobalLoading.set(value),
+	}
+
 	const defaultProviders = () => [
 		provideRouter([
 			{ path: 'auth/login', component: Dashboard },
@@ -20,6 +29,7 @@ describe('Dashboard', () => {
 		provideHttpClient(),
 		provideHttpClientTesting(),
 		NavigationState,
+		{ provide: UIStore, useValue: mockUIStore },
 	]
 
 	const createNavigationWithSectionsAndBreadcrumbs = (
@@ -53,6 +63,10 @@ describe('Dashboard', () => {
 	}
 
 	const mockBreadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', path: '/dashboard', isActive: true }]
+
+	beforeEach(() => {
+		mockGlobalLoading.set(false)
+	})
 
 	it('should render the dashboard component with sidebar and header', async () => {
 		const { fixture } = await render(Dashboard, {
@@ -157,36 +171,32 @@ describe('Dashboard', () => {
 		})
 
 		it('should render loading spinner when isGlobalLoading is true', async () => {
+			mockGlobalLoading.set(true)
+
 			const { fixture } = await render(Dashboard, {
 				providers: [
 					...defaultProviders(),
 					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
 				],
 			})
-
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const uiStore = (fixture.componentInstance as any).uiStore
-			uiStore.setGlobalLoading(true)
 			fixture.detectChanges()
 
 			expect(screen.getByText('Cargando...')).toBeInTheDocument()
 		})
 
 		it('should hide loading spinner when isGlobalLoading is set back to false', async () => {
+			mockGlobalLoading.set(true)
+
 			const { fixture } = await render(Dashboard, {
 				providers: [
 					...defaultProviders(),
 					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
 				],
 			})
-
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const uiStore = (fixture.componentInstance as any).uiStore
-			uiStore.setGlobalLoading(true)
 			fixture.detectChanges()
 			expect(screen.getByText('Cargando...')).toBeInTheDocument()
 
-			uiStore.setGlobalLoading(false)
+			mockGlobalLoading.set(false)
 			fixture.detectChanges()
 			expect(screen.queryByText('Cargando...')).not.toBeInTheDocument()
 		})
