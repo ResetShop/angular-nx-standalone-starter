@@ -160,16 +160,19 @@ describe('RolesStore', () => {
 		it('should pass search query when set', async () => {
 			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
 			useFakeTimers();
-			setupStore();
+			try {
+				setupStore();
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
-			store.setSearchQuery('admin');
-			await advanceTimersByTimeAsync(300);
-			TestBed.tick();
+				rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
+				store.setSearchQuery('admin');
+				await advanceTimersByTimeAsync(300);
+				TestBed.tick();
 
-			const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
-			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
-			useRealTimers();
+				const lastCall = rolesApiMock.getAll.calls[rolesApiMock.getAll.calls.length - 1];
+				expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
+			} finally {
+				useRealTimers();
+			}
 		});
 
 		it('should not send search param when query is empty', () => {
