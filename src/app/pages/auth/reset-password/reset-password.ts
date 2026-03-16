@@ -57,10 +57,10 @@ interface ResetPasswordForm {
 export default class ResetPassword {
 	private readonly router = inject(Router)
 
-	readonly loginUrl = this.router.createUrlTree(['/auth/login'])
+	protected readonly loginUrl = this.router.createUrlTree(['/auth/login'])
 
 	private readonly model = signal<ResetPasswordForm>({ email: '' })
-	readonly resetPasswordForm: FieldTree<ResetPasswordForm> = form(
+	protected readonly resetPasswordForm: FieldTree<ResetPasswordForm> = form(
 		this.model,
 		schema<ResetPasswordForm>((resetPassword) => {
 			required(resetPassword.email)
@@ -70,7 +70,7 @@ export default class ResetPassword {
 
 	protected readonly isFormValid = computed(() => this.resetPasswordForm().errors().length === 0)
 
-	onSubmit() {
+	protected onSubmit() {
 		if (!this.isFormValid()) {
 			// Signal forms FieldState.markAsTouched() only marks a single field;
 			// there is no markAllAsTouched() equivalent — each field must be touched individually.

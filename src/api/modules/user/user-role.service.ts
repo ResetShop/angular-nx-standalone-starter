@@ -33,7 +33,7 @@ export class UserRoleService implements IUserRoleService {
 	 * @returns Paginated response containing roles and metadata
 	 * @throws Error if user not found
 	 */
-	async getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
+	public async getUserRoles(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
 			throw userRoleErrors.userNotFound(userId)
@@ -49,7 +49,7 @@ export class UserRoleService implements IUserRoleService {
 	 * @param userId - The user's primary key
 	 * @returns Array of roles with nested permissions (empty if user has no roles)
 	 */
-	async getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]> {
+	public async getUserRolesWithPermissions(userId: number): Promise<RoleWithPermissions[]> {
 		return this.userRoleRepository.findRolesWithPermissionsForUser(userId)
 	}
 
@@ -61,7 +61,7 @@ export class UserRoleService implements IUserRoleService {
 	 * @returns Array of unique permissions across all user's roles
 	 * @throws Error if user not found
 	 */
-	async getUserPermissions(userId: number): Promise<PermissionData[]> {
+	public async getUserPermissions(userId: number): Promise<PermissionData[]> {
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
 			throw userRoleErrors.userNotFound(userId)
@@ -81,7 +81,7 @@ export class UserRoleService implements IUserRoleService {
 	 * @throws Error if role not found
 	 * @throws Error if role is already assigned to the user
 	 */
-	async assignRoleToUser(userId: number, roleId: number): Promise<void> {
+	public async assignRoleToUser(userId: number, roleId: number): Promise<void> {
 		// Verify user exists
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
@@ -110,7 +110,7 @@ export class UserRoleService implements IUserRoleService {
 	 * @throws Error if user not found
 	 * @throws Error if role is not assigned to the user
 	 */
-	async removeRoleFromUser(userId: number, roleId: number): Promise<void> {
+	public async removeRoleFromUser(userId: number, roleId: number): Promise<void> {
 		// Verify user exists
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
@@ -133,7 +133,7 @@ export class UserRoleService implements IUserRoleService {
 	 * @throws Error if user not found
 	 * @throws Error if any role ID does not exist
 	 */
-	async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
+	public async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
 			throw userRoleErrors.userNotFound(userId)

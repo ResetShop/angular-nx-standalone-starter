@@ -29,25 +29,25 @@ import { Pagination } from './pagination'
 class PaginationStoryComponent {
 	private readonly translation = inject(Translation)
 
-	readonly totalPages = input(10)
-	readonly initialPage = input(1)
-	readonly initialPageSize = input(25)
-	readonly pageSizeOptions = input<number[]>([25, 50, 100])
-	readonly language = input<Language>('en')
-	readonly pageChange = output<number>()
-	readonly pageSizeChange = output<number>()
+	public readonly totalPages = input(10)
+	public readonly initialPage = input(1)
+	public readonly initialPageSize = input(25)
+	public readonly pageSizeOptions = input<number[]>([25, 50, 100])
+	public readonly language = input<Language>('en')
+	public readonly pageChange = output<number>()
+	public readonly pageSizeChange = output<number>()
 
 	/** Internal state for current page (allows interactive navigation in stories) */
-	readonly currentPageState = signal(1)
+	protected readonly currentPageState = signal(1)
 
 	/** Internal state for page size (allows interactive changes in stories) */
-	readonly pageSizeState = signal(25)
+	protected readonly pageSizeState = signal(25)
 
 	/**
 	 * Tracks when translations are loaded and ready for use.
 	 * Toggling this signal forces the Pagination to re-mount with updated translations.
 	 */
-	readonly isReady = signal(false)
+	protected readonly isReady = signal(false)
 
 	constructor() {
 		// Initialize state from inputs and handle language changes
@@ -63,12 +63,12 @@ class PaginationStoryComponent {
 		})
 	}
 
-	onPageChange(page: number): void {
+	protected onPageChange(page: number): void {
 		this.currentPageState.set(page)
 		this.pageChange.emit(page)
 	}
 
-	onPageSizeChange(size: number): void {
+	protected onPageSizeChange(size: number): void {
 		this.pageSizeState.set(size)
 		// Reset to page 1 when page size changes (common UX pattern)
 		this.currentPageState.set(1)

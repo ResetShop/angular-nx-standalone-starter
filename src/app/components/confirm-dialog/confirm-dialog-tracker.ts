@@ -19,12 +19,12 @@ export class ConfirmDialogTracker {
 	private instanceCount = 0
 
 	/** Generates a unique instance ID for aria attributes. */
-	nextId(): number {
+	public nextId(): number {
 		return ++this.instanceCount
 	}
 
 	/** Registers a dialog as the active instance. Throws if another dialog is already active. */
-	register(dialog: ConfirmDialog): void {
+	public register(dialog: ConfirmDialog): void {
 		if (this.activeInstance) {
 			throw new Error('Only one confirm dialog can be active at a time.')
 		}
@@ -32,7 +32,7 @@ export class ConfirmDialogTracker {
 	}
 
 	/** Unregisters the dialog if it matches the current active instance. */
-	unregister(dialog: ConfirmDialog): void {
+	public unregister(dialog: ConfirmDialog): void {
 		if (this.activeInstance === dialog) {
 			this.activeInstance = null
 		}

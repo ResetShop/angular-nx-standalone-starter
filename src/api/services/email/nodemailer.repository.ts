@@ -47,7 +47,7 @@ export class NodemailerRepository implements IEmailRepository {
 		})
 	}
 
-	async send(params: SendEmailParams): Promise<void> {
+	public async send(params: SendEmailParams): Promise<void> {
 		const info = await this.transporter.sendMail({
 			from: this.fromAddress,
 			to: params.to,

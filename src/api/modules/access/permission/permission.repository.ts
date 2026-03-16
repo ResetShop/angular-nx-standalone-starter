@@ -21,7 +21,7 @@ export class PermissionRepository extends BaseRepository implements IPermissionR
 	 * @param params.search - Optional search term
 	 * @returns Paginated response containing permissions and metadata
 	 */
-	async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
+	public async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
 		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT
 		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET
 		const searchCondition = this.buildSearchCondition(params?.search)

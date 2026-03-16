@@ -79,7 +79,7 @@ export class RoleService implements IRoleService {
 	 * @param id - The role's primary key
 	 * @returns The role data if found, null otherwise
 	 */
-	async getRole(id: number): Promise<RoleData | null> {
+	public async getRole(id: number): Promise<RoleData | null> {
 		return this.roleRepository.findById(id)
 	}
 
@@ -89,7 +89,7 @@ export class RoleService implements IRoleService {
 	 * @param code - The role's unique code (e.g., 'admin', 'editor')
 	 * @returns The role data if found, null otherwise
 	 */
-	async getRoleByCode(code: string): Promise<RoleData | null> {
+	public async getRoleByCode(code: string): Promise<RoleData | null> {
 		return this.roleRepository.findByCode(code)
 	}
 
@@ -99,7 +99,7 @@ export class RoleService implements IRoleService {
 	 * @param params - Optional parameters (offset, limit, search)
 	 * @returns Paginated response containing roles and metadata
 	 */
-	async getAllRoles(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
+	public async getAllRoles(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
 		return this.roleRepository.findAll(params)
 	}
 
@@ -111,7 +111,7 @@ export class RoleService implements IRoleService {
 	 * @returns The newly created role data
 	 * @throws Error if a role with the same code or name already exists
 	 */
-	async createRole(params: CreateRoleParams): Promise<RoleData> {
+	public async createRole(params: CreateRoleParams): Promise<RoleData> {
 		// Check if code already exists
 		const existingByCode = await this.roleRepository.findByCode(params.code)
 		if (existingByCode) {
@@ -136,7 +136,7 @@ export class RoleService implements IRoleService {
 	 * @returns The updated role data
 	 * @throws Error if role not found or new name conflicts with existing role
 	 */
-	async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
+	public async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
 		// Check if role exists
 		const existingRole = await this.roleRepository.findById(id)
 		if (!existingRole) {
@@ -167,7 +167,7 @@ export class RoleService implements IRoleService {
 	 * @param id - The role's primary key
 	 * @throws Error if role not found or is a non-removable system role
 	 */
-	async deleteRole(id: number): Promise<void> {
+	public async deleteRole(id: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(id)
 
 		if (!existingRole) {
@@ -189,7 +189,10 @@ export class RoleService implements IRoleService {
 	 * @returns Paginated response containing permissions and metadata
 	 * @throws Error if role not found
 	 */
-	async getRolePermissions(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>> {
+	public async getRolePermissions(
+		roleId: number,
+		pagination?: PaginationParams,
+	): Promise<PaginatedResponse<PermissionData>> {
 		const existingRole = await this.roleRepository.findById(roleId)
 
 		if (!existingRole) {
@@ -211,7 +214,7 @@ export class RoleService implements IRoleService {
 	 * @throws InvalidPermissionIdsError if any permission IDs don't exist in database
 	 * @throws SelfLockoutError if update would remove user's ability to manage roles
 	 */
-	async assignPermissionsToRole(roleId: number, permissionIds: number[], userId?: number): Promise<void> {
+	public async assignPermissionsToRole(roleId: number, permissionIds: number[], userId?: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(roleId)
 
 		if (!existingRole) {

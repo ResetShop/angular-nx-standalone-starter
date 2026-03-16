@@ -91,13 +91,13 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavItem {
-	readonly item = input.required<NavigationRoute>()
+	protected readonly item = input.required<NavigationRoute>()
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.
 	 * @default 200
 	 */
-	readonly transitionDuration = input<number>(200)
+	protected readonly transitionDuration = input<number>(200)
 
 	private readonly router = inject(Router)
 	private readonly navState = inject(NavigationState)
@@ -106,13 +106,13 @@ export default class NavItem {
 	 * Determines if this navigation item has child routes.
 	 * @returns True if the item has at least one child route
 	 */
-	readonly hasChildren = computed(() => isParentRoute(this.item()))
+	protected readonly hasChildren = computed(() => isParentRoute(this.item()))
 
 	/**
 	 * Returns the children navigation routes for parent routes
 	 * @returns An array of NavigationRoute, which can be empty
 	 */
-	readonly children = computed((): NavigationRoute[] => {
+	protected readonly children = computed((): NavigationRoute[] => {
 		const route = this.item()
 		if (isParentRoute(route)) {
 			return route.children
@@ -125,13 +125,13 @@ export default class NavItem {
 	 * Always returns false for leaf items (items without children).
 	 * @returns True if expanded, false if collapsed or has no children
 	 */
-	readonly isExpanded = computed(() => this.navState.isExpanded(this.item().id))
+	protected readonly isExpanded = computed(() => this.navState.isExpanded(this.item().id))
 
 	/**
 	 * Extracts the icon name from the navigation route's icon object.
 	 * @returns The icon name as a string, or null if no icon is provided
 	 */
-	readonly iconName = computed(() => {
+	protected readonly iconName = computed(() => {
 		const icon = this.item().icon
 		return icon ? Object.keys(icon)[0] : null // Get the key name
 	})
@@ -165,7 +165,7 @@ export default class NavItem {
 	 * Only applicable to parent items with children. For leaf items, this method has no effect.
 	 * The expansion state is managed by the NavigationStateService at the sidebar level.
 	 */
-	toggleExpanded(): void {
+	protected toggleExpanded(): void {
 		this.navState.toggle(this.item().id)
 	}
 }

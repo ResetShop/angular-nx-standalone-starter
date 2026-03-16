@@ -15,7 +15,7 @@ import type { Observable } from 'rxjs'
 export class UsersApiService {
 	private readonly http = inject(HttpClient)
 
-	getAll({
+	public getAll({
 		offset = QUERY_DEFAULTS.OFFSET,
 		limit = QUERY_DEFAULTS.LIMIT,
 		search,
@@ -27,23 +27,23 @@ export class UsersApiService {
 		return this.http.get<PaginatedResponse<ManagedUser>>('/api/user', { params })
 	}
 
-	getById(id: number): Observable<ManagedUser> {
+	public getById(id: number): Observable<ManagedUser> {
 		return this.http.get<ManagedUser>(`/api/user/${id}`)
 	}
 
-	create(body: CreateUserRequest): Observable<CreateUserResponse> {
+	public create(body: CreateUserRequest): Observable<CreateUserResponse> {
 		return this.http.post<CreateUserResponse>('/api/user', body)
 	}
 
-	update(id: number, body: UpdateUserRequest): Observable<ManagedUser> {
+	public update(id: number, body: UpdateUserRequest): Observable<ManagedUser> {
 		return this.http.patch<ManagedUser>(`/api/user/${id}`, body)
 	}
 
-	delete(id: number): Observable<void> {
+	public delete(id: number): Observable<void> {
 		return this.http.delete<void>(`/api/user/${id}`)
 	}
 
-	updateStatus(id: number, body: UpdateUserStatusRequest): Observable<ManagedUser> {
+	public updateStatus(id: number, body: UpdateUserStatusRequest): Observable<ManagedUser> {
 		return this.http.patch<ManagedUser>(`/api/user/${id}/status`, body)
 	}
 }

@@ -6,5 +6,5 @@ import { Analytics } from './analytics'
 })
 export class AnalyticsMock extends Analytics {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	async init() {}
+	public override async init() {}
 }

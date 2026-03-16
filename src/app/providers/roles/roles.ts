@@ -16,7 +16,7 @@ import { forkJoin, map, type Observable } from 'rxjs'
 export class RolesApiService {
 	private readonly http = inject(HttpClient)
 
-	getAll({
+	public getAll({
 		offset = QUERY_DEFAULTS.OFFSET,
 		limit = QUERY_DEFAULTS.LIMIT,
 		search,
@@ -28,13 +28,13 @@ export class RolesApiService {
 		return this.http.get<PaginatedResponse<RoleData>>('/api/access/roles', { params })
 	}
 
-	getAllUnpaginated(): Observable<RoleData[]> {
+	public getAllUnpaginated(): Observable<RoleData[]> {
 		return this.http
 			.get<PaginatedResponse<RoleData>>('/api/access/roles', { params: { limit: QUERY_DEFAULTS.MAX_LIMIT, offset: 0 } })
 			.pipe(map((r) => r.data))
 	}
 
-	getByIdWithPermissions(id: number): Observable<RoleWithPermissions> {
+	public getByIdWithPermissions(id: number): Observable<RoleWithPermissions> {
 		return forkJoin({
 			role: this.http.get<RoleData>(`/api/access/roles/${id}`),
 			permissions: this.http
@@ -56,19 +56,19 @@ export class RolesApiService {
 		)
 	}
 
-	create(body: CreateRoleRequest): Observable<RoleData> {
+	public create(body: CreateRoleRequest): Observable<RoleData> {
 		return this.http.post<RoleData>('/api/access/roles', body)
 	}
 
-	update(id: number, body: UpdateRoleRequest): Observable<RoleData> {
+	public update(id: number, body: UpdateRoleRequest): Observable<RoleData> {
 		return this.http.put<RoleData>(`/api/access/roles/${id}`, body)
 	}
 
-	delete(id: number): Observable<void> {
+	public delete(id: number): Observable<void> {
 		return this.http.delete<void>(`/api/access/roles/${id}`)
 	}
 
-	assignPermissions(id: number, body: AssignPermissionsRequest): Observable<void> {
+	public assignPermissions(id: number, body: AssignPermissionsRequest): Observable<void> {
 		return this.http.put<void>(`/api/access/roles/${id}/permissions`, body)
 	}
 }

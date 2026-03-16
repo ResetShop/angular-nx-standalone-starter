@@ -24,34 +24,34 @@ import { ConfirmDialogTracker } from './confirm-dialog-tracker'
 })
 export class ConfirmDialog implements OnDestroy {
 	/** Dialog title */
-	readonly title = input<string>('Confirm')
+	protected readonly title = input<string>('Confirm')
 
 	/** Dialog message body */
-	readonly message = input<string>('')
+	protected readonly message = input<string>('')
 
 	/** Text for the confirm button */
-	readonly confirmText = input<string>('Confirm')
+	protected readonly confirmText = input<string>('Confirm')
 
 	/** Text for the cancel button */
-	readonly cancelText = input<string>('Cancel')
+	protected readonly cancelText = input<string>('Cancel')
 
 	/** Variant for the confirm button */
-	readonly confirmVariant = input<'default' | 'destructive'>('default')
+	protected readonly confirmVariant = input<'default' | 'destructive'>('default')
 
 	/** Emits when user confirms */
-	readonly confirmed = output<void>()
+	protected readonly confirmed = output<void>()
 
 	/** Emits when user cancels */
-	readonly cancelled = output<void>()
+	protected readonly cancelled = output<void>()
 
 	private readonly confirmDialogTracker = inject(ConfirmDialogTracker)
 	private readonly instanceId = this.confirmDialogTracker.nextId()
 
 	/** Unique ID for aria-labelledby */
-	readonly titleId = `confirm-dialog-title-${this.instanceId}`
+	protected readonly titleId = `confirm-dialog-title-${this.instanceId}`
 
 	/** Unique ID for aria-describedby */
-	readonly messageId = `confirm-dialog-message-${this.instanceId}`
+	protected readonly messageId = `confirm-dialog-message-${this.instanceId}`
 	private readonly closeTransition$ = new Subject<void>()
 	private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dialogRef')
 	private readonly dialogElement = computed(() => this.dialogRef().nativeElement)
@@ -73,7 +73,7 @@ export class ConfirmDialog implements OnDestroy {
 			})
 	}
 
-	show(): void {
+	public show(): void {
 		const el = this.dialogElement()
 		if (el.open) return
 		this.confirmDialogTracker.register(this)
@@ -81,28 +81,28 @@ export class ConfirmDialog implements OnDestroy {
 		requestAnimationFrame(() => el.setAttribute('data-open', ''))
 	}
 
-	close(): void {
+	public close(): void {
 		const el = this.dialogElement()
 		if (!el.open) return
 		el.removeAttribute('data-open')
 		this.closeTransition$.next()
 	}
 
-	ngOnDestroy(): void {
+	public ngOnDestroy(): void {
 		this.confirmDialogTracker.unregister(this)
 	}
 
-	onConfirm(): void {
+	protected onConfirm(): void {
 		this.confirmed.emit()
 		this.close()
 	}
 
-	onCancel(): void {
+	protected onCancel(): void {
 		this.cancelled.emit()
 		this.close()
 	}
 
-	onDialogCancel(event: Event): void {
+	protected onDialogCancel(event: Event): void {
 		event.preventDefault()
 		this.onCancel()
 	}

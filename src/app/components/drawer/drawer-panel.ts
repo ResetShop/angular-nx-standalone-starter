@@ -9,7 +9,7 @@ import type { DrawerDirection } from './drawer'
  */
 @Directive({ standalone: true })
 export class DrawerPanel {
-	readonly direction = input<DrawerDirection>('right')
+	public readonly direction = input<DrawerDirection>('right')
 
 	private readonly hostClasses = inject(new HostAttributeToken('class'), { optional: true }) ?? ''
 
@@ -33,7 +33,7 @@ export class DrawerPanel {
 
 	private readonly directionClass = computed(() => `drawer-${this.direction()}`)
 
-	readonly panelClasses = computed(() => {
+	public readonly panelClasses = computed(() => {
 		return `${this.layoutClasses()} ${this.positionClasses()} ${this.directionClass()} ${this.hostClasses}`.trim()
 	})
 }

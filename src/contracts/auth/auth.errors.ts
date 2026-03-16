@@ -153,8 +153,8 @@ export interface LoginErrorResponse {
  * Carries both internal (for logging) and public (for response) error codes.
  */
 export class AuthError extends Error {
-	readonly internalCode: InternalAuthErrorCode
-	readonly publicCode: PublicAuthErrorCode
+	public readonly internalCode: InternalAuthErrorCode
+	public readonly publicCode: PublicAuthErrorCode
 
 	constructor(internalCode: InternalAuthErrorCode) {
 		super(InternalAuthErrorMessage[internalCode])

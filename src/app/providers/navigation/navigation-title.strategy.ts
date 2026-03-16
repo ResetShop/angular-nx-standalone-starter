@@ -8,7 +8,7 @@ export class NavigationTitleStrategy extends TitleStrategy {
 	private readonly titleService = inject(Title)
 	private readonly projectConfig = inject(PROJECT_CONFIG)
 
-	override updateTitle(routerState: RouterStateSnapshot): void {
+	public override updateTitle(routerState: RouterStateSnapshot): void {
 		const title = this.buildTitle(routerState)
 		const suffix = this.projectConfig.applicationName
 		const pageTitle = title ? `${title} | ${suffix}` : suffix

@@ -34,17 +34,17 @@ import { featherChevronRight } from '@ng-icons/feather-icons'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavSection {
-	readonly NavItem = NavItem
-	readonly showTitle = input<boolean>(true)
-	readonly section = input.required<NavigationSection>()
+	protected readonly NavItem = NavItem
+	protected readonly showTitle = input<boolean>(true)
+	protected readonly section = input.required<NavigationSection>()
 
-	private injector = inject(EnvironmentInjector)
+	private readonly injector = inject(EnvironmentInjector)
 
 	// We use a custom injector for the nav items to load ng-icons on demand using lazy loading
 	// By providing the icon definitions in navigation.config.ts we're able to directly load the icons
 	// that are rendered on the sidebar
 	// We also provide the chevron icon for expandable navigation items
-	readonly navItems = computed(() =>
+	protected readonly navItems = computed(() =>
 		this.section().routes.map((route) => ({
 			id: route.id,
 			route,

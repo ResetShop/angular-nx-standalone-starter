@@ -101,49 +101,49 @@ export class Pagination {
 	private readonly paginationTracker = inject(PaginationTracker)
 
 	/** Unique ID for the select element */
-	readonly selectId = `pagination-select-${this.paginationTracker.nextId()}`
+	protected readonly selectId = `pagination-select-${this.paginationTracker.nextId()}`
 
 	/** Current page number (1-based) */
-	readonly currentPage = input<number>(1)
+	protected readonly currentPage = input<number>(1)
 
 	/** Total number of pages */
-	readonly totalPages = input<number>(1)
+	protected readonly totalPages = input<number>(1)
 
 	/** Number of items per page */
-	readonly pageSize = input<number>(25)
+	protected readonly pageSize = input<number>(25)
 
 	/** Available page size options */
-	readonly pageSizeOptions = input<number[]>([25, 50, 100])
+	protected readonly pageSizeOptions = input<number[]>([25, 50, 100])
 
 	/** Emits new page number when user navigates */
-	readonly pageChange = output<number>()
+	protected readonly pageChange = output<number>()
 
 	/** Emits new page size when user changes the rows per page */
-	readonly pageSizeChange = output<number>()
+	protected readonly pageSizeChange = output<number>()
 
 	/**
 	 * Translated nav aria-label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL)
+	protected readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL)
 
 	/**
 	 * Translated "Rows per page" label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE)
+	protected readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE)
 
 	/**
 	 * Translated aria-label for the previous button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS)
+	protected readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS)
 
 	/**
 	 * Translated aria-label for the next button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT)
+	protected readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT)
 
 	/**
 	 * Translated template for page button aria-label, resolved once at construction.
@@ -152,10 +152,10 @@ export class Pagination {
 	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE)
 
 	/** Whether current page is the first page */
-	readonly isFirstPage = computed(() => this.currentPage() <= 1)
+	protected readonly isFirstPage = computed(() => this.currentPage() <= 1)
 
 	/** Whether current page is the last page */
-	readonly isLastPage = computed(() => this.currentPage() >= this.totalPages())
+	protected readonly isLastPage = computed(() => this.currentPage() >= this.totalPages())
 
 	/**
 	 * Page items (numbers and ellipses) derived from current page and total pages.
@@ -169,7 +169,7 @@ export class Pagination {
 	 *   - Show ellipsis if gap exists before last
 	 *   - Always show last page
 	 */
-	readonly pageItems = computed<PageItem[]>(() => {
+	protected readonly pageItems = computed<PageItem[]>(() => {
 		const total = this.totalPages()
 		const current = this.currentPage()
 
@@ -228,33 +228,33 @@ export class Pagination {
 	}
 
 	/** Gets the aria-label for a page button */
-	getPageLabel(page: number): string {
+	protected getPageLabel(page: number): string {
 		return this.goToPageTemplate.replace('{page}', String(page))
 	}
 
 	/** Navigates to the previous page. No-op on the first page. */
-	onPrevious(): void {
+	protected onPrevious(): void {
 		if (!this.isFirstPage()) {
 			this.pageChange.emit(this.currentPage() - 1)
 		}
 	}
 
 	/** Navigates to the next page. No-op on the last page. */
-	onNext(): void {
+	protected onNext(): void {
 		if (!this.isLastPage()) {
 			this.pageChange.emit(this.currentPage() + 1)
 		}
 	}
 
 	/** Navigates to the specified page. No-op if it equals the current page. */
-	onPageClick(page: number): void {
+	protected onPageClick(page: number): void {
 		if (page !== this.currentPage()) {
 			this.pageChange.emit(page)
 		}
 	}
 
 	/** Handles the page size select change and emits the new size. */
-	onPageSizeChange(event: Event): void {
+	protected onPageSizeChange(event: Event): void {
 		const select = event.target as HTMLSelectElement
 		const newSize = parseInt(select.value, 10)
 		this.pageSizeChange.emit(newSize)

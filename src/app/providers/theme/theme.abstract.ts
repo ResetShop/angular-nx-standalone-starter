@@ -1,8 +1,8 @@
 import { Signal } from '@angular/core'
 
 export abstract class ThemeProvider {
-	abstract readonly isDarkMode: Signal<boolean>
+	public abstract readonly isDarkMode: Signal<boolean>
 
-	abstract toggleTheme(): void
-	abstract applyTheme(): void
+	public abstract toggleTheme(): void
+	public abstract applyTheme(): void
 }

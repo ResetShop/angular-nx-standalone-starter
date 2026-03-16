@@ -7,7 +7,7 @@ import { environment } from '../../environments/environment'
 	providedIn: 'root',
 })
 export class Analytics {
-	async init() {
+	public async init() {
 		// TODO: Uncomment if you're using Vercel Speed Insights
 		try {
 			// injectSpeedInsights();

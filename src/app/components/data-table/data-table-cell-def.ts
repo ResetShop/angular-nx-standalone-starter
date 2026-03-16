@@ -17,6 +17,6 @@ export interface DataTableCellDefContext<T = unknown> {
 	standalone: true,
 })
 export class DataTableCellDef<T = unknown> {
-	readonly appDataTableCellDef = input.required<string>()
-	readonly template = inject<TemplateRef<DataTableCellDefContext<T>>>(TemplateRef)
+	public readonly appDataTableCellDef = input.required<string>()
+	public readonly template = inject<TemplateRef<DataTableCellDefContext<T>>>(TemplateRef)
 }

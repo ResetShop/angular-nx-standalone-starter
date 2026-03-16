@@ -15,7 +15,7 @@ export class Theme extends ThemeProvider {
 	private readonly platformId = inject(PLATFORM_ID)
 	private readonly isBrowser = isPlatformBrowser(this.platformId)
 
-	readonly isDarkMode = computed(() => this._isDarkMode())
+	public override readonly isDarkMode = computed(() => this._isDarkMode())
 	private readonly _isDarkMode = signal<boolean>(this.getInitialTheme())
 
 	constructor() {
@@ -25,12 +25,12 @@ export class Theme extends ThemeProvider {
 		})
 	}
 
-	toggleTheme(): void {
+	public override toggleTheme(): void {
 		this._isDarkMode.update((current) => !current)
 		this.applyTheme()
 	}
 
-	applyTheme(): void {
+	public override applyTheme(): void {
 		if (!this.isBrowser) {
 			return
 		}

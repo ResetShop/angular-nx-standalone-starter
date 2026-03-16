@@ -31,8 +31,8 @@ class LoginStoryComponent {
 	private readonly translation = inject(Translation)
 	private readonly loginPage = viewChild(Login)
 
-	readonly errorCode = input<ErrorCodeOption>(null)
-	readonly language = input<Language>('es')
+	public readonly errorCode = input<ErrorCodeOption>(null)
+	public readonly language = input<Language>('es')
 
 	private readonly isReady = signal(false)
 

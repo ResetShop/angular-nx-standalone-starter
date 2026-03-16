@@ -28,7 +28,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	 * @param data Partial token data (defaults will be applied)
 	 * @returns The created token data
 	 */
-	addToken(tokenHash: string, data: Partial<RefreshTokenData> = {}): RefreshTokenData {
+	public addToken(tokenHash: string, data: Partial<RefreshTokenData> = {}): RefreshTokenData {
 		const token: RefreshTokenData = {
 			id: data.id ?? this.tokenIdCounter++,
 			userId: data.userId ?? 1,
@@ -47,7 +47,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 	/**
 	 * Clear all tokens and reset tracking arrays.
 	 */
-	clear(): void {
+	public clear(): void {
 		this.tokens.clear()
 		this.tokensById.clear()
 		this.revokedTokenIds.length = 0
@@ -61,11 +61,11 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		this.tokenIdCounter = 1
 	}
 
-	async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
+	public async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
 		return this.tokens.get(tokenHash) ?? null
 	}
 
-	async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {
+	public async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {
 		const token = this.addToken(params.tokenHash, {
 			userId: params.userId,
 			tokenFamily: params.tokenFamily,
@@ -75,7 +75,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		return token
 	}
 
-	async revokeToken(tokenId: number): Promise<void> {
+	public async revokeToken(tokenId: number): Promise<void> {
 		this.revokedTokenIds.push(tokenId)
 		const token = this.tokensById.get(tokenId)
 		if (token) {
@@ -84,7 +84,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		}
 	}
 
-	async revokeAllForUser(userId: number): Promise<void> {
+	public async revokeAllForUser(userId: number): Promise<void> {
 		this.revokedUserIds.push(userId)
 		for (const token of this.tokens.values()) {
 			if (token.userId === userId) {
@@ -94,7 +94,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		}
 	}
 
-	async revokeTokenFamily(tokenFamily: string): Promise<void> {
+	public async revokeTokenFamily(tokenFamily: string): Promise<void> {
 		this.revokedTokenFamilies.push(tokenFamily)
 		for (const token of this.tokens.values()) {
 			if (token.tokenFamily === tokenFamily) {
@@ -104,7 +104,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		}
 	}
 
-	async deleteExpiredTokensForUser(userId: number): Promise<number> {
+	public async deleteExpiredTokensForUser(userId: number): Promise<number> {
 		this.deletedExpiredForUsers.push(userId)
 		// Count and remove expired tokens
 		let count = 0
@@ -119,7 +119,7 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		return count
 	}
 
-	async tryAcquireCleanupLock(): Promise<boolean> {
+	public async tryAcquireCleanupLock(): Promise<boolean> {
 		if (this.cleanupLockAcquired) {
 			return false
 		}
@@ -127,14 +127,14 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 		return true
 	}
 
-	async releaseCleanupLock(): Promise<void> {
+	public async releaseCleanupLock(): Promise<void> {
 		if (this.releaseCleanupLockError) {
 			throw this.releaseCleanupLockError
 		}
 		this.cleanupLockAcquired = false
 	}
 
-	async deleteAllExpiredTokens(): Promise<CleanupResult> {
+	public async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		this.deleteAllExpiredCalled = true
 		// Count and remove tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER ago (matches real repo)
 		let count = 0

@@ -75,9 +75,9 @@ interface HealthApiResponse {
 	`,
 })
 export default class Health {
-	private http = inject(HttpClient)
+	private readonly http = inject(HttpClient)
 
-	healthResource = rxResource({
+	protected readonly healthResource = rxResource({
 		stream: () => this.http.get<HealthApiResponse>('/api/health/v1'),
 	})
 }

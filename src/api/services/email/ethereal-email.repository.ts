@@ -19,7 +19,7 @@ import type { IEmailRepository, SendEmailParams } from './interfaces'
 export class EtherealEmailRepository implements IEmailRepository {
 	private transporterPromise: Promise<Transporter> | null = null
 
-	async send(params: SendEmailParams): Promise<void> {
+	public async send(params: SendEmailParams): Promise<void> {
 		const transporter = await this.getTransporter()
 
 		const info = await transporter.sendMail({

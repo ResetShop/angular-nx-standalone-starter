@@ -65,22 +65,22 @@ class StoryPlayground {
 	private readonly errorHandler = inject(ErrorHandler)
 	private readonly translation = inject(Translation)
 
-	readonly inputType = input<InputType>('email')
-	readonly showHint = input<boolean>(false)
-	readonly hasRequired = input<boolean>(true)
-	readonly showRequired = input<boolean | undefined>(undefined)
-	readonly language = input<Language>('en')
-	readonly isReady = signal(false)
+	public readonly inputType = input<InputType>('email')
+	public readonly showHint = input<boolean>(false)
+	public readonly hasRequired = input<boolean>(true)
+	public readonly showRequired = input<boolean | undefined>(undefined)
+	public readonly language = input<Language>('en')
+	protected readonly isReady = signal(false)
 
 	private readonly emailModel = signal('')
-	readonly emailField: FieldTree<string> = form(
+	protected readonly emailField: FieldTree<string> = form(
 		this.emailModel,
 		schema<string>((path) => {
 			required(path)
 			email(path)
 		}),
 	)
-	readonly optionalEmailField: FieldTree<string> = form(
+	protected readonly optionalEmailField: FieldTree<string> = form(
 		this.emailModel,
 		schema<string>((path) => {
 			email(path)
@@ -88,31 +88,31 @@ class StoryPlayground {
 	)
 
 	private readonly textModel = signal('')
-	readonly textField: FieldTree<string> = form(
+	protected readonly textField: FieldTree<string> = form(
 		this.textModel,
 		schema<string>((path) => {
 			required(path)
 		}),
 	)
-	readonly optionalTextField: FieldTree<string> = form(this.textModel)
+	protected readonly optionalTextField: FieldTree<string> = form(this.textModel)
 
 	private readonly selectModel = signal('')
-	readonly selectField: FieldTree<string> = form(
+	protected readonly selectField: FieldTree<string> = form(
 		this.selectModel,
 		schema<string>((path) => {
 			required(path)
 		}),
 	)
-	readonly optionalSelectField: FieldTree<string> = form(this.selectModel)
+	protected readonly optionalSelectField: FieldTree<string> = form(this.selectModel)
 
 	private readonly checkboxModel = signal(false)
-	readonly checkboxField: FieldTree<boolean> = form(
+	protected readonly checkboxField: FieldTree<boolean> = form(
 		this.checkboxModel,
 		schema<boolean>((path) => {
 			required(path)
 		}),
 	)
-	readonly optionalCheckboxField: FieldTree<boolean> = form(this.checkboxModel)
+	protected readonly optionalCheckboxField: FieldTree<boolean> = form(this.checkboxModel)
 
 	protected readonly resolvedHint = computed(() => {
 		if (!this.showHint()) return undefined

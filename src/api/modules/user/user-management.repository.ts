@@ -63,7 +63,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param search - Optional search term to filter by email, first name, or last name
 	 * @returns Paginated response containing users with roles
 	 */
-	async findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
+	public async findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
 		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT
 		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET
 
@@ -118,7 +118,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param id - The user's primary key
 	 * @returns User data with roles, or null if not found
 	 */
-	async findByIdWithRoles(id: number): Promise<ManagedUserData | null> {
+	public async findByIdWithRoles(id: number): Promise<ManagedUserData | null> {
 		const result = await this.db
 			.select({
 				id: user.id,
@@ -150,7 +150,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param email - Email address to search for
 	 * @returns User data if found, null otherwise
 	 */
-	async findByEmail(email: string): Promise<UserData | null> {
+	public async findByEmail(email: string): Promise<UserData | null> {
 		const result: FindByEmailProjection[] = await this.db
 			.select({
 				id: user.id,
@@ -173,7 +173,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param params - User creation parameters including password hash and role IDs
 	 * @returns The newly created user with roles
 	 */
-	async create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData> {
+	public async create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData> {
 		return this.db.transaction(async (tx) => {
 			const userResult = await tx
 				.insert(user)
@@ -221,7 +221,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param params - Fields to update
 	 * @returns Updated user data, or null if not found
 	 */
-	async update(id: number, params: UpdateUserParams): Promise<UserData | null> {
+	public async update(id: number, params: UpdateUserParams): Promise<UserData | null> {
 		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() }
 
 		if (params.email !== undefined) {
@@ -256,7 +256,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param changedBy - The ID of the admin performing the deletion
 	 * @returns true if the user was deleted, false if not found
 	 */
-	async softDelete(id: number, changedBy: number): Promise<boolean> {
+	public async softDelete(id: number, changedBy: number): Promise<boolean> {
 		const now = new Date()
 		const result = await this.db
 			.update(user)
@@ -281,7 +281,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @param params - Status change parameters including the new status and who changed it
 	 * @returns Updated user data with roles, or null if not found or deleted
 	 */
-	async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
+	public async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
 		const now = new Date()
 		const result = await this.db
 			.update(user)

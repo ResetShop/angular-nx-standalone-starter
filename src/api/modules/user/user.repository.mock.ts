@@ -8,7 +8,7 @@ export class MockUserRepository implements IUserRepository {
 	 * Add a user to the mock repository for testing.
 	 * @param user User data to add
 	 */
-	addUser(user: UserData): void {
+	public addUser(user: UserData): void {
 		this.users.set(user.id, user)
 		this.usersByEmail.set(user.email, user)
 	}
@@ -16,16 +16,16 @@ export class MockUserRepository implements IUserRepository {
 	/**
 	 * Clear all users from the mock repository.
 	 */
-	clear(): void {
+	public clear(): void {
 		this.users.clear()
 		this.usersByEmail.clear()
 	}
 
-	async findByEmail(email: string): Promise<UserData | null> {
+	public async findByEmail(email: string): Promise<UserData | null> {
 		return this.usersByEmail.get(email) ?? null
 	}
 
-	async findById(id: number): Promise<UserData | null> {
+	public async findById(id: number): Promise<UserData | null> {
 		return this.users.get(id) ?? null
 	}
 }

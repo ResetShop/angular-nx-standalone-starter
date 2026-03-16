@@ -9,18 +9,18 @@ export class MockPermissionRepository implements IPermissionRepository {
 	/**
 	 * Add a permission to the mock repository for testing.
 	 */
-	addPermission(permission: PermissionData): void {
+	public addPermission(permission: PermissionData): void {
 		this.permissions.push(permission)
 	}
 
 	/**
 	 * Clear all data from the mock repository.
 	 */
-	clear(): void {
+	public clear(): void {
 		this.permissions = []
 	}
 
-	async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
+	public async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
 		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT
 		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET
 

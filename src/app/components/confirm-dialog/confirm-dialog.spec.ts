@@ -23,14 +23,14 @@ import { ConfirmDialog } from './confirm-dialog'
 	`,
 })
 class ConfirmDialogTestHost {
-	readonly title = input('Confirm')
-	readonly message = input('Are you sure?')
-	readonly confirmText = input('Confirm')
-	readonly cancelText = input('Cancel')
-	readonly confirmVariant = input<'default' | 'destructive'>('default')
-	readonly confirmed = output<void>()
-	readonly cancelled = output<void>()
-	readonly dialog = viewChild.required(ConfirmDialog)
+	protected readonly title = input('Confirm')
+	protected readonly message = input('Are you sure?')
+	protected readonly confirmText = input('Confirm')
+	protected readonly cancelText = input('Cancel')
+	protected readonly confirmVariant = input<'default' | 'destructive'>('default')
+	protected readonly confirmed = output<void>()
+	protected readonly cancelled = output<void>()
+	public readonly dialog = viewChild.required(ConfirmDialog)
 }
 
 async function renderAndOpen(inputs: Record<string, unknown> = {}) {

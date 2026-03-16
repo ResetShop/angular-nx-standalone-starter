@@ -42,6 +42,6 @@ import { Navigation } from '@providers/navigation/navigation'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Breadcrumb {
-	private navigation = inject(Navigation)
-	readonly breadcrumbs = computed(() => this.navigation.breadcrumbs())
+	private readonly navigation = inject(Navigation)
+	protected readonly breadcrumbs = computed(() => this.navigation.breadcrumbs())
 }

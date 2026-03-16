@@ -32,28 +32,28 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom'
 })
 export class Drawer implements OnDestroy {
 	/** Emits when the drawer opens */
-	readonly opened = output<void>()
+	protected readonly opened = output<void>()
 
 	/** Emits when the drawer closes */
-	readonly closed = output<void>()
+	protected readonly closed = output<void>()
 
 	/** Title displayed in the header (if no custom header template) */
-	readonly title = input<string>('')
+	protected readonly title = input<string>('')
 
 	/** Description displayed below the title */
-	readonly description = input<string>('')
+	protected readonly description = input<string>('')
 
 	/** Whether clicking the backdrop closes the drawer */
-	readonly closeOnBackdrop = input(true)
+	protected readonly closeOnBackdrop = input(true)
 
 	/** Whether pressing ESC closes the drawer */
-	readonly closeOnEscape = input(true)
+	protected readonly closeOnEscape = input(true)
 
 	/** Content child for custom header */
-	readonly headerTemplate = contentChild(DrawerHeader)
+	protected readonly headerTemplate = contentChild(DrawerHeader)
 
 	/** Content child for custom footer */
-	readonly footerTemplate = contentChild(DrawerFooter)
+	protected readonly footerTemplate = contentChild(DrawerFooter)
 
 	private readonly drawerTracker = inject(DrawerTracker)
 	private readonly instanceId = this.drawerTracker.nextId()
@@ -63,7 +63,7 @@ export class Drawer implements OnDestroy {
 	private readonly panel = inject(DrawerPanel)
 
 	/** Whether the spinner should be shown — public for consumer template access */
-	readonly showSpinner = this.loading.showSpinner
+	protected readonly showSpinner = this.loading.showSpinner
 
 	/** Combined panel classes */
 	protected readonly panelClasses = this.panel.panelClasses
@@ -77,7 +77,7 @@ export class Drawer implements OnDestroy {
 	private readonly drawerRef = viewChild.required<ElementRef<HTMLDialogElement>>('drawerRef')
 	private readonly drawerElement = computed(() => this.drawerRef().nativeElement)
 
-	ngOnDestroy(): void {
+	public ngOnDestroy(): void {
 		this.drawerTracker.unregister(this)
 	}
 
@@ -86,7 +86,7 @@ export class Drawer implements OnDestroy {
 	 * the 500ms minimum has elapsed AND `setContentReady()` is called.
 	 * For immediate content, call `setContentReady()` right after `show()`.
 	 */
-	show(): void {
+	public show(): void {
 		const drawer = this.drawerElement()
 		if (drawer.open) return
 
@@ -96,7 +96,7 @@ export class Drawer implements OnDestroy {
 		this.opened.emit()
 	}
 
-	close(): void {
+	public close(): void {
 		const drawer = this.drawerElement()
 		if (!drawer.open) return
 
@@ -106,7 +106,7 @@ export class Drawer implements OnDestroy {
 		this.closed.emit()
 	}
 
-	onCancel(event: Event): void {
+	protected onCancel(event: Event): void {
 		if (!this.closeOnEscape()) {
 			event.preventDefault()
 			return
@@ -114,7 +114,7 @@ export class Drawer implements OnDestroy {
 		this.close()
 	}
 
-	onBackdropClick(event: MouseEvent): void {
+	protected onBackdropClick(event: MouseEvent): void {
 		if (!this.closeOnBackdrop()) return
 		if (event.target === this.drawerElement()) {
 			this.close()
@@ -122,7 +122,7 @@ export class Drawer implements OnDestroy {
 	}
 
 	/** Signals that the consumer's async content is ready to display */
-	setContentReady(): void {
+	public setContentReady(): void {
 		this.loading.setContentReady()
 	}
 }

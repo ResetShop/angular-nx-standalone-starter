@@ -66,7 +66,7 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 * @throws AuthError with INVALID_CREDENTIALS code if authentication fails
 	 * @throws AuthError with ACCOUNT_LOCKED code if account is locked due to failed attempts
 	 */
-	async authenticate(credentials: AuthCredentials): Promise<AuthResult> {
+	public async authenticate(credentials: AuthCredentials): Promise<AuthResult> {
 		const { user, authRecord } = await this.findUserAndAuth(credentials.email)
 		this.checkAccountLockout(authRecord, user?.id)
 
@@ -269,7 +269,7 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 * @returns RefreshResult containing new access token and refresh token
 	 * @throws AuthError if token is invalid, expired, revoked, or user account is disabled
 	 */
-	async refreshToken(token: string): Promise<RefreshResult> {
+	public async refreshToken(token: string): Promise<RefreshResult> {
 		// 1. Verify refresh token
 		const payload = await this.pasetoService.verifyRefreshToken(token)
 
@@ -361,7 +361,7 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 *
 	 * @param userId - The user's primary key
 	 */
-	async logout(userId: number): Promise<void> {
+	public async logout(userId: number): Promise<void> {
 		// Revoke all refresh tokens for this user
 		await this.refreshTokenRepository.revokeAllForUser(userId)
 
@@ -377,7 +377,7 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 * @returns CleanupResult with deleted count and incomplete flag, or null if skipped
 	 *          due to concurrent execution or lock acquisition failure
 	 */
-	async cleanupExpiredTokens(): Promise<CleanupResult | null> {
+	public async cleanupExpiredTokens(): Promise<CleanupResult | null> {
 		// Try to acquire database-level lock (works across multiple server instances)
 		let lockAcquired = false
 		try {

@@ -14,23 +14,23 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 	private nextId = 1
 
 	// Track method calls for testing
-	incrementedUsers: number[] = []
-	lockedUsers: Array<{ userId: number; lockedUntil: Date }> = []
-	resetUsers: number[] = []
+	public incrementedUsers: number[] = []
+	public lockedUsers: Array<{ userId: number; lockedUntil: Date }> = []
+	public resetUsers: number[] = []
 
 	/**
 	 * Add an authentication record for a user.
 	 * @param userId User ID
 	 * @param data Authentication data
 	 */
-	addAuthRecord(userId: number, data: MockAuthRecord): void {
+	public addAuthRecord(userId: number, data: MockAuthRecord): void {
 		this.authRecords.set(userId, data)
 	}
 
 	/**
 	 * Clear all authentication records and tracking data.
 	 */
-	clear(): void {
+	public clear(): void {
 		this.authRecords.clear()
 		this.incrementedUsers = []
 		this.lockedUsers = []
@@ -38,7 +38,7 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 		this.nextId = 1
 	}
 
-	async findByUserId(userId: number): Promise<AuthenticationData | null> {
+	public async findByUserId(userId: number): Promise<AuthenticationData | null> {
 		const record = this.authRecords.get(userId)
 		if (!record) {
 			return null
@@ -53,7 +53,7 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 		}
 	}
 
-	async incrementFailedAttempts(userId: number): Promise<number> {
+	public async incrementFailedAttempts(userId: number): Promise<number> {
 		this.incrementedUsers.push(userId)
 		const record = this.authRecords.get(userId)
 		if (record) {
@@ -63,7 +63,7 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 		return 1
 	}
 
-	async lockAccount(userId: number, lockedUntil: Date): Promise<void> {
+	public async lockAccount(userId: number, lockedUntil: Date): Promise<void> {
 		this.lockedUsers.push({ userId, lockedUntil })
 		const record = this.authRecords.get(userId)
 		if (record) {
@@ -71,7 +71,7 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 		}
 	}
 
-	async resetFailedAttempts(userId: number): Promise<void> {
+	public async resetFailedAttempts(userId: number): Promise<void> {
 		this.resetUsers.push(userId)
 		const record = this.authRecords.get(userId)
 		if (record) {
@@ -80,7 +80,7 @@ export class MockAuthenticationRepository implements IAuthenticationRepository {
 		}
 	}
 
-	async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
+	public async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
 		// Read from env vars to match production behavior
 		const maxAttempts = Number(process.env['AUTH_MAX_FAILED_ATTEMPTS'] ?? '5')
 		const lockDuration = parseDurationToMs(DEFAULT_LOCKOUT_DURATION)
