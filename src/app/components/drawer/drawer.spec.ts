@@ -40,15 +40,15 @@ import { DrawerHeader } from './drawer-header'
 	`,
 })
 class DrawerTestHost {
-	protected readonly direction = input('right')
-	protected readonly title = input('')
-	protected readonly description = input('')
-	protected readonly closeOnEscape = input(true)
-	protected readonly closeOnBackdrop = input(true)
-	protected readonly showCustomHeader = input(false)
-	protected readonly showCustomFooter = input(false)
-	protected readonly opened = output<void>()
-	protected readonly closed = output<void>()
+	public readonly direction = input('right')
+	public readonly title = input('')
+	public readonly description = input('')
+	public readonly closeOnEscape = input(true)
+	public readonly closeOnBackdrop = input(true)
+	public readonly showCustomHeader = input(false)
+	public readonly showCustomFooter = input(false)
+	public readonly opened = output<void>()
+	public readonly closed = output<void>()
 	public readonly drawer = viewChild.required(Drawer)
 }
 

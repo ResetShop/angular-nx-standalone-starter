@@ -31,7 +31,8 @@ describe('Login', () => {
 
 	const renderLogin = async () => {
 		const view = await render(Login, { providers: defaultProviders() })
-		return { ...view, host: view.fixture.componentInstance }
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return { ...view, host: view.fixture.componentInstance as any }
 	}
 
 	it('should create the login component', async () => {

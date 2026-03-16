@@ -23,13 +23,13 @@ import { ConfirmDialog } from './confirm-dialog'
 	`,
 })
 class ConfirmDialogTestHost {
-	protected readonly title = input('Confirm')
-	protected readonly message = input('Are you sure?')
-	protected readonly confirmText = input('Confirm')
-	protected readonly cancelText = input('Cancel')
-	protected readonly confirmVariant = input<'default' | 'destructive'>('default')
-	protected readonly confirmed = output<void>()
-	protected readonly cancelled = output<void>()
+	public readonly title = input('Confirm')
+	public readonly message = input('Are you sure?')
+	public readonly confirmText = input('Confirm')
+	public readonly cancelText = input('Cancel')
+	public readonly confirmVariant = input<'default' | 'destructive'>('default')
+	public readonly confirmed = output<void>()
+	public readonly cancelled = output<void>()
 	public readonly dialog = viewChild.required(ConfirmDialog)
 }
 
