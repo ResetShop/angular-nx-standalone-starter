@@ -7,6 +7,7 @@ import { mapRole, mapRoleFromData } from '@domain/access/role.mapper';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { RolesApiService } from '@providers/roles/roles';
+import { parseDurationToMs } from '@utils/duration';
 import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs';
 import type {
 	CreateRoleWithPermissionsRequest,
@@ -174,7 +175,7 @@ export const RolesStore = signalStore(
 
 			setSearchQuery: rxMethod<string>(
 				pipe(
-					debounceTime(300),
+					debounceTime(parseDurationToMs('300ms')),
 					tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
 				),
 			),
