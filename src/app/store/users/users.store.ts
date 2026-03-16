@@ -6,7 +6,8 @@ import { mapManagedUserResponse } from '@domain/user-management/managed-user.map
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { UsersApiService } from '@providers/users/users'
-import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs'
+import { parseDurationToMs } from '@utils/duration'
+import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
 import type { UsersMutationError, UsersReadError } from './users.types'
 import { initialUsersState } from './users.types'
 
@@ -42,6 +43,7 @@ export const UsersStore = signalStore(
 		),
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
+		isMutating: computed(() => store.isCreating() || store.isUpdating() || store.isDeleting()),
 		/** Reactive params for list fetch — any change triggers loadUsers via rxMethod */
 		listParams: computed(() => ({
 			offset: (store.currentPage() - 1) * store.pageSize(),
@@ -95,17 +97,55 @@ export const UsersStore = signalStore(
 				patchState(store, { pageSize: size, currentPage: 1 })
 			},
 
-			setSearchQuery(query: string): void {
-				patchState(store, { searchQuery: query, currentPage: 1 })
-			},
+			setSearchQuery: rxMethod<string>(
+				pipe(
+					debounceTime(parseDurationToMs('300ms')),
+					tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
+				),
+			),
+
+			loadUser: rxMethod<number>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isLoadingDetail: true,
+							readError: patchReadError(store.readError(), 'detail', null),
+						}),
+					),
+					switchMap((id) =>
+						usersApi.getById(id).pipe(
+							tap({
+								next: (response) =>
+									patchState(store, {
+										selectedUser: mapManagedUserResponse(response),
+										isLoadingDetail: false,
+									}),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[UsersStore] loadUser failed:', err)
+									patchState(store, {
+										isLoadingDetail: false,
+										readError: patchReadError(store.readError(), 'detail', 'Failed to load user'),
+									})
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
 
 			selectUser(user: IManagedUser | null): void {
 				patchState(store, { selectedUser: user })
 			},
 
+			clearMutationError(key: keyof UsersMutationError): void {
+				patchState(store, { mutationError: patchMutationError(store.mutationError(), key, null) })
+			},
+
 			clearErrors(): void {
 				patchState(store, {
-					readError: { list: null },
+					readError: { list: null, detail: null },
 					mutationError: { create: null, update: null, updateStatus: null, delete: null },
 				})
 			},

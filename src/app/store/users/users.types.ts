@@ -2,6 +2,7 @@ import type { IManagedUser } from '@domain/user-management/managed-user.interfac
 
 export interface UsersReadError {
 	list: string | null
+	detail: string | null
 }
 
 export interface UsersMutationError {
@@ -19,6 +20,7 @@ export interface UsersState {
 	totalItems: number
 	searchQuery: string
 	isLoadingList: boolean
+	isLoadingDetail: boolean
 	isCreating: boolean
 	isUpdating: boolean
 	isDeleting: boolean
@@ -34,9 +36,10 @@ export const initialUsersState: UsersState = {
 	totalItems: 0,
 	searchQuery: '',
 	isLoadingList: false,
+	isLoadingDetail: false,
 	isCreating: false,
 	isUpdating: false,
 	isDeleting: false,
-	readError: { list: null },
+	readError: { list: null, detail: null },
 	mutationError: { create: null, update: null, updateStatus: null, delete: null },
 }
