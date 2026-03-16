@@ -374,7 +374,12 @@ export const RolesStore = signalStore(
 					),
 					switchMap(({ id, body, permissionIds }) =>
 						rolesApi.update(id, body).pipe(
-							switchMap(() => rolesApi.assignPermissions(id, { permissionIds })),
+							switchMap((updated) => {
+								if (permissionIds.length === 0) {
+									return [updated];
+								}
+								return rolesApi.assignPermissions(id, { permissionIds }).pipe(switchMap(() => [updated]));
+							}),
 							tap({
 								next: () => {
 									patchState(store, { isUpdating: false });
