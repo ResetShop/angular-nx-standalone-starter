@@ -2,6 +2,20 @@ import { parseDurationToMs, parseDurationToSeconds } from './duration';
 
 describe('parseDurationToMs', () => {
 	describe('Valid inputs', () => {
+		describe('Milliseconds', () => {
+			it('should parse 1 millisecond correctly', () => {
+				expect(parseDurationToMs('1ms')).toBe(1);
+			});
+
+			it('should parse 500 milliseconds correctly', () => {
+				expect(parseDurationToMs('500ms')).toBe(500);
+			});
+
+			it('should parse 1000 milliseconds correctly', () => {
+				expect(parseDurationToMs('1000ms')).toBe(1000);
+			});
+		});
+
 		describe('Seconds', () => {
 			it('should parse 1 second correctly', () => {
 				expect(parseDurationToMs('1s')).toBe(1000);
@@ -65,6 +79,7 @@ describe('parseDurationToMs', () => {
 
 	describe('Edge cases', () => {
 		it('should parse zero duration', () => {
+			expect(parseDurationToMs('0ms')).toBe(0);
 			expect(parseDurationToMs('0s')).toBe(0);
 			expect(parseDurationToMs('0m')).toBe(0);
 			expect(parseDurationToMs('0h')).toBe(0);
@@ -229,7 +244,7 @@ describe('parseDurationToMs', () => {
 	describe('Error messages', () => {
 		it('should provide helpful error message for invalid format', () => {
 			expect(() => parseDurationToMs('invalid')).toThrow(
-				'Invalid duration format: invalid. Expected format: number followed by d/h/m/s (e.g., "7d", "24h")',
+				'Invalid duration format: invalid. Expected format: number followed by ms/d/h/m/s (e.g., "500ms", "7d", "24h")',
 			);
 		});
 
@@ -238,13 +253,18 @@ describe('parseDurationToMs', () => {
 		});
 
 		it('should suggest valid format in error message', () => {
-			expect(() => parseDurationToMs('abc')).toThrow('Expected format: number followed by d/h/m/s');
+			expect(() => parseDurationToMs('abc')).toThrow('Expected format: number followed by ms/d/h/m/s');
 		});
 	});
 });
 
 describe('parseDurationToSeconds', () => {
 	describe('Valid inputs', () => {
+		it('should parse milliseconds correctly', () => {
+			expect(parseDurationToSeconds('1000ms')).toBe(1);
+			expect(parseDurationToSeconds('500ms')).toBe(0.5);
+		});
+
 		it('should parse seconds correctly', () => {
 			expect(parseDurationToSeconds('1s')).toBe(1);
 			expect(parseDurationToSeconds('30s')).toBe(30);
@@ -272,6 +292,7 @@ describe('parseDurationToSeconds', () => {
 
 	describe('Edge cases', () => {
 		it('should parse zero duration', () => {
+			expect(parseDurationToSeconds('0ms')).toBe(0);
 			expect(parseDurationToSeconds('0s')).toBe(0);
 			expect(parseDurationToSeconds('0m')).toBe(0);
 			expect(parseDurationToSeconds('0h')).toBe(0);
@@ -302,9 +323,12 @@ describe('parseDurationToSeconds', () => {
 	});
 
 	describe('Consistency with parseDurationToMs', () => {
-		it.each(['1s', '15m', '1h', '7d'])('should return exactly 1/1000th of parseDurationToMs for %s', (duration) => {
-			expect(parseDurationToSeconds(duration)).toBe(parseDurationToMs(duration) / 1000);
-		});
+		it.each(['1000ms', '1s', '15m', '1h', '7d'])(
+			'should return exactly 1/1000th of parseDurationToMs for %s',
+			(duration) => {
+				expect(parseDurationToSeconds(duration)).toBe(parseDurationToMs(duration) / 1000);
+			},
+		);
 	});
 
 	describe('Real-world use cases', () => {
