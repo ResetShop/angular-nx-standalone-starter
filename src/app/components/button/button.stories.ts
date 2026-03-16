@@ -1,4 +1,8 @@
+import { Spinner } from '@components/spinner/spinner'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherArrowRight, featherDownload, featherPlus, featherTrash2 } from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
+import { moduleMetadata } from '@storybook/angular'
 import { Button } from './button'
 
 const meta: Meta<Button> = {
@@ -16,26 +20,41 @@ A versatile button component with multiple variants and sizes. Supports both but
 - **6 Variants**: Default, Secondary, Destructive, Outline, Ghost, Link
 - **3 Sizes**: Small, Medium (default), Large
 - **Full Width Option**: Span the full container width
+- **Icon Support**: Project icons via \`data-icon="start"\` and \`data-icon="end"\` attributes
+- **Compounding Padding**: Button padding + label padding auto-adjusts spacing whether icons are present or not
 - **Semantic HTML**: Works with both \`<button>\` and \`<a>\` elements
 - **Accessible**: Built with Angular Signals and ng-primitives for enhanced accessibility
 - **Tailwind CSS**: Styled with Tailwind utility classes following Angular Primitives patterns
 - **Dark Mode Support**: Automatic dark mode styling with data attributes
 - **Smooth Transitions**: 300ms ease-in-out transitions for all state changes
 
-## Usage
+## Icon Usage
 
-\`\`\`typescript
-import { Button } from '@components/button';
+Project icons or spinners as direct children with \`data-icon="start"\` or \`data-icon="end"\`:
 
-@Component({
-  imports: [Button],
-  template: \`
-    <button appButton variant="default" size="md">
-      Click me
-    </button>
-  \`
-})
+\`\`\`html
+<!-- Start icon -->
+<button appButton>
+  <ng-icon data-icon="start" name="featherPlus" />
+  Create
+</button>
+
+<!-- End icon -->
+<button appButton>
+  Next
+  <ng-icon data-icon="end" name="featherArrowRight" />
+</button>
+
+<!-- Loading spinner (consumer controls visibility) -->
+<button appButton [disabled]="isLoading()">
+  @if (isLoading()) {
+    <app-spinner data-icon="start" />
+  }
+  Save
+</button>
 \`\`\`
+
+Icons are automatically sized based on the button size (16px for sm, 20px for md, 24px for lg).
 
 ## Interactive Demo
 
@@ -158,7 +177,7 @@ export const Link: Story = {
 }
 
 /**
- * Small size button (h-9, px-3)
+ * Small size button (h-8, px-2 + label px-1)
  */
 export const Small: Story = {
 	render: () => ({
@@ -167,7 +186,7 @@ export const Small: Story = {
 }
 
 /**
- * Medium size button (h-10, px-4) - default size
+ * Medium size button (h-10, px-3 + label px-1) - default size
  */
 export const Medium: Story = {
 	render: () => ({
@@ -176,7 +195,7 @@ export const Medium: Story = {
 }
 
 /**
- * Large size button (h-11, px-6)
+ * Large size button (h-12, px-4 + label px-2)
  */
 export const Large: Story = {
 	render: () => ({
@@ -230,6 +249,113 @@ export const AllVariants: Story = {
 				<button appButton variant="ghost">Ghost</button>
 				<button appButton variant="destructive">Destructive</button>
 				<button appButton variant="link">Link</button>
+			</div>
+		`,
+	}),
+}
+
+/**
+ * Button with a start icon (left side).
+ * Icons are projected via `data-icon="start"`.
+ */
+export const WithStartIcon: Story = {
+	decorators: [
+		moduleMetadata({
+			imports: [NgIcon],
+			providers: [provideIcons({ featherPlus })],
+		}),
+	],
+	render: () => ({
+		template: `<button appButton><ng-icon data-icon="start" name="featherPlus" /> Create Role</button>`,
+	}),
+}
+
+/**
+ * Button with an end icon (right side).
+ * Icons are projected via `data-icon="end"`.
+ */
+export const WithEndIcon: Story = {
+	decorators: [
+		moduleMetadata({
+			imports: [NgIcon],
+			providers: [provideIcons({ featherArrowRight })],
+		}),
+	],
+	render: () => ({
+		template: `<button appButton>Next <ng-icon data-icon="end" name="featherArrowRight" /></button>`,
+	}),
+}
+
+/**
+ * Button with both start and end icons simultaneously.
+ */
+export const WithBothIcons: Story = {
+	decorators: [
+		moduleMetadata({
+			imports: [NgIcon],
+			providers: [provideIcons({ featherDownload, featherArrowRight })],
+		}),
+	],
+	render: () => ({
+		template: `<button appButton><ng-icon data-icon="start" name="featherDownload" /> Export <ng-icon data-icon="end" name="featherArrowRight" /></button>`,
+	}),
+}
+
+/**
+ * Button with a loading spinner projected via `data-icon="start"`.
+ * The consumer controls spinner visibility — the button has no loading-specific logic.
+ */
+export const WithSpinner: Story = {
+	decorators: [
+		moduleMetadata({
+			imports: [Spinner],
+		}),
+	],
+	render: () => ({
+		template: `<button appButton disabled><app-spinner data-icon="start" /> Saving...</button>`,
+	}),
+}
+
+/**
+ * Icon buttons across all variants to verify icon sizing and spacing.
+ */
+export const IconVariants: Story = {
+	decorators: [
+		moduleMetadata({
+			imports: [NgIcon],
+			providers: [provideIcons({ featherPlus, featherTrash2 })],
+		}),
+	],
+	render: () => ({
+		template: `
+			<div class="flex gap-3 flex-wrap items-center">
+				<button appButton variant="default"><ng-icon data-icon="start" name="featherPlus" /> Create</button>
+				<button appButton variant="outline"><ng-icon data-icon="start" name="featherPlus" /> Create</button>
+				<button appButton variant="secondary"><ng-icon data-icon="start" name="featherPlus" /> Create</button>
+				<button appButton variant="ghost"><ng-icon data-icon="start" name="featherTrash2" /> Delete</button>
+				<button appButton variant="destructive"><ng-icon data-icon="start" name="featherTrash2" /> Delete</button>
+				<button appButton variant="link"><ng-icon data-icon="start" name="featherPlus" /> Add</button>
+			</div>
+		`,
+	}),
+}
+
+/**
+ * Icon buttons across all sizes to verify icon auto-sizing (16px sm, 20px md, 24px lg).
+ */
+export const IconSizes: Story = {
+	decorators: [
+		moduleMetadata({
+			imports: [NgIcon],
+			providers: [provideIcons({ featherPlus })],
+		}),
+	],
+	render: () => ({
+		template: `
+			<div class="flex gap-3 items-center">
+				<button appButton size="sm"><ng-icon data-icon="start" name="featherPlus" /> Small</button>
+				<button appButton size="md"><ng-icon data-icon="start" name="featherPlus" /> Medium</button>
+				<button appButton size="lg"><ng-icon data-icon="start" name="featherPlus" /> Large</button>
 			</div>
 		`,
 	}),

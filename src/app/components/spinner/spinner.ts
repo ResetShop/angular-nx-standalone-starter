@@ -19,7 +19,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 			/>
 		</svg>
 	`,
-	host: { class: 'inline-flex size-5' },
+	host: { class: 'inline-flex' },
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Spinner {}
