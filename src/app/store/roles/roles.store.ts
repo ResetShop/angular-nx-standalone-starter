@@ -61,6 +61,7 @@ export const RolesStore = signalStore(
 				store.isDeleting() ||
 				store.isAssigningPermissions(),
 		),
+		isMutating: computed(() => store.isCreating() || store.isUpdating() || store.isDeleting()),
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
 		/** Reactive params for list fetch — any change triggers loadRoles via rxMethod */
