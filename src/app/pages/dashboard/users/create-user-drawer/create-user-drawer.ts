@@ -29,6 +29,7 @@ interface CreateUserFormModel {
 	mustChangePassword: boolean
 }
 
+// Module-level for readability — mirrors the roles drawer pattern (used by model.set and onDrawerClosed)
 const EMPTY_MODEL: CreateUserFormModel = {
 	email: '',
 	firstName: '',
