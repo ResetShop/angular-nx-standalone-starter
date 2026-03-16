@@ -28,6 +28,7 @@ interface EditUserFormModel {
 	roleIds: number[]
 }
 
+// Module-level for readability — mirrors the roles drawer pattern (used by model.set and onDrawerClosed)
 const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '', roleIds: [] }
 
 @Component({
