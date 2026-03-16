@@ -47,7 +47,7 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 	],
 	template: `
 		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Edit Role" #drawer>
-			<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
+			<form (submit)="onSubmit($event)" id="edit-role-form" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
 						<p appAlertDescription>{{ mutationError() }}</p>
@@ -80,9 +80,10 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 				<div class="flex justify-end gap-3">
 					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
 					<button
-						(click)="onSubmit($event)"
 						[disabled]="drawer.showSpinner() || showSubmitSpinner() || !isFormValid()"
 						appButton
+						type="submit"
+						form="edit-role-form"
 					>
 						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
