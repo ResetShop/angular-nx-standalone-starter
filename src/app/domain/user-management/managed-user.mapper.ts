@@ -1,5 +1,5 @@
-import type { ManagedUser } from '@contracts/user/user.types';
-import type { IManagedUser, IManagedUserRole } from './managed-user.interface';
+import type { ManagedUser } from '@contracts/user/user.types'
+import type { IManagedUser, IManagedUserRole } from './managed-user.interface'
 
 export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 	return {
@@ -25,5 +25,5 @@ export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 				updatedAt: r.updatedAt,
 			}),
 		),
-	};
+	}
 }

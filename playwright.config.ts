@@ -1,13 +1,13 @@
-import { defineConfig, devices } from '@playwright/test';
-import { nxE2EPreset } from '@nx/playwright/preset';
-import { workspaceRoot } from '@nx/devkit';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { workspaceRoot } from '@nx/devkit'
+import { nxE2EPreset } from '@nx/playwright/preset'
+import { defineConfig, devices } from '@playwright/test'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const __filename = fileURLToPath(import.meta.url);
-dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+dirname(__filename)
 // For CI, you may want to set BASE_URL to the deployed application.
-const baseURL = process.env['BASE_URL'] || 'http://localhost:3000';
+const baseURL = process.env['BASE_URL'] || 'http://localhost:3000'
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -63,4 +63,4 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     } */
 	],
-});
+})

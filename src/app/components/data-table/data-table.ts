@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common'
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -11,7 +11,7 @@ import {
 	linkedSignal,
 	output,
 	signal,
-} from '@angular/core';
+} from '@angular/core'
 import {
 	type ColumnDef,
 	type ExpandedState,
@@ -23,15 +23,15 @@ import {
 	getExpandedRowModel,
 	getGroupedRowModel,
 	getSortedRowModel,
-} from '@tanstack/angular-table';
+} from '@tanstack/angular-table'
 
-import { Spinner } from '@components/spinner/spinner';
-import { Translation } from '@providers/i18n/translation';
-import { DataTableCellDef } from './data-table-cell-def';
+import { Spinner } from '@components/spinner/spinner'
+import { Translation } from '@providers/i18n/translation'
+import { DataTableCellDef } from './data-table-cell-def'
 
 export interface DataTableSortEvent {
-	id: string;
-	direction: 'asc' | 'desc';
+	id: string
+	direction: 'asc' | 'desc'
 }
 
 @Component({
@@ -47,16 +47,16 @@ export interface DataTableSortEvent {
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataTable<T> {
-	private readonly translation = inject(Translation);
+	private readonly translation = inject(Translation)
 
 	/** TanStack column definitions */
-	readonly columns = input<ColumnDef<T, unknown>[]>([]);
+	readonly columns = input<ColumnDef<T, unknown>[]>([])
 
 	/** Data rows */
-	readonly data = input<T[]>([]);
+	readonly data = input<T[]>([])
 
 	/** Whether data is loading */
-	readonly loading = input<boolean>(false);
+	readonly loading = input<boolean>(false)
 
 	/**
 	 * Message shown when data is empty.
@@ -65,16 +65,16 @@ export class DataTable<T> {
 	 * The translation is not reactive — if the application language changes at runtime,
 	 * the component must be re-created to pick up the new locale.
 	 */
-	readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'));
+	readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'))
 
 	/** Accessible table caption */
-	readonly caption = input<string>('');
+	readonly caption = input<string>('')
 
 	/** Column IDs to group by (empty = no grouping) */
-	readonly grouping = input<string[]>([]);
+	readonly grouping = input<string[]>([])
 
 	/** Whether grouped rows start expanded (default: true) */
-	readonly expandedByDefault = input<boolean>(true);
+	readonly expandedByDefault = input<boolean>(true)
 
 	/**
 	 * Translated loading message, resolved once at construction.
@@ -82,24 +82,24 @@ export class DataTable<T> {
 	 * Uses the `DATA_TABLE.LOADING` translation key. Not reactive to language changes —
 	 * the component must be re-created to pick up a new locale.
 	 */
-	readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING');
+	readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING')
 
 	/** Emits when sort changes */
-	readonly sortChange = output<DataTableSortEvent>();
+	readonly sortChange = output<DataTableSortEvent>()
 
 	/** Internal sorting state */
-	readonly sorting = signal<SortingState>([]);
+	readonly sorting = signal<SortingState>([])
 
 	/** Internal expanded state — resets to `expandedByDefault` when the input changes */
 	readonly expanded = linkedSignal<boolean, ExpandedState>({
 		source: this.expandedByDefault,
 		computation: (expandedByDefault) => (expandedByDefault ? true : {}),
-	});
+	})
 
 	/** TanStack table instance */
 	readonly table = createAngularTable(() => {
-		const groupingState = this.grouping();
-		const isGrouped = groupingState.length > 0;
+		const groupingState = this.grouping()
+		const isGrouped = groupingState.length > 0
 
 		const baseOptions = {
 			data: this.data(),
@@ -108,9 +108,9 @@ export class DataTable<T> {
 			onSortingChange: (updater: Updater<SortingState>) => this.handleSortingUpdate(updater),
 			getCoreRowModel: getCoreRowModel(),
 			getSortedRowModel: getSortedRowModel(),
-		};
+		}
 
-		if (!isGrouped) return baseOptions;
+		if (!isGrouped) return baseOptions
 
 		return {
 			...baseOptions,
@@ -123,36 +123,36 @@ export class DataTable<T> {
 			getGroupedRowModel: getGroupedRowModel(),
 			getExpandedRowModel: getExpandedRowModel(),
 			groupedColumnMode: false as const,
-		};
-	});
+		}
+	})
 
 	/** Column count for colspan in empty/loading states */
-	readonly columnCount = computed(() => this.columns().length);
+	readonly columnCount = computed(() => this.columns().length)
 
 	/** Custom cell template definitions projected as content */
-	private readonly cellDefs = contentChildren(DataTableCellDef);
+	private readonly cellDefs = contentChildren(DataTableCellDef)
 
 	/** Map of column ID → cell template definition */
 	readonly cellDefMap = computed(() => {
-		const map = new Map<string, DataTableCellDef>();
+		const map = new Map<string, DataTableCellDef>()
 		for (const def of this.cellDefs()) {
-			map.set(def.appDataTableCellDef(), def);
+			map.set(def.appDataTableCellDef(), def)
 		}
-		return map;
-	});
+		return map
+	})
 
 	/** Map TanStack sort direction to WAI-ARIA `aria-sort` values */
 	resolveAriaSort(direction: false | 'asc' | 'desc'): 'ascending' | 'descending' | null {
-		if (direction === 'asc') return 'ascending';
-		if (direction === 'desc') return 'descending';
-		return null;
+		if (direction === 'asc') return 'ascending'
+		if (direction === 'desc') return 'descending'
+		return null
 	}
 
 	/** Resolve sort direction to a visual indicator character (↑, ↓, or ↕) */
 	resolveSortIndicator(direction: false | 'asc' | 'desc'): string {
-		if (direction === 'asc') return '↑';
-		if (direction === 'desc') return '↓';
-		return '↕';
+		if (direction === 'asc') return '↑'
+		if (direction === 'desc') return '↓'
+		return '↕'
 	}
 
 	/**
@@ -167,50 +167,50 @@ export class DataTable<T> {
 	 * - other → returns empty string (component headers not supported)
 	 */
 	renderHeader(headerDef: unknown, context: unknown): string {
-		if (typeof headerDef === 'string') return headerDef;
-		if (typeof headerDef === 'function') return String(headerDef(context));
-		return '';
+		if (typeof headerDef === 'string') return headerDef
+		if (typeof headerDef === 'function') return String(headerDef(context))
+		return ''
 	}
 
 	/** Resolve the group label for a grouped row, coercing the unknown cell value to string */
 	resolveGroupLabel(row: Row<T>): string {
-		return String(row.getValue(this.grouping()[0]));
+		return String(row.getValue(this.grouping()[0]))
 	}
 
 	constructor() {
 		if (isDevMode()) {
 			effect(() => {
-				const groupingIds = this.grouping();
-				if (groupingIds.length === 0) return;
+				const groupingIds = this.grouping()
+				if (groupingIds.length === 0) return
 
-				const columnIds = new Set<string>();
+				const columnIds = new Set<string>()
 				for (const col of this.columns()) {
-					const id = col.id ?? ('accessorKey' in col ? (col.accessorKey as string) : undefined);
-					if (id) columnIds.add(id);
+					const id = col.id ?? ('accessorKey' in col ? (col.accessorKey as string) : undefined)
+					if (id) columnIds.add(id)
 				}
 
 				for (const id of groupingIds) {
 					if (!columnIds.has(id)) {
-						console.warn(`DataTable: grouping column "${id}" does not match any column definition.`);
+						console.warn(`DataTable: grouping column "${id}" does not match any column definition.`)
 					}
 				}
-			});
+			})
 		}
 	}
 
 	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
-		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater;
-		this.expanded.set(newExpanded);
+		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater
+		this.expanded.set(newExpanded)
 	}
 
 	private handleSortingUpdate(updater: Updater<SortingState>): void {
-		const newSorting = typeof updater === 'function' ? updater(this.sorting()) : updater;
-		this.sorting.set(newSorting);
+		const newSorting = typeof updater === 'function' ? updater(this.sorting()) : updater
+		this.sorting.set(newSorting)
 		if (newSorting.length > 0) {
 			this.sortChange.emit({
 				id: newSorting[0].id,
 				direction: newSorting[0].desc ? 'desc' : 'asc',
-			});
+			})
 		}
 	}
 }

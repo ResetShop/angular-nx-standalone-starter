@@ -1,5 +1,5 @@
-import type { NavigationConfig } from '@interfaces/navigation';
-import { featherActivity, featherHome, featherShield } from '@ng-icons/feather-icons';
+import type { NavigationConfig } from '@interfaces/navigation'
+import { featherActivity, featherHome, featherShield } from '@ng-icons/feather-icons'
 
 /**
  * Navigation configuration for the application.
@@ -66,4 +66,4 @@ export const navigationConfig: NavigationConfig = {
 			],
 		},
 	],
-};
+}

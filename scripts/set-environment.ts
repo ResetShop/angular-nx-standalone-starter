@@ -16,38 +16,38 @@
  */
 
 // NodeJS & env
-import { existsSync, mkdirSync, writeFile, writeFileSync } from 'fs';
-import { join } from 'node:path';
-import ErrnoException = NodeJS.ErrnoException;
+import { existsSync, mkdirSync, writeFile, writeFileSync } from 'fs'
+import { join } from 'node:path'
+import ErrnoException = NodeJS.ErrnoException
 
 // Environments
-export type TEnvironmentType = 'development' | 'preview' | 'staging' | 'production';
+export type TEnvironmentType = 'development' | 'preview' | 'staging' | 'production'
 
 // Constants to generate the environment file
-const environment: TEnvironmentType = (process.env['VERCEL_TARGET_ENV'] as TEnvironmentType) ?? 'development';
-const dirPath = `src/app/environments`;
-const targetPath = `${dirPath}/environment.ts`;
+const environment: TEnvironmentType = (process.env['VERCEL_TARGET_ENV'] as TEnvironmentType) ?? 'development'
+const dirPath = `src/app/environments`
+const targetPath = `${dirPath}/environment.ts`
 
 // Include your shareable default values for .env files, if any
 const defaultEnvVariables = {
 	NODE_ENV: 'development',
 	DEFAULT_LANGUAGE: 'en',
-};
+}
 
 // Creates an .env with default variables if it doesn't exist yet
 function createAppEnvFile() {
-	const envFilePath = join(process.cwd(), '.env');
+	const envFilePath = join(process.cwd(), '.env')
 	if (existsSync(envFilePath)) {
-		console.log('.env file for the app already exists, so we use it instead of creating a new one.');
-		return;
+		console.log('.env file for the app already exists, so we use it instead of creating a new one.')
+		return
 	}
 
 	const fileContents = Object.entries(defaultEnvVariables)
 		.map(([key, value]) => `${key}=${value}`)
-		.join('\n');
+		.join('\n')
 
-	writeFileSync(envFilePath, fileContents);
-	console.log('Created .env file with default values.');
+	writeFileSync(envFilePath, fileContents)
+	console.log('Created .env file with default values.')
 }
 
 // Creates an .env with default variables for Sanity Studio if it doesn't exist yet
@@ -70,33 +70,33 @@ function createAppEnvFile() {
 // }
 
 if (environment === 'development') {
-	createAppEnvFile();
+	createAppEnvFile()
 	// Uncomment if you're using Sanity Studio
 	// createSanityStudioEnvFile();
 }
 
 // Generates an absolute path to the API based on the environment
 const generateApiUrl = (environment: TEnvironmentType): string => {
-	let url = '/';
+	let url = '/'
 
 	// Assigns URL based on the Vercel branch URL for staging environment
 	if (environment === 'staging') {
 		// TODO: Declare the staging domain name for your project in Vercel
-		url = ``;
+		url = ``
 	}
 	// Reads the Vercel environment variable for preview deployments outside of staging
 	else if (environment === 'preview') {
-		url = `https://${process.env['VERCEL_BRANCH_URL']}/`;
+		url = `https://${process.env['VERCEL_BRANCH_URL']}/`
 	}
 	// Assigns URL based on environment variables for production and staging (preview develop)
 	else if (environment === 'production') {
-		url = `https://${process.env['VERCEL_PROJECT_PRODUCTION_URL']}/` as string;
+		url = `https://${process.env['VERCEL_PROJECT_PRODUCTION_URL']}/` as string
 	}
 
-	return url;
-};
+	return url
+}
 
-const apiUrl = generateApiUrl(environment);
+const apiUrl = generateApiUrl(environment)
 // Accesses environment variables and generates a string
 // corresponding to the environment object that Angular will use
 
@@ -106,32 +106,32 @@ const exportedEnvironment = {
 	apiUrl: `${apiUrl}`,
 	clarityProjectId: '',
 	defaultLanguage: (process.env['DEFAULT_LANGUAGE'] as 'en' | 'es') ?? 'en',
-};
+}
 
 // Checks if the environment variable for Microsoft Clarity analytics exists
 // TODO: Declare Microsoft Clarity project id, if it exists
 if (process.env['CLARITY_PROJECT_ID']) {
-	exportedEnvironment.clarityProjectId = `${process.env['CLARITY_PROJECT_ID']}`;
+	exportedEnvironment.clarityProjectId = `${process.env['CLARITY_PROJECT_ID']}`
 }
 
 const environmentFileContent = `
     export const environment = ${JSON.stringify(exportedEnvironment)};
-`;
+`
 
 // Creates the environments directory if it doesn't exist
 if (!existsSync(dirPath)) {
-	mkdirSync(dirPath);
+	mkdirSync(dirPath)
 }
 
 // Writes the content to the corresponding environment.ts file
 writeFile(targetPath, environmentFileContent, { flag: 'w' }, function (err: ErrnoException | null) {
 	if (err) {
-		console.log(err);
-		return;
+		console.log(err)
+		return
 	}
-	console.log(`Environment variables written to ${targetPath}`);
-	console.log('Vercel Environment - VERCEL_TARGET_ENV = ', process.env['VERCEL_TARGET_ENV']);
-	console.log('Vercel Environment - VERCEL_URL = ', process.env['VERCEL_URL']);
-	console.log('Vercel branch URL - VERCEL_BRANCH_URL = ', process.env['VERCEL_BRANCH_URL']);
-	console.log('API and Website URL = ', apiUrl);
-});
+	console.log(`Environment variables written to ${targetPath}`)
+	console.log('Vercel Environment - VERCEL_TARGET_ENV = ', process.env['VERCEL_TARGET_ENV'])
+	console.log('Vercel Environment - VERCEL_URL = ', process.env['VERCEL_URL'])
+	console.log('Vercel branch URL - VERCEL_BRANCH_URL = ', process.env['VERCEL_BRANCH_URL'])
+	console.log('API and Website URL = ', apiUrl)
+})

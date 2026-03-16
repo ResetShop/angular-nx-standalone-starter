@@ -1,9 +1,9 @@
-import { provideRouter } from '@angular/router';
-import { NavigationSection } from '@interfaces/navigation';
-import { featherActivity, featherHome, featherRefreshCw, featherSettings } from '@ng-icons/feather-icons';
-import { NavigationState } from '@providers/navigation/navigation-state';
-import { render, screen } from '@testing-library/angular';
-import NavSection from './nav-section';
+import { provideRouter } from '@angular/router'
+import { NavigationSection } from '@interfaces/navigation'
+import { featherActivity, featherHome, featherRefreshCw, featherSettings } from '@ng-icons/feather-icons'
+import { NavigationState } from '@providers/navigation/navigation-state'
+import { render, screen } from '@testing-library/angular'
+import NavSection from './nav-section'
 
 describe('NavSection', () => {
 	const mockSection: NavigationSection = {
@@ -23,13 +23,13 @@ describe('NavSection', () => {
 				icon: { featherActivity },
 			},
 		],
-	};
+	}
 
 	const mockSectionWithoutRoutes: NavigationSection = {
 		id: 'empty-section',
 		name: 'Empty Section',
 		routes: [],
-	};
+	}
 
 	const mockLargeSection: NavigationSection = {
 		id: 'large-section',
@@ -60,126 +60,126 @@ describe('NavSection', () => {
 				icon: { featherRefreshCw },
 			},
 		],
-	};
+	}
 
-	const defaultProviders = () => [provideRouter([]), NavigationState];
+	const defaultProviders = () => [provideRouter([]), NavigationState]
 
 	it('should create the nav section component', async () => {
 		const { fixture } = await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(fixture.componentInstance).toBeTruthy();
-	});
+		expect(fixture.componentInstance).toBeTruthy()
+	})
 
 	it('should render section title when showTitle is true', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection, showTitle: true },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.getByText('Test Section')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Test Section')).toBeInTheDocument()
+	})
 
 	it('should not render section title when showTitle is false', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection, showTitle: false },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.queryByText('Test Section')).not.toBeInTheDocument();
-	});
+		expect(screen.queryByText('Test Section')).not.toBeInTheDocument()
+	})
 
 	it('should render section title by default when showTitle is not provided', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.getByText('Test Section')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Test Section')).toBeInTheDocument()
+	})
 
 	it('should render all navigation routes in the section', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.getByText('Route 1')).toBeInTheDocument();
-		expect(screen.getByText('Route 2')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Route 1')).toBeInTheDocument()
+		expect(screen.getByText('Route 2')).toBeInTheDocument()
+	})
 
 	it('should render correct number of navigation items', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		const links = screen.getAllByRole('link');
-		expect(links).toHaveLength(2);
-	});
+		const links = screen.getAllByRole('link')
+		expect(links).toHaveLength(2)
+	})
 
 	it('should render navigation items with correct routes', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		const link1 = screen.getByRole('link', { name: /route 1/i });
-		const link2 = screen.getByRole('link', { name: /route 2/i });
+		const link1 = screen.getByRole('link', { name: /route 1/i })
+		const link2 = screen.getByRole('link', { name: /route 2/i })
 
-		expect(link1).toHaveAttribute('href', '/route1');
-		expect(link2).toHaveAttribute('href', '/route2');
-	});
+		expect(link1).toHaveAttribute('href', '/route1')
+		expect(link2).toHaveAttribute('href', '/route2')
+	})
 
 	it('should render empty section without routes', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSectionWithoutRoutes },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.getByText('Empty Section')).toBeInTheDocument();
-		expect(screen.queryAllByRole('link')).toHaveLength(0);
-	});
+		expect(screen.getByText('Empty Section')).toBeInTheDocument()
+		expect(screen.queryAllByRole('link')).toHaveLength(0)
+	})
 
 	it('should render section with multiple routes', async () => {
 		await render(NavSection, {
 			inputs: { section: mockLargeSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.getByText('Home')).toBeInTheDocument();
-		expect(screen.getByText('Activity')).toBeInTheDocument();
-		expect(screen.getByText('Settings')).toBeInTheDocument();
-		expect(screen.getByText('Refresh')).toBeInTheDocument();
-		expect(screen.getAllByRole('link')).toHaveLength(4);
-	});
+		expect(screen.getByText('Home')).toBeInTheDocument()
+		expect(screen.getByText('Activity')).toBeInTheDocument()
+		expect(screen.getByText('Settings')).toBeInTheDocument()
+		expect(screen.getByText('Refresh')).toBeInTheDocument()
+		expect(screen.getAllByRole('link')).toHaveLength(4)
+	})
 
 	it('should apply correct CSS classes to section title', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection, showTitle: true },
 			providers: defaultProviders(),
-		});
+		})
 
-		const title = screen.getByText('Test Section');
-		expect(title).toHaveClass('flex');
-		expect(title).toHaveClass('h-8');
-		expect(title).toHaveClass('items-center');
-		expect(title).toHaveClass('px-2');
-	});
+		const title = screen.getByText('Test Section')
+		expect(title).toHaveClass('flex')
+		expect(title).toHaveClass('h-8')
+		expect(title).toHaveClass('items-center')
+		expect(title).toHaveClass('px-2')
+	})
 
 	it('should render list items with correct structure', async () => {
 		await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		const links = screen.getAllByRole('link');
-		expect(links).toHaveLength(2);
-		expect(links[0]).toHaveAttribute('href', '/route1');
-		expect(links[1]).toHaveAttribute('href', '/route2');
-	});
+		const links = screen.getAllByRole('link')
+		expect(links).toHaveLength(2)
+		expect(links[0]).toHaveAttribute('href', '/route1')
+		expect(links[1]).toHaveAttribute('href', '/route2')
+	})
 
 	it('should handle section with routes without icons', async () => {
 		const sectionNoIcons: NavigationSection = {
@@ -192,15 +192,15 @@ describe('NavSection', () => {
 					route: '/no-icon',
 				},
 			],
-		};
+		}
 
 		await render(NavSection, {
 			inputs: { section: sectionNoIcons },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.getByText('Route Without Icon')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Route Without Icon')).toBeInTheDocument()
+	})
 
 	it('should update when section input changes', async () => {
 		const newSection: NavigationSection = {
@@ -214,28 +214,28 @@ describe('NavSection', () => {
 					icon: { featherActivity },
 				},
 			],
-		};
+		}
 
 		const { rerender } = await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(screen.getByText('Test Section')).toBeInTheDocument();
+		expect(screen.getByText('Test Section')).toBeInTheDocument()
 
-		await rerender({ inputs: { section: newSection } });
+		await rerender({ inputs: { section: newSection } })
 
-		expect(screen.getByText('Updated Section')).toBeInTheDocument();
-		expect(screen.getByText('New Route')).toBeInTheDocument();
-		expect(screen.queryByText('Test Section')).not.toBeInTheDocument();
-	});
+		expect(screen.getByText('Updated Section')).toBeInTheDocument()
+		expect(screen.getByText('New Route')).toBeInTheDocument()
+		expect(screen.queryByText('Test Section')).not.toBeInTheDocument()
+	})
 
 	it('should have OnPush change detection strategy', async () => {
 		const { fixture } = await render(NavSection, {
 			inputs: { section: mockSection },
 			providers: defaultProviders(),
-		});
+		})
 
-		expect(fixture.componentRef.changeDetectorRef).toBeDefined();
-	});
-});
+		expect(fixture.componentRef.changeDetectorRef).toBeDefined()
+	})
+})

@@ -1,9 +1,9 @@
-import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
-import { type SQL, count, eq, ilike, inArray, or } from 'drizzle-orm';
-import { permission } from '../../../../db/schema/permission';
-import { role, rolePermission } from '../../../../db/schema/role';
-import { BaseRepository } from '../../../helpers/base.repository';
-import type { PaginatedResponse, PaginationParams } from '../../../interfaces';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
+import { type SQL, count, eq, ilike, inArray, or } from 'drizzle-orm'
+import { permission } from '../../../../db/schema/permission'
+import { role, rolePermission } from '../../../../db/schema/role'
+import { BaseRepository } from '../../../helpers/base.repository'
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
 import type {
 	CreateRoleParams,
 	IRoleRepository,
@@ -11,7 +11,7 @@ import type {
 	PermissionData,
 	RoleData,
 	UpdateRoleParams,
-} from './interfaces';
+} from './interfaces'
 
 /**
  * Repository for role-related database operations.
@@ -37,9 +37,9 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 			})
 			.from(role)
 			.where(eq(role.id, id))
-			.limit(1);
+			.limit(1)
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -61,9 +61,9 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 			})
 			.from(role)
 			.where(eq(role.code, code))
-			.limit(1);
+			.limit(1)
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -85,9 +85,9 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 			})
 			.from(role)
 			.where(eq(role.name, name))
-			.limit(1);
+			.limit(1)
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -101,9 +101,9 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 * @returns Paginated response containing roles and metadata
 	 */
 	async findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
-		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT;
-		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET;
-		const searchCondition = this.buildSearchCondition(params?.search);
+		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT
+		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET
+		const searchCondition = this.buildSearchCondition(params?.search)
 
 		const [data, totalResult] = await Promise.all([
 			this.db
@@ -121,14 +121,14 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 				.limit(limit)
 				.offset(offset),
 			this.db.select({ count: count() }).from(role).where(searchCondition),
-		]);
+		])
 
 		return {
 			data,
 			total: totalResult[0].count,
 			offset,
 			limit,
-		};
+		}
 	}
 
 	/**
@@ -140,12 +140,12 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 */
 	private buildSearchCondition(search?: string): SQL | undefined {
 		if (!search || search.trim().length === 0) {
-			return undefined;
+			return undefined
 		}
 
-		const escaped = search.trim().replace(/[%_]/g, '\\$&');
-		const pattern = `%${escaped}%`;
-		return or(ilike(role.name, pattern), ilike(role.code, pattern), ilike(role.description, pattern));
+		const escaped = search.trim().replace(/[%_]/g, '\\$&')
+		const pattern = `%${escaped}%`
+		return or(ilike(role.name, pattern), ilike(role.code, pattern), ilike(role.description, pattern))
 	}
 
 	/**
@@ -174,9 +174,9 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 				removable: role.removable,
 				createdAt: role.createdAt,
 				updatedAt: role.updatedAt,
-			});
+			})
 
-		return result[0];
+		return result[0]
 	}
 
 	/**
@@ -191,13 +191,13 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 * @returns The updated role data, or null if not found
 	 */
 	async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
-		const updateData: Partial<typeof role.$inferInsert> = { updatedAt: new Date() };
+		const updateData: Partial<typeof role.$inferInsert> = { updatedAt: new Date() }
 
 		if (params.name !== undefined) {
-			updateData.name = params.name;
+			updateData.name = params.name
 		}
 		if (params.description !== undefined) {
-			updateData.description = params.description;
+			updateData.description = params.description
 		}
 
 		const result = await this.db.update(role).set(updateData).where(eq(role.id, id)).returning({
@@ -208,9 +208,9 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 			removable: role.removable,
 			createdAt: role.createdAt,
 			updatedAt: role.updatedAt,
-		});
+		})
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -223,11 +223,11 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	async delete(id: number): Promise<void> {
 		await this.db.transaction(async (tx) => {
 			// Delete role_permission entries first (no CASCADE on this FK)
-			await tx.delete(rolePermission).where(eq(rolePermission.roleId, id));
+			await tx.delete(rolePermission).where(eq(rolePermission.roleId, id))
 
 			// Delete the role
-			await tx.delete(role).where(eq(role.id, id));
-		});
+			await tx.delete(role).where(eq(role.id, id))
+		})
 	}
 
 	/**
@@ -243,8 +243,8 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 		roleId: number,
 		pagination?: PaginationParams,
 	): Promise<PaginatedResponse<PermissionData>> {
-		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
-		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
+		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT
+		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET
 
 		const [data, totalResult] = await Promise.all([
 			this.db
@@ -261,14 +261,14 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 				.limit(limit)
 				.offset(offset),
 			this.db.select({ count: count() }).from(rolePermission).where(eq(rolePermission.roleId, roleId)),
-		]);
+		])
 
 		return {
 			data,
 			total: totalResult[0].count,
 			offset,
 			limit,
-		};
+		}
 	}
 
 	/**
@@ -280,7 +280,7 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 */
 	async findPermissionsByIds(ids: number[]): Promise<PermissionData[]> {
 		if (ids.length === 0) {
-			return [];
+			return []
 		}
 
 		return this.db
@@ -292,7 +292,7 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 				action: permission.action,
 			})
 			.from(permission)
-			.where(inArray(permission.id, ids));
+			.where(inArray(permission.id, ids))
 	}
 
 	/**
@@ -306,18 +306,18 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
 		await this.db.transaction(async (tx) => {
 			// Remove existing permissions
-			await tx.delete(rolePermission).where(eq(rolePermission.roleId, roleId));
+			await tx.delete(rolePermission).where(eq(rolePermission.roleId, roleId))
 
 			// Add new permissions
 			if (permissionIds.length > 0) {
 				const values = permissionIds.map((permissionId) => ({
 					roleId,
 					permissionId,
-				}));
+				}))
 
-				await tx.insert(rolePermission).values(values).onConflictDoNothing();
+				await tx.insert(rolePermission).values(values).onConflictDoNothing()
 			}
-		});
+		})
 	}
 
 	/**
@@ -327,6 +327,6 @@ export class RoleRepository extends BaseRepository implements IRoleRepository {
 	 * @param roleId - The role's primary key
 	 */
 	async removeAllPermissions(roleId: number): Promise<void> {
-		await this.db.delete(rolePermission).where(eq(rolePermission.roleId, roleId));
+		await this.db.delete(rolePermission).where(eq(rolePermission.roleId, roleId))
 	}
 }

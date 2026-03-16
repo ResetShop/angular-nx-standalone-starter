@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { Header } from '@components/header/header';
-import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component';
-import { Sidebar } from '@components/sidebar/sidebar';
-import { UIStore } from '@store/ui/ui.store';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { RouterOutlet } from '@angular/router'
+import { Header } from '@components/header/header'
+import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component'
+import { Sidebar } from '@components/sidebar/sidebar'
+import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	selector: 'app-dashboard',
@@ -52,5 +52,5 @@ import { UIStore } from '@store/ui/ui.store';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Dashboard {
-	readonly uiStore = inject(UIStore);
+	readonly uiStore = inject(UIStore)
 }

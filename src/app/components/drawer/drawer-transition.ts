@@ -1,6 +1,6 @@
-import { Directive } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
+import { Directive } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { filter, fromEvent, Subject, switchMap, take } from 'rxjs'
 
 /**
  * Manages the open/close CSS transition lifecycle for the Drawer component.
@@ -13,7 +13,7 @@ import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
  */
 @Directive({ standalone: true })
 export class DrawerTransition {
-	private readonly close$ = new Subject<HTMLDialogElement>();
+	private readonly close$ = new Subject<HTMLDialogElement>()
 
 	constructor() {
 		this.close$
@@ -23,25 +23,25 @@ export class DrawerTransition {
 						filter((e) => e.target === element),
 						take(1),
 						switchMap(() => {
-							element.close();
-							return [];
+							element.close()
+							return []
 						}),
 					),
 				),
 				takeUntilDestroyed(),
 			)
-			.subscribe();
+			.subscribe()
 	}
 
 	/** Opens the dialog and triggers the slide-in animation after one frame. */
 	open(element: HTMLDialogElement): void {
-		element.showModal();
-		requestAnimationFrame(() => element.setAttribute('data-open', ''));
+		element.showModal()
+		requestAnimationFrame(() => element.setAttribute('data-open', ''))
 	}
 
 	/** Triggers the close animation and waits for `transitionend` to finalize. */
 	close(element: HTMLDialogElement): void {
-		element.removeAttribute('data-open');
-		this.close$.next(element);
+		element.removeAttribute('data-open')
+		this.close$.next(element)
 	}
 }

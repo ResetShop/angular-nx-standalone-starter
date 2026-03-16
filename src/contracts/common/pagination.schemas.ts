@@ -1,11 +1,11 @@
-import { z } from 'zod';
-import { QUERY_DEFAULTS } from './query.constants';
+import { z } from 'zod'
+import { QUERY_DEFAULTS } from './query.constants'
 
 /** Pagination query parameters schema. */
 export const paginationParamsSchema = z.object({
 	offset: z.coerce.number().int().min(QUERY_DEFAULTS.OFFSET).optional(),
 	limit: z.coerce.number().int().min(QUERY_DEFAULTS.MIN_LIMIT).max(QUERY_DEFAULTS.MAX_LIMIT).optional(),
-});
+})
 
 /**
  * Pagination with optional search query parameter.
@@ -13,7 +13,7 @@ export const paginationParamsSchema = z.object({
  */
 export const searchPaginationSchema = paginationParamsSchema.extend({
 	search: z.string().trim().min(QUERY_DEFAULTS.SEARCH_MIN_LENGTH).max(QUERY_DEFAULTS.SEARCH_MAX_LENGTH).optional(),
-});
+})
 
 /**
  * Factory function to create a paginated response schema for any item type.
@@ -30,5 +30,5 @@ export function paginatedResponseSchema<T extends z.ZodTypeAny>(itemSchema: T) {
 		total: z.number(),
 		offset: z.number(),
 		limit: z.number(),
-	});
+	})
 }

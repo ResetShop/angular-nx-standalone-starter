@@ -1,6 +1,6 @@
-import { UserStatus } from '@contracts/user/user.schemas';
-import type { ManagedUser } from '@contracts/user/user.types';
-import { mapManagedUserResponse } from './managed-user.mapper';
+import { UserStatus } from '@contracts/user/user.schemas'
+import type { ManagedUser } from '@contracts/user/user.types'
+import { mapManagedUserResponse } from './managed-user.mapper'
 
 function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUser {
 	return {
@@ -16,43 +16,43 @@ function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUse
 		updatedAt: new Date('2025-01-01'),
 		roles: [],
 		...overrides,
-	};
+	}
 }
 
 describe('mapManagedUserResponse', () => {
 	it('should map all fields from the API response', () => {
-		const data = createMockManagedUser();
-		const result = mapManagedUserResponse(data);
+		const data = createMockManagedUser()
+		const result = mapManagedUserResponse(data)
 
-		expect(result.id).toBe(1);
-		expect(result.email).toBe('john@example.com');
-		expect(result.firstName).toBe('John');
-		expect(result.lastName).toBe('Doe');
-		expect(result.status).toBe(UserStatus.ACTIVE);
-		expect(result.statusChangedAt).toBeNull();
-		expect(result.statusChangedBy).toBeNull();
-		expect(result.deletedAt).toBeNull();
-		expect(result.createdAt).toEqual(new Date('2025-01-01'));
-		expect(result.updatedAt).toEqual(new Date('2025-01-01'));
-	});
+		expect(result.id).toBe(1)
+		expect(result.email).toBe('john@example.com')
+		expect(result.firstName).toBe('John')
+		expect(result.lastName).toBe('Doe')
+		expect(result.status).toBe(UserStatus.ACTIVE)
+		expect(result.statusChangedAt).toBeNull()
+		expect(result.statusChangedBy).toBeNull()
+		expect(result.deletedAt).toBeNull()
+		expect(result.createdAt).toEqual(new Date('2025-01-01'))
+		expect(result.updatedAt).toEqual(new Date('2025-01-01'))
+	})
 
 	it('should compute fullName from firstName and lastName', () => {
-		const result = mapManagedUserResponse(createMockManagedUser({ firstName: 'Jane', lastName: 'Smith' }));
+		const result = mapManagedUserResponse(createMockManagedUser({ firstName: 'Jane', lastName: 'Smith' }))
 
-		expect(result.fullName).toBe('Jane Smith');
-	});
+		expect(result.fullName).toBe('Jane Smith')
+	})
 
 	it('should trim fullName when lastName is empty', () => {
-		const result = mapManagedUserResponse(createMockManagedUser({ firstName: 'Prince', lastName: '' }));
+		const result = mapManagedUserResponse(createMockManagedUser({ firstName: 'Prince', lastName: '' }))
 
-		expect(result.fullName).toBe('Prince');
-	});
+		expect(result.fullName).toBe('Prince')
+	})
 
 	it('should trim fullName when firstName is empty', () => {
-		const result = mapManagedUserResponse(createMockManagedUser({ firstName: '', lastName: 'Doe' }));
+		const result = mapManagedUserResponse(createMockManagedUser({ firstName: '', lastName: 'Doe' }))
 
-		expect(result.fullName).toBe('Doe');
-	});
+		expect(result.fullName).toBe('Doe')
+	})
 
 	it('should map roles as shallow copies', () => {
 		const roles = [
@@ -66,18 +66,18 @@ describe('mapManagedUserResponse', () => {
 				createdAt: null,
 				updatedAt: null,
 			},
-		];
-		const result = mapManagedUserResponse(createMockManagedUser({ roles }));
+		]
+		const result = mapManagedUserResponse(createMockManagedUser({ roles }))
 
-		expect(result.roles).toHaveLength(2);
-		expect(result.roles[0]).toEqual(roles[0]);
-		expect(result.roles[1]).toEqual(roles[1]);
-		expect(result.roles[0]).not.toBe(roles[0]);
-	});
+		expect(result.roles).toHaveLength(2)
+		expect(result.roles[0]).toEqual(roles[0])
+		expect(result.roles[1]).toEqual(roles[1])
+		expect(result.roles[0]).not.toBe(roles[0])
+	})
 
 	it('should handle empty roles array', () => {
-		const result = mapManagedUserResponse(createMockManagedUser({ roles: [] }));
+		const result = mapManagedUserResponse(createMockManagedUser({ roles: [] }))
 
-		expect(result.roles).toEqual([]);
-	});
-});
+		expect(result.roles).toEqual([])
+	})
+})

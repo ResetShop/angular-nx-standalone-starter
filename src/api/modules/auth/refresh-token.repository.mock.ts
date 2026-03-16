@@ -1,26 +1,26 @@
-import { parseDurationToMs } from '@utils/duration';
-import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants';
+import { parseDurationToMs } from '@utils/duration'
+import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
 	type IRefreshTokenRepository,
 	type RefreshTokenData,
-} from './interfaces';
+} from './interfaces'
 
 export class MockRefreshTokenRepository implements IRefreshTokenRepository {
-	private tokens: Map<string, RefreshTokenData> = new Map();
-	private tokensById: Map<number, RefreshTokenData> = new Map();
-	private tokenIdCounter = 1;
+	private tokens: Map<string, RefreshTokenData> = new Map()
+	private tokensById: Map<number, RefreshTokenData> = new Map()
+	private tokenIdCounter = 1
 
 	// Track method calls for assertions
-	public readonly revokedTokenIds: number[] = [];
-	public readonly revokedUserIds: number[] = [];
-	public readonly deletedExpiredForUsers: number[] = [];
-	public readonly revokedTokenFamilies: string[] = [];
-	public readonly createdTokens: RefreshTokenData[] = [];
-	public cleanupLockAcquired = false;
-	public deleteAllExpiredCalled = false;
-	public releaseCleanupLockError: Error | null = null;
+	public readonly revokedTokenIds: number[] = []
+	public readonly revokedUserIds: number[] = []
+	public readonly deletedExpiredForUsers: number[] = []
+	public readonly revokedTokenFamilies: string[] = []
+	public readonly createdTokens: RefreshTokenData[] = []
+	public cleanupLockAcquired = false
+	public deleteAllExpiredCalled = false
+	public releaseCleanupLockError: Error | null = null
 
 	/**
 	 * Add a token to the mock repository.
@@ -38,31 +38,31 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 			isRevoked: data.isRevoked ?? false,
 			createdAt: data.createdAt ?? new Date(),
 			revokedAt: data.revokedAt ?? null,
-		};
-		this.tokens.set(tokenHash, token);
-		this.tokensById.set(token.id, token);
-		return token;
+		}
+		this.tokens.set(tokenHash, token)
+		this.tokensById.set(token.id, token)
+		return token
 	}
 
 	/**
 	 * Clear all tokens and reset tracking arrays.
 	 */
 	clear(): void {
-		this.tokens.clear();
-		this.tokensById.clear();
-		this.revokedTokenIds.length = 0;
-		this.revokedUserIds.length = 0;
-		this.deletedExpiredForUsers.length = 0;
-		this.revokedTokenFamilies.length = 0;
-		this.createdTokens.length = 0;
-		this.cleanupLockAcquired = false;
-		this.deleteAllExpiredCalled = false;
-		this.releaseCleanupLockError = null;
-		this.tokenIdCounter = 1;
+		this.tokens.clear()
+		this.tokensById.clear()
+		this.revokedTokenIds.length = 0
+		this.revokedUserIds.length = 0
+		this.deletedExpiredForUsers.length = 0
+		this.revokedTokenFamilies.length = 0
+		this.createdTokens.length = 0
+		this.cleanupLockAcquired = false
+		this.deleteAllExpiredCalled = false
+		this.releaseCleanupLockError = null
+		this.tokenIdCounter = 1
 	}
 
 	async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
-		return this.tokens.get(tokenHash) ?? null;
+		return this.tokens.get(tokenHash) ?? null
 	}
 
 	async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {
@@ -70,82 +70,82 @@ export class MockRefreshTokenRepository implements IRefreshTokenRepository {
 			userId: params.userId,
 			tokenFamily: params.tokenFamily,
 			expiresAt: params.expiresAt,
-		});
-		this.createdTokens.push(token);
-		return token;
+		})
+		this.createdTokens.push(token)
+		return token
 	}
 
 	async revokeToken(tokenId: number): Promise<void> {
-		this.revokedTokenIds.push(tokenId);
-		const token = this.tokensById.get(tokenId);
+		this.revokedTokenIds.push(tokenId)
+		const token = this.tokensById.get(tokenId)
 		if (token) {
-			token.isRevoked = true;
-			token.revokedAt = new Date();
+			token.isRevoked = true
+			token.revokedAt = new Date()
 		}
 	}
 
 	async revokeAllForUser(userId: number): Promise<void> {
-		this.revokedUserIds.push(userId);
+		this.revokedUserIds.push(userId)
 		for (const token of this.tokens.values()) {
 			if (token.userId === userId) {
-				token.isRevoked = true;
-				token.revokedAt = new Date();
+				token.isRevoked = true
+				token.revokedAt = new Date()
 			}
 		}
 	}
 
 	async revokeTokenFamily(tokenFamily: string): Promise<void> {
-		this.revokedTokenFamilies.push(tokenFamily);
+		this.revokedTokenFamilies.push(tokenFamily)
 		for (const token of this.tokens.values()) {
 			if (token.tokenFamily === tokenFamily) {
-				token.isRevoked = true;
-				token.revokedAt = new Date();
+				token.isRevoked = true
+				token.revokedAt = new Date()
 			}
 		}
 	}
 
 	async deleteExpiredTokensForUser(userId: number): Promise<number> {
-		this.deletedExpiredForUsers.push(userId);
+		this.deletedExpiredForUsers.push(userId)
 		// Count and remove expired tokens
-		let count = 0;
-		const now = new Date();
+		let count = 0
+		const now = new Date()
 		for (const [hash, token] of this.tokens.entries()) {
 			if (token.userId === userId && token.expiresAt < now) {
-				this.tokens.delete(hash);
-				this.tokensById.delete(token.id);
-				count++;
+				this.tokens.delete(hash)
+				this.tokensById.delete(token.id)
+				count++
 			}
 		}
-		return count;
+		return count
 	}
 
 	async tryAcquireCleanupLock(): Promise<boolean> {
 		if (this.cleanupLockAcquired) {
-			return false;
+			return false
 		}
-		this.cleanupLockAcquired = true;
-		return true;
+		this.cleanupLockAcquired = true
+		return true
 	}
 
 	async releaseCleanupLock(): Promise<void> {
 		if (this.releaseCleanupLockError) {
-			throw this.releaseCleanupLockError;
+			throw this.releaseCleanupLockError
 		}
-		this.cleanupLockAcquired = false;
+		this.cleanupLockAcquired = false
 	}
 
 	async deleteAllExpiredTokens(): Promise<CleanupResult> {
-		this.deleteAllExpiredCalled = true;
+		this.deleteAllExpiredCalled = true
 		// Count and remove tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER ago (matches real repo)
-		let count = 0;
-		const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER));
+		let count = 0
+		const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER))
 		for (const [hash, token] of this.tokens.entries()) {
 			if (token.expiresAt < cutoffTime) {
-				this.tokens.delete(hash);
-				this.tokensById.delete(token.id);
-				count++;
+				this.tokens.delete(hash)
+				this.tokensById.delete(token.id)
+				count++
 			}
 		}
-		return { deletedCount: count, incomplete: false };
+		return { deletedCount: count, incomplete: false }
 	}
 }

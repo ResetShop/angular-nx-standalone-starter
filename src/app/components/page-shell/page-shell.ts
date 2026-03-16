@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert';
-import { Spinner } from '@components/spinner/spinner';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert'
+import { Spinner } from '@components/spinner/spinner'
 
 @Component({
 	selector: 'app-page-shell',
@@ -32,7 +32,7 @@ import { Spinner } from '@components/spinner/spinner';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PageShell {
-	readonly title = input.required<string>();
-	readonly loading = input(false);
-	readonly error = input<string | null>(null);
+	readonly title = input.required<string>()
+	readonly loading = input(false)
+	readonly error = input<string | null>(null)
 }

@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm';
-import { user } from '../../../db/schema/user';
-import { BaseRepository } from '../../helpers/base.repository';
-import { type IUserRepository, type UserData } from './interfaces';
+import { eq } from 'drizzle-orm'
+import { user } from '../../../db/schema/user'
+import { BaseRepository } from '../../helpers/base.repository'
+import { type IUserRepository, type UserData } from './interfaces'
 
 /**
  * Repository for user-related database operations.
@@ -26,9 +26,9 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 			})
 			.from(user)
 			.where(eq(user.email, email))
-			.limit(1);
+			.limit(1)
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -49,8 +49,8 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 			})
 			.from(user)
 			.where(eq(user.id, id))
-			.limit(1);
+			.limit(1)
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 }

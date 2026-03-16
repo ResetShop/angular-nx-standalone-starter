@@ -1,19 +1,19 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Component, computed, effect, inject, input, signal, viewChild } from '@angular/core';
-import { provideSignalFormsConfig } from '@angular/forms/signals';
-import { provideRouter } from '@angular/router';
-import { LoginErrorCode } from '@contracts/auth/auth.errors';
-import { Translation, type Language } from '@providers/i18n/translation';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import Login from './login';
+import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { Component, computed, effect, inject, input, signal, viewChild } from '@angular/core'
+import { provideSignalFormsConfig } from '@angular/forms/signals'
+import { provideRouter } from '@angular/router'
+import { LoginErrorCode } from '@contracts/auth/auth.errors'
+import { Translation, type Language } from '@providers/i18n/translation'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import Login from './login'
 
 /**
  * Error code options for the story.
  * null represents no error state.
  */
-type ErrorCodeOption = LoginErrorCode | null;
+type ErrorCodeOption = LoginErrorCode | null
 
 /**
  * Thin wrapper that renders the actual Login page component and
@@ -28,31 +28,31 @@ type ErrorCodeOption = LoginErrorCode | null;
 	`,
 })
 class LoginStoryComponent {
-	private readonly translation = inject(Translation);
-	private readonly loginPage = viewChild(Login);
+	private readonly translation = inject(Translation)
+	private readonly loginPage = viewChild(Login)
 
-	readonly errorCode = input<ErrorCodeOption>(null);
-	readonly language = input<Language>('es');
+	readonly errorCode = input<ErrorCodeOption>(null)
+	readonly language = input<Language>('es')
 
-	private readonly isReady = signal(false);
+	private readonly isReady = signal(false)
 
 	protected readonly resolvedError = computed(() => {
-		const code = this.errorCode();
-		if (!code || !this.isReady()) return null;
-		return this.translation.instant(`AUTH.ERRORS.${code}`);
-	});
+		const code = this.errorCode()
+		if (!code || !this.isReady()) return null
+		return this.translation.instant(`AUTH.ERRORS.${code}`)
+	})
 
 	constructor() {
 		effect(() => {
-			const message = this.resolvedError();
-			this.loginPage()?.errorMessage.set(message);
-		});
+			const message = this.resolvedError()
+			this.loginPage()?.errorMessage.set(message)
+		})
 
 		effect(() => {
-			const lang = this.language();
-			this.isReady.set(false);
-			this.translation.setLanguage(lang).then(() => this.isReady.set(true));
-		});
+			const lang = this.language()
+			this.isReady.set(false)
+			this.translation.setLanguage(lang).then(() => this.isReady.set(true))
+		})
 	}
 }
 
@@ -134,11 +134,11 @@ Error messages will automatically update to the selected language.
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<LoginStoryComponent>;
+type Story = StoryObj<LoginStoryComponent>
 
 /**
  * Default login page state with no error message.
@@ -148,4 +148,4 @@ export const Default: Story = {
 		errorCode: null,
 		language: 'es',
 	},
-};
+}

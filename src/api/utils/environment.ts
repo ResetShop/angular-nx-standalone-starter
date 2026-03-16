@@ -5,5 +5,5 @@
  * @returns true if IS_SERVERLESS env var is 'true'
  */
 export function isServerless(): boolean {
-	return process.env['IS_SERVERLESS'] === 'true';
+	return process.env['IS_SERVERLESS'] === 'true'
 }

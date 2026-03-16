@@ -1,5 +1,5 @@
-import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common'
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core'
 import {
 	email as emailValidator,
 	form,
@@ -8,15 +8,15 @@ import {
 	schema,
 	FormField as SignalFormField,
 	type FieldTree,
-} from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
-import { Alert, AlertDescription } from '@components/alert/alert';
-import { Button } from '@components/button/button';
-import Card from '@components/card/card';
-import { FormField } from '@components/form-field/form-field';
-import type { LoginForm } from '@interfaces/auth';
-import { Translation } from '@providers/i18n/translation';
-import { AuthStore } from '@store/auth/auth.store';
+} from '@angular/forms/signals'
+import { Router, RouterLink } from '@angular/router'
+import { Alert, AlertDescription } from '@components/alert/alert'
+import { Button } from '@components/button/button'
+import Card from '@components/card/card'
+import { FormField } from '@components/form-field/form-field'
+import type { LoginForm } from '@interfaces/auth'
+import { Translation } from '@providers/i18n/translation'
+import { AuthStore } from '@store/auth/auth.store'
 
 @Component({
 	selector: 'app-login-page',
@@ -85,55 +85,55 @@ import { AuthStore } from '@store/auth/auth.store';
 	`,
 })
 export default class Login {
-	private readonly authStore = inject(AuthStore);
-	private readonly router = inject(Router);
-	private readonly translation = inject(Translation);
+	private readonly authStore = inject(AuthStore)
+	private readonly router = inject(Router)
+	private readonly translation = inject(Translation)
 
-	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password']);
-	readonly errorMessage = signal<string | null>(null);
+	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password'])
+	readonly errorMessage = signal<string | null>(null)
 
-	private readonly model = signal<LoginForm>({ email: '', password: '' });
+	private readonly model = signal<LoginForm>({ email: '', password: '' })
 	readonly loginForm: FieldTree<LoginForm> = form(
 		this.model,
 		schema<LoginForm>((login) => {
-			required(login.email);
-			emailValidator(login.email);
-			required(login.password);
-			minLength(login.password, 8);
+			required(login.email)
+			emailValidator(login.email)
+			required(login.password)
+			minLength(login.password, 8)
 		}),
-	);
+	)
 
-	protected readonly isFormValid = computed(() => this.loginForm().errors().length === 0);
+	protected readonly isFormValid = computed(() => this.loginForm().errors().length === 0)
 
 	constructor() {
 		effect(() => {
-			const user = this.authStore.currentUser();
-			const error = this.authStore.loginError();
+			const user = this.authStore.currentUser()
+			const error = this.authStore.loginError()
 
 			if (user) {
-				this.errorMessage.set(null);
-				this.router.navigate(['/dashboard']);
+				this.errorMessage.set(null)
+				this.router.navigate(['/dashboard'])
 			} else if (error) {
 				this.errorMessage.set(
 					this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'),
-				);
+				)
 			}
-		});
+		})
 	}
 
 	onSubmit(event: Event) {
-		event.preventDefault();
+		event.preventDefault()
 		if (!this.isFormValid()) {
 			// Signal forms FieldState.markAsTouched() only marks a single field;
 			// there is no markAllAsTouched() equivalent — each field must be touched individually.
-			this.loginForm.email().markAsTouched();
-			this.loginForm.password().markAsTouched();
-			return;
+			this.loginForm.email().markAsTouched()
+			this.loginForm.password().markAsTouched()
+			return
 		}
 
-		this.errorMessage.set(null);
+		this.errorMessage.set(null)
 
-		const { email, password } = this.model();
-		this.authStore.login({ email, password });
+		const { email, password } = this.model()
+		this.authStore.login({ email, password })
 	}
 }

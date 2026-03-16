@@ -1,18 +1,18 @@
-import { eq, inArray } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import { environment } from '../api/helpers/environment';
-import { ADMIN_PERMISSIONS_SEED_DATA } from '../api/modules/access/role/permissions.constants';
-import { authentication } from './schema/authentication';
-import { permission } from './schema/permission';
-import { role, rolePermission } from './schema/role';
-import { user, userRole } from './schema/user';
+import { eq, inArray } from 'drizzle-orm'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import { environment } from '../api/helpers/environment'
+import { ADMIN_PERMISSIONS_SEED_DATA } from '../api/modules/access/role/permissions.constants'
+import { authentication } from './schema/authentication'
+import { permission } from './schema/permission'
+import { role, rolePermission } from './schema/role'
+import { user, userRole } from './schema/user'
 
 const pool = new Pool({
 	connectionString: environment.database.pg.connectionString,
-});
+})
 
-const db = drizzle(pool);
+const db = drizzle(pool)
 
 /**
  * Seeds the database with initial data in a transaction.
@@ -20,17 +20,17 @@ const db = drizzle(pool);
  */
 async function seed() {
 	try {
-		console.log('🌱 Starting database seed...');
+		console.log('🌱 Starting database seed...')
 
 		await db.transaction(async (tx) => {
 			// Step 1: Create or get admin user
-			const existingUser = await tx.select({ id: user.id }).from(user).where(eq(user.email, 'admin@sistema.com'));
+			const existingUser = await tx.select({ id: user.id }).from(user).where(eq(user.email, 'admin@sistema.com'))
 
-			let adminUserId: number;
+			let adminUserId: number
 
 			if (existingUser.length > 0) {
-				adminUserId = existingUser[0].id;
-				console.log('✅ Admin user already exists');
+				adminUserId = existingUser[0].id
+				console.log('✅ Admin user already exists')
 			} else {
 				const insertResult = await tx
 					.insert(user)
@@ -39,14 +39,14 @@ async function seed() {
 						lastName: 'Sistema',
 						email: 'admin@sistema.com',
 					})
-					.returning({ id: user.id });
+					.returning({ id: user.id })
 
 				if (!insertResult.length) {
-					throw new Error('Failed to create admin user');
+					throw new Error('Failed to create admin user')
 				}
 
-				adminUserId = insertResult[0].id;
-				console.log('✅ Admin user created');
+				adminUserId = insertResult[0].id
+				console.log('✅ Admin user created')
 			}
 
 			// Step 2: Create authentication record
@@ -57,17 +57,17 @@ async function seed() {
 					passwordHash: '$2b$10$NtbOLIxB.WraBf4TdAGJDeIiUxJwaYqNq8gFWtUGmWtoZnQNMPTnG',
 					failedLoginAttempts: 0,
 				})
-				.onConflictDoNothing();
-			console.log('✅ Authentication record created/verified');
+				.onConflictDoNothing()
+			console.log('✅ Authentication record created/verified')
 
 			// Step 3: Create or get Administrator role
-			const existingRole = await tx.select({ id: role.id }).from(role).where(eq(role.code, 'admin'));
+			const existingRole = await tx.select({ id: role.id }).from(role).where(eq(role.code, 'admin'))
 
-			let adminRoleId: number;
+			let adminRoleId: number
 
 			if (existingRole.length > 0) {
-				adminRoleId = existingRole[0].id;
-				console.log('✅ Administrator role already exists');
+				adminRoleId = existingRole[0].id
+				console.log('✅ Administrator role already exists')
 			} else {
 				const adminRoleResult = await tx
 					.insert(role)
@@ -77,55 +77,55 @@ async function seed() {
 						description: 'System administrator with full access',
 						removable: false,
 					})
-					.returning({ id: role.id });
+					.returning({ id: role.id })
 
 				if (!adminRoleResult.length) {
-					throw new Error('Failed to create Administrator role');
+					throw new Error('Failed to create Administrator role')
 				}
 
-				adminRoleId = adminRoleResult[0].id;
-				console.log('✅ Administrator role created');
+				adminRoleId = adminRoleResult[0].id
+				console.log('✅ Administrator role created')
 			}
 
 			// Step 4: Assign Administrator role to admin user
-			await tx.insert(userRole).values({ userId: adminUserId, roleId: adminRoleId }).onConflictDoNothing();
-			console.log('✅ Administrator role assigned to admin user');
+			await tx.insert(userRole).values({ userId: adminUserId, roleId: adminRoleId }).onConflictDoNothing()
+			console.log('✅ Administrator role assigned to admin user')
 
 			// Step 5: Create permissions (batch insert)
 			await tx
 				.insert(permission)
 				.values([...ADMIN_PERMISSIONS_SEED_DATA])
-				.onConflictDoNothing();
+				.onConflictDoNothing()
 
 			// Get all permission IDs by name
-			const permissionNames = ADMIN_PERMISSIONS_SEED_DATA.map((p) => p.name);
+			const permissionNames = ADMIN_PERMISSIONS_SEED_DATA.map((p) => p.name)
 			const createdPermissions = await tx
 				.select({ id: permission.id })
 				.from(permission)
-				.where(inArray(permission.name, permissionNames));
+				.where(inArray(permission.name, permissionNames))
 
 			if (createdPermissions.length !== ADMIN_PERMISSIONS_SEED_DATA.length) {
 				throw new Error(
 					`Permission count mismatch: expected ${ADMIN_PERMISSIONS_SEED_DATA.length}, got ${createdPermissions.length}`,
-				);
+				)
 			}
-			console.log(`✅ ${ADMIN_PERMISSIONS_SEED_DATA.length} permissions created/verified`);
+			console.log(`✅ ${ADMIN_PERMISSIONS_SEED_DATA.length} permissions created/verified`)
 
 			// Step 6: Assign all permissions to Administrator role (batch insert)
 			const rolePermissionValues = createdPermissions.map((p) => ({
 				roleId: adminRoleId,
 				permissionId: p.id,
-			}));
-			await tx.insert(rolePermission).values(rolePermissionValues).onConflictDoNothing();
-			console.log('✅ Permissions assigned to Administrator role');
-		});
+			}))
+			await tx.insert(rolePermission).values(rolePermissionValues).onConflictDoNothing()
+			console.log('✅ Permissions assigned to Administrator role')
+		})
 
-		console.log('✅ Database seed completed successfully');
-		process.exit(0);
+		console.log('✅ Database seed completed successfully')
+		process.exit(0)
 	} catch (error) {
-		console.error('❌ Seed failed:', error);
-		process.exit(1);
+		console.error('❌ Seed failed:', error)
+		process.exit(1)
 	}
 }
 
-void seed();
+void seed()

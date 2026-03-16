@@ -1,10 +1,10 @@
-import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
-import { type SQL, count, ilike, or } from 'drizzle-orm';
-import { permission } from '../../../../db/schema/permission';
-import { BaseRepository } from '../../../helpers/base.repository';
-import type { PaginatedResponse } from '../../../interfaces';
-import type { PermissionData } from '../role/interfaces';
-import type { IPermissionRepository, ListPermissionsParams } from './interfaces';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
+import { type SQL, count, ilike, or } from 'drizzle-orm'
+import { permission } from '../../../../db/schema/permission'
+import { BaseRepository } from '../../../helpers/base.repository'
+import type { PaginatedResponse } from '../../../interfaces'
+import type { PermissionData } from '../role/interfaces'
+import type { IPermissionRepository, ListPermissionsParams } from './interfaces'
 
 /**
  * Repository for permission-related database operations.
@@ -22,9 +22,9 @@ export class PermissionRepository extends BaseRepository implements IPermissionR
 	 * @returns Paginated response containing permissions and metadata
 	 */
 	async findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>> {
-		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT;
-		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET;
-		const searchCondition = this.buildSearchCondition(params?.search);
+		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT
+		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET
+		const searchCondition = this.buildSearchCondition(params?.search)
 
 		const [data, totalResult] = await Promise.all([
 			this.db
@@ -40,14 +40,14 @@ export class PermissionRepository extends BaseRepository implements IPermissionR
 				.limit(limit)
 				.offset(offset),
 			this.db.select({ count: count() }).from(permission).where(searchCondition),
-		]);
+		])
 
 		return {
 			data,
 			total: totalResult[0].count,
 			offset,
 			limit,
-		};
+		}
 	}
 
 	/**
@@ -60,16 +60,16 @@ export class PermissionRepository extends BaseRepository implements IPermissionR
 	 */
 	private buildSearchCondition(search?: string): SQL | undefined {
 		if (!search || search.trim().length === 0) {
-			return undefined;
+			return undefined
 		}
 
-		const escaped = search.trim().replace(/[%_]/g, '\\$&');
-		const pattern = `%${escaped}%`;
+		const escaped = search.trim().replace(/[%_]/g, '\\$&')
+		const pattern = `%${escaped}%`
 		return or(
 			ilike(permission.name, pattern),
 			ilike(permission.description, pattern),
 			ilike(permission.resource, pattern),
 			ilike(permission.action, pattern),
-		);
+		)
 	}
 }

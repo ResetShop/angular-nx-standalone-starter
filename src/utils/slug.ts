@@ -10,5 +10,5 @@ export function toSnakeCode(input: string): string {
 		.toLowerCase()
 		.replace(/[^a-z0-9\s_]/g, '')
 		.replace(/\s+/g, '_')
-		.replace(/^[^a-z]+/, '');
+		.replace(/^[^a-z]+/, '')
 }

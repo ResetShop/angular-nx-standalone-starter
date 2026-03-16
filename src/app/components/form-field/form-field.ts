@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common'
 import {
 	afterRenderEffect,
 	ChangeDetectionStrategy,
@@ -12,12 +12,12 @@ import {
 	input,
 	signal,
 	viewChild,
-} from '@angular/core';
-import type { ValidationError } from '@angular/forms/signals';
-import { NgValidationError, REQUIRED, FormField as SignalFormField } from '@angular/forms/signals';
-import { Translation } from '@providers/i18n/translation';
-import { NgpFormField } from 'ng-primitives/form-field';
-import { FormFieldCustomControl } from './form-field-custom-control';
+} from '@angular/core'
+import type { ValidationError } from '@angular/forms/signals'
+import { NgValidationError, REQUIRED, FormField as SignalFormField } from '@angular/forms/signals'
+import { Translation } from '@providers/i18n/translation'
+import { NgpFormField } from 'ng-primitives/form-field'
+import { FormFieldCustomControl } from './form-field-custom-control'
 
 @Component({
 	selector: 'app-form-field',
@@ -93,52 +93,52 @@ import { FormFieldCustomControl } from './form-field-custom-control';
 	`,
 })
 export class FormField {
-	private readonly errorHandler = inject(ErrorHandler);
-	private readonly translation = inject(Translation);
-	private readonly contentWrapper = viewChild<ElementRef<HTMLElement>>('contentWrapper');
-	private readonly formFieldDirective = contentChild(SignalFormField);
-	private readonly customControl = contentChild(FormFieldCustomControl);
+	private readonly errorHandler = inject(ErrorHandler)
+	private readonly translation = inject(Translation)
+	private readonly contentWrapper = viewChild<ElementRef<HTMLElement>>('contentWrapper')
+	private readonly formFieldDirective = contentChild(SignalFormField)
+	private readonly customControl = contentChild(FormFieldCustomControl)
 
-	readonly label = input.required<string>();
-	readonly hint = input<string>();
-	readonly showRequired = input<boolean>();
+	readonly label = input.required<string>()
+	readonly hint = input<string>()
+	readonly showRequired = input<boolean>()
 
-	protected readonly resolvedId = signal('');
-	protected readonly isCheckbox = signal(false);
+	protected readonly resolvedId = signal('')
+	protected readonly isCheckbox = signal(false)
 
-	protected readonly fieldState = computed(() => this.formFieldDirective()?.state());
+	protected readonly fieldState = computed(() => this.formFieldDirective()?.state())
 
 	protected readonly isRequired = computed(() => {
-		const override = this.showRequired();
-		if (override !== undefined) return override;
-		const state = this.fieldState();
-		if (!state) return false;
-		const requiredSignal = state.metadata(REQUIRED);
-		return requiredSignal ? requiredSignal() : false;
-	});
+		const override = this.showRequired()
+		if (override !== undefined) return override
+		const state = this.fieldState()
+		if (!state) return false
+		const requiredSignal = state.metadata(REQUIRED)
+		return requiredSignal ? requiredSignal() : false
+	})
 
-	protected readonly errors = computed(() => this.fieldState()?.errors() ?? []);
+	protected readonly errors = computed(() => this.fieldState()?.errors() ?? [])
 
 	protected readonly showErrors = computed(() => {
-		const state = this.fieldState();
-		if (!state) return false;
-		return state.touched() && this.errors().length > 0;
-	});
+		const state = this.fieldState()
+		if (!state) return false
+		return state.touched() && this.errors().length > 0
+	})
 
 	protected readonly translatedError = computed(() => {
-		const errors = this.errors();
-		if (errors.length === 0) return '';
-		return this.mapErrorToMessage(errors[0]);
-	});
+		const errors = this.errors()
+		if (errors.length === 0) return ''
+		return this.mapErrorToMessage(errors[0])
+	})
 
-	private readonly supportedControls = 'input, select, textarea';
+	private readonly supportedControls = 'input, select, textarea'
 
 	constructor() {
-		effect(() => this.setupContentValidation());
+		effect(() => this.setupContentValidation())
 		afterRenderEffect(() => {
-			this.resolveInputComponentType();
-			this.setupIdAndAriaSync();
-		});
+			this.resolveInputComponentType()
+			this.setupIdAndAriaSync()
+		})
 	}
 
 	/**
@@ -148,21 +148,21 @@ export class FormField {
 	 * 3. The child element has the formField directive attached
 	 */
 	private setupContentValidation() {
-		const wrapper = this.contentWrapper()?.nativeElement;
-		if (!wrapper) return;
+		const wrapper = this.contentWrapper()?.nativeElement
+		if (!wrapper) return
 
-		const directChildren = wrapper.children;
+		const directChildren = wrapper.children
 
 		if (directChildren.length > 1) {
 			// TODO (#66): Replace errorHandler.handleError with logging service when available
 			this.errorHandler.handleError(
 				new Error(`FormField expects a single projected element, but received ${directChildren.length}.`),
-			);
+			)
 		}
 
 		if (directChildren.length === 1) {
-			const isNativeControl = directChildren[0].matches(this.supportedControls);
-			const isCustomControl = !!this.customControl();
+			const isNativeControl = directChildren[0].matches(this.supportedControls)
+			const isCustomControl = !!this.customControl()
 
 			if (!isNativeControl && !isCustomControl) {
 				this.errorHandler.handleError(
@@ -170,7 +170,7 @@ export class FormField {
 						`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
 							`Supported elements: ${this.supportedControls}, or a FormFieldCustomControl provider.`,
 					),
-				);
+				)
 			}
 
 			if ((isNativeControl || isCustomControl) && !this.formFieldDirective()) {
@@ -179,72 +179,72 @@ export class FormField {
 						'FormField requires a [formField] directive on the projected form control. ' +
 							'Add [formField]="yourField" to the element.',
 					),
-				);
+				)
 			}
 		}
 	}
 
 	private resolveInputComponentType() {
-		const wrapper = this.contentWrapper()?.nativeElement;
-		if (!wrapper) return;
-		const el = wrapper.querySelector(':scope > input');
-		this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox');
+		const wrapper = this.contentWrapper()?.nativeElement
+		if (!wrapper) return
+		const el = wrapper.querySelector(':scope > input')
+		this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox')
 	}
 
 	/**
 	 * Sets up the content child id and aria-invalid attribute when the child is in an invalid status
 	 */
 	private setupIdAndAriaSync() {
-		const wrapper = this.contentWrapper()?.nativeElement;
-		if (!wrapper) return;
+		const wrapper = this.contentWrapper()?.nativeElement
+		if (!wrapper) return
 
-		const nativeEl = wrapper.querySelector(`:scope > ${this.supportedControls}`);
+		const nativeEl = wrapper.querySelector(`:scope > ${this.supportedControls}`)
 		if (nativeEl) {
-			let id = nativeEl.getAttribute('id');
+			let id = nativeEl.getAttribute('id')
 			if (!id) {
-				id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
-				nativeEl.setAttribute('id', id);
+				id = `form-field-${crypto.randomUUID().slice(0, 8)}`
+				nativeEl.setAttribute('id', id)
 			}
-			this.resolvedId.set(id);
-			nativeEl.setAttribute('aria-invalid', String(this.showErrors()));
-			return;
+			this.resolvedId.set(id)
+			nativeEl.setAttribute('aria-invalid', String(this.showErrors()))
+			return
 		}
 
-		const custom = this.customControl();
+		const custom = this.customControl()
 		if (custom) {
-			const firstChild = wrapper.children[0];
+			const firstChild = wrapper.children[0]
 			if (firstChild) {
-				let id = firstChild.getAttribute('id');
+				let id = firstChild.getAttribute('id')
 				if (!id) {
-					id = `form-field-${crypto.randomUUID().slice(0, 8)}`;
-					firstChild.setAttribute('id', id);
+					id = `form-field-${crypto.randomUUID().slice(0, 8)}`
+					firstChild.setAttribute('id', id)
 				}
-				this.resolvedId.set(id);
+				this.resolvedId.set(id)
 			}
-			custom.ariaInvalid.set(this.showErrors());
+			custom.ariaInvalid.set(this.showErrors())
 		}
 	}
 
 	private mapErrorToMessage(error: ValidationError): string {
-		if (!(error instanceof NgValidationError)) return error.message ?? error.kind;
+		if (!(error instanceof NgValidationError)) return error.message ?? error.kind
 
 		switch (error.kind) {
 			case 'required':
-				return this.translation.instant('VALIDATION.REQUIRED');
+				return this.translation.instant('VALIDATION.REQUIRED')
 			case 'email':
-				return this.translation.instant('VALIDATION.EMAIL');
+				return this.translation.instant('VALIDATION.EMAIL')
 			case 'minLength':
-				return this.translation.instant('VALIDATION.MIN_LENGTH').replace('{min}', String(error.minLength));
+				return this.translation.instant('VALIDATION.MIN_LENGTH').replace('{min}', String(error.minLength))
 			case 'maxLength':
-				return this.translation.instant('VALIDATION.MAX_LENGTH').replace('{max}', String(error.maxLength));
+				return this.translation.instant('VALIDATION.MAX_LENGTH').replace('{max}', String(error.maxLength))
 			case 'min':
-				return this.translation.instant('VALIDATION.MIN').replace('{min}', String(error.min));
+				return this.translation.instant('VALIDATION.MIN').replace('{min}', String(error.min))
 			case 'max':
-				return this.translation.instant('VALIDATION.MAX').replace('{max}', String(error.max));
+				return this.translation.instant('VALIDATION.MAX').replace('{max}', String(error.max))
 			case 'pattern':
-				return this.translation.instant('VALIDATION.PATTERN');
+				return this.translation.instant('VALIDATION.PATTERN')
 			default:
-				return error.message ?? error.kind;
+				return error.message ?? error.kind
 		}
 	}
 }

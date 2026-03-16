@@ -1,16 +1,16 @@
-import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces';
+import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces'
 
 export class MockPasetoService implements IPasetoService {
-	private accessTokenCounter = 1;
-	private refreshTokenCounter = 1;
+	private accessTokenCounter = 1
+	private refreshTokenCounter = 1
 
 	// Store generated tokens for verification
-	public generatedAccessTokens: Array<{ token: string; payload: TokenPayload }> = [];
-	public generatedRefreshTokens: Array<{ token: string; userId: string; tokenFamily?: string }> = [];
+	public generatedAccessTokens: Array<{ token: string; payload: TokenPayload }> = []
+	public generatedRefreshTokens: Array<{ token: string; userId: string; tokenFamily?: string }> = []
 
 	// Configure verification behavior
-	private refreshTokenPayloads: Map<string, RefreshTokenPayload> = new Map();
-	private accessTokenPayloads: Map<string, TokenPayload> = new Map();
+	private refreshTokenPayloads: Map<string, RefreshTokenPayload> = new Map()
+	private accessTokenPayloads: Map<string, TokenPayload> = new Map()
 
 	/**
 	 * Set the payload that will be returned when verifying a refresh token.
@@ -18,7 +18,7 @@ export class MockPasetoService implements IPasetoService {
 	 * @param payload The payload to return on verification
 	 */
 	setRefreshTokenPayload(token: string, payload: RefreshTokenPayload): void {
-		this.refreshTokenPayloads.set(token, payload);
+		this.refreshTokenPayloads.set(token, payload)
 	}
 
 	/**
@@ -27,50 +27,50 @@ export class MockPasetoService implements IPasetoService {
 	 * @param payload The payload to return on verification
 	 */
 	setAccessTokenPayload(token: string, payload: TokenPayload): void {
-		this.accessTokenPayloads.set(token, payload);
+		this.accessTokenPayloads.set(token, payload)
 	}
 
 	/**
 	 * Clear all state from the mock.
 	 */
 	clear(): void {
-		this.generatedAccessTokens = [];
-		this.generatedRefreshTokens = [];
-		this.refreshTokenPayloads.clear();
-		this.accessTokenPayloads.clear();
-		this.accessTokenCounter = 1;
-		this.refreshTokenCounter = 1;
+		this.generatedAccessTokens = []
+		this.generatedRefreshTokens = []
+		this.refreshTokenPayloads.clear()
+		this.accessTokenPayloads.clear()
+		this.accessTokenCounter = 1
+		this.refreshTokenCounter = 1
 	}
 
 	async generateAccessToken(payload: TokenPayload): Promise<string> {
-		const token = `mock-access-token-${this.accessTokenCounter++}`;
-		this.generatedAccessTokens.push({ token, payload });
+		const token = `mock-access-token-${this.accessTokenCounter++}`
+		this.generatedAccessTokens.push({ token, payload })
 		// Auto-register the token for verification
-		this.accessTokenPayloads.set(token, payload);
-		return token;
+		this.accessTokenPayloads.set(token, payload)
+		return token
 	}
 
 	async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
-		const token = `mock-refresh-token-${this.refreshTokenCounter++}`;
-		this.generatedRefreshTokens.push({ token, userId, tokenFamily });
+		const token = `mock-refresh-token-${this.refreshTokenCounter++}`
+		this.generatedRefreshTokens.push({ token, userId, tokenFamily })
 		// Auto-register the token for verification
-		this.refreshTokenPayloads.set(token, { sub: userId, tokenFamily });
-		return token;
+		this.refreshTokenPayloads.set(token, { sub: userId, tokenFamily })
+		return token
 	}
 
 	async verifyAccessToken(token: string): Promise<TokenPayload> {
-		const payload = this.accessTokenPayloads.get(token);
+		const payload = this.accessTokenPayloads.get(token)
 		if (!payload) {
-			throw new Error('Invalid or expired token');
+			throw new Error('Invalid or expired token')
 		}
-		return payload;
+		return payload
 	}
 
 	async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
-		const payload = this.refreshTokenPayloads.get(token);
+		const payload = this.refreshTokenPayloads.get(token)
 		if (!payload) {
-			throw new Error('Invalid or expired refresh token');
+			throw new Error('Invalid or expired refresh token')
 		}
-		return payload;
+		return payload
 	}
 }

@@ -1,17 +1,17 @@
-import { createPermission } from '../access/permission.mapper';
-import { createRole } from '../access/role.mapper';
-import { createUser } from './user.mapper';
+import { createPermission } from '../access/permission.mapper'
+import { createRole } from '../access/role.mapper'
+import { createUser } from './user.mapper'
 
 describe('User', () => {
 	const createTestRoles = () => {
 		const adminPermissions = [
 			createPermission({ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }),
 			createPermission({ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' }),
-		];
+		]
 		const editorPermissions = [
 			createPermission({ id: 3, name: 'Read Posts', description: null, resource: 'posts', action: 'read' }),
 			createPermission({ id: 4, name: 'Write Posts', description: null, resource: 'posts', action: 'write' }),
-		];
+		]
 
 		return [
 			createRole({
@@ -34,26 +34,26 @@ describe('User', () => {
 				updatedAt: null,
 				permissions: editorPermissions,
 			}),
-		];
-	};
+		]
+	}
 
 	describe('createUser', () => {
 		it('should create a user with all properties', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.id).toBe(1);
-			expect(user.email).toBe('john@example.com');
-			expect(user.firstName).toBe('John');
-			expect(user.lastName).toBe('Doe');
-			expect(user.roles).toEqual(roles);
-		});
+			expect(user.id).toBe(1)
+			expect(user.email).toBe('john@example.com')
+			expect(user.firstName).toBe('John')
+			expect(user.lastName).toBe('Doe')
+			expect(user.roles).toEqual(roles)
+		})
 
 		it('should allow empty roles array', () => {
 			const user = createUser({
@@ -62,11 +62,11 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-			});
+			})
 
-			expect(user.roles).toEqual([]);
-		});
-	});
+			expect(user.roles).toEqual([])
+		})
+	})
 
 	describe('fullName', () => {
 		it('should return firstName and lastName concatenated', () => {
@@ -76,10 +76,10 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-			});
+			})
 
-			expect(user.fullName).toBe('John Doe');
-		});
+			expect(user.fullName).toBe('John Doe')
+		})
 
 		it('should handle single-word names without trailing space', () => {
 			const user = createUser({
@@ -88,25 +88,25 @@ describe('User', () => {
 				firstName: 'Prince',
 				lastName: '',
 				roles: [],
-			});
+			})
 
-			expect(user.fullName).toBe('Prince');
-		});
-	});
+			expect(user.fullName).toBe('Prince')
+		})
+	})
 
 	describe('permissions', () => {
 		it('should aggregate permissions from all roles', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.permissions).toHaveLength(4);
-		});
+			expect(user.permissions).toHaveLength(4)
+		})
 
 		it('should deduplicate permissions across roles', () => {
 			const sharedPermission = createPermission({
@@ -115,7 +115,7 @@ describe('User', () => {
 				description: null,
 				resource: 'users',
 				action: 'read',
-			});
+			})
 			const role1 = createRole({
 				id: 1,
 				code: 'admin',
@@ -125,7 +125,7 @@ describe('User', () => {
 				createdAt: null,
 				updatedAt: null,
 				permissions: [sharedPermission],
-			});
+			})
 			const role2 = createRole({
 				id: 2,
 				code: 'viewer',
@@ -135,7 +135,7 @@ describe('User', () => {
 				createdAt: null,
 				updatedAt: null,
 				permissions: [sharedPermission],
-			});
+			})
 
 			const user = createUser({
 				id: 1,
@@ -143,11 +143,11 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [role1, role2],
-			});
+			})
 
-			expect(user.permissions).toHaveLength(1);
-			expect(user.permissions[0].identifier).toBe('users:read');
-		});
+			expect(user.permissions).toHaveLength(1)
+			expect(user.permissions[0].identifier).toBe('users:read')
+		})
 
 		it('should return empty array for user with no roles', () => {
 			const user = createUser({
@@ -156,39 +156,39 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-			});
+			})
 
-			expect(user.permissions).toEqual([]);
-		});
-	});
+			expect(user.permissions).toEqual([])
+		})
+	})
 
 	describe('hasPermission', () => {
 		it('should return true when user has permission', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.hasPermission('users', 'read')).toBe(true);
-			expect(user.hasPermission('posts', 'write')).toBe(true);
-		});
+			expect(user.hasPermission('users', 'read')).toBe(true)
+			expect(user.hasPermission('posts', 'write')).toBe(true)
+		})
 
 		it('should return false when user does not have permission', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.hasPermission('settings', 'read')).toBe(false);
-		});
+			expect(user.hasPermission('settings', 'read')).toBe(false)
+		})
 
 		it('should return false for user with no roles', () => {
 			const user = createUser({
@@ -197,39 +197,39 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-			});
+			})
 
-			expect(user.hasPermission('users', 'read')).toBe(false);
-		});
-	});
+			expect(user.hasPermission('users', 'read')).toBe(false)
+		})
+	})
 
 	describe('hasPermissionByIdentifier', () => {
 		it('should return true when user has permission by identifier', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.hasPermissionByIdentifier('users:read')).toBe(true);
-			expect(user.hasPermissionByIdentifier('posts:write')).toBe(true);
-		});
+			expect(user.hasPermissionByIdentifier('users:read')).toBe(true)
+			expect(user.hasPermissionByIdentifier('posts:write')).toBe(true)
+		})
 
 		it('should return false when user does not have permission', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.hasPermissionByIdentifier('settings:read')).toBe(false);
-		});
+			expect(user.hasPermissionByIdentifier('settings:read')).toBe(false)
+		})
 
 		it('should return false for user with no roles', () => {
 			const user = createUser({
@@ -238,39 +238,39 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-			});
+			})
 
-			expect(user.hasPermissionByIdentifier('users:read')).toBe(false);
-		});
-	});
+			expect(user.hasPermissionByIdentifier('users:read')).toBe(false)
+		})
+	})
 
 	describe('hasRole', () => {
 		it('should return true when user has role', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.hasRole('admin')).toBe(true);
-			expect(user.hasRole('editor')).toBe(true);
-		});
+			expect(user.hasRole('admin')).toBe(true)
+			expect(user.hasRole('editor')).toBe(true)
+		})
 
 		it('should return false when user does not have role', () => {
-			const roles = createTestRoles();
+			const roles = createTestRoles()
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
 				roles,
-			});
+			})
 
-			expect(user.hasRole('superadmin')).toBe(false);
-		});
+			expect(user.hasRole('superadmin')).toBe(false)
+		})
 
 		it('should return false for user with no roles', () => {
 			const user = createUser({
@@ -279,9 +279,9 @@ describe('User', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
-			});
+			})
 
-			expect(user.hasRole('admin')).toBe(false);
-		});
-	});
-});
+			expect(user.hasRole('admin')).toBe(false)
+		})
+	})
+})

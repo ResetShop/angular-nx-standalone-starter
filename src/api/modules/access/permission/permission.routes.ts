@@ -1,9 +1,9 @@
-import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas';
-import { permissionDataSchema } from '@contracts/role/role.schemas';
-import { createRoute } from '@hono/zod-openapi';
-import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
-import { commonResponses } from '../../../openapi-config';
-import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants';
+import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas'
+import { permissionDataSchema } from '@contracts/role/role.schemas'
+import { createRoute } from '@hono/zod-openapi'
+import { requirePermission } from '../../../middlewares/verify-permissions.middleware'
+import { commonResponses } from '../../../openapi-config'
+import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants'
 
 export const listPermissionsRoute = createRoute({
 	method: 'get',
@@ -22,4 +22,4 @@ export const listPermissionsRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})

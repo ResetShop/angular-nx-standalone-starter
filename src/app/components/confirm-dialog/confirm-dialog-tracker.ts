@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import type { ConfirmDialog } from './confirm-dialog';
+import { Injectable } from '@angular/core'
+import type { ConfirmDialog } from './confirm-dialog'
 
 /**
  * Singleton service that enforces only one ConfirmDialog can be active at a time.
@@ -15,26 +15,26 @@ import type { ConfirmDialog } from './confirm-dialog';
  */
 @Injectable({ providedIn: 'root' })
 export class ConfirmDialogTracker {
-	private activeInstance: ConfirmDialog | null = null;
-	private instanceCount = 0;
+	private activeInstance: ConfirmDialog | null = null
+	private instanceCount = 0
 
 	/** Generates a unique instance ID for aria attributes. */
 	nextId(): number {
-		return ++this.instanceCount;
+		return ++this.instanceCount
 	}
 
 	/** Registers a dialog as the active instance. Throws if another dialog is already active. */
 	register(dialog: ConfirmDialog): void {
 		if (this.activeInstance) {
-			throw new Error('Only one confirm dialog can be active at a time.');
+			throw new Error('Only one confirm dialog can be active at a time.')
 		}
-		this.activeInstance = dialog;
+		this.activeInstance = dialog
 	}
 
 	/** Unregisters the dialog if it matches the current active instance. */
 	unregister(dialog: ConfirmDialog): void {
 		if (this.activeInstance === dialog) {
-			this.activeInstance = null;
+			this.activeInstance = null
 		}
 	}
 }

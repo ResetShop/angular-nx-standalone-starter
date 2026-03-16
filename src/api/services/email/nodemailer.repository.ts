@@ -1,6 +1,6 @@
-import type { Transporter } from 'nodemailer';
-import * as nodemailer from 'nodemailer';
-import type { IEmailRepository, SendEmailParams } from './interfaces';
+import type { Transporter } from 'nodemailer'
+import * as nodemailer from 'nodemailer'
+import type { IEmailRepository, SendEmailParams } from './interfaces'
 
 /**
  * Nodemailer email repository using SMTP transport.
@@ -17,24 +17,24 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * - SMTP_FROM: Default sender address (default: noreply@example.com)
  */
 export class NodemailerRepository implements IEmailRepository {
-	private readonly transporter: Transporter;
-	private readonly fromAddress: string;
+	private readonly transporter: Transporter
+	private readonly fromAddress: string
 
 	constructor() {
-		const host = process.env['SMTP_HOST'];
-		const user = process.env['SMTP_USER'];
-		const pass = process.env['SMTP_PASS'];
+		const host = process.env['SMTP_HOST']
+		const user = process.env['SMTP_USER']
+		const pass = process.env['SMTP_PASS']
 
 		if (!host || !user || !pass) {
-			throw new Error('SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS');
+			throw new Error('SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS')
 		}
 
-		const port = parseInt(process.env['SMTP_PORT'] || '587', 10);
+		const port = parseInt(process.env['SMTP_PORT'] || '587', 10)
 		if (isNaN(port) || port < 1 || port > 65535) {
-			throw new Error(`Invalid SMTP_PORT: "${process.env['SMTP_PORT']}". Must be a number between 1 and 65535`);
+			throw new Error(`Invalid SMTP_PORT: "${process.env['SMTP_PORT']}". Must be a number between 1 and 65535`)
 		}
-		const secure = process.env['SMTP_SECURE'] === 'true';
-		this.fromAddress = process.env['SMTP_FROM'] || 'noreply@example.com';
+		const secure = process.env['SMTP_SECURE'] === 'true'
+		this.fromAddress = process.env['SMTP_FROM'] || 'noreply@example.com'
 
 		this.transporter = nodemailer.createTransport({
 			host,
@@ -44,7 +44,7 @@ export class NodemailerRepository implements IEmailRepository {
 				user,
 				pass,
 			},
-		});
+		})
 	}
 
 	async send(params: SendEmailParams): Promise<void> {
@@ -54,9 +54,9 @@ export class NodemailerRepository implements IEmailRepository {
 			subject: params.subject,
 			html: params.html,
 			text: params.text,
-		});
+		})
 
-		const rejected = Array.isArray(info.rejected) ? info.rejected : [];
+		const rejected = Array.isArray(info.rejected) ? info.rejected : []
 		if (rejected.length > 0) {
 			// TODO(#66): Replace with structured logging service
 			console.error(
@@ -66,8 +66,8 @@ export class NodemailerRepository implements IEmailRepository {
 					recipient: params.to,
 					subject: params.subject,
 				}),
-			);
-			throw new Error(`Recipients rejected by SMTP server: ${rejected.join(', ')}`);
+			)
+			throw new Error(`Recipients rejected by SMTP server: ${rejected.join(', ')}`)
 		}
 	}
 }

@@ -1,8 +1,8 @@
-import parser from '@angular-eslint/template-parser';
-import { RuleTester } from 'eslint';
-import rule from './form-field-allowed-content.eslint-rule.js';
+import parser from '@angular-eslint/template-parser'
+import { RuleTester } from 'eslint'
+import rule from './form-field-allowed-content.eslint-rule.js'
 
-const ruleTester = new RuleTester({ languageOptions: { parser } });
+const ruleTester = new RuleTester({ languageOptions: { parser } })
 
 ruleTester.run('form-field-allowed-content', rule, {
 	valid: [
@@ -58,4 +58,4 @@ ruleTester.run('form-field-allowed-content', rule, {
 			errors: [{ messageId: 'missingDirective' }],
 		},
 	],
-});
+})

@@ -1,10 +1,10 @@
-import { UserStatus } from '@contracts/user/user.schemas';
-import type { CreateUserResponse } from '@contracts/user/user.types';
-import { hash } from 'bcryptjs';
-import { getBcryptSaltRounds } from '../../constants/auth.constants';
-import type { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { IEmailService } from '../../services/email/interfaces';
-import { buildWelcomeEmail } from '../../services/email/welcome-email.builder';
+import { UserStatus } from '@contracts/user/user.schemas'
+import type { CreateUserResponse } from '@contracts/user/user.types'
+import { hash } from 'bcryptjs'
+import { getBcryptSaltRounds } from '../../constants/auth.constants'
+import type { PaginatedResponse, PaginationParams } from '../../interfaces'
+import type { IEmailService } from '../../services/email/interfaces'
+import { buildWelcomeEmail } from '../../services/email/welcome-email.builder'
 import type {
 	CreateUserParams,
 	IUserManagementRepository,
@@ -12,14 +12,14 @@ import type {
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
-} from './interfaces';
+} from './interfaces'
 
 export const USER_MANAGEMENT_ERRORS = {
 	NOT_FOUND: 'User not found',
 	EMAIL_EXISTS: 'A user with this email already exists',
 	SELF_LOCKOUT: 'Cannot change status of your own account',
 	INVALID_TRANSITION: 'Invalid status transition',
-} as const;
+} as const
 
 /**
  * Error factory functions that include entity IDs for better debugging.
@@ -31,12 +31,12 @@ export const userManagementErrors = {
 	selfLockout: () => new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT),
 	invalidTransition: (from: string, to: string) =>
 		new Error(`${USER_MANAGEMENT_ERRORS.INVALID_TRANSITION}: ${from} -> ${to}`),
-};
+}
 
 interface UserManagementServiceDeps {
-	userManagementRepository: IUserManagementRepository;
-	emailService: IEmailService;
-	generatePassword: () => Promise<string>;
+	userManagementRepository: IUserManagementRepository
+	emailService: IEmailService
+	generatePassword: () => Promise<string>
 }
 
 /**
@@ -45,14 +45,14 @@ interface UserManagementServiceDeps {
  * Enforces business rules like unique emails and self-lockout prevention.
  */
 export class UserManagementService implements IUserManagementService {
-	private userManagementRepository: IUserManagementRepository;
-	private emailService: IEmailService;
-	private generatePassword: () => Promise<string>;
+	private userManagementRepository: IUserManagementRepository
+	private emailService: IEmailService
+	private generatePassword: () => Promise<string>
 
 	constructor({ userManagementRepository, emailService, generatePassword }: UserManagementServiceDeps) {
-		this.userManagementRepository = userManagementRepository;
-		this.emailService = emailService;
-		this.generatePassword = generatePassword;
+		this.userManagementRepository = userManagementRepository
+		this.emailService = emailService
+		this.generatePassword = generatePassword
 	}
 
 	/**
@@ -63,7 +63,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @returns Paginated response containing users with roles
 	 */
 	async getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
-		return this.userManagementRepository.findAll(pagination, search);
+		return this.userManagementRepository.findAll(pagination, search)
 	}
 
 	/**
@@ -74,11 +74,11 @@ export class UserManagementService implements IUserManagementService {
 	 * @throws Error if user not found
 	 */
 	async getUser(id: number): Promise<ManagedUserData> {
-		const userData = await this.userManagementRepository.findByIdWithRoles(id);
+		const userData = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!userData) {
-			throw userManagementErrors.notFound(id);
+			throw userManagementErrors.notFound(id)
 		}
-		return userData;
+		return userData
 	}
 
 	/**
@@ -91,15 +91,15 @@ export class UserManagementService implements IUserManagementService {
 	 * @throws Error if email already exists
 	 */
 	async createUser(params: CreateUserParams): Promise<CreateUserResponse> {
-		const existingUser = await this.userManagementRepository.findByEmail(params.email);
+		const existingUser = await this.userManagementRepository.findByEmail(params.email)
 		if (existingUser) {
-			throw userManagementErrors.emailExists(params.email);
+			throw userManagementErrors.emailExists(params.email)
 		}
 
-		const plainPassword = await this.generatePassword();
-		const passwordHash = await hash(plainPassword, getBcryptSaltRounds());
+		const plainPassword = await this.generatePassword()
+		const passwordHash = await hash(plainPassword, getBcryptSaltRounds())
 
-		const mustChangePassword = params.mustChangePassword ?? true;
+		const mustChangePassword = params.mustChangePassword ?? true
 
 		const user = await this.userManagementRepository.create({
 			email: params.email,
@@ -108,16 +108,16 @@ export class UserManagementService implements IUserManagementService {
 			passwordHash,
 			mustChangePassword,
 			roleIds: [...new Set(params.roleIds ?? [])],
-		});
+		})
 
 		const passwordEmailSent = await this.sendWelcomeEmail(
 			params.email,
 			params.firstName,
 			plainPassword,
 			mustChangePassword,
-		);
+		)
 
-		return { ...user, passwordEmailSent };
+		return { ...user, passwordEmailSent }
 	}
 
 	private async sendWelcomeEmail(
@@ -127,13 +127,13 @@ export class UserManagementService implements IUserManagementService {
 		mustChangePassword: boolean,
 	): Promise<boolean> {
 		try {
-			const emailContent = buildWelcomeEmail({ firstName, email, password, mustChangePassword });
-			await this.emailService.send({ to: email, ...emailContent });
-			return true;
+			const emailContent = buildWelcomeEmail({ firstName, email, password, mustChangePassword })
+			await this.emailService.send({ to: email, ...emailContent })
+			return true
 		} catch (error: unknown) {
 			// TODO(#66): Replace with structured logging service
-			console.error('[UserManagementService] Welcome email failed:', error);
-			return false;
+			console.error('[UserManagementService] Welcome email failed:', error)
+			return false
 		}
 	}
 
@@ -147,27 +147,27 @@ export class UserManagementService implements IUserManagementService {
 	 * @throws Error if email conflicts with existing user
 	 */
 	async updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData> {
-		const existingUser = await this.userManagementRepository.findByIdWithRoles(id);
+		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
-			throw userManagementErrors.notFound(id);
+			throw userManagementErrors.notFound(id)
 		}
 
 		// Check email uniqueness if changing email
 		if (params.email !== undefined && params.email !== existingUser.email) {
-			const emailUser = await this.userManagementRepository.findByEmail(params.email);
+			const emailUser = await this.userManagementRepository.findByEmail(params.email)
 			if (emailUser) {
-				throw userManagementErrors.emailExists(params.email);
+				throw userManagementErrors.emailExists(params.email)
 			}
 		}
 
 		// Update user fields
-		await this.userManagementRepository.update(id, params);
+		await this.userManagementRepository.update(id, params)
 
-		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id);
+		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!updatedUser) {
-			throw userManagementErrors.notFound(id);
+			throw userManagementErrors.notFound(id)
 		}
-		return updatedUser;
+		return updatedUser
 	}
 
 	/**
@@ -181,23 +181,23 @@ export class UserManagementService implements IUserManagementService {
 	 */
 	async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
 		if (id === params.changedBy) {
-			throw userManagementErrors.selfLockout();
+			throw userManagementErrors.selfLockout()
 		}
 
-		const existingUser = await this.userManagementRepository.findByIdWithRoles(id);
+		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
-			throw userManagementErrors.notFound(id);
+			throw userManagementErrors.notFound(id)
 		}
 
 		if (!this.isValidTransition(existingUser.status, params.status)) {
-			throw userManagementErrors.invalidTransition(existingUser.status, params.status);
+			throw userManagementErrors.invalidTransition(existingUser.status, params.status)
 		}
 
-		const updatedUser = await this.userManagementRepository.updateStatus(id, params);
+		const updatedUser = await this.userManagementRepository.updateStatus(id, params)
 		if (!updatedUser) {
-			throw userManagementErrors.notFound(id);
+			throw userManagementErrors.notFound(id)
 		}
-		return updatedUser;
+		return updatedUser
 	}
 
 	/**
@@ -209,11 +209,11 @@ export class UserManagementService implements IUserManagementService {
 	 */
 	async deleteUser(id: number, currentUserId: number): Promise<void> {
 		if (id === currentUserId) {
-			throw userManagementErrors.selfLockout();
+			throw userManagementErrors.selfLockout()
 		}
-		const deleted = await this.userManagementRepository.softDelete(id, currentUserId);
+		const deleted = await this.userManagementRepository.softDelete(id, currentUserId)
 		if (!deleted) {
-			throw userManagementErrors.notFound(id);
+			throw userManagementErrors.notFound(id)
 		}
 	}
 
@@ -222,7 +222,7 @@ export class UserManagementService implements IUserManagementService {
 		const allowed: Partial<Record<UserStatus, UserStatus[]>> = {
 			[UserStatus.ACTIVE]: [UserStatus.DISABLED],
 			[UserStatus.DISABLED]: [UserStatus.ACTIVE],
-		};
-		return allowed[from]?.includes(to) ?? false;
+		}
+		return allowed[from]?.includes(to) ?? false
 	}
 }

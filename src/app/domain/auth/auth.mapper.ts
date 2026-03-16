@@ -1,7 +1,7 @@
-import type { LoginResponse, MeResponse } from '@contracts/auth/auth.types';
-import { mapRole } from '../access/role.mapper';
-import type { IUser } from '../user/user.interface';
-import { createUser } from '../user/user.mapper';
+import type { LoginResponse, MeResponse } from '@contracts/auth/auth.types'
+import { mapRole } from '../access/role.mapper'
+import type { IUser } from '../user/user.interface'
+import { createUser } from '../user/user.mapper'
 
 /**
  * Maps a login response to an IUser.
@@ -18,16 +18,16 @@ export function mapLoginResponseToUser(response: LoginResponse): IUser {
 		firstName: response.user.firstName,
 		lastName: response.user.lastName,
 		roles: [], // Roles added via the /api/me endpoint
-	});
+	})
 }
 
 export function mapMeResponseToUser(response: MeResponse): IUser {
-	const roles = response.roles.map(mapRole);
+	const roles = response.roles.map(mapRole)
 	return createUser({
 		id: response.id,
 		email: response.email,
 		firstName: response.firstName,
 		lastName: response.lastName,
 		roles,
-	});
+	})
 }

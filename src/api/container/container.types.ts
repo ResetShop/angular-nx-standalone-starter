@@ -1,22 +1,22 @@
-import type { DrizzlePgConnector } from '../helpers/drizzle-postgres-connector';
-import type { IPermissionRepository, IPermissionService } from '../modules/access/permission/interfaces';
-import type { IRoleRepository, IRoleService } from '../modules/access/role/interfaces';
+import type { DrizzlePgConnector } from '../helpers/drizzle-postgres-connector'
+import type { IPermissionRepository, IPermissionService } from '../modules/access/permission/interfaces'
+import type { IRoleRepository, IRoleService } from '../modules/access/role/interfaces'
 import type {
 	IAuthService,
 	IAuthenticationRepository,
 	IRefreshTokenRepository,
 	ITokenMaintenanceService,
-} from '../modules/auth/interfaces';
-import type { IHealthService } from '../modules/health/interfaces';
+} from '../modules/auth/interfaces'
+import type { IHealthService } from '../modules/health/interfaces'
 import type {
 	IUserManagementRepository,
 	IUserManagementService,
 	IUserRepository,
 	IUserRoleRepository,
 	IUserRoleService,
-} from '../modules/user/interfaces';
-import type { IEmailRepository, IEmailService } from '../services/email/interfaces';
-import type { IPasetoService } from '../services/paseto/interfaces';
+} from '../modules/user/interfaces'
+import type { IEmailRepository, IEmailService } from '../services/email/interfaces'
+import type { IPasetoService } from '../services/paseto/interfaces'
 
 /**
  * Cradle interface defines all dependencies available in the container.
@@ -60,27 +60,27 @@ import type { IPasetoService } from '../services/paseto/interfaces';
  */
 export interface Cradle {
 	// Values (registerValues)
-	db: DrizzlePgConnector;
-	generatePassword: () => Promise<string>;
+	db: DrizzlePgConnector
+	generatePassword: () => Promise<string>
 
 	// Repositories (registerRepositories)
-	emailRepository: IEmailRepository;
-	userRepository: IUserRepository;
-	authRepository: IAuthenticationRepository;
-	refreshTokenRepository: IRefreshTokenRepository;
-	roleRepository: IRoleRepository;
-	permissionRepository: IPermissionRepository;
-	userRoleRepository: IUserRoleRepository;
-	userManagementRepository: IUserManagementRepository;
+	emailRepository: IEmailRepository
+	userRepository: IUserRepository
+	authRepository: IAuthenticationRepository
+	refreshTokenRepository: IRefreshTokenRepository
+	roleRepository: IRoleRepository
+	permissionRepository: IPermissionRepository
+	userRoleRepository: IUserRoleRepository
+	userManagementRepository: IUserManagementRepository
 
 	// Services (registerServices)
-	healthService: IHealthService;
-	emailService: IEmailService;
-	pasetoService: IPasetoService;
-	authService: IAuthService & ITokenMaintenanceService;
-	tokenMaintenanceService: ITokenMaintenanceService;
-	roleService: IRoleService;
-	permissionService: IPermissionService;
-	userRoleService: IUserRoleService;
-	userManagementService: IUserManagementService;
+	healthService: IHealthService
+	emailService: IEmailService
+	pasetoService: IPasetoService
+	authService: IAuthService & ITokenMaintenanceService
+	tokenMaintenanceService: ITokenMaintenanceService
+	roleService: IRoleService
+	permissionService: IPermissionService
+	userRoleService: IUserRoleService
+	userManagementService: IUserManagementService
 }

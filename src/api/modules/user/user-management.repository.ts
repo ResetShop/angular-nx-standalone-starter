@@ -1,12 +1,12 @@
-import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
-import { UserStatus } from '@contracts/user/user.schemas';
-import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm';
-import { authentication } from '../../../db/schema/authentication';
-import { role } from '../../../db/schema/role';
-import { user, userRole } from '../../../db/schema/user';
-import { BaseRepository } from '../../helpers/base.repository';
-import type { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { RoleData } from '../access/role/interfaces';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
+import { UserStatus } from '@contracts/user/user.schemas'
+import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
+import { authentication } from '../../../db/schema/authentication'
+import { role } from '../../../db/schema/role'
+import { user, userRole } from '../../../db/schema/user'
+import { BaseRepository } from '../../helpers/base.repository'
+import type { PaginatedResponse, PaginationParams } from '../../interfaces'
+import type { RoleData } from '../access/role/interfaces'
 import type {
 	CreateUserWithHashedPasswordParams,
 	IUserManagementRepository,
@@ -14,40 +14,40 @@ import type {
 	UpdateUserParams,
 	UpdateUserStatusParams,
 	UserData,
-} from './interfaces';
+} from './interfaces'
 
 // Mirrors UserWithTimestamps but kept file-local per Repository Projection Types convention.
 // Drizzle .select() returns this shape; it may diverge from the domain interface over time.
 interface UserProjection {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	status: UserStatus;
-	statusChangedAt: Date | null;
-	statusChangedBy: number | null;
-	deletedAt: Date | null;
-	createdAt: Date | null;
-	updatedAt: Date | null;
+	id: number
+	email: string
+	firstName: string
+	lastName: string
+	status: UserStatus
+	statusChangedAt: Date | null
+	statusChangedBy: number | null
+	deletedAt: Date | null
+	createdAt: Date | null
+	updatedAt: Date | null
 }
 
 interface FindByEmailProjection {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	status: UserStatus;
+	id: number
+	email: string
+	firstName: string
+	lastName: string
+	status: UserStatus
 }
 
 interface RoleAssignmentProjection {
-	userId: number;
-	roleId: number;
-	roleName: string;
-	roleCode: string;
-	roleDescription: string | null;
-	roleRemovable: boolean;
-	roleCreatedAt: Date | null;
-	roleUpdatedAt: Date | null;
+	userId: number
+	roleId: number
+	roleName: string
+	roleCode: string
+	roleDescription: string | null
+	roleRemovable: boolean
+	roleCreatedAt: Date | null
+	roleUpdatedAt: Date | null
 }
 
 /**
@@ -64,10 +64,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @returns Paginated response containing users with roles
 	 */
 	async findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
-		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
-		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
+		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT
+		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET
 
-		const baseCondition = ne(user.status, UserStatus.DELETED);
+		const baseCondition = ne(user.status, UserStatus.DELETED)
 
 		const whereClause = search
 			? and(
@@ -78,7 +78,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 						ilike(user.lastName, `%${search}%`),
 					),
 				)
-			: baseCondition;
+			: baseCondition
 
 		const [users, totalResult] = await Promise.all([
 			this.db
@@ -99,16 +99,16 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				.limit(limit)
 				.offset(offset),
 			this.db.select({ count: count() }).from(user).where(whereClause),
-		]);
+		])
 
-		const usersWithRoles = await this.attachRolesToUsers(users);
+		const usersWithRoles = await this.attachRolesToUsers(users)
 
 		return {
 			data: usersWithRoles,
 			total: totalResult[0].count,
 			offset,
 			limit,
-		};
+		}
 	}
 
 	/**
@@ -134,14 +134,14 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			})
 			.from(user)
 			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-			.limit(1);
+			.limit(1)
 
 		if (result.length === 0) {
-			return null;
+			return null
 		}
 
-		const usersWithRoles = await this.attachRolesToUsers(result);
-		return usersWithRoles[0];
+		const usersWithRoles = await this.attachRolesToUsers(result)
+		return usersWithRoles[0]
 	}
 
 	/**
@@ -161,9 +161,9 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			})
 			.from(user)
 			.where(and(eq(user.email, email), ne(user.status, UserStatus.DELETED)))
-			.limit(1);
+			.limit(1)
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -193,24 +193,24 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 					deletedAt: user.deletedAt,
 					createdAt: user.createdAt,
 					updatedAt: user.updatedAt,
-				});
+				})
 
-			const newUser = userResult[0];
+			const newUser = userResult[0]
 
 			await tx.insert(authentication).values({
 				userId: newUser.id,
 				passwordHash: params.passwordHash,
 				mustChangePassword: params.mustChangePassword,
-			});
+			})
 
 			if (params.roleIds.length > 0) {
-				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }));
-				await tx.insert(userRole).values(values);
+				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }))
+				await tx.insert(userRole).values(values)
 			}
 
-			const [result] = await this.attachRolesToUsers([newUser]);
-			return result;
-		});
+			const [result] = await this.attachRolesToUsers([newUser])
+			return result
+		})
 	}
 
 	/**
@@ -222,16 +222,16 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @returns Updated user data, or null if not found
 	 */
 	async update(id: number, params: UpdateUserParams): Promise<UserData | null> {
-		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() };
+		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() }
 
 		if (params.email !== undefined) {
-			updateData.email = params.email;
+			updateData.email = params.email
 		}
 		if (params.firstName !== undefined) {
-			updateData.firstName = params.firstName;
+			updateData.firstName = params.firstName
 		}
 		if (params.lastName !== undefined) {
-			updateData.lastName = params.lastName;
+			updateData.lastName = params.lastName
 		}
 
 		const result = await this.db
@@ -244,9 +244,9 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				firstName: user.firstName,
 				lastName: user.lastName,
 				status: user.status,
-			});
+			})
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -257,7 +257,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @returns true if the user was deleted, false if not found
 	 */
 	async softDelete(id: number, changedBy: number): Promise<boolean> {
-		const now = new Date();
+		const now = new Date()
 		const result = await this.db
 			.update(user)
 			.set({
@@ -268,9 +268,9 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				updatedAt: now,
 			})
 			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-			.returning({ id: user.id });
+			.returning({ id: user.id })
 
-		return result.length > 0;
+		return result.length > 0
 	}
 
 	/**
@@ -282,7 +282,7 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 * @returns Updated user data with roles, or null if not found or deleted
 	 */
 	async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
-		const now = new Date();
+		const now = new Date()
 		const result = await this.db
 			.update(user)
 			.set({
@@ -303,14 +303,14 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				deletedAt: user.deletedAt,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,
-			});
+			})
 
 		if (result.length === 0) {
-			return null;
+			return null
 		}
 
-		const [updatedWithRoles] = await this.attachRolesToUsers(result);
-		return updatedWithRoles;
+		const [updatedWithRoles] = await this.attachRolesToUsers(result)
+		return updatedWithRoles
 	}
 
 	/**
@@ -319,10 +319,10 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 	 */
 	private async attachRolesToUsers(users: UserProjection[]): Promise<ManagedUserData[]> {
 		if (users.length === 0) {
-			return [];
+			return []
 		}
 
-		const userIds = users.map((u) => u.id);
+		const userIds = users.map((u) => u.id)
 
 		const roleAssignments = await this.db
 			.select({
@@ -337,23 +337,23 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 			})
 			.from(userRole)
 			.innerJoin(role, eq(userRole.roleId, role.id))
-			.where(inArray(userRole.userId, userIds));
+			.where(inArray(userRole.userId, userIds))
 
-		const rolesByUserId = this.groupRolesByUserId(roleAssignments);
+		const rolesByUserId = this.groupRolesByUserId(roleAssignments)
 
 		return users.map((u) => ({
 			...u,
 			roles: rolesByUserId.get(u.id) ?? [],
-		}));
+		}))
 	}
 
 	/**
 	 * Groups role assignment rows into a map keyed by user ID.
 	 */
 	private groupRolesByUserId(roleAssignments: RoleAssignmentProjection[]): Map<number, RoleData[]> {
-		const rolesByUserId = new Map<number, RoleData[]>();
+		const rolesByUserId = new Map<number, RoleData[]>()
 		for (const ra of roleAssignments) {
-			const roles = rolesByUserId.get(ra.userId) ?? [];
+			const roles = rolesByUserId.get(ra.userId) ?? []
 			roles.push({
 				id: ra.roleId,
 				name: ra.roleName,
@@ -362,9 +362,9 @@ export class UserManagementRepository extends BaseRepository implements IUserMan
 				removable: ra.roleRemovable,
 				createdAt: ra.roleCreatedAt,
 				updatedAt: ra.roleUpdatedAt,
-			});
-			rolesByUserId.set(ra.userId, roles);
+			})
+			rolesByUserId.set(ra.userId, roles)
 		}
-		return rolesByUserId;
+		return rolesByUserId
 	}
 }

@@ -1,22 +1,22 @@
-import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
-import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert';
-import { Badge } from '../../../../components/badge/badge';
+import { DatePipe } from '@angular/common'
+import { HttpClient } from '@angular/common/http'
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { rxResource } from '@angular/core/rxjs-interop'
+import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert'
+import { Badge } from '../../../../components/badge/badge'
 
 interface DatabaseCheck {
-	readonly status: 'healthy' | 'unhealthy';
-	readonly responseTimeMs: number | null;
-	readonly error?: string;
+	readonly status: 'healthy' | 'unhealthy'
+	readonly responseTimeMs: number | null
+	readonly error?: string
 }
 
 interface HealthApiResponse {
-	readonly status: string;
-	readonly timestamp: string;
+	readonly status: string
+	readonly timestamp: string
 	readonly checks: {
-		readonly database: DatabaseCheck;
-	};
+		readonly database: DatabaseCheck
+	}
 }
 
 @Component({
@@ -75,9 +75,9 @@ interface HealthApiResponse {
 	`,
 })
 export default class Health {
-	private http = inject(HttpClient);
+	private http = inject(HttpClient)
 
 	healthResource = rxResource({
 		stream: () => this.http.get<HealthApiResponse>('/api/health/v1'),
-	});
+	})
 }

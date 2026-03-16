@@ -1,11 +1,11 @@
-import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors';
-import { UserStatus } from '@contracts/user/user.schemas';
-import { parseDurationToMs } from '@utils/duration';
-import { compare } from 'bcryptjs';
-import { createHash, randomUUID } from 'crypto';
-import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants';
-import { type IPasetoService } from '../../services/paseto/interfaces';
-import { type IUserRepository, type UserData } from '../user/interfaces';
+import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors'
+import { UserStatus } from '@contracts/user/user.schemas'
+import { parseDurationToMs } from '@utils/duration'
+import { compare } from 'bcryptjs'
+import { createHash, randomUUID } from 'crypto'
+import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
+import { type IPasetoService } from '../../services/paseto/interfaces'
+import { type IUserRepository, type UserData } from '../user/interfaces'
 import {
 	type AuthCredentials,
 	type AuthResult,
@@ -16,13 +16,13 @@ import {
 	type IRefreshTokenRepository,
 	type ITokenMaintenanceService,
 	type RefreshResult,
-} from './interfaces';
+} from './interfaces'
 
 interface AuthServiceDeps {
-	userRepository: IUserRepository;
-	authRepository: IAuthenticationRepository;
-	refreshTokenRepository: IRefreshTokenRepository;
-	pasetoService: IPasetoService;
+	userRepository: IUserRepository
+	authRepository: IAuthenticationRepository
+	refreshTokenRepository: IRefreshTokenRepository
+	pasetoService: IPasetoService
 }
 
 /**
@@ -31,16 +31,16 @@ interface AuthServiceDeps {
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
 export class AuthService implements IAuthService, ITokenMaintenanceService {
-	private userRepository: IUserRepository;
-	private authRepository: IAuthenticationRepository;
-	private refreshTokenRepository: IRefreshTokenRepository;
-	private pasetoService: IPasetoService;
+	private userRepository: IUserRepository
+	private authRepository: IAuthenticationRepository
+	private refreshTokenRepository: IRefreshTokenRepository
+	private pasetoService: IPasetoService
 
 	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService }: AuthServiceDeps) {
-		this.userRepository = userRepository;
-		this.authRepository = authRepository;
-		this.refreshTokenRepository = refreshTokenRepository;
-		this.pasetoService = pasetoService;
+		this.userRepository = userRepository
+		this.authRepository = authRepository
+		this.refreshTokenRepository = refreshTokenRepository
+		this.pasetoService = pasetoService
 	}
 
 	/**
@@ -50,9 +50,9 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 */
 	private getRefreshTokenExpiry(): Date {
 		// duration is read directly from env vars to allow changing the generated refresh token expiration time at runtime
-		const duration = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY;
-		const expiryMs = parseDurationToMs(duration);
-		return new Date(Date.now() + expiryMs);
+		const duration = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY
+		const expiryMs = parseDurationToMs(duration)
+		return new Date(Date.now() + expiryMs)
 	}
 
 	/**
@@ -67,13 +67,13 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 * @throws AuthError with ACCOUNT_LOCKED code if account is locked due to failed attempts
 	 */
 	async authenticate(credentials: AuthCredentials): Promise<AuthResult> {
-		const { user, authRecord } = await this.findUserAndAuth(credentials.email);
-		this.checkAccountLockout(authRecord, user?.id);
+		const { user, authRecord } = await this.findUserAndAuth(credentials.email)
+		this.checkAccountLockout(authRecord, user?.id)
 
-		const validated = await this.validateCredentials(user, authRecord, credentials.password);
-		await this.handleSuccessfulLogin(validated.user, validated.authRecord);
+		const validated = await this.validateCredentials(user, authRecord, credentials.password)
+		await this.handleSuccessfulLogin(validated.user, validated.authRecord)
 
-		const tokens = await this.generateTokenPair(validated.user);
+		const tokens = await this.generateTokenPair(validated.user)
 
 		return {
 			...tokens,
@@ -84,7 +84,7 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 				lastName: validated.user.lastName,
 			},
 			mustChangePassword: validated.authRecord.mustChangePassword,
-		};
+		}
 	}
 
 	/**
@@ -103,9 +103,9 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	private async findUserAndAuth(
 		email: string,
 	): Promise<{ user: UserData | null; authRecord: AuthenticationData | null }> {
-		const user = await this.userRepository.findByEmail(email);
-		const authRecord = user ? await this.authRepository.findByUserId(user.id) : null;
-		return { user, authRecord };
+		const user = await this.userRepository.findByEmail(email)
+		const authRecord = user ? await this.authRepository.findByUserId(user.id) : null
+		return { user, authRecord }
 	}
 
 	/**
@@ -125,8 +125,8 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 					lockedUntil: authRecord.lockedUntil.toISOString(),
 					timestamp: new Date().toISOString(),
 				}),
-			);
-			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED);
+			)
+			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED)
 		}
 	}
 
@@ -153,15 +153,15 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 		authRecord: AuthenticationData | null,
 		password: string,
 	): Promise<{ user: UserData; authRecord: AuthenticationData }> {
-		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy';
-		const passwordMatch = await compare(password, hashToCompare);
+		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy'
+		const passwordMatch = await compare(password, hashToCompare)
 
 		if (!user || !authRecord || !passwordMatch || user.status !== UserStatus.ACTIVE) {
-			await this.handleFailedLogin(user, authRecord);
-			throw new AuthError(InternalAuthErrorCode.INVALID_CREDENTIALS);
+			await this.handleFailedLogin(user, authRecord)
+			throw new AuthError(InternalAuthErrorCode.INVALID_CREDENTIALS)
 		}
 
-		return { user, authRecord };
+		return { user, authRecord }
 	}
 
 	/**
@@ -172,11 +172,11 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 */
 	private async handleFailedLogin(user: UserData | null, authRecord: AuthenticationData | null): Promise<void> {
 		if (!user || !authRecord) {
-			this.logAuthFailure(user, authRecord);
-			return;
+			this.logAuthFailure(user, authRecord)
+			return
 		}
 
-		const result = await this.authRepository.incrementAndLockIfNeeded(user.id);
+		const result = await this.authRepository.incrementAndLockIfNeeded(user.id)
 
 		if (result.wasLocked && result.lockedUntil) {
 			// TODO(#66): Replace with structured logging service
@@ -188,10 +188,10 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 					lockedUntil: result.lockedUntil.toISOString(),
 					timestamp: new Date().toISOString(),
 				}),
-			);
+			)
 		}
 
-		this.logAuthFailure(user, authRecord);
+		this.logAuthFailure(user, authRecord)
 	}
 
 	/**
@@ -203,15 +203,15 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	// TODO(#66): Replace with structured logging service
 	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
 		if (!user) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND));
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND))
 		} else if (!authRecord) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND));
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND))
 		} else if (user.status === UserStatus.DELETED) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED));
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED))
 		} else if (user.status === UserStatus.DISABLED) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED));
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED))
 		} else {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS));
+			console.error(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
 		}
 	}
 
@@ -223,10 +223,10 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 */
 	private async handleSuccessfulLogin(user: UserData, authRecord: AuthenticationData): Promise<void> {
 		if (authRecord.failedLoginAttempts > 0) {
-			await this.authRepository.resetFailedAttempts(user.id);
+			await this.authRepository.resetFailedAttempts(user.id)
 		}
 
-		await this.refreshTokenRepository.deleteExpiredTokensForUser(user.id);
+		await this.refreshTokenRepository.deleteExpiredTokensForUser(user.id)
 	}
 
 	/**
@@ -241,23 +241,23 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 			email: user.email,
 			firstName: user.firstName,
 			lastName: user.lastName,
-		});
+		})
 
-		const tokenFamily = randomUUID();
-		const refreshToken = await this.pasetoService.generateRefreshToken(user.id.toString(), tokenFamily);
+		const tokenFamily = randomUUID()
+		const refreshToken = await this.pasetoService.generateRefreshToken(user.id.toString(), tokenFamily)
 
-		const refreshTokenHash = createHash('sha256').update(refreshToken).digest('hex');
+		const refreshTokenHash = createHash('sha256').update(refreshToken).digest('hex')
 		await this.refreshTokenRepository.create({
 			userId: user.id,
 			tokenFamily,
 			tokenHash: refreshTokenHash,
 			expiresAt: this.getRefreshTokenExpiry(),
-		});
+		})
 
 		return {
 			token: accessToken,
 			refreshToken,
-		};
+		}
 	}
 
 	/**
@@ -271,26 +271,26 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 */
 	async refreshToken(token: string): Promise<RefreshResult> {
 		// 1. Verify refresh token
-		const payload = await this.pasetoService.verifyRefreshToken(token);
+		const payload = await this.pasetoService.verifyRefreshToken(token)
 
 		// 2. Validate token family exists (required for rotation tracking)
 		if (!payload.tokenFamily) {
-			throw new AuthError(InternalAuthErrorCode.TOKEN_MISSING_FAMILY);
+			throw new AuthError(InternalAuthErrorCode.TOKEN_MISSING_FAMILY)
 		}
 
 		// 3. Check if token is revoked in database
-		const tokenHash = createHash('sha256').update(token).digest('hex');
-		const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash);
+		const tokenHash = createHash('sha256').update(token).digest('hex')
+		const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash)
 
 		// Treat missing tokens as revoked — covers garbage-collected, never-stored, or deleted token cases
 		if (!storedToken) {
-			throw new AuthError(InternalAuthErrorCode.TOKEN_REVOKED);
+			throw new AuthError(InternalAuthErrorCode.TOKEN_REVOKED)
 		}
 
 		// 4. Check if token is expired (before reuse detection, so expired+revoked tokens
 		// don't trigger family revocation — expiry is the expected lifecycle outcome)
 		if (storedToken.expiresAt < new Date()) {
-			throw new AuthError(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED);
+			throw new AuthError(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED)
 		}
 
 		// 5. Token reuse detection: if a non-expired revoked token is replayed, an attacker
@@ -304,24 +304,24 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 					tokenFamily: storedToken.tokenFamily,
 					timestamp: new Date().toISOString(),
 				}),
-			);
+			)
 			try {
-				await this.refreshTokenRepository.revokeTokenFamily(storedToken.tokenFamily);
+				await this.refreshTokenRepository.revokeTokenFamily(storedToken.tokenFamily)
 			} catch (error) {
 				// TODO(#66): Replace with structured logging service
-				console.error('[TokenReuse] Failed to revoke token family:', error);
+				console.error('[TokenReuse] Failed to revoke token family:', error)
 			}
-			throw new AuthError(InternalAuthErrorCode.TOKEN_REUSE_DETECTED);
+			throw new AuthError(InternalAuthErrorCode.TOKEN_REUSE_DETECTED)
 		}
 
 		// 6. Get user data and validate account status
-		const user = await this.userRepository.findById(Number(payload.sub));
+		const user = await this.userRepository.findById(Number(payload.sub))
 		if (!user || user.status === UserStatus.DELETED) {
-			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND);
+			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND)
 		}
 
 		if (user.status !== UserStatus.ACTIVE) {
-			throw new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED);
+			throw new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED)
 		}
 
 		// 7. Generate new tokens
@@ -330,29 +330,29 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 			email: user.email,
 			firstName: user.firstName,
 			lastName: user.lastName,
-		});
+		})
 
 		const newRefreshToken = await this.pasetoService.generateRefreshToken(
 			user.id.toString(),
 			payload.tokenFamily, // Maintain token family for rotation
-		);
+		)
 
 		// 8. Revoke old refresh token
-		await this.refreshTokenRepository.revokeToken(storedToken.id);
+		await this.refreshTokenRepository.revokeToken(storedToken.id)
 
 		// 9. Store new refresh token
-		const newTokenHash = createHash('sha256').update(newRefreshToken).digest('hex');
+		const newTokenHash = createHash('sha256').update(newRefreshToken).digest('hex')
 		await this.refreshTokenRepository.create({
 			userId: user.id,
 			tokenFamily: payload.tokenFamily,
 			tokenHash: newTokenHash,
 			expiresAt: this.getRefreshTokenExpiry(),
-		});
+		})
 
 		return {
 			token: newAccessToken,
 			refreshToken: newRefreshToken,
-		};
+		}
 	}
 
 	/**
@@ -363,10 +363,10 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 */
 	async logout(userId: number): Promise<void> {
 		// Revoke all refresh tokens for this user
-		await this.refreshTokenRepository.revokeAllForUser(userId);
+		await this.refreshTokenRepository.revokeAllForUser(userId)
 
 		// Delete all expired tokens for this user
-		await this.refreshTokenRepository.deleteExpiredTokensForUser(userId);
+		await this.refreshTokenRepository.deleteExpiredTokensForUser(userId)
 	}
 
 	/**
@@ -379,25 +379,25 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 	 */
 	async cleanupExpiredTokens(): Promise<CleanupResult | null> {
 		// Try to acquire database-level lock (works across multiple server instances)
-		let lockAcquired = false;
+		let lockAcquired = false
 		try {
-			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock();
+			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock()
 		} catch (error) {
 			// TODO(#66): Replace with structured logging service
-			console.error('[TokenCleanup] Failed to acquire advisory lock:', error);
-			return null;
+			console.error('[TokenCleanup] Failed to acquire advisory lock:', error)
+			return null
 		}
 
 		if (!lockAcquired) {
 			// TODO(#66): Replace with structured logging service
-			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)');
-			return null;
+			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)')
+			return null
 		}
 
 		try {
-			const startTime = Date.now();
-			const result = await this.refreshTokenRepository.deleteAllExpiredTokens();
-			const durationMs = Date.now() - startTime;
+			const startTime = Date.now()
+			const result = await this.refreshTokenRepository.deleteAllExpiredTokens()
+			const durationMs = Date.now() - startTime
 
 			// TODO(#66): Replace with structured logging service
 			console.log(
@@ -408,17 +408,17 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 					incomplete: result.incomplete,
 					timestamp: new Date().toISOString(),
 				}),
-			);
+			)
 
 			// TODO(#66): Replace with structured logging service
-			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`);
+			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`)
 			if (result.incomplete) {
-				console.warn('[TokenCleanup] Cleanup was incomplete - more expired tokens may remain');
+				console.warn('[TokenCleanup] Cleanup was incomplete - more expired tokens may remain')
 			}
-			return result;
+			return result
 		} finally {
 			try {
-				await this.refreshTokenRepository.releaseCleanupLock();
+				await this.refreshTokenRepository.releaseCleanupLock()
 			} catch (error) {
 				// TODO(#66): Replace with structured logging service
 				// PostgreSQL session advisory locks (pg_advisory_lock) are automatically
@@ -429,7 +429,7 @@ export class AuthService implements IAuthService, ITokenMaintenanceService {
 				console.error(
 					'[TokenCleanup] Failed to release advisory lock. Lock will auto-release when DB session ends:',
 					error,
-				);
+				)
 			}
 		}
 	}

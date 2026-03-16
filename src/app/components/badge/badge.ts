@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
-export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -19,7 +19,7 @@ export class Badge {
 	 * Visual variant of the badge
 	 * @default 'default'
 	 */
-	readonly variant = input<BadgeVariant>('default');
+	readonly variant = input<BadgeVariant>('default')
 
 	private readonly baseClasses = [
 		'inline-flex',
@@ -33,7 +33,7 @@ export class Badge {
 		'transition-colors',
 		'duration-300',
 		'ease-in-out',
-	];
+	]
 
 	/**
 	 * Computed classes based on variant
@@ -44,8 +44,8 @@ export class Badge {
 			secondary: ['bg-secondary', 'border-transparent', 'text-secondary-foreground'],
 			destructive: ['bg-destructive/10', 'border-transparent', 'text-destructive', 'dark:bg-destructive/20'],
 			outline: ['border-border', 'text-foreground'],
-		};
+		}
 
-		return [...this.baseClasses, ...variantClasses[this.variant()]].join(' ');
-	});
+		return [...this.baseClasses, ...variantClasses[this.variant()]].join(' ')
+	})
 }

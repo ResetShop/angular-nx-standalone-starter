@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { RouterLink } from '@angular/router'
 
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { featherChevronRight } from '@ng-icons/feather-icons';
-import { Navigation } from '@providers/navigation/navigation';
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherChevronRight } from '@ng-icons/feather-icons'
+import { Navigation } from '@providers/navigation/navigation'
 
 @Component({
 	selector: 'app-breadcrumb',
@@ -42,6 +42,6 @@ import { Navigation } from '@providers/navigation/navigation';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Breadcrumb {
-	private navigation = inject(Navigation);
-	readonly breadcrumbs = computed(() => this.navigation.breadcrumbs());
+	private navigation = inject(Navigation)
+	readonly breadcrumbs = computed(() => this.navigation.breadcrumbs())
 }

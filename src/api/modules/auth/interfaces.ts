@@ -1,12 +1,12 @@
-import type { AuthUser } from '@contracts/user/user.types';
+import type { AuthUser } from '@contracts/user/user.types'
 
 export interface AuthenticationData {
-	id: number;
-	userId: number;
-	passwordHash: string;
-	failedLoginAttempts: number;
-	lockedUntil: Date | null;
-	mustChangePassword: boolean;
+	id: number
+	userId: number
+	passwordHash: string
+	failedLoginAttempts: number
+	lockedUntil: Date | null
+	mustChangePassword: boolean
 }
 
 /**
@@ -14,37 +14,37 @@ export interface AuthenticationData {
  */
 export interface IncrementAttemptsResult {
 	/** The new failed attempts count after incrementing */
-	failedAttempts: number;
+	failedAttempts: number
 	/** True if account was locked due to reaching threshold */
-	wasLocked: boolean;
+	wasLocked: boolean
 	/** Timestamp when lockout expires (only set if wasLocked is true) */
-	lockedUntil?: Date;
+	lockedUntil?: Date
 }
 
 export interface IAuthenticationRepository {
-	findByUserId(userId: number): Promise<AuthenticationData | null>;
-	incrementFailedAttempts(userId: number): Promise<number>;
-	lockAccount(userId: number, lockedUntil: Date): Promise<void>;
-	resetFailedAttempts(userId: number): Promise<void>;
-	incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult>;
+	findByUserId(userId: number): Promise<AuthenticationData | null>
+	incrementFailedAttempts(userId: number): Promise<number>
+	lockAccount(userId: number, lockedUntil: Date): Promise<void>
+	resetFailedAttempts(userId: number): Promise<void>
+	incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult>
 }
 
 export interface RefreshTokenData {
-	id: number;
-	userId: number;
-	tokenFamily: string;
-	tokenHash: string;
-	expiresAt: Date;
-	isRevoked: boolean;
-	createdAt: Date | null;
-	revokedAt: Date | null;
+	id: number
+	userId: number
+	tokenFamily: string
+	tokenHash: string
+	expiresAt: Date
+	isRevoked: boolean
+	createdAt: Date | null
+	revokedAt: Date | null
 }
 
 export interface CreateRefreshTokenParams {
-	userId: number;
-	tokenFamily: string;
-	tokenHash: string;
-	expiresAt: Date;
+	userId: number
+	tokenFamily: string
+	tokenHash: string
+	expiresAt: Date
 }
 
 /**
@@ -52,21 +52,21 @@ export interface CreateRefreshTokenParams {
  */
 export interface CleanupResult {
 	/** Number of tokens deleted */
-	deletedCount: number;
+	deletedCount: number
 	/** True if cleanup hit the max batch limit and more expired tokens may remain */
-	incomplete: boolean;
+	incomplete: boolean
 }
 
 export interface IRefreshTokenRepository {
-	findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null>;
-	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>;
-	revokeToken(tokenId: number): Promise<void>;
-	revokeAllForUser(userId: number): Promise<void>;
-	revokeTokenFamily(tokenFamily: string): Promise<void>;
-	deleteExpiredTokensForUser(userId: number): Promise<number>;
-	tryAcquireCleanupLock(): Promise<boolean>;
-	releaseCleanupLock(): Promise<void>;
-	deleteAllExpiredTokens(): Promise<CleanupResult>;
+	findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null>
+	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>
+	revokeToken(tokenId: number): Promise<void>
+	revokeAllForUser(userId: number): Promise<void>
+	revokeTokenFamily(tokenFamily: string): Promise<void>
+	deleteExpiredTokensForUser(userId: number): Promise<number>
+	tryAcquireCleanupLock(): Promise<boolean>
+	releaseCleanupLock(): Promise<void>
+	deleteAllExpiredTokens(): Promise<CleanupResult>
 }
 
 // ============================================================================
@@ -77,8 +77,8 @@ export interface IRefreshTokenRepository {
  * Credentials for user authentication.
  */
 export interface AuthCredentials {
-	email: string;
-	password: string;
+	email: string
+	password: string
 }
 
 /**
@@ -87,10 +87,10 @@ export interface AuthCredentials {
  * and returns `user` and `mustChangePassword` in the HTTP response body.
  */
 export interface AuthResult {
-	user: AuthUser;
-	mustChangePassword: boolean;
-	token: string;
-	refreshToken: string;
+	user: AuthUser
+	mustChangePassword: boolean
+	token: string
+	refreshToken: string
 }
 
 /**
@@ -99,17 +99,17 @@ export interface AuthResult {
  * The HTTP response body is empty.
  */
 export interface RefreshResult {
-	token: string;
-	refreshToken: string;
+	token: string
+	refreshToken: string
 }
 
 /**
  * Service interface for authentication operations: login, logout, and token refresh.
  */
 export interface IAuthService {
-	authenticate(credentials: AuthCredentials): Promise<AuthResult>;
-	refreshToken(token: string): Promise<RefreshResult>;
-	logout(userId: number): Promise<void>;
+	authenticate(credentials: AuthCredentials): Promise<AuthResult>
+	refreshToken(token: string): Promise<RefreshResult>
+	logout(userId: number): Promise<void>
 }
 
 /**
@@ -122,5 +122,5 @@ export interface IAuthService {
  * added here rather than to IAuthService.
  */
 export interface ITokenMaintenanceService {
-	cleanupExpiredTokens(): Promise<CleanupResult | null>;
+	cleanupExpiredTokens(): Promise<CleanupResult | null>
 }

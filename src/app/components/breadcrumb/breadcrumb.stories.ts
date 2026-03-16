@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import { provideRouter } from '@angular/router';
-import { Breadcrumb } from './breadcrumb';
-import { Navigation } from '@providers/navigation/navigation';
-import { BreadcrumbItem } from '@interfaces/navigation';
+import { provideRouter } from '@angular/router'
+import { BreadcrumbItem } from '@interfaces/navigation'
+import { Navigation } from '@providers/navigation/navigation'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import { Breadcrumb } from './breadcrumb'
 
 const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 	provide: Navigation,
@@ -11,7 +11,7 @@ const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 		breadcrumbs: () => breadcrumbs,
 		sections: () => [],
 	},
-});
+})
 
 const meta: Meta<Breadcrumb> = {
 	component: Breadcrumb,
@@ -81,11 +81,11 @@ import { Breadcrumb } from '@components/breadcrumb';
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Breadcrumb>;
+type Story = StoryObj<Breadcrumb>
 
 /**
  * Single breadcrumb item displaying the current page.
@@ -103,7 +103,7 @@ export const SingleItem: Story = {
 	render: () => ({
 		template: '<app-breadcrumb />',
 	}),
-};
+}
 
 /**
  * Multiple breadcrumb items showing the hierarchical path.
@@ -124,7 +124,7 @@ export const MultipleItems: Story = {
 	render: () => ({
 		template: '<app-breadcrumb />',
 	}),
-};
+}
 
 /**
  * Deep nested breadcrumb path with multiple levels.
@@ -147,7 +147,7 @@ export const DeepNesting: Story = {
 	render: () => ({
 		template: '<app-breadcrumb />',
 	}),
-};
+}
 
 /**
  * Breadcrumb with long titles demonstrating text wrapping.
@@ -167,7 +167,7 @@ export const LongTitles: Story = {
 	render: () => ({
 		template: '<div class="max-w-2xl"><app-breadcrumb /></div>',
 	}),
-};
+}
 
 /**
  * Breadcrumb with special characters and various text styles.
@@ -187,7 +187,7 @@ export const SpecialCharacters: Story = {
 	render: () => ({
 		template: '<app-breadcrumb />',
 	}),
-};
+}
 
 /**
  * Breadcrumb in a light theme container.
@@ -212,7 +212,7 @@ export const LightTheme: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Breadcrumb in a dark theme container.
@@ -237,7 +237,7 @@ export const DarkTheme: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Breadcrumb within a typical page header layout.
@@ -266,7 +266,7 @@ export const InPageHeader: Story = {
 			</header>
 		`,
 	}),
-};
+}
 
 /**
  * Breadcrumb with responsive behavior.
@@ -293,7 +293,7 @@ export const Responsive: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Example showing all breadcrumb variations in one view.
@@ -329,4 +329,4 @@ export const AllStates: Story = {
 			</div>
 		`,
 	}),
-};
+}

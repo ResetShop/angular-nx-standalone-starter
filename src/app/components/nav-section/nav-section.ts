@@ -1,4 +1,4 @@
-import { NgComponentOutlet } from '@angular/common';
+import { NgComponentOutlet } from '@angular/common'
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -7,11 +7,11 @@ import {
 	EnvironmentInjector,
 	inject,
 	input,
-} from '@angular/core';
-import NavItem from '@components/nav-item/nav-item';
-import { NavigationSection } from '@interfaces/navigation';
-import { provideIcons } from '@ng-icons/core';
-import { featherChevronRight } from '@ng-icons/feather-icons';
+} from '@angular/core'
+import NavItem from '@components/nav-item/nav-item'
+import { NavigationSection } from '@interfaces/navigation'
+import { provideIcons } from '@ng-icons/core'
+import { featherChevronRight } from '@ng-icons/feather-icons'
 
 @Component({
 	selector: 'app-nav-section',
@@ -34,11 +34,11 @@ import { featherChevronRight } from '@ng-icons/feather-icons';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavSection {
-	readonly NavItem = NavItem;
-	readonly showTitle = input<boolean>(true);
-	readonly section = input.required<NavigationSection>();
+	readonly NavItem = NavItem
+	readonly showTitle = input<boolean>(true)
+	readonly section = input.required<NavigationSection>()
 
-	private injector = inject(EnvironmentInjector);
+	private injector = inject(EnvironmentInjector)
 
 	// We use a custom injector for the nav items to load ng-icons on demand using lazy loading
 	// By providing the icon definitions in navigation.config.ts we're able to directly load the icons
@@ -53,5 +53,5 @@ export default class NavSection {
 				this.injector,
 			),
 		})),
-	);
+	)
 }

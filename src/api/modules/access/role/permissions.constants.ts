@@ -1,11 +1,11 @@
-import { permission } from '../../user/permission-types';
+import { permission } from '../../user/permission-types'
 
 /**
  * Admin module permissions for permission management.
  */
 export const ADMIN_PERMISSION_PERMISSIONS = {
 	READ: permission('admin:permissions:read'),
-} as const;
+} as const
 
 /**
  * Admin module permissions for user management.
@@ -17,7 +17,7 @@ export const ADMIN_USER_PERMISSIONS = {
 	DELETE: permission('admin:users:delete'),
 	RESET_PASSWORD: permission('admin:users:reset_password'),
 	DISABLE: permission('admin:users:disable'),
-} as const;
+} as const
 
 /**
  * Admin module permissions for role management.
@@ -27,7 +27,7 @@ export const ADMIN_ROLE_PERMISSIONS = {
 	READ: permission('admin:roles:read'),
 	UPDATE: permission('admin:roles:update'),
 	DELETE: permission('admin:roles:delete'),
-} as const;
+} as const
 
 /**
  * Admin module permissions for user-role assignment management.
@@ -36,7 +36,7 @@ export const ADMIN_USER_ROLE_PERMISSIONS = {
 	READ: permission('admin:user_roles:read'),
 	ASSIGN: permission('admin:user_roles:assign'),
 	REMOVE: permission('admin:user_roles:remove'),
-} as const;
+} as const
 
 /**
  * All admin permission definitions for seeding.
@@ -131,4 +131,4 @@ export const ADMIN_PERMISSIONS_SEED_DATA = [
 		resource: 'user_roles',
 		action: 'remove',
 	},
-] as const;
+] as const
