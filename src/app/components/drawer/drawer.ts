@@ -58,6 +58,7 @@ export class Drawer implements OnDestroy {
 	/** Content child for custom footer */
 	readonly footerTemplate = contentChild(DrawerFooter);
 
+	/** Host `class` attribute forwarded to the inner dialog panel for width/layout overrides (e.g. `class="w-lg"`) */
 	private readonly hostClasses = inject(new HostAttributeToken('class'), { optional: true }) ?? '';
 	private readonly drawerTracker = inject(DrawerTracker);
 	private readonly closeTransition$ = new Subject<void>();
