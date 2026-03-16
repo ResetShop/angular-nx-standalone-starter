@@ -62,17 +62,17 @@ export class Drawer implements OnDestroy {
 	private readonly transition = inject(DrawerTransition);
 	private readonly panel = inject(DrawerPanel);
 
-	/** Whether the spinner should be shown */
+	/** Whether the spinner should be shown — public for consumer template access */
 	readonly showSpinner = this.loading.showSpinner;
 
 	/** Combined panel classes */
-	readonly panelClasses = this.panel.panelClasses;
+	protected readonly panelClasses = this.panel.panelClasses;
 
 	/** Unique ID for aria-labelledby */
-	readonly titleId = `drawer-title-${this.instanceId}`;
+	protected readonly titleId = `drawer-title-${this.instanceId}`;
 
 	/** Unique ID for aria-describedby */
-	readonly descriptionId = `drawer-desc-${this.instanceId}`;
+	protected readonly descriptionId = `drawer-desc-${this.instanceId}`;
 
 	private readonly drawerRef = viewChild.required<ElementRef<HTMLDialogElement>>('drawerRef');
 	private readonly drawerElement = computed(() => this.drawerRef().nativeElement);
