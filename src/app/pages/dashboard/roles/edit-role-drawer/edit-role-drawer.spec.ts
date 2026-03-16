@@ -226,6 +226,9 @@ describe('EditRoleDrawer', () => {
 		TestBed.tick()
 		fixture.detectChanges()
 
+		await advanceTimersByTimeAsync(parseDurationToMs('1s'))
+		fixture.detectChanges()
+
 		expect(nameInput).toHaveValue('')
 	})
 })
