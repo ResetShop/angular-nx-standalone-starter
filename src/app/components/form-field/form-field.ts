@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
 	afterRenderEffect,
 	ChangeDetectionStrategy,
@@ -22,28 +23,38 @@ import { FormFieldCustomControl } from './form-field-custom-control';
 	selector: 'app-form-field',
 	standalone: true,
 	changeDetection: ChangeDetectionStrategy.OnPush,
+	imports: [NgTemplateOutlet],
 	hostDirectives: [NgpFormField],
 	host: { class: 'block' },
 	template: `
-		<div [class]="isCheckbox() ? 'flex items-center gap-3' : ''">
-			<label
-				[for]="resolvedId()"
-				[class]="
-					isCheckbox()
-						? 'text-foreground order-2 text-sm/6 font-medium select-none'
-						: 'text-foreground block text-sm/6 font-medium'
-				"
-			>
+		<ng-template #projectedContent>
+			<ng-content />
+		</ng-template>
+
+		<!--	Checkbox styles are handled differently to position the label right to the input -->
+		@if (isCheckbox()) {
+			<div class="flex items-center gap-3">
+				<div class="order-1 flex items-center" #contentWrapper>
+					<ng-container *ngTemplateOutlet="projectedContent" />
+				</div>
+				<label [for]="resolvedId()" class="text-foreground order-2 text-sm/6 font-medium select-none">
+					{{ label() }}
+					@if (isRequired()) {
+						<span aria-hidden="true" class="ml-0.5">*</span>
+					}
+				</label>
+			</div>
+		} @else {
+			<label [for]="resolvedId()" class="text-foreground block text-sm/6 font-medium">
 				{{ label() }}
 				@if (isRequired()) {
 					<span aria-hidden="true" class="ml-0.5">*</span>
 				}
 			</label>
-
-			<div [class]="isCheckbox() ? 'order-1 flex items-center' : 'mt-2'" #contentWrapper>
-				<ng-content />
+			<div class="mt-2" #contentWrapper>
+				<ng-container *ngTemplateOutlet="projectedContent" />
 			</div>
-		</div>
+		}
 
 		@if (hint() && !showErrors()) {
 			<p class="text-muted-foreground mt-1.5 text-sm">{{ hint() }}</p>
@@ -124,7 +135,10 @@ export class FormField {
 
 	constructor() {
 		effect(() => this.setupContentValidation());
-		afterRenderEffect(() => this.setupIdAndAriaSync());
+		afterRenderEffect(() => {
+			this.resolveInputComponentType();
+			this.setupIdAndAriaSync();
+		});
 	}
 
 	/**
@@ -170,6 +184,13 @@ export class FormField {
 		}
 	}
 
+	private resolveInputComponentType() {
+		const wrapper = this.contentWrapper()?.nativeElement;
+		if (!wrapper) return;
+		const el = wrapper.querySelector(':scope > input');
+		this.isCheckbox.set(el instanceof HTMLInputElement && el.type === 'checkbox');
+	}
+
 	/**
 	 * Sets up the content child id and aria-invalid attribute when the child is in an invalid status
 	 */
@@ -185,7 +206,6 @@ export class FormField {
 				nativeEl.setAttribute('id', id);
 			}
 			this.resolvedId.set(id);
-			this.isCheckbox.set(nativeEl instanceof HTMLInputElement && nativeEl.type === 'checkbox');
 			nativeEl.setAttribute('aria-invalid', String(this.showErrors()));
 			return;
 		}
