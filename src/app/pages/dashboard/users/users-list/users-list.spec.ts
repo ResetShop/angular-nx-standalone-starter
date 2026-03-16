@@ -19,8 +19,8 @@ function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUse
 		statusChangedAt: null,
 		statusChangedBy: null,
 		deletedAt: null,
-		createdAt: new Date(),
-		updatedAt: new Date(),
+		createdAt: new Date('2025-01-01'),
+		updatedAt: new Date('2025-01-01'),
 		roles: [],
 		...overrides,
 	}
