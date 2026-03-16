@@ -77,6 +77,7 @@ const meta: Meta<LoginStoryComponent> = {
 					useFactory: () => ({
 						currentUser: signal(null),
 						loginError: storyLoginError,
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						login: () => {},
 					}),
 				},

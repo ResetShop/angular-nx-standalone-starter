@@ -145,9 +145,9 @@ export const AuthErrorCode = Object.freeze({
 	INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
 	ACCOUNT_LOCKED: 'ACCOUNT_LOCKED',
 	ACCOUNT_DISABLED: 'ACCOUNT_DISABLED',
-} as const);
+} as const)
 
-export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode];
+export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode]
 
 // ❌ Incorrect - using enum
 export enum AuthErrorCode {
@@ -184,12 +184,12 @@ Always use the `type` keyword when importing types, interfaces, or type aliases 
 
 ```typescript
 // ✅ Correct - using type keyword
-import type { User } from './user.interface';
-import { type IUserRepository, type UserDTO } from './user.types';
-import { UserService } from './user.service'; // No type keyword - used at runtime
+import type { User } from './user.interface'
+import { type IUserRepository, type UserDTO } from './user.types'
+import { UserService } from './user.service' // No type keyword - used at runtime
 
 // ❌ Incorrect - missing type keyword for type-only imports
-import { User, IUserRepository } from './user.types';
+import { User, IUserRepository } from './user.types'
 ```
 
 **Benefits:**
@@ -223,19 +223,19 @@ All time-related constants must use duration string notation (`'{number}{unit}'`
 
 ```typescript
 // ✅ Correct — duration string constant, resolved at point of use
-export const REFRESH_TOKEN_EXPIRY_BUFFER = '1h';
+export const REFRESH_TOKEN_EXPIRY_BUFFER = '1h'
 
 // In repository:
-const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER));
+const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER))
 
 // ❌ Incorrect — raw millisecond literal
-export const REFRESH_TOKEN_EXPIRY_BUFFER_MS = 3600000;
+export const REFRESH_TOKEN_EXPIRY_BUFFER_MS = 3600000
 
 // ❌ Incorrect — computed expression
-export const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000;
+export const DEFAULT_INTERVAL_MS = 24 * 60 * 60 * 1000
 
 // ❌ Incorrect — suffix encodes the unit
-export const HEALTH_CHECK_TIMEOUT_MS = 5000;
+export const HEALTH_CHECK_TIMEOUT_MS = 5000
 ```
 
 **Existing compliant constants (reference as established pattern):**
@@ -330,10 +330,10 @@ withHooks({
 
 ```typescript
 // ✅ Reactive — pass a signal reference, rxMethod watches and re-fires on changes
-store.loadUsers(store.listParams);
+store.loadUsers(store.listParams)
 
 // ✅ Imperative — pass the current value (static), triggers a one-shot fetch
-store.loadUsers(store.listParams());
+store.loadUsers(store.listParams())
 
 // ❌ NEVER use counter/trigger signals to force re-evaluation of rxMethod
 // reloadCounter, _reload, forceRefresh, etc. are unnecessary workarounds
@@ -356,17 +356,17 @@ Error state uses per-operation typed objects, not single `string | null` fields.
 ```typescript
 // ✅ Correct — per-operation error keys
 export interface UsersReadError {
-	list: string | null;
+	list: string | null
 }
 export interface UsersMutationError {
-	create: string | null;
-	update: string | null;
-	delete: string | null;
+	create: string | null
+	update: string | null
+	delete: string | null
 }
 
 // ❌ Incorrect — single shared error field
-readError: string | null;
-mutationError: string | null;
+readError: string | null
+mutationError: string | null
 ```
 
 Helper functions `patchReadError` / `patchMutationError` in each store handle type-safe error patching. Computed signals `hasReadError` / `hasMutationError` provide boolean checks for the UI. Every error handler must log via `console.error` with `[StoreName] methodName failed:` prefix (until #66 introduces a structured logging service).
@@ -525,9 +525,12 @@ export default class PermissionsList {
 
 **Rules:**
 
-- `protected` for all fields and methods used in the template
-- `private` for internal fields and methods not referenced in the template
-- Never use `public` (implicit or explicit) on component class members
+- `protected` for all fields and methods used only in the component's own template
+- `private` for internal fields and methods not referenced in any template
+- `public` for **signal inputs/outputs/models** (`input()`, `output()`, `model()`) — these are the component's external API consumed by parent templates
+- `public` for **imperative API methods** called by parents via `viewChild` / `componentInstance` (e.g., `open()`, `close()`, `show()`, `setContentReady()`)
+- `public` for **interface-required members** (e.g., `ngOnDestroy`, `FormValueControl.value`)
+- Never use `public` on internal fields that are only consumed within the component itself
 
 ### App Initializer Pattern
 
@@ -647,16 +650,16 @@ Define **file-local** interfaces with the `Projection` suffix for query result s
 ```typescript
 // File-local — not exported
 interface UserProjection {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	status: UserStatus;
-	statusChangedAt: Date | null;
-	statusChangedBy: number | null;
-	deletedAt: Date | null;
-	createdAt: Date | null;
-	updatedAt: Date | null;
+	id: number
+	email: string
+	firstName: string
+	lastName: string
+	status: UserStatus
+	statusChangedAt: Date | null
+	statusChangedBy: number | null
+	deletedAt: Date | null
+	createdAt: Date | null
+	updatedAt: Date | null
 }
 ```
 
@@ -698,10 +701,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 		catchError((error: HttpErrorResponse) => {
 			// Handle based on status code
 			// Transform to user-friendly message
-			return throwError(() => error);
+			return throwError(() => error)
 		}),
-	);
-};
+	)
+}
 ```
 
 ---
