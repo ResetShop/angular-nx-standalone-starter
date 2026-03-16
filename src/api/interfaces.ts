@@ -6,18 +6,18 @@
  * Pagination parameters for list queries
  */
 export interface PaginationParams {
-	offset?: number;
-	limit?: number;
+	offset?: number
+	limit?: number
 }
 
 /**
  * Paginated response wrapper for list endpoints
  */
 export interface PaginatedResponse<T> {
-	data: T[];
-	total: number;
-	offset: number;
-	limit: number;
+	data: T[]
+	total: number
+	offset: number
+	limit: number
 }
 
 // ============================================================================
@@ -36,13 +36,13 @@ export interface PaginatedResponse<T> {
  * { error: "Invalid permission IDs", details: { invalidIds: [999, 1000] } }
  */
 export interface ErrorResponse {
-	error: string;
-	details?: Record<string, unknown>;
+	error: string
+	details?: Record<string, unknown>
 }
 
 /**
  * Success message response for operations that don't return data
  */
 export interface SuccessResponse {
-	message: string;
+	message: string
 }

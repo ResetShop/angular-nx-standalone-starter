@@ -1,3 +1,3 @@
 export interface ProjectConfig {
-	applicationName: string;
+	applicationName: string
 }

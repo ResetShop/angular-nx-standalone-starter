@@ -1,7 +1,7 @@
-import { relations } from 'drizzle-orm';
-import { boolean, index, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
-import { permission } from './permission';
-import { userRole } from './user';
+import { relations } from 'drizzle-orm'
+import { boolean, index, integer, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core'
+import { permission } from './permission'
+import { userRole } from './user'
 
 export const role = pgTable(
 	'role',
@@ -15,7 +15,7 @@ export const role = pgTable(
 		updatedAt: timestamp('updated_at').defaultNow(),
 	},
 	(table) => [index('idx_role_code').on(table.code)],
-);
+)
 
 export const rolePermission = pgTable(
 	'role_permission',
@@ -32,14 +32,14 @@ export const rolePermission = pgTable(
 	(table) => ({
 		rolePermissionUnique: unique().on(table.roleId, table.permissionId),
 	}),
-);
+)
 
 export const roleRelations = relations(role, ({ many }) => ({
 	permissions: many(rolePermission),
 	users: many(userRole),
-}));
+}))
 
 export const rolePermissionRelations = relations(rolePermission, ({ one }) => ({
 	role: one(role, { fields: [rolePermission.roleId], references: [role.id] }),
 	permission: one(permission, { fields: [rolePermission.permissionId], references: [permission.id] }),
-}));
+}))

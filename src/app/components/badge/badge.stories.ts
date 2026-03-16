@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { Badge } from './badge';
+import type { Meta, StoryObj } from '@storybook/angular'
+import { Badge } from './badge'
 
 const meta: Meta<Badge> = {
 	component: Badge,
@@ -42,11 +42,11 @@ A compact badge component for displaying status, labels, or counts.
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Badge>;
+type Story = StoryObj<Badge>
 
 /**
  * The default badge using default colors from the theme.
@@ -74,7 +74,7 @@ export const Default: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * All variants displayed together.
@@ -108,4 +108,4 @@ export const AllVariants: Story = {
 			</div>
 		`,
 	}),
-};
+}

@@ -1,5 +1,5 @@
-import type { PermissionData, RoleWithPermissions } from '@contracts/role/role.types';
-import { mapPermission, mapRole } from './role.mapper';
+import type { PermissionData, RoleWithPermissions } from '@contracts/role/role.types'
+import { mapPermission, mapRole } from './role.mapper'
 
 describe('Role Mapper', () => {
 	describe('mapPermission', () => {
@@ -10,17 +10,17 @@ describe('Role Mapper', () => {
 				description: 'Can read user data',
 				resource: 'users',
 				action: 'read',
-			};
+			}
 
-			const permission = mapPermission(data);
+			const permission = mapPermission(data)
 
-			expect(permission.id).toBe(1);
-			expect(permission.name).toBe('Read Users');
-			expect(permission.description).toBe('Can read user data');
-			expect(permission.resource).toBe('users');
-			expect(permission.action).toBe('read');
-			expect(permission.identifier).toBe('users:read');
-		});
+			expect(permission.id).toBe(1)
+			expect(permission.name).toBe('Read Users')
+			expect(permission.description).toBe('Can read user data')
+			expect(permission.resource).toBe('users')
+			expect(permission.action).toBe('read')
+			expect(permission.identifier).toBe('users:read')
+		})
 
 		it('should handle null description', () => {
 			const data: PermissionData = {
@@ -29,12 +29,12 @@ describe('Role Mapper', () => {
 				description: null,
 				resource: 'users',
 				action: 'read',
-			};
+			}
 
-			const permission = mapPermission(data);
+			const permission = mapPermission(data)
 
-			expect(permission.description).toBeNull();
-		});
+			expect(permission.description).toBeNull()
+		})
 
 		it('should create permission with working matches method', () => {
 			const data: PermissionData = {
@@ -43,14 +43,14 @@ describe('Role Mapper', () => {
 				description: null,
 				resource: 'users',
 				action: 'read',
-			};
+			}
 
-			const permission = mapPermission(data);
+			const permission = mapPermission(data)
 
-			expect(permission.matches('users', 'read')).toBe(true);
-			expect(permission.matches('users', 'write')).toBe(false);
-		});
-	});
+			expect(permission.matches('users', 'read')).toBe(true)
+			expect(permission.matches('users', 'write')).toBe(false)
+		})
+	})
 
 	describe('mapRole', () => {
 		it('should map RoleWithPermissions to IRole', () => {
@@ -59,20 +59,21 @@ describe('Role Mapper', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: 'Full access',
+				removable: true,
 				permissions: [
 					{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' },
 					{ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' },
 				],
-			};
+			}
 
-			const role = mapRole(data);
+			const role = mapRole(data)
 
-			expect(role.id).toBe(1);
-			expect(role.code).toBe('admin');
-			expect(role.name).toBe('Administrator');
-			expect(role.description).toBe('Full access');
-			expect(role.permissions).toHaveLength(2);
-		});
+			expect(role.id).toBe(1)
+			expect(role.code).toBe('admin')
+			expect(role.name).toBe('Administrator')
+			expect(role.description).toBe('Full access')
+			expect(role.permissions).toHaveLength(2)
+		})
 
 		it('should handle null description', () => {
 			const data: RoleWithPermissions = {
@@ -80,13 +81,14 @@ describe('Role Mapper', () => {
 				code: 'guest',
 				name: 'Guest',
 				description: null,
+				removable: true,
 				permissions: [],
-			};
+			}
 
-			const role = mapRole(data);
+			const role = mapRole(data)
 
-			expect(role.description).toBeNull();
-		});
+			expect(role.description).toBeNull()
+		})
 
 		it('should handle empty permissions', () => {
 			const data: RoleWithPermissions = {
@@ -94,13 +96,14 @@ describe('Role Mapper', () => {
 				code: 'guest',
 				name: 'Guest',
 				description: null,
+				removable: true,
 				permissions: [],
-			};
+			}
 
-			const role = mapRole(data);
+			const role = mapRole(data)
 
-			expect(role.permissions).toEqual([]);
-		});
+			expect(role.permissions).toEqual([])
+		})
 
 		it('should create role with working permission methods', () => {
 			const data: RoleWithPermissions = {
@@ -108,14 +111,15 @@ describe('Role Mapper', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: null,
+				removable: true,
 				permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
-			};
+			}
 
-			const role = mapRole(data);
+			const role = mapRole(data)
 
-			expect(role.hasPermission('users', 'read')).toBe(true);
-			expect(role.hasPermission('users', 'write')).toBe(false);
-			expect(role.hasPermissionByIdentifier('users:read')).toBe(true);
-		});
-	});
-});
+			expect(role.hasPermission('users', 'read')).toBe(true)
+			expect(role.hasPermission('users', 'write')).toBe(false)
+			expect(role.hasPermissionByIdentifier('users:read')).toBe(true)
+		})
+	})
+})

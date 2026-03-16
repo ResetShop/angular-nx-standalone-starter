@@ -1,10 +1,10 @@
-import { render } from '@testing-library/angular';
-import { App } from './app';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
-import { Analytics } from '@providers/analytics/analytics';
-import { AnalyticsMock } from '@providers/analytics/analytics.mock';
+import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { provideRouter } from '@angular/router'
+import { Analytics } from '@providers/analytics/analytics'
+import { AnalyticsMock } from '@providers/analytics/analytics.mock'
+import { render } from '@testing-library/angular'
+import { App } from './app'
 
 describe('App', () => {
 	it('should create the app component', async () => {
@@ -15,8 +15,8 @@ describe('App', () => {
 				provideRouter([]),
 				{ provide: Analytics, useClass: AnalyticsMock },
 			],
-		});
+		})
 
-		expect(fixture.componentInstance).toBeTruthy();
-	});
-});
+		expect(fixture.componentInstance).toBeTruthy()
+	})
+})

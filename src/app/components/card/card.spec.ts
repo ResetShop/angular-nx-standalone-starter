@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/angular';
-import { Component } from '@angular/core';
-import Card from './card';
+import { Component } from '@angular/core'
+import { render, screen } from '@testing-library/angular'
+import Card from './card'
 
 describe('Card', () => {
 	it('should render title template when provided', async () => {
@@ -14,11 +14,11 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Test Title')).toBeInTheDocument();
-		expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Test Title');
-	});
+		expect(screen.getByText('Test Title')).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Test Title')
+	})
 
 	it('should render subtitle template when provided', async () => {
 		@Component({
@@ -31,10 +31,10 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Test Subtitle')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Test Subtitle')).toBeInTheDocument()
+	})
 
 	it('should render content template when provided', async () => {
 		@Component({
@@ -47,10 +47,10 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Test Content')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Test Content')).toBeInTheDocument()
+	})
 
 	it('should render footer template when provided', async () => {
 		@Component({
@@ -63,10 +63,10 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Test Footer')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Test Footer')).toBeInTheDocument()
+	})
 
 	it('should render all templates when all are provided', async () => {
 		@Component({
@@ -87,13 +87,13 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Full Title')).toBeInTheDocument();
-		expect(screen.getByText('Full Subtitle')).toBeInTheDocument();
-		expect(screen.getByText('Full Content')).toBeInTheDocument();
-		expect(screen.getByText('Full Footer')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Full Title')).toBeInTheDocument()
+		expect(screen.getByText('Full Subtitle')).toBeInTheDocument()
+		expect(screen.getByText('Full Content')).toBeInTheDocument()
+		expect(screen.getByText('Full Footer')).toBeInTheDocument()
+	})
 
 	it('should not render title section when neither title nor subtitle templates are provided', async () => {
 		@Component({
@@ -106,11 +106,11 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Only Content')).toBeInTheDocument();
-		expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument();
-	});
+		expect(screen.getByText('Only Content')).toBeInTheDocument()
+		expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument()
+	})
 
 	it('should render with title but no subtitle', async () => {
 		@Component({
@@ -123,11 +123,11 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Only Title')).toBeInTheDocument();
-		expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
-	});
+		expect(screen.getByText('Only Title')).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()
+	})
 
 	it('should render with subtitle but no title', async () => {
 		@Component({
@@ -140,16 +140,19 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Only Subtitle')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Only Subtitle')).toBeInTheDocument()
+	})
 
 	it('should render complex template content with HTML elements', async () => {
 		@Component({
 			template: `
 				<app-card [titleTemplate]="titleTpl" [contentTemplate]="contentTpl">
-					<ng-template #titleTpl> <span>Complex</span> <strong>Title</strong> </ng-template>
+					<ng-template #titleTpl>
+						<span>Complex</span>
+						<strong>Title</strong>
+					</ng-template>
 					<ng-template #contentTpl>
 						<p>Paragraph content</p>
 						<ul>
@@ -163,21 +166,21 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
-		expect(screen.getByText('Complex')).toBeInTheDocument();
-		expect(screen.getByText('Title')).toBeInTheDocument();
-		expect(screen.getByText('Paragraph content')).toBeInTheDocument();
-		expect(screen.getByText('Item 1')).toBeInTheDocument();
-		expect(screen.getByText('Item 2')).toBeInTheDocument();
-	});
+		expect(screen.getByText('Complex')).toBeInTheDocument()
+		expect(screen.getByText('Title')).toBeInTheDocument()
+		expect(screen.getByText('Paragraph content')).toBeInTheDocument()
+		expect(screen.getByText('Item 1')).toBeInTheDocument()
+		expect(screen.getByText('Item 2')).toBeInTheDocument()
+	})
 
 	it('should render empty card when no templates are provided', async () => {
-		const { fixture } = await render(Card);
+		const { fixture } = await render(Card)
 
 		// Verify the component instance was created successfully
-		expect(fixture.componentInstance).toBeTruthy();
-	});
+		expect(fixture.componentInstance).toBeTruthy()
+	})
 
 	it('should render card with proper styling classes', async () => {
 		@Component({
@@ -190,10 +193,10 @@ describe('Card', () => {
 		})
 		class TestComponent {}
 
-		await render(TestComponent);
+		await render(TestComponent)
 
 		// Verify the card content is rendered (testing user-facing behavior)
-		const heading = screen.getByRole('heading', { level: 2 });
-		expect(heading).toHaveTextContent('Card with Styling');
-	});
-});
+		const heading = screen.getByRole('heading', { level: 2 })
+		expect(heading).toHaveTextContent('Card with Styling')
+	})
+})

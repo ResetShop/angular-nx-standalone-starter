@@ -1,4 +1,4 @@
-import { Directive, inject, input, TemplateRef } from '@angular/core';
+import { Directive, inject, input, TemplateRef } from '@angular/core'
 
 /**
  * Template context provided to custom cell definitions.
@@ -8,8 +8,8 @@ import { Directive, inject, input, TemplateRef } from '@angular/core';
  * `row` is the full row data object.
  */
 export interface DataTableCellDefContext<T = unknown> {
-	$implicit: unknown;
-	row: T;
+	$implicit: unknown
+	row: T
 }
 
 @Directive({
@@ -17,6 +17,6 @@ export interface DataTableCellDefContext<T = unknown> {
 	standalone: true,
 })
 export class DataTableCellDef<T = unknown> {
-	readonly appDataTableCellDef = input.required<string>();
-	readonly template = inject<TemplateRef<DataTableCellDefContext<T>>>(TemplateRef);
+	public readonly appDataTableCellDef = input.required<string>()
+	public readonly template = inject<TemplateRef<DataTableCellDefContext<T>>>(TemplateRef)
 }

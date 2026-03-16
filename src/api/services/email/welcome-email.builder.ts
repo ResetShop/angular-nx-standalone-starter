@@ -1,14 +1,14 @@
 export interface WelcomeEmailParams {
-	firstName: string;
-	email: string;
-	password: string;
-	mustChangePassword: boolean;
+	firstName: string
+	email: string
+	password: string
+	mustChangePassword: boolean
 }
 
 export interface EmailContent {
-	subject: string;
-	html: string;
-	text: string;
+	subject: string
+	html: string
+	text: string
 }
 
 /**
@@ -19,19 +19,19 @@ export interface EmailContent {
  * @returns Email content with subject, HTML, and text versions
  */
 export function buildWelcomeEmail(params: WelcomeEmailParams): EmailContent {
-	const subject = 'Your new account has been created';
+	const subject = 'Your new account has been created'
 
-	const text = buildTextContent(params);
-	const html = buildHtmlContent(params);
+	const text = buildTextContent(params)
+	const html = buildHtmlContent(params)
 
-	return { subject, html, text };
+	return { subject, html, text }
 }
 
 function buildTextContent({ firstName, email, password, mustChangePassword }: WelcomeEmailParams): string {
-	const passwordLabel = mustChangePassword ? 'Temporary Password' : 'Password';
+	const passwordLabel = mustChangePassword ? 'Temporary Password' : 'Password'
 	const changeWarning = mustChangePassword
 		? '\nIMPORTANT: Please change your password immediately after your first login for security reasons.\n'
-		: '';
+		: ''
 
 	return `Hello ${firstName},
 
@@ -44,7 +44,7 @@ ${changeWarning}
 This is an automated message. Please do not reply to this email.
 
 Best regards,
-The Team`;
+The Team`
 }
 
 function escapeHtml(value: string): string {
@@ -53,21 +53,21 @@ function escapeHtml(value: string): string {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
+		.replace(/'/g, '&#39;')
 }
 
 function buildHtmlContent({ firstName, email, password, mustChangePassword }: WelcomeEmailParams): string {
 	// TODO (#159): Validate language against an allowlist to prevent HTML attribute injection
-	const language = process.env['APP_LANGUAGE'] || 'en';
-	const safeFirstName = escapeHtml(firstName);
-	const safeEmail = escapeHtml(email);
-	const safePassword = escapeHtml(password);
-	const passwordLabel = mustChangePassword ? 'Temporary Password' : 'Password';
+	const language = process.env['APP_LANGUAGE'] || 'en'
+	const safeFirstName = escapeHtml(firstName)
+	const safeEmail = escapeHtml(email)
+	const safePassword = escapeHtml(password)
+	const passwordLabel = mustChangePassword ? 'Temporary Password' : 'Password'
 	const warningHtml = mustChangePassword
 		? `<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
         <p style="margin: 0;"><strong>IMPORTANT:</strong> Please change your password immediately after your first login for security reasons.</p>
     </div>`
-		: '';
+		: ''
 
 	return `<!DOCTYPE html>
 <html lang="${language}">
@@ -94,5 +94,5 @@ function buildHtmlContent({ firstName, email, password, mustChangePassword }: We
 
     <p>Best regards,<br>The Team</p>
 </body>
-</html>`;
+</html>`
 }

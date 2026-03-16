@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { LoadingSpinnerComponent } from './loading-spinner.component';
+import type { Meta, StoryObj } from '@storybook/angular'
+import { LoadingSpinnerComponent } from './loading-spinner.component'
 
 const meta: Meta<LoadingSpinnerComponent> = {
 	component: LoadingSpinnerComponent,
@@ -33,15 +33,15 @@ A full-screen loading overlay that blocks user interaction while a global operat
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<LoadingSpinnerComponent>;
+type Story = StoryObj<LoadingSpinnerComponent>
 
 /**
  * Full-screen loading overlay with centered spinner card.
  * In production, this is rendered inside the Dashboard layout and covers the entire viewport.
  * In Storybook, the fixed positioning makes it fill the story canvas.
  */
-export const Default: Story = {};
+export const Default: Story = {}

@@ -1,16 +1,16 @@
-import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
-import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas';
+import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas'
+import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas'
 import {
 	createUserRequestSchema,
 	createUserResponseSchema,
 	managedUserSchema,
 	updateUserRequestSchema,
 	updateUserStatusRequestSchema,
-} from '@contracts/user/user.schemas';
-import { createRoute } from '@hono/zod-openapi';
-import { requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { commonResponses, idParamSchema } from '../../openapi-config';
-import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants';
+} from '@contracts/user/user.schemas'
+import { createRoute } from '@hono/zod-openapi'
+import { requirePermission } from '../../middlewares/verify-permissions.middleware'
+import { commonResponses, idParamSchema } from '../../openapi-config'
+import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants'
 
 export const listUsersRoute = createRoute({
 	method: 'get',
@@ -27,7 +27,7 @@ export const listUsersRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const getUserRoute = createRoute({
 	method: 'get',
@@ -52,7 +52,7 @@ export const getUserRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const createUserRoute = createRoute({
 	method: 'post',
@@ -78,7 +78,7 @@ export const createUserRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const updateUserRoute = createRoute({
 	method: 'patch',
@@ -113,7 +113,7 @@ export const updateUserRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const updateUserStatusRoute = createRoute({
 	method: 'patch',
@@ -152,7 +152,7 @@ export const updateUserStatusRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const deleteUserRoute = createRoute({
 	method: 'delete',
@@ -177,4 +177,4 @@ export const deleteUserRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})

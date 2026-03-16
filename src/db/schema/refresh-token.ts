@@ -1,5 +1,5 @@
-import { boolean, index, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
-import { user } from './user';
+import { boolean, index, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
+import { user } from './user'
 
 export const refreshToken = pgTable(
 	'refresh_token',
@@ -20,4 +20,4 @@ export const refreshToken = pgTable(
 		index('refresh_token_expires_at_idx').on(table.expiresAt),
 		index('refresh_token_token_family_idx').on(table.tokenFamily),
 	],
-);
+)

@@ -6,10 +6,10 @@ import {
 	logoutResponseSchema,
 	meResponseSchema,
 	refreshResponseSchema,
-} from '@contracts/auth/auth.schemas';
-import { errorResponseSchema } from '@contracts/common/error.schemas';
-import { createRoute } from '@hono/zod-openapi';
-import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonResponses } from '../../openapi-config';
+} from '@contracts/auth/auth.schemas'
+import { errorResponseSchema } from '@contracts/common/error.schemas'
+import { createRoute } from '@hono/zod-openapi'
+import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonResponses } from '../../openapi-config'
 
 export const loginRoute = createRoute({
 	method: 'post',
@@ -38,7 +38,7 @@ export const loginRoute = createRoute({
 			content: { 'application/json': { schema: authErrorResponseSchema } },
 		},
 	},
-});
+})
 
 export const refreshRoute = createRoute({
 	method: 'post',
@@ -57,7 +57,7 @@ export const refreshRoute = createRoute({
 			content: { 'application/json': { schema: authErrorResponseSchema } },
 		},
 	},
-});
+})
 
 export const meRoute = createRoute({
 	method: 'get',
@@ -72,7 +72,7 @@ export const meRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const logoutRoute = createRoute({
 	method: 'post',
@@ -87,7 +87,7 @@ export const logoutRoute = createRoute({
 			content: { 'application/json': { schema: logoutResponseSchema } },
 		},
 	},
-});
+})
 
 export const cleanupTokensRoute = createRoute({
 	method: 'get',
@@ -111,4 +111,4 @@ export const cleanupTokensRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 	},
-});
+})

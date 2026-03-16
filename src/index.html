@@ -13,18 +13,18 @@
 
 		<!-- Script to avoid flickering when the preferred theme is first loaded. Related to the features from Theme service -->
 		<script>
-			(function () {
-				const storedTheme = localStorage.getItem('theme-preference');
-				let isDark = false;
+			;(function () {
+				const storedTheme = localStorage.getItem('theme-preference')
+				let isDark = false
 				if (storedTheme !== null) {
-					isDark = storedTheme === 'dark';
+					isDark = storedTheme === 'dark'
 				} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-					isDark = true;
+					isDark = true
 				}
 				if (isDark) {
-					document.documentElement.classList.add('dark');
+					document.documentElement.classList.add('dark')
 				}
-			})();
+			})()
 		</script>
 	</head>
 	<body id="body">

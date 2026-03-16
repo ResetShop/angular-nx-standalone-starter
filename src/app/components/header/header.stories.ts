@@ -1,12 +1,12 @@
-import { provideRouter } from '@angular/router';
-import { BreadcrumbItem } from '@interfaces/navigation';
-import { provideIcons } from '@ng-icons/core';
-import { featherChevronRight } from '@ng-icons/feather-icons';
-import { Navigation } from '@providers/navigation/navigation';
-import { provideMockTheme } from '@providers/theme/theme.mock';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import { Header } from './header';
+import { provideRouter } from '@angular/router'
+import { BreadcrumbItem } from '@interfaces/navigation'
+import { provideIcons } from '@ng-icons/core'
+import { featherChevronRight } from '@ng-icons/feather-icons'
+import { Navigation } from '@providers/navigation/navigation'
+import { provideMockTheme } from '@providers/theme/theme.mock'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import { Header } from './header'
 
 const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 	provide: Navigation,
@@ -14,7 +14,7 @@ const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 		breadcrumbs: () => breadcrumbs,
 		sections: () => [],
 	},
-});
+})
 
 const meta: Meta<Header> = {
 	component: Header,
@@ -87,11 +87,11 @@ export class MyComponent {}
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Header>;
+type Story = StoryObj<Header>
 
 /**
  * Default header with a simple breadcrumb trail.
@@ -115,7 +115,7 @@ export const Default: Story = {
 				<div appHeader></div>
 			</header>`,
 	}),
-};
+}
 
 /**
  * Header displaying a single-level breadcrumb (root page).
@@ -136,7 +136,7 @@ export const SingleLevelBreadcrumb: Story = {
 				<div appHeader></div>
 			</header>`,
 	}),
-};
+}
 
 /**
  * Header with multi-level nested breadcrumbs.
@@ -161,7 +161,7 @@ export const MultiLevelBreadcrumb: Story = {
 				<div appHeader></div>
 			</header>`,
 	}),
-};
+}
 
 /**
  * Header in the full dashboard layout context.
@@ -196,7 +196,7 @@ export const InDashboardLayout: Story = {
 				</div>
 			`,
 	}),
-};
+}
 
 /**
  * Header with very deep breadcrumb nesting.
@@ -224,7 +224,7 @@ export const DeeplyNestedBreadcrumb: Story = {
 				</header>
 			`,
 	}),
-};
+}
 
 /**
  * Header showing responsive layout with full dashboard context.
@@ -272,4 +272,4 @@ export const ResponsiveDashboardLayout: Story = {
 				</div>
 			`,
 	}),
-};
+}

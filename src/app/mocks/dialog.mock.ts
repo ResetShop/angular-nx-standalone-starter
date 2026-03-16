@@ -1,7 +1,7 @@
-import { fn, type MockFn } from '@test-utils';
+import { fn, type MockFn } from '@test-utils'
 
-export let mockShowModal: MockFn<[], void>;
-export let mockClose: MockFn<[], void>;
+export let mockShowModal: MockFn<[], void>
+export let mockClose: MockFn<[], void>
 
 /**
  * Replace HTMLDialogElement.prototype.showModal/close with mock functions
@@ -9,15 +9,15 @@ export let mockClose: MockFn<[], void>;
  * Call this in `beforeEach()` together with `clearAllMocks()`.
  */
 export function mockDialog(): void {
-	mockShowModal = fn<[], void>();
+	mockShowModal = fn<[], void>()
 	mockShowModal.mockImplementation(function (this: HTMLDialogElement) {
-		this.setAttribute('open', '');
-	});
-	HTMLDialogElement.prototype.showModal = mockShowModal;
+		this.setAttribute('open', '')
+	})
+	HTMLDialogElement.prototype.showModal = mockShowModal
 
-	mockClose = fn<[], void>();
+	mockClose = fn<[], void>()
 	mockClose.mockImplementation(function (this: HTMLDialogElement) {
-		this.removeAttribute('open');
-	});
-	HTMLDialogElement.prototype.close = mockClose;
+		this.removeAttribute('open')
+	})
+	HTMLDialogElement.prototype.close = mockClose
 }

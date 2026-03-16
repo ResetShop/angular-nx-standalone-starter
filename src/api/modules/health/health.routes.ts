@@ -1,6 +1,6 @@
-import { errorResponseSchema } from '@contracts/common/error.schemas';
-import { createRoute } from '@hono/zod-openapi';
-import { healthCheckResponseSchema } from './health.schemas';
+import { errorResponseSchema } from '@contracts/common/error.schemas'
+import { createRoute } from '@hono/zod-openapi'
+import { healthCheckResponseSchema } from './health.schemas'
 
 export const healthCheckRoute = createRoute({
 	method: 'get',
@@ -23,4 +23,4 @@ export const healthCheckRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 	},
-});
+})

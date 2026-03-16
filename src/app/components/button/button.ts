@@ -1,8 +1,8 @@
-import { Component, computed, input } from '@angular/core';
-import { NgpButton } from 'ng-primitives/button';
+import { Component, computed, input } from '@angular/core'
+import { NgpButton } from 'ng-primitives/button'
 
-export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link'
+export type ButtonSize = 'sm' | 'md' | 'lg'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -22,30 +22,30 @@ export class Button {
 	 * Visual variant of the button
 	 * @default 'default'
 	 */
-	readonly variant = input<ButtonVariant>('default');
+	public readonly variant = input<ButtonVariant>('default')
 
 	/**
 	 * Size of the button
 	 * @default 'md'
 	 */
-	readonly size = input<ButtonSize>('md');
+	public readonly size = input<ButtonSize>('md')
 
 	/**
 	 * Whether the button should take full width
 	 * @default false
 	 */
-	readonly fullWidth = input<boolean>(false);
+	public readonly fullWidth = input<boolean>(false)
 
 	/**
 	 * Button type attribute (only applies to button elements)
 	 * @default 'button'
 	 */
-	readonly type = input<'button' | 'submit' | 'reset'>('button');
+	public readonly type = input<'button' | 'submit' | 'reset'>('button')
 
 	/**
 	 * Computed classes based on variant, size, and fullWidth
 	 */
-	readonly computedClasses = computed(() => {
+	protected readonly computedClasses = computed(() => {
 		const classes: string[] = [
 			// Base classes - common to all buttons
 			'font-sans',
@@ -62,15 +62,15 @@ export class Button {
 			'disabled:pointer-events-none',
 			'disabled:opacity-50',
 			'cursor-pointer',
-		];
+		]
 
 		// Size classes (based on Angular Primitives)
 		const sizeClasses: Record<ButtonSize, string[]> = {
 			sm: ['h-8', 'px-3', 'text-sm'],
 			md: ['h-10', 'px-4', 'text-base'],
 			lg: ['h-12', 'px-6', 'text-lg'],
-		};
-		classes.push(...sizeClasses[this.size()]);
+		}
+		classes.push(...sizeClasses[this.size()])
 
 		// Variant classes
 		const variantClasses: Record<ButtonVariant, string[]> = {
@@ -118,14 +118,14 @@ export class Button {
 				'data-[hover]:underline',
 				'data-[focus-visible]:outline-ring',
 			],
-		};
-		classes.push(...variantClasses[this.variant()]);
+		}
+		classes.push(...variantClasses[this.variant()])
 
 		// Full width
 		if (this.fullWidth()) {
-			classes.push('w-full');
+			classes.push('w-full')
 		}
 
-		return classes.join(' ');
-	});
+		return classes.join(' ')
+	})
 }

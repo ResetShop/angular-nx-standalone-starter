@@ -1,8 +1,8 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
-import { type Language, Translation } from '@providers/i18n/translation';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import { Pagination } from './pagination';
+import { Component, effect, inject, input, output, signal } from '@angular/core'
+import { type Language, Translation } from '@providers/i18n/translation'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import { Pagination } from './pagination'
 
 /**
  * Wrapper component that manages language loading and interactive state for Pagination stories.
@@ -27,52 +27,52 @@ import { Pagination } from './pagination';
 	`,
 })
 class PaginationStoryComponent {
-	private readonly translation = inject(Translation);
+	private readonly translation = inject(Translation)
 
-	readonly totalPages = input(10);
-	readonly initialPage = input(1);
-	readonly initialPageSize = input(25);
-	readonly pageSizeOptions = input<number[]>([25, 50, 100]);
-	readonly language = input<Language>('en');
-	readonly pageChange = output<number>();
-	readonly pageSizeChange = output<number>();
+	public readonly totalPages = input(10)
+	public readonly initialPage = input(1)
+	public readonly initialPageSize = input(25)
+	public readonly pageSizeOptions = input<number[]>([25, 50, 100])
+	public readonly language = input<Language>('en')
+	public readonly pageChange = output<number>()
+	public readonly pageSizeChange = output<number>()
 
 	/** Internal state for current page (allows interactive navigation in stories) */
-	readonly currentPageState = signal(1);
+	protected readonly currentPageState = signal(1)
 
 	/** Internal state for page size (allows interactive changes in stories) */
-	readonly pageSizeState = signal(25);
+	protected readonly pageSizeState = signal(25)
 
 	/**
 	 * Tracks when translations are loaded and ready for use.
 	 * Toggling this signal forces the Pagination to re-mount with updated translations.
 	 */
-	readonly isReady = signal(false);
+	protected readonly isReady = signal(false)
 
 	constructor() {
 		// Initialize state from inputs and handle language changes
 		effect(() => {
-			this.currentPageState.set(this.initialPage());
-			this.pageSizeState.set(this.initialPageSize());
+			this.currentPageState.set(this.initialPage())
+			this.pageSizeState.set(this.initialPageSize())
 
-			const lang = this.language();
-			this.isReady.set(false);
+			const lang = this.language()
+			this.isReady.set(false)
 			this.translation.setLanguage(lang).then(() => {
-				this.isReady.set(true);
-			});
-		});
+				this.isReady.set(true)
+			})
+		})
 	}
 
-	onPageChange(page: number): void {
-		this.currentPageState.set(page);
-		this.pageChange.emit(page);
+	protected onPageChange(page: number): void {
+		this.currentPageState.set(page)
+		this.pageChange.emit(page)
 	}
 
-	onPageSizeChange(size: number): void {
-		this.pageSizeState.set(size);
+	protected onPageSizeChange(size: number): void {
+		this.pageSizeState.set(size)
 		// Reset to page 1 when page size changes (common UX pattern)
-		this.currentPageState.set(1);
-		this.pageSizeChange.emit(size);
+		this.currentPageState.set(1)
+		this.pageSizeChange.emit(size)
 	}
 }
 
@@ -156,11 +156,11 @@ Use the **language** control to switch between:
 			table: { defaultValue: { summary: '25' } },
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<PaginationStoryComponent>;
+type Story = StoryObj<PaginationStoryComponent>
 
 /**
  * Default pagination at page 1 with 10 total pages.
@@ -173,7 +173,7 @@ export const Default: Story = {
 		initialPageSize: 25,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Pagination in the middle of a large dataset.
@@ -186,7 +186,7 @@ export const MiddlePage: Story = {
 		initialPageSize: 25,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Pagination at the last page.
@@ -199,7 +199,7 @@ export const LastPage: Story = {
 		initialPageSize: 25,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Small dataset with 4 or fewer pages (no ellipsis needed).
@@ -212,7 +212,7 @@ export const FewPages: Story = {
 		initialPageSize: 25,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Single page — both navigation buttons disabled.
@@ -224,7 +224,7 @@ export const SinglePage: Story = {
 		initialPageSize: 25,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Large dataset with many pages.
@@ -237,7 +237,7 @@ export const ManyPages: Story = {
 		initialPageSize: 25,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Custom page size options.
@@ -251,7 +251,7 @@ export const CustomPageSizeOptions: Story = {
 		pageSizeOptions: [10, 20, 50, 100],
 		language: 'en',
 	},
-};
+}
 
 /**
  * Spanish language variant.
@@ -264,4 +264,4 @@ export const SpanishLanguage: Story = {
 		initialPageSize: 25,
 		language: 'es',
 	},
-};
+}

@@ -1,13 +1,13 @@
-import { NgOptimizedImage } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { email, form, required, schema, FormField as SignalFormField, type FieldTree } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
-import { Button } from '@components/button/button';
-import Card from '@components/card/card';
-import { FormField } from '@components/form-field/form-field';
+import { NgOptimizedImage } from '@angular/common'
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
+import { email, form, required, schema, FormField as SignalFormField, type FieldTree } from '@angular/forms/signals'
+import { Router, RouterLink } from '@angular/router'
+import { Button } from '@components/button/button'
+import Card from '@components/card/card'
+import { FormField } from '@components/form-field/form-field'
 
 interface ResetPasswordForm {
-	email: string;
+	email: string
 }
 
 @Component({
@@ -55,27 +55,27 @@ interface ResetPasswordForm {
 	`,
 })
 export default class ResetPassword {
-	private readonly router = inject(Router);
+	private readonly router = inject(Router)
 
-	readonly loginUrl = this.router.createUrlTree(['/auth/login']);
+	protected readonly loginUrl = this.router.createUrlTree(['/auth/login'])
 
-	private readonly model = signal<ResetPasswordForm>({ email: '' });
-	readonly resetPasswordForm: FieldTree<ResetPasswordForm> = form(
+	private readonly model = signal<ResetPasswordForm>({ email: '' })
+	protected readonly resetPasswordForm: FieldTree<ResetPasswordForm> = form(
 		this.model,
 		schema<ResetPasswordForm>((resetPassword) => {
-			required(resetPassword.email);
-			email(resetPassword.email);
+			required(resetPassword.email)
+			email(resetPassword.email)
 		}),
-	);
+	)
 
-	protected readonly isFormValid = computed(() => this.resetPasswordForm().errors().length === 0);
+	protected readonly isFormValid = computed(() => this.resetPasswordForm().errors().length === 0)
 
-	onSubmit() {
+	protected onSubmit() {
 		if (!this.isFormValid()) {
 			// Signal forms FieldState.markAsTouched() only marks a single field;
 			// there is no markAllAsTouched() equivalent — each field must be touched individually.
-			this.resetPasswordForm.email().markAsTouched();
-			return;
+			this.resetPasswordForm.email().markAsTouched()
+			return
 		}
 
 		// TODO: Implement actual password reset logic

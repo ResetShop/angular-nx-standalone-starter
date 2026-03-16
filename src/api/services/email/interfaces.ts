@@ -2,19 +2,19 @@ export const EMAIL_PROVIDERS = Object.freeze({
 	NODEMAILER: 'nodemailer',
 	ETHEREAL: 'ethereal',
 	NOOP: 'noop',
-} as const);
+} as const)
 
-export type EmailProvider = (typeof EMAIL_PROVIDERS)[keyof typeof EMAIL_PROVIDERS];
+export type EmailProvider = (typeof EMAIL_PROVIDERS)[keyof typeof EMAIL_PROVIDERS]
 
 export function isEmailProvider(value: string): value is EmailProvider {
-	return Object.values(EMAIL_PROVIDERS).includes(value as EmailProvider);
+	return Object.values(EMAIL_PROVIDERS).includes(value as EmailProvider)
 }
 
 export interface SendEmailParams {
-	to: string;
-	subject: string;
-	html: string;
-	text: string;
+	to: string
+	subject: string
+	html: string
+	text: string
 }
 
 /**
@@ -25,9 +25,9 @@ export interface SendEmailParams {
  * @throws Error if recipients are rejected by the SMTP server
  */
 export interface IEmailRepository {
-	send(params: SendEmailParams): Promise<void>;
+	send(params: SendEmailParams): Promise<void>
 }
 
 export interface IEmailService {
-	send(params: SendEmailParams): Promise<void>;
+	send(params: SendEmailParams): Promise<void>
 }

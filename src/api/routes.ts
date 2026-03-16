@@ -1,7 +1,7 @@
-import accessRoutes from './modules/access';
-import authController from './modules/auth/auth.controller';
-import healthController from './modules/health/health.controller';
-import userRoutes from './modules/user';
+import accessRoutes from './modules/access'
+import authController from './modules/auth/auth.controller'
+import healthController from './modules/health/health.controller'
+import userRoutes from './modules/user'
 
 // Define public paths that don't require authentication
 // Logout is public because it uses the refresh token from cookie to identify user
@@ -14,7 +14,7 @@ export const PUBLIC_AUTH_ROUTES = [
 	'/api/health', // Health checks must be public for load balancers/monitoring
 	'/api/docs', // Swagger UI
 	'/api/openapi.json', // OpenAPI spec
-] as const;
+] as const
 
 export default [
 	{
@@ -33,4 +33,4 @@ export default [
 		path: '/user',
 		controller: userRoutes,
 	},
-];
+]

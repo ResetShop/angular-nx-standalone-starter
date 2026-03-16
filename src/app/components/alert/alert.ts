@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 
-export type AlertVariant = 'default' | 'destructive';
+export type AlertVariant = 'default' | 'destructive'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -16,14 +16,14 @@ export type AlertVariant = 'default' | 'destructive';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Alert {
-	readonly variant = input<AlertVariant>('default');
+	public readonly variant = input<AlertVariant>('default')
 
 	private readonly variantClasses: Record<AlertVariant, string[]> = {
 		default: ['bg-card', 'text-card-foreground'],
 		destructive: ['text-destructive', 'bg-card', '[&_[data-slot=alert-description]]:text-destructive/90'],
-	};
+	}
 
-	protected readonly role = computed(() => (this.variant() === 'destructive' ? 'alert' : 'status'));
+	protected readonly role = computed(() => (this.variant() === 'destructive' ? 'alert' : 'status'))
 
 	protected readonly computedClasses = computed(() => {
 		const baseClasses = [
@@ -42,10 +42,10 @@ export class Alert {
 			'has-[>svg]:grid-cols-[auto_1fr]',
 			'has-[>svg]:gap-x-2',
 			'[&>svg]:row-span-2',
-		];
+		]
 
-		return [...baseClasses, ...this.variantClasses[this.variant()]].join(' ');
-	});
+		return [...baseClasses, ...this.variantClasses[this.variant()]].join(' ')
+	})
 }
 
 @Component({

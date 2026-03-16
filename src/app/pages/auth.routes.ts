@@ -1,4 +1,4 @@
-import { NamedRoute } from '@interfaces/navigation';
+import { NamedRoute } from '@interfaces/navigation'
 
 export default [
 	{
@@ -11,4 +11,4 @@ export default [
 		title: 'Reset Password',
 		loadComponent: () => import('@pages/auth/reset-password/reset-password'),
 	},
-] satisfies NamedRoute[];
+] satisfies NamedRoute[]

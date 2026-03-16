@@ -1,4 +1,4 @@
-import type { IEmailRepository, SendEmailParams } from './interfaces';
+import type { IEmailRepository, SendEmailParams } from './interfaces'
 
 /**
  * No-op email repository that silently discards all emails.
@@ -6,7 +6,7 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  */
 export class NoopEmailRepository implements IEmailRepository {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
-	async send(params: SendEmailParams): Promise<void> {
+	public async send(params: SendEmailParams): Promise<void> {
 		// Intentionally empty — emails are not sent in this mode
 	}
 }

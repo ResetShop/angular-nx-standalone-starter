@@ -1,6 +1,6 @@
 // drizzle.config.ts
-import { defineConfig } from 'drizzle-kit';
-import { environment } from './src/api/helpers/environment';
+import { defineConfig } from 'drizzle-kit'
+import { environment } from './src/api/helpers/environment'
 export default defineConfig({
 	// TODO: Manage to define dialect programmatically via config when setting up the repo
 	// dialect: 'mysql',
@@ -11,4 +11,4 @@ export default defineConfig({
 		// url: environment.database.mysql.connectionString,
 		url: environment.database.pg.connectionString,
 	},
-});
+})

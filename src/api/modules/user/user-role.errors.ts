@@ -5,7 +5,7 @@ export const USER_ROLE_ERRORS = {
 	ROLE_ALREADY_ASSIGNED: 'Role is already assigned to this user',
 	ROLE_NOT_ASSIGNED: 'Role is not assigned to this user',
 	NON_REMOVABLE_ROLES: 'Cannot remove non-removable roles',
-} as const;
+} as const
 
 /**
  * Error factory functions that include entity IDs for better debugging.
@@ -19,4 +19,4 @@ export const userRoleErrors = {
 	roleNotAssigned: (userId: number, roleId: number) =>
 		new Error(`${USER_ROLE_ERRORS.ROLE_NOT_ASSIGNED} (userId: ${userId}, roleId: ${roleId})`),
 	nonRemovableRoles: (roleIds: number[]) => new Error(`${USER_ROLE_ERRORS.NON_REMOVABLE_ROLES}: ${roleIds.join(', ')}`),
-};
+}

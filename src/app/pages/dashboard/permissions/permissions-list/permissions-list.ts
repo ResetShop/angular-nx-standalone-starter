@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Badge } from '@components/badge/badge';
-import { DataTable } from '@components/data-table/data-table';
-import { DataTableCellDef } from '@components/data-table/data-table-cell-def';
-import { PageShell } from '@components/page-shell/page-shell';
-import type { IPermission } from '@domain/access/permission.interface';
-import { PermissionsStore } from '@store/permissions/permissions.store';
-import type { ColumnDef } from '@tanstack/angular-table';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { Badge } from '@components/badge/badge'
+import { DataTable } from '@components/data-table/data-table'
+import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
+import { PageShell } from '@components/page-shell/page-shell'
+import type { IPermission } from '@domain/access/permission.interface'
+import { PermissionsStore } from '@store/permissions/permissions.store'
+import type { ColumnDef } from '@tanstack/angular-table'
 
 @Component({
 	selector: 'app-permissions-list',
@@ -39,14 +39,14 @@ import type { ColumnDef } from '@tanstack/angular-table';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class PermissionsList {
-	protected readonly store = inject(PermissionsStore);
+	protected readonly store = inject(PermissionsStore)
 
 	protected readonly columns: ColumnDef<IPermission, unknown>[] = [
 		{ accessorKey: 'resource', header: 'Resource' },
 		{ accessorKey: 'action', header: 'Action' },
 		{ accessorKey: 'identifier', header: 'Identifier' },
 		{ accessorKey: 'description', header: 'Description' },
-	];
+	]
 
-	protected readonly grouping = ['resource'];
+	protected readonly grouping = ['resource']
 }

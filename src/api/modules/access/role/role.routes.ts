@@ -1,9 +1,9 @@
-import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
+import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas'
 import {
 	paginatedResponseSchema,
 	paginationParamsSchema,
 	searchPaginationSchema,
-} from '@contracts/common/pagination.schemas';
+} from '@contracts/common/pagination.schemas'
 import {
 	assignPermissionsRequestSchema,
 	createRoleRequestSchema,
@@ -11,11 +11,11 @@ import {
 	permissionDataSchema,
 	roleDataSchema,
 	updateRoleRequestSchema,
-} from '@contracts/role/role.schemas';
-import { createRoute } from '@hono/zod-openapi';
-import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
-import { commonResponses, idParamSchema } from '../../../openapi-config';
-import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants';
+} from '@contracts/role/role.schemas'
+import { createRoute } from '@hono/zod-openapi'
+import { requirePermission } from '../../../middlewares/verify-permissions.middleware'
+import { commonResponses, idParamSchema } from '../../../openapi-config'
+import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants'
 
 export const listRolesRoute = createRoute({
 	method: 'get',
@@ -32,7 +32,7 @@ export const listRolesRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const getRoleRoute = createRoute({
 	method: 'get',
@@ -57,7 +57,7 @@ export const getRoleRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const createRoleRoute = createRoute({
 	method: 'post',
@@ -83,7 +83,7 @@ export const createRoleRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const updateRoleRoute = createRoute({
 	method: 'put',
@@ -118,7 +118,7 @@ export const updateRoleRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const deleteRoleRoute = createRoute({
 	method: 'delete',
@@ -147,7 +147,7 @@ export const deleteRoleRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const getRolePermissionsRoute = createRoute({
 	method: 'get',
@@ -175,7 +175,7 @@ export const getRolePermissionsRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const assignPermissionsRoute = createRoute({
 	method: 'put',
@@ -210,4 +210,4 @@ export const assignPermissionsRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})

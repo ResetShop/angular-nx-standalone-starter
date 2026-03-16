@@ -1,5 +1,5 @@
-import { computed, Directive, HostAttributeToken, inject, input } from '@angular/core';
-import type { DrawerDirection } from './drawer';
+import { computed, Directive, HostAttributeToken, inject, input } from '@angular/core'
+import type { DrawerDirection } from './drawer'
 
 /**
  * Computes the CSS panel classes for the Drawer component based on
@@ -9,17 +9,17 @@ import type { DrawerDirection } from './drawer';
  */
 @Directive({ standalone: true })
 export class DrawerPanel {
-	readonly direction = input<DrawerDirection>('right');
+	public readonly direction = input<DrawerDirection>('right')
 
-	private readonly hostClasses = inject(new HostAttributeToken('class'), { optional: true }) ?? '';
+	private readonly hostClasses = inject(new HostAttributeToken('class'), { optional: true }) ?? ''
 
 	private readonly layoutClasses = computed(() => {
-		const dir = this.direction();
+		const dir = this.direction()
 		if (dir === 'left' || dir === 'right') {
-			return 'h-full max-w-3/4';
+			return 'h-full max-w-3/4'
 		}
-		return 'w-screen max-h-3/4';
-	});
+		return 'w-screen max-h-3/4'
+	})
 
 	private readonly positionClasses = computed(() => {
 		const positions: Record<DrawerDirection, string> = {
@@ -27,13 +27,13 @@ export class DrawerPanel {
 			right: 'inset-y-0 right-0 ml-auto',
 			top: 'inset-x-0 top-0',
 			bottom: 'inset-x-0 bottom-0 mt-auto',
-		};
-		return positions[this.direction()];
-	});
+		}
+		return positions[this.direction()]
+	})
 
-	private readonly directionClass = computed(() => `drawer-${this.direction()}`);
+	private readonly directionClass = computed(() => `drawer-${this.direction()}`)
 
-	readonly panelClasses = computed(() => {
-		return `${this.layoutClasses()} ${this.positionClasses()} ${this.directionClass()} ${this.hostClasses}`.trim();
-	});
+	public readonly panelClasses = computed(() => {
+		return `${this.layoutClasses()} ${this.positionClasses()} ${this.directionClass()} ${this.hostClasses}`.trim()
+	})
 }

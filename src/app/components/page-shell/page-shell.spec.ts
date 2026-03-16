@@ -1,7 +1,7 @@
-import { Component, input } from '@angular/core';
-import { clearAllMocks } from '@test-utils';
-import { render, screen } from '@testing-library/angular';
-import { PageShell } from './page-shell';
+import { Component, input } from '@angular/core'
+import { clearAllMocks } from '@test-utils'
+import { render, screen } from '@testing-library/angular'
+import { PageShell } from './page-shell'
 
 @Component({
 	selector: 'app-test-host',
@@ -15,10 +15,10 @@ import { PageShell } from './page-shell';
 	`,
 })
 class TestHost {
-	readonly title = input('Test Page');
-	readonly description = input('A test description');
-	readonly loading = input(false);
-	readonly error = input<string | null>(null);
+	public readonly title = input('Test Page')
+	public readonly description = input('A test description')
+	public readonly loading = input(false)
+	public readonly error = input<string | null>(null)
 }
 
 @Component({
@@ -35,49 +35,49 @@ class TestHostNoDescription {}
 
 describe('PageShell', () => {
 	beforeEach(() => {
-		clearAllMocks();
-	});
+		clearAllMocks()
+	})
 
 	it('should render the title', async () => {
-		await render(TestHost);
+		await render(TestHost)
 
-		expect(screen.getByRole('heading', { level: 1, name: 'Test Page' })).toBeInTheDocument();
-	});
+		expect(screen.getByRole('heading', { level: 1, name: 'Test Page' })).toBeInTheDocument()
+	})
 
 	it('should project description content', async () => {
-		await render(TestHost);
+		await render(TestHost)
 
-		expect(screen.getByText('A test description')).toBeInTheDocument();
-	});
+		expect(screen.getByText('A test description')).toBeInTheDocument()
+	})
 
 	it('should hide the description paragraph when no content is projected', async () => {
-		await render(TestHostNoDescription);
+		await render(TestHostNoDescription)
 
-		expect(screen.getByRole('heading', { level: 1, name: 'No Desc' })).toBeInTheDocument();
-		expect(screen.getByTestId('page-content')).toBeInTheDocument();
-	});
+		expect(screen.getByRole('heading', { level: 1, name: 'No Desc' })).toBeInTheDocument()
+		expect(screen.getByTestId('page-content')).toBeInTheDocument()
+	})
 
 	it('should project default content when not loading and no error', async () => {
-		await render(TestHost);
+		await render(TestHost)
 
-		expect(screen.getByTestId('page-content')).toBeInTheDocument();
-	});
+		expect(screen.getByTestId('page-content')).toBeInTheDocument()
+	})
 
 	it('should show spinner when loading', async () => {
 		await render(TestHost, {
 			componentInputs: { loading: true },
-		});
+		})
 
-		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument();
-	});
+		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
+	})
 
 	it('should show error alert when error is set', async () => {
 		await render(TestHost, {
 			componentInputs: { error: 'Something went wrong' },
-		});
+		})
 
-		expect(screen.getByRole('alert')).toBeInTheDocument();
-		expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument();
-	});
-});
+		expect(screen.getByRole('alert')).toBeInTheDocument()
+		expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
+	})
+})

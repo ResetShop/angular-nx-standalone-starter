@@ -1,16 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
-import { Badge } from '@components/badge/badge';
-import { Button } from '@components/button/button';
-import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog';
-import { DataTable } from '@components/data-table/data-table';
-import { DataTableCellDef } from '@components/data-table/data-table-cell-def';
-import { PageShell } from '@components/page-shell/page-shell';
-import { Pagination } from '@components/pagination/pagination';
-import type { IRole } from '@domain/access/role.interface';
-import { RolesStore } from '@store/roles/roles.store';
-import type { ColumnDef } from '@tanstack/angular-table';
-import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer';
-import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core'
+import { Badge } from '@components/badge/badge'
+import { Button } from '@components/button/button'
+import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
+import { DataTable } from '@components/data-table/data-table'
+import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
+import { PageShell } from '@components/page-shell/page-shell'
+import { Pagination } from '@components/pagination/pagination'
+import type { IRole } from '@domain/access/role.interface'
+import { RolesStore } from '@store/roles/roles.store'
+import type { ColumnDef } from '@tanstack/angular-table'
+import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer'
+import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 
 @Component({
 	selector: 'app-roles-list',
@@ -85,38 +85,38 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class RolesList {
-	protected readonly store = inject(RolesStore);
+	protected readonly store = inject(RolesStore)
 
-	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog');
+	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 
-	protected readonly roleToDelete = signal<IRole | null>(null);
+	protected readonly roleToDelete = signal<IRole | null>(null)
 	protected readonly deleteMessage = computed(() => {
-		const name = this.roleToDelete()?.name ?? '';
-		return `Are you sure you want to delete the role '${name}'? This action cannot be undone.`;
-	});
+		const name = this.roleToDelete()?.name ?? ''
+		return `Are you sure you want to delete the role '${name}'? This action cannot be undone.`
+	})
 
 	protected readonly columns: ColumnDef<IRole, unknown>[] = [
 		{ accessorKey: 'name', header: 'Name' },
 		{ accessorKey: 'code', header: 'Code' },
 		{ accessorKey: 'description', header: 'Description' },
 		{ id: 'actions', header: '', enableSorting: false },
-	];
+	]
 
 	protected onSearchInput(event: Event): void {
-		const input = event.target as HTMLInputElement;
-		this.store.setSearchQuery(input.value);
+		const input = event.target as HTMLInputElement
+		this.store.setSearchQuery(input.value)
 	}
 
 	protected confirmDelete(role: IRole): void {
-		this.roleToDelete.set(role);
-		this.deleteDialog().show();
+		this.roleToDelete.set(role)
+		this.deleteDialog().show()
 	}
 
 	protected onDeleteConfirmed(): void {
-		const role = this.roleToDelete();
+		const role = this.roleToDelete()
 		if (role) {
-			this.store.deleteRole(role.id);
-			this.roleToDelete.set(null);
+			this.store.deleteRole(role.id)
+			this.roleToDelete.set(null)
 		}
 	}
 }

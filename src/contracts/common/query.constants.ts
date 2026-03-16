@@ -17,4 +17,4 @@ export const QUERY_DEFAULTS = Object.freeze({
 	NAME_MAX_LENGTH: 100,
 	CODE_MAX_LENGTH: 50,
 	DESCRIPTION_MAX_LENGTH: 500,
-} as const);
+} as const)

@@ -1,10 +1,10 @@
-import type { OpenAPIHono } from '@hono/zod-openapi';
-import { getRestrictedUserCredentials } from './db-helpers';
+import type { OpenAPIHono } from '@hono/zod-openapi'
+import { getRestrictedUserCredentials } from './db-helpers'
 
 interface ParsedCookies {
-	accessToken: string;
-	refreshToken: string;
-	raw: string;
+	accessToken: string
+	refreshToken: string
+	raw: string
 }
 
 /**
@@ -13,23 +13,23 @@ interface ParsedCookies {
  * `Set-Cookie` response headers, suitable for passing in subsequent requests.
  */
 export function parseCookies(response: Response): ParsedCookies {
-	const setCookieHeaders = response.headers.getSetCookie();
-	let accessToken = '';
-	let refreshToken = '';
+	const setCookieHeaders = response.headers.getSetCookie()
+	let accessToken = ''
+	let refreshToken = ''
 
 	for (const header of setCookieHeaders) {
 		if (header.startsWith('access_token=')) {
-			accessToken = header.split('=')[1].split(';')[0];
+			accessToken = header.split('=')[1].split(';')[0]
 		}
 		if (header.startsWith('refresh_token=')) {
-			refreshToken = header.split('=')[1].split(';')[0];
+			refreshToken = header.split('=')[1].split(';')[0]
 		}
 	}
 
 	// Build combined cookie string for requests
-	const raw = setCookieHeaders.map((h) => h.split(';')[0]).join('; ');
+	const raw = setCookieHeaders.map((h) => h.split(';')[0]).join('; ')
 
-	return { accessToken, refreshToken, raw };
+	return { accessToken, refreshToken, raw }
 }
 
 /**
@@ -44,10 +44,10 @@ export async function loginAs(
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ email, password }),
-	});
+	})
 
-	const cookies = parseCookies(response);
-	return { response, cookies };
+	const cookies = parseCookies(response)
+	return { response, cookies }
 }
 
 /**
@@ -55,16 +55,16 @@ export async function loginAs(
  * Password is read from INTEGRATION_TEST_ADMIN_PASSWORD env var (default: admin123).
  */
 export async function loginAsAdmin(app: OpenAPIHono): Promise<ParsedCookies> {
-	const adminPassword = process.env['INTEGRATION_TEST_ADMIN_PASSWORD'];
+	const adminPassword = process.env['INTEGRATION_TEST_ADMIN_PASSWORD']
 	if (!adminPassword) {
-		throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD environment variable is required.');
+		throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD environment variable is required.')
 	}
-	const { response, cookies } = await loginAs(app, 'admin@sistema.com', adminPassword);
+	const { response, cookies } = await loginAs(app, 'admin@sistema.com', adminPassword)
 	if (response.status !== 200) {
-		const body = await response.json();
-		throw new Error(`Admin login failed (${response.status}): ${JSON.stringify(body)}`);
+		const body = await response.json()
+		throw new Error(`Admin login failed (${response.status}): ${JSON.stringify(body)}`)
 	}
-	return cookies;
+	return cookies
 }
 
 /**
@@ -72,13 +72,13 @@ export async function loginAsAdmin(app: OpenAPIHono): Promise<ParsedCookies> {
  * This user is created once in global setup — no per-test seeding needed.
  */
 export async function loginAsRestricted(app: OpenAPIHono): Promise<ParsedCookies> {
-	const { email, password } = getRestrictedUserCredentials();
-	const { response, cookies } = await loginAs(app, email, password);
+	const { email, password } = getRestrictedUserCredentials()
+	const { response, cookies } = await loginAs(app, email, password)
 	if (response.status !== 200) {
-		const body = await response.json();
-		throw new Error(`Restricted user login failed (${response.status}): ${JSON.stringify(body)}`);
+		const body = await response.json()
+		throw new Error(`Restricted user login failed (${response.status}): ${JSON.stringify(body)}`)
 	}
-	return cookies;
+	return cookies
 }
 
 /**
@@ -88,22 +88,22 @@ export async function authenticatedRequest(
 	app: OpenAPIHono,
 	path: string,
 	options: {
-		method?: string;
-		body?: unknown;
-		cookies: ParsedCookies;
+		method?: string
+		body?: unknown
+		cookies: ParsedCookies
 	},
 ): Promise<Response> {
 	const headers: Record<string, string> = {
 		Cookie: options.cookies.raw,
-	};
+	}
 
 	if (options.body !== undefined) {
-		headers['Content-Type'] = 'application/json';
+		headers['Content-Type'] = 'application/json'
 	}
 
 	return app.request(path, {
 		method: options.method ?? 'GET',
 		headers,
 		body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-	});
+	})
 }

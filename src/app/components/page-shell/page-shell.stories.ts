@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { PageShell } from './page-shell';
+import type { Meta, StoryObj } from '@storybook/angular'
+import { PageShell } from './page-shell'
 
 const meta: Meta<PageShell & { description: string; content: string }> = {
 	component: PageShell,
@@ -54,11 +54,11 @@ A wrapper component for consistent page layouts with title, description, loading
 			description: 'Description text projected via [pageDescription]',
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<PageShell & { description: string }>;
+type Story = StoryObj<PageShell & { description: string }>
 
 export const Default: Story = {
 	args: {
@@ -81,7 +81,7 @@ export const Default: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 export const Loading: Story = {
 	args: {
@@ -104,7 +104,7 @@ export const Loading: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 export const Error: Story = {
 	args: {
@@ -127,7 +127,7 @@ export const Error: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 export const NoDescription: Story = {
 	args: {
@@ -148,4 +148,4 @@ export const NoDescription: Story = {
 			</div>
 		`,
 	}),
-};
+}

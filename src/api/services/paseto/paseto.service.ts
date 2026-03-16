@@ -1,6 +1,6 @@
-import { V3 } from 'paseto';
-import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants';
-import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces';
+import { V3 } from 'paseto'
+import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
+import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces'
 
 /**
  * Service to interact with PASETO tokens. It allows for the generation and validation of access and refresh tokens
@@ -11,15 +11,15 @@ import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from
  *
  * */
 export class PasetoService implements IPasetoService {
-	private readonly secretKey: Buffer;
-	private readonly issuer: string;
+	private readonly secretKey: Buffer
+	private readonly issuer: string
 
 	constructor() {
 		// Defense-in-depth: This validation is also performed in container.ts at startup.
 		// Keeping it here ensures the service fails safely even if instantiated outside the DI container.
-		const keyHex = process.env['PASETO_SECRET_KEY'];
+		const keyHex = process.env['PASETO_SECRET_KEY']
 		if (!keyHex) {
-			throw new Error('PASETO_SECRET_KEY not configured');
+			throw new Error('PASETO_SECRET_KEY not configured')
 		}
 
 		// Validate key length: PASETO v3.local requires a 32-byte key (64 hex characters)
@@ -27,16 +27,16 @@ export class PasetoService implements IPasetoService {
 			throw new Error(
 				'PASETO_SECRET_KEY must be at least 32 bytes (64 hex characters). ' +
 					'Generate a secure key with: openssl rand -hex 32',
-			);
+			)
 		}
 
-		this.secretKey = Buffer.from(keyHex, 'hex');
+		this.secretKey = Buffer.from(keyHex, 'hex')
 
-		const issuer = process.env['PASETO_ISSUER'];
+		const issuer = process.env['PASETO_ISSUER']
 		if (!issuer) {
-			throw new Error('PASETO_ISSUER not configured');
+			throw new Error('PASETO_ISSUER not configured')
 		}
-		this.issuer = issuer;
+		this.issuer = issuer
 	}
 
 	/**
@@ -46,9 +46,9 @@ export class PasetoService implements IPasetoService {
 	 * @param payload - Token payload containing user information (sub, email, firstName, lastName)
 	 * @returns Encrypted PASETO v3.local token string
 	 */
-	async generateAccessToken(payload: TokenPayload): Promise<string> {
+	public async generateAccessToken(payload: TokenPayload): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
-		const expiresIn = process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY;
+		const expiresIn = process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY
 
 		return await V3.encrypt(
 			{
@@ -63,7 +63,7 @@ export class PasetoService implements IPasetoService {
 				expiresIn,
 				iat: true, // Include issued-at timestamp
 			},
-		);
+		)
 	}
 
 	/**
@@ -74,9 +74,9 @@ export class PasetoService implements IPasetoService {
 	 * @param tokenFamily - Token family UUID for rotation tracking. If not provided, a new UUID is generated.
 	 * @returns Encrypted PASETO v3.local token string
 	 */
-	async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
+	public async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
-		const expiresIn = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY;
+		const expiresIn = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY
 
 		return await V3.encrypt(
 			{
@@ -89,7 +89,7 @@ export class PasetoService implements IPasetoService {
 				expiresIn,
 				iat: true,
 			},
-		);
+		)
 	}
 
 	/**
@@ -100,16 +100,16 @@ export class PasetoService implements IPasetoService {
 	 * @returns Decoded token payload with user information
 	 * @throws Error if token is invalid, expired, or has wrong issuer
 	 */
-	async verifyAccessToken(token: string): Promise<TokenPayload> {
+	public async verifyAccessToken(token: string): Promise<TokenPayload> {
 		try {
 			const result = await V3.decrypt<TokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,
 				clockTolerance: process.env['PASETO_CLOCK_TOLERANCE'] ?? '1m', // Allow default 1 minute clock drift
-			});
+			})
 
-			return result;
+			return result
 		} catch (error) {
-			throw new Error('Invalid or expired token', { cause: error });
+			throw new Error('Invalid or expired token', { cause: error })
 		}
 	}
 
@@ -121,16 +121,16 @@ export class PasetoService implements IPasetoService {
 	 * @returns Decoded token payload with user ID and token family
 	 * @throws Error if token is invalid, expired, or has wrong issuer
 	 */
-	async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
+	public async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
 		try {
 			const result = await V3.decrypt<RefreshTokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,
 				clockTolerance: process.env['PASETO_CLOCK_TOLERANCE'] ?? '1m', // Allow default 1 minute clock drift
-			});
+			})
 
-			return result;
+			return result
 		} catch (error) {
-			throw new Error('Invalid or expired refresh token', { cause: error });
+			throw new Error('Invalid or expired refresh token', { cause: error })
 		}
 	}
 }

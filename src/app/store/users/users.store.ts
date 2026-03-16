@@ -1,17 +1,17 @@
-import { computed, inject } from '@angular/core';
-import type { SearchPaginationParams } from '@contracts/common/pagination.types';
-import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types';
-import type { IManagedUser } from '@domain/user-management/managed-user.interface';
-import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper';
-import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
-import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { UsersApiService } from '@providers/users/users';
-import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs';
-import type { UsersMutationError, UsersReadError } from './users.types';
-import { initialUsersState } from './users.types';
+import { computed, inject } from '@angular/core'
+import type { SearchPaginationParams } from '@contracts/common/pagination.types'
+import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types'
+import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
+import { rxMethod } from '@ngrx/signals/rxjs-interop'
+import { UsersApiService } from '@providers/users/users'
+import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs'
+import type { UsersMutationError, UsersReadError } from './users.types'
+import { initialUsersState } from './users.types'
 
 function patchReadError(current: UsersReadError, key: keyof UsersReadError, value: string | null): UsersReadError {
-	return { ...current, [key]: value };
+	return { ...current, [key]: value }
 }
 
 function patchMutationError(
@@ -19,7 +19,7 @@ function patchMutationError(
 	key: keyof UsersMutationError,
 	value: string | null,
 ): UsersMutationError {
-	return { ...current, [key]: value };
+	return { ...current, [key]: value }
 }
 
 /**
@@ -54,7 +54,7 @@ export const UsersStore = signalStore(
 		hasPreviousPage: computed(() => store.currentPage() > 1),
 	})),
 	withMethods((store) => {
-		const usersApi = inject(UsersApiService);
+		const usersApi = inject(UsersApiService)
 
 		return {
 			loadUsers: rxMethod<SearchPaginationParams>(
@@ -69,16 +69,16 @@ export const UsersStore = signalStore(
 						usersApi.getAll({ offset, limit, search }).pipe(
 							tap({
 								next: (response) => {
-									const users = response.data.map(mapManagedUserResponse);
-									patchState(store, { users, totalItems: response.total, isLoadingList: false });
+									const users = response.data.map(mapManagedUserResponse)
+									patchState(store, { users, totalItems: response.total, isLoadingList: false })
 								},
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] loadUsers failed:', err);
+									console.error('[UsersStore] loadUsers failed:', err)
 									patchState(store, {
 										isLoadingList: false,
 										readError: patchReadError(store.readError(), 'list', 'Failed to load users'),
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -88,36 +88,36 @@ export const UsersStore = signalStore(
 			),
 
 			setPage(page: number): void {
-				patchState(store, { currentPage: page });
+				patchState(store, { currentPage: page })
 			},
 
 			setPageSize(size: number): void {
-				patchState(store, { pageSize: size, currentPage: 1 });
+				patchState(store, { pageSize: size, currentPage: 1 })
 			},
 
 			setSearchQuery(query: string): void {
-				patchState(store, { searchQuery: query, currentPage: 1 });
+				patchState(store, { searchQuery: query, currentPage: 1 })
 			},
 
 			selectUser(user: IManagedUser | null): void {
-				patchState(store, { selectedUser: user });
+				patchState(store, { selectedUser: user })
 			},
 
 			clearErrors(): void {
 				patchState(store, {
 					readError: { list: null },
 					mutationError: { create: null, update: null, updateStatus: null, delete: null },
-				});
+				})
 			},
-		};
+		}
 	}),
 	// Mutation methods — all reload the list after success
 	withMethods((store) => {
-		const usersApi = inject(UsersApiService);
+		const usersApi = inject(UsersApiService)
 
 		return {
 			reload(): void {
-				store.loadUsers(store.listParams());
+				store.loadUsers(store.listParams())
 			},
 
 			createUser: rxMethod<CreateUserRequest>(
@@ -132,16 +132,16 @@ export const UsersStore = signalStore(
 						usersApi.create(body).pipe(
 							tap({
 								next: () => {
-									patchState(store, { isCreating: false });
-									store.loadUsers(store.listParams());
+									patchState(store, { isCreating: false })
+									store.loadUsers(store.listParams())
 								},
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] createUser failed:', err);
+									console.error('[UsersStore] createUser failed:', err)
 									patchState(store, {
 										isCreating: false,
 										mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create user'),
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -162,16 +162,16 @@ export const UsersStore = signalStore(
 						usersApi.update(id, body).pipe(
 							tap({
 								next: () => {
-									patchState(store, { isUpdating: false });
-									store.loadUsers(store.listParams());
+									patchState(store, { isUpdating: false })
+									store.loadUsers(store.listParams())
 								},
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] updateUser failed:', err);
+									console.error('[UsersStore] updateUser failed:', err)
 									patchState(store, {
 										isUpdating: false,
 										mutationError: patchMutationError(store.mutationError(), 'update', 'Failed to update user'),
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -192,12 +192,12 @@ export const UsersStore = signalStore(
 						usersApi.updateStatus(id, body).pipe(
 							tap({
 								next: () => {
-									patchState(store, { isUpdating: false });
-									store.loadUsers(store.listParams());
+									patchState(store, { isUpdating: false })
+									store.loadUsers(store.listParams())
 								},
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] updateUserStatus failed:', err);
+									console.error('[UsersStore] updateUserStatus failed:', err)
 									patchState(store, {
 										isUpdating: false,
 										mutationError: patchMutationError(
@@ -205,7 +205,7 @@ export const UsersStore = signalStore(
 											'updateStatus',
 											'Failed to update user status',
 										),
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -227,25 +227,25 @@ export const UsersStore = signalStore(
 							tap({
 								next: () => {
 									if (store.selectedUser()?.id === id) {
-										patchState(store, { selectedUser: null });
+										patchState(store, { selectedUser: null })
 									}
-									patchState(store, { isDeleting: false });
+									patchState(store, { isDeleting: false })
 
 									// When the last item on a page is deleted, navigate to previous page.
 									// Patching currentPage triggers the reactive loadUsers chain automatically.
 									if (store.users().length === 1 && store.currentPage() > 1) {
-										patchState(store, { currentPage: store.currentPage() - 1 });
+										patchState(store, { currentPage: store.currentPage() - 1 })
 									} else {
-										store.loadUsers(store.listParams());
+										store.loadUsers(store.listParams())
 									}
 								},
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] deleteUser failed:', err);
+									console.error('[UsersStore] deleteUser failed:', err)
 									patchState(store, {
 										isDeleting: false,
 										mutationError: patchMutationError(store.mutationError(), 'delete', 'Failed to delete user'),
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -253,12 +253,12 @@ export const UsersStore = signalStore(
 					),
 				),
 			),
-		};
+		}
 	}),
 	withHooks({
 		onInit(store) {
 			// Pass the computed listParams signal — rxMethod watches it and re-fires on any change
-			store.loadUsers(store.listParams);
+			store.loadUsers(store.listParams)
 		},
 	}),
-);
+)

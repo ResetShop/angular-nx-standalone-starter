@@ -1,46 +1,46 @@
-import type { IPermission } from '../access/permission.interface';
-import type { IRole } from '../access/role.interface';
-import type { IUser } from './user.interface';
+import type { IPermission } from '../access/permission.interface'
+import type { IRole } from '../access/role.interface'
+import type { IUser } from './user.interface'
 
 export class User implements IUser {
-	readonly id: number;
-	readonly email: string;
-	readonly firstName: string;
-	readonly lastName: string;
-	readonly roles: readonly IRole[];
+	public readonly id: number
+	public readonly email: string
+	public readonly firstName: string
+	public readonly lastName: string
+	public readonly roles: readonly IRole[]
 
-	private readonly _permissions: readonly IPermission[];
-	private readonly _permissionIdentifiers: ReadonlySet<string>;
+	private readonly _permissions: readonly IPermission[]
+	private readonly _permissionIdentifiers: ReadonlySet<string>
 
 	constructor(id: number, email: string, firstName: string, lastName: string, roles: IRole[]) {
-		this.id = id;
-		this.email = email;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.roles = roles;
+		this.id = id
+		this.email = email
+		this.firstName = firstName
+		this.lastName = lastName
+		this.roles = roles
 
-		const allPermissions = roles.flatMap((role) => role.permissions);
-		this._permissions = [...new Map(allPermissions.map((p) => [p.identifier, p])).values()];
-		this._permissionIdentifiers = new Set(this._permissions.map((p) => p.identifier));
+		const allPermissions = roles.flatMap((role) => role.permissions)
+		this._permissions = [...new Map(allPermissions.map((p) => [p.identifier, p])).values()]
+		this._permissionIdentifiers = new Set(this._permissions.map((p) => p.identifier))
 	}
 
-	get fullName(): string {
-		return `${this.firstName} ${this.lastName}`.trim();
+	public get fullName(): string {
+		return `${this.firstName} ${this.lastName}`.trim()
 	}
 
-	hasPermission(resource: string, action: string): boolean {
-		return this._permissionIdentifiers.has(`${resource}:${action}`);
+	public hasPermission(resource: string, action: string): boolean {
+		return this._permissionIdentifiers.has(`${resource}:${action}`)
 	}
 
-	hasPermissionByIdentifier(identifier: string): boolean {
-		return this._permissionIdentifiers.has(identifier);
+	public hasPermissionByIdentifier(identifier: string): boolean {
+		return this._permissionIdentifiers.has(identifier)
 	}
 
-	hasRole(code: string): boolean {
-		return this.roles.some((role) => role.code === code);
+	public hasRole(code: string): boolean {
+		return this.roles.some((role) => role.code === code)
 	}
 
-	get permissions(): readonly IPermission[] {
-		return this._permissions;
+	public get permissions(): readonly IPermission[] {
+		return this._permissions
 	}
 }

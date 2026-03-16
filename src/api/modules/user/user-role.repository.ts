@@ -1,13 +1,13 @@
-import { QUERY_DEFAULTS } from '@contracts/common/query.constants';
-import { and, count, eq, inArray } from 'drizzle-orm';
-import { permission } from '../../../db/schema/permission';
-import { role, rolePermission } from '../../../db/schema/role';
-import { userRole } from '../../../db/schema/user';
-import { BaseRepository } from '../../helpers/base.repository';
-import { PaginatedResponse, PaginationParams } from '../../interfaces';
-import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces';
-import type { IUserRoleRepository } from './interfaces';
-import { USER_ROLE_ERRORS, userRoleErrors } from './user-role.errors';
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
+import { and, count, eq, inArray } from 'drizzle-orm'
+import { permission } from '../../../db/schema/permission'
+import { role, rolePermission } from '../../../db/schema/role'
+import { userRole } from '../../../db/schema/user'
+import { BaseRepository } from '../../helpers/base.repository'
+import { PaginatedResponse, PaginationParams } from '../../interfaces'
+import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
+import type { IUserRoleRepository } from './interfaces'
+import { USER_ROLE_ERRORS, userRoleErrors } from './user-role.errors'
 
 /**
  * Repository for user-role relationship database operations.
@@ -23,9 +23,9 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param pagination.limit - Maximum records to return (default: 10)
 	 * @returns Paginated response containing roles and metadata
 	 */
-	async findRolesForUser(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
-		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT;
-		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET;
+	public async findRolesForUser(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
+		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT
+		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET
 
 		const [data, totalResult] = await Promise.all([
 			this.db
@@ -44,14 +44,14 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 				.limit(limit)
 				.offset(offset),
 			this.db.select({ count: count() }).from(userRole).where(eq(userRole.userId, userId)),
-		]);
+		])
 
 		return {
 			data,
 			total: totalResult[0].count,
 			offset,
 			limit,
-		};
+		}
 	}
 
 	/**
@@ -61,7 +61,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param userId - The user's primary key
 	 * @returns Array of roles with nested permissions
 	 */
-	async findRolesWithPermissionsForUser(userId: number): Promise<RoleWithPermissions[]> {
+	public async findRolesWithPermissionsForUser(userId: number): Promise<RoleWithPermissions[]> {
 		const userRolesWithData = await this.db.query.userRole.findMany({
 			where: eq(userRole.userId, userId),
 			with: {
@@ -75,7 +75,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 					},
 				},
 			},
-		});
+		})
 
 		return userRolesWithData.map((ur) => ({
 			id: ur.role.id,
@@ -92,7 +92,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 				resource: rp.permission.resource,
 				action: rp.permission.action,
 			})),
-		}));
+		}))
 	}
 
 	/**
@@ -102,7 +102,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param userId - The user's primary key
 	 * @returns Array of unique permissions across all user's roles
 	 */
-	async findPermissionsForUser(userId: number): Promise<PermissionData[]> {
+	public async findPermissionsForUser(userId: number): Promise<PermissionData[]> {
 		const result = await this.db
 			.selectDistinct({
 				id: permission.id,
@@ -114,9 +114,9 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 			.from(userRole)
 			.innerJoin(rolePermission, eq(userRole.roleId, rolePermission.roleId))
 			.innerJoin(permission, eq(rolePermission.permissionId, permission.id))
-			.where(eq(userRole.userId, userId));
+			.where(eq(userRole.userId, userId))
 
-		return result;
+		return result
 	}
 
 	/**
@@ -127,14 +127,14 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleId - The role's primary key to assign
 	 * @returns true if the role was assigned, false if already assigned
 	 */
-	async assignRoleToUser(userId: number, roleId: number): Promise<boolean> {
+	public async assignRoleToUser(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
 			.insert(userRole)
 			.values({ userId, roleId })
 			.onConflictDoNothing()
-			.returning({ id: userRole.id });
+			.returning({ id: userRole.id })
 
-		return result.length > 0;
+		return result.length > 0
 	}
 
 	/**
@@ -144,13 +144,13 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleId - The role's primary key to remove
 	 * @returns true if the role was removed, false if it wasn't assigned
 	 */
-	async removeRoleFromUser(userId: number, roleId: number): Promise<boolean> {
+	public async removeRoleFromUser(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
 			.delete(userRole)
 			.where(and(eq(userRole.userId, userId), eq(userRole.roleId, roleId)))
-			.returning({ id: userRole.id });
+			.returning({ id: userRole.id })
 
-		return result.length > 0;
+		return result.length > 0
 	}
 
 	/**
@@ -160,14 +160,14 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleId - The role's primary key to check
 	 * @returns true if the user has the role, false otherwise
 	 */
-	async findUserHasRole(userId: number, roleId: number): Promise<boolean> {
+	public async findUserHasRole(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
 			.select({ id: userRole.id })
 			.from(userRole)
 			.where(and(eq(userRole.userId, userId), eq(userRole.roleId, roleId)))
-			.limit(1);
+			.limit(1)
 
-		return result.length > 0;
+		return result.length > 0
 	}
 
 	/**
@@ -179,14 +179,14 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleIds - Array of role IDs to assign (replaces existing)
 	 * @throws Error if any role ID does not exist
 	 */
-	async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
+	public async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
 		await this.db.transaction(async (tx) => {
 			if (roleIds.length > 0) {
-				const existingRoles = await tx.select({ id: role.id }).from(role).where(inArray(role.id, roleIds));
-				const existingIds = new Set(existingRoles.map((r) => r.id));
-				const missingIds = roleIds.filter((id) => !existingIds.has(id));
+				const existingRoles = await tx.select({ id: role.id }).from(role).where(inArray(role.id, roleIds))
+				const existingIds = new Set(existingRoles.map((r) => r.id))
+				const missingIds = roleIds.filter((id) => !existingIds.has(id))
 				if (missingIds.length > 0) {
-					throw new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: ${missingIds.join(', ')}`);
+					throw new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: ${missingIds.join(', ')}`)
 				}
 			}
 
@@ -197,18 +197,18 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 				.select({ roleId: userRole.roleId })
 				.from(userRole)
 				.innerJoin(role, eq(userRole.roleId, role.id))
-				.where(and(eq(userRole.userId, userId), eq(role.removable, false)));
-			const roleIdSet = new Set(roleIds);
-			const missingNonRemovable = nonRemovableResult.map((r) => r.roleId).filter((id) => !roleIdSet.has(id));
+				.where(and(eq(userRole.userId, userId), eq(role.removable, false)))
+			const roleIdSet = new Set(roleIds)
+			const missingNonRemovable = nonRemovableResult.map((r) => r.roleId).filter((id) => !roleIdSet.has(id))
 			if (missingNonRemovable.length > 0) {
-				throw userRoleErrors.nonRemovableRoles(missingNonRemovable);
+				throw userRoleErrors.nonRemovableRoles(missingNonRemovable)
 			}
 
-			await tx.delete(userRole).where(eq(userRole.userId, userId));
+			await tx.delete(userRole).where(eq(userRole.userId, userId))
 			if (roleIds.length > 0) {
-				const values = roleIds.map((roleId) => ({ userId, roleId }));
-				await tx.insert(userRole).values(values);
+				const values = roleIds.map((roleId) => ({ userId, roleId }))
+				await tx.insert(userRole).values(values)
 			}
-		});
+		})
 	}
 }
