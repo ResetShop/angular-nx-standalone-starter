@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import type { PaginatedResponse } from '@contracts/common/pagination.types';
 import type { RoleData, RoleWithPermissions } from '@contracts/role/role.types';
@@ -638,6 +639,105 @@ describe('RolesStore', () => {
 
 			expect(store.readError()).toEqual({ list: null, detail: null, all: null });
 			expect(store.mutationError()).toEqual({ create: null, update: null, delete: null, assignPermissions: null });
+		});
+	});
+
+	describe('clearMutationError', () => {
+		it('should clear only the specified mutation error key', () => {
+			setupStore();
+
+			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
+			store.createRole({ name: 'Fail', code: 'fail' });
+
+			rolesApiMock.delete.mockReturnValue(throwError(() => new Error('Delete error')));
+			store.deleteRole(1);
+
+			expect(store.mutationError().create).toBe('Failed to create role');
+			expect(store.mutationError().delete).toBe('Failed to delete role');
+
+			store.clearMutationError('create');
+
+			expect(store.mutationError().create).toBeNull();
+			expect(store.mutationError().delete).toBe('Failed to delete role');
+		});
+	});
+
+	describe('backend error extraction', () => {
+		it('should extract error message from HttpErrorResponse', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'A role with this code already exists' },
+				status: 409,
+			});
+			rolesApiMock.create.mockReturnValue(throwError(() => httpError));
+
+			store.createRole({ name: 'Duplicate', code: 'dup' });
+
+			expect(store.mutationError().create).toBe('A role with this code already exists');
+		});
+
+		it('should use fallback message for non-HttpErrorResponse errors', () => {
+			setupStore();
+
+			rolesApiMock.create.mockReturnValue(throwError(() => new Error('Network error')));
+
+			store.createRole({ name: 'Fail', code: 'fail' });
+
+			expect(store.mutationError().create).toBe('Failed to create role');
+		});
+
+		it('should use fallback when HttpErrorResponse has no error.error string', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({ error: null, status: 500 });
+			rolesApiMock.create.mockReturnValue(throwError(() => httpError));
+
+			store.createRole({ name: 'Fail', code: 'fail' });
+
+			expect(store.mutationError().create).toBe('Failed to create role');
+		});
+
+		it('should extract backend error for updateRoleWithPermissions', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'Cannot remove your own admin permission' },
+				status: 403,
+			});
+			rolesApiMock.update.mockReturnValue(throwError(() => httpError));
+
+			store.updateRoleWithPermissions({ id: 1, body: { name: 'Test' }, permissionIds: [] });
+
+			expect(store.mutationError().update).toBe('Cannot remove your own admin permission');
+		});
+
+		it('should extract backend error for deleteRole', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'Cannot delete role with active users' },
+				status: 409,
+			});
+			rolesApiMock.delete.mockReturnValue(throwError(() => httpError));
+
+			store.deleteRole(1);
+
+			expect(store.mutationError().delete).toBe('Cannot delete role with active users');
+		});
+
+		it('should extract backend error for assignPermissions', () => {
+			setupStore();
+
+			const httpError = new HttpErrorResponse({
+				error: { error: 'Permission not found' },
+				status: 404,
+			});
+			rolesApiMock.assignPermissions.mockReturnValue(throwError(() => httpError));
+
+			store.assignPermissions({ id: 1, body: { permissionIds: [999] } });
+
+			expect(store.mutationError().assignPermissions).toBe('Permission not found');
 		});
 	});
 
