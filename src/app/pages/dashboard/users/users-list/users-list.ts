@@ -6,6 +6,7 @@ import { DataTable } from '@components/data-table/data-table'
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
+import { UserStatus } from '@contracts/user/user.schemas'
 import type { IManagedUser, IManagedUserRole } from '@domain/user-management/managed-user.interface'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
@@ -43,7 +44,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 			<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
 				<app-data-table [columns]="columns" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
 					<ng-template appDataTableCellDef="status" let-value>
-						<span [variant]="value === 'active' ? 'default' : 'destructive'" appBadge>
+						<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
 							{{ value.charAt(0).toUpperCase() + value.slice(1) }}
 						</span>
 					</ng-template>
@@ -90,6 +91,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 })
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
+	protected readonly UserStatus = UserStatus
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 
