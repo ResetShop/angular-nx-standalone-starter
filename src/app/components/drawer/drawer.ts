@@ -5,20 +5,19 @@ import {
 	computed,
 	contentChild,
 	ElementRef,
-	HostAttributeToken,
 	inject,
 	input,
 	OnDestroy,
 	output,
 	viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, fromEvent, Subject, switchMap, take } from 'rxjs';
 import { Spinner } from '../spinner/spinner';
 import { DrawerFooter } from './drawer-footer';
 import { DrawerHeader } from './drawer-header';
 import { DrawerLoading } from './drawer-loading';
+import { DrawerPanel } from './drawer-panel';
 import { DrawerTracker } from './drawer-tracker';
+import { DrawerTransition } from './drawer-transition';
 
 export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom';
 
@@ -26,7 +25,7 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom';
 	selector: 'app-drawer',
 	standalone: true,
 	imports: [NgTemplateOutlet, Spinner],
-	hostDirectives: [DrawerLoading],
+	hostDirectives: [DrawerLoading, DrawerTransition, { directive: DrawerPanel, inputs: ['direction'] }],
 	templateUrl: './drawer.html',
 	styleUrl: './drawer.css',
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,9 +36,6 @@ export class Drawer implements OnDestroy {
 
 	/** Emits when the drawer closes */
 	readonly closed = output<void>();
-
-	/** Direction from which the drawer slides in */
-	readonly direction = input<DrawerDirection>('right');
 
 	/** Title displayed in the header (if no custom header template) */
 	readonly title = input<string>('');
@@ -59,16 +55,18 @@ export class Drawer implements OnDestroy {
 	/** Content child for custom footer */
 	readonly footerTemplate = contentChild(DrawerFooter);
 
-	/** Host `class` attribute forwarded to the inner dialog panel for width/layout overrides (e.g. `class="w-lg"`) */
-	private readonly hostClasses = inject(new HostAttributeToken('class'), { optional: true }) ?? '';
 	private readonly drawerTracker = inject(DrawerTracker);
-	private readonly closeTransition$ = new Subject<void>();
 	private readonly instanceId = this.drawerTracker.nextId();
 
-	readonly loading = inject(DrawerLoading);
+	private readonly loading = inject(DrawerLoading);
+	private readonly transition = inject(DrawerTransition);
+	private readonly panel = inject(DrawerPanel);
 
 	/** Whether the spinner should be shown */
 	readonly showSpinner = this.loading.showSpinner;
+
+	/** Combined panel classes */
+	readonly panelClasses = this.panel.panelClasses;
 
 	/** Unique ID for aria-labelledby */
 	readonly titleId = `drawer-title-${this.instanceId}`;
@@ -78,51 +76,6 @@ export class Drawer implements OnDestroy {
 
 	private readonly drawerRef = viewChild.required<ElementRef<HTMLDialogElement>>('drawerRef');
 	private readonly drawerElement = computed(() => this.drawerRef().nativeElement);
-
-	constructor() {
-		this.closeTransition$
-			.pipe(
-				switchMap(() =>
-					fromEvent(this.drawerElement(), 'transitionend').pipe(
-						filter((e) => e.target === this.drawerElement()),
-						take(1),
-					),
-				),
-				takeUntilDestroyed(),
-			)
-			.subscribe(() => {
-				this.drawerElement().close();
-				this.drawerTracker.unregister(this);
-			});
-	}
-
-	/** Layout classes based on direction */
-	private readonly layoutClasses = computed(() => {
-		const dir = this.direction();
-		if (dir === 'left' || dir === 'right') {
-			return 'h-full max-w-3/4';
-		}
-		return 'w-screen max-h-3/4';
-	});
-
-	/** Position classes based on direction */
-	private readonly positionClasses = computed(() => {
-		const positions: Record<DrawerDirection, string> = {
-			left: 'inset-y-0 left-0',
-			right: 'inset-y-0 right-0 ml-auto',
-			top: 'inset-x-0 top-0',
-			bottom: 'inset-x-0 bottom-0 mt-auto',
-		};
-		return positions[this.direction()];
-	});
-
-	/** Direction class for CSS animations */
-	private readonly directionClass = computed(() => `drawer-${this.direction()}`);
-
-	/** Combined panel classes */
-	readonly panelClasses = computed(() => {
-		return `${this.layoutClasses()} ${this.positionClasses()} ${this.directionClass()} ${this.hostClasses}`.trim();
-	});
 
 	ngOnDestroy(): void {
 		this.drawerTracker.unregister(this);
@@ -137,10 +90,10 @@ export class Drawer implements OnDestroy {
 		const drawer = this.drawerElement();
 		if (drawer.open) return;
 		this.loading.start();
+		this.transition.init(drawer, () => this.drawerTracker.unregister(this));
 		this.drawerTracker.register(this);
 		drawer.showModal();
-		// Wait one frame so the browser applies `open` before `data-open` triggers the CSS transition
-		requestAnimationFrame(() => drawer.setAttribute('data-open', ''));
+		this.transition.open();
 		this.opened.emit();
 	}
 
@@ -153,8 +106,7 @@ export class Drawer implements OnDestroy {
 		const drawer = this.drawerElement();
 		if (!drawer.open) return;
 		this.loading.reset();
-		drawer.removeAttribute('data-open');
-		this.closeTransition$.next();
+		this.transition.close();
 		this.closed.emit();
 	}
 
