@@ -1,4 +1,4 @@
-import type { CreateRoleRequest, RoleData, UpdateRoleRequest } from '@contracts/role/role.types';
+import type { CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types';
 import type { IRole } from '@domain/access/role.interface';
 
 export interface CreateRoleWithPermissionsRequest extends CreateRoleRequest {
@@ -25,10 +25,10 @@ export interface RolesMutationError {
 }
 
 export interface RolesState {
-	/** Paginated roles for the current page (plain DTO — no permissions) */
-	roles: RoleData[];
-	/** Unpaginated roles for dropdowns (plain DTO — no permissions) */
-	allRoles: RoleData[];
+	/** Paginated roles for the current page, mapped from RoleData */
+	roles: IRole[];
+	/** Unpaginated roles for dropdowns, mapped from RoleData */
+	allRoles: IRole[];
 	/** Full domain model with permissions, loaded via getByIdWithPermissions() */
 	selectedRole: IRole | null;
 	currentPage: number;

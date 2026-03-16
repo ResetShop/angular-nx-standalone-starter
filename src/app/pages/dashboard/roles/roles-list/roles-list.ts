@@ -6,7 +6,7 @@ import { DataTable } from '@components/data-table/data-table';
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def';
 import { PageShell } from '@components/page-shell/page-shell';
 import { Pagination } from '@components/pagination/pagination';
-import type { RoleData } from '@contracts/role/role.types';
+import type { IRole } from '@domain/access/role.interface';
 import { RolesStore } from '@store/roles/roles.store';
 import type { ColumnDef } from '@tanstack/angular-table';
 import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer';
@@ -89,13 +89,13 @@ export default class RolesList {
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog');
 
-	protected readonly roleToDelete = signal<RoleData | null>(null);
+	protected readonly roleToDelete = signal<IRole | null>(null);
 	protected readonly deleteMessage = computed(() => {
 		const name = this.roleToDelete()?.name ?? '';
 		return `Are you sure you want to delete the role '${name}'? This action cannot be undone.`;
 	});
 
-	protected readonly columns: ColumnDef<RoleData, unknown>[] = [
+	protected readonly columns: ColumnDef<IRole, unknown>[] = [
 		{ accessorKey: 'name', header: 'Name' },
 		{ accessorKey: 'code', header: 'Code' },
 		{ accessorKey: 'description', header: 'Description' },
@@ -107,7 +107,7 @@ export default class RolesList {
 		this.store.setSearchQuery(input.value);
 	}
 
-	protected confirmDelete(role: RoleData): void {
+	protected confirmDelete(role: IRole): void {
 		this.roleToDelete.set(role);
 		this.deleteDialog().show();
 	}

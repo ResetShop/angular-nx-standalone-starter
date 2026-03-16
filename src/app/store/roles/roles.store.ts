@@ -3,7 +3,7 @@ import { computed, inject } from '@angular/core';
 import type { SearchPaginationParams } from '@contracts/common/pagination.types';
 import type { AssignPermissionsRequest, CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types';
 import type { IRole } from '@domain/access/role.interface';
-import { mapRole } from '@domain/access/role.mapper';
+import { mapRole, mapRoleFromData } from '@domain/access/role.mapper';
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { RolesApiService } from '@providers/roles/roles';
@@ -90,7 +90,7 @@ export const RolesStore = signalStore(
 							tap({
 								next: (response) => {
 									patchState(store, {
-										roles: response.data,
+										roles: response.data.map(mapRoleFromData),
 										totalItems: response.total,
 										isLoadingList: false,
 									});
@@ -148,7 +148,7 @@ export const RolesStore = signalStore(
 					switchMap(() =>
 						rolesApi.getAllUnpaginated().pipe(
 							tap({
-								next: (roles) => patchState(store, { allRoles: roles, isLoadingAll: false }),
+								next: (roles) => patchState(store, { allRoles: roles.map(mapRoleFromData), isLoadingAll: false }),
 								// TODO(#66): Replace with structured logging service
 								error: (err) => {
 									console.error('[RolesStore] loadAllRoles failed:', err);

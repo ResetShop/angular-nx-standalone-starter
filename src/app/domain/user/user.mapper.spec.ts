@@ -5,7 +5,7 @@ import { createUser } from './user.mapper';
 describe('User Mapper', () => {
 	describe('createUser', () => {
 		it('should create a User instance with all properties', () => {
-			const roles = [new Role(1, 'admin', 'Administrator', null, [])];
+			const roles = [new Role(1, 'admin', 'Administrator', null, true, null, null, [])];
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
@@ -35,7 +35,7 @@ describe('User Mapper', () => {
 
 		it('should create user with aggregated permissions', () => {
 			const permissions = [new Permission(1, 'Read Users', null, 'users', 'read')];
-			const roles = [new Role(1, 'admin', 'Administrator', null, permissions)];
+			const roles = [new Role(1, 'admin', 'Administrator', null, true, null, null, permissions)];
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
@@ -49,7 +49,7 @@ describe('User Mapper', () => {
 		});
 
 		it('should create user with working hasRole method', () => {
-			const roles = [new Role(1, 'admin', 'Administrator', null, [])];
+			const roles = [new Role(1, 'admin', 'Administrator', null, true, null, null, [])];
 			const user = createUser({
 				id: 1,
 				email: 'john@example.com',
