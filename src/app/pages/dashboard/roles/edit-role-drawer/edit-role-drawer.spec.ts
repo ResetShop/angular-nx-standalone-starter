@@ -191,6 +191,45 @@ describe('EditRoleDrawer', () => {
 		expect(screen.getByText('Edit Role')).toBeInTheDocument()
 	})
 
+	it('should show spinner and "Saving..." label during submission', async () => {
+		rolesApiMock.update.mockReturnValue(
+			of({
+				id: 1,
+				name: 'Updated',
+				code: 'admin',
+				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+			}),
+		)
+		rolesApiMock.getByIdWithPermissions.mockReturnValue(
+			of({
+				id: 1,
+				code: 'admin',
+				name: 'Updated',
+				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+				permissions: [],
+			}),
+		)
+		const { fixture } = await renderAndOpenRaw()
+
+		const nameInput = screen.getByDisplayValue('Admin')
+		fireEvent.input(nameInput, { target: { value: 'Updated' } })
+		fixture.detectChanges()
+
+		fireEvent.click(screen.getByRole('button', { name: /save/i }))
+		fixture.detectChanges()
+		TestBed.tick()
+		fixture.detectChanges()
+
+		expect(screen.getByText(/saving\.\.\./i)).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /saving/i })).toBeDisabled()
+	})
+
 	it('should close drawer on successful update', async () => {
 		rolesApiMock.update.mockReturnValue(
 			of({
@@ -224,6 +263,9 @@ describe('EditRoleDrawer', () => {
 		fireEvent.click(screen.getByRole('button', { name: /save/i }))
 		fixture.detectChanges()
 		TestBed.tick()
+		fixture.detectChanges()
+
+		await advanceTimersByTimeAsync(parseDurationToMs('1s'))
 		fixture.detectChanges()
 
 		expect(nameInput).toHaveValue('')

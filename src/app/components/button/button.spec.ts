@@ -1,7 +1,10 @@
+import { clearAllMocks } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { Button } from './button'
 
 describe('Button', () => {
+	beforeEach(() => clearAllMocks())
+
 	it('should apply default classes to a button', async () => {
 		await render(`<button appButton>Click me</button>`, {
 			imports: [Button],
@@ -89,7 +92,7 @@ describe('Button', () => {
 
 		const button = screen.getByRole('button')
 		expect(button).toHaveClass('h-8')
-		expect(button).toHaveClass('px-3')
+		expect(button).toHaveClass('px-2')
 		expect(button).toHaveClass('text-sm')
 	})
 
@@ -100,7 +103,7 @@ describe('Button', () => {
 
 		const button = screen.getByRole('button')
 		expect(button).toHaveClass('h-10')
-		expect(button).toHaveClass('px-4')
+		expect(button).toHaveClass('px-3')
 		expect(button).toHaveClass('text-base')
 	})
 
@@ -111,7 +114,7 @@ describe('Button', () => {
 
 		const button = screen.getByRole('button')
 		expect(button).toHaveClass('h-12')
-		expect(button).toHaveClass('px-6')
+		expect(button).toHaveClass('px-4')
 		expect(button).toHaveClass('text-lg')
 	})
 
@@ -181,7 +184,71 @@ describe('Button', () => {
 		const button = screen.getByRole('button')
 		expect(button).toHaveClass('bg-destructive')
 		expect(button).toHaveClass('h-12')
-		expect(button).toHaveClass('px-6')
+		expect(button).toHaveClass('px-4')
 		expect(button).toHaveClass('w-full')
+	})
+
+	describe('icon projection', () => {
+		it('should render a child with data-icon="start" inside the button', async () => {
+			await render(
+				`<button appButton>
+					<svg data-icon="start" data-testid="start-icon"></svg>
+					Label
+				</button>`,
+				{ imports: [Button] },
+			)
+
+			expect(screen.getByTestId('start-icon')).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /label/i })).toBeInTheDocument()
+		})
+
+		it('should render a child with data-icon="end" inside the button', async () => {
+			await render(
+				`<button appButton>
+					Label
+					<svg data-icon="end" data-testid="end-icon"></svg>
+				</button>`,
+				{ imports: [Button] },
+			)
+
+			expect(screen.getByTestId('end-icon')).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /label/i })).toBeInTheDocument()
+		})
+
+		it('should render both start and end icons simultaneously', async () => {
+			await render(
+				`<button appButton>
+					<svg data-icon="start" data-testid="start-icon"></svg>
+					Label
+					<svg data-icon="end" data-testid="end-icon"></svg>
+				</button>`,
+				{ imports: [Button] },
+			)
+
+			expect(screen.getByTestId('start-icon')).toBeInTheDocument()
+			expect(screen.getByTestId('end-icon')).toBeInTheDocument()
+			expect(screen.getByText('Label')).toBeInTheDocument()
+		})
+
+		it('should render text content alongside data-icon projections', async () => {
+			await render(
+				`<button appButton>
+					<svg data-icon="start" data-testid="start-icon"></svg>
+					Create Role
+				</button>`,
+				{ imports: [Button] },
+			)
+
+			expect(screen.getByText('Create Role')).toBeInTheDocument()
+			expect(screen.getByTestId('start-icon')).toBeInTheDocument()
+		})
+
+		it('should work without any icons (text-only)', async () => {
+			await render(`<button appButton>Text Only</button>`, {
+				imports: [Button],
+			})
+
+			expect(screen.getByRole('button', { name: /text only/i })).toBeInTheDocument()
+		})
 	})
 })

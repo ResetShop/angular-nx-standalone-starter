@@ -163,6 +163,26 @@ describe('CreateRoleDrawer', () => {
 		expect(screen.getByText('Create Role')).toBeInTheDocument()
 	})
 
+	it('should show spinner and "Creating..." label during submission', async () => {
+		rolesApiMock.create.mockReturnValue(
+			of({ id: 1, name: 'Admin', code: 'admin', description: null, removable: true, createdAt: null, updatedAt: null }),
+		)
+		rolesApiMock.assignPermissions.mockReturnValue(of({}))
+		const { fixture } = await renderAndOpenRaw()
+
+		const nameInput = screen.getByRole('textbox', { name: /name/i })
+		fireEvent.input(nameInput, { target: { value: 'Admin' } })
+		fixture.detectChanges()
+
+		fireEvent.click(screen.getByRole('button', { name: /create/i }))
+		fixture.detectChanges()
+		TestBed.tick()
+		fixture.detectChanges()
+
+		expect(screen.getByText(/creating\.\.\./i)).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /creating/i })).toBeDisabled()
+	})
+
 	it('should close drawer on successful creation', async () => {
 		rolesApiMock.create.mockReturnValue(
 			of({ id: 1, name: 'Admin', code: 'admin', description: null, removable: true, createdAt: null, updatedAt: null }),
@@ -177,6 +197,9 @@ describe('CreateRoleDrawer', () => {
 		fireEvent.click(screen.getByRole('button', { name: /create/i }))
 		fixture.detectChanges()
 		TestBed.tick()
+		fixture.detectChanges()
+
+		await advanceTimersByTimeAsync(parseDurationToMs('1s'))
 		fixture.detectChanges()
 
 		expect(nameInput).toHaveValue('')
