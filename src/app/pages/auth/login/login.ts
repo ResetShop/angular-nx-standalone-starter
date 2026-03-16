@@ -90,7 +90,7 @@ export default class Login {
 	private readonly translation = inject(Translation)
 
 	protected readonly resetPassword = this.router.createUrlTree(['/auth/reset-password'])
-	public readonly errorMessage = signal<string | null>(null)
+	protected readonly errorMessage = signal<string | null>(null)
 
 	private readonly model = signal<LoginForm>({ email: '', password: '' })
 	protected readonly loginForm: FieldTree<LoginForm> = form(

@@ -1,10 +1,11 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
-import { Component, computed, effect, inject, input, signal, viewChild } from '@angular/core'
+import { Component, effect, inject, input, signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { LoginErrorCode } from '@contracts/auth/auth.errors'
 import { Translation, type Language } from '@providers/i18n/translation'
+import { AuthStore } from '@store/auth/auth.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import Login from './login'
@@ -16,8 +17,14 @@ import Login from './login'
 type ErrorCodeOption = LoginErrorCode | null
 
 /**
+ * Shared signal that drives the mock AuthStore's loginError state.
+ * The story wrapper writes to it; the Login component's effect reads it via AuthStore.
+ */
+const storyLoginError = signal<{ code: string } | null>(null)
+
+/**
  * Thin wrapper that renders the actual Login page component and
- * drives its error state via the errorMessage signal, avoiding template/form duplication.
+ * drives its error state via a mock AuthStore provider.
  */
 @Component({
 	selector: 'app-login-story',
@@ -29,23 +36,20 @@ type ErrorCodeOption = LoginErrorCode | null
 })
 class LoginStoryComponent {
 	private readonly translation = inject(Translation)
-	private readonly loginPage = viewChild(Login)
 
 	public readonly errorCode = input<ErrorCodeOption>(null)
 	public readonly language = input<Language>('es')
 
 	private readonly isReady = signal(false)
 
-	protected readonly resolvedError = computed(() => {
-		const code = this.errorCode()
-		if (!code || !this.isReady()) return null
-		return this.translation.instant(`AUTH.ERRORS.${code}`)
-	})
-
 	constructor() {
 		effect(() => {
-			const message = this.resolvedError()
-			this.loginPage()?.errorMessage.set(message)
+			const code = this.errorCode()
+			if (!this.isReady()) {
+				storyLoginError.set(null)
+				return
+			}
+			storyLoginError.set(code ? { code } : null)
 		})
 
 		effect(() => {
@@ -68,6 +72,14 @@ const meta: Meta<LoginStoryComponent> = {
 				provideRouter([]),
 				provideHttpClient(),
 				provideHttpClientTesting(),
+				{
+					provide: AuthStore,
+					useFactory: () => ({
+						currentUser: signal(null),
+						loginError: storyLoginError,
+						login: () => {},
+					}),
+				},
 			],
 		}),
 	],
