@@ -62,7 +62,7 @@ export class Drawer implements OnDestroy {
 	private readonly drawerTracker = inject(DrawerTracker);
 	private readonly closeTransition$ = new Subject<void>();
 	private readonly instanceId = this.drawerTracker.nextId();
-	private readonly minimumElapsed = signal(true);
+	private readonly minimumElapsed = signal(false);
 	private readonly contentReady = signal(true);
 	private minimumTimer: ReturnType<typeof setTimeout> | null = null;
 
