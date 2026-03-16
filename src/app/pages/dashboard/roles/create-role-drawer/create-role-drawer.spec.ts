@@ -170,11 +170,6 @@ describe('CreateRoleDrawer', () => {
 		rolesApiMock.assignPermissions.mockReturnValue(of({}));
 		const { fixture } = await renderAndOpenRaw();
 
-		// Access the Drawer child component and spy on close()
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const drawerComponent = (fixture.componentInstance as any).drawer();
-		const closeSpy = spyOn(drawerComponent, 'close');
-
 		const nameInput = screen.getByRole('textbox', { name: /name/i });
 		fireEvent.input(nameInput, { target: { value: 'Admin' } });
 		fixture.detectChanges();
@@ -182,7 +177,8 @@ describe('CreateRoleDrawer', () => {
 		fireEvent.click(screen.getByRole('button', { name: /create/i }));
 		fixture.detectChanges();
 		TestBed.tick();
+		fixture.detectChanges();
 
-		expect(closeSpy.calls.length).toBeGreaterThanOrEqual(1);
+		expect(nameInput).toHaveValue('');
 	});
 });

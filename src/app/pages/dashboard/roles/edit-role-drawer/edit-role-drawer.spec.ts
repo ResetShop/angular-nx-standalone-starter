@@ -217,11 +217,6 @@ describe('EditRoleDrawer', () => {
 		);
 		const { fixture } = await renderAndOpenRaw();
 
-		// Access the Drawer child component and spy on close()
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const drawerComponent = (fixture.componentInstance as any).drawer();
-		const closeSpy = spyOn(drawerComponent, 'close');
-
 		const nameInput = screen.getByDisplayValue('Admin');
 		fireEvent.input(nameInput, { target: { value: 'Updated' } });
 		fixture.detectChanges();
@@ -229,7 +224,8 @@ describe('EditRoleDrawer', () => {
 		fireEvent.click(screen.getByRole('button', { name: /save/i }));
 		fixture.detectChanges();
 		TestBed.tick();
+		fixture.detectChanges();
 
-		expect(closeSpy.calls.length).toBeGreaterThanOrEqual(1);
+		expect(nameInput).toHaveValue('');
 	});
 });

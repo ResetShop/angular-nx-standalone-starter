@@ -95,7 +95,7 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 export class EditRoleDrawer {
 	private readonly rolesStore = inject(RolesStore);
 	protected readonly permissionsStore = inject(PermissionsStore);
-	private readonly drawer = viewChild.required<Drawer>('drawer');
+	protected readonly drawer = viewChild.required<Drawer>('drawer');
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog');
 
 	private readonly editRoleId = signal<number | null>(null);

@@ -96,7 +96,7 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 export class CreateRoleDrawer {
 	private readonly rolesStore = inject(RolesStore);
 	protected readonly permissionsStore = inject(PermissionsStore);
-	private readonly drawer = viewChild.required<Drawer>('drawer');
+	protected readonly drawer = viewChild.required<Drawer>('drawer');
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog');
 
 	private readonly model = signal<CreateRoleFormModel>({ ...EMPTY_MODEL });
