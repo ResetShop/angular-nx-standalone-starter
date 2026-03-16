@@ -104,22 +104,22 @@ export class Pagination {
 	protected readonly selectId = `pagination-select-${this.paginationTracker.nextId()}`
 
 	/** Current page number (1-based) */
-	protected readonly currentPage = input<number>(1)
+	public readonly currentPage = input<number>(1)
 
 	/** Total number of pages */
-	protected readonly totalPages = input<number>(1)
+	public readonly totalPages = input<number>(1)
 
 	/** Number of items per page */
-	protected readonly pageSize = input<number>(25)
+	public readonly pageSize = input<number>(25)
 
 	/** Available page size options */
-	protected readonly pageSizeOptions = input<number[]>([25, 50, 100])
+	public readonly pageSizeOptions = input<number[]>([25, 50, 100])
 
 	/** Emits new page number when user navigates */
-	protected readonly pageChange = output<number>()
+	public readonly pageChange = output<number>()
 
 	/** Emits new page size when user changes the rows per page */
-	protected readonly pageSizeChange = output<number>()
+	public readonly pageSizeChange = output<number>()
 
 	/**
 	 * Translated nav aria-label, resolved once at construction.

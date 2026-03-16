@@ -24,25 +24,25 @@ import { ConfirmDialogTracker } from './confirm-dialog-tracker'
 })
 export class ConfirmDialog implements OnDestroy {
 	/** Dialog title */
-	protected readonly title = input<string>('Confirm')
+	public readonly title = input<string>('Confirm')
 
 	/** Dialog message body */
-	protected readonly message = input<string>('')
+	public readonly message = input<string>('')
 
 	/** Text for the confirm button */
-	protected readonly confirmText = input<string>('Confirm')
+	public readonly confirmText = input<string>('Confirm')
 
 	/** Text for the cancel button */
-	protected readonly cancelText = input<string>('Cancel')
+	public readonly cancelText = input<string>('Cancel')
 
 	/** Variant for the confirm button */
-	protected readonly confirmVariant = input<'default' | 'destructive'>('default')
+	public readonly confirmVariant = input<'default' | 'destructive'>('default')
 
 	/** Emits when user confirms */
-	protected readonly confirmed = output<void>()
+	public readonly confirmed = output<void>()
 
 	/** Emits when user cancels */
-	protected readonly cancelled = output<void>()
+	public readonly cancelled = output<void>()
 
 	private readonly confirmDialogTracker = inject(ConfirmDialogTracker)
 	private readonly instanceId = this.confirmDialogTracker.nextId()

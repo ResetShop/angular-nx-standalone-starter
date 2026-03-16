@@ -22,25 +22,25 @@ export class Button {
 	 * Visual variant of the button
 	 * @default 'default'
 	 */
-	protected readonly variant = input<ButtonVariant>('default')
+	public readonly variant = input<ButtonVariant>('default')
 
 	/**
 	 * Size of the button
 	 * @default 'md'
 	 */
-	protected readonly size = input<ButtonSize>('md')
+	public readonly size = input<ButtonSize>('md')
 
 	/**
 	 * Whether the button should take full width
 	 * @default false
 	 */
-	protected readonly fullWidth = input<boolean>(false)
+	public readonly fullWidth = input<boolean>(false)
 
 	/**
 	 * Button type attribute (only applies to button elements)
 	 * @default 'button'
 	 */
-	protected readonly type = input<'button' | 'submit' | 'reset'>('button')
+	public readonly type = input<'button' | 'submit' | 'reset'>('button')
 
 	/**
 	 * Computed classes based on variant, size, and fullWidth
