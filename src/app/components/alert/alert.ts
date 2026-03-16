@@ -16,7 +16,7 @@ export type AlertVariant = 'default' | 'destructive'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Alert {
-	protected readonly variant = input<AlertVariant>('default')
+	public readonly variant = input<AlertVariant>('default')
 
 	private readonly variantClasses: Record<AlertVariant, string[]> = {
 		default: ['bg-card', 'text-card-foreground'],

@@ -19,7 +19,7 @@ export class Badge {
 	 * Visual variant of the badge
 	 * @default 'default'
 	 */
-	protected readonly variant = input<BadgeVariant>('default')
+	public readonly variant = input<BadgeVariant>('default')
 
 	private readonly baseClasses = [
 		'inline-flex',

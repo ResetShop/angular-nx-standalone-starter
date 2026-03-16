@@ -99,9 +99,9 @@ export class FormField {
 	private readonly formFieldDirective = contentChild(SignalFormField)
 	private readonly customControl = contentChild(FormFieldCustomControl)
 
-	protected readonly label = input.required<string>()
-	protected readonly hint = input<string>()
-	protected readonly showRequired = input<boolean>()
+	public readonly label = input.required<string>()
+	public readonly hint = input<string>()
+	public readonly showRequired = input<boolean>()
 
 	protected readonly resolvedId = signal('')
 	protected readonly isCheckbox = signal(false)

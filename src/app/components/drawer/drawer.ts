@@ -32,22 +32,22 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom'
 })
 export class Drawer implements OnDestroy {
 	/** Emits when the drawer opens */
-	protected readonly opened = output<void>()
+	public readonly opened = output<void>()
 
 	/** Emits when the drawer closes */
-	protected readonly closed = output<void>()
+	public readonly closed = output<void>()
 
 	/** Title displayed in the header (if no custom header template) */
-	protected readonly title = input<string>('')
+	public readonly title = input<string>('')
 
 	/** Description displayed below the title */
-	protected readonly description = input<string>('')
+	public readonly description = input<string>('')
 
 	/** Whether clicking the backdrop closes the drawer */
-	protected readonly closeOnBackdrop = input(true)
+	public readonly closeOnBackdrop = input(true)
 
 	/** Whether pressing ESC closes the drawer */
-	protected readonly closeOnEscape = input(true)
+	public readonly closeOnEscape = input(true)
 
 	/** Content child for custom header */
 	protected readonly headerTemplate = contentChild(DrawerHeader)
@@ -63,7 +63,7 @@ export class Drawer implements OnDestroy {
 	private readonly panel = inject(DrawerPanel)
 
 	/** Whether the spinner should be shown — public for consumer template access */
-	protected readonly showSpinner = this.loading.showSpinner
+	public readonly showSpinner = this.loading.showSpinner
 
 	/** Combined panel classes */
 	protected readonly panelClasses = this.panel.panelClasses

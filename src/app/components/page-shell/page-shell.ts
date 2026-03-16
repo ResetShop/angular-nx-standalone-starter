@@ -32,7 +32,7 @@ import { Spinner } from '@components/spinner/spinner'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PageShell {
-	protected readonly title = input.required<string>()
-	protected readonly loading = input(false)
-	protected readonly error = input<string | null>(null)
+	public readonly title = input.required<string>()
+	public readonly loading = input(false)
+	public readonly error = input<string | null>(null)
 }

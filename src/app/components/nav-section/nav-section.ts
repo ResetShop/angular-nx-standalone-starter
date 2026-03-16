@@ -35,8 +35,8 @@ import { featherChevronRight } from '@ng-icons/feather-icons'
 })
 export default class NavSection {
 	protected readonly NavItem = NavItem
-	protected readonly showTitle = input<boolean>(true)
-	protected readonly section = input.required<NavigationSection>()
+	public readonly showTitle = input<boolean>(true)
+	public readonly section = input.required<NavigationSection>()
 
 	private readonly injector = inject(EnvironmentInjector)
 

@@ -50,13 +50,13 @@ export class DataTable<T> {
 	private readonly translation = inject(Translation)
 
 	/** TanStack column definitions */
-	protected readonly columns = input<ColumnDef<T, unknown>[]>([])
+	public readonly columns = input<ColumnDef<T, unknown>[]>([])
 
 	/** Data rows */
-	protected readonly data = input<T[]>([])
+	public readonly data = input<T[]>([])
 
 	/** Whether data is loading */
-	protected readonly loading = input<boolean>(false)
+	public readonly loading = input<boolean>(false)
 
 	/**
 	 * Message shown when data is empty.
@@ -65,16 +65,16 @@ export class DataTable<T> {
 	 * The translation is not reactive — if the application language changes at runtime,
 	 * the component must be re-created to pick up the new locale.
 	 */
-	protected readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'))
+	public readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'))
 
 	/** Accessible table caption */
-	protected readonly caption = input<string>('')
+	public readonly caption = input<string>('')
 
 	/** Column IDs to group by (empty = no grouping) */
-	protected readonly grouping = input<string[]>([])
+	public readonly grouping = input<string[]>([])
 
 	/** Whether grouped rows start expanded (default: true) */
-	protected readonly expandedByDefault = input<boolean>(true)
+	public readonly expandedByDefault = input<boolean>(true)
 
 	/**
 	 * Translated loading message, resolved once at construction.
@@ -85,7 +85,7 @@ export class DataTable<T> {
 	protected readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING')
 
 	/** Emits when sort changes */
-	protected readonly sortChange = output<DataTableSortEvent>()
+	public readonly sortChange = output<DataTableSortEvent>()
 
 	/** Internal sorting state */
 	private readonly sorting = signal<SortingState>([])

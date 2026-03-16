@@ -91,13 +91,13 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavItem {
-	protected readonly item = input.required<NavigationRoute>()
+	public readonly item = input.required<NavigationRoute>()
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.
 	 * @default 200
 	 */
-	protected readonly transitionDuration = input<number>(200)
+	public readonly transitionDuration = input<number>(200)
 
 	private readonly router = inject(Router)
 	private readonly navState = inject(NavigationState)
