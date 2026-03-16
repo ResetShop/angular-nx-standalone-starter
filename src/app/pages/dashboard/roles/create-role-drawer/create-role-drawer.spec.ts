@@ -122,7 +122,7 @@ describe('CreateRoleDrawer', () => {
 		fireEvent.click(screen.getByRole('button', { name: /create/i }));
 		fixture.detectChanges();
 
-		expect(rolesApiMock.create.calls.length).toBe(1);
+		expect(rolesApiMock.create.calls).toHaveLength(1);
 		expect(rolesApiMock.create.calls[0][0]).toEqual(expect.objectContaining({ name: 'Admin' }));
 	});
 

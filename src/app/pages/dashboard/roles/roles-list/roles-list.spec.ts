@@ -209,7 +209,7 @@ describe('RolesList', () => {
 		const dialog = screen.getByRole('alertdialog');
 		fireEvent.click(within(dialog).getByRole('button', { name: /delete/i }));
 
-		expect(rolesApiMock.delete.calls.length).toBe(1);
+		expect(rolesApiMock.delete.calls).toHaveLength(1);
 		expect(rolesApiMock.delete.calls[0][0]).toBe(42);
 	});
 });
