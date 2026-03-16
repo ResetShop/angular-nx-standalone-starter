@@ -141,7 +141,7 @@ describe('EditRoleDrawer', () => {
 		fireEvent.click(screen.getByRole('button', { name: /save/i }));
 		fixture.detectChanges();
 
-		expect(rolesApiMock.update.calls.length).toBe(1);
+		expect(rolesApiMock.update.calls).toHaveLength(1);
 		expect(rolesApiMock.update.calls[0][1]).toEqual(expect.objectContaining({ name: 'Updated Admin' }));
 	});
 
