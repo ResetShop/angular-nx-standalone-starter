@@ -11,7 +11,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg'
 	hostDirectives: [NgpButton],
 	template: `
 		<ng-content select="[data-icon='start']" />
-		<span [class]="labelClasses()" class="btn-label"><ng-content /></span>
+		<span [class]="labelClasses()"><ng-content /></span>
 		<ng-content select="[data-icon='end']" />
 	`,
 	host: {
