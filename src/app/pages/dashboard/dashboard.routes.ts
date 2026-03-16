@@ -19,6 +19,11 @@ export default [
 				loadComponent: () => import('./pages/welcome/welcome'),
 			},
 			{
+				path: 'users',
+				title: 'Usuarios',
+				loadComponent: () => import('./users/users-list/users-list'),
+			},
+			{
 				path: 'authorization',
 				title: 'Autorización',
 				children: [

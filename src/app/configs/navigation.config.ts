@@ -1,5 +1,5 @@
 import type { NavigationConfig } from '@interfaces/navigation'
-import { featherActivity, featherHome, featherShield } from '@ng-icons/feather-icons'
+import { featherActivity, featherHome, featherShield, featherUsers } from '@ng-icons/feather-icons'
 
 /**
  * Navigation configuration for the application.
@@ -45,6 +45,12 @@ export const navigationConfig: NavigationConfig = {
 			id: 'admin',
 			name: 'Administración',
 			routes: [
+				{
+					id: 'users',
+					name: 'Usuarios',
+					route: 'dashboard/users',
+					icon: { featherUsers },
+				},
 				{
 					id: 'authorization',
 					name: 'Autorización',
