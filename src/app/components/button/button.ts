@@ -38,7 +38,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg'
 			@apply size-4;
 		}
 		:host(.text-base) ::ng-deep [data-icon] {
-			@apply size-5;
+			@apply size-4;
 		}
 		:host(.text-lg) ::ng-deep [data-icon] {
 			@apply size-6;
