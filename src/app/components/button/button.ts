@@ -44,6 +44,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg'
 			@apply size-6;
 		}
 
+		/* 1.5rem = size-6 (largest icon size); smaller icons are unaffected since max-width is a ceiling */
 		@keyframes icon-enter {
 			from {
 				max-width: 0;
