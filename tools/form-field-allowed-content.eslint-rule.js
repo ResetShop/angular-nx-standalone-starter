@@ -1,4 +1,4 @@
-import { getTemplateParserServices } from '@angular-eslint/utils';
+import { getTemplateParserServices } from '@angular-eslint/utils'
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -17,25 +17,25 @@ export default {
 		},
 	},
 	create(context) {
-		const parserServices = getTemplateParserServices(context);
+		const parserServices = getTemplateParserServices(context)
 
 		return {
 			'Element[name="app-form-field"]'(node) {
-				const allowedChildren = ['input', 'select', 'textarea'];
-				const elementChildren = node.children.filter((child) => child.type === 'Element');
+				const allowedChildren = ['input', 'select', 'textarea']
+				const elementChildren = node.children.filter((child) => child.type === 'Element')
 
 				if (elementChildren.length > 1) {
 					context.report({
 						loc: parserServices.convertNodeSourceSpanToLoc(node.sourceSpan),
 						messageId: 'multipleChildren',
 						data: { count: String(elementChildren.length) },
-					});
-					return;
+					})
+					return
 				}
 
 				for (const child of elementChildren) {
-					const isNativeControl = allowedChildren.includes(child.name.toLowerCase());
-					const hasFormField = child.inputs.some((input) => input.name === 'formField');
+					const isNativeControl = allowedChildren.includes(child.name.toLowerCase())
+					const hasFormField = child.inputs.some((input) => input.name === 'formField')
 
 					if (!isNativeControl && !hasFormField) {
 						context.report({
@@ -45,8 +45,8 @@ export default {
 								element: child.name,
 								allowed: allowedChildren.join(', '),
 							},
-						});
-						continue;
+						})
+						continue
 					}
 
 					if (isNativeControl && !hasFormField) {
@@ -54,10 +54,10 @@ export default {
 							loc: parserServices.convertNodeSourceSpanToLoc(child.sourceSpan),
 							messageId: 'missingDirective',
 							data: { element: child.name },
-						});
+						})
 					}
 				}
 			},
-		};
+		}
 	},
-};
+}

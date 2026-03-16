@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { Breadcrumb } from '../breadcrumb/breadcrumb';
-import { ThemeToggle } from '@components/theme-toggle/theme-toggle';
+import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { ThemeToggle } from '@components/theme-toggle/theme-toggle'
+import { Breadcrumb } from '../breadcrumb/breadcrumb'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector

@@ -36,9 +36,9 @@ export const InternalAuthErrorCode = Object.freeze({
 	TOKEN_REVOKED: 'TOKEN_REVOKED',
 	TOKEN_REUSE_DETECTED: 'TOKEN_REUSE_DETECTED',
 	REFRESH_TOKEN_EXPIRED: 'REFRESH_TOKEN_EXPIRED',
-} as const);
+} as const)
 
-export type InternalAuthErrorCode = (typeof InternalAuthErrorCode)[keyof typeof InternalAuthErrorCode];
+export type InternalAuthErrorCode = (typeof InternalAuthErrorCode)[keyof typeof InternalAuthErrorCode]
 
 /**
  * Public authentication error codes exposed to the frontend via HTTP responses.
@@ -58,9 +58,9 @@ export const PublicAuthErrorCode = Object.freeze({
 	TOKEN_EXPIRED: 'TOKEN_EXPIRED',
 	TOKEN_INVALID: 'TOKEN_INVALID',
 	GENERIC: 'GENERIC',
-} as const);
+} as const)
 
-export type PublicAuthErrorCode = (typeof PublicAuthErrorCode)[keyof typeof PublicAuthErrorCode];
+export type PublicAuthErrorCode = (typeof PublicAuthErrorCode)[keyof typeof PublicAuthErrorCode]
 
 /**
  * Error codes that can be returned from the login endpoint.
@@ -76,9 +76,9 @@ export const LoginErrorCode = Object.freeze({
 	INVALID_CREDENTIALS: PublicAuthErrorCode.INVALID_CREDENTIALS,
 	ACCOUNT_LOCKED: PublicAuthErrorCode.ACCOUNT_LOCKED,
 	GENERIC: PublicAuthErrorCode.GENERIC,
-} as const);
+} as const)
 
-export type LoginErrorCode = (typeof LoginErrorCode)[keyof typeof LoginErrorCode];
+export type LoginErrorCode = (typeof LoginErrorCode)[keyof typeof LoginErrorCode]
 
 /**
  * Internal error messages for logging service.
@@ -97,7 +97,7 @@ export const InternalAuthErrorMessage = Object.freeze({
 	[InternalAuthErrorCode.TOKEN_REVOKED]: 'Refresh token has been revoked',
 	[InternalAuthErrorCode.TOKEN_REUSE_DETECTED]: 'Refresh token reuse detected: token family revoked',
 	[InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED]: 'Refresh token expired',
-} as const) satisfies Record<InternalAuthErrorCode, string>;
+} as const) satisfies Record<InternalAuthErrorCode, string>
 
 /**
  * Type-safe mapping from internal error codes to public error codes.
@@ -118,7 +118,7 @@ export const InternalToPublicErrorMap = Object.freeze({
 	[InternalAuthErrorCode.TOKEN_REVOKED]: PublicAuthErrorCode.TOKEN_INVALID,
 	[InternalAuthErrorCode.TOKEN_REUSE_DETECTED]: PublicAuthErrorCode.TOKEN_INVALID,
 	[InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED]: PublicAuthErrorCode.TOKEN_EXPIRED,
-} as const) satisfies Record<InternalAuthErrorCode, PublicAuthErrorCode>;
+} as const) satisfies Record<InternalAuthErrorCode, PublicAuthErrorCode>
 
 // endregion
 
@@ -129,9 +129,9 @@ export const InternalToPublicErrorMap = Object.freeze({
  */
 export interface AuthErrorResponse {
 	/** Machine-readable error code for type-safe handling */
-	code: PublicAuthErrorCode;
+	code: PublicAuthErrorCode
 	/** Human-readable error message (primarily for debugging) */
-	message: string;
+	message: string
 }
 
 /**
@@ -140,8 +140,8 @@ export interface AuthErrorResponse {
  * that only valid login errors can be returned.
  */
 export interface LoginErrorResponse {
-	code: LoginErrorCode;
-	message: string;
+	code: LoginErrorCode
+	message: string
 }
 
 // endregion
@@ -153,14 +153,14 @@ export interface LoginErrorResponse {
  * Carries both internal (for logging) and public (for response) error codes.
  */
 export class AuthError extends Error {
-	readonly internalCode: InternalAuthErrorCode;
-	readonly publicCode: PublicAuthErrorCode;
+	readonly internalCode: InternalAuthErrorCode
+	readonly publicCode: PublicAuthErrorCode
 
 	constructor(internalCode: InternalAuthErrorCode) {
-		super(InternalAuthErrorMessage[internalCode]);
-		this.name = 'AuthError';
-		this.internalCode = internalCode;
-		this.publicCode = InternalToPublicErrorMap[internalCode];
+		super(InternalAuthErrorMessage[internalCode])
+		this.name = 'AuthError'
+		this.internalCode = internalCode
+		this.publicCode = InternalToPublicErrorMap[internalCode]
 	}
 }
 
@@ -172,14 +172,14 @@ export class AuthError extends Error {
  * Type guard to check if an error is an AuthError instance.
  */
 export function isAuthError(error: unknown): error is AuthError {
-	return error instanceof AuthError;
+	return error instanceof AuthError
 }
 
 /**
  * Gets the internal error message for logging purposes.
  */
 export function getInternalErrorMessage(internalCode: InternalAuthErrorCode): string {
-	return InternalAuthErrorMessage[internalCode];
+	return InternalAuthErrorMessage[internalCode]
 }
 
 /**
@@ -187,7 +187,7 @@ export function getInternalErrorMessage(internalCode: InternalAuthErrorCode): st
  * Use this to validate error codes before sending them in login responses.
  */
 export function isLoginErrorCode(code: PublicAuthErrorCode): code is LoginErrorCode {
-	return (Object.values(LoginErrorCode) as string[]).includes(code);
+	return (Object.values(LoginErrorCode) as string[]).includes(code)
 }
 
 /**
@@ -198,11 +198,11 @@ export function isLoginErrorCode(code: PublicAuthErrorCode): code is LoginErrorC
  * - All other codes are mapped to GENERIC with a safe message
  */
 export function toLoginErrorResponse(error: AuthError): LoginErrorResponse {
-	const code = isLoginErrorCode(error.publicCode) ? error.publicCode : LoginErrorCode.GENERIC;
+	const code = isLoginErrorCode(error.publicCode) ? error.publicCode : LoginErrorCode.GENERIC
 	return {
 		code,
 		message: isLoginErrorCode(error.publicCode) ? error.message : 'Authentication failed',
-	};
+	}
 }
 
 // endregion

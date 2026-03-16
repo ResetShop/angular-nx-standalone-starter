@@ -1,9 +1,9 @@
-import { UserStatus } from '@contracts/user/user.schemas';
-import { relations } from 'drizzle-orm';
-import { foreignKey, index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
-import { role } from './role';
+import { UserStatus } from '@contracts/user/user.schemas'
+import { relations } from 'drizzle-orm'
+import { foreignKey, index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core'
+import { role } from './role'
 
-export const userStatusEnum = pgEnum('user_status', [UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED]);
+export const userStatusEnum = pgEnum('user_status', [UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED])
 
 export const user = pgTable(
 	'user',
@@ -28,7 +28,7 @@ export const user = pgTable(
 			foreignColumns: [table.id],
 		}).onDelete('set null'),
 	}),
-);
+)
 
 export const userRole = pgTable(
 	'user_role',
@@ -46,13 +46,13 @@ export const userRole = pgTable(
 		userRoleUnique: unique().on(table.userId, table.roleId),
 		userIdIdx: index('user_role_user_id_idx').on(table.userId),
 	}),
-);
+)
 
 export const userRelations = relations(user, ({ many }) => ({
 	roles: many(userRole),
-}));
+}))
 
 export const userRoleRelations = relations(userRole, ({ one }) => ({
 	user: one(user, { fields: [userRole.userId], references: [user.id] }),
 	role: one(role, { fields: [userRole.roleId], references: [role.id] }),
-}));
+}))

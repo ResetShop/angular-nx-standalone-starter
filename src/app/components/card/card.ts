@@ -1,5 +1,5 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common'
+import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular/core'
 
 @Component({
 	selector: 'app-card',
@@ -36,8 +36,8 @@ import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Card {
-	readonly titleTemplate = input<TemplateRef<void>>();
-	readonly subtitleTemplate = input<TemplateRef<void>>();
-	readonly contentTemplate = input<TemplateRef<void>>();
-	readonly footerTemplate = input<TemplateRef<void>>();
+	readonly titleTemplate = input<TemplateRef<void>>()
+	readonly subtitleTemplate = input<TemplateRef<void>>()
+	readonly contentTemplate = input<TemplateRef<void>>()
+	readonly footerTemplate = input<TemplateRef<void>>()
 }

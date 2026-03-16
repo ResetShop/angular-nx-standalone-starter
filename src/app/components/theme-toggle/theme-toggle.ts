@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { featherMoon, featherSun } from '@ng-icons/feather-icons';
-import { Button } from '@components/button/button';
-import { ThemeProvider } from '@providers/theme/theme.abstract';
+import { isPlatformBrowser } from '@angular/common'
+import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID } from '@angular/core'
+import { Button } from '@components/button/button'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherMoon, featherSun } from '@ng-icons/feather-icons'
+import { ThemeProvider } from '@providers/theme/theme.abstract'
 
 @Component({
 	selector: 'app-theme-toggle',
@@ -47,14 +47,14 @@ import { ThemeProvider } from '@providers/theme/theme.abstract';
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeToggle {
-	private theme = inject(ThemeProvider);
-	private platformId = inject(PLATFORM_ID);
+	private theme = inject(ThemeProvider)
+	private platformId = inject(PLATFORM_ID)
 
-	readonly isBrowser = computed(() => isPlatformBrowser(this.platformId));
-	readonly isDarkMode = computed(() => this.theme.isDarkMode());
-	readonly buttonIcon = computed(() => (this.isDarkMode() ? 'featherMoon' : 'featherSun'));
+	readonly isBrowser = computed(() => isPlatformBrowser(this.platformId))
+	readonly isDarkMode = computed(() => this.theme.isDarkMode())
+	readonly buttonIcon = computed(() => (this.isDarkMode() ? 'featherMoon' : 'featherSun'))
 
 	toggleTheme(): void {
-		this.theme.toggleTheme();
+		this.theme.toggleTheme()
 	}
 }

@@ -1,7 +1,7 @@
-import { Next } from 'hono';
-import { container } from '../container/container';
-import { PermissionName } from '../modules/user/permission-types';
-import { AuthenticatedContext } from './verify-access-token.middleware';
+import { Next } from 'hono'
+import { container } from '../container/container'
+import { PermissionName } from '../modules/user/permission-types'
+import { AuthenticatedContext } from './verify-access-token.middleware'
 
 /**
  * Permission verification middleware for RBAC.
@@ -38,13 +38,13 @@ import { AuthenticatedContext } from './verify-access-token.middleware';
  */
 async function ensurePermissionsLoaded(c: AuthenticatedContext): Promise<string[]> {
 	if (c.permissions) {
-		return c.permissions;
+		return c.permissions
 	}
 
-	const { userRoleService } = container.cradle;
-	const permissions = await userRoleService.getUserPermissions(Number(c.user.sub));
-	c.permissions = permissions.map((p) => p.name);
-	return c.permissions;
+	const { userRoleService } = container.cradle
+	const permissions = await userRoleService.getUserPermissions(Number(c.user.sub))
+	c.permissions = permissions.map((p) => p.name)
+	return c.permissions
 }
 
 /**
@@ -64,23 +64,23 @@ async function ensurePermissionsLoaded(c: AuthenticatedContext): Promise<string[
 export function requirePermission(permissionName: PermissionName) {
 	return async (c: AuthenticatedContext, next: Next) => {
 		if (!c.user) {
-			return c.json({ error: 'Unauthorized' }, 401);
+			return c.json({ error: 'Unauthorized' }, 401)
 		}
 
-		let permissions: string[];
+		let permissions: string[]
 		try {
-			permissions = await ensurePermissionsLoaded(c);
+			permissions = await ensurePermissionsLoaded(c)
 		} catch (error) {
-			console.error('[Auth] Failed to fetch user permissions:', error);
-			return c.json({ error: 'Internal server error' }, 500);
+			console.error('[Auth] Failed to fetch user permissions:', error)
+			return c.json({ error: 'Internal server error' }, 500)
 		}
 
 		if (!permissions.includes(permissionName)) {
-			return c.json({ error: 'Forbidden' }, 403);
+			return c.json({ error: 'Forbidden' }, 403)
 		}
 
-		await next();
-	};
+		await next()
+	}
 }
 
 /**
@@ -92,24 +92,24 @@ export function requirePermission(permissionName: PermissionName) {
 export function requireAnyPermission(permissionNames: PermissionName[]) {
 	return async (c: AuthenticatedContext, next: Next) => {
 		if (!c.user) {
-			return c.json({ error: 'Unauthorized' }, 401);
+			return c.json({ error: 'Unauthorized' }, 401)
 		}
 
-		let permissions: string[];
+		let permissions: string[]
 		try {
-			permissions = await ensurePermissionsLoaded(c);
+			permissions = await ensurePermissionsLoaded(c)
 		} catch (error) {
-			console.error('[Auth] Failed to fetch user permissions:', error);
-			return c.json({ error: 'Internal server error' }, 500);
+			console.error('[Auth] Failed to fetch user permissions:', error)
+			return c.json({ error: 'Internal server error' }, 500)
 		}
 
-		const hasAnyPermission = permissionNames.some((perm) => permissions.includes(perm));
+		const hasAnyPermission = permissionNames.some((perm) => permissions.includes(perm))
 		if (!hasAnyPermission) {
-			return c.json({ error: 'Forbidden' }, 403);
+			return c.json({ error: 'Forbidden' }, 403)
 		}
 
-		await next();
-	};
+		await next()
+	}
 }
 
 /**
@@ -121,22 +121,22 @@ export function requireAnyPermission(permissionNames: PermissionName[]) {
 export function requireAllPermissions(permissionNames: PermissionName[]) {
 	return async (c: AuthenticatedContext, next: Next) => {
 		if (!c.user) {
-			return c.json({ error: 'Unauthorized' }, 401);
+			return c.json({ error: 'Unauthorized' }, 401)
 		}
 
-		let permissions: string[];
+		let permissions: string[]
 		try {
-			permissions = await ensurePermissionsLoaded(c);
+			permissions = await ensurePermissionsLoaded(c)
 		} catch (error) {
-			console.error('[Auth] Failed to fetch user permissions:', error);
-			return c.json({ error: 'Internal server error' }, 500);
+			console.error('[Auth] Failed to fetch user permissions:', error)
+			return c.json({ error: 'Internal server error' }, 500)
 		}
 
-		const hasAllPermissions = permissionNames.every((perm) => permissions.includes(perm));
+		const hasAllPermissions = permissionNames.every((perm) => permissions.includes(perm))
 		if (!hasAllPermissions) {
-			return c.json({ error: 'Forbidden' }, 403);
+			return c.json({ error: 'Forbidden' }, 403)
 		}
 
-		await next();
-	};
+		await next()
+	}
 }

@@ -1,30 +1,30 @@
-import type { LoginErrorResponse } from '@contracts/auth/auth.errors';
-import type { IUser } from '@domain/user/user.interface';
+import type { LoginErrorResponse } from '@contracts/auth/auth.errors'
+import type { IUser } from '@domain/user/user.interface'
 
 /**
  * Auth state structure for NgRx Signal Store
  */
 export interface AuthState {
 	/** Currently authenticated user, or null if not logged in */
-	currentUser: IUser | null;
+	currentUser: IUser | null
 
 	/** Whether a token refresh operation is currently in progress */
-	isTokenRefreshing: boolean;
+	isTokenRefreshing: boolean
 
 	/** Whether a login request is currently in progress */
-	isLoggingIn: boolean;
+	isLoggingIn: boolean
 
 	/** Whether a logout request is currently in progress */
-	isLoggingOut: boolean;
+	isLoggingOut: boolean
 
 	/** Login error from the last failed login attempt (null if no error) */
-	loginError: LoginErrorResponse | null;
+	loginError: LoginErrorResponse | null
 
 	/** Whether a network/server error occurred during login (5xx or connection failure) */
-	networkError: boolean;
+	networkError: boolean
 
 	/** Whether the user must change their password (set at login, reset on logout) */
-	mustChangePassword: boolean;
+	mustChangePassword: boolean
 }
 
 /**
@@ -38,4 +38,4 @@ export const initialAuthState: AuthState = {
 	loginError: null,
 	networkError: false,
 	mustChangePassword: false,
-};
+}

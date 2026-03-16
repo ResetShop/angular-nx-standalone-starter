@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Analytics } from './analytics';
+import { Injectable } from '@angular/core'
+import { Analytics } from './analytics'
 
 @Injectable({
 	providedIn: 'root',

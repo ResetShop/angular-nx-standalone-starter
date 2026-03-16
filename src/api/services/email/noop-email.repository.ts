@@ -1,4 +1,4 @@
-import type { IEmailRepository, SendEmailParams } from './interfaces';
+import type { IEmailRepository, SendEmailParams } from './interfaces'
 
 /**
  * No-op email repository that silently discards all emails.

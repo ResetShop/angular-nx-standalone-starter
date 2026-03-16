@@ -1,23 +1,23 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { Pagination } from '@components/pagination/pagination';
-import { type Language, Translation } from '@providers/i18n/translation';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import { type ColumnDef } from '@tanstack/angular-table';
-import { DataTable } from './data-table';
-import { DataTableCellDef } from './data-table-cell-def';
+import { Component, computed, effect, inject, input, signal } from '@angular/core'
+import { Pagination } from '@components/pagination/pagination'
+import { type Language, Translation } from '@providers/i18n/translation'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import { type ColumnDef } from '@tanstack/angular-table'
+import { DataTable } from './data-table'
+import { DataTableCellDef } from './data-table-cell-def'
 
 interface User {
-	name: string;
-	email: string;
-	role: string;
+	name: string
+	email: string
+	role: string
 }
 
 const sampleColumns: ColumnDef<User, unknown>[] = [
 	{ accessorKey: 'name', header: 'Name', enableSorting: true },
 	{ accessorKey: 'email', header: 'Email', enableSorting: true },
 	{ accessorKey: 'role', header: 'Role' },
-];
+]
 
 const sampleData: User[] = [
 	{ name: 'Alice Johnson', email: 'alice@example.com', role: 'Admin' },
@@ -32,7 +32,7 @@ const sampleData: User[] = [
 	{ name: 'Jack Taylor', email: 'jack@example.com', role: 'Viewer' },
 	{ name: 'Karen Adams', email: 'karen@example.com', role: 'Admin' },
 	{ name: 'Leo Martinez', email: 'leo@example.com', role: 'Editor' },
-];
+]
 
 /**
  * Wrapper component that manages language loading and pagination for DataTable stories.
@@ -70,105 +70,105 @@ const sampleData: User[] = [
 	`,
 })
 class DataTableStoryComponent {
-	private readonly translation = inject(Translation);
+	private readonly translation = inject(Translation)
 
-	readonly columns = input<ColumnDef<User, unknown>[]>([]);
-	readonly data = input<User[]>([]);
-	readonly loading = input(false);
-	readonly caption = input('');
-	readonly language = input<Language>('en');
-	readonly expandedByDefault = input(true);
-	readonly showData = input(true);
+	readonly columns = input<ColumnDef<User, unknown>[]>([])
+	readonly data = input<User[]>([])
+	readonly loading = input(false)
+	readonly caption = input('')
+	readonly language = input<Language>('en')
+	readonly expandedByDefault = input(true)
+	readonly showData = input(true)
 
 	/**
 	 * Grouping column selector. Maps a user-friendly label to the actual column ID.
 	 * Use 'none' to disable grouping.
 	 */
-	readonly groupBy = input<'none' | 'role'>('none');
+	readonly groupBy = input<'none' | 'role'>('none')
 
 	/** Resolved grouping array from the `groupBy` select control */
 	readonly resolvedGrouping = computed(() => {
-		const groupBy = this.groupBy();
-		return groupBy === 'none' ? [] : [groupBy];
-	});
+		const groupBy = this.groupBy()
+		return groupBy === 'none' ? [] : [groupBy]
+	})
 
 	/**
 	 * Items per page. Set to 0 to disable pagination and show all data.
 	 * When > 0, data is sliced by page and the Pagination component is shown.
 	 */
-	readonly pageSize = input(0);
+	readonly pageSize = input(0)
 
 	/** Available page size options for the pagination selector */
-	readonly pageSizeOptions = input<number[]>([25, 50, 100]);
+	readonly pageSizeOptions = input<number[]>([25, 50, 100])
 
 	/** Per-language custom empty messages. When empty, the translated default is used. */
-	readonly emptyMessages = input<Partial<Record<Language, string>>>({});
+	readonly emptyMessages = input<Partial<Record<Language, string>>>({})
 
 	// --- Pagination state ---
-	readonly currentPage = signal(1);
-	readonly currentPageSize = signal(0);
+	readonly currentPage = signal(1)
+	readonly currentPageSize = signal(0)
 
-	readonly totalItems = computed(() => this.data().length);
+	readonly totalItems = computed(() => this.data().length)
 
 	readonly effectivePageSize = computed(() => {
-		const inputSize = this.pageSize();
-		const stateSize = this.currentPageSize();
-		return stateSize > 0 ? stateSize : inputSize;
-	});
+		const inputSize = this.pageSize()
+		const stateSize = this.currentPageSize()
+		return stateSize > 0 ? stateSize : inputSize
+	})
 
 	readonly totalPages = computed(() => {
-		const size = this.effectivePageSize();
-		if (size <= 0) return 1;
-		return Math.max(1, Math.ceil(this.totalItems() / size));
-	});
+		const size = this.effectivePageSize()
+		if (size <= 0) return 1
+		return Math.max(1, Math.ceil(this.totalItems() / size))
+	})
 
 	/** Data sliced by current page when pagination is active, or all data otherwise. */
 	readonly pagedData = computed(() => {
-		const size = this.effectivePageSize();
-		if (size <= 0) return this.data();
-		const start = (this.currentPage() - 1) * size;
-		return this.data().slice(start, start + size);
-	});
+		const size = this.effectivePageSize()
+		if (size <= 0) return this.data()
+		const start = (this.currentPage() - 1) * size
+		return this.data().slice(start, start + size)
+	})
 
 	/** Data passed to the DataTable — empty when showData is false, paged otherwise. */
-	readonly displayData = computed(() => (this.showData() ? this.pagedData() : []));
+	readonly displayData = computed(() => (this.showData() ? this.pagedData() : []))
 
 	/**
 	 * Resolves the empty message for the current language.
 	 * Uses the per-language custom message if provided, otherwise the translated default.
 	 */
 	readonly resolvedEmptyMessage = computed(() => {
-		if (!this.isReady()) return '';
-		const custom = this.emptyMessages()[this.language()];
-		return custom || this.translation.instant('DATA_TABLE.EMPTY');
-	});
+		if (!this.isReady()) return ''
+		const custom = this.emptyMessages()[this.language()]
+		return custom || this.translation.instant('DATA_TABLE.EMPTY')
+	})
 
 	/**
 	 * Tracks when translations are loaded and ready for use.
 	 * Toggling this signal forces the DataTable to re-mount with updated translations.
 	 */
-	readonly isReady = signal(false);
+	readonly isReady = signal(false)
 
 	constructor() {
 		effect(() => {
-			const lang = this.language();
-			const initialPageSize = this.pageSize();
-			this.currentPageSize.set(initialPageSize);
-			this.isReady.set(false);
+			const lang = this.language()
+			const initialPageSize = this.pageSize()
+			this.currentPageSize.set(initialPageSize)
+			this.isReady.set(false)
 			this.translation.setLanguage(lang).then(() => {
-				this.isReady.set(true);
-			});
-		});
+				this.isReady.set(true)
+			})
+		})
 	}
 
 	// --- Pagination handlers ---
 	onPageChange(page: number): void {
-		this.currentPage.set(page);
+		this.currentPage.set(page)
 	}
 
 	onPageSizeChange(size: number): void {
-		this.currentPageSize.set(size);
-		this.currentPage.set(1);
+		this.currentPageSize.set(size)
+		this.currentPage.set(1)
 	}
 }
 
@@ -293,11 +293,11 @@ export class UserListComponent {
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<DataTableStoryComponent>;
+type Story = StoryObj<DataTableStoryComponent>
 
 /**
  * Interactive data table with all configurable options.
@@ -315,7 +315,7 @@ export const Playground: Story = {
 		pageSize: 0,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Rows grouped by the 'Role' column with expand/collapse toggles.
@@ -333,7 +333,7 @@ export const GroupedByRole: Story = {
 		pageSize: 0,
 		language: 'en',
 	},
-};
+}
 
 /**
  * Wrapper component demonstrating custom cell templates via content projection.
@@ -359,8 +359,8 @@ export const GroupedByRole: Story = {
 	`,
 })
 class DataTableCustomCellsStoryComponent {
-	readonly columns = input<ColumnDef<User, unknown>[]>([]);
-	readonly data = input<User[]>([]);
+	readonly columns = input<ColumnDef<User, unknown>[]>([])
+	readonly data = input<User[]>([])
 }
 
 /**
@@ -376,4 +376,4 @@ export const CustomCellTemplates: StoryObj<DataTableCustomCellsStoryComponent> =
 		columns: sampleColumns,
 		data: sampleData,
 	},
-};
+}

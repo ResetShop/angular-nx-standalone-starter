@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Standard error response schema for API errors.
@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const errorResponseSchema = z.object({
 	error: z.string(),
 	details: z.record(z.string(), z.unknown()).optional(),
-});
+})
 
 /**
  * Standard success message response schema.
@@ -15,4 +15,4 @@ export const errorResponseSchema = z.object({
  */
 export const successMessageSchema = z.object({
 	message: z.string(),
-});
+})

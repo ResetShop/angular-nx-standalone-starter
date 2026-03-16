@@ -1,4 +1,4 @@
-import { Component, computed, effect, ErrorHandler, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, ErrorHandler, inject, input, signal } from '@angular/core'
 import {
 	email,
 	form,
@@ -7,15 +7,15 @@ import {
 	schema,
 	FormField as SignalFormField,
 	type FieldTree,
-} from '@angular/forms/signals';
-import { Translation, type Language } from '@providers/i18n/translation';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import { FormField } from './form-field';
+} from '@angular/forms/signals'
+import { Translation, type Language } from '@providers/i18n/translation'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import { FormField } from './form-field'
 
 // --- Story wrapper components ---
 
-type InputType = 'email' | 'text' | 'select' | 'checkbox';
+type InputType = 'email' | 'text' | 'select' | 'checkbox'
 
 @Component({
 	selector: 'app-story-playground',
@@ -62,78 +62,78 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox';
 	`,
 })
 class StoryPlayground {
-	private readonly errorHandler = inject(ErrorHandler);
-	private readonly translation = inject(Translation);
+	private readonly errorHandler = inject(ErrorHandler)
+	private readonly translation = inject(Translation)
 
-	readonly inputType = input<InputType>('email');
-	readonly showHint = input<boolean>(false);
-	readonly hasRequired = input<boolean>(true);
-	readonly showRequired = input<boolean | undefined>(undefined);
-	readonly language = input<Language>('en');
-	readonly isReady = signal(false);
+	readonly inputType = input<InputType>('email')
+	readonly showHint = input<boolean>(false)
+	readonly hasRequired = input<boolean>(true)
+	readonly showRequired = input<boolean | undefined>(undefined)
+	readonly language = input<Language>('en')
+	readonly isReady = signal(false)
 
-	private readonly emailModel = signal('');
+	private readonly emailModel = signal('')
 	readonly emailField: FieldTree<string> = form(
 		this.emailModel,
 		schema<string>((path) => {
-			required(path);
-			email(path);
+			required(path)
+			email(path)
 		}),
-	);
+	)
 	readonly optionalEmailField: FieldTree<string> = form(
 		this.emailModel,
 		schema<string>((path) => {
-			email(path);
+			email(path)
 		}),
-	);
+	)
 
-	private readonly textModel = signal('');
+	private readonly textModel = signal('')
 	readonly textField: FieldTree<string> = form(
 		this.textModel,
 		schema<string>((path) => {
-			required(path);
+			required(path)
 		}),
-	);
-	readonly optionalTextField: FieldTree<string> = form(this.textModel);
+	)
+	readonly optionalTextField: FieldTree<string> = form(this.textModel)
 
-	private readonly selectModel = signal('');
+	private readonly selectModel = signal('')
 	readonly selectField: FieldTree<string> = form(
 		this.selectModel,
 		schema<string>((path) => {
-			required(path);
+			required(path)
 		}),
-	);
-	readonly optionalSelectField: FieldTree<string> = form(this.selectModel);
+	)
+	readonly optionalSelectField: FieldTree<string> = form(this.selectModel)
 
-	private readonly checkboxModel = signal(false);
+	private readonly checkboxModel = signal(false)
 	readonly checkboxField: FieldTree<boolean> = form(
 		this.checkboxModel,
 		schema<boolean>((path) => {
-			required(path);
+			required(path)
 		}),
-	);
-	readonly optionalCheckboxField: FieldTree<boolean> = form(this.checkboxModel);
+	)
+	readonly optionalCheckboxField: FieldTree<boolean> = form(this.checkboxModel)
 
 	protected readonly resolvedHint = computed(() => {
-		if (!this.showHint()) return undefined;
+		if (!this.showHint()) return undefined
 		const hints: Record<InputType, string> = {
 			email: 'Enter your work email',
 			text: 'Choose a unique username',
 			select: 'Select your country of residence',
 			checkbox: 'Required to proceed',
-		};
-		return hints[this.inputType()];
-	});
+		}
+		return hints[this.inputType()]
+	})
 
 	constructor() {
 		effect(() => {
-			const lang = this.language();
-			this.isReady.set(false);
+			const lang = this.language()
+			this.isReady.set(false)
 			this.translation
 				.setLanguage(lang)
 				.then(() => this.isReady.set(true))
-				.catch((error: unknown) => this.errorHandler.handleError(error));
-		});
+				.catch((error: unknown) => this.errorHandler.handleError(error))
+		})
 	}
 }
 
@@ -159,8 +159,8 @@ const meta: Meta<StoryPlayground> = {
 			},
 		},
 	},
-};
-export default meta;
+}
+export default meta
 
 // --- Stories ---
 
@@ -203,4 +203,4 @@ export const Playground: StoryObj<StoryPlayground> = {
 		},
 	},
 	render: (args) => ({ props: args }),
-};
+}

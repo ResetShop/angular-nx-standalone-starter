@@ -1,39 +1,39 @@
-import { extendZodWithOpenApi } from '@hono/zod-openapi';
-import { z } from 'zod';
+import { extendZodWithOpenApi } from '@hono/zod-openapi'
+import { z } from 'zod'
 
 // Must run before any schema or controller import
-extendZodWithOpenApi(z);
+extendZodWithOpenApi(z)
 
-import { AngularAppEngine, createRequestHandler } from '@angular/ssr';
-import { isMainModule } from '@angular/ssr/node';
-import { serve } from '@hono/node-server';
-import { serveStatic } from '@hono/node-server/serve-static';
-import { OpenAPIHono } from '@hono/zod-openapi';
-import { parseDurationToMs, parseDurationToSeconds } from '@utils/duration';
-import { cors } from 'hono/cors';
-import { requestId } from 'hono/request-id';
-import { secureHeaders } from 'hono/secure-headers';
-import { join } from 'node:path';
+import { AngularAppEngine, createRequestHandler } from '@angular/ssr'
+import { isMainModule } from '@angular/ssr/node'
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { parseDurationToMs, parseDurationToSeconds } from '@utils/duration'
+import { cors } from 'hono/cors'
+import { requestId } from 'hono/request-id'
+import { secureHeaders } from 'hono/secure-headers'
+import { join } from 'node:path'
 
 // Health verification - runs all startup checks (DI container, database, etc.)
-import { ACCESS_TOKEN_COOKIE_NAME } from './api/constants/auth.constants';
-import { verifyHealth } from './api/modules/health/verify-health';
-import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config';
-import { buildSwaggerHtml } from './api/swagger-ui';
+import { ACCESS_TOKEN_COOKIE_NAME } from './api/constants/auth.constants'
+import { verifyHealth } from './api/modules/health/verify-health'
+import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config'
+import { buildSwaggerHtml } from './api/swagger-ui'
 
 // Token middlewares
-import verifyAccessToken from './api/middlewares/verify-access-token.middleware';
-import routes, { PUBLIC_AUTH_ROUTES } from './api/routes';
+import verifyAccessToken from './api/middlewares/verify-access-token.middleware'
+import routes, { PUBLIC_AUTH_ROUTES } from './api/routes'
 
 // Cron jobs
-import { startCronJobs, stopCronJobs } from './api/cron-jobs';
+import { startCronJobs, stopCronJobs } from './api/cron-jobs'
 
 /**
  * Initialize OpenAPIHono and export the app instance
  */
-export const app = new OpenAPIHono({ strict: false });
+export const app = new OpenAPIHono({ strict: false })
 
-app.use(requestId());
+app.use(requestId())
 app.use(
 	'*',
 	cors({
@@ -43,8 +43,8 @@ app.use(
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		maxAge: Number(process.env['CORS_MAX_AGE']) || parseDurationToSeconds('24h'), // Cache preflight requests
 	}),
-);
-app.use(secureHeaders());
+)
+app.use(secureHeaders())
 
 /**
  * Apply authentication middleware to all API routes except public endpoints
@@ -54,23 +54,23 @@ app.use(secureHeaders());
  * IMPORTANT: This must be registered BEFORE routes for middleware to apply
  */
 app.use('/api/*', async (c, next) => {
-	const path = c.req.path;
+	const path = c.req.path
 
 	// Skip authentication for public paths
 	if (PUBLIC_AUTH_ROUTES.some((p) => path.startsWith(p))) {
-		return next();
+		return next()
 	}
 
 	// Apply authentication middleware for all other API routes
-	return verifyAccessToken(c, next);
-});
+	return verifyAccessToken(c, next)
+})
 
 /**
  * Register routes used by the APIs
  */
 
 for (const route of routes) {
-	app.route(`/api${route.path}`, route.controller);
+	app.route(`/api${route.path}`, route.controller)
 }
 
 /**
@@ -82,13 +82,13 @@ app.openAPIRegistry.registerComponent('securitySchemes', PASETO_COOKIE_SCHEME, {
 	in: 'cookie',
 	name: ACCESS_TOKEN_COOKIE_NAME,
 	description: 'PASETO access token stored as an HttpOnly cookie',
-});
+})
 
 app.openAPIRegistry.registerComponent('securitySchemes', CRON_SECRET_SCHEME, {
 	type: 'http',
 	scheme: 'bearer',
 	description: 'CRON_SECRET passed as a Bearer token for scheduled job invocations',
-});
+})
 
 /**
  * OpenAPI JSON spec endpoint
@@ -105,14 +105,14 @@ app.doc('/api/openapi.json', {
 		{ name: 'User Roles', description: 'User-role assignment endpoints' },
 	],
 	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
-});
+})
 
 /**
  * Swagger UI endpoint (CDN-hosted)
  */
 app.get('/api/docs', (c) => {
-	return c.html(buildSwaggerHtml());
-});
+	return c.html(buildSwaggerHtml())
+})
 
 /**
  * Serve static files from /browser
@@ -122,41 +122,41 @@ app.use(
 	serveStatic({
 		root: join(import.meta.dirname, '../browser'),
 		onFound: (path, c) => {
-			c.header('Cache-Control', `public, immutable, max-age=${parseDurationToSeconds('365d')}`);
+			c.header('Cache-Control', `public, immutable, max-age=${parseDurationToSeconds('365d')}`)
 		},
 		onNotFound: () => {
 			// Optionally log or handle the case where a static file is not found
 		},
 	}),
-);
+)
 
 /**
  * Handle SSR for rest of the routes using Angular App Engine
  */
 app.use('*', async (c, next) => {
-	const angularApp = new AngularAppEngine();
-	const response = await angularApp.handle(c.req.raw);
+	const angularApp = new AngularAppEngine()
+	const response = await angularApp.handle(c.req.raw)
 	if (response) {
-		return response;
+		return response
 	}
 
-	return next();
-});
+	return next()
+})
 
 /**
  * Not found
  */
 app.notFound((c) => {
-	return c.text('404 - Not found', 404);
-});
+	return c.text('404 - Not found', 404)
+})
 
 /**
  * Error handling
  */
 app.onError((error, c) => {
-	console.error(`${error}`);
-	return c.text('Internal Server Error', 500);
-});
+	console.error(`${error}`)
+	return c.text('Internal Server Error', 500)
+})
 
 /**
  * Start the server if this module is the main entry point.
@@ -164,54 +164,54 @@ app.onError((error, c) => {
  * variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
-	(async () => {
+	;(async () => {
 		// Run all startup health checks before accepting traffic
 		try {
-			await verifyHealth();
+			await verifyHealth()
 		} catch (error) {
-			console.error('Startup health check failed:', error);
-			process.exit(1);
+			console.error('Startup health check failed:', error)
+			process.exit(1)
 		}
 
-		const port = Number(process.env['PORT'] || 4000);
+		const port = Number(process.env['PORT'] || 4000)
 		const server = serve(
 			{
 				fetch: app.fetch,
 				port,
 			},
 			(info) => {
-				console.log(`Hono server listening on http://localhost:${info.port}`);
+				console.log(`Hono server listening on http://localhost:${info.port}`)
 
 				// Start cron jobs
-				startCronJobs();
+				startCronJobs()
 			},
-		);
+		)
 
 		// Graceful shutdown handler with timeout
 		const gracefulShutdown = (signal: string) => {
-			console.log(`\n${signal} received. Starting graceful shutdown...`);
-			stopCronJobs();
+			console.log(`\n${signal} received. Starting graceful shutdown...`)
+			stopCronJobs()
 
 			// Force exit if graceful shutdown takes too long
 			const forceExitTimeout = setTimeout(() => {
-				console.error('Graceful shutdown timed out. Forcing exit...');
-				process.exit(1);
-			}, parseDurationToMs('10s'));
+				console.error('Graceful shutdown timed out. Forcing exit...')
+				process.exit(1)
+			}, parseDurationToMs('10s'))
 
 			server.close(() => {
-				clearTimeout(forceExitTimeout);
-				console.log('Server closed');
-				process.exit(0);
-			});
-		};
+				clearTimeout(forceExitTimeout)
+				console.log('Server closed')
+				process.exit(0)
+			})
+		}
 
-		process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-		process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-	})();
+		process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+		process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+	})()
 }
 
 /**
  * Request handler used by the Angular CLI (for dev-server and during build)
  * or Firebase Cloud Functions.
  */
-export const reqHandler = createRequestHandler(app.fetch);
+export const reqHandler = createRequestHandler(app.fetch)

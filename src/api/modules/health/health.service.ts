@@ -1,11 +1,11 @@
-import { parseDurationToMs } from '@utils/duration';
-import { sql } from 'drizzle-orm';
-import type { DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector';
-import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants';
-import type { DatabaseCheck, HealthCheckResponse, IHealthService } from './interfaces';
+import { parseDurationToMs } from '@utils/duration'
+import { sql } from 'drizzle-orm'
+import type { DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector'
+import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants'
+import type { DatabaseCheck, HealthCheckResponse, IHealthService } from './interfaces'
 
 interface HealthServiceDeps {
-	db: DrizzlePgConnector;
+	db: DrizzlePgConnector
 }
 
 /**
@@ -13,10 +13,10 @@ interface HealthServiceDeps {
  * Performs lightweight database connectivity probes to verify system health.
  */
 export class HealthService implements IHealthService {
-	private db: DrizzlePgConnector;
+	private db: DrizzlePgConnector
 
 	constructor({ db }: HealthServiceDeps) {
-		this.db = db;
+		this.db = db
 	}
 
 	/**
@@ -24,14 +24,14 @@ export class HealthService implements IHealthService {
 	 * Returns structured health status with individual component checks.
 	 */
 	async checkHealth(): Promise<HealthCheckResponse> {
-		const database = await this.checkDatabase();
-		const status = database.status === HealthStatus.HEALTHY ? HealthStatus.HEALTHY : HealthStatus.UNHEALTHY;
+		const database = await this.checkDatabase()
+		const status = database.status === HealthStatus.HEALTHY ? HealthStatus.HEALTHY : HealthStatus.UNHEALTHY
 
 		return {
 			status,
 			timestamp: new Date().toISOString(),
 			checks: { database },
-		};
+		}
 	}
 
 	/**
@@ -40,26 +40,26 @@ export class HealthService implements IHealthService {
 	 * Never throws — returns a structured result indicating success or failure.
 	 */
 	private async checkDatabase(): Promise<DatabaseCheck> {
-		const start = Date.now();
+		const start = Date.now()
 
 		try {
 			const timeout = new Promise<never>((_, reject) => {
-				setTimeout(() => reject(new Error('Database health check timed out')), parseDurationToMs(HEALTH_CHECK_TIMEOUT));
-			});
+				setTimeout(() => reject(new Error('Database health check timed out')), parseDurationToMs(HEALTH_CHECK_TIMEOUT))
+			})
 
-			await Promise.race([this.db.execute(sql`SELECT 1`), timeout]);
+			await Promise.race([this.db.execute(sql`SELECT 1`), timeout])
 
 			return {
 				status: HealthStatus.HEALTHY,
 				responseTimeMs: Date.now() - start,
-			};
+			}
 		} catch (error) {
-			const responseTimeMs = Date.now() - start;
+			const responseTimeMs = Date.now() - start
 			return {
 				status: HealthStatus.UNHEALTHY,
 				responseTimeMs: responseTimeMs > 0 ? responseTimeMs : null,
 				error: error instanceof Error ? error.message : 'Unknown error',
-			};
+			}
 		}
 	}
 }

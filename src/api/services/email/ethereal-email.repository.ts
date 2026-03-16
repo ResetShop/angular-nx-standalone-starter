@@ -1,6 +1,6 @@
-import type { Transporter } from 'nodemailer';
-import * as nodemailer from 'nodemailer';
-import type { IEmailRepository, SendEmailParams } from './interfaces';
+import type { Transporter } from 'nodemailer'
+import * as nodemailer from 'nodemailer'
+import type { IEmailRepository, SendEmailParams } from './interfaces'
 
 /**
  * Ethereal email repository using Nodemailer's test service.
@@ -17,10 +17,10 @@ import type { IEmailRepository, SendEmailParams } from './interfaces';
  * Intended for local development and testing only.
  */
 export class EtherealEmailRepository implements IEmailRepository {
-	private transporterPromise: Promise<Transporter> | null = null;
+	private transporterPromise: Promise<Transporter> | null = null
 
 	async send(params: SendEmailParams): Promise<void> {
-		const transporter = await this.getTransporter();
+		const transporter = await this.getTransporter()
 
 		const info = await transporter.sendMail({
 			from: 'noreply@ethereal.email',
@@ -28,9 +28,9 @@ export class EtherealEmailRepository implements IEmailRepository {
 			subject: params.subject,
 			html: params.html,
 			text: params.text,
-		});
+		})
 
-		const previewUrl = nodemailer.getTestMessageUrl(info);
+		const previewUrl = nodemailer.getTestMessageUrl(info)
 		if (previewUrl) {
 			// TODO(#66): Replace with structured logging service
 			console.log(
@@ -40,20 +40,20 @@ export class EtherealEmailRepository implements IEmailRepository {
 					recipient: params.to,
 					subject: params.subject,
 				}),
-			);
+			)
 		}
 	}
 
 	private async getTransporter(): Promise<Transporter> {
 		if (!this.transporterPromise) {
-			this.transporterPromise = this.createTransporter();
+			this.transporterPromise = this.createTransporter()
 		}
 
 		try {
-			return await this.transporterPromise;
+			return await this.transporterPromise
 		} catch {
-			this.transporterPromise = this.createTransporter();
-			return this.transporterPromise;
+			this.transporterPromise = this.createTransporter()
+			return this.transporterPromise
 		}
 	}
 
@@ -73,8 +73,8 @@ export class EtherealEmailRepository implements IEmailRepository {
 			)
 			.catch((error) => {
 				// TODO(#66): Replace with structured logging service
-				console.error('Failed to create Ethereal test account:', error);
-				throw error;
-			});
+				console.error('Failed to create Ethereal test account:', error)
+				throw error
+			})
 	}
 }

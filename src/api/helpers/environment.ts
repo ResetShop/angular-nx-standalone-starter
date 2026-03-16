@@ -1,6 +1,6 @@
 export interface EnvironmentConfig {
-	production: boolean;
-	basePath: string;
+	production: boolean
+	basePath: string
 	// TODO: Uncomment the Sanity Studio configuration if you're using Sanity Studio
 	// sanity: {
 	//   token: string;
@@ -17,12 +17,12 @@ export interface EnvironmentConfig {
 	// TODO: Uncomment the database configuration if you're using a database connection
 	database: {
 		pg?: {
-			connectionString: string;
-		};
+			connectionString: string
+		}
 		// mysql?: {
 		//   connectionString: string;
 		// };
-	};
+	}
 }
 
 export const environment: EnvironmentConfig = {
@@ -51,4 +51,4 @@ export const environment: EnvironmentConfig = {
 		//   connectionString: process.env['MYSQL_CONNECTION_STRING'] as string,
 		// },
 	},
-};
+}

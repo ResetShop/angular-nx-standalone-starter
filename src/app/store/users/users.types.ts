@@ -1,29 +1,29 @@
-import type { IManagedUser } from '@domain/user-management/managed-user.interface';
+import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 
 export interface UsersReadError {
-	list: string | null;
+	list: string | null
 }
 
 export interface UsersMutationError {
-	create: string | null;
-	update: string | null;
-	updateStatus: string | null;
-	delete: string | null;
+	create: string | null
+	update: string | null
+	updateStatus: string | null
+	delete: string | null
 }
 
 export interface UsersState {
-	users: IManagedUser[];
-	selectedUser: IManagedUser | null;
-	currentPage: number;
-	pageSize: number;
-	totalItems: number;
-	searchQuery: string;
-	isLoadingList: boolean;
-	isCreating: boolean;
-	isUpdating: boolean;
-	isDeleting: boolean;
-	readError: UsersReadError;
-	mutationError: UsersMutationError;
+	users: IManagedUser[]
+	selectedUser: IManagedUser | null
+	currentPage: number
+	pageSize: number
+	totalItems: number
+	searchQuery: string
+	isLoadingList: boolean
+	isCreating: boolean
+	isUpdating: boolean
+	isDeleting: boolean
+	readError: UsersReadError
+	mutationError: UsersMutationError
 }
 
 export const initialUsersState: UsersState = {
@@ -39,4 +39,4 @@ export const initialUsersState: UsersState = {
 	isDeleting: false,
 	readError: { list: null },
 	mutationError: { create: null, update: null, updateStatus: null, delete: null },
-};
+}

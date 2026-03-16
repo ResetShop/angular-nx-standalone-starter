@@ -1,11 +1,11 @@
-import { Injectable, signal } from '@angular/core';
-import { environment } from '../../environments/environment';
-import type { TranslationKey, TranslationSchema } from './translations.schema';
+import { Injectable, signal } from '@angular/core'
+import { environment } from '../../environments/environment'
+import type { TranslationKey, TranslationSchema } from './translations.schema'
 
 /**
  * Supported languages in the application.
  */
-export type Language = 'en' | 'es';
+export type Language = 'en' | 'es'
 
 /**
  * Simple translation provider for i18n support.
@@ -36,7 +36,7 @@ export class Translation {
 	 * Current active language.
 	 * Defaults to the value set in environment.defaultLanguage, or 'en' if not set.
 	 */
-	private readonly currentLang = signal<Language>((environment.defaultLanguage as Language) ?? 'en');
+	private readonly currentLang = signal<Language>((environment.defaultLanguage as Language) ?? 'en')
 
 	/**
 	 * In-memory cache of loaded translations.
@@ -44,14 +44,14 @@ export class Translation {
 	private translations: Record<Language, TranslationSchema | null> = {
 		en: null,
 		es: null,
-	};
+	}
 
 	/**
 	 * Loads the default language translations.
 	 * Called by the app initializer to ensure translations are ready before app starts.
 	 */
 	async loadDefaultLanguage(): Promise<void> {
-		await this.loadTranslation(this.currentLang());
+		await this.loadTranslation(this.currentLang())
 	}
 
 	/**
@@ -64,24 +64,24 @@ export class Translation {
 	private async loadTranslation(lang: Language): Promise<void> {
 		// Only load if not already loaded
 		if (this.translations[lang] !== null) {
-			return;
+			return
 		}
 
 		try {
-			let module;
+			let module
 			switch (lang) {
 				case 'en':
-					module = await import('./translations/en');
-					break;
+					module = await import('./translations/en')
+					break
 				case 'es':
-					module = await import('./translations/es');
-					break;
+					module = await import('./translations/es')
+					break
 				default:
-					throw new Error(`Unsupported language: ${lang}`);
+					throw new Error(`Unsupported language: ${lang}`)
 			}
-			this.translations[lang] = module.default;
+			this.translations[lang] = module.default
 		} catch (error) {
-			throw new Error(`Failed to load ${lang} translations`, { cause: error });
+			throw new Error(`Failed to load ${lang} translations`, { cause: error })
 		}
 	}
 
@@ -104,26 +104,26 @@ export class Translation {
 	 * ```
 	 */
 	instant(key: TranslationKey): string {
-		const currentTranslations = this.translations[this.currentLang()];
+		const currentTranslations = this.translations[this.currentLang()]
 
 		if (currentTranslations === null) {
-			throw new Error(`Translations for language '${this.currentLang()}' are not loaded`);
+			throw new Error(`Translations for language '${this.currentLang()}' are not loaded`)
 		}
 
 		// Navigate through nested keys (e.g., 'AUTH.ERRORS.ACCOUNT_LOCKED')
-		const keys = key.split('.');
-		let value: unknown = currentTranslations;
+		const keys = key.split('.')
+		let value: unknown = currentTranslations
 
 		for (const k of keys) {
 			if (typeof value === 'object' && value !== null && k in value) {
-				value = (value as Record<string, unknown>)[k];
+				value = (value as Record<string, unknown>)[k]
 			} else {
 				// Key not found, return the key itself as fallback
-				return key;
+				return key
 			}
 		}
 
-		return typeof value === 'string' ? value : key;
+		return typeof value === 'string' ? value : key
 	}
 
 	/**
@@ -138,8 +138,8 @@ export class Translation {
 	 * ```
 	 */
 	async setLanguage(lang: Language): Promise<void> {
-		await this.loadTranslation(lang);
-		this.currentLang.set(lang);
+		await this.loadTranslation(lang)
+		this.currentLang.set(lang)
 	}
 
 	/**
@@ -148,6 +148,6 @@ export class Translation {
 	 * @returns Current language code
 	 */
 	getCurrentLanguage(): Language {
-		return this.currentLang();
+		return this.currentLang()
 	}
 }

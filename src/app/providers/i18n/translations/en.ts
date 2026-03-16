@@ -1,4 +1,4 @@
-import type { TranslationSchema } from '../translations.schema';
+import type { TranslationSchema } from '../translations.schema'
 
 const en: TranslationSchema = {
 	AUTH: {
@@ -33,6 +33,6 @@ const en: TranslationSchema = {
 		MAX: 'Must be no more than {max}',
 		PATTERN: 'Invalid format',
 	},
-};
+}
 
-export default en;
+export default en

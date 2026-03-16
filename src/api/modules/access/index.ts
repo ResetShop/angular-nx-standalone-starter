@@ -1,13 +1,13 @@
-import { createOpenAPIApp } from '../../openapi-app';
-import permissionController from './permission/permission.controller';
-import roleController from './role/role.controller';
+import { createOpenAPIApp } from '../../openapi-app'
+import permissionController from './permission/permission.controller'
+import roleController from './role/role.controller'
 
-const app = createOpenAPIApp();
+const app = createOpenAPIApp()
 
 // Permission listing endpoints: /permissions
-app.route('/permissions', permissionController);
+app.route('/permissions', permissionController)
 
 // Role CRUD and permission assignment endpoints: /roles, /roles/:id, /roles/:id/permissions
-app.route('/roles', roleController);
+app.route('/roles', roleController)
 
-export default app;
+export default app

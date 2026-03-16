@@ -1,9 +1,9 @@
-import { Button } from '@components/button/button';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { moduleMetadata } from '@storybook/angular';
-import type { DrawerDirection } from './drawer';
-import { Drawer } from './drawer';
-import { DrawerFooter } from './drawer-footer';
+import { Button } from '@components/button/button'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { moduleMetadata } from '@storybook/angular'
+import type { DrawerDirection } from './drawer'
+import { Drawer } from './drawer'
+import { DrawerFooter } from './drawer-footer'
 
 const meta: Meta<Drawer & { direction: DrawerDirection }> = {
 	component: Drawer,
@@ -76,11 +76,11 @@ A slide-out drawer component using the native \`<dialog>\` element.
 			table: { defaultValue: { summary: 'true' } },
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Drawer & { direction: DrawerDirection }>;
+type Story = StoryObj<Drawer & { direction: DrawerDirection }>
 
 /**
  * Default drawer with configurable direction, title, and description.
@@ -117,7 +117,7 @@ export const Default: Story = {
 			</app-drawer>
 		`,
 	}),
-};
+}
 
 /**
  * Drawer that cannot be closed by clicking the backdrop.
@@ -153,7 +153,7 @@ export const NoBackdropClose: Story = {
 			</app-drawer>
 		`,
 	}),
-};
+}
 
 /**
  * Drawer that cannot be closed by pressing the ESC key.
@@ -189,7 +189,7 @@ export const NoEscapeClose: Story = {
 			</app-drawer>
 		`,
 	}),
-};
+}
 
 /**
  * Drawer with form content and footer actions.
@@ -241,4 +241,4 @@ export const WithFormContent: Story = {
 			</app-drawer>
 		`,
 	}),
-};
+}

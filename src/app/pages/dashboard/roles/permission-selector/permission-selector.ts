@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core';
-import type { FormValueControl } from '@angular/forms/signals';
-import { FormFieldCustomControl } from '@components/form-field/form-field-custom-control';
-import type { IPermission } from '@domain/access/permission.interface';
+import { ChangeDetectionStrategy, Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core'
+import type { FormValueControl } from '@angular/forms/signals'
+import { FormFieldCustomControl } from '@components/form-field/form-field-custom-control'
+import type { IPermission } from '@domain/access/permission.interface'
 
 export interface PermissionGroup {
-	resource: string;
-	permissions: IPermission[];
+	resource: string
+	permissions: IPermission[]
 }
 
 @Component({
@@ -49,52 +49,52 @@ export interface PermissionGroup {
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PermissionSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
-	readonly groups = input.required<PermissionGroup[]>();
-	readonly value = model<number[]>([]);
+	readonly groups = input.required<PermissionGroup[]>()
+	readonly value = model<number[]>([])
 
 	protected readonly containerClasses = computed(() => {
-		const base = 'min-h-0 flex-1 overflow-y-auto rounded-md border p-3';
-		return this.ariaInvalid() ? `${base} border-destructive` : `${base} border-gray-200 dark:border-gray-700`;
-	});
+		const base = 'min-h-0 flex-1 overflow-y-auto rounded-md border p-3'
+		return this.ariaInvalid() ? `${base} border-destructive` : `${base} border-gray-200 dark:border-gray-700`
+	})
 
 	protected readonly selectedSet = linkedSignal<number[], Set<number>>({
 		source: this.value,
 		computation: (ids) => new Set(ids),
-	});
+	})
 
 	protected isResourceFullySelected(group: PermissionGroup): boolean {
-		const set = this.selectedSet();
-		return group.permissions.every((p) => set.has(p.id));
+		const set = this.selectedSet()
+		return group.permissions.every((p) => set.has(p.id))
 	}
 
 	protected isResourcePartiallySelected(group: PermissionGroup): boolean {
-		const set = this.selectedSet();
-		const selected = group.permissions.filter((p) => set.has(p.id)).length;
-		return selected > 0 && selected < group.permissions.length;
+		const set = this.selectedSet()
+		const selected = group.permissions.filter((p) => set.has(p.id)).length
+		return selected > 0 && selected < group.permissions.length
 	}
 
 	protected togglePermission(id: number): void {
-		const set = new Set(this.selectedSet());
+		const set = new Set(this.selectedSet())
 		if (set.has(id)) {
-			set.delete(id);
+			set.delete(id)
 		} else {
-			set.add(id);
+			set.add(id)
 		}
-		this.selectedSet.set(set);
-		this.value.set([...set]);
+		this.selectedSet.set(set)
+		this.value.set([...set])
 	}
 
 	protected toggleResource(group: PermissionGroup): void {
-		const set = new Set(this.selectedSet());
-		const allSelected = this.isResourceFullySelected(group);
+		const set = new Set(this.selectedSet())
+		const allSelected = this.isResourceFullySelected(group)
 		for (const p of group.permissions) {
 			if (allSelected) {
-				set.delete(p.id);
+				set.delete(p.id)
 			} else {
-				set.add(p.id);
+				set.add(p.id)
 			}
 		}
-		this.selectedSet.set(set);
-		this.value.set([...set]);
+		this.selectedSet.set(set)
+		this.value.set([...set])
 	}
 }

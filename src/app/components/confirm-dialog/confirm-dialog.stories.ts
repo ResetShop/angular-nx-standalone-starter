@@ -1,7 +1,7 @@
-import { Button } from '@components/button/button';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { moduleMetadata } from '@storybook/angular';
-import { ConfirmDialog } from './confirm-dialog';
+import { Button } from '@components/button/button'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { moduleMetadata } from '@storybook/angular'
+import { ConfirmDialog } from './confirm-dialog'
 
 const meta: Meta<ConfirmDialog> = {
 	component: ConfirmDialog,
@@ -74,11 +74,11 @@ A confirmation dialog component using the native \`<dialog>\` element with \`sho
 			table: { defaultValue: { summary: 'default' } },
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<ConfirmDialog>;
+type Story = StoryObj<ConfirmDialog>
 
 /**
  * Default confirm dialog with configurable options.
@@ -105,7 +105,7 @@ export const Default: Story = {
 			/>
 		`,
 	}),
-};
+}
 
 /**
  * Destructive confirmation for dangerous actions like deletion.
@@ -123,7 +123,7 @@ export const Destructive: Story = {
 			/>
 		`,
 	}),
-};
+}
 
 /**
  * Dialog with custom button labels.
@@ -141,7 +141,7 @@ export const CustomButtonText: Story = {
 			/>
 		`,
 	}),
-};
+}
 
 /**
  * Minimal dialog with title only.
@@ -154,4 +154,4 @@ export const MinimalDialog: Story = {
 			<app-confirm-dialog #dialog title="Are you sure?" />
 		`,
 	}),
-};
+}

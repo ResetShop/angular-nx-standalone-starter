@@ -1,7 +1,7 @@
-import { computed, DestroyRef, inject } from '@angular/core';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { parseDurationToMs } from '@utils/duration';
-import { DEFAULT_NOTIFICATION_DURATION, initialUIState, type UINotification } from './ui.types';
+import { computed, DestroyRef, inject } from '@angular/core'
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
+import { parseDurationToMs } from '@utils/duration'
+import { DEFAULT_NOTIFICATION_DURATION, initialUIState, type UINotification } from './ui.types'
 
 /**
  * UIStore - Signal Store for global UI concerns
@@ -17,57 +17,57 @@ export const UIStore = signalStore(
 		latestNotification: computed(() => store.notifications().at(-1) ?? null),
 	})),
 	withMethods((store) => {
-		const destroyRef = inject(DestroyRef);
-		const timeouts = new Map<string, ReturnType<typeof setTimeout>>();
+		const destroyRef = inject(DestroyRef)
+		const timeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
 		destroyRef.onDestroy(() => {
-			for (const handle of timeouts.values()) clearTimeout(handle);
-			timeouts.clear();
-		});
+			for (const handle of timeouts.values()) clearTimeout(handle)
+			timeouts.clear()
+		})
 
 		function dismissNotification(id: string): void {
-			const handle = timeouts.get(id);
+			const handle = timeouts.get(id)
 			if (handle !== undefined) {
-				clearTimeout(handle);
-				timeouts.delete(id);
+				clearTimeout(handle)
+				timeouts.delete(id)
 			}
-			patchState(store, { notifications: store.notifications().filter((n) => n.id !== id) });
+			patchState(store, { notifications: store.notifications().filter((n) => n.id !== id) })
 		}
 
 		return {
 			dismissNotification,
 
 			showNotification(notification: Omit<UINotification, 'id'>): void {
-				const id = crypto.randomUUID();
-				patchState(store, { notifications: [...store.notifications(), { ...notification, id }] });
-				const delay = parseDurationToMs(notification.duration ?? DEFAULT_NOTIFICATION_DURATION);
-				const handle = setTimeout(() => dismissNotification(id), delay);
-				timeouts.set(id, handle);
+				const id = crypto.randomUUID()
+				patchState(store, { notifications: [...store.notifications(), { ...notification, id }] })
+				const delay = parseDurationToMs(notification.duration ?? DEFAULT_NOTIFICATION_DURATION)
+				const handle = setTimeout(() => dismissNotification(id), delay)
+				timeouts.set(id, handle)
 			},
 
 			toggleSidebar(): void {
-				patchState(store, { isSidebarOpen: !store.isSidebarOpen() });
+				patchState(store, { isSidebarOpen: !store.isSidebarOpen() })
 			},
 
 			setSidebarOpen(isOpen: boolean): void {
-				patchState(store, { isSidebarOpen: isOpen });
+				patchState(store, { isSidebarOpen: isOpen })
 			},
 
 			setSidebarCollapsed(collapsed: boolean): void {
-				patchState(store, { isSidebarCollapsed: collapsed });
+				patchState(store, { isSidebarCollapsed: collapsed })
 			},
 
 			openDrawer(drawer: string): void {
-				patchState(store, { activeDrawer: drawer });
+				patchState(store, { activeDrawer: drawer })
 			},
 
 			closeDrawer(): void {
-				patchState(store, { activeDrawer: null });
+				patchState(store, { activeDrawer: null })
 			},
 
 			setGlobalLoading(isLoading: boolean): void {
-				patchState(store, { isGlobalLoading: isLoading });
+				patchState(store, { isGlobalLoading: isLoading })
 			},
-		};
+		}
 	}),
-);
+)

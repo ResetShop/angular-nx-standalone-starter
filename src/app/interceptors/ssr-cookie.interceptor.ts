@@ -1,6 +1,6 @@
-import { isPlatformBrowser } from '@angular/common';
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject, PLATFORM_ID, REQUEST } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common'
+import { HttpInterceptorFn } from '@angular/common/http'
+import { inject, PLATFORM_ID, REQUEST } from '@angular/core'
 
 /**
  * Server-side interceptor that forwards browser cookies to outgoing API requests.
@@ -8,20 +8,20 @@ import { inject, PLATFORM_ID, REQUEST } from '@angular/core';
  * because HttpClient does not automatically include them.
  */
 export const ssrCookieInterceptor: HttpInterceptorFn = (req, next) => {
-	const platformId = inject(PLATFORM_ID);
-	const request = inject(REQUEST, { optional: true });
+	const platformId = inject(PLATFORM_ID)
+	const request = inject(REQUEST, { optional: true })
 
 	if (isPlatformBrowser(platformId) || !request) {
-		return next(req);
+		return next(req)
 	}
 
-	const { pathname } = new URL(req.url, request.url);
+	const { pathname } = new URL(req.url, request.url)
 	if (pathname.startsWith('/api/')) {
-		const cookies = request.headers.get('cookie');
+		const cookies = request.headers.get('cookie')
 		if (cookies) {
-			return next(req.clone({ setHeaders: { Cookie: cookies } }));
+			return next(req.clone({ setHeaders: { Cookie: cookies } }))
 		}
 	}
 
-	return next(req);
-};
+	return next(req)
+}

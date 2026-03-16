@@ -1,20 +1,20 @@
-import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas';
-import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas';
-import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas';
-import { assignRoleToUserRequestSchema, replaceUserRolesRequestSchema } from '@contracts/user/user.schemas';
-import { createRoute, z } from '@hono/zod-openapi';
-import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware';
-import { commonResponses } from '../../openapi-config';
-import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants';
+import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas'
+import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas'
+import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas'
+import { assignRoleToUserRequestSchema, replaceUserRolesRequestSchema } from '@contracts/user/user.schemas'
+import { createRoute, z } from '@hono/zod-openapi'
+import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware'
+import { commonResponses } from '../../openapi-config'
+import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants'
 
-const userIdField = z.coerce.number().int().positive().openapi({ description: 'User ID', example: 1 });
+const userIdField = z.coerce.number().int().positive().openapi({ description: 'User ID', example: 1 })
 
-const userIdParamSchema = z.object({ userId: userIdField });
+const userIdParamSchema = z.object({ userId: userIdField })
 
 const userIdAndRoleIdParamSchema = z.object({
 	userId: userIdField,
 	roleId: z.coerce.number().int().positive().openapi({ description: 'Role ID', example: 1 }),
-});
+})
 
 export const getUserRolesRoute = createRoute({
 	method: 'get',
@@ -42,7 +42,7 @@ export const getUserRolesRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const getUserPermissionsRoute = createRoute({
 	method: 'get',
@@ -67,7 +67,7 @@ export const getUserPermissionsRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const assignRoleRoute = createRoute({
 	method: 'post',
@@ -102,7 +102,7 @@ export const assignRoleRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const replaceUserRolesRoute = createRoute({
 	method: 'put',
@@ -135,7 +135,7 @@ export const replaceUserRolesRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})
 
 export const removeRoleRoute = createRoute({
 	method: 'delete',
@@ -160,4 +160,4 @@ export const removeRoleRoute = createRoute({
 		},
 		...commonResponses,
 	},
-});
+})

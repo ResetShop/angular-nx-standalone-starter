@@ -1,8 +1,8 @@
-import { clearAllMocks, fn } from '@test-utils';
-import { AuthService } from '../modules/auth/auth.service';
-import { container } from './container';
-import { MockContainer } from './container.mock';
-import type { Cradle } from './container.types';
+import { clearAllMocks, fn } from '@test-utils'
+import { AuthService } from '../modules/auth/auth.service'
+import { container } from './container'
+import { MockContainer } from './container.mock'
+import type { Cradle } from './container.types'
 
 /**
  * DI Container Integration Tests
@@ -22,127 +22,127 @@ function createMockRoleService(): Cradle['roleService'] {
 		deleteRole: fn(),
 		getRolePermissions: fn(),
 		assignPermissionsToRole: fn(),
-	};
+	}
 }
 
 describe('DI Container', () => {
 	beforeEach(() => {
-		clearAllMocks();
-	});
+		clearAllMocks()
+	})
 
 	describe('dependency resolution', () => {
 		it('should resolve db infrastructure', () => {
-			expect(container.cradle.db).toBeDefined();
-		});
+			expect(container.cradle.db).toBeDefined()
+		})
 
 		it('should resolve emailRepository', () => {
-			expect(container.cradle.emailRepository).toBeDefined();
-		});
+			expect(container.cradle.emailRepository).toBeDefined()
+		})
 
 		it('should resolve emailService', () => {
-			expect(container.cradle.emailService).toBeDefined();
-		});
+			expect(container.cradle.emailService).toBeDefined()
+		})
 
 		it('should resolve pasetoService', () => {
-			expect(container.cradle.pasetoService).toBeDefined();
-		});
+			expect(container.cradle.pasetoService).toBeDefined()
+		})
 
 		it('should resolve userRepository', () => {
-			expect(container.cradle.userRepository).toBeDefined();
-		});
+			expect(container.cradle.userRepository).toBeDefined()
+		})
 
 		it('should resolve authRepository', () => {
-			expect(container.cradle.authRepository).toBeDefined();
-		});
+			expect(container.cradle.authRepository).toBeDefined()
+		})
 
 		it('should resolve refreshTokenRepository', () => {
-			expect(container.cradle.refreshTokenRepository).toBeDefined();
-		});
+			expect(container.cradle.refreshTokenRepository).toBeDefined()
+		})
 
 		it('should resolve authService', () => {
-			expect(container.cradle.authService).toBeDefined();
-		});
+			expect(container.cradle.authService).toBeDefined()
+		})
 
 		it('should resolve tokenMaintenanceService', () => {
-			expect(container.cradle.tokenMaintenanceService).toBeDefined();
-		});
-	});
+			expect(container.cradle.tokenMaintenanceService).toBeDefined()
+		})
+	})
 
 	describe('singleton behavior', () => {
 		it('should return the same authService instance', () => {
-			const service1 = container.cradle.authService;
-			const service2 = container.cradle.authService;
-			expect(service1).toBe(service2);
-		});
+			const service1 = container.cradle.authService
+			const service2 = container.cradle.authService
+			expect(service1).toBe(service2)
+		})
 
 		it('should return the same emailService instance', () => {
-			const service1 = container.cradle.emailService;
-			const service2 = container.cradle.emailService;
-			expect(service1).toBe(service2);
-		});
+			const service1 = container.cradle.emailService
+			const service2 = container.cradle.emailService
+			expect(service1).toBe(service2)
+		})
 
 		it('should return the same pasetoService instance', () => {
-			const service1 = container.cradle.pasetoService;
-			const service2 = container.cradle.pasetoService;
-			expect(service1).toBe(service2);
-		});
+			const service1 = container.cradle.pasetoService
+			const service2 = container.cradle.pasetoService
+			expect(service1).toBe(service2)
+		})
 
 		it('should return the same userRepository instance', () => {
-			const repo1 = container.cradle.userRepository;
-			const repo2 = container.cradle.userRepository;
-			expect(repo1).toBe(repo2);
-		});
+			const repo1 = container.cradle.userRepository
+			const repo2 = container.cradle.userRepository
+			expect(repo1).toBe(repo2)
+		})
 
 		it('should resolve tokenMaintenanceService to the same instance as authService', () => {
-			expect(container.cradle.tokenMaintenanceService).toBe(container.cradle.authService);
-		});
-	});
+			expect(container.cradle.tokenMaintenanceService).toBe(container.cradle.authService)
+		})
+	})
 
 	describe('container.verify', () => {
 		it('should not throw when all critical dependencies are resolvable', () => {
-			expect(() => container.verify()).not.toThrow();
-		});
-	});
+			expect(() => container.verify()).not.toThrow()
+		})
+	})
 
 	describe('test cradle proxy', () => {
 		afterEach(() => {
-			container.restore();
-		});
+			container.restore()
+		})
 
 		it('should return mocked service when test cradle is set', () => {
-			const mockRoleService = createMockRoleService();
+			const mockRoleService = createMockRoleService()
 			container.use(
 				new MockContainer({
 					roleService: mockRoleService,
 				}),
-			);
+			)
 
-			expect(container.cradle.roleService).toBe(mockRoleService);
-		});
+			expect(container.cradle.roleService).toBe(mockRoleService)
+		})
 
 		it('should throw when accessing unmocked service in test mode', () => {
 			container.use(
 				new MockContainer({
 					roleService: createMockRoleService(),
 				}),
-			);
+			)
 
 			// authService wasn't mocked, so accessing it should throw
-			expect(() => container.cradle.authService).toThrow('Test mock missing for service: authService');
-		});
+			expect(() => container.cradle.authService).toThrow('Test mock missing for service: authService')
+		})
 
 		it('should return real service after test cradle is reset', () => {
 			container.use(
 				new MockContainer({
 					roleService: createMockRoleService(),
 				}),
-			);
+			)
 
-			container.restore();
+			container.restore()
 
 			// After reset, real authService should be accessible
-			expect(container.cradle.authService).toBeDefined();
-			expect(container.cradle.authService).toBeInstanceOf(AuthService);
-		});
-	});
-});
+			expect(container.cradle.authService).toBeDefined()
+			expect(container.cradle.authService).toBeInstanceOf(AuthService)
+		})
+	})
+})

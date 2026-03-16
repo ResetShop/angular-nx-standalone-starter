@@ -1,11 +1,11 @@
-import { TestBed } from '@angular/core/testing';
-import type { PaginatedResponse } from '@contracts/common/pagination.types';
-import { UserStatus } from '@contracts/user/user.schemas';
-import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types';
-import { UsersApiService } from '@providers/users/users';
-import { clearAllMocks, fn, type MockFn } from '@test-utils';
-import { EMPTY, NEVER, of, throwError } from 'rxjs';
-import { UsersStore } from './users.store';
+import { TestBed } from '@angular/core/testing'
+import type { PaginatedResponse } from '@contracts/common/pagination.types'
+import { UserStatus } from '@contracts/user/user.schemas'
+import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types'
+import { UsersApiService } from '@providers/users/users'
+import { clearAllMocks, fn, type MockFn } from '@test-utils'
+import { EMPTY, NEVER, of, throwError } from 'rxjs'
+import { UsersStore } from './users.store'
 
 function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUser {
 	return {
@@ -31,7 +31,7 @@ function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUse
 			},
 		],
 		...overrides,
-	};
+	}
 }
 
 function createMockListResponse(users: ManagedUser[], total?: number): PaginatedResponse<ManagedUser> {
@@ -40,12 +40,12 @@ function createMockListResponse(users: ManagedUser[], total?: number): Paginated
 		total: total ?? users.length,
 		offset: 0,
 		limit: 10,
-	};
+	}
 }
 
 describe('UsersStore', () => {
-	let store: InstanceType<typeof UsersStore>;
-	let usersApiMock: Record<keyof UsersApiService, MockFn>;
+	let store: InstanceType<typeof UsersStore>
+	let usersApiMock: Record<keyof UsersApiService, MockFn>
 
 	/**
 	 * Configures TestBed and injects the store.
@@ -56,13 +56,13 @@ describe('UsersStore', () => {
 	function setupStore(): void {
 		TestBed.configureTestingModule({
 			providers: [UsersStore, { provide: UsersApiService, useValue: usersApiMock }],
-		});
-		store = TestBed.inject(UsersStore);
-		TestBed.tick();
+		})
+		store = TestBed.inject(UsersStore)
+		TestBed.tick()
 	}
 
 	beforeEach(() => {
-		clearAllMocks();
+		clearAllMocks()
 
 		usersApiMock = {
 			getAll: fn(),
@@ -71,427 +71,427 @@ describe('UsersStore', () => {
 			update: fn(),
 			delete: fn(),
 			updateStatus: fn(),
-		};
+		}
 
 		// Default mock — prevents onInit from firing against an unmocked fn().
 		// Tests that need a different initial response override before calling setupStore().
-		usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])));
-	});
+		usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+	})
 
 	describe('initial state', () => {
 		it('should start loading immediately via onInit', () => {
-			usersApiMock.getAll.mockReturnValue(NEVER);
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(NEVER)
+			setupStore()
 
-			expect(store.users()).toEqual([]);
-			expect(store.selectedUser()).toBeNull();
-			expect(store.currentPage()).toBe(1);
-			expect(store.pageSize()).toBe(10);
-			expect(store.totalItems()).toBe(0);
-			expect(store.totalPages()).toBe(0);
-			expect(store.searchQuery()).toBe('');
-			expect(store.isLoadingList()).toBe(true);
-			expect(store.isCreating()).toBe(false);
-			expect(store.isUpdating()).toBe(false);
-			expect(store.isDeleting()).toBe(false);
-			expect(store.readError()).toEqual({ list: null });
-			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null });
-		});
+			expect(store.users()).toEqual([])
+			expect(store.selectedUser()).toBeNull()
+			expect(store.currentPage()).toBe(1)
+			expect(store.pageSize()).toBe(10)
+			expect(store.totalItems()).toBe(0)
+			expect(store.totalPages()).toBe(0)
+			expect(store.searchQuery()).toBe('')
+			expect(store.isLoadingList()).toBe(true)
+			expect(store.isCreating()).toBe(false)
+			expect(store.isUpdating()).toBe(false)
+			expect(store.isDeleting()).toBe(false)
+			expect(store.readError()).toEqual({ list: null })
+			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null })
+		})
 
 		it('should have correct state after initial load completes', () => {
-			setupStore();
+			setupStore()
 
-			expect(store.users()).toEqual([]);
-			expect(store.isLoadingList()).toBe(false);
-			expect(store.readError().list).toBeNull();
-		});
+			expect(store.users()).toEqual([])
+			expect(store.isLoadingList()).toBe(false)
+			expect(store.readError().list).toBeNull()
+		})
 
 		it('should have correct computed signals', () => {
-			setupStore();
+			setupStore()
 
-			expect(store.hasNextPage()).toBe(false);
-			expect(store.hasPreviousPage()).toBe(false);
-			expect(store.isAnyLoading()).toBe(false);
-		});
-	});
+			expect(store.hasNextPage()).toBe(false)
+			expect(store.hasPreviousPage()).toBe(false)
+			expect(store.isAnyLoading()).toBe(false)
+		})
+	})
 
 	describe('loadUsers (reactive via onInit)', () => {
 		it('should load users and update state on success', () => {
-			const mockUser = createMockManagedUser();
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([mockUser], 1)));
-			setupStore();
+			const mockUser = createMockManagedUser()
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([mockUser], 1)))
+			setupStore()
 
-			expect(store.users()).toHaveLength(1);
-			expect(store.users()[0].fullName).toBe('John Doe');
-			expect(store.users()[0].status).toBe(UserStatus.ACTIVE);
-			expect(store.totalItems()).toBe(1);
-			expect(store.totalPages()).toBe(1);
-			expect(store.isLoadingList()).toBe(false);
-			expect(store.readError().list).toBeNull();
-		});
+			expect(store.users()).toHaveLength(1)
+			expect(store.users()[0].fullName).toBe('John Doe')
+			expect(store.users()[0].status).toBe(UserStatus.ACTIVE)
+			expect(store.totalItems()).toBe(1)
+			expect(store.totalPages()).toBe(1)
+			expect(store.isLoadingList()).toBe(false)
+			expect(store.readError().list).toBeNull()
+		})
 
 		it('should send correct offset based on currentPage and pageSize', () => {
-			setupStore();
+			setupStore()
 
 			// setPage triggers reactive re-fetch via listParams signal change
-			store.setPage(3);
-			TestBed.tick();
+			store.setPage(3)
+			TestBed.tick()
 
-			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1];
-			expect(lastCall[0]).toEqual({ offset: 20, limit: 10, search: undefined });
-		});
+			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
+			expect(lastCall[0]).toEqual({ offset: 20, limit: 10, search: undefined })
+		})
 
 		it('should compute totalPages correctly', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			setupStore()
 
-			expect(store.totalPages()).toBe(3);
-		});
+			expect(store.totalPages()).toBe(3)
+		})
 
 		it('should set readError.list on failure', () => {
-			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')));
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')))
+			setupStore()
 
-			expect(store.isLoadingList()).toBe(false);
-			expect(store.readError().list).toBe('Failed to load users');
-		});
+			expect(store.isLoadingList()).toBe(false)
+			expect(store.readError().list).toBe('Failed to load users')
+		})
 
 		it('should pass search query when set', () => {
-			setupStore();
+			setupStore()
 
-			store.setSearchQuery('admin');
-			TestBed.tick();
+			store.setSearchQuery('admin')
+			TestBed.tick()
 
-			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1];
-			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }));
-		});
+			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
+			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }))
+		})
 
 		it('should not send search param when query is empty', () => {
-			setupStore();
+			setupStore()
 
-			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1];
-			expect(lastCall[0]).toEqual(expect.objectContaining({ search: undefined }));
-		});
+			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
+			expect(lastCall[0]).toEqual(expect.objectContaining({ search: undefined }))
+		})
 
 		it('should return totalPages 0 when total is 0', () => {
-			setupStore();
+			setupStore()
 
-			expect(store.totalPages()).toBe(0);
-		});
+			expect(store.totalPages()).toBe(0)
+		})
 
 		it('should set isLoadingList while request is in flight', () => {
-			usersApiMock.getAll.mockReturnValue(NEVER);
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(NEVER)
+			setupStore()
 
-			expect(store.isLoadingList()).toBe(true);
-			expect(store.isAnyLoading()).toBe(true);
-		});
-	});
+			expect(store.isLoadingList()).toBe(true)
+			expect(store.isAnyLoading()).toBe(true)
+		})
+	})
 
 	describe('createUser', () => {
 		it('should reload the list from the server on success', () => {
-			const existingUser = createMockManagedUser({ id: 1 });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([existingUser], 1)));
-			setupStore();
+			const existingUser = createMockManagedUser({ id: 1 })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([existingUser], 1)))
+			setupStore()
 
 			const newUser: CreateUserResponse = {
 				...createMockManagedUser({ id: 2, email: 'new@example.com', firstName: 'New' }),
 				passwordEmailSent: true,
-			};
-			usersApiMock.create.mockReturnValue(of(newUser));
+			}
+			usersApiMock.create.mockReturnValue(of(newUser))
 
 			// After create, the store reloads — mock the server-authoritative response
-			const reloadedUsers = [existingUser, createMockManagedUser({ id: 2, email: 'new@example.com' })];
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(reloadedUsers, 2)));
+			const reloadedUsers = [existingUser, createMockManagedUser({ id: 2, email: 'new@example.com' })]
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(reloadedUsers, 2)))
 
 			store.createUser({
 				email: 'new@example.com',
 				firstName: 'New',
 				lastName: 'User',
 				mustChangePassword: true,
-			});
+			})
 
-			expect(store.users()).toHaveLength(2);
-			expect(store.totalItems()).toBe(2);
-			expect(store.isCreating()).toBe(false);
-		});
+			expect(store.users()).toHaveLength(2)
+			expect(store.totalItems()).toBe(2)
+			expect(store.isCreating()).toBe(false)
+		})
 
 		it('should set mutationError on failure', () => {
-			setupStore();
+			setupStore()
 
-			usersApiMock.create.mockReturnValue(throwError(() => new Error('Conflict')));
+			usersApiMock.create.mockReturnValue(throwError(() => new Error('Conflict')))
 
 			store.createUser({
 				email: 'fail@example.com',
 				firstName: 'Fail',
 				lastName: 'User',
 				mustChangePassword: true,
-			});
+			})
 
-			expect(store.isCreating()).toBe(false);
-			expect(store.mutationError().create).toBe('Failed to create user');
-		});
-	});
+			expect(store.isCreating()).toBe(false)
+			expect(store.mutationError().create).toBe('Failed to create user')
+		})
+	})
 
 	describe('updateUser', () => {
 		it('should reload the list from the server on success', () => {
-			const user = createMockManagedUser({ id: 5, firstName: 'Old' });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)));
-			setupStore();
+			const user = createMockManagedUser({ id: 5, firstName: 'Old' })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)))
+			setupStore()
 
-			usersApiMock.update.mockReturnValue(of(createMockManagedUser({ id: 5, firstName: 'Updated' })));
+			usersApiMock.update.mockReturnValue(of(createMockManagedUser({ id: 5, firstName: 'Updated' })))
 
 			// After update, the store reloads — mock the server-authoritative response
-			const reloadedUser = createMockManagedUser({ id: 5, firstName: 'Updated' });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)));
+			const reloadedUser = createMockManagedUser({ id: 5, firstName: 'Updated' })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)))
 
-			store.updateUser({ id: 5, body: { firstName: 'Updated' } });
+			store.updateUser({ id: 5, body: { firstName: 'Updated' } })
 
-			expect(store.users()[0].firstName).toBe('Updated');
-			expect(store.isUpdating()).toBe(false);
-		});
+			expect(store.users()[0].firstName).toBe('Updated')
+			expect(store.isUpdating()).toBe(false)
+		})
 
 		it('should set mutationError on failure', () => {
-			setupStore();
+			setupStore()
 
-			usersApiMock.update.mockReturnValue(throwError(() => new Error('Not found')));
+			usersApiMock.update.mockReturnValue(throwError(() => new Error('Not found')))
 
-			store.updateUser({ id: 1, body: { firstName: 'Fail' } });
+			store.updateUser({ id: 1, body: { firstName: 'Fail' } })
 
-			expect(store.isUpdating()).toBe(false);
-			expect(store.mutationError().update).toBe('Failed to update user');
-		});
-	});
+			expect(store.isUpdating()).toBe(false)
+			expect(store.mutationError().update).toBe('Failed to update user')
+		})
+	})
 
 	describe('deleteUser', () => {
 		it('should reload the list from the server on success', () => {
-			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })];
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(users, 2)));
-			setupStore();
+			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })]
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(users, 2)))
+			setupStore()
 
-			usersApiMock.delete.mockReturnValue(of(undefined));
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 2 })], 1)));
+			usersApiMock.delete.mockReturnValue(of(undefined))
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 2 })], 1)))
 
-			store.deleteUser(1);
+			store.deleteUser(1)
 
-			expect(store.users()).toHaveLength(1);
-			expect(store.users()[0].id).toBe(2);
-			expect(store.totalItems()).toBe(1);
-			expect(store.isDeleting()).toBe(false);
-		});
+			expect(store.users()).toHaveLength(1)
+			expect(store.users()[0].id).toBe(2)
+			expect(store.totalItems()).toBe(1)
+			expect(store.isDeleting()).toBe(false)
+		})
 
 		it('should navigate to previous page when last item on current page is deleted', () => {
-			const user = createMockManagedUser({ id: 10 });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 11)));
-			setupStore();
+			const user = createMockManagedUser({ id: 10 })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 11)))
+			setupStore()
 
 			// Move to page 2 — triggers reactive re-fetch
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 11)));
-			store.setPage(2);
-			TestBed.tick();
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 11)))
+			store.setPage(2)
+			TestBed.tick()
 
 			// Delete the only user on page 2 — patches currentPage to 1,
 			// which triggers the reactive loadUsers chain automatically
-			usersApiMock.delete.mockReturnValue(of(undefined));
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 10)));
+			usersApiMock.delete.mockReturnValue(of(undefined))
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 10)))
 
-			store.deleteUser(10);
-			TestBed.tick();
+			store.deleteUser(10)
+			TestBed.tick()
 
-			expect(store.currentPage()).toBe(1);
-		});
+			expect(store.currentPage()).toBe(1)
+		})
 
 		it('should clear selectedUser when the deleted user is selected', () => {
-			const user = createMockManagedUser({ id: 1 });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user, createMockManagedUser({ id: 2 })], 2)));
-			setupStore();
-			store.selectUser(store.users()[0]);
+			const user = createMockManagedUser({ id: 1 })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user, createMockManagedUser({ id: 2 })], 2)))
+			setupStore()
+			store.selectUser(store.users()[0])
 
-			usersApiMock.delete.mockReturnValue(of(undefined));
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 2 })], 1)));
+			usersApiMock.delete.mockReturnValue(of(undefined))
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 2 })], 1)))
 
-			store.deleteUser(1);
+			store.deleteUser(1)
 
-			expect(store.selectedUser()).toBeNull();
-		});
+			expect(store.selectedUser()).toBeNull()
+		})
 
 		it('should not clear selectedUser when a different user is deleted', () => {
-			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })];
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(users, 2)));
-			setupStore();
-			store.selectUser(store.users()[0]);
+			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })]
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(users, 2)))
+			setupStore()
+			store.selectUser(store.users()[0])
 
-			usersApiMock.delete.mockReturnValue(of(undefined));
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 1 })], 1)));
+			usersApiMock.delete.mockReturnValue(of(undefined))
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 1 })], 1)))
 
-			store.deleteUser(2);
+			store.deleteUser(2)
 
-			expect(store.selectedUser()?.id).toBe(1);
-		});
+			expect(store.selectedUser()?.id).toBe(1)
+		})
 
 		it('should set mutationError on failure', () => {
-			setupStore();
+			setupStore()
 
-			usersApiMock.delete.mockReturnValue(throwError(() => new Error('Forbidden')));
+			usersApiMock.delete.mockReturnValue(throwError(() => new Error('Forbidden')))
 
-			store.deleteUser(1);
+			store.deleteUser(1)
 
-			expect(store.isDeleting()).toBe(false);
-			expect(store.mutationError().delete).toBe('Failed to delete user');
-		});
-	});
+			expect(store.isDeleting()).toBe(false)
+			expect(store.mutationError().delete).toBe('Failed to delete user')
+		})
+	})
 
 	describe('updateUserStatus', () => {
 		it('should reload the list from the server on success', () => {
-			const user = createMockManagedUser({ id: 3, status: UserStatus.ACTIVE });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)));
-			setupStore();
+			const user = createMockManagedUser({ id: 3, status: UserStatus.ACTIVE })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)))
+			setupStore()
 
-			usersApiMock.updateStatus.mockReturnValue(of(createMockManagedUser({ id: 3, status: UserStatus.DISABLED })));
+			usersApiMock.updateStatus.mockReturnValue(of(createMockManagedUser({ id: 3, status: UserStatus.DISABLED })))
 
 			// After status update, the store reloads — mock the server-authoritative response
-			const reloadedUser = createMockManagedUser({ id: 3, status: UserStatus.DISABLED });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)));
+			const reloadedUser = createMockManagedUser({ id: 3, status: UserStatus.DISABLED })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)))
 
-			store.updateUserStatus({ id: 3, body: { status: UserStatus.DISABLED } });
+			store.updateUserStatus({ id: 3, body: { status: UserStatus.DISABLED } })
 
-			expect(store.users()[0].status).toBe(UserStatus.DISABLED);
-			expect(store.isUpdating()).toBe(false);
-		});
+			expect(store.users()[0].status).toBe(UserStatus.DISABLED)
+			expect(store.isUpdating()).toBe(false)
+		})
 
 		it('should set mutationError on failure', () => {
-			setupStore();
+			setupStore()
 
-			usersApiMock.updateStatus.mockReturnValue(throwError(() => new Error('Error')));
+			usersApiMock.updateStatus.mockReturnValue(throwError(() => new Error('Error')))
 
-			store.updateUserStatus({ id: 1, body: { status: UserStatus.DISABLED } });
+			store.updateUserStatus({ id: 1, body: { status: UserStatus.DISABLED } })
 
-			expect(store.isUpdating()).toBe(false);
-			expect(store.mutationError().updateStatus).toBe('Failed to update user status');
-		});
-	});
+			expect(store.isUpdating()).toBe(false)
+			expect(store.mutationError().updateStatus).toBe('Failed to update user status')
+		})
+	})
 
 	describe('setPage', () => {
 		it('should update currentPage and trigger loadUsers reactively', () => {
-			setupStore();
-			const callsBefore = usersApiMock.getAll.calls.length;
+			setupStore()
+			const callsBefore = usersApiMock.getAll.calls.length
 
-			store.setPage(3);
-			TestBed.tick();
+			store.setPage(3)
+			TestBed.tick()
 
-			expect(store.currentPage()).toBe(3);
-			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1);
-		});
-	});
+			expect(store.currentPage()).toBe(3)
+			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1)
+		})
+	})
 
 	describe('setPageSize', () => {
 		it('should reset to page 1 and update pageSize', () => {
-			setupStore();
+			setupStore()
 
-			store.setPage(3);
-			TestBed.tick();
-			store.setPageSize(25);
-			TestBed.tick();
+			store.setPage(3)
+			TestBed.tick()
+			store.setPageSize(25)
+			TestBed.tick()
 
-			expect(store.currentPage()).toBe(1);
-			expect(store.pageSize()).toBe(25);
-		});
-	});
+			expect(store.currentPage()).toBe(1)
+			expect(store.pageSize()).toBe(25)
+		})
+	})
 
 	describe('setSearchQuery', () => {
 		it('should reset to page 1 and update searchQuery', () => {
-			setupStore();
+			setupStore()
 
-			store.setPage(3);
-			TestBed.tick();
-			store.setSearchQuery('test');
-			TestBed.tick();
+			store.setPage(3)
+			TestBed.tick()
+			store.setSearchQuery('test')
+			TestBed.tick()
 
-			expect(store.currentPage()).toBe(1);
-			expect(store.searchQuery()).toBe('test');
-		});
-	});
+			expect(store.currentPage()).toBe(1)
+			expect(store.searchQuery()).toBe('test')
+		})
+	})
 
 	describe('selectUser', () => {
 		it('should set selectedUser from loaded users', () => {
-			const user = createMockManagedUser({ id: 7 });
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)));
-			setupStore();
+			const user = createMockManagedUser({ id: 7 })
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)))
+			setupStore()
 
-			store.selectUser(store.users()[0]);
+			store.selectUser(store.users()[0])
 
-			expect(store.selectedUser()?.id).toBe(7);
-			expect(store.selectedUser()?.fullName).toBe('John Doe');
-		});
+			expect(store.selectedUser()?.id).toBe(7)
+			expect(store.selectedUser()?.fullName).toBe('John Doe')
+		})
 
 		it('should clear selectedUser when passed null', () => {
-			usersApiMock.getAll.mockReturnValue(EMPTY);
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(EMPTY)
+			setupStore()
 
-			store.selectUser(null);
+			store.selectUser(null)
 
-			expect(store.selectedUser()).toBeNull();
-		});
-	});
+			expect(store.selectedUser()).toBeNull()
+		})
+	})
 
 	describe('clearErrors', () => {
 		it('should clear both readError and mutationError', () => {
-			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('List error')));
-			setupStore();
-			expect(store.readError().list).toBe('Failed to load users');
+			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('List error')))
+			setupStore()
+			expect(store.readError().list).toBe('Failed to load users')
 
-			usersApiMock.create.mockReturnValue(throwError(() => new Error('Create error')));
+			usersApiMock.create.mockReturnValue(throwError(() => new Error('Create error')))
 			store.createUser({
 				email: 'fail@test.com',
 				firstName: 'F',
 				lastName: 'L',
 				mustChangePassword: true,
-			});
-			expect(store.mutationError().create).toBe('Failed to create user');
+			})
+			expect(store.mutationError().create).toBe('Failed to create user')
 
-			store.clearErrors();
+			store.clearErrors()
 
-			expect(store.readError()).toEqual({ list: null });
-			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null });
-		});
-	});
+			expect(store.readError()).toEqual({ list: null })
+			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null })
+		})
+	})
 
 	describe('computed signals', () => {
 		it('should compute hasNextPage correctly', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			setupStore()
 
 			// Page 1 of 3 → hasNextPage = true
-			expect(store.hasNextPage()).toBe(true);
-			expect(store.hasPreviousPage()).toBe(false);
-		});
+			expect(store.hasNextPage()).toBe(true)
+			expect(store.hasPreviousPage()).toBe(false)
+		})
 
 		it('should compute hasPreviousPage correctly', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)));
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			setupStore()
 
-			store.setPage(2);
-			TestBed.tick();
+			store.setPage(2)
+			TestBed.tick()
 
-			expect(store.hasPreviousPage()).toBe(true);
-		});
+			expect(store.hasPreviousPage()).toBe(true)
+		})
 
 		it('should return false for isAnyLoading after all operations complete', () => {
-			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('Error')));
-			setupStore();
+			usersApiMock.getAll.mockReturnValue(throwError(() => new Error('Error')))
+			setupStore()
 
-			expect(store.isAnyLoading()).toBe(false);
-		});
-	});
+			expect(store.isAnyLoading()).toBe(false)
+		})
+	})
 
 	describe('reload', () => {
 		it('should trigger a re-fetch with the same params via imperative call', () => {
-			setupStore();
-			const callsBefore = usersApiMock.getAll.calls.length;
+			setupStore()
+			const callsBefore = usersApiMock.getAll.calls.length
 
-			store.reload();
+			store.reload()
 
-			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1);
-		});
-	});
-});
+			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1)
+		})
+	})
+})

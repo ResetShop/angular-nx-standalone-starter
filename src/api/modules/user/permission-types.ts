@@ -9,13 +9,13 @@
  *
  * Examples: 'admin:users:create', 'billing:invoices:read'
  */
-export type PermissionName = string & { readonly __brand: 'PermissionName' };
+export type PermissionName = string & { readonly __brand: 'PermissionName' }
 
 /**
  * Regex pattern for module:resource:action permission format.
  * Each segment must be snake_case starting with a letter.
  */
-const PERMISSION_PATTERN = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/;
+const PERMISSION_PATTERN = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/
 
 /**
  * Validates and creates a type-safe permission name.
@@ -26,7 +26,7 @@ export function permission(name: string): PermissionName {
 	if (!PERMISSION_PATTERN.test(name)) {
 		throw new Error(
 			`Invalid permission name: "${name}". Must be in module:resource:action format (e.g., 'admin:users:create')`,
-		);
+		)
 	}
-	return name as PermissionName;
+	return name as PermissionName
 }

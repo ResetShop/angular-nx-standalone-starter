@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/angular';
-import { Button } from './button';
+import type { Meta, StoryObj } from '@storybook/angular'
+import { Button } from './button'
 
 const meta: Meta<Button> = {
 	component: Button,
@@ -84,11 +84,11 @@ Try the controls below to customize the button appearance. Use the background se
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<Button>;
+type Story = StoryObj<Button>
 
 /**
  * The default button using default colors from the theme.
@@ -105,7 +105,7 @@ export const Default: Story = {
 		props: args,
 		template: `<button appButton [variant]="variant" [size]="size" [fullWidth]="fullWidth" [type]="type">Button</button>`,
 	}),
-};
+}
 
 /**
  * Outline variant with border and transparent background.
@@ -115,7 +115,7 @@ export const Outline: Story = {
 	render: () => ({
 		template: `<button appButton variant="outline">Outline</button>`,
 	}),
-};
+}
 
 /**
  * Secondary variant with subtle gray styling.
@@ -125,7 +125,7 @@ export const Secondary: Story = {
 	render: () => ({
 		template: `<button appButton variant="secondary">Secondary</button>`,
 	}),
-};
+}
 
 /**
  * Ghost variant with no background until hover.
@@ -135,7 +135,7 @@ export const Ghost: Story = {
 	render: () => ({
 		template: `<button appButton variant="ghost">Ghost</button>`,
 	}),
-};
+}
 
 /**
  * Destructive variant using danger colors from the theme.
@@ -145,7 +145,7 @@ export const Destructive: Story = {
 	render: () => ({
 		template: `<button appButton variant="destructive">Destructive</button>`,
 	}),
-};
+}
 
 /**
  * Link variant styled as a text link with underline on hover.
@@ -155,7 +155,7 @@ export const Link: Story = {
 	render: () => ({
 		template: `<button appButton variant="link">Link</button>`,
 	}),
-};
+}
 
 /**
  * Small size button (h-9, px-3)
@@ -164,7 +164,7 @@ export const Small: Story = {
 	render: () => ({
 		template: `<button appButton size="sm">Small Button</button>`,
 	}),
-};
+}
 
 /**
  * Medium size button (h-10, px-4) - default size
@@ -173,7 +173,7 @@ export const Medium: Story = {
 	render: () => ({
 		template: `<button appButton size="md">Medium Button</button>`,
 	}),
-};
+}
 
 /**
  * Large size button (h-11, px-6)
@@ -182,7 +182,7 @@ export const Large: Story = {
 	render: () => ({
 		template: `<button appButton size="lg">Large Button</button>`,
 	}),
-};
+}
 
 /**
  * Full width button that spans the container
@@ -191,7 +191,7 @@ export const FullWidth: Story = {
 	render: () => ({
 		template: `<button appButton [fullWidth]="true">Full Width Button</button>`,
 	}),
-};
+}
 
 /**
  * Disabled button state
@@ -206,7 +206,7 @@ export const Disabled: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Button as an anchor element
@@ -215,7 +215,7 @@ export const AsAnchor: Story = {
 	render: () => ({
 		template: `<a appButton href="#">Anchor Button</a>`,
 	}),
-};
+}
 
 /**
  * All variants in shadcn/ui order
@@ -233,4 +233,4 @@ export const AllVariants: Story = {
 			</div>
 		`,
 	}),
-};
+}

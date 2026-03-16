@@ -1,48 +1,48 @@
-import { parseDurationToMs } from '@utils/duration';
-import { and, eq, inArray, lt, sql } from 'drizzle-orm';
-import { refreshToken } from '../../../db/schema/refresh-token';
-import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants';
-import { BaseRepository } from '../../helpers/base.repository';
-import { isServerless } from '../../utils/environment';
+import { parseDurationToMs } from '@utils/duration'
+import { and, eq, inArray, lt, sql } from 'drizzle-orm'
+import { refreshToken } from '../../../db/schema/refresh-token'
+import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
+import { BaseRepository } from '../../helpers/base.repository'
+import { isServerless } from '../../utils/environment'
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
 	type IRefreshTokenRepository,
 	type RefreshTokenData,
-} from './interfaces';
+} from './interfaces'
 
 // Token cleanup configuration - configurable via environment variables
-const DEFAULT_DELETE_BATCH_SIZE = 1000;
-const DEFAULT_MAX_CLEANUP_BATCHES = 100; // Limit cleanup to 100k tokens per run to prevent indefinite execution
-const MIN_BATCH_SIZE = 100;
-const MAX_BATCH_SIZE = 10000;
-const MIN_MAX_BATCHES = 10;
-const MAX_MAX_BATCHES = 1000;
+const DEFAULT_DELETE_BATCH_SIZE = 1000
+const DEFAULT_MAX_CLEANUP_BATCHES = 100 // Limit cleanup to 100k tokens per run to prevent indefinite execution
+const MIN_BATCH_SIZE = 100
+const MAX_BATCH_SIZE = 10000
+const MIN_MAX_BATCHES = 10
+const MAX_MAX_BATCHES = 1000
 
 /**
  * Get validated batch size from environment variable.
  * @returns Batch size clamped between MIN_BATCH_SIZE and MAX_BATCH_SIZE
  */
 function getDeleteBatchSize(): number {
-	const envValue = process.env['TOKEN_CLEANUP_BATCH_SIZE'];
-	const raw = parseInt(envValue ?? '', 10);
+	const envValue = process.env['TOKEN_CLEANUP_BATCH_SIZE']
+	const raw = parseInt(envValue ?? '', 10)
 
 	if (!Number.isFinite(raw)) {
 		if (envValue) {
 			console.warn(
 				`[TokenCleanup] TOKEN_CLEANUP_BATCH_SIZE="${envValue}" is invalid. Using default: ${DEFAULT_DELETE_BATCH_SIZE}`,
-			);
+			)
 		}
-		return DEFAULT_DELETE_BATCH_SIZE;
+		return DEFAULT_DELETE_BATCH_SIZE
 	}
 
-	const clamped = Math.max(MIN_BATCH_SIZE, Math.min(MAX_BATCH_SIZE, raw));
+	const clamped = Math.max(MIN_BATCH_SIZE, Math.min(MAX_BATCH_SIZE, raw))
 	if (clamped !== raw) {
 		console.warn(
 			`[TokenCleanup] TOKEN_CLEANUP_BATCH_SIZE=${raw} out of range (${MIN_BATCH_SIZE}-${MAX_BATCH_SIZE}). Using: ${clamped}`,
-		);
+		)
 	}
-	return clamped;
+	return clamped
 }
 
 /**
@@ -50,31 +50,31 @@ function getDeleteBatchSize(): number {
  * @returns Max batches clamped between MIN_MAX_BATCHES and MAX_MAX_BATCHES
  */
 function getMaxCleanupBatches(): number {
-	const envValue = process.env['TOKEN_CLEANUP_MAX_BATCH_COUNT'];
-	const raw = parseInt(envValue ?? '', 10);
+	const envValue = process.env['TOKEN_CLEANUP_MAX_BATCH_COUNT']
+	const raw = parseInt(envValue ?? '', 10)
 
 	if (!Number.isFinite(raw)) {
 		if (envValue) {
 			console.warn(
 				`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCH_COUNT="${envValue}" is invalid. Using default: ${DEFAULT_MAX_CLEANUP_BATCHES}`,
-			);
+			)
 		}
-		return DEFAULT_MAX_CLEANUP_BATCHES;
+		return DEFAULT_MAX_CLEANUP_BATCHES
 	}
 
-	const clamped = Math.max(MIN_MAX_BATCHES, Math.min(MAX_MAX_BATCHES, raw));
+	const clamped = Math.max(MIN_MAX_BATCHES, Math.min(MAX_MAX_BATCHES, raw))
 	if (clamped !== raw) {
 		console.warn(
 			`[TokenCleanup] TOKEN_CLEANUP_MAX_BATCH_COUNT=${raw} out of range (${MIN_MAX_BATCHES}-${MAX_MAX_BATCHES}). Using: ${clamped}`,
-		);
+		)
 	}
-	return clamped;
+	return clamped
 }
 
 // Advisory lock key for token cleanup
 // Using a hash-like number derived from 'refresh_token_cleanup' to avoid collisions
 // with other advisory locks in the same database
-const TOKEN_CLEANUP_LOCK_KEY = 0x5246544b; // "RFTK" in hex (Refresh Token Cleanup Key)
+const TOKEN_CLEANUP_LOCK_KEY = 0x5246544b // "RFTK" in hex (Refresh Token Cleanup Key)
 
 /**
  * Repository for refresh token database operations.
@@ -98,13 +98,13 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 */
 	async tryAcquireCleanupLock(): Promise<boolean> {
 		// Use transaction-scoped locks in serverless to prevent lock leaks with connection pooling
-		const lockFunction = isServerless() ? 'pg_try_advisory_xact_lock' : 'pg_try_advisory_lock';
-		const result = await this.db.execute(sql.raw(`SELECT ${lockFunction}(${TOKEN_CLEANUP_LOCK_KEY}) as locked`));
-		const row = result.rows[0] as { locked: boolean | null | undefined } | undefined;
+		const lockFunction = isServerless() ? 'pg_try_advisory_xact_lock' : 'pg_try_advisory_lock'
+		const result = await this.db.execute(sql.raw(`SELECT ${lockFunction}(${TOKEN_CLEANUP_LOCK_KEY}) as locked`))
+		const row = result.rows[0] as { locked: boolean | null | undefined } | undefined
 		if (!row || typeof row.locked !== 'boolean') {
-			throw new Error('Failed to acquire advisory lock: unexpected result format');
+			throw new Error('Failed to acquire advisory lock: unexpected result format')
 		}
-		return row.locked;
+		return row.locked
 	}
 
 	/**
@@ -115,18 +115,18 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	async releaseCleanupLock(): Promise<void> {
 		// Transaction-scoped locks (xact) auto-release - no need to explicitly unlock
 		if (isServerless()) {
-			return;
+			return
 		}
-		await this.db.execute(sql`SELECT pg_advisory_unlock(${TOKEN_CLEANUP_LOCK_KEY})`);
+		await this.db.execute(sql`SELECT pg_advisory_unlock(${TOKEN_CLEANUP_LOCK_KEY})`)
 	}
 	/**
 	 * Find refresh token by its hash
 	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
 	 */
 	async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
-		const result = await this.db.select().from(refreshToken).where(eq(refreshToken.tokenHash, tokenHash)).limit(1);
+		const result = await this.db.select().from(refreshToken).where(eq(refreshToken.tokenHash, tokenHash)).limit(1)
 
-		return result.length > 0 ? result[0] : null;
+		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -142,9 +142,9 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 				tokenHash: params.tokenHash,
 				expiresAt: params.expiresAt,
 			})
-			.returning();
+			.returning()
 
-		return result[0];
+		return result[0]
 	}
 
 	/**
@@ -158,7 +158,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 				isRevoked: true,
 				revokedAt: new Date(),
 			})
-			.where(eq(refreshToken.id, tokenId));
+			.where(eq(refreshToken.id, tokenId))
 	}
 
 	/**
@@ -172,7 +172,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 				isRevoked: true,
 				revokedAt: new Date(),
 			})
-			.where(eq(refreshToken.userId, userId));
+			.where(eq(refreshToken.userId, userId))
 	}
 
 	/**
@@ -185,7 +185,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 		await this.db
 			.update(refreshToken)
 			.set({ isRevoked: true, revokedAt: new Date() })
-			.where(eq(refreshToken.tokenFamily, tokenFamily));
+			.where(eq(refreshToken.tokenFamily, tokenFamily))
 	}
 
 	/**
@@ -197,9 +197,9 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 		const result = await this.db
 			.delete(refreshToken)
 			.where(and(eq(refreshToken.userId, userId), lt(refreshToken.expiresAt, new Date())))
-			.returning({ id: refreshToken.id });
+			.returning({ id: refreshToken.id })
 
-		return result.length;
+		return result.length
 	}
 
 	/**
@@ -217,14 +217,14 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * @returns CleanupResult with count of deleted tokens and incomplete flag
 	 */
 	async deleteAllExpiredTokens(): Promise<CleanupResult> {
-		const batchSize = getDeleteBatchSize();
-		const maxBatches = getMaxCleanupBatches();
+		const batchSize = getDeleteBatchSize()
+		const maxBatches = getMaxCleanupBatches()
 
-		let totalDeleted = 0;
-		let batchCount = 0;
+		let totalDeleted = 0
+		let batchCount = 0
 
 		// Only delete tokens expired at least REFRESH_TOKEN_EXPIRY_BUFFER ago to avoid race conditions
-		const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER));
+		const cutoffTime = new Date(Date.now() - parseDurationToMs(REFRESH_TOKEN_EXPIRY_BUFFER))
 
 		while (batchCount < maxBatches) {
 			// Select a batch of expired token IDs (with buffer)
@@ -232,30 +232,30 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 				.select({ id: refreshToken.id })
 				.from(refreshToken)
 				.where(lt(refreshToken.expiresAt, cutoffTime))
-				.limit(batchSize);
+				.limit(batchSize)
 
 			if (!expiredBatch || expiredBatch.length === 0) {
-				break;
+				break
 			}
 
 			// Delete the batch by IDs
-			const idsToDelete = expiredBatch.map((t) => t.id);
-			await this.db.delete(refreshToken).where(inArray(refreshToken.id, idsToDelete));
+			const idsToDelete = expiredBatch.map((t) => t.id)
+			await this.db.delete(refreshToken).where(inArray(refreshToken.id, idsToDelete))
 
-			totalDeleted += expiredBatch.length;
-			batchCount++;
+			totalDeleted += expiredBatch.length
+			batchCount++
 
 			// If we got fewer than batch size, we're done
 			if (expiredBatch.length < batchSize) {
-				break;
+				break
 			}
 		}
 
-		const incomplete = batchCount >= maxBatches;
+		const incomplete = batchCount >= maxBatches
 		if (incomplete) {
-			console.warn(`[TokenCleanup] Reached max batch limit (${maxBatches}). Some expired tokens may remain.`);
+			console.warn(`[TokenCleanup] Reached max batch limit (${maxBatches}). Some expired tokens may remain.`)
 		}
 
-		return { deletedCount: totalDeleted, incomplete };
+		return { deletedCount: totalDeleted, incomplete }
 	}
 }

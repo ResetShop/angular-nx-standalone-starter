@@ -1,12 +1,12 @@
-import { provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router'
 import {
 	mockActivityRoute,
 	mockHelpRoute,
 	mockHomeRoute,
 	mockSettingsRouteSimple,
 	mockUsersRoute,
-} from '@mocks/navigation.mock';
-import { provideIcons } from '@ng-icons/core';
+} from '@mocks/navigation.mock'
+import { provideIcons } from '@ng-icons/core'
 import {
 	featherActivity,
 	featherChevronRight,
@@ -14,11 +14,11 @@ import {
 	featherHome,
 	featherSettings,
 	featherUser,
-} from '@ng-icons/feather-icons';
-import { NavigationState } from '@providers/navigation/navigation-state';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import NavItem from './nav-item';
+} from '@ng-icons/feather-icons'
+import { NavigationState } from '@providers/navigation/navigation-state'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import NavItem from './nav-item'
 
 const meta: Meta<typeof NavItem> = {
 	component: NavItem,
@@ -54,11 +54,11 @@ Supports keyboard navigation (Enter/Space), ARIA attributes, auto-expand on acti
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<typeof NavItem>;
+type Story = StoryObj<typeof NavItem>
 
 /**
  * Default navigation item with icon.
@@ -78,7 +78,7 @@ export const Default: Story = {
 			</ul>
 		`,
 	}),
-};
+}
 
 /**
  * Parent navigation item with expandable children.
@@ -94,7 +94,7 @@ export const WithChildren: Story = {
 			</ul>
 		`,
 	}),
-};
+}
 
 /**
  * Realistic navigation menu showing multiple items.
@@ -118,7 +118,7 @@ export const Playground: Story = {
 			</ul>
 		`,
 	}),
-};
+}
 
 /**
  * Edge cases and special scenarios.
@@ -184,7 +184,7 @@ export const EdgeCases: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Accessibility features demonstration.
@@ -228,4 +228,4 @@ export const Accessibility: Story = {
 			</div>
 		`,
 	}),
-};
+}

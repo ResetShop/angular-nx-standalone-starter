@@ -1,4 +1,4 @@
-import { Directive, inject, TemplateRef } from '@angular/core';
+import { Directive, inject, TemplateRef } from '@angular/core'
 
 /**
  * Directive to mark the drawer footer template.
@@ -9,5 +9,5 @@ import { Directive, inject, TemplateRef } from '@angular/core';
 	standalone: true,
 })
 export class DrawerFooter {
-	readonly templateRef = inject(TemplateRef);
+	readonly templateRef = inject(TemplateRef)
 }

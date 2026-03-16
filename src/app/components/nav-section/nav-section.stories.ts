@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { Component } from '@angular/core'
+import { provideRouter } from '@angular/router'
 import {
 	mockDocumentsRoute,
 	mockHelpRoute,
@@ -8,8 +8,8 @@ import {
 	mockMixedSection,
 	mockSettingsRouteSimple,
 	mockUsersRoute,
-} from '@mocks/navigation.mock';
-import { provideIcons } from '@ng-icons/core';
+} from '@mocks/navigation.mock'
+import { provideIcons } from '@ng-icons/core'
 import {
 	featherActivity,
 	featherCalendar,
@@ -20,11 +20,11 @@ import {
 	featherMail,
 	featherSettings,
 	featherUser,
-} from '@ng-icons/feather-icons';
-import { NavigationState } from '@providers/navigation/navigation-state';
-import type { Meta, StoryObj } from '@storybook/angular';
-import { applicationConfig } from '@storybook/angular';
-import NavSection from './nav-section';
+} from '@ng-icons/feather-icons'
+import { NavigationState } from '@providers/navigation/navigation-state'
+import type { Meta, StoryObj } from '@storybook/angular'
+import { applicationConfig } from '@storybook/angular'
+import NavSection from './nav-section'
 
 @Component({
 	selector: 'app-dummy',
@@ -94,11 +94,11 @@ import NavSection from '@components/nav-section';
 			},
 		},
 	},
-};
+}
 
-export default meta;
+export default meta
 
-type Story = StoryObj<typeof NavSection>;
+type Story = StoryObj<typeof NavSection>
 
 /**
  * Default navigation section with title and multiple routes.
@@ -120,7 +120,7 @@ export const Default: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Navigation section with expandable parent items.
@@ -136,7 +136,7 @@ export const WithExpandableItems: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Multiple navigation sections stacked vertically.
@@ -189,7 +189,7 @@ export const MultipleSections: Story = {
 			</div>
 		`,
 	}),
-};
+}
 
 /**
  * Edge cases and special scenarios.
@@ -253,4 +253,4 @@ export const EdgeCases: Story = {
 			</div>
 		`,
 	}),
-};
+}

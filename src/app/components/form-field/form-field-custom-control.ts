@@ -1,6 +1,6 @@
-import { Directive, signal } from '@angular/core';
+import { Directive, signal } from '@angular/core'
 
 @Directive()
 export abstract class FormFieldCustomControl {
-	readonly ariaInvalid = signal(false);
+	readonly ariaInvalid = signal(false)
 }

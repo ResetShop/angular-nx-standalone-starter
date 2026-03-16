@@ -1,17 +1,17 @@
-import type { IPermission } from '../access/permission.interface';
-import type { IRole } from '../access/role.interface';
+import type { IPermission } from '../access/permission.interface'
+import type { IRole } from '../access/role.interface'
 
 export interface IUser {
-	readonly id: number;
-	readonly email: string;
-	readonly firstName: string;
-	readonly lastName: string;
-	readonly fullName: string;
-	readonly roles: readonly IRole[];
+	readonly id: number
+	readonly email: string
+	readonly firstName: string
+	readonly lastName: string
+	readonly fullName: string
+	readonly roles: readonly IRole[]
 
-	get permissions(): readonly IPermission[];
+	get permissions(): readonly IPermission[]
 
-	hasPermission(resource: string, action: string): boolean;
-	hasPermissionByIdentifier(identifier: string): boolean;
-	hasRole(code: string): boolean;
+	hasPermission(resource: string, action: string): boolean
+	hasPermissionByIdentifier(identifier: string): boolean
+	hasRole(code: string): boolean
 }

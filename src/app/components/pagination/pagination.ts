@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
-import { Button } from '@components/button/button';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons';
-import { Translation } from '@providers/i18n/translation';
-import { PaginationTracker } from './pagination-tracker';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
+import { Button } from '@components/button/button'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons'
+import { Translation } from '@providers/i18n/translation'
+import { PaginationTracker } from './pagination-tracker'
 
 /** Represents a page item in the pagination: a page number or an ellipsis */
 interface PageItem {
-	type: 'page' | 'ellipsis';
-	value: number;
+	type: 'page' | 'ellipsis'
+	value: number
 }
 
 const PAGINATION_KEYS = Object.freeze({
@@ -17,7 +17,7 @@ const PAGINATION_KEYS = Object.freeze({
 	GO_TO_PREVIOUS: 'PAGINATION.GO_TO_PREVIOUS',
 	GO_TO_NEXT: 'PAGINATION.GO_TO_NEXT',
 	GO_TO_PAGE: 'PAGINATION.GO_TO_PAGE',
-} as const);
+} as const)
 
 @Component({
 	selector: 'app-pagination',
@@ -97,65 +97,65 @@ const PAGINATION_KEYS = Object.freeze({
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Pagination {
-	private readonly translation = inject(Translation);
-	private readonly paginationTracker = inject(PaginationTracker);
+	private readonly translation = inject(Translation)
+	private readonly paginationTracker = inject(PaginationTracker)
 
 	/** Unique ID for the select element */
-	readonly selectId = `pagination-select-${this.paginationTracker.nextId()}`;
+	readonly selectId = `pagination-select-${this.paginationTracker.nextId()}`
 
 	/** Current page number (1-based) */
-	readonly currentPage = input<number>(1);
+	readonly currentPage = input<number>(1)
 
 	/** Total number of pages */
-	readonly totalPages = input<number>(1);
+	readonly totalPages = input<number>(1)
 
 	/** Number of items per page */
-	readonly pageSize = input<number>(25);
+	readonly pageSize = input<number>(25)
 
 	/** Available page size options */
-	readonly pageSizeOptions = input<number[]>([25, 50, 100]);
+	readonly pageSizeOptions = input<number[]>([25, 50, 100])
 
 	/** Emits new page number when user navigates */
-	readonly pageChange = output<number>();
+	readonly pageChange = output<number>()
 
 	/** Emits new page size when user changes the rows per page */
-	readonly pageSizeChange = output<number>();
+	readonly pageSizeChange = output<number>()
 
 	/**
 	 * Translated nav aria-label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL);
+	readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL)
 
 	/**
 	 * Translated "Rows per page" label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE);
+	readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE)
 
 	/**
 	 * Translated aria-label for the previous button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS);
+	readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS)
 
 	/**
 	 * Translated aria-label for the next button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT);
+	readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT)
 
 	/**
 	 * Translated template for page button aria-label, resolved once at construction.
 	 * Contains `{page}` placeholder interpolated by `getPageLabel`.
 	 */
-	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE);
+	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE)
 
 	/** Whether current page is the first page */
-	readonly isFirstPage = computed(() => this.currentPage() <= 1);
+	readonly isFirstPage = computed(() => this.currentPage() <= 1)
 
 	/** Whether current page is the last page */
-	readonly isLastPage = computed(() => this.currentPage() >= this.totalPages());
+	readonly isLastPage = computed(() => this.currentPage() >= this.totalPages())
 
 	/**
 	 * Page items (numbers and ellipses) derived from current page and total pages.
@@ -170,93 +170,93 @@ export class Pagination {
 	 *   - Always show last page
 	 */
 	readonly pageItems = computed<PageItem[]>(() => {
-		const total = this.totalPages();
-		const current = this.currentPage();
+		const total = this.totalPages()
+		const current = this.currentPage()
 
 		if (total <= 4) {
-			return this.range(1, total).map((n) => ({ type: 'page' as const, value: n }));
+			return this.range(1, total).map((n) => ({ type: 'page' as const, value: n }))
 		}
 
-		const items: PageItem[] = [];
-		const showLeftEllipsis = current > 3;
-		const showRightEllipsis = current < total - 2;
+		const items: PageItem[] = []
+		const showLeftEllipsis = current > 3
+		const showRightEllipsis = current < total - 2
 
 		// Always show first page
-		items.push({ type: 'page', value: 1 });
+		items.push({ type: 'page', value: 1 })
 
 		if (showLeftEllipsis) {
-			items.push({ type: 'ellipsis', value: -1 });
+			items.push({ type: 'ellipsis', value: -1 })
 		}
 
 		// Calculate middle pages to show
-		let start: number;
-		let end: number;
+		let start: number
+		let end: number
 
 		if (current <= 3) {
 			// Near the start: show 2, 3
-			start = 2;
-			end = 3;
+			start = 2
+			end = 3
 		} else if (current >= total - 2) {
 			// Near the end: show last-2, last-1
-			start = total - 2;
-			end = total - 1;
+			start = total - 2
+			end = total - 1
 		} else {
 			// In the middle: show current-1, current, current+1
-			start = current - 1;
-			end = current + 1;
+			start = current - 1
+			end = current + 1
 		}
 
 		for (let i = start; i <= end; i++) {
 			if (i > 1 && i < total) {
-				items.push({ type: 'page', value: i });
+				items.push({ type: 'page', value: i })
 			}
 		}
 
 		if (showRightEllipsis) {
-			items.push({ type: 'ellipsis', value: -2 });
+			items.push({ type: 'ellipsis', value: -2 })
 		}
 
 		// Always show last page
-		items.push({ type: 'page', value: total });
+		items.push({ type: 'page', value: total })
 
-		return items;
-	});
+		return items
+	})
 
 	/** Creates an array of numbers from start to end (inclusive) */
 	private range(start: number, end: number): number[] {
-		return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+		return Array.from({ length: end - start + 1 }, (_, i) => start + i)
 	}
 
 	/** Gets the aria-label for a page button */
 	getPageLabel(page: number): string {
-		return this.goToPageTemplate.replace('{page}', String(page));
+		return this.goToPageTemplate.replace('{page}', String(page))
 	}
 
 	/** Navigates to the previous page. No-op on the first page. */
 	onPrevious(): void {
 		if (!this.isFirstPage()) {
-			this.pageChange.emit(this.currentPage() - 1);
+			this.pageChange.emit(this.currentPage() - 1)
 		}
 	}
 
 	/** Navigates to the next page. No-op on the last page. */
 	onNext(): void {
 		if (!this.isLastPage()) {
-			this.pageChange.emit(this.currentPage() + 1);
+			this.pageChange.emit(this.currentPage() + 1)
 		}
 	}
 
 	/** Navigates to the specified page. No-op if it equals the current page. */
 	onPageClick(page: number): void {
 		if (page !== this.currentPage()) {
-			this.pageChange.emit(page);
+			this.pageChange.emit(page)
 		}
 	}
 
 	/** Handles the page size select change and emits the new size. */
 	onPageSizeChange(event: Event): void {
-		const select = event.target as HTMLSelectElement;
-		const newSize = parseInt(select.value, 10);
-		this.pageSizeChange.emit(newSize);
+		const select = event.target as HTMLSelectElement
+		const newSize = parseInt(select.value, 10)
+		this.pageSizeChange.emit(newSize)
 	}
 }
