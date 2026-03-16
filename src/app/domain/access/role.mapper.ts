@@ -58,9 +58,9 @@ export function mapRole(data: RoleWithPermissions): IRole {
 		code: data.code,
 		name: data.name,
 		description: data.description,
-		removable: true,
-		createdAt: null,
-		updatedAt: null,
+		removable: data.removable,
+		createdAt: data.createdAt,
+		updatedAt: data.updatedAt,
 		permissions,
 	});
 }

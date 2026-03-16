@@ -26,6 +26,9 @@ function createMockRoleWithPermissions(overrides: Partial<RoleWithPermissions> =
 		code: 'admin',
 		name: 'Admin',
 		description: null,
+		removable: true,
+		createdAt: new Date('2025-01-01'),
+		updatedAt: new Date('2025-01-01'),
 		permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
 		...overrides,
 	};

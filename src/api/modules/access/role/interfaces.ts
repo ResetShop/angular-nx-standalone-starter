@@ -68,6 +68,9 @@ export interface RoleWithPermissions {
 	code: string;
 	name: string;
 	description: string | null;
+	removable: boolean;
+	createdAt: Date | null;
+	updatedAt: Date | null;
 	permissions: PermissionData[];
 }
 
