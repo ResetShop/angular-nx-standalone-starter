@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Translation } from '@providers/i18n/translation';
 import { PermissionsApiService } from '@providers/permissions/permissions';
@@ -12,7 +13,7 @@ import {
 	useRealTimers,
 } from '@test-utils';
 import { fireEvent, render, screen } from '@testing-library/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CreateRoleDrawer } from './create-role-drawer';
 
 const TRANSLATIONS: Record<string, string> = {
@@ -123,5 +124,63 @@ describe('CreateRoleDrawer', () => {
 
 		expect(rolesApiMock.create.calls.length).toBe(1);
 		expect(rolesApiMock.create.calls[0][0]).toEqual(expect.objectContaining({ name: 'Admin' }));
+	});
+
+	it('should show error alert when creation fails', async () => {
+		const httpError = new HttpErrorResponse({
+			error: { error: 'A role with this code already exists' },
+			status: 409,
+		});
+		rolesApiMock.create.mockReturnValue(throwError(() => httpError));
+		const { fixture } = await renderAndOpenRaw();
+
+		const nameInput = screen.getByRole('textbox', { name: /name/i });
+		fireEvent.input(nameInput, { target: { value: 'Admin' } });
+		fixture.detectChanges();
+
+		fireEvent.click(screen.getByRole('button', { name: /create/i }));
+		fixture.detectChanges();
+
+		expect(screen.getByRole('alert')).toBeInTheDocument();
+		expect(screen.getByText('A role with this code already exists')).toBeInTheDocument();
+	});
+
+	it('should keep drawer open when creation fails', async () => {
+		rolesApiMock.create.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ error: { error: 'Error' }, status: 409 })),
+		);
+		const { fixture } = await renderAndOpenRaw();
+
+		const nameInput = screen.getByRole('textbox', { name: /name/i });
+		fireEvent.input(nameInput, { target: { value: 'Admin' } });
+		fixture.detectChanges();
+
+		fireEvent.click(screen.getByRole('button', { name: /create/i }));
+		fixture.detectChanges();
+
+		expect(screen.getByText('Create Role')).toBeInTheDocument();
+	});
+
+	it('should close drawer on successful creation', async () => {
+		rolesApiMock.create.mockReturnValue(
+			of({ id: 1, name: 'Admin', code: 'admin', description: null, removable: true, createdAt: null, updatedAt: null }),
+		);
+		rolesApiMock.assignPermissions.mockReturnValue(of({}));
+		const { fixture } = await renderAndOpenRaw();
+
+		// Access the Drawer child component and spy on close()
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const drawerComponent = (fixture.componentInstance as any).drawer();
+		const closeSpy = spyOn(drawerComponent, 'close');
+
+		const nameInput = screen.getByRole('textbox', { name: /name/i });
+		fireEvent.input(nameInput, { target: { value: 'Admin' } });
+		fixture.detectChanges();
+
+		fireEvent.click(screen.getByRole('button', { name: /create/i }));
+		fixture.detectChanges();
+		TestBed.tick();
+
+		expect(closeSpy.calls.length).toBeGreaterThanOrEqual(1);
 	});
 });

@@ -1,5 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, viewChild } from '@angular/core';
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	effect,
+	inject,
+	signal,
+	untracked,
+	viewChild,
+} from '@angular/core';
 import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals';
+import { Alert, AlertDescription } from '@components/alert/alert';
 import { Button } from '@components/button/button';
 import { Drawer } from '@components/drawer/drawer';
 import { DrawerFooter } from '@components/drawer/drawer-footer';
@@ -18,10 +28,16 @@ interface EditRoleFormModel {
 @Component({
 	selector: 'app-edit-role-drawer',
 	standalone: true,
-	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector],
+	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector, Alert, AlertDescription],
 	template: `
 		<app-drawer (closed)="onDrawerClosed()" class="w-lg" title="Edit Role" #drawer>
 			<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
+				@if (mutationError()) {
+					<div appAlert variant="destructive">
+						<p appAlertDescription>{{ mutationError() }}</p>
+					</div>
+				}
+
 				<app-form-field label="Name">
 					<input [formField]="roleForm.name" type="text" autocomplete="off" />
 				</app-form-field>
@@ -74,6 +90,9 @@ export class EditRoleDrawer {
 	);
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0);
+	protected readonly mutationError = computed(() => this.rolesStore.mutationError().update);
+
+	private submitted = false;
 
 	constructor() {
 		// Populates form when selectedRole loads — editRoleId guards against stale data
@@ -89,6 +108,19 @@ export class EditRoleDrawer {
 				this.drawer().setContentReady();
 			}
 		});
+
+		effect(() => this.closeOnSuccess());
+	}
+
+	private closeOnSuccess(): void {
+		const updating = this.rolesStore.isUpdating();
+		const error = this.rolesStore.mutationError().update;
+		untracked(() => {
+			if (!updating && this.submitted && error === null) {
+				this.submitted = false;
+				this.drawer().close();
+			}
+		});
 	}
 
 	open(roleId: number): void {
@@ -98,9 +130,11 @@ export class EditRoleDrawer {
 	}
 
 	protected onDrawerClosed(): void {
+		this.submitted = false;
 		this.editRoleId.set(null);
 		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
 		this.roleForm().reset();
+		this.rolesStore.clearMutationError('update');
 	}
 
 	protected onSubmit(event: Event): void {
@@ -111,12 +145,11 @@ export class EditRoleDrawer {
 		if (!id) return;
 
 		const { name, description, permissionIds } = this.model();
+		this.submitted = true;
 		this.rolesStore.updateRoleWithPermissions({
 			id,
 			body: { name, description: description || undefined },
 			permissionIds,
 		});
-
-		this.drawer().close();
 	}
 }

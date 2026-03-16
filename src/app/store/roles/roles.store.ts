@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { computed, inject } from '@angular/core';
 import type { SearchPaginationParams } from '@contracts/common/pagination.types';
 import type { AssignPermissionsRequest, CreateRoleRequest, UpdateRoleRequest } from '@contracts/role/role.types';
@@ -14,6 +15,13 @@ import type {
 	UpdateRoleWithPermissionsRequest,
 } from './roles.types';
 import { initialRolesState } from './roles.types';
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+	if (err instanceof HttpErrorResponse && typeof err.error?.error === 'string') {
+		return err.error.error;
+	}
+	return fallback;
+}
 
 function patchReadError(current: RolesReadError, key: keyof RolesReadError, value: string | null): RolesReadError {
 	return { ...current, [key]: value };
@@ -181,6 +189,12 @@ export const RolesStore = signalStore(
 					mutationError: { create: null, update: null, delete: null, assignPermissions: null },
 				});
 			},
+
+			clearMutationError(key: keyof RolesMutationError): void {
+				patchState(store, {
+					mutationError: patchMutationError(store.mutationError(), key, null),
+				});
+			},
 		};
 	}),
 	// Mutation methods — all reload the list after success
@@ -212,7 +226,11 @@ export const RolesStore = signalStore(
 									console.error('[RolesStore] createRole failed:', err);
 									patchState(store, {
 										isCreating: false,
-										mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create role'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'create',
+											extractErrorMessage(err, 'Failed to create role'),
+										),
 									});
 								},
 							}),
@@ -245,7 +263,11 @@ export const RolesStore = signalStore(
 									console.error('[RolesStore] updateRole failed:', err);
 									patchState(store, {
 										isUpdating: false,
-										mutationError: patchMutationError(store.mutationError(), 'update', 'Failed to update role'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'update',
+											extractErrorMessage(err, 'Failed to update role'),
+										),
 									});
 								},
 							}),
@@ -285,7 +307,11 @@ export const RolesStore = signalStore(
 									console.error('[RolesStore] deleteRole failed:', err);
 									patchState(store, {
 										isDeleting: false,
-										mutationError: patchMutationError(store.mutationError(), 'delete', 'Failed to delete role'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'delete',
+											extractErrorMessage(err, 'Failed to delete role'),
+										),
 									});
 								},
 							}),
@@ -318,7 +344,7 @@ export const RolesStore = signalStore(
 										mutationError: patchMutationError(
 											store.mutationError(),
 											'assignPermissions',
-											'Failed to assign permissions',
+											extractErrorMessage(err, 'Failed to assign permissions'),
 										),
 									});
 								},
@@ -354,7 +380,11 @@ export const RolesStore = signalStore(
 									console.error('[RolesStore] createRoleWithPermissions failed:', err);
 									patchState(store, {
 										isCreating: false,
-										mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create role'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'create',
+											extractErrorMessage(err, 'Failed to create role'),
+										),
 									});
 								},
 							}),
@@ -391,7 +421,11 @@ export const RolesStore = signalStore(
 									console.error('[RolesStore] updateRoleWithPermissions failed:', err);
 									patchState(store, {
 										isUpdating: false,
-										mutationError: patchMutationError(store.mutationError(), 'update', 'Failed to update role'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'update',
+											extractErrorMessage(err, 'Failed to update role'),
+										),
 									});
 								},
 							}),

@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Translation } from '@providers/i18n/translation';
 import { PermissionsApiService } from '@providers/permissions/permissions';
@@ -12,7 +13,7 @@ import {
 	useRealTimers,
 } from '@test-utils';
 import { fireEvent, render, screen } from '@testing-library/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { EditRoleDrawer } from './edit-role-drawer';
 
 const TRANSLATIONS: Record<string, string> = {
@@ -142,5 +143,73 @@ describe('EditRoleDrawer', () => {
 
 		expect(rolesApiMock.update.calls.length).toBe(1);
 		expect(rolesApiMock.update.calls[0][1]).toEqual(expect.objectContaining({ name: 'Updated Admin' }));
+	});
+
+	it('should show error alert when update fails', async () => {
+		const httpError = new HttpErrorResponse({
+			error: { error: 'Cannot remove your own admin permission' },
+			status: 403,
+		});
+		rolesApiMock.update.mockReturnValue(throwError(() => httpError));
+		const { fixture } = await renderAndOpenRaw();
+
+		const nameInput = screen.getByDisplayValue('Admin');
+		fireEvent.input(nameInput, { target: { value: 'Updated Admin' } });
+		fixture.detectChanges();
+
+		fireEvent.click(screen.getByRole('button', { name: /save/i }));
+		fixture.detectChanges();
+
+		expect(screen.getByRole('alert')).toBeInTheDocument();
+		expect(screen.getByText('Cannot remove your own admin permission')).toBeInTheDocument();
+	});
+
+	it('should keep drawer open when update fails', async () => {
+		rolesApiMock.update.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ error: { error: 'Error' }, status: 409 })),
+		);
+		const { fixture } = await renderAndOpenRaw();
+
+		const nameInput = screen.getByDisplayValue('Admin');
+		fireEvent.input(nameInput, { target: { value: 'Updated' } });
+		fixture.detectChanges();
+
+		fireEvent.click(screen.getByRole('button', { name: /save/i }));
+		fixture.detectChanges();
+
+		expect(screen.getByText('Edit Role')).toBeInTheDocument();
+	});
+
+	it('should close drawer on successful update', async () => {
+		rolesApiMock.update.mockReturnValue(
+			of({
+				id: 1,
+				name: 'Updated',
+				code: 'admin',
+				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+			}),
+		);
+		rolesApiMock.getByIdWithPermissions.mockReturnValue(
+			of({ id: 1, code: 'admin', name: 'Updated', description: null, permissions: [] }),
+		);
+		const { fixture } = await renderAndOpenRaw();
+
+		// Access the Drawer child component and spy on close()
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const drawerComponent = (fixture.componentInstance as any).drawer();
+		const closeSpy = spyOn(drawerComponent, 'close');
+
+		const nameInput = screen.getByDisplayValue('Admin');
+		fireEvent.input(nameInput, { target: { value: 'Updated' } });
+		fixture.detectChanges();
+
+		fireEvent.click(screen.getByRole('button', { name: /save/i }));
+		fixture.detectChanges();
+		TestBed.tick();
+
+		expect(closeSpy.calls.length).toBeGreaterThanOrEqual(1);
 	});
 });

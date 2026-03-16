@@ -9,6 +9,7 @@ import {
 	viewChild,
 } from '@angular/core';
 import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals';
+import { Alert, AlertDescription } from '@components/alert/alert';
 import { Button } from '@components/button/button';
 import { Drawer } from '@components/drawer/drawer';
 import { DrawerFooter } from '@components/drawer/drawer-footer';
@@ -28,10 +29,16 @@ interface CreateRoleFormModel {
 @Component({
 	selector: 'app-create-role-drawer',
 	standalone: true,
-	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector],
+	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector, Alert, AlertDescription],
 	template: `
 		<app-drawer (closed)="onDrawerClosed()" class="w-lg" title="Create Role" #drawer>
 			<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
+				@if (mutationError()) {
+					<div appAlert variant="destructive">
+						<p appAlertDescription>{{ mutationError() }}</p>
+					</div>
+				}
+
 				<app-form-field label="Name">
 					<input [formField]="roleForm.name" type="text" autocomplete="off" />
 				</app-form-field>
@@ -82,13 +89,28 @@ export class CreateRoleDrawer {
 	);
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0);
+	protected readonly mutationError = computed(() => this.rolesStore.mutationError().create);
 
 	private readonly nameValue = computed(() => this.model().name);
+	private submitted = false;
 
 	constructor() {
 		effect(() => {
 			const code = toSnakeCode(this.nameValue());
 			untracked(() => this.model.update((m) => ({ ...m, code })));
+		});
+
+		effect(() => this.closeOnSuccess());
+	}
+
+	private closeOnSuccess(): void {
+		const creating = this.rolesStore.isCreating();
+		const error = this.rolesStore.mutationError().create;
+		untracked(() => {
+			if (!creating && this.submitted && error === null) {
+				this.submitted = false;
+				this.drawer().close();
+			}
 		});
 	}
 
@@ -97,8 +119,10 @@ export class CreateRoleDrawer {
 	}
 
 	protected onDrawerClosed(): void {
+		this.submitted = false;
 		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
 		this.roleForm().reset();
+		this.rolesStore.clearMutationError('create');
 	}
 
 	protected onSubmit(event: Event): void {
@@ -106,13 +130,12 @@ export class CreateRoleDrawer {
 		if (!this.isFormValid()) return;
 
 		const { name, code, description, permissionIds } = this.model();
+		this.submitted = true;
 		this.rolesStore.createRoleWithPermissions({
 			name,
 			code,
 			description: description || undefined,
 			permissionIds,
 		});
-
-		this.drawer().close();
 	}
 }
