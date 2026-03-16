@@ -7,18 +7,18 @@ export class DrawerTracker {
 	private instanceCount = 0
 
 	/** Generates a unique instance ID for aria attributes. */
-	nextId(): number {
+	public nextId(): number {
 		return ++this.instanceCount
 	}
 
-	register(drawer: Drawer): void {
+	public register(drawer: Drawer): void {
 		if (this.activeInstance) {
 			throw new Error('Only one drawer can be active at a time.')
 		}
 		this.activeInstance = drawer
 	}
 
-	unregister(drawer: Drawer): void {
+	public unregister(drawer: Drawer): void {
 		if (this.activeInstance === drawer) {
 			this.activeInstance = null
 		}

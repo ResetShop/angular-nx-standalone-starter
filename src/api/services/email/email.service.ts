@@ -28,7 +28,7 @@ export class EmailService implements IEmailService {
 		this.emailRepository = emailRepository
 	}
 
-	async send(params: SendEmailParams): Promise<void> {
+	public async send(params: SendEmailParams): Promise<void> {
 		this.sendEmailSchema.parse(params)
 
 		try {

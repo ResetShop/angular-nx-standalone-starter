@@ -50,13 +50,13 @@ export class DataTable<T> {
 	private readonly translation = inject(Translation)
 
 	/** TanStack column definitions */
-	readonly columns = input<ColumnDef<T, unknown>[]>([])
+	protected readonly columns = input<ColumnDef<T, unknown>[]>([])
 
 	/** Data rows */
-	readonly data = input<T[]>([])
+	protected readonly data = input<T[]>([])
 
 	/** Whether data is loading */
-	readonly loading = input<boolean>(false)
+	protected readonly loading = input<boolean>(false)
 
 	/**
 	 * Message shown when data is empty.
@@ -65,16 +65,16 @@ export class DataTable<T> {
 	 * The translation is not reactive — if the application language changes at runtime,
 	 * the component must be re-created to pick up the new locale.
 	 */
-	readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'))
+	protected readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'))
 
 	/** Accessible table caption */
-	readonly caption = input<string>('')
+	protected readonly caption = input<string>('')
 
 	/** Column IDs to group by (empty = no grouping) */
-	readonly grouping = input<string[]>([])
+	protected readonly grouping = input<string[]>([])
 
 	/** Whether grouped rows start expanded (default: true) */
-	readonly expandedByDefault = input<boolean>(true)
+	protected readonly expandedByDefault = input<boolean>(true)
 
 	/**
 	 * Translated loading message, resolved once at construction.
@@ -82,22 +82,22 @@ export class DataTable<T> {
 	 * Uses the `DATA_TABLE.LOADING` translation key. Not reactive to language changes —
 	 * the component must be re-created to pick up a new locale.
 	 */
-	readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING')
+	protected readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING')
 
 	/** Emits when sort changes */
-	readonly sortChange = output<DataTableSortEvent>()
+	protected readonly sortChange = output<DataTableSortEvent>()
 
 	/** Internal sorting state */
-	readonly sorting = signal<SortingState>([])
+	private readonly sorting = signal<SortingState>([])
 
 	/** Internal expanded state — resets to `expandedByDefault` when the input changes */
-	readonly expanded = linkedSignal<boolean, ExpandedState>({
+	private readonly expanded = linkedSignal<boolean, ExpandedState>({
 		source: this.expandedByDefault,
 		computation: (expandedByDefault) => (expandedByDefault ? true : {}),
 	})
 
 	/** TanStack table instance */
-	readonly table = createAngularTable(() => {
+	protected readonly table = createAngularTable(() => {
 		const groupingState = this.grouping()
 		const isGrouped = groupingState.length > 0
 
@@ -127,13 +127,13 @@ export class DataTable<T> {
 	})
 
 	/** Column count for colspan in empty/loading states */
-	readonly columnCount = computed(() => this.columns().length)
+	protected readonly columnCount = computed(() => this.columns().length)
 
 	/** Custom cell template definitions projected as content */
 	private readonly cellDefs = contentChildren(DataTableCellDef)
 
 	/** Map of column ID → cell template definition */
-	readonly cellDefMap = computed(() => {
+	protected readonly cellDefMap = computed(() => {
 		const map = new Map<string, DataTableCellDef>()
 		for (const def of this.cellDefs()) {
 			map.set(def.appDataTableCellDef(), def)
@@ -142,14 +142,14 @@ export class DataTable<T> {
 	})
 
 	/** Map TanStack sort direction to WAI-ARIA `aria-sort` values */
-	resolveAriaSort(direction: false | 'asc' | 'desc'): 'ascending' | 'descending' | null {
+	protected resolveAriaSort(direction: false | 'asc' | 'desc'): 'ascending' | 'descending' | null {
 		if (direction === 'asc') return 'ascending'
 		if (direction === 'desc') return 'descending'
 		return null
 	}
 
 	/** Resolve sort direction to a visual indicator character (↑, ↓, or ↕) */
-	resolveSortIndicator(direction: false | 'asc' | 'desc'): string {
+	protected resolveSortIndicator(direction: false | 'asc' | 'desc'): string {
 		if (direction === 'asc') return '↑'
 		if (direction === 'desc') return '↓'
 		return '↕'
@@ -166,14 +166,14 @@ export class DataTable<T> {
 	 * - `function` → called with `context`, result coerced to string
 	 * - other → returns empty string (component headers not supported)
 	 */
-	renderHeader(headerDef: unknown, context: unknown): string {
+	protected renderHeader(headerDef: unknown, context: unknown): string {
 		if (typeof headerDef === 'string') return headerDef
 		if (typeof headerDef === 'function') return String(headerDef(context))
 		return ''
 	}
 
 	/** Resolve the group label for a grouped row, coercing the unknown cell value to string */
-	resolveGroupLabel(row: Row<T>): string {
+	protected resolveGroupLabel(row: Row<T>): string {
 		return String(row.getValue(this.grouping()[0]))
 	}
 

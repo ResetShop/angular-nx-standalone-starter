@@ -62,7 +62,10 @@ export class UserManagementService implements IUserManagementService {
 	 * @param search - Optional search term for email, first name, or last name
 	 * @returns Paginated response containing users with roles
 	 */
-	async getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>> {
+	public async getAllUsers(
+		pagination?: PaginationParams,
+		search?: string,
+	): Promise<PaginatedResponse<ManagedUserData>> {
 		return this.userManagementRepository.findAll(pagination, search)
 	}
 
@@ -73,7 +76,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @returns User data with roles
 	 * @throws Error if user not found
 	 */
-	async getUser(id: number): Promise<ManagedUserData> {
+	public async getUser(id: number): Promise<ManagedUserData> {
 		const userData = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!userData) {
 			throw userManagementErrors.notFound(id)
@@ -90,7 +93,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
-	async createUser(params: CreateUserParams): Promise<CreateUserResponse> {
+	public async createUser(params: CreateUserParams): Promise<CreateUserResponse> {
 		const existingUser = await this.userManagementRepository.findByEmail(params.email)
 		if (existingUser) {
 			throw userManagementErrors.emailExists(params.email)
@@ -146,7 +149,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
 	 */
-	async updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData> {
+	public async updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData> {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id)
@@ -179,7 +182,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @returns Updated user with roles
 	 * @throws Error if self-lockout or invalid transition
 	 */
-	async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
+	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
 		if (id === params.changedBy) {
 			throw userManagementErrors.selfLockout()
 		}
@@ -207,7 +210,7 @@ export class UserManagementService implements IUserManagementService {
 	 * @param currentUserId - The ID of the admin performing the deletion
 	 * @throws Error if self-lockout or user not found
 	 */
-	async deleteUser(id: number, currentUserId: number): Promise<void> {
+	public async deleteUser(id: number, currentUserId: number): Promise<void> {
 		if (id === currentUserId) {
 			throw userManagementErrors.selfLockout()
 		}

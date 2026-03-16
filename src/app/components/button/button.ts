@@ -22,30 +22,30 @@ export class Button {
 	 * Visual variant of the button
 	 * @default 'default'
 	 */
-	readonly variant = input<ButtonVariant>('default')
+	protected readonly variant = input<ButtonVariant>('default')
 
 	/**
 	 * Size of the button
 	 * @default 'md'
 	 */
-	readonly size = input<ButtonSize>('md')
+	protected readonly size = input<ButtonSize>('md')
 
 	/**
 	 * Whether the button should take full width
 	 * @default false
 	 */
-	readonly fullWidth = input<boolean>(false)
+	protected readonly fullWidth = input<boolean>(false)
 
 	/**
 	 * Button type attribute (only applies to button elements)
 	 * @default 'button'
 	 */
-	readonly type = input<'button' | 'submit' | 'reset'>('button')
+	protected readonly type = input<'button' | 'submit' | 'reset'>('button')
 
 	/**
 	 * Computed classes based on variant, size, and fullWidth
 	 */
-	readonly computedClasses = computed(() => {
+	protected readonly computedClasses = computed(() => {
 		const classes: string[] = [
 			// Base classes - common to all buttons
 			'font-sans',

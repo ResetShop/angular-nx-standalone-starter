@@ -48,12 +48,12 @@ const mockTranslation = {
 	`,
 })
 class TestHostRequiredEmail {
-	readonly label = signal('Email')
-	readonly hint = signal<string | undefined>(undefined)
-	readonly showRequired = signal<boolean | undefined>(undefined)
+	public readonly label = signal('Email')
+	public readonly hint = signal<string | undefined>(undefined)
+	public readonly showRequired = signal<boolean | undefined>(undefined)
 
 	private readonly model = signal('')
-	readonly emailField: FieldTree<string> = form(
+	public readonly emailField: FieldTree<string> = form(
 		this.model,
 		schema<string>((emailPath) => {
 			required(emailPath)
@@ -74,7 +74,7 @@ class TestHostRequiredEmail {
 })
 class TestHostMinLength {
 	private readonly model = signal('')
-	readonly passwordField: FieldTree<string> = form(
+	public readonly passwordField: FieldTree<string> = form(
 		this.model,
 		schema<string>((passwordPath) => {
 			required(passwordPath)
@@ -94,8 +94,8 @@ class TestHostMinLength {
 	`,
 })
 class TestHostMaxLength {
-	readonly model = signal('')
-	readonly bioField: FieldTree<string> = form(
+	public readonly model = signal('')
+	public readonly bioField: FieldTree<string> = form(
 		this.model,
 		schema<string>((bioPath) => {
 			maxLength(bioPath, 20)
@@ -115,7 +115,7 @@ class TestHostMaxLength {
 })
 class TestHostMinMax {
 	private readonly model = signal(0)
-	readonly ageField: FieldTree<number> = form(
+	public readonly ageField: FieldTree<number> = form(
 		this.model,
 		schema<number>((agePath) => {
 			min(agePath, 18)
@@ -136,7 +136,7 @@ class TestHostMinMax {
 })
 class TestHostPattern {
 	private readonly model = signal('')
-	readonly codeField: FieldTree<string> = form(
+	public readonly codeField: FieldTree<string> = form(
 		this.model,
 		schema<string>((codePath) => {
 			pattern(codePath, /^[A-Z]{3}$/)
@@ -156,7 +156,7 @@ class TestHostPattern {
 })
 class TestHostCustomError {
 	private readonly model = signal('')
-	readonly usernameField: FieldTree<string> = form(
+	public readonly usernameField: FieldTree<string> = form(
 		this.model,
 		schema<string>((usernamePath) => {
 			validate(usernamePath, (ctx): ValidationError | void => {
@@ -178,7 +178,7 @@ class TestHostCustomError {
 })
 class TestHostCustomErrorNoMessage {
 	private readonly model = signal('')
-	readonly tagField: FieldTree<string> = form(
+	public readonly tagField: FieldTree<string> = form(
 		this.model,
 		schema<string>((tagPath) => {
 			validate(tagPath, (ctx): ValidationError | void => {
@@ -200,7 +200,7 @@ class TestHostCustomErrorNoMessage {
 })
 class TestHostCustomId {
 	private readonly model = signal('')
-	readonly emailField: FieldTree<string> = form(
+	protected readonly emailField: FieldTree<string> = form(
 		this.model,
 		schema<string>((emailPath) => {
 			required(emailPath)
@@ -224,7 +224,7 @@ class TestHostCustomId {
 })
 class TestHostMultipleChildren {
 	private readonly model = signal('')
-	readonly field: FieldTree<string> = form(this.model)
+	protected readonly field: FieldTree<string> = form(this.model)
 }
 
 @Component({
@@ -264,7 +264,7 @@ class TestHostMissingDirective {}
 	`,
 })
 class FakeCustomControl extends FormFieldCustomControl implements FormValueControl<string> {
-	readonly value = model('')
+	public readonly value = model('')
 }
 
 @Component({
@@ -279,7 +279,7 @@ class FakeCustomControl extends FormFieldCustomControl implements FormValueContr
 })
 class TestHostCustomControl {
 	private readonly model = signal('')
-	readonly field: FieldTree<string> = form(
+	public readonly field: FieldTree<string> = form(
 		this.model,
 		schema<string>((fieldPath) => {
 			required(fieldPath)
@@ -298,11 +298,11 @@ class TestHostCustomControl {
 	`,
 })
 class TestHostCheckbox {
-	readonly hint = signal<string | undefined>(undefined)
-	readonly showRequired = signal<boolean | undefined>(undefined)
+	public readonly hint = signal<string | undefined>(undefined)
+	public readonly showRequired = signal<boolean | undefined>(undefined)
 
 	private readonly model = signal(false)
-	readonly termsField: FieldTree<boolean> = form(
+	public readonly termsField: FieldTree<boolean> = form(
 		this.model,
 		schema<boolean>((termsPath) => {
 			required(termsPath)

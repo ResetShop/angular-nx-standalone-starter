@@ -36,8 +36,8 @@ import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Card {
-	readonly titleTemplate = input<TemplateRef<void>>()
-	readonly subtitleTemplate = input<TemplateRef<void>>()
-	readonly contentTemplate = input<TemplateRef<void>>()
-	readonly footerTemplate = input<TemplateRef<void>>()
+	protected readonly titleTemplate = input<TemplateRef<void>>()
+	protected readonly subtitleTemplate = input<TemplateRef<void>>()
+	protected readonly contentTemplate = input<TemplateRef<void>>()
+	protected readonly footerTemplate = input<TemplateRef<void>>()
 }

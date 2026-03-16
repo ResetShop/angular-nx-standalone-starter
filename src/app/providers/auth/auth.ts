@@ -17,28 +17,28 @@ export class AuthApiService {
 	/**
 	 * Login with email and password
 	 */
-	login(params: LoginRequest): Observable<LoginResponse> {
+	public login(params: LoginRequest): Observable<LoginResponse> {
 		return this.http.post<LoginResponse>('/api/auth/login', params)
 	}
 
 	/**
 	 * Logout user - revoke server-side tokens
 	 */
-	logout(): Observable<void> {
+	public logout(): Observable<void> {
 		return this.http.post<void>('/api/auth/logout', {})
 	}
 
 	/**
 	 * Refresh access token using refresh token from HttpOnly cookie
 	 */
-	refreshToken(): Observable<RefreshResponse> {
+	public refreshToken(): Observable<RefreshResponse> {
 		return this.http.post<RefreshResponse>('/api/auth/refresh', {})
 	}
 
 	/**
 	 * Token introspection - verify token and get user data
 	 */
-	getMe(): Observable<MeResponse> {
+	public getMe(): Observable<MeResponse> {
 		return this.http.get<MeResponse>('/api/auth/me')
 	}
 }

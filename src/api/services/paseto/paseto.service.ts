@@ -46,7 +46,7 @@ export class PasetoService implements IPasetoService {
 	 * @param payload - Token payload containing user information (sub, email, firstName, lastName)
 	 * @returns Encrypted PASETO v3.local token string
 	 */
-	async generateAccessToken(payload: TokenPayload): Promise<string> {
+	public async generateAccessToken(payload: TokenPayload): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
 		const expiresIn = process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY
 
@@ -74,7 +74,7 @@ export class PasetoService implements IPasetoService {
 	 * @param tokenFamily - Token family UUID for rotation tracking. If not provided, a new UUID is generated.
 	 * @returns Encrypted PASETO v3.local token string
 	 */
-	async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
+	public async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
 		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
 		const expiresIn = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY
 
@@ -100,7 +100,7 @@ export class PasetoService implements IPasetoService {
 	 * @returns Decoded token payload with user information
 	 * @throws Error if token is invalid, expired, or has wrong issuer
 	 */
-	async verifyAccessToken(token: string): Promise<TokenPayload> {
+	public async verifyAccessToken(token: string): Promise<TokenPayload> {
 		try {
 			const result = await V3.decrypt<TokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,
@@ -121,7 +121,7 @@ export class PasetoService implements IPasetoService {
 	 * @returns Decoded token payload with user ID and token family
 	 * @throws Error if token is invalid, expired, or has wrong issuer
 	 */
-	async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
+	public async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
 		try {
 			const result = await V3.decrypt<RefreshTokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,

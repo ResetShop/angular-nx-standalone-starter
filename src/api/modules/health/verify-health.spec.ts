@@ -10,19 +10,19 @@ import { verifyHealth, type VerifyHealthDependencies } from './verify-health'
  */
 class MockHealthService {
 	private response: HealthCheckResponse | null = null
-	readonly checkHealthCalls: Array<[]> = []
+	public readonly checkHealthCalls: Array<[]> = []
 
 	/**
 	 * Configure the response that checkHealth will return.
 	 */
-	setResponse(response: HealthCheckResponse): void {
+	public setResponse(response: HealthCheckResponse): void {
 		this.response = response
 	}
 
 	/**
 	 * Clear all tracking data.
 	 */
-	clear(): void {
+	public clear(): void {
 		this.response = null
 		this.checkHealthCalls.length = 0
 	}
@@ -30,7 +30,7 @@ class MockHealthService {
 	/**
 	 * Mock implementation of checkHealth.
 	 */
-	async checkHealth(): Promise<HealthCheckResponse> {
+	public async checkHealth(): Promise<HealthCheckResponse> {
 		this.checkHealthCalls.push([])
 		if (!this.response) {
 			throw new Error('MockHealthService: response not configured')

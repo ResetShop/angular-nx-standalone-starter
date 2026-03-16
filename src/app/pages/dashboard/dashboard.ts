@@ -52,5 +52,5 @@ import { UIStore } from '@store/ui/ui.store'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Dashboard {
-	readonly uiStore = inject(UIStore)
+	protected readonly uiStore = inject(UIStore)
 }

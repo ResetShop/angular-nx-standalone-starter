@@ -43,7 +43,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 	 * @param userId - The user's primary key
 	 * @returns Authentication data including password hash and lockout info, or null if not found
 	 */
-	async findByUserId(userId: number): Promise<AuthenticationData | null> {
+	public async findByUserId(userId: number): Promise<AuthenticationData | null> {
 		const result = await this.db
 			.select({
 				id: authentication.id,
@@ -78,7 +78,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 	 * @param userId - The user's primary key
 	 * @returns The new failed attempts count after incrementing
 	 */
-	async incrementFailedAttempts(userId: number): Promise<number> {
+	public async incrementFailedAttempts(userId: number): Promise<number> {
 		const result = await this.db
 			.update(authentication)
 			.set({
@@ -98,7 +98,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 	 * @param userId - The user's primary key
 	 * @param lockedUntil - The timestamp when the lockout expires
 	 */
-	async lockAccount(userId: number, lockedUntil: Date): Promise<void> {
+	public async lockAccount(userId: number, lockedUntil: Date): Promise<void> {
 		await this.db
 			.update(authentication)
 			.set({
@@ -114,7 +114,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 	 *
 	 * @param userId - The user's primary key
 	 */
-	async resetFailedAttempts(userId: number): Promise<void> {
+	public async resetFailedAttempts(userId: number): Promise<void> {
 		await this.db
 			.update(authentication)
 			.set({
@@ -134,7 +134,7 @@ export class AuthenticationRepository extends BaseRepository implements IAuthent
 	 * @param userId - The user's primary key
 	 * @returns Result containing new attempt count, lock status, and lockout timestamp
 	 */
-	async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
+	public async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
 		const maxAttempts = this.getMaxFailedAttempts()
 		const lockDuration = this.getLockoutDuration()
 

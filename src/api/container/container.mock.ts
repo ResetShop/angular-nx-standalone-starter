@@ -12,7 +12,7 @@ type MockCradle = {
 export class MockContainer implements IContainer {
 	constructor(private readonly mockCradle: MockCradle) {}
 
-	get cradle(): Cradle {
+	public get cradle(): Cradle {
 		// REASON: MockCradle is partial — the Proxy traps access and throws for unmocked services at runtime
 		return new Proxy(this.mockCradle as Cradle, {
 			get(target, prop: string | symbol) {
@@ -24,7 +24,7 @@ export class MockContainer implements IContainer {
 		})
 	}
 
-	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
+	public resolve<K extends keyof Cradle>(key: K): Cradle[K] {
 		if (key in this.mockCradle) {
 			// REASON: Key presence verified by the guard above; Partial<Cradle[K]> is safe to widen here
 			return this.mockCradle[key] as Cradle[K]

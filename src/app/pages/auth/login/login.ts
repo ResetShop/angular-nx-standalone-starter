@@ -89,11 +89,11 @@ export default class Login {
 	private readonly router = inject(Router)
 	private readonly translation = inject(Translation)
 
-	readonly resetPassword = this.router.createUrlTree(['/auth/reset-password'])
-	readonly errorMessage = signal<string | null>(null)
+	protected readonly resetPassword = this.router.createUrlTree(['/auth/reset-password'])
+	protected readonly errorMessage = signal<string | null>(null)
 
 	private readonly model = signal<LoginForm>({ email: '', password: '' })
-	readonly loginForm: FieldTree<LoginForm> = form(
+	protected readonly loginForm: FieldTree<LoginForm> = form(
 		this.model,
 		schema<LoginForm>((login) => {
 			required(login.email)
@@ -121,7 +121,7 @@ export default class Login {
 		})
 	}
 
-	onSubmit(event: Event) {
+	protected onSubmit(event: Event) {
 		event.preventDefault()
 		if (!this.isFormValid()) {
 			// Signal forms FieldState.markAsTouched() only marks a single field;

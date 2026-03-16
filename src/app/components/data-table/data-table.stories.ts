@@ -72,22 +72,22 @@ const sampleData: User[] = [
 class DataTableStoryComponent {
 	private readonly translation = inject(Translation)
 
-	readonly columns = input<ColumnDef<User, unknown>[]>([])
-	readonly data = input<User[]>([])
-	readonly loading = input(false)
-	readonly caption = input('')
-	readonly language = input<Language>('en')
-	readonly expandedByDefault = input(true)
-	readonly showData = input(true)
+	public readonly columns = input<ColumnDef<User, unknown>[]>([])
+	public readonly data = input<User[]>([])
+	public readonly loading = input(false)
+	public readonly caption = input('')
+	public readonly language = input<Language>('en')
+	public readonly expandedByDefault = input(true)
+	public readonly showData = input(true)
 
 	/**
 	 * Grouping column selector. Maps a user-friendly label to the actual column ID.
 	 * Use 'none' to disable grouping.
 	 */
-	readonly groupBy = input<'none' | 'role'>('none')
+	public readonly groupBy = input<'none' | 'role'>('none')
 
 	/** Resolved grouping array from the `groupBy` select control */
-	readonly resolvedGrouping = computed(() => {
+	protected readonly resolvedGrouping = computed(() => {
 		const groupBy = this.groupBy()
 		return groupBy === 'none' ? [] : [groupBy]
 	})
@@ -96,34 +96,34 @@ class DataTableStoryComponent {
 	 * Items per page. Set to 0 to disable pagination and show all data.
 	 * When > 0, data is sliced by page and the Pagination component is shown.
 	 */
-	readonly pageSize = input(0)
+	public readonly pageSize = input(0)
 
 	/** Available page size options for the pagination selector */
-	readonly pageSizeOptions = input<number[]>([25, 50, 100])
+	public readonly pageSizeOptions = input<number[]>([25, 50, 100])
 
 	/** Per-language custom empty messages. When empty, the translated default is used. */
-	readonly emptyMessages = input<Partial<Record<Language, string>>>({})
+	public readonly emptyMessages = input<Partial<Record<Language, string>>>({})
 
 	// --- Pagination state ---
-	readonly currentPage = signal(1)
-	readonly currentPageSize = signal(0)
+	protected readonly currentPage = signal(1)
+	protected readonly currentPageSize = signal(0)
 
-	readonly totalItems = computed(() => this.data().length)
+	protected readonly totalItems = computed(() => this.data().length)
 
-	readonly effectivePageSize = computed(() => {
+	protected readonly effectivePageSize = computed(() => {
 		const inputSize = this.pageSize()
 		const stateSize = this.currentPageSize()
 		return stateSize > 0 ? stateSize : inputSize
 	})
 
-	readonly totalPages = computed(() => {
+	protected readonly totalPages = computed(() => {
 		const size = this.effectivePageSize()
 		if (size <= 0) return 1
 		return Math.max(1, Math.ceil(this.totalItems() / size))
 	})
 
 	/** Data sliced by current page when pagination is active, or all data otherwise. */
-	readonly pagedData = computed(() => {
+	protected readonly pagedData = computed(() => {
 		const size = this.effectivePageSize()
 		if (size <= 0) return this.data()
 		const start = (this.currentPage() - 1) * size
@@ -131,13 +131,13 @@ class DataTableStoryComponent {
 	})
 
 	/** Data passed to the DataTable — empty when showData is false, paged otherwise. */
-	readonly displayData = computed(() => (this.showData() ? this.pagedData() : []))
+	protected readonly displayData = computed(() => (this.showData() ? this.pagedData() : []))
 
 	/**
 	 * Resolves the empty message for the current language.
 	 * Uses the per-language custom message if provided, otherwise the translated default.
 	 */
-	readonly resolvedEmptyMessage = computed(() => {
+	protected readonly resolvedEmptyMessage = computed(() => {
 		if (!this.isReady()) return ''
 		const custom = this.emptyMessages()[this.language()]
 		return custom || this.translation.instant('DATA_TABLE.EMPTY')
@@ -147,7 +147,7 @@ class DataTableStoryComponent {
 	 * Tracks when translations are loaded and ready for use.
 	 * Toggling this signal forces the DataTable to re-mount with updated translations.
 	 */
-	readonly isReady = signal(false)
+	protected readonly isReady = signal(false)
 
 	constructor() {
 		effect(() => {
@@ -162,11 +162,11 @@ class DataTableStoryComponent {
 	}
 
 	// --- Pagination handlers ---
-	onPageChange(page: number): void {
+	protected onPageChange(page: number): void {
 		this.currentPage.set(page)
 	}
 
-	onPageSizeChange(size: number): void {
+	protected onPageSizeChange(size: number): void {
 		this.currentPageSize.set(size)
 		this.currentPage.set(1)
 	}
@@ -359,8 +359,8 @@ export const GroupedByRole: Story = {
 	`,
 })
 class DataTableCustomCellsStoryComponent {
-	readonly columns = input<ColumnDef<User, unknown>[]>([])
-	readonly data = input<User[]>([])
+	public readonly columns = input<ColumnDef<User, unknown>[]>([])
+	public readonly data = input<User[]>([])
 }
 
 /**

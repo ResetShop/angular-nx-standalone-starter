@@ -15,10 +15,10 @@ import { PageShell } from './page-shell'
 	`,
 })
 class TestHost {
-	readonly title = input('Test Page')
-	readonly description = input('A test description')
-	readonly loading = input(false)
-	readonly error = input<string | null>(null)
+	protected readonly title = input('Test Page')
+	protected readonly description = input('A test description')
+	protected readonly loading = input(false)
+	protected readonly error = input<string | null>(null)
 }
 
 @Component({

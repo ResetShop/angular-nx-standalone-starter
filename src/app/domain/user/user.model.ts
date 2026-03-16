@@ -3,11 +3,11 @@ import type { IRole } from '../access/role.interface'
 import type { IUser } from './user.interface'
 
 export class User implements IUser {
-	readonly id: number
-	readonly email: string
-	readonly firstName: string
-	readonly lastName: string
-	readonly roles: readonly IRole[]
+	public readonly id: number
+	public readonly email: string
+	public readonly firstName: string
+	public readonly lastName: string
+	public readonly roles: readonly IRole[]
 
 	private readonly _permissions: readonly IPermission[]
 	private readonly _permissionIdentifiers: ReadonlySet<string>
@@ -24,23 +24,23 @@ export class User implements IUser {
 		this._permissionIdentifiers = new Set(this._permissions.map((p) => p.identifier))
 	}
 
-	get fullName(): string {
+	public get fullName(): string {
 		return `${this.firstName} ${this.lastName}`.trim()
 	}
 
-	hasPermission(resource: string, action: string): boolean {
+	public hasPermission(resource: string, action: string): boolean {
 		return this._permissionIdentifiers.has(`${resource}:${action}`)
 	}
 
-	hasPermissionByIdentifier(identifier: string): boolean {
+	public hasPermissionByIdentifier(identifier: string): boolean {
 		return this._permissionIdentifiers.has(identifier)
 	}
 
-	hasRole(code: string): boolean {
+	public hasRole(code: string): boolean {
 		return this.roles.some((role) => role.code === code)
 	}
 
-	get permissions(): readonly IPermission[] {
+	public get permissions(): readonly IPermission[] {
 		return this._permissions
 	}
 }

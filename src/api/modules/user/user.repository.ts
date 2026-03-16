@@ -15,7 +15,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 	 * @param email - Email address to search for
 	 * @returns User data if found, null otherwise
 	 */
-	async findByEmail(email: string): Promise<UserData | null> {
+	public async findByEmail(email: string): Promise<UserData | null> {
 		const result = await this.db
 			.select({
 				id: user.id,
@@ -38,7 +38,7 @@ export class UserRepository extends BaseRepository implements IUserRepository {
 	 * @param id - The user's primary key
 	 * @returns User data if found, null otherwise
 	 */
-	async findById(id: number): Promise<UserData | null> {
+	public async findById(id: number): Promise<UserData | null> {
 		const result = await this.db
 			.select({
 				id: user.id,

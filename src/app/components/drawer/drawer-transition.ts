@@ -34,13 +34,13 @@ export class DrawerTransition {
 	}
 
 	/** Opens the dialog and triggers the slide-in animation after one frame. */
-	open(element: HTMLDialogElement): void {
+	public open(element: HTMLDialogElement): void {
 		element.showModal()
 		requestAnimationFrame(() => element.setAttribute('data-open', ''))
 	}
 
 	/** Triggers the close animation and waits for `transitionend` to finalize. */
-	close(element: HTMLDialogElement): void {
+	public close(element: HTMLDialogElement): void {
 		element.removeAttribute('data-open')
 		this.close$.next(element)
 	}

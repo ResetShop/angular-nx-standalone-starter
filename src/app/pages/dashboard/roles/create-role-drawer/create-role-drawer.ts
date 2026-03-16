@@ -137,7 +137,7 @@ export class CreateRoleDrawer {
 		})
 	}
 
-	open(): void {
+	public open(): void {
 		this.drawer().show()
 		this.drawer().setContentReady()
 	}

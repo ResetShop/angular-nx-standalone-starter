@@ -20,7 +20,7 @@ export class MockRoleRepository implements IRoleRepository {
 	/**
 	 * Add a role to the mock repository for testing.
 	 */
-	addRole(role: RoleData): void {
+	public addRole(role: RoleData): void {
 		this.roles.set(role.id, role)
 		this.rolesByCode.set(role.code, role)
 		this.rolesByName.set(role.name, role)
@@ -29,21 +29,21 @@ export class MockRoleRepository implements IRoleRepository {
 	/**
 	 * Add permissions for a role.
 	 */
-	addPermissionsForRole(roleId: number, permissions: PermissionData[]): void {
+	public addPermissionsForRole(roleId: number, permissions: PermissionData[]): void {
 		this.rolePermissions.set(roleId, permissions)
 	}
 
 	/**
 	 * Add available permissions that can be assigned to roles.
 	 */
-	addAvailablePermission(permission: PermissionData): void {
+	public addAvailablePermission(permission: PermissionData): void {
 		this.availablePermissions.set(permission.id, permission)
 	}
 
 	/**
 	 * Clear all data from the mock repository.
 	 */
-	clear(): void {
+	public clear(): void {
 		this.roles.clear()
 		this.rolesByCode.clear()
 		this.rolesByName.clear()
@@ -52,19 +52,19 @@ export class MockRoleRepository implements IRoleRepository {
 		this.nextId = 1
 	}
 
-	async findById(id: number): Promise<RoleData | null> {
+	public async findById(id: number): Promise<RoleData | null> {
 		return this.roles.get(id) ?? null
 	}
 
-	async findByCode(code: string): Promise<RoleData | null> {
+	public async findByCode(code: string): Promise<RoleData | null> {
 		return this.rolesByCode.get(code) ?? null
 	}
 
-	async findByName(name: string): Promise<RoleData | null> {
+	public async findByName(name: string): Promise<RoleData | null> {
 		return this.rolesByName.get(name) ?? null
 	}
 
-	async findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
+	public async findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>> {
 		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT
 		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET
 
@@ -90,7 +90,7 @@ export class MockRoleRepository implements IRoleRepository {
 		}
 	}
 
-	async create(params: CreateRoleParams): Promise<RoleData> {
+	public async create(params: CreateRoleParams): Promise<RoleData> {
 		const now = new Date()
 		const role: RoleData = {
 			id: this.nextId++,
@@ -109,7 +109,7 @@ export class MockRoleRepository implements IRoleRepository {
 		return role
 	}
 
-	async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
+	public async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
 		const existing = this.roles.get(id)
 		if (!existing) {
 			return null
@@ -134,7 +134,7 @@ export class MockRoleRepository implements IRoleRepository {
 		return updated
 	}
 
-	async delete(id: number): Promise<void> {
+	public async delete(id: number): Promise<void> {
 		const role = this.roles.get(id)
 		if (role) {
 			this.roles.delete(id)
@@ -143,7 +143,7 @@ export class MockRoleRepository implements IRoleRepository {
 		}
 	}
 
-	async findPermissionsForRole(
+	public async findPermissionsForRole(
 		roleId: number,
 		pagination?: PaginationParams,
 	): Promise<PaginatedResponse<PermissionData>> {
@@ -161,7 +161,7 @@ export class MockRoleRepository implements IRoleRepository {
 		}
 	}
 
-	async findPermissionsByIds(ids: number[]): Promise<PermissionData[]> {
+	public async findPermissionsByIds(ids: number[]): Promise<PermissionData[]> {
 		if (ids.length === 0) {
 			return []
 		}
@@ -169,13 +169,13 @@ export class MockRoleRepository implements IRoleRepository {
 		return ids.map((id) => this.availablePermissions.get(id)).filter((p): p is PermissionData => p !== undefined)
 	}
 
-	async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
+	public async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
 		// Get permissions from available permissions
 		const permissions = await this.findPermissionsByIds(permissionIds)
 		this.rolePermissions.set(roleId, permissions)
 	}
 
-	async removeAllPermissions(roleId: number): Promise<void> {
+	public async removeAllPermissions(roleId: number): Promise<void> {
 		this.rolePermissions.delete(roleId)
 	}
 }

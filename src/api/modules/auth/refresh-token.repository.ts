@@ -96,7 +96,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 *
 	 * @returns true if lock acquired, false if already locked by another process
 	 */
-	async tryAcquireCleanupLock(): Promise<boolean> {
+	public async tryAcquireCleanupLock(): Promise<boolean> {
 		// Use transaction-scoped locks in serverless to prevent lock leaks with connection pooling
 		const lockFunction = isServerless() ? 'pg_try_advisory_xact_lock' : 'pg_try_advisory_lock'
 		const result = await this.db.execute(sql.raw(`SELECT ${lockFunction}(${TOKEN_CLEANUP_LOCK_KEY}) as locked`))
@@ -112,7 +112,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Only needed for session-level locks (traditional servers).
 	 * In serverless mode, transaction-scoped locks auto-release, so this is a no-op.
 	 */
-	async releaseCleanupLock(): Promise<void> {
+	public async releaseCleanupLock(): Promise<void> {
 		// Transaction-scoped locks (xact) auto-release - no need to explicitly unlock
 		if (isServerless()) {
 			return
@@ -123,7 +123,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Find refresh token by its hash
 	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
 	 */
-	async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
+	public async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
 		const result = await this.db.select().from(refreshToken).where(eq(refreshToken.tokenHash, tokenHash)).limit(1)
 
 		return result.length > 0 ? result[0] : null
@@ -133,7 +133,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Create a new refresh token
 	 * @param params Parameters for the new token. See the CreateRefreshTokenParams interface for details.
 	 */
-	async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {
+	public async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {
 		const result = await this.db
 			.insert(refreshToken)
 			.values({
@@ -151,7 +151,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Revoke a specific refresh token
 	 * @param tokenId of the token to revoke
 	 */
-	async revokeToken(tokenId: number): Promise<void> {
+	public async revokeToken(tokenId: number): Promise<void> {
 		await this.db
 			.update(refreshToken)
 			.set({
@@ -165,7 +165,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * Revoke all refresh tokens for a user (for logout)
 	 * @param userId User ID to revoke tokens for
 	 */
-	async revokeAllForUser(userId: number): Promise<void> {
+	public async revokeAllForUser(userId: number): Promise<void> {
 		await this.db
 			.update(refreshToken)
 			.set({
@@ -181,7 +181,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * the entire family is revoked to protect against stolen tokens.
 	 * @param tokenFamily Token family identifier to revoke
 	 */
-	async revokeTokenFamily(tokenFamily: string): Promise<void> {
+	public async revokeTokenFamily(tokenFamily: string): Promise<void> {
 		await this.db
 			.update(refreshToken)
 			.set({ isRevoked: true, revokedAt: new Date() })
@@ -193,7 +193,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 * @param userId User ID to delete expired tokens for
 	 * @returns Count of deleted tokens
 	 */
-	async deleteExpiredTokensForUser(userId: number): Promise<number> {
+	public async deleteExpiredTokensForUser(userId: number): Promise<number> {
 		const result = await this.db
 			.delete(refreshToken)
 			.where(and(eq(refreshToken.userId, userId), lt(refreshToken.expiresAt, new Date())))
@@ -216,7 +216,7 @@ export class RefreshTokenRepository extends BaseRepository implements IRefreshTo
 	 *
 	 * @returns CleanupResult with count of deleted tokens and incomplete flag
 	 */
-	async deleteAllExpiredTokens(): Promise<CleanupResult> {
+	public async deleteAllExpiredTokens(): Promise<CleanupResult> {
 		const batchSize = getDeleteBatchSize()
 		const maxBatches = getMaxCleanupBatches()
 

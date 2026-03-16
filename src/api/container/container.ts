@@ -106,12 +106,12 @@ class Container implements IContainer {
 		return this.awilix
 	}
 
-	get cradle(): Cradle {
+	public get cradle(): Cradle {
 		if (this.delegate) return this.delegate.cradle
 		return this.initAwilix().cradle
 	}
 
-	resolve<K extends keyof Cradle>(key: K): Cradle[K] {
+	public resolve<K extends keyof Cradle>(key: K): Cradle[K] {
 		if (this.delegate) return this.delegate.resolve(key)
 		return this.initAwilix().resolve(key)
 	}
@@ -122,7 +122,7 @@ class Container implements IContainer {
 	 * Call at server startup to fail fast if configuration is invalid.
 	 * @throws Error if any dependency fails to resolve
 	 */
-	verify(): void {
+	public verify(): void {
 		const awilix = this.initAwilix()
 		for (const dep of Object.keys(awilix.registrations)) {
 			// Use string overload intentionally — verifying all registered keys at startup
@@ -134,7 +134,7 @@ class Container implements IContainer {
 	 * Replaces the active container with a delegate (e.g. MockContainer for tests).
 	 * While a delegate is active, cradle and resolve() forward to it.
 	 */
-	use(delegate: IContainer): void {
+	public use(delegate: IContainer): void {
 		this.delegate = delegate
 	}
 
@@ -142,7 +142,7 @@ class Container implements IContainer {
 	 * Removes the delegate, restoring the real Awilix container.
 	 * Call in afterEach to ensure clean state between tests.
 	 */
-	restore(): void {
+	public restore(): void {
 		this.delegate = null
 	}
 }

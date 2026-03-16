@@ -23,7 +23,7 @@ export class HealthService implements IHealthService {
 	 * Checks overall application health by probing all dependencies.
 	 * Returns structured health status with individual component checks.
 	 */
-	async checkHealth(): Promise<HealthCheckResponse> {
+	public async checkHealth(): Promise<HealthCheckResponse> {
 		const database = await this.checkDatabase()
 		const status = database.status === HealthStatus.HEALTHY ? HealthStatus.HEALTHY : HealthStatus.UNHEALTHY
 

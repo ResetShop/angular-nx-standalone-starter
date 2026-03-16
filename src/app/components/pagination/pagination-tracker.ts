@@ -11,7 +11,7 @@ export class PaginationTracker {
 	private instanceCount = 0
 
 	/** Generates a unique instance ID for the select element. */
-	nextId(): number {
+	public nextId(): number {
 		return ++this.instanceCount
 	}
 }

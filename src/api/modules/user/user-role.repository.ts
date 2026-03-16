@@ -23,7 +23,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param pagination.limit - Maximum records to return (default: 10)
 	 * @returns Paginated response containing roles and metadata
 	 */
-	async findRolesForUser(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
+	public async findRolesForUser(userId: number, pagination?: PaginationParams): Promise<PaginatedResponse<RoleData>> {
 		const limit = pagination?.limit ?? QUERY_DEFAULTS.LIMIT
 		const offset = pagination?.offset ?? QUERY_DEFAULTS.OFFSET
 
@@ -61,7 +61,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param userId - The user's primary key
 	 * @returns Array of roles with nested permissions
 	 */
-	async findRolesWithPermissionsForUser(userId: number): Promise<RoleWithPermissions[]> {
+	public async findRolesWithPermissionsForUser(userId: number): Promise<RoleWithPermissions[]> {
 		const userRolesWithData = await this.db.query.userRole.findMany({
 			where: eq(userRole.userId, userId),
 			with: {
@@ -102,7 +102,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param userId - The user's primary key
 	 * @returns Array of unique permissions across all user's roles
 	 */
-	async findPermissionsForUser(userId: number): Promise<PermissionData[]> {
+	public async findPermissionsForUser(userId: number): Promise<PermissionData[]> {
 		const result = await this.db
 			.selectDistinct({
 				id: permission.id,
@@ -127,7 +127,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleId - The role's primary key to assign
 	 * @returns true if the role was assigned, false if already assigned
 	 */
-	async assignRoleToUser(userId: number, roleId: number): Promise<boolean> {
+	public async assignRoleToUser(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
 			.insert(userRole)
 			.values({ userId, roleId })
@@ -144,7 +144,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleId - The role's primary key to remove
 	 * @returns true if the role was removed, false if it wasn't assigned
 	 */
-	async removeRoleFromUser(userId: number, roleId: number): Promise<boolean> {
+	public async removeRoleFromUser(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
 			.delete(userRole)
 			.where(and(eq(userRole.userId, userId), eq(userRole.roleId, roleId)))
@@ -160,7 +160,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleId - The role's primary key to check
 	 * @returns true if the user has the role, false otherwise
 	 */
-	async findUserHasRole(userId: number, roleId: number): Promise<boolean> {
+	public async findUserHasRole(userId: number, roleId: number): Promise<boolean> {
 		const result = await this.db
 			.select({ id: userRole.id })
 			.from(userRole)
@@ -179,7 +179,7 @@ export class UserRoleRepository extends BaseRepository implements IUserRoleRepos
 	 * @param roleIds - Array of role IDs to assign (replaces existing)
 	 * @throws Error if any role ID does not exist
 	 */
-	async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
+	public async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
 		await this.db.transaction(async (tx) => {
 			if (roleIds.length > 0) {
 				const existingRoles = await tx.select({ id: role.id }).from(role).where(inArray(role.id, roleIds))

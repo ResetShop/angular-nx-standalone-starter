@@ -1,11 +1,11 @@
 import type { IPermission } from './permission.interface'
 
 export class Permission implements IPermission {
-	readonly id: number
-	readonly name: string
-	readonly description: string | null
-	readonly resource: string
-	readonly action: string
+	public readonly id: number
+	public readonly name: string
+	public readonly description: string | null
+	public readonly resource: string
+	public readonly action: string
 
 	constructor(id: number, name: string, description: string | null, resource: string, action: string) {
 		this.id = id
@@ -15,11 +15,11 @@ export class Permission implements IPermission {
 		this.action = action
 	}
 
-	get identifier(): string {
+	public get identifier(): string {
 		return `${this.resource}:${this.action}`
 	}
 
-	matches(resource: string, action: string): boolean {
+	public matches(resource: string, action: string): boolean {
 		return this.resource === resource && this.action === action
 	}
 }

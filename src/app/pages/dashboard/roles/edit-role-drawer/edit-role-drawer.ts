@@ -146,7 +146,7 @@ export class EditRoleDrawer {
 		})
 	}
 
-	open(roleId: number): void {
+	public open(roleId: number): void {
 		this.editRoleId.set(roleId)
 		this.rolesStore.loadRole(roleId)
 		this.drawer().show()

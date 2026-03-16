@@ -17,7 +17,7 @@ export class MockPasetoService implements IPasetoService {
 	 * @param token The token string
 	 * @param payload The payload to return on verification
 	 */
-	setRefreshTokenPayload(token: string, payload: RefreshTokenPayload): void {
+	public setRefreshTokenPayload(token: string, payload: RefreshTokenPayload): void {
 		this.refreshTokenPayloads.set(token, payload)
 	}
 
@@ -26,14 +26,14 @@ export class MockPasetoService implements IPasetoService {
 	 * @param token The token string
 	 * @param payload The payload to return on verification
 	 */
-	setAccessTokenPayload(token: string, payload: TokenPayload): void {
+	public setAccessTokenPayload(token: string, payload: TokenPayload): void {
 		this.accessTokenPayloads.set(token, payload)
 	}
 
 	/**
 	 * Clear all state from the mock.
 	 */
-	clear(): void {
+	public clear(): void {
 		this.generatedAccessTokens = []
 		this.generatedRefreshTokens = []
 		this.refreshTokenPayloads.clear()
@@ -42,7 +42,7 @@ export class MockPasetoService implements IPasetoService {
 		this.refreshTokenCounter = 1
 	}
 
-	async generateAccessToken(payload: TokenPayload): Promise<string> {
+	public async generateAccessToken(payload: TokenPayload): Promise<string> {
 		const token = `mock-access-token-${this.accessTokenCounter++}`
 		this.generatedAccessTokens.push({ token, payload })
 		// Auto-register the token for verification
@@ -50,7 +50,7 @@ export class MockPasetoService implements IPasetoService {
 		return token
 	}
 
-	async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
+	public async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
 		const token = `mock-refresh-token-${this.refreshTokenCounter++}`
 		this.generatedRefreshTokens.push({ token, userId, tokenFamily })
 		// Auto-register the token for verification
@@ -58,7 +58,7 @@ export class MockPasetoService implements IPasetoService {
 		return token
 	}
 
-	async verifyAccessToken(token: string): Promise<TokenPayload> {
+	public async verifyAccessToken(token: string): Promise<TokenPayload> {
 		const payload = this.accessTokenPayloads.get(token)
 		if (!payload) {
 			throw new Error('Invalid or expired token')
@@ -66,7 +66,7 @@ export class MockPasetoService implements IPasetoService {
 		return payload
 	}
 
-	async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
+	public async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
 		const payload = this.refreshTokenPayloads.get(token)
 		if (!payload) {
 			throw new Error('Invalid or expired refresh token')

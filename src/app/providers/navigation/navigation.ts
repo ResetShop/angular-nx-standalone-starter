@@ -8,15 +8,15 @@ import { filter } from 'rxjs'
 	providedIn: 'root',
 })
 export class Navigation {
-	private router = inject(Router)
-	private activatedRoute = inject(ActivatedRoute)
-	private navigationConfig = inject(NAVIGATION_CONFIG)
+	private readonly router = inject(Router)
+	private readonly activatedRoute = inject(ActivatedRoute)
+	private readonly navigationConfig = inject(NAVIGATION_CONFIG)
 
 	private readonly _sections = signal(this.navigationConfig.sections)
 	private readonly _breadcrumbs = signal<BreadcrumbItem[]>([])
 
-	readonly sections = computed(() => this._sections())
-	readonly breadcrumbs = computed(() => this._breadcrumbs())
+	public readonly sections = computed(() => this._sections())
+	public readonly breadcrumbs = computed(() => this._breadcrumbs())
 
 	constructor() {
 		this.router.events

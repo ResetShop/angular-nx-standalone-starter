@@ -9,7 +9,7 @@ import { map, type Observable } from 'rxjs'
 export class PermissionsApiService {
 	private readonly http = inject(HttpClient)
 
-	getAllUnpaginated(): Observable<PermissionData[]> {
+	public getAllUnpaginated(): Observable<PermissionData[]> {
 		return this.http
 			.get<PaginatedResponse<PermissionData>>('/api/access/permissions', {
 				params: { limit: QUERY_DEFAULTS.MAX_LIMIT, offset: 0 },

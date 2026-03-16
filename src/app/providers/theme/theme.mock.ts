@@ -10,19 +10,19 @@ export const provideMockTheme = (isDarkModeInitial: boolean = false) => [
 
 export class ThemeMock extends ThemeProvider {
 	private readonly _isDarkMode = signal<boolean>(false)
-	readonly isDarkMode = computed(() => this._isDarkMode())
+	public override readonly isDarkMode = computed(() => this._isDarkMode())
 
 	constructor(isDarkModeInitial: boolean = false) {
 		super()
 		this._isDarkMode.set(isDarkModeInitial)
 	}
 
-	toggleTheme(): void {
+	public override toggleTheme(): void {
 		this._isDarkMode.update((current) => !current)
 		this.applyTheme()
 	}
 
-	applyTheme(): void {
+	public override applyTheme(): void {
 		if (this._isDarkMode()) {
 			document.documentElement.classList.add('dark')
 		} else {
@@ -30,7 +30,7 @@ export class ThemeMock extends ThemeProvider {
 		}
 	}
 
-	setDarkMode(isDark: boolean): void {
+	public setDarkMode(isDark: boolean): void {
 		this._isDarkMode.set(isDark)
 		this.applyTheme()
 	}

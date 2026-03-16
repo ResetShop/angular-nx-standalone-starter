@@ -47,14 +47,14 @@ import { ThemeProvider } from '@providers/theme/theme.abstract'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeToggle {
-	private theme = inject(ThemeProvider)
-	private platformId = inject(PLATFORM_ID)
+	private readonly theme = inject(ThemeProvider)
+	private readonly platformId = inject(PLATFORM_ID)
 
-	readonly isBrowser = computed(() => isPlatformBrowser(this.platformId))
-	readonly isDarkMode = computed(() => this.theme.isDarkMode())
-	readonly buttonIcon = computed(() => (this.isDarkMode() ? 'featherMoon' : 'featherSun'))
+	protected readonly isBrowser = computed(() => isPlatformBrowser(this.platformId))
+	protected readonly isDarkMode = computed(() => this.theme.isDarkMode())
+	protected readonly buttonIcon = computed(() => (this.isDarkMode() ? 'featherMoon' : 'featherSun'))
 
-	toggleTheme(): void {
+	protected toggleTheme(): void {
 		this.theme.toggleTheme()
 	}
 }

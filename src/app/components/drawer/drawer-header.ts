@@ -9,5 +9,5 @@ import { Directive, inject, TemplateRef } from '@angular/core'
 	standalone: true,
 })
 export class DrawerHeader {
-	readonly templateRef = inject(TemplateRef)
+	public readonly templateRef = inject(TemplateRef)
 }

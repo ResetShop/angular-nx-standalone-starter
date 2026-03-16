@@ -50,7 +50,7 @@ export class Translation {
 	 * Loads the default language translations.
 	 * Called by the app initializer to ensure translations are ready before app starts.
 	 */
-	async loadDefaultLanguage(): Promise<void> {
+	public async loadDefaultLanguage(): Promise<void> {
 		await this.loadTranslation(this.currentLang())
 	}
 
@@ -103,7 +103,7 @@ export class Translation {
 	 * // translation.instant('INVALID.KEY'); // ❌ Type error
 	 * ```
 	 */
-	instant(key: TranslationKey): string {
+	public instant(key: TranslationKey): string {
 		const currentTranslations = this.translations[this.currentLang()]
 
 		if (currentTranslations === null) {
@@ -137,7 +137,7 @@ export class Translation {
 	 * await translation.setLanguage('en');
 	 * ```
 	 */
-	async setLanguage(lang: Language): Promise<void> {
+	public async setLanguage(lang: Language): Promise<void> {
 		await this.loadTranslation(lang)
 		this.currentLang.set(lang)
 	}
@@ -147,7 +147,7 @@ export class Translation {
 	 *
 	 * @returns Current language code
 	 */
-	getCurrentLanguage(): Language {
+	public getCurrentLanguage(): Language {
 		return this.currentLang()
 	}
 }

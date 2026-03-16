@@ -34,10 +34,10 @@ import { AuthStore } from '@store/auth/auth.store'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
-	authStore = inject(AuthStore)
-	navigation = inject(Navigation)
-	router = inject(Router)
-	readonly sections = computed(() => this.navigation.sections())
+	private readonly authStore = inject(AuthStore)
+	private readonly navigation = inject(Navigation)
+	private readonly router = inject(Router)
+	protected readonly sections = computed(() => this.navigation.sections())
 
 	constructor() {
 		// React to logout: navigate when user becomes null and logout is complete
@@ -52,7 +52,7 @@ export class Sidebar {
 		})
 	}
 
-	logout() {
+	protected logout(): void {
 		this.authStore.logout()
 	}
 }
