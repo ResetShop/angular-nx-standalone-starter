@@ -11,6 +11,7 @@ import {
 import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals';
 import { Alert, AlertDescription } from '@components/alert/alert';
 import { Button } from '@components/button/button';
+import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog';
 import { Drawer } from '@components/drawer/drawer';
 import { DrawerFooter } from '@components/drawer/drawer-footer';
 import { FormField } from '@components/form-field/form-field';
@@ -25,12 +26,24 @@ interface EditRoleFormModel {
 	permissionIds: number[];
 }
 
+const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', permissionIds: [] };
+
 @Component({
 	selector: 'app-edit-role-drawer',
 	standalone: true,
-	imports: [Drawer, DrawerFooter, FormField, SignalFormField, Button, PermissionSelector, Alert, AlertDescription],
+	imports: [
+		Drawer,
+		DrawerFooter,
+		FormField,
+		SignalFormField,
+		Button,
+		PermissionSelector,
+		Alert,
+		AlertDescription,
+		ConfirmDialog,
+	],
 	template: `
-		<app-drawer (closed)="onDrawerClosed()" class="w-lg" title="Edit Role" #drawer>
+		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Edit Role" #drawer>
 			<form (submit)="onSubmit($event)" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
@@ -62,11 +75,20 @@ interface EditRoleFormModel {
 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
-					<button (click)="drawer.close()" appButton variant="outline">Cancel</button>
+					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
 					<button (click)="onSubmit($event)" [disabled]="drawer.showSpinner() || !isFormValid()" appButton>Save</button>
 				</div>
 			</ng-template>
 		</app-drawer>
+
+		<app-confirm-dialog
+			(confirmed)="drawer.close()"
+			title="Discard changes"
+			message="You have unsaved changes. Are you sure you want to discard them?"
+			confirmText="Discard"
+			confirmVariant="destructive"
+			#discardDialog
+		/>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -74,10 +96,11 @@ export class EditRoleDrawer {
 	private readonly rolesStore = inject(RolesStore);
 	protected readonly permissionsStore = inject(PermissionsStore);
 	private readonly drawer = viewChild.required<Drawer>('drawer');
+	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog');
 
 	private readonly editRoleId = signal<number | null>(null);
 
-	private readonly model = signal<EditRoleFormModel>({ name: '', code: '', description: '', permissionIds: [] });
+	private readonly model = signal<EditRoleFormModel>({ ...EMPTY_MODEL });
 	protected readonly roleForm = form(
 		this.model,
 		schema<EditRoleFormModel>((role) => {
@@ -129,10 +152,18 @@ export class EditRoleDrawer {
 		this.drawer().show();
 	}
 
+	protected onCancel(): void {
+		if (this.roleForm().dirty()) {
+			this.discardDialog().show();
+		} else {
+			this.drawer().close();
+		}
+	}
+
 	protected onDrawerClosed(): void {
 		this.submitted = false;
 		this.editRoleId.set(null);
-		this.model.set({ name: '', code: '', description: '', permissionIds: [] });
+		this.model.set({ ...EMPTY_MODEL });
 		this.roleForm().reset();
 		this.rolesStore.clearMutationError('update');
 	}
