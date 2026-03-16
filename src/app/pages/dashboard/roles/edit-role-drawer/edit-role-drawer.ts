@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
 import { Drawer } from '@components/drawer/drawer'
 import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
+import { Spinner } from '@components/spinner/spinner'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { PermissionSelector } from '../permission-selector/permission-selector'
@@ -37,6 +38,7 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 		FormField,
 		SignalFormField,
 		Button,
+		Spinner,
 		PermissionSelector,
 		Alert,
 		AlertDescription,
@@ -76,7 +78,16 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
 					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
-					<button (click)="onSubmit($event)" [disabled]="drawer.showSpinner() || !isFormValid()" appButton>Save</button>
+					<button
+						(click)="onSubmit($event)"
+						[disabled]="drawer.showSpinner() || isUpdating() || !isFormValid()"
+						appButton
+					>
+						@if (isUpdating()) {
+							<app-spinner data-icon="start" />
+						}
+						{{ isUpdating() ? 'Saving...' : 'Save' }}
+					</button>
 				</div>
 			</ng-template>
 		</app-drawer>
@@ -113,6 +124,7 @@ export class EditRoleDrawer {
 	)
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
+	protected readonly isUpdating = computed(() => this.rolesStore.isUpdating())
 	protected readonly mutationError = computed(() => this.rolesStore.mutationError().update)
 
 	private submitted = false
