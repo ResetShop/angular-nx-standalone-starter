@@ -60,13 +60,13 @@ export const Default: Story = {
 				<div>
 					<h3 class="text-sm font-semibold text-gray-900 mb-2">Light</h3>
 					<div class="bg-white p-4 rounded border border-gray-200 text-gray-500">
-						<app-spinner [class]="size-5" />
+						<app-spinner [class]="size" />
 					</div>
 				</div>
 				<div>
 					<h3 class="text-sm font-semibold text-gray-900 mb-2">Dark</h3>
 					<div class="dark bg-black p-4 rounded border border-gray-800 text-gray-400">
-						<app-spinner [class]="size-5" />
+						<app-spinner [class]="size" />
 					</div>
 				</div>
 			</div>
