@@ -111,6 +111,11 @@ describe('EditUserDrawer', () => {
 		await renderAndOpenRaw(userId)
 	}
 
+	function modifyFirstName(fixture: { detectChanges(): void }, value = 'Jane'): void {
+		fireEvent.input(screen.getByDisplayValue('John'), { target: { value } })
+		fixture.detectChanges()
+	}
+
 	it('should render drawer with edit title', async () => {
 		await renderAndOpen()
 
@@ -149,9 +154,7 @@ describe('EditUserDrawer', () => {
 		usersApiMock.update.mockReturnValue(of({ ...MOCK_USER, firstName: 'Jane' }))
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByDisplayValue('John')
-		fireEvent.input(firstNameInput, { target: { value: 'Jane' } })
-		fixture.detectChanges()
+		modifyFirstName(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /save/i }))
 		fixture.detectChanges()
@@ -168,9 +171,7 @@ describe('EditUserDrawer', () => {
 		usersApiMock.update.mockReturnValue(throwError(() => httpError))
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByDisplayValue('John')
-		fireEvent.input(firstNameInput, { target: { value: 'Jane' } })
-		fixture.detectChanges()
+		modifyFirstName(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /save/i }))
 		fixture.detectChanges()
@@ -185,9 +186,7 @@ describe('EditUserDrawer', () => {
 		)
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByDisplayValue('John')
-		fireEvent.input(firstNameInput, { target: { value: 'Jane' } })
-		fixture.detectChanges()
+		modifyFirstName(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /save/i }))
 		fixture.detectChanges()
@@ -200,9 +199,7 @@ describe('EditUserDrawer', () => {
 		usersApiMock.getById.mockReturnValue(of({ ...MOCK_USER, firstName: 'Jane' }))
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByDisplayValue('John')
-		fireEvent.input(firstNameInput, { target: { value: 'Jane' } })
-		fixture.detectChanges()
+		modifyFirstName(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /save/i }))
 		fixture.detectChanges()
@@ -217,10 +214,9 @@ describe('EditUserDrawer', () => {
 		usersApiMock.update.mockReturnValue(of({ ...MOCK_USER, firstName: 'Jane' }))
 		usersApiMock.getById.mockReturnValue(of({ ...MOCK_USER, firstName: 'Jane' }))
 		const { fixture } = await renderAndOpenRaw()
-
 		const firstNameInput = screen.getByDisplayValue('John')
-		fireEvent.input(firstNameInput, { target: { value: 'Jane' } })
-		fixture.detectChanges()
+
+		modifyFirstName(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /save/i }))
 		fixture.detectChanges()

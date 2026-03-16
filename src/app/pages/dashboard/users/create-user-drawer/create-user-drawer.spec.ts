@@ -84,6 +84,13 @@ describe('CreateUserDrawer', () => {
 		await renderAndOpenRaw()
 	}
 
+	function fillValidForm(fixture: { detectChanges(): void }): void {
+		fireEvent.input(screen.getByRole('textbox', { name: /first name/i }), { target: { value: 'John' } })
+		fireEvent.input(screen.getByRole('textbox', { name: /last name/i }), { target: { value: 'Doe' } })
+		fireEvent.input(screen.getByRole('textbox', { name: /email/i }), { target: { value: 'john@example.com' } })
+		fixture.detectChanges()
+	}
+
 	it('should render drawer with create title', async () => {
 		await renderAndOpen()
 
@@ -136,14 +143,7 @@ describe('CreateUserDrawer', () => {
 		)
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByRole('textbox', { name: /first name/i })
-		const lastNameInput = screen.getByRole('textbox', { name: /last name/i })
-		const emailInput = screen.getByRole('textbox', { name: /email/i })
-
-		fireEvent.input(firstNameInput, { target: { value: 'John' } })
-		fireEvent.input(lastNameInput, { target: { value: 'Doe' } })
-		fireEvent.input(emailInput, { target: { value: 'john@example.com' } })
-		fixture.detectChanges()
+		fillValidForm(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /create/i }))
 		fixture.detectChanges()
@@ -162,14 +162,7 @@ describe('CreateUserDrawer', () => {
 		usersApiMock.create.mockReturnValue(throwError(() => httpError))
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByRole('textbox', { name: /first name/i })
-		const lastNameInput = screen.getByRole('textbox', { name: /last name/i })
-		const emailInput = screen.getByRole('textbox', { name: /email/i })
-
-		fireEvent.input(firstNameInput, { target: { value: 'John' } })
-		fireEvent.input(lastNameInput, { target: { value: 'Doe' } })
-		fireEvent.input(emailInput, { target: { value: 'john@example.com' } })
-		fixture.detectChanges()
+		fillValidForm(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /create/i }))
 		fixture.detectChanges()
@@ -183,14 +176,7 @@ describe('CreateUserDrawer', () => {
 		)
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByRole('textbox', { name: /first name/i })
-		const lastNameInput = screen.getByRole('textbox', { name: /last name/i })
-		const emailInput = screen.getByRole('textbox', { name: /email/i })
-
-		fireEvent.input(firstNameInput, { target: { value: 'John' } })
-		fireEvent.input(lastNameInput, { target: { value: 'Doe' } })
-		fireEvent.input(emailInput, { target: { value: 'john@example.com' } })
-		fixture.detectChanges()
+		fillValidForm(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /create/i }))
 		fixture.detectChanges()
@@ -217,14 +203,7 @@ describe('CreateUserDrawer', () => {
 		)
 		const { fixture } = await renderAndOpenRaw()
 
-		const firstNameInput = screen.getByRole('textbox', { name: /first name/i })
-		const lastNameInput = screen.getByRole('textbox', { name: /last name/i })
-		const emailInput = screen.getByRole('textbox', { name: /email/i })
-
-		fireEvent.input(firstNameInput, { target: { value: 'John' } })
-		fireEvent.input(lastNameInput, { target: { value: 'Doe' } })
-		fireEvent.input(emailInput, { target: { value: 'john@example.com' } })
-		fixture.detectChanges()
+		fillValidForm(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /create/i }))
 		fixture.detectChanges()
@@ -253,15 +232,9 @@ describe('CreateUserDrawer', () => {
 			}),
 		)
 		const { fixture } = await renderAndOpenRaw()
-
 		const firstNameInput = screen.getByRole('textbox', { name: /first name/i })
-		const lastNameInput = screen.getByRole('textbox', { name: /last name/i })
-		const emailInput = screen.getByRole('textbox', { name: /email/i })
 
-		fireEvent.input(firstNameInput, { target: { value: 'John' } })
-		fireEvent.input(lastNameInput, { target: { value: 'Doe' } })
-		fireEvent.input(emailInput, { target: { value: 'john@example.com' } })
-		fixture.detectChanges()
+		fillValidForm(fixture)
 
 		fireEvent.click(screen.getByRole('button', { name: /create/i }))
 		fixture.detectChanges()
