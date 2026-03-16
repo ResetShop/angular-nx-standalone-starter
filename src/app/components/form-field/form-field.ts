@@ -177,7 +177,7 @@ export class FormField {
 		const wrapper = this.contentWrapper()?.nativeElement;
 		if (!wrapper) return;
 
-		const nativeEl = wrapper.querySelector(this.supportedControls);
+		const nativeEl = wrapper.querySelector(`:scope > ${this.supportedControls}`);
 		if (nativeEl) {
 			let id = nativeEl.getAttribute('id');
 			if (!id) {
