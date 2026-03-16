@@ -5,7 +5,7 @@ import { Translation } from '@providers/i18n/translation';
 import { PermissionsApiService } from '@providers/permissions/permissions';
 import { RolesApiService } from '@providers/roles/roles';
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils';
-import { render, screen } from '@testing-library/angular';
+import { fireEvent, render, screen, within } from '@testing-library/angular';
 import { NEVER, of, throwError } from 'rxjs';
 import RolesList from './roles-list';
 
@@ -184,5 +184,32 @@ describe('RolesList', () => {
 		await renderComponent();
 
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+	});
+
+	it('should show confirm dialog when delete button is clicked', async () => {
+		const roles = [createMockRoleData({ id: 1, name: 'TestRole', removable: true })];
+		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)));
+
+		await renderComponent();
+
+		fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+
+		expect(screen.getByText(/are you sure you want to delete the role 'TestRole'/i)).toBeInTheDocument();
+	});
+
+	it('should call deleteRole when delete is confirmed', async () => {
+		const roles = [createMockRoleData({ id: 42, name: 'TestRole', removable: true })];
+		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)));
+		rolesApiMock.delete.mockReturnValue(of(undefined));
+
+		await renderComponent();
+
+		fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+
+		const dialog = screen.getByRole('alertdialog');
+		fireEvent.click(within(dialog).getByRole('button', { name: /delete/i }));
+
+		expect(rolesApiMock.delete.calls.length).toBe(1);
+		expect(rolesApiMock.delete.calls[0][0]).toBe(42);
 	});
 });
