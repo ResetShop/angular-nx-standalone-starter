@@ -45,6 +45,9 @@ export const roleWithPermissionsSchema = z.object({
 	code: z.string(),
 	name: z.string(),
 	description: z.string().nullable(),
+	removable: z.boolean(),
+	createdAt: z.coerce.date().nullable(),
+	updatedAt: z.coerce.date().nullable(),
 	permissions: z.array(permissionDataSchema),
 });
 

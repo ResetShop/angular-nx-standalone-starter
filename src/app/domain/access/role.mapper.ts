@@ -1,4 +1,4 @@
-import type { PermissionData, RoleWithPermissions } from '@contracts/role/role.types';
+import type { PermissionData, RoleData, RoleWithPermissions } from '@contracts/role/role.types';
 import type { IPermission } from './permission.interface';
 import { createPermission } from './permission.mapper';
 import type { IRole } from './role.interface';
@@ -19,11 +19,36 @@ interface CreateRoleOptions {
 	code: string;
 	name: string;
 	description: string | null;
+	removable: boolean;
+	createdAt: Date | null;
+	updatedAt: Date | null;
 	permissions: IPermission[];
 }
 
 export function createRole(options: CreateRoleOptions): IRole {
-	return new Role(options.id, options.code, options.name, options.description, options.permissions);
+	return new Role(
+		options.id,
+		options.code,
+		options.name,
+		options.description,
+		options.removable,
+		options.createdAt,
+		options.updatedAt,
+		options.permissions,
+	);
+}
+
+export function mapRoleFromData(data: RoleData): IRole {
+	return createRole({
+		id: data.id,
+		code: data.code,
+		name: data.name,
+		description: data.description,
+		removable: data.removable,
+		createdAt: data.createdAt,
+		updatedAt: data.updatedAt,
+		permissions: [],
+	});
 }
 
 export function mapRole(data: RoleWithPermissions): IRole {
@@ -33,6 +58,9 @@ export function mapRole(data: RoleWithPermissions): IRole {
 		code: data.code,
 		name: data.name,
 		description: data.description,
+		removable: data.removable,
+		createdAt: data.createdAt,
+		updatedAt: data.updatedAt,
 		permissions,
 	});
 }

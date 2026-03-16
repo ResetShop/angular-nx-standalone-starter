@@ -31,7 +31,7 @@
 | **Monorepo Tool**    | Nx                                  |
 | **Package Manager**  | npm                                 |
 | **Testing**          | Vitest + Angular Testing Library    |
-| **State Management** | NgRx                                |
+| **State Management** | NgRx Signal Store + `rxMethod`      |
 
 ### Common Commands
 
@@ -117,21 +117,23 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint             | Limit                                                                                                                      | Rationale                    |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| Function length        | ≤ 50 lines                                                                                                                 | Readability, SRP             |
-| File length            | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability              |
-| Cyclomatic complexity  | ≤ 10                                                                                                                       | Testability                  |
-| Nesting depth          | ≤ 3 levels                                                                                                                 | Readability                  |
-| Barrel imports/exports | Not allowed in any part of the project                                                                                     | Maintainability, Performance |
-| `any` type             | Forbidden without `// REASON:` comment                                                                                     | Type safety                  |
-| `// @ts-ignore`        | Forbidden without linked issue                                                                                             | Technical debt tracking      |
-| `console.log`          | Remove before commit                                                                                                       | Clean code                   |
-| TypeScript enums       | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety     |
-| Type-only imports      | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
-| Raw time literals      | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
-| `vi.fn()`/`vi.mock()`  | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
-| External repo issues   | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette         |
+| Constraint                   | Limit                                                                                                                      | Rationale                    |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| Function length              | ≤ 50 lines                                                                                                                 | Readability, SRP             |
+| File length                  | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability              |
+| Cyclomatic complexity        | ≤ 10                                                                                                                       | Testability                  |
+| Nesting depth                | ≤ 3 levels                                                                                                                 | Readability                  |
+| Barrel imports/exports       | Not allowed in any part of the project                                                                                     | Maintainability, Performance |
+| `any` type                   | Forbidden without `// REASON:` comment                                                                                     | Type safety                  |
+| `// @ts-ignore`              | Forbidden without linked issue                                                                                             | Technical debt tracking      |
+| `console.log`                | Remove before commit                                                                                                       | Clean code                   |
+| TypeScript enums             | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety     |
+| Type-only imports            | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
+| Raw time literals            | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
+| `vi.fn()`/`vi.mock()`        | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
+| `firstValueFrom`/`toPromise` | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                      | Signals-first, no promises   |
+| `TestBed.flushEffects()`     | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                 | API deprecation              |
+| External repo issues         | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette         |
 
 ### Object.freeze() Instead of Enums
 
@@ -211,7 +213,7 @@ import { User, IUserRepository } from './user.types';
 
 ### Duration String Convention
 
-All time-related constants must use duration string notation (`'{number}{unit}'`, e.g., `'1h'`, `'15m'`, `'7d'`) as their source of truth, resolved to milliseconds or seconds at the point of use via `parseDurationToMs()` / `parseDurationToSeconds()` from `src/api/utils/duration.ts`.
+All time-related constants must use duration string notation (`'{number}{unit}'`, e.g., `'1h'`, `'15m'`, `'7d'`) as their source of truth, resolved to milliseconds or seconds at the point of use via `parseDurationToMs()` / `parseDurationToSeconds()` from `src/utils/duration.ts` (path alias: `@utils/duration`).
 
 **Rules:**
 
@@ -245,6 +247,160 @@ export const HEALTH_CHECK_TIMEOUT_MS = 5000;
 | `DEFAULT_REFRESH_TOKEN_EXPIRY` | `src/api/constants/auth.constants.ts`        | `'7d'`  |
 | `REFRESH_TOKEN_EXPIRY_BUFFER`  | `src/api/constants/auth.constants.ts`        | `'1h'`  |
 | `HEALTH_CHECK_TIMEOUT`         | `src/api/modules/health/health.constants.ts` | `'5s'`  |
+
+### Signals-First State Management (No Promises)
+
+The Angular frontend (`src/app/`) uses `@ngrx/signals` with `rxMethod` from `@ngrx/signals/rxjs-interop` for all async operations. **Promises are forbidden** — never use `firstValueFrom`, `lastValueFrom`, `toPromise`, or `async/await` on observables in store methods.
+
+**References:** [NgRx RxJS integration guide](https://ngrx.io/guide/signals/rxjs-integration) | [rxMethod source](https://github.com/ngrx/platform/blob/main/modules/signals/rxjs-interop/src/rx-method.ts) | [rxMethod tests](https://github.com/ngrx/platform/blob/main/modules/signals/rxjs-interop/spec/rx-method.spec.ts)
+
+**Rules:**
+
+1. **Use `rxMethod<T>(pipe(...))` for all store methods** that call API services returning observables
+2. **Use `tap` for side effects** (state patches via `patchState`) and `catchError(() => EMPTY)` for error handling
+3. **Use `switchMap` as the default flattening operator** — cancels stale in-flight requests
+4. **Reactive reads use computed signals + `withHooks.onInit`** — pass a computed signal to `rxMethod` so state changes automatically trigger re-fetches (e.g., pagination, search)
+5. **Imperative mutations accept static values** — `rxMethod<CreateUserRequest>` called directly with data
+6. **No optimistic in-place updates** — all mutations reload the full list from the server after success via `store.loadX(store.listParams())`
+7. **Derived values are computed signals, not stored state** — e.g., `totalPages` must be in `withComputed`, never in the state interface
+8. **Use `SearchPaginationParams` from `@contracts/common/pagination.types`** for `rxMethod` type params and provider method signatures — never define inline pagination types
+
+```typescript
+// ✅ Correct — rxMethod with observable pipe, error logging, structured error
+createUser: rxMethod<CreateUserRequest>(
+  pipe(
+    tap(() => patchState(store, {
+      isCreating: true,
+      mutationError: patchMutationError(store.mutationError(), 'create', null),
+    })),
+    switchMap((body) =>
+      usersApi.create(body).pipe(
+        tap({
+          next: () => {
+            patchState(store, { isCreating: false });
+            store.loadUsers(store.listParams()); // full reload, not optimistic
+          },
+          // TODO(#66): Replace with structured logging service
+          error: (err) => {
+            console.error('[UsersStore] createUser failed:', err);
+            patchState(store, {
+              isCreating: false,
+              mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create user'),
+            });
+          },
+        }),
+        catchError(() => EMPTY),
+      ),
+    ),
+  ),
+),
+
+// ❌ Incorrect — promise-based with firstValueFrom
+async createUser(body: CreateUserRequest): Promise<void> {
+  try {
+    const response = await firstValueFrom(usersApi.create(body));
+    patchState(store, { ... });
+  } catch { ... }
+}
+```
+
+**Reactive list pattern (pagination/search):**
+
+```typescript
+// Computed signal derives request params from state
+withComputed((store) => ({
+  listParams: computed(() => ({
+    offset: (store.currentPage() - 1) * store.pageSize(),
+    limit: store.pageSize(),
+    search: store.searchQuery() || undefined,
+  })),
+})),
+
+// rxMethod watches the signal — re-fires on any param change
+withHooks({
+  onInit(store) {
+    store.loadUsers(store.listParams);
+  },
+}),
+```
+
+**`rxMethod` invocation modes:**
+
+`rxMethod` accepts both signal references (reactive) and static values (imperative). Use this to support explicit reloads without inventing counter-based workarounds:
+
+```typescript
+// ✅ Reactive — pass a signal reference, rxMethod watches and re-fires on changes
+store.loadUsers(store.listParams);
+
+// ✅ Imperative — pass the current value (static), triggers a one-shot fetch
+store.loadUsers(store.listParams());
+
+// ❌ NEVER use counter/trigger signals to force re-evaluation of rxMethod
+// reloadCounter, _reload, forceRefresh, etc. are unnecessary workarounds
+```
+
+For explicit reload methods, use a second `withMethods` block (which has access to methods from prior blocks):
+
+```typescript
+withMethods((store) => ({
+  reload(): void {
+    store.loadUsers(store.listParams());  // imperative call with current value
+  },
+})),
+```
+
+**Structured error tracking:**
+
+Error state uses per-operation typed objects, not single `string | null` fields. Each store defines `ReadError` and `MutationError` interfaces in its `*.types.ts`:
+
+```typescript
+// ✅ Correct — per-operation error keys
+export interface UsersReadError {
+	list: string | null;
+}
+export interface UsersMutationError {
+	create: string | null;
+	update: string | null;
+	delete: string | null;
+}
+
+// ❌ Incorrect — single shared error field
+readError: string | null;
+mutationError: string | null;
+```
+
+Helper functions `patchReadError` / `patchMutationError` in each store handle type-safe error patching. Computed signals `hasReadError` / `hasMutationError` provide boolean checks for the UI. Every error handler must log via `console.error` with `[StoreName] methodName failed:` prefix (until #66 introduces a structured logging service).
+
+**Store builder block structure:**
+
+Stores follow a consistent block ordering with two `withComputed` and two `withMethods` blocks:
+
+1. `withState(initialState)`
+2. `withComputed` — `totalPages`, `isAnyLoading`, `hasReadError`, `hasMutationError`, `listParams`
+3. `withComputed` — `hasNextPage`, `hasPreviousPage` (depends on `totalPages` from block 2)
+4. `withMethods` — read operations (`loadX` via `rxMethod`), sync setters (`setPage`, `setPageSize`, `setSearchQuery`), `selectX`, `clearErrors`
+5. `withMethods` — `reload()`, then mutation methods in CRUD order: `create` → `update` → `delete` → domain-specific (e.g., `assignPermissions`)
+6. `withHooks` — `onInit` passes `listParams` signal to reactive `rxMethod`
+
+**Store test mock typing:**
+
+```typescript
+// ✅ Correct — structurally linked to the real service
+let apiMock: Record<keyof UsersApiService, MockFn>;
+
+// ❌ Incorrect — inline object literal not linked to service
+let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
+```
+
+**Existing stores following this pattern:**
+
+| Store              | File                                             |
+| ------------------ | ------------------------------------------------ |
+| `AuthStore`        | `src/app/store/auth/auth.store.ts`               |
+| `UsersStore`       | `src/app/store/users/users.store.ts`             |
+| `RolesStore`       | `src/app/store/roles/roles.store.ts`             |
+| `PermissionsStore` | `src/app/store/permissions/permissions.store.ts` |
+| `UIStore`          | `src/app/store/ui/ui.store.ts`                   |
 
 ---
 
@@ -348,6 +504,30 @@ Use queries in this order of preference:
 > Authentication Architecture: See `.claude/references/auth.md`
 
 > Backend API Architecture: See `.claude/references/backend-api.md`
+
+### Component Field Visibility
+
+Component class fields must use `protected` — never leave them implicitly `public`. Angular templates can access `protected` members, so there is no reason to expose fields beyond the component boundary. Fields that are not used in the template should be `private`.
+
+```typescript
+// ✅ Correct — template-bound fields are protected
+export default class PermissionsList {
+	protected readonly store = inject(PermissionsStore);
+	protected readonly columns: ColumnDef<IPermission, unknown>[] = [...];
+}
+
+// ❌ Incorrect — public fields leak the component's internal API
+export default class PermissionsList {
+	readonly store = inject(PermissionsStore);
+	readonly columns: ColumnDef<IPermission, unknown>[] = [...];
+}
+```
+
+**Rules:**
+
+- `protected` for all fields and methods used in the template
+- `private` for internal fields and methods not referenced in the template
+- Never use `public` (implicit or explicit) on component class members
 
 ### App Initializer Pattern
 
@@ -642,21 +822,41 @@ Which `.claude/references/` files each agent loads in Step 0:
 
 `src/app/components/form-field/form-field.ts` — A wrapper component for standardized form inputs with signal forms integration. It provides label rendering, required indicator (auto-detected via `REQUIRED` metadata or manually overridden), hint text, translated validation error display, and error border styling via `aria-invalid`.
 
-**Supported form control elements:** `input`, `select`, `textarea`
+**Supported form control elements:** `input`, `select`, `textarea`, or any component providing `FormFieldCustomControl`
 
 The component reads the `FormField` directive from the projected child via `contentChild(SignalFormField)` — consumers only need `[formField]` on the child element, not on `<app-form-field>` itself.
 
 The component enforces three runtime constraints via `effect()`:
 
 1. Only a **single direct child** may be projected into `<ng-content>`
-2. The projected child must be a **supported form control**
+2. The projected child must be a **supported native form control** or provide `FormFieldCustomControl`
 3. The projected child must have a `[formField]` directive assigned
 
-**When adding a new form control element type** (e.g., a custom web component), update these locations in `form-field.ts`:
+**Custom component support:** Components that are not native form controls can be wrapped in `<app-form-field>` by:
+
+1. Extending `FormFieldCustomControl` (from `@components/form-field/form-field-custom-control`)
+2. Providing the token: `providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => MyComponent) }]`
+3. Using the `ariaInvalid` signal (set by FormField) to apply conditional invalid styling
+
+```typescript
+// ✅ Custom component integration
+@Component({
+  providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => PermissionSelector) }],
+})
+export class PermissionSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
+  // ariaInvalid signal is inherited — use it for conditional border styling
+}
+
+// Usage in template:
+<app-form-field label="Permissions">
+  <app-permission-selector [formField]="roleForm.permissionIds" [groups]="groups()" />
+</app-form-field>
+```
+
+**When adding a new native form control element type**, update these locations in `form-field.ts`:
 
 | What to update                                         | Purpose                                           |
 | ------------------------------------------------------ | ------------------------------------------------- |
-| `ng-content select` attribute in the template          | Compile-time projection filtering                 |
 | `private readonly supportedControls` class field       | Runtime validation of projected content           |
 | `querySelector` selector in `afterRenderEffect()` body | `aria-invalid` attribute management               |
 | `::ng-deep [aria-invalid='true']` style                | No change needed — targets attribute, not element |

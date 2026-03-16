@@ -193,6 +193,100 @@ it('should debounce calls', () => {
 });
 ```
 
+### Signal Effect Flushing in Tests
+
+Use `TestBed.tick()` to synchronously flush pending signal effects in tests. `TestBed.flushEffects()` is **deprecated since Angular 20** — always use `tick()` instead.
+
+```typescript
+// ✅ Correct — use tick()
+store.setPage(2);
+TestBed.tick();
+
+// ❌ Deprecated — do not use flushEffects()
+store.setPage(2);
+TestBed.flushEffects();
+```
+
+**When to call `TestBed.tick()`:** After any state change that triggers a computed signal update which in turn causes a reactive side effect (e.g., `patchState` on `currentPage` updates the `listParams` computed signal, which causes `rxMethod` to re-fire).
+
+### Testing `@defer` Blocks
+
+Components using `@defer` with `@placeholder (minimum Xms)` require two test setup steps:
+
+1. **Enable playthrough behavior** via `deferBlockBehavior: DeferBlockBehavior.Playthrough` in the `render()` options — otherwise `@defer` blocks default to manual triggering in tests
+2. **Advance fake timers** past the `@placeholder` minimum duration so the deferred content renders
+
+```typescript
+import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
+import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@test-utils';
+import { render, screen } from '@testing-library/angular';
+
+describe('ComponentWithDefer', () => {
+	beforeEach(() => {
+		useFakeTimers();
+		clearAllMocks();
+	});
+
+	afterEach(() => {
+		useRealTimers();
+	});
+
+	async function renderComponent() {
+		const { fixture } = await render(MyComponent, {
+			deferBlockBehavior: DeferBlockBehavior.Playthrough,
+			providers: [
+				/* ... */
+			],
+		});
+		TestBed.tick();
+		// Advance past the @placeholder minimum (e.g., 500ms)
+		await advanceTimersByTimeAsync(500);
+		fixture.detectChanges();
+	}
+
+	it('should render deferred content after placeholder minimum', async () => {
+		await renderComponent();
+
+		expect(screen.getByText('Deferred content')).toBeInTheDocument();
+	});
+});
+```
+
+**Key rules:**
+
+- Use `DeferBlockBehavior.Playthrough` — the default `Manual` mode prevents `when` triggers from firing
+- Use `advanceTimersByTimeAsync` (not `advanceTimersByTime`) to properly flush async operations alongside timers
+- Always pair `useFakeTimers()` in `beforeEach` with `useRealTimers()` in `afterEach`
+
+### Store Test Mock Typing
+
+Type API mocks as `Record<keyof ServiceClass, MockFn>` to keep the mock structurally linked to the real service. If a method is added to the service, TypeScript will catch the missing mock key.
+
+```typescript
+// ✅ Correct — structurally linked to the real service
+let usersApiMock: Record<keyof UsersApiService, MockFn>;
+
+// ❌ Incorrect — inline object literal, silently drifts from the real service
+let usersApiMock: {
+	getAll: MockFn<[params?: SearchPaginationParams], Observable<PaginatedResponse<ManagedUser>>>;
+	create: MockFn<[CreateUserRequest], Observable<CreateUserResponse>>;
+};
+```
+
+### Store Error State Assertions
+
+With per-operation structured errors, assert the specific operation key rather than the whole object (except in initial-state and clearErrors tests where the full shape matters):
+
+```typescript
+// ✅ Correct — assert the specific operation key
+expect(store.mutationError().create).toBe('Failed to create user');
+expect(store.readError().list).toBe('Failed to load users');
+
+// ✅ Correct — assert full shape for initial state or clearErrors
+expect(store.readError()).toEqual({ list: null });
+expect(store.mutationError()).toEqual({ create: null, update: null, delete: null });
+```
+
 ### ESLint Enforcement
 
 The `viRestrictedSyntax` ESLint rules forbid direct usage of `vi.fn()`, `vi.mock()`, `vi.useFakeTimers()`, and related Vitest globals. Use the `@test-utils` wrappers instead.

@@ -1,17 +1,22 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Sidebar } from '@components/sidebar/sidebar';
 import { Header } from '@components/header/header';
+import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component';
+import { Sidebar } from '@components/sidebar/sidebar';
+import { UIStore } from '@store/ui/ui.store';
 
 @Component({
 	selector: 'app-dashboard',
-	imports: [RouterOutlet, Sidebar, Header],
+	imports: [RouterOutlet, Sidebar, Header, LoadingSpinnerComponent],
 	template: `
 		<aside class="border-r-1 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/90" appSidebar></aside>
 		<header class="border-b-1 border-gray-200 p-4 dark:border-white/10 dark:bg-black/95" appHeader></header>
 		<main class="bg-white p-4 dark:bg-black/95">
 			<router-outlet />
 		</main>
+		@if (uiStore.isGlobalLoading()) {
+			<app-loading-spinner />
+		}
 	`,
 	styles: `
 		main {
@@ -46,4 +51,6 @@ import { Header } from '@components/header/header';
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class Dashboard {}
+export default class Dashboard {
+	readonly uiStore = inject(UIStore);
+}

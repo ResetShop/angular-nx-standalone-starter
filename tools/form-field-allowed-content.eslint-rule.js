@@ -34,7 +34,10 @@ export default {
 				}
 
 				for (const child of elementChildren) {
-					if (!allowedChildren.includes(child.name.toLowerCase())) {
+					const isNativeControl = allowedChildren.includes(child.name.toLowerCase());
+					const hasFormField = child.inputs.some((input) => input.name === 'formField');
+
+					if (!isNativeControl && !hasFormField) {
 						context.report({
 							loc: parserServices.convertNodeSourceSpanToLoc(child.sourceSpan),
 							messageId: 'unsupportedElement',
@@ -43,11 +46,10 @@ export default {
 								allowed: allowedChildren.join(', '),
 							},
 						});
-						continue; // skip missingDirective check; unsupported elements are already reported above
+						continue;
 					}
 
-					const hasFormField = child.inputs.some((input) => input.name === 'formField');
-					if (!hasFormField) {
+					if (isNativeControl && !hasFormField) {
 						context.report({
 							loc: parserServices.convertNodeSourceSpanToLoc(child.sourceSpan),
 							messageId: 'missingDirective',

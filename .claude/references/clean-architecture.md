@@ -83,3 +83,62 @@ _How components relate to each other_
 5. **Main is dirty** — The main component instantiates everything and knows all dependencies
 
 _Source: Robert C. Martin, "Clean Architecture" (2018)_
+
+---
+
+## Project-Specific UI Architecture Rules
+
+### Create/Edit Drawer Separation
+
+Create and edit drawers for any entity **must be completely separate components**. Never share form fields between them via a wrapper component, shared form-fields component, or a single drawer with a `mode` signal.
+
+**Rules:**
+
+1. Each drawer owns its own form model, validation schema, template, and submit handler
+2. Each drawer has a single public method: `open()` for create, `open(entityId)` for edit
+3. No `mode` signal, no `@if (mode() === 'edit')` branching in templates
+4. Duplication between the two is acceptable — each form can evolve independently
+
+**Rationale:** Shared extractions add indirection (slot contracts, extra files, input/output wiring) for marginal duplication savings. Fully separate drawers are easier to read, test, and evolve independently. When create and edit diverge (different fields, validation rules, confirmation steps), there is no shared component to untangle.
+
+**Naming convention:** `CreateXDrawer` and `EditXDrawer` in separate directories:
+
+```
+pages/<domain>/
+├── create-<entity>-drawer/
+│   ├── create-<entity>-drawer.ts
+│   └── create-<entity>-drawer.spec.ts
+└── edit-<entity>-drawer/
+    ├── edit-<entity>-drawer.ts
+    └── edit-<entity>-drawer.spec.ts
+```
+
+### Search Debounce in the Store
+
+Search debounce logic belongs in the store's `setSearchQuery` as an `rxMethod` with `debounceTime`, not in the component. Components call `store.setSearchQuery(value)` directly on every input event — no `Subject`, `debounceTime` subscription, or `takeUntilDestroyed` in the component.
+
+**Rationale:** Centralizing debounce in the store keeps components thin and declarative — they fire events, the store decides timing. It also prevents duplicate debounce logic if multiple components trigger the same search.
+
+```typescript
+// ✅ Correct — store owns the debounce via rxMethod
+setSearchQuery: rxMethod<string>(
+  pipe(
+    debounceTime(300),
+    tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
+  ),
+),
+
+// Component — simple pass-through, no RxJS
+protected onSearchInput(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  this.store.setSearchQuery(input.value);
+}
+
+// ❌ Incorrect — component manages debounce with Subject
+private readonly searchSubject = new Subject<string>();
+constructor() {
+  this.searchSubject.pipe(debounceTime(300), takeUntilDestroyed()).subscribe((query) => {
+    this.store.setSearchQuery(query);
+  });
+}
+```

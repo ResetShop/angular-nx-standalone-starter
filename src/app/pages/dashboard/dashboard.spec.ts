@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
-import { BreadcrumbItem, NavigationSection } from '@interfaces/navigation';
+import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation';
 import { featherActivity, featherHome } from '@ng-icons/feather-icons';
 import { Navigation } from '@providers/navigation/navigation';
 import { NavigationState } from '@providers/navigation/navigation-state';
@@ -142,5 +142,51 @@ describe('Dashboard', () => {
 
 		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i });
 		expect(signOutButton).toBeInTheDocument();
+	});
+
+	describe('global loading overlay', () => {
+		it('should not render loading spinner when isGlobalLoading is false', async () => {
+			await render(Dashboard, {
+				providers: [
+					...defaultProviders(),
+					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
+				],
+			});
+
+			expect(screen.queryByText('Cargando...')).not.toBeInTheDocument();
+		});
+
+		it('should render loading spinner when isGlobalLoading is true', async () => {
+			const { fixture } = await render(Dashboard, {
+				providers: [
+					...defaultProviders(),
+					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
+				],
+			});
+
+			const uiStore = fixture.componentInstance.uiStore;
+			uiStore.setGlobalLoading(true);
+			fixture.detectChanges();
+
+			expect(screen.getByText('Cargando...')).toBeInTheDocument();
+		});
+
+		it('should hide loading spinner when isGlobalLoading is set back to false', async () => {
+			const { fixture } = await render(Dashboard, {
+				providers: [
+					...defaultProviders(),
+					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
+				],
+			});
+
+			const uiStore = fixture.componentInstance.uiStore;
+			uiStore.setGlobalLoading(true);
+			fixture.detectChanges();
+			expect(screen.getByText('Cargando...')).toBeInTheDocument();
+
+			uiStore.setGlobalLoading(false);
+			fixture.detectChanges();
+			expect(screen.queryByText('Cargando...')).not.toBeInTheDocument();
+		});
 	});
 });

@@ -1,11 +1,11 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors';
 import { UserStatus } from '@contracts/user/user.schemas';
 import { fn } from '@test-utils';
+import { parseDurationToMs } from '@utils/duration';
 import { hash } from 'bcryptjs';
 import { createHash } from 'crypto';
 import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants';
 import { MockPasetoService } from '../../services/paseto/paseto.service.mock';
-import { parseDurationToMs } from '../../utils/duration';
 import { MockUserRepository } from '../user/user.repository.mock';
 import { AuthService } from './auth.service';
 import { MockAuthenticationRepository } from './authentication.repository.mock';

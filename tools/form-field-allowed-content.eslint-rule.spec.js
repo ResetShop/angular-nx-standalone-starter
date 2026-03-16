@@ -23,6 +23,10 @@ ruleTester.run('form-field-allowed-content', rule, {
 			code: '<app-form-field [label]="\'Terms\'"><input [formField]="field" type="checkbox" /></app-form-field>',
 		},
 		{
+			name: 'custom component with [formField]',
+			code: '<app-form-field [label]="\'Permissions\'"><app-permission-selector [formField]="field" [groups]="groups"></app-permission-selector></app-form-field>',
+		},
+		{
 			name: 'empty app-form-field',
 			code: '<app-form-field [label]="\'Empty\'"></app-form-field>',
 		},

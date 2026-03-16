@@ -58,6 +58,9 @@ describe('Auth Controller - /me endpoint', () => {
 				code: 'admin',
 				name: 'Administrator',
 				description: 'Full system access',
+				removable: true,
+				createdAt: new Date('2025-01-01'),
+				updatedAt: new Date('2025-01-01'),
 				permissions: [
 					{ id: 1, name: 'Read Users', description: 'View users', resource: 'users', action: 'read' },
 					{ id: 2, name: 'Write Users', description: 'Create/update users', resource: 'users', action: 'write' },

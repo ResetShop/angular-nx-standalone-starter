@@ -10,6 +10,7 @@ import {
 	type FieldTree,
 } from '@angular/forms/signals';
 import { Router, RouterLink } from '@angular/router';
+import { Alert, AlertDescription } from '@components/alert/alert';
 import { Button } from '@components/button/button';
 import Card from '@components/card/card';
 import { FormField } from '@components/form-field/form-field';
@@ -19,10 +20,10 @@ import { AuthStore } from '@store/auth/auth.store';
 
 @Component({
 	selector: 'app-login-page',
-	imports: [Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField],
+	imports: [Alert, AlertDescription, Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" class="z-10 sm:h-[420px] sm:w-[420px]">
+			<form (submit)="onSubmit($event)" class="z-10 sm:h-[420px] sm:w-[420px]">
 				<app-card
 					[titleTemplate]="cardTitle"
 					[contentTemplate]="cardContent"
@@ -59,11 +60,8 @@ import { AuthStore } from '@store/auth/auth.store';
 					</div>
 
 					@if (errorMessage()) {
-						<div
-							class="border-destructive/30 bg-destructive/10 text-destructive mt-4 rounded-md border p-3 text-sm"
-							role="alert"
-						>
-							{{ errorMessage() }}
+						<div appAlert variant="destructive" class="mt-4">
+							<p appAlertDescription>{{ errorMessage() }}</p>
 						</div>
 					}
 				</ng-template>
@@ -123,7 +121,8 @@ export default class Login {
 		});
 	}
 
-	onSubmit() {
+	onSubmit(event: Event) {
+		event.preventDefault();
 		if (!this.isFormValid()) {
 			// Signal forms FieldState.markAsTouched() only marks a single field;
 			// there is no markAllAsTouched() equivalent — each field must be touched individually.
