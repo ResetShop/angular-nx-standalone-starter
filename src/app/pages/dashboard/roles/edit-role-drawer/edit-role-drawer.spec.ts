@@ -59,7 +59,16 @@ describe('EditRoleDrawer', () => {
 
 	async function renderAndOpenRaw(roleId = 1) {
 		rolesApiMock.getByIdWithPermissions.mockReturnValue(
-			of({ id: roleId, code: 'admin', name: 'Admin', description: 'Administrator role', permissions: [] }),
+			of({
+				id: roleId,
+				code: 'admin',
+				name: 'Admin',
+				description: 'Administrator role',
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+				permissions: [],
+			}),
 		);
 
 		const { fixture } = await render(EditRoleDrawer, {
@@ -193,7 +202,16 @@ describe('EditRoleDrawer', () => {
 			}),
 		);
 		rolesApiMock.getByIdWithPermissions.mockReturnValue(
-			of({ id: 1, code: 'admin', name: 'Updated', description: null, permissions: [] }),
+			of({
+				id: 1,
+				code: 'admin',
+				name: 'Updated',
+				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+				permissions: [],
+			}),
 		);
 		const { fixture } = await renderAndOpenRaw();
 
