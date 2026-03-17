@@ -9,7 +9,7 @@ export const provideTheme = () => [
 	},
 ]
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class Theme extends ThemeProvider {
 	private readonly THEME_STORAGE_KEY = 'theme-preference'
 	private readonly platformId = inject(PLATFORM_ID)
