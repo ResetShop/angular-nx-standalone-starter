@@ -168,6 +168,7 @@ describe('CreateUserDrawer', () => {
 		fixture.detectChanges()
 
 		expect(screen.getByRole('alert')).toBeInTheDocument()
+		expect(screen.getByText('A user with this email already exists')).toBeInTheDocument()
 	})
 
 	it('should keep drawer open when creation fails', async () => {
