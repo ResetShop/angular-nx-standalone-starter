@@ -5,7 +5,7 @@ import type { IRole } from '@domain/access/role.interface'
 import { mapRole, mapRoleFromData } from '@domain/access/role.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { RolesApiService } from '@providers/roles/roles'
+import { RolesApi } from '@providers/roles/roles.interface'
 import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
 import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
@@ -34,7 +34,7 @@ function patchMutationError(
  *
  * Manages the role list, pagination, search, CRUD operations, and permission assignment.
  * Components inject this store directly for all role management operations.
- * Uses RolesApiService for HTTP calls and mapRole for domain mapping.
+ * Uses RolesApi for HTTP calls and mapRole for domain mapping.
  *
  * The list load is reactive: changing currentPage, pageSize, or searchQuery
  * automatically triggers a re-fetch via rxMethod watching the computed listParams signal.
@@ -69,7 +69,7 @@ export const RolesStore = signalStore(
 		hasPreviousPage: computed(() => store.currentPage() > 1),
 	})),
 	withMethods((store) => {
-		const rolesApi = inject(RolesApiService)
+		const rolesApi = inject(RolesApi)
 
 		return {
 			loadRoles: rxMethod<SearchPaginationParams>(
@@ -194,7 +194,7 @@ export const RolesStore = signalStore(
 	}),
 	// Mutation methods — all reload the list after success
 	withMethods((store) => {
-		const rolesApi = inject(RolesApiService)
+		const rolesApi = inject(RolesApi)
 
 		return {
 			reload(): void {

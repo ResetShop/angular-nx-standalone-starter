@@ -7,8 +7,8 @@ import { isServerless } from '../../utils/environment'
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
-	type IRefreshTokenRepository,
 	type RefreshTokenData,
+	type RefreshTokenRepository,
 } from './interfaces'
 
 // Token cleanup configuration - configurable via environment variables
@@ -81,7 +81,7 @@ const TOKEN_CLEANUP_LOCK_KEY = 0x5246544b // "RFTK" in hex (Refresh Token Cleanu
  * Handles token lifecycle including creation, validation, revocation, and cleanup.
  * Supports both traditional and serverless environments with appropriate locking strategies.
  */
-export class RefreshTokenRepository extends BaseRepository implements IRefreshTokenRepository {
+export class DrizzleRefreshTokenRepository extends BaseRepository implements RefreshTokenRepository {
 	/**
 	 * Try to acquire a PostgreSQL advisory lock for token cleanup.
 	 * Non-blocking - returns immediately with true/false.

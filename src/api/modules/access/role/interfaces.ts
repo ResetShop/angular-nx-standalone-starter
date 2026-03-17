@@ -81,7 +81,7 @@ export interface RoleWithPermissions {
 /**
  * Role repository interface
  */
-export interface IRoleRepository {
+export interface RoleRepository {
 	findById(id: number): Promise<RoleData | null>
 	findByCode(code: string): Promise<RoleData | null>
 	findByName(name: string): Promise<RoleData | null>
@@ -98,7 +98,7 @@ export interface IRoleRepository {
 /**
  * Role service interface
  */
-export interface IRoleService {
+export interface RoleService {
 	getRole(id: number): Promise<RoleData | null>
 	getRoleByCode(code: string): Promise<RoleData | null>
 	getAllRoles(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>>

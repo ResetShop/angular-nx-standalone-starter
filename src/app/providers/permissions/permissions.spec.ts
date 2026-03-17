@@ -4,18 +4,18 @@ import { TestBed } from '@angular/core/testing'
 import type { PaginatedResponse } from '@contracts/common/pagination.types'
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import type { PermissionData } from '@contracts/role/role.types'
-import { PermissionsApiService } from './permissions'
+import { HttpPermissionsApi } from './permissions'
 
-describe('PermissionsApiService', () => {
-	let service: PermissionsApiService
+describe('HttpPermissionsApi', () => {
+	let service: HttpPermissionsApi
 	let httpMock: HttpTestingController
 
 	beforeEach(() => {
 		TestBed.configureTestingModule({
-			providers: [PermissionsApiService, provideHttpClient(), provideHttpClientTesting()],
+			providers: [HttpPermissionsApi, provideHttpClient(), provideHttpClientTesting()],
 		})
 
-		service = TestBed.inject(PermissionsApiService)
+		service = TestBed.inject(HttpPermissionsApi)
 		httpMock = TestBed.inject(HttpTestingController)
 	})
 

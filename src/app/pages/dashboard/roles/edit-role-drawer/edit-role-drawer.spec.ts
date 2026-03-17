@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@components/drawer/drawer-loading'
 import { Translation } from '@providers/i18n/translation'
-import { PermissionsApiService } from '@providers/permissions/permissions'
-import { RolesApiService } from '@providers/roles/roles'
+import { PermissionsApi } from '@providers/permissions/permissions.interface'
+import { RolesApi } from '@providers/roles/roles.interface'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -29,8 +29,8 @@ const mockTranslation = {
 }
 
 describe('EditRoleDrawer', () => {
-	let rolesApiMock: Record<keyof RolesApiService, MockFn>
-	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>
+	let rolesApiMock: Record<keyof RolesApi, MockFn>
+	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
 
 	beforeEach(() => {
 		useFakeTimers()
@@ -75,8 +75,8 @@ describe('EditRoleDrawer', () => {
 
 		const { fixture } = await render(EditRoleDrawer, {
 			providers: [
-				{ provide: RolesApiService, useValue: rolesApiMock },
-				{ provide: PermissionsApiService, useValue: permissionsApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})

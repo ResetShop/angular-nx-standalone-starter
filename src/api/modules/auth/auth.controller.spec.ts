@@ -2,7 +2,7 @@ import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../container/container'
-import { MockContainer } from '../../container/container.mock'
+import { InMemoryContainer } from '../../container/container.mock'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import type { RoleWithPermissions } from '../access/role/interfaces'
 import authController from './auth.controller'
@@ -31,7 +31,7 @@ describe('Auth Controller - /me endpoint', () => {
 	beforeEach(() => {
 		clearAllMocks()
 		container.use(
-			new MockContainer({
+			new InMemoryContainer({
 				userRoleService: {
 					getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
 				},
@@ -118,7 +118,7 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 		delete process.env['CRON_SECRET']
 
 		container.use(
-			new MockContainer({
+			new InMemoryContainer({
 				tokenMaintenanceService: {
 					cleanupExpiredTokens: mockCleanupExpiredTokens,
 				},

@@ -1,6 +1,6 @@
 import { V3 } from 'paseto'
 import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
-import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces'
+import { type RefreshTokenPayload, type TokenPayload } from './interfaces'
 
 /**
  * Service to interact with PASETO tokens. It allows for the generation and validation of access and refresh tokens
@@ -10,7 +10,7 @@ import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from
  * Optionally, the PASETO_ACCESS_TOKEN_EXPIRY env var can also be defined.
  *
  * */
-export class PasetoService implements IPasetoService {
+export class PasetoService {
 	private readonly secretKey: Buffer
 	private readonly issuer: string
 

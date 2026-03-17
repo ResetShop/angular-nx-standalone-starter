@@ -1,13 +1,13 @@
 import { z } from 'zod'
-import type { IEmailRepository, IEmailService, SendEmailParams } from './interfaces'
+import type { EmailRepository, SendEmailParams } from './interfaces'
 
 interface EmailServiceDeps {
-	emailRepository: IEmailRepository
+	emailRepository: EmailRepository
 }
 
 /**
  * Application-level email service.
- * Delegates delivery to an injected IEmailRepository, handling errors
+ * Delegates delivery to an injected EmailRepository, handling errors
  * and structured logging.
  *
  * The concrete repository is selected at container setup time via the
@@ -15,8 +15,8 @@ interface EmailServiceDeps {
  * - 'nodemailer' (default) — NodemailerRepository, requires SMTP_* env vars
  * - 'ethereal' — EtherealEmailRepository, no env vars needed (test accounts)
  */
-export class EmailService implements IEmailService {
-	private readonly emailRepository: IEmailRepository
+export class EmailService {
+	private readonly emailRepository: EmailRepository
 	private readonly sendEmailSchema = z.object({
 		to: z.email('Invalid recipient email address'),
 		subject: z.string().min(1, 'Subject is required'),

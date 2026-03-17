@@ -1,6 +1,6 @@
 import { parseDurationToMs } from '@utils/duration'
 import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants'
-import { type AuthenticationData, type IAuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
+import { type AuthenticationData, type AuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
 
 interface MockAuthRecord {
 	passwordHash: string
@@ -9,7 +9,7 @@ interface MockAuthRecord {
 	mustChangePassword?: boolean
 }
 
-export class MockAuthenticationRepository implements IAuthenticationRepository {
+export class InMemoryAuthenticationRepository implements AuthenticationRepository {
 	private authRecords: Map<number, MockAuthRecord> = new Map()
 	private nextId = 1
 

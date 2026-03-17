@@ -1,7 +1,7 @@
 import { fn } from '@test-utils'
 
 /**
- * Create a mock AuthApiService for tests.
+ * Create a mock AuthApi for tests.
  * Shared across guard and store specs.
  */
 export function createAuthApiMock() {

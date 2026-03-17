@@ -97,7 +97,7 @@ libs/
 
 - **Files:** `kebab-case` (e.g., `user-profile.component.ts`)
 - **Classes:** `PascalCase` (e.g., `UserProfileComponent`)
-- **Interfaces:** `PascalCase`. Use `I` prefix only for domain model interfaces where a concrete class exists (e.g., `IUser`/`User`). Omit prefix for DTOs and general interfaces (e.g., `CreateRoleParams`).
+- **Interfaces:** `PascalCase`, no `I` prefix. Use **Pattern C (Qualified Implementation)**: the interface owns the clean name, implementations use a technology/purpose prefix. Domain model interfaces keep the `I` prefix only where a runtime class exists (e.g., `IUser`/`User`). DTOs and general interfaces never use a prefix (e.g., `CreateRoleParams`).
 - **Functions/Methods:** `camelCase` (e.g., `getUserById`)
 - **Constants:** `SCREAMING_SNAKE_CASE` for true global constants; `camelCase` for local constants
 
@@ -386,7 +386,7 @@ Stores follow a consistent block ordering with two `withComputed` and two `withM
 
 ```typescript
 // ✅ Correct — structurally linked to the real service
-let apiMock: Record<keyof UsersApiService, MockFn>;
+let apiMock: Record<keyof UsersApi, MockFn>;
 
 // ❌ Incorrect — inline object literal not linked to service
 let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
@@ -669,6 +669,61 @@ interface UserProjection {
 - Keep file-local (not exported) — these are internal to the repository
 - Extract when a query result type is used in method signatures or appears inline with 3+ fields
 - Inline anonymous types in Drizzle `.select()` calls are fine — the `Projection` type captures the output shape when passed between methods
+
+### Pattern C (Qualified Implementation) — Naming Convention
+
+All backend and frontend interfaces follow **Pattern C**: the interface owns the clean name (no `I` prefix), and implementations use a technology/purpose **prefix**.
+
+**Backend:**
+
+| Layer               | Interface         | Implementation                                                             | Test Double               |
+| ------------------- | ----------------- | -------------------------------------------------------------------------- | ------------------------- |
+| Repository          | `UserRepository`  | `DrizzleUserRepository`                                                    | `InMemoryUserRepository`  |
+| Service (sole impl) | `AuthService`     | `AuthService` (same name)                                                  | `InMemoryAuthService`     |
+| Email               | `EmailRepository` | `NodemailerRepository` / `EtherealEmailRepository` / `NoopEmailRepository` | `InMemoryEmailRepository` |
+| Container           | `Container`       | `DependencyContainer`                                                      | `InMemoryContainer`       |
+
+**Frontend:**
+
+| Layer       | Interface + Token                   | Implementation       | Test Double              |
+| ----------- | ----------------------------------- | -------------------- | ------------------------ |
+| API Service | `AuthApi` (`InjectionToken`)        | `HttpAuthApi`        | `InMemoryAuthApi`        |
+| API Service | `UsersApi` (`InjectionToken`)       | `HttpUsersApi`       | `InMemoryUsersApi`       |
+| API Service | `RolesApi` (`InjectionToken`)       | `HttpRolesApi`       | `InMemoryRolesApi`       |
+| API Service | `PermissionsApi` (`InjectionToken`) | `HttpPermissionsApi` | `InMemoryPermissionsApi` |
+
+**Rules:**
+
+- Interface files: `interfaces.ts` (backend) or `*.interface.ts` (frontend)
+- `InMemory*` for all test doubles — never `Mock*`
+- `Drizzle*` prefix for database-backed repository implementations
+- `Http*` prefix for HTTP-based API service implementations
+- Sole-implementation services keep the interface name (no prefix, no `Impl` suffix)
+- Frontend tokens use `InjectionToken` with `providedIn: 'root'` and a factory pointing to the HTTP implementation
+
+### Frontend API Provider Pattern
+
+```typescript
+// Interface + token (e.g., auth.interface.ts)
+export interface AuthApi {
+	login(params: LoginRequest): Observable<LoginResponse>
+	// ...
+}
+export const AuthApi = new InjectionToken<AuthApi>('AuthApi', {
+	providedIn: 'root',
+	factory: () => inject(HttpAuthApi),
+})
+
+// HTTP implementation (e.g., auth.ts)
+@Injectable({ providedIn: 'root' })
+export class HttpAuthApi implements AuthApi { ... }
+
+// Consumer (e.g., auth.store.ts)
+const authApi = inject(AuthApi) // injects via token, gets HttpAuthApi by default
+
+// Test override
+{ provide: AuthApi, useValue: mockObj }
+```
 
 ---
 

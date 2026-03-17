@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@components/drawer/drawer-loading'
 import { Translation } from '@providers/i18n/translation'
-import { RolesApiService } from '@providers/roles/roles'
-import { UsersApiService } from '@providers/users/users'
+import { RolesApi } from '@providers/roles/roles.interface'
+import { UsersApi } from '@providers/users/users.interface'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -29,8 +29,8 @@ const mockTranslation = {
 }
 
 describe('CreateUserDrawer', () => {
-	let usersApiMock: Record<keyof UsersApiService, MockFn>
-	let rolesApiMock: Record<keyof RolesApiService, MockFn>
+	let usersApiMock: Record<keyof UsersApi, MockFn>
+	let rolesApiMock: Record<keyof RolesApi, MockFn>
 
 	beforeEach(() => {
 		useFakeTimers()
@@ -68,8 +68,8 @@ describe('CreateUserDrawer', () => {
 	async function renderAndOpenRaw() {
 		const { fixture } = await render(CreateUserDrawer, {
 			providers: [
-				{ provide: UsersApiService, useValue: usersApiMock },
-				{ provide: RolesApiService, useValue: rolesApiMock },
+				{ provide: UsersApi, useValue: usersApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
