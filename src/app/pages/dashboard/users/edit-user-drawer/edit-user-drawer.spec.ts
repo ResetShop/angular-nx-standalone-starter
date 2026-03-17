@@ -210,6 +210,17 @@ describe('EditUserDrawer', () => {
 		expect(screen.getByRole('button', { name: /saving/i })).toBeDisabled()
 	})
 
+	it('should show discard dialog when canceling with dirty form', async () => {
+		const { fixture } = await renderAndOpenRaw()
+
+		modifyFirstName(fixture)
+
+		fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
+		fixture.detectChanges()
+
+		expect(screen.getByText(/you have unsaved changes/i)).toBeInTheDocument()
+	})
+
 	it('should close drawer on successful update', async () => {
 		usersApiMock.update.mockReturnValue(of({ ...MOCK_USER, firstName: 'Jane' }))
 		usersApiMock.getById.mockReturnValue(of({ ...MOCK_USER, firstName: 'Jane' }))
