@@ -122,7 +122,7 @@ export class CreateUserDrawer {
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
-	protected readonly model = signal<CreateUserFormModel>({ ...EMPTY_MODEL })
+	private readonly model = signal<CreateUserFormModel>({ ...EMPTY_MODEL })
 	protected readonly userForm = form(
 		this.model,
 		schema<CreateUserFormModel>((user) => {
