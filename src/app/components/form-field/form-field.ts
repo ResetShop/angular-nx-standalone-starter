@@ -5,7 +5,6 @@ import {
 	Component,
 	computed,
 	contentChild,
-	effect,
 	ElementRef,
 	ErrorHandler,
 	inject,
@@ -131,11 +130,11 @@ export class FormField {
 		return this.mapErrorToMessage(errors[0])
 	})
 
-	private readonly supportedControls = 'input, select, textarea'
+	private readonly supportedNativeControls = 'input, select, textarea'
 
 	constructor() {
-		effect(() => this.setupContentValidation())
 		afterRenderEffect(() => {
+			this.setupContentValidation()
 			this.resolveInputComponentType()
 			this.setupIdAndAriaSync()
 		})
@@ -161,14 +160,14 @@ export class FormField {
 		}
 
 		if (directChildren.length === 1) {
-			const isNativeControl = directChildren[0].matches(this.supportedControls)
+			const isNativeControl = directChildren[0].matches(this.supportedNativeControls)
 			const isCustomControl = !!this.customControl()
 
 			if (!isNativeControl && !isCustomControl) {
 				this.errorHandler.handleError(
 					new Error(
 						`FormField received an unsupported element <${directChildren[0].tagName.toLowerCase()}>. ` +
-							`Supported elements: ${this.supportedControls}, or a FormFieldCustomControl provider.`,
+							`Supported elements: ${this.supportedNativeControls}, or a FormFieldCustomControl provider.`,
 					),
 				)
 			}
@@ -198,7 +197,7 @@ export class FormField {
 		const wrapper = this.contentWrapper()?.nativeElement
 		if (!wrapper) return
 
-		const nativeEl = wrapper.querySelector(`:scope > ${this.supportedControls}`)
+		const nativeEl = wrapper.querySelector(`:scope > ${this.supportedNativeControls}`)
 		if (nativeEl) {
 			let id = nativeEl.getAttribute('id')
 			if (!id) {
