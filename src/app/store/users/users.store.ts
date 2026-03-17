@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
 import type { SearchPaginationParams } from '@contracts/common/pagination.types'
 import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types'
@@ -7,6 +6,7 @@ import { mapManagedUserResponse } from '@domain/user-management/managed-user.map
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { UsersApiService } from '@providers/users/users'
+import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
 import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
 import type { UsersMutationError, UsersReadError } from './users.types'
@@ -22,13 +22,6 @@ function patchMutationError(
 	value: string | null,
 ): UsersMutationError {
 	return { ...current, [key]: value }
-}
-
-function extractErrorMessage(err: unknown, fallback: string): string {
-	if (err instanceof HttpErrorResponse && typeof err.error?.error === 'string') {
-		return err.error.error
-	}
-	return fallback
 }
 
 /**
