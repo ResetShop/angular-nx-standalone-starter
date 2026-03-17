@@ -1,5 +1,5 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
 import { authentication } from '../../../db/schema/authentication'
 import { role } from '../../../db/schema/role'

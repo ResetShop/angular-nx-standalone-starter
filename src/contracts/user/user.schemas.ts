@@ -1,18 +1,7 @@
 import { z } from 'zod'
 import { QUERY_DEFAULTS } from '../common/query.constants'
 import { roleDataSchema } from '../role/role.schemas'
-
-// ============================================================================
-// User Status
-// ============================================================================
-
-export const UserStatus = Object.freeze({
-	ACTIVE: 'active',
-	DISABLED: 'disabled',
-	DELETED: 'deleted',
-} as const)
-
-export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+import { UserStatus } from './user.constants'
 
 export const userStatusSchema = z.enum([UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED])
 

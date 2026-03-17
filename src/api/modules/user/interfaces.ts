@@ -1,4 +1,4 @@
-import type { UserStatus } from '@contracts/user/user.schemas'
+import type { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'

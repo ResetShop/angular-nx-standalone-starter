@@ -1,4 +1,4 @@
-import type { UserStatus } from '@contracts/user/user.schemas'
+import type { UserStatus } from '@contracts/user/user.constants'
 
 export interface IManagedUserRole {
 	readonly id: number

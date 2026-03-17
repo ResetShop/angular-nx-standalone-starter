@@ -1,5 +1,5 @@
 import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors'
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@utils/duration'
 import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
