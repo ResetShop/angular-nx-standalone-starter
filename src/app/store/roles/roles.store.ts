@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
 import type { SearchPaginationParams } from '@contracts/common/pagination.types'
 import type { AssignPermissionsRequest } from '@contracts/role/role.types'
@@ -7,6 +6,7 @@ import { mapRole, mapRoleFromData } from '@domain/access/role.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { RolesApiService } from '@providers/roles/roles'
+import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
 import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
 import type {
@@ -16,13 +16,6 @@ import type {
 	UpdateRoleWithPermissionsRequest,
 } from './roles.types'
 import { initialRolesState } from './roles.types'
-
-function extractErrorMessage(err: unknown, fallback: string): string {
-	if (err instanceof HttpErrorResponse && typeof err.error?.error === 'string') {
-		return err.error.error
-	}
-	return fallback
-}
 
 function patchReadError(current: RolesReadError, key: keyof RolesReadError, value: string | null): RolesReadError {
 	return { ...current, [key]: value }
