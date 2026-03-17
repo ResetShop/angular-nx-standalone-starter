@@ -1,4 +1,4 @@
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'

@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing'
 import type { PaginatedResponse } from '@contracts/common/pagination.types'
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types'
 import { UsersApiService } from '@providers/users/users'
-import { clearAllMocks, fn, type MockFn } from '@test-utils'
+import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils'
 import { EMPTY, NEVER, of, throwError } from 'rxjs'
 import { UsersStore } from './users.store'
 
@@ -94,7 +94,7 @@ describe('UsersStore', () => {
 			expect(store.isCreating()).toBe(false)
 			expect(store.isUpdating()).toBe(false)
 			expect(store.isDeleting()).toBe(false)
-			expect(store.readError()).toEqual({ list: null })
+			expect(store.readError()).toEqual({ list: null, detail: null })
 			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null })
 		})
 
@@ -156,14 +156,20 @@ describe('UsersStore', () => {
 			expect(store.readError().list).toBe('Failed to load users')
 		})
 
-		it('should pass search query when set', () => {
-			setupStore()
+		describe('with debounced search', () => {
+			beforeEach(() => useFakeTimers())
+			afterEach(() => useRealTimers())
 
-			store.setSearchQuery('admin')
-			TestBed.tick()
+			it('should pass search query when set', async () => {
+				setupStore()
 
-			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
-			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }))
+				store.setSearchQuery('admin')
+				await advanceTimersByTimeAsync(300)
+				TestBed.tick()
+
+				const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
+				expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }))
+			})
 		})
 
 		it('should not send search param when query is empty', () => {
@@ -399,16 +405,57 @@ describe('UsersStore', () => {
 	})
 
 	describe('setSearchQuery', () => {
-		it('should reset to page 1 and update searchQuery', () => {
+		beforeEach(() => useFakeTimers())
+		afterEach(() => useRealTimers())
+
+		it('should not update searchQuery before debounce period elapses', async () => {
+			setupStore()
+
+			store.setSearchQuery('test')
+			await advanceTimersByTimeAsync(299)
+
+			expect(store.searchQuery()).toBe('')
+		})
+
+		it('should update searchQuery after debounce period elapses', async () => {
+			setupStore()
+
+			store.setSearchQuery('test')
+			await advanceTimersByTimeAsync(300)
+
+			expect(store.searchQuery()).toBe('test')
+		})
+
+		it('should reset to page 1 when search query is applied', async () => {
 			setupStore()
 
 			store.setPage(3)
 			TestBed.tick()
+
 			store.setSearchQuery('test')
-			TestBed.tick()
+			await advanceTimersByTimeAsync(300)
 
 			expect(store.currentPage()).toBe(1)
 			expect(store.searchQuery()).toBe('test')
+		})
+
+		it('should only apply the last value when called rapidly', async () => {
+			setupStore()
+			const callsBefore = usersApiMock.getAll.calls.length
+
+			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+			store.setSearchQuery('a')
+			await advanceTimersByTimeAsync(100)
+			store.setSearchQuery('ad')
+			await advanceTimersByTimeAsync(100)
+			store.setSearchQuery('admin')
+			await advanceTimersByTimeAsync(300)
+			TestBed.tick()
+
+			expect(store.searchQuery()).toBe('admin')
+			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1)
+			const lastCall = usersApiMock.getAll.calls[usersApiMock.getAll.calls.length - 1]
+			expect(lastCall[0]).toEqual(expect.objectContaining({ search: 'admin' }))
 		})
 	})
 
@@ -451,7 +498,7 @@ describe('UsersStore', () => {
 
 			store.clearErrors()
 
-			expect(store.readError()).toEqual({ list: null })
+			expect(store.readError()).toEqual({ list: null, detail: null })
 			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null })
 		})
 	})
@@ -492,6 +539,79 @@ describe('UsersStore', () => {
 			store.reload()
 
 			expect(usersApiMock.getAll.calls).toHaveLength(callsBefore + 1)
+		})
+	})
+
+	describe('clearMutationError', () => {
+		it('should clear only the specified mutation error key', () => {
+			usersApiMock.getAll.mockReturnValue(EMPTY)
+			usersApiMock.create.mockReturnValue(throwError(() => new Error('Create error')))
+			usersApiMock.delete.mockReturnValue(throwError(() => new Error('Delete error')))
+			setupStore()
+
+			store.createUser({ email: 'a@b.com', firstName: 'A', lastName: 'B', mustChangePassword: true })
+			store.deleteUser(1)
+			expect(store.mutationError().create).toBe('Failed to create user')
+			expect(store.mutationError().delete).toBe('Failed to delete user')
+
+			store.clearMutationError('create')
+
+			expect(store.mutationError().create).toBeNull()
+			expect(store.mutationError().delete).toBe('Failed to delete user')
+		})
+	})
+
+	describe('loadUser', () => {
+		it('should load a single user into selectedUser', () => {
+			const user = createMockManagedUser({ id: 5 })
+			usersApiMock.getAll.mockReturnValue(EMPTY)
+			usersApiMock.getById.mockReturnValue(of(user))
+			setupStore()
+
+			store.loadUser(5)
+
+			expect(store.selectedUser()).not.toBeNull()
+			expect(store.selectedUser()?.id).toBe(5)
+			expect(store.isLoadingDetail()).toBe(false)
+		})
+
+		it('should set isLoadingDetail to true while loading', () => {
+			usersApiMock.getAll.mockReturnValue(EMPTY)
+			usersApiMock.getById.mockReturnValue(NEVER)
+			setupStore()
+
+			store.loadUser(5)
+
+			expect(store.isLoadingDetail()).toBe(true)
+		})
+
+		it('should set readError.detail on failure', () => {
+			usersApiMock.getAll.mockReturnValue(EMPTY)
+			usersApiMock.getById.mockReturnValue(throwError(() => new Error('Not found')))
+			setupStore()
+
+			store.loadUser(999)
+
+			expect(store.isLoadingDetail()).toBe(false)
+			expect(store.readError().detail).toBe('Failed to load user')
+		})
+	})
+
+	describe('isMutating', () => {
+		it('should return true when isCreating is true', () => {
+			usersApiMock.getAll.mockReturnValue(EMPTY)
+			usersApiMock.create.mockReturnValue(NEVER)
+			setupStore()
+
+			store.createUser({ email: 'a@b.com', firstName: 'A', lastName: 'B', mustChangePassword: true })
+
+			expect(store.isMutating()).toBe(true)
+		})
+
+		it('should return false when no mutations are active', () => {
+			setupStore()
+
+			expect(store.isMutating()).toBe(false)
 		})
 	})
 })

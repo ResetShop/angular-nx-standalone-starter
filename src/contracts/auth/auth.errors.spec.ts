@@ -1,4 +1,4 @@
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import {
 	AuthError,
 	getInternalErrorMessage,

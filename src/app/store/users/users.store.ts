@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
 import type { SearchPaginationParams } from '@contracts/common/pagination.types'
 import type { CreateUserRequest, UpdateUserRequest, UpdateUserStatusRequest } from '@contracts/user/user.types'
@@ -6,7 +7,8 @@ import { mapManagedUserResponse } from '@domain/user-management/managed-user.map
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { UsersApiService } from '@providers/users/users'
-import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs'
+import { parseDurationToMs } from '@utils/duration'
+import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
 import type { UsersMutationError, UsersReadError } from './users.types'
 import { initialUsersState } from './users.types'
 
@@ -20,6 +22,13 @@ function patchMutationError(
 	value: string | null,
 ): UsersMutationError {
 	return { ...current, [key]: value }
+}
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+	if (err instanceof HttpErrorResponse && typeof err.error?.error === 'string') {
+		return err.error.error
+	}
+	return fallback
 }
 
 /**
@@ -38,10 +47,16 @@ export const UsersStore = signalStore(
 	withComputed((store) => ({
 		totalPages: computed(() => (store.totalItems() === 0 ? 0 : Math.ceil(store.totalItems() / store.pageSize()))),
 		isAnyLoading: computed(
-			() => store.isLoadingList() || store.isCreating() || store.isUpdating() || store.isDeleting(),
+			() =>
+				store.isLoadingList() ||
+				store.isLoadingDetail() ||
+				store.isCreating() ||
+				store.isUpdating() ||
+				store.isDeleting(),
 		),
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
+		isMutating: computed(() => store.isCreating() || store.isUpdating() || store.isDeleting()),
 		/** Reactive params for list fetch — any change triggers loadUsers via rxMethod */
 		listParams: computed(() => ({
 			offset: (store.currentPage() - 1) * store.pageSize(),
@@ -95,17 +110,55 @@ export const UsersStore = signalStore(
 				patchState(store, { pageSize: size, currentPage: 1 })
 			},
 
-			setSearchQuery(query: string): void {
-				patchState(store, { searchQuery: query, currentPage: 1 })
-			},
+			setSearchQuery: rxMethod<string>(
+				pipe(
+					debounceTime(parseDurationToMs('300ms')),
+					tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
+				),
+			),
+
+			loadUser: rxMethod<number>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isLoadingDetail: true,
+							readError: patchReadError(store.readError(), 'detail', null),
+						}),
+					),
+					switchMap((id) =>
+						usersApi.getById(id).pipe(
+							tap({
+								next: (response) =>
+									patchState(store, {
+										selectedUser: mapManagedUserResponse(response),
+										isLoadingDetail: false,
+									}),
+								// TODO(#66): Replace with structured logging service
+								error: (err) => {
+									console.error('[UsersStore] loadUser failed:', err)
+									patchState(store, {
+										isLoadingDetail: false,
+										readError: patchReadError(store.readError(), 'detail', 'Failed to load user'),
+									})
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
 
 			selectUser(user: IManagedUser | null): void {
 				patchState(store, { selectedUser: user })
 			},
 
+			clearMutationError(key: keyof UsersMutationError): void {
+				patchState(store, { mutationError: patchMutationError(store.mutationError(), key, null) })
+			},
+
 			clearErrors(): void {
 				patchState(store, {
-					readError: { list: null },
+					readError: { list: null, detail: null },
 					mutationError: { create: null, update: null, updateStatus: null, delete: null },
 				})
 			},
@@ -140,7 +193,11 @@ export const UsersStore = signalStore(
 									console.error('[UsersStore] createUser failed:', err)
 									patchState(store, {
 										isCreating: false,
-										mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create user'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'create',
+											extractErrorMessage(err, 'Failed to create user'),
+										),
 									})
 								},
 							}),
@@ -170,7 +227,11 @@ export const UsersStore = signalStore(
 									console.error('[UsersStore] updateUser failed:', err)
 									patchState(store, {
 										isUpdating: false,
-										mutationError: patchMutationError(store.mutationError(), 'update', 'Failed to update user'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'update',
+											extractErrorMessage(err, 'Failed to update user'),
+										),
 									})
 								},
 							}),
@@ -203,7 +264,7 @@ export const UsersStore = signalStore(
 										mutationError: patchMutationError(
 											store.mutationError(),
 											'updateStatus',
-											'Failed to update user status',
+											extractErrorMessage(err, 'Failed to update user status'),
 										),
 									})
 								},
@@ -244,7 +305,11 @@ export const UsersStore = signalStore(
 									console.error('[UsersStore] deleteUser failed:', err)
 									patchState(store, {
 										isDeleting: false,
-										mutationError: patchMutationError(store.mutationError(), 'delete', 'Failed to delete user'),
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'delete',
+											extractErrorMessage(err, 'Failed to delete user'),
+										),
 									})
 								},
 							}),

@@ -8,7 +8,14 @@ import {
 	untracked,
 	viewChild,
 } from '@angular/core'
-import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals'
+import {
+	email as emailValidator,
+	form,
+	maxLength,
+	required,
+	schema,
+	FormField as SignalFormField,
+} from '@angular/forms/signals'
 import { Alert, AlertDescription } from '@components/alert/alert'
 import { Button } from '@components/button/button'
 import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
@@ -16,23 +23,30 @@ import { Drawer } from '@components/drawer/drawer'
 import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
-import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
+import { UsersStore } from '@store/users/users.store'
 import { parseDurationToMs } from '@utils/duration'
-import { toSnakeCode } from '@utils/slug'
-import { PermissionSelector } from '../permission-selector/permission-selector'
+import { RoleSelector } from '../role-selector/role-selector'
 
-interface CreateRoleFormModel {
-	name: string
-	code: string
-	description: string
-	permissionIds: number[]
+interface CreateUserFormModel {
+	email: string
+	firstName: string
+	lastName: string
+	roleIds: number[]
+	mustChangePassword: boolean
 }
 
-const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', permissionIds: [] }
+// Module-level for readability — mirrors the roles drawer pattern (used by model.set and onDrawerClosed)
+const EMPTY_MODEL: CreateUserFormModel = {
+	email: '',
+	firstName: '',
+	lastName: '',
+	roleIds: [],
+	mustChangePassword: true,
+}
 
 @Component({
-	selector: 'app-create-role-drawer',
+	selector: 'app-create-user-drawer',
 	standalone: true,
 	imports: [
 		Drawer,
@@ -41,38 +55,39 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 		SignalFormField,
 		Button,
 		Spinner,
-		PermissionSelector,
+		RoleSelector,
 		Alert,
 		AlertDescription,
 		ConfirmDialog,
 	],
 	template: `
-		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Create Role" #drawer>
-			<form (submit)="onSubmit($event)" id="create-role-form" class="flex h-full flex-col gap-4">
+		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Create User" #drawer>
+			<form (submit)="onSubmit($event)" id="create-user-form" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
 						<p appAlertDescription>{{ mutationError() }}</p>
 					</div>
 				}
 
-				<app-form-field label="Name">
-					<input [formField]="roleForm.name" type="text" autocomplete="off" />
+				<app-form-field label="First Name">
+					<input [formField]="userForm.firstName" type="text" autocomplete="given-name" />
 				</app-form-field>
 
-				<app-form-field label="Code" hint="Auto-generated from name">
-					<input [formField]="roleForm.code" type="text" />
+				<app-form-field label="Last Name">
+					<input [formField]="userForm.lastName" type="text" autocomplete="family-name" />
 				</app-form-field>
 
-				<app-form-field label="Description">
-					<textarea [formField]="roleForm.description" rows="3"></textarea>
+				<app-form-field label="Email">
+					<input [formField]="userForm.email" type="email" autocomplete="email" />
 				</app-form-field>
 
-				@if (permissionsStore.permissionsGroupedArray().length > 0) {
-					<app-form-field label="Permissions" class="flex min-h-0 flex-1 flex-col">
-						<app-permission-selector
-							[formField]="roleForm.permissionIds"
-							[groups]="permissionsStore.permissionsGroupedArray()"
-						/>
+				<app-form-field label="Must change password on first login">
+					<input [formField]="userForm.mustChangePassword" type="checkbox" />
+				</app-form-field>
+
+				@if (rolesStore.allRoles().length > 0) {
+					<app-form-field label="Roles" class="flex min-h-0 flex-1 flex-col">
+						<app-role-selector [formField]="userForm.roleIds" [roles]="rolesStore.allRoles()" />
 					</app-form-field>
 				}
 			</form>
@@ -80,7 +95,7 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
 					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
-					<button [disabled]="showSubmitSpinner() || !isFormValid()" appButton type="submit" form="create-role-form">
+					<button [disabled]="showSubmitSpinner() || !isFormValid()" appButton type="submit" form="create-user-form">
 						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
 						}
@@ -101,45 +116,40 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CreateRoleDrawer {
-	private readonly rolesStore = inject(RolesStore)
-	protected readonly permissionsStore = inject(PermissionsStore)
+export class CreateUserDrawer {
+	private readonly usersStore = inject(UsersStore)
+	protected readonly rolesStore = inject(RolesStore)
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
-	private readonly model = signal<CreateRoleFormModel>({ ...EMPTY_MODEL })
-	protected readonly roleForm = form(
+	protected readonly model = signal<CreateUserFormModel>({ ...EMPTY_MODEL })
+	protected readonly userForm = form(
 		this.model,
-		schema<CreateRoleFormModel>((role) => {
-			required(role.name)
-			required(role.code)
-			maxLength(role.name, 100)
-			disabled(role.code)
-			maxLength(role.description, 500)
+		schema<CreateUserFormModel>((user) => {
+			required(user.email)
+			emailValidator(user.email)
+			required(user.firstName)
+			maxLength(user.firstName, 100)
+			required(user.lastName)
+			maxLength(user.lastName, 100)
 		}),
 	)
 
-	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
-	protected readonly isCreating = computed(() => this.rolesStore.isCreating())
+	protected readonly isFormValid = computed(() => this.userForm().errors().length === 0)
+	protected readonly isCreating = computed(() => this.usersStore.isCreating())
 	protected readonly showSubmitSpinner = computed(() => this.isCreating() || this.closingAfterSuccess())
-	protected readonly mutationError = computed(() => this.rolesStore.mutationError().create)
+	protected readonly mutationError = computed(() => this.usersStore.mutationError().create)
 
 	private readonly closingAfterSuccess = signal(false)
-	private readonly nameValue = computed(() => this.model().name)
 	private submitted = false
 
 	constructor() {
-		effect(() => {
-			const code = toSnakeCode(this.nameValue())
-			untracked(() => this.model.update((m) => ({ ...m, code })))
-		})
-
 		effect(() => this.closeOnSuccess())
 	}
 
 	private closeOnSuccess(): void {
-		const creating = this.rolesStore.isCreating()
-		const error = this.rolesStore.mutationError().create
+		const creating = this.usersStore.isCreating()
+		const error = this.usersStore.mutationError().create
 		untracked(() => {
 			if (!creating && this.submitted && error === null) {
 				this.submitted = false
@@ -153,12 +163,13 @@ export class CreateRoleDrawer {
 	}
 
 	public open(): void {
+		this.rolesStore.loadAllRoles()
 		this.drawer().show()
 		this.drawer().setContentReady()
 	}
 
 	protected onCancel(): void {
-		if (this.roleForm().dirty()) {
+		if (this.userForm().dirty()) {
 			this.discardDialog().show()
 		} else {
 			this.drawer().close()
@@ -168,21 +179,22 @@ export class CreateRoleDrawer {
 	protected onDrawerClosed(): void {
 		this.submitted = false
 		this.model.set({ ...EMPTY_MODEL })
-		this.roleForm().reset()
-		this.rolesStore.clearMutationError('create')
+		this.userForm().reset()
+		this.usersStore.clearMutationError('create')
 	}
 
 	protected onSubmit(event: Event): void {
 		event.preventDefault()
 		if (!this.isFormValid()) return
 
-		const { name, code, description, permissionIds } = this.model()
+		const { email, firstName, lastName, roleIds, mustChangePassword } = this.model()
 		this.submitted = true
-		this.rolesStore.createRoleWithPermissions({
-			name,
-			code,
-			description: description || undefined,
-			permissionIds,
+		this.usersStore.createUser({
+			email,
+			firstName,
+			lastName,
+			roleIds: roleIds.length ? roleIds : undefined,
+			mustChangePassword,
 		})
 	}
 }
