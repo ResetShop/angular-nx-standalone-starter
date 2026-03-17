@@ -7,7 +7,7 @@ import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import { UserStatus } from '@contracts/user/user.constants'
-import type { IManagedUser, IManagedUserRole } from '@domain/user-management/managed-user.interface'
+import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
@@ -47,10 +47,6 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 						<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
 							{{ value.charAt(0).toUpperCase() + value.slice(1) }}
 						</span>
-					</ng-template>
-
-					<ng-template appDataTableCellDef="roles" let-value>
-						{{ formatRoles(value) }}
 					</ng-template>
 
 					<ng-template appDataTableCellDef="actions" let-value let-row="row">
@@ -105,7 +101,11 @@ export default class UsersList {
 		{ accessorKey: 'fullName', header: 'Name' },
 		{ accessorKey: 'email', header: 'Email' },
 		{ accessorKey: 'status', header: 'Status' },
-		{ accessorKey: 'roles', header: 'Roles' },
+		{
+			id: 'roles',
+			header: 'Roles',
+			accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
+		},
 		{ id: 'actions', header: '', enableSorting: false },
 	]
 
@@ -125,10 +125,5 @@ export default class UsersList {
 			this.store.deleteUser(user.id)
 			this.userToDelete.set(null)
 		}
-	}
-
-	protected formatRoles(roles: readonly IManagedUserRole[]): string {
-		if (roles.length === 0) return '\u2014'
-		return roles.map((r) => r.name).join(', ')
 	}
 }
