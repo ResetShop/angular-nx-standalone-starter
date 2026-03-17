@@ -74,7 +74,7 @@ export interface UpdateUserStatusParams {
 /**
  * User repository interface
  */
-export interface IUserRepository {
+export interface UserRepository {
 	findByEmail(email: string): Promise<UserData | null>
 	findById(id: number): Promise<UserData | null>
 }
@@ -91,7 +91,7 @@ export interface CreateUserWithHashedPasswordParams {
 /**
  * User management repository interface for CRUD operations
  */
-export interface IUserManagementRepository {
+export interface UserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>
 	findByEmail(email: string): Promise<UserData | null>
@@ -128,7 +128,7 @@ export interface AssignRoleParams {
 /**
  * User role repository interface
  */
-export interface IUserRoleRepository {
+export interface UserRoleRepository {
 	/**
 	 * Find all roles assigned to a user with pagination
 	 */
@@ -170,7 +170,7 @@ export interface IUserRoleRepository {
 /**
  * User role service interface
  */
-export interface IUserRoleService {
+export interface UserRoleService {
 	/**
 	 * Get all roles for a user with pagination
 	 */
@@ -208,7 +208,7 @@ export interface IUserRoleService {
 /**
  * User management service interface for CRUD operations
  */
-export interface IUserManagementService {
+export interface UserManagementService {
 	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	getUser(id: number): Promise<ManagedUserData>
 	createUser(params: CreateUserParams): Promise<CreateUserResponse>

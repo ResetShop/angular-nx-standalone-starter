@@ -10,7 +10,7 @@ import type {
 	RoleData,
 	UpdateRoleRequest,
 } from '@contracts/role/role.types'
-import { RolesApiService } from './roles'
+import { HttpRolesApi } from './roles'
 
 function createMockRoleData(overrides: Partial<RoleData> = {}): RoleData {
 	return {
@@ -36,16 +36,16 @@ function createMockPermissionData(overrides: Partial<PermissionData> = {}): Perm
 	}
 }
 
-describe('RolesApiService', () => {
-	let service: RolesApiService
+describe('HttpRolesApi', () => {
+	let service: HttpRolesApi
 	let httpMock: HttpTestingController
 
 	beforeEach(() => {
 		TestBed.configureTestingModule({
-			providers: [RolesApiService, provideHttpClient(), provideHttpClientTesting()],
+			providers: [HttpRolesApi, provideHttpClient(), provideHttpClientTesting()],
 		})
 
-		service = TestBed.inject(RolesApiService)
+		service = TestBed.inject(HttpRolesApi)
 		httpMock = TestBed.inject(HttpTestingController)
 	})
 

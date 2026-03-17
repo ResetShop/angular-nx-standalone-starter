@@ -5,18 +5,18 @@ import { parseDurationToMs } from '@utils/duration'
 import { hash } from 'bcryptjs'
 import { createHash } from 'crypto'
 import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants'
-import { MockPasetoService } from '../../services/paseto/paseto.service.mock'
-import { MockUserRepository } from '../user/user.repository.mock'
+import { InMemoryPasetoService } from '../../services/paseto/paseto.service.mock'
+import { InMemoryUserRepository } from '../user/user.repository.mock'
 import { AuthService } from './auth.service'
-import { MockAuthenticationRepository } from './authentication.repository.mock'
-import { MockRefreshTokenRepository } from './refresh-token.repository.mock'
+import { InMemoryAuthenticationRepository } from './authentication.repository.mock'
+import { InMemoryRefreshTokenRepository } from './refresh-token.repository.mock'
 
 describe('AuthService', () => {
 	let authService: AuthService
-	let mockUserRepo: MockUserRepository
-	let mockAuthRepo: MockAuthenticationRepository
-	let mockRefreshTokenRepo: MockRefreshTokenRepository
-	let mockPasetoService: MockPasetoService
+	let mockUserRepo: InMemoryUserRepository
+	let mockAuthRepo: InMemoryAuthenticationRepository
+	let mockRefreshTokenRepo: InMemoryRefreshTokenRepository
+	let mockPasetoService: InMemoryPasetoService
 
 	// Test data
 	const testPassword = 'password123'
@@ -43,10 +43,10 @@ describe('AuthService', () => {
 	})
 
 	beforeEach(() => {
-		mockUserRepo = new MockUserRepository()
-		mockAuthRepo = new MockAuthenticationRepository()
-		mockRefreshTokenRepo = new MockRefreshTokenRepository()
-		mockPasetoService = new MockPasetoService()
+		mockUserRepo = new InMemoryUserRepository()
+		mockAuthRepo = new InMemoryAuthenticationRepository()
+		mockRefreshTokenRepo = new InMemoryRefreshTokenRepository()
+		mockPasetoService = new InMemoryPasetoService()
 
 		authService = new AuthService({
 			userRepository: mockUserRepo,

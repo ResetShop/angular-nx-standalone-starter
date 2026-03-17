@@ -3,15 +3,14 @@ import type { CreateUserResponse } from '@contracts/user/user.types'
 import { hash } from 'bcryptjs'
 import { getBcryptSaltRounds } from '../../constants/auth.constants'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
-import type { IEmailService } from '../../services/email/interfaces'
+import type { EmailService } from '../../services/email/interfaces'
 import { buildWelcomeEmail } from '../../services/email/welcome-email.builder'
 import type {
 	CreateUserParams,
-	IUserManagementRepository,
-	IUserManagementService,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
+	UserManagementRepository,
 } from './interfaces'
 
 export const USER_MANAGEMENT_ERRORS = {
@@ -34,8 +33,8 @@ export const userManagementErrors = {
 }
 
 interface UserManagementServiceDeps {
-	userManagementRepository: IUserManagementRepository
-	emailService: IEmailService
+	userManagementRepository: UserManagementRepository
+	emailService: EmailService
 	generatePassword: () => Promise<string>
 }
 
@@ -44,9 +43,9 @@ interface UserManagementServiceDeps {
  * Handles user listing, creation, updates, soft deletion, and role assignment.
  * Enforces business rules like unique emails and self-lockout prevention.
  */
-export class UserManagementService implements IUserManagementService {
-	private userManagementRepository: IUserManagementRepository
-	private emailService: IEmailService
+export class UserManagementService {
+	private userManagementRepository: UserManagementRepository
+	private emailService: EmailService
 	private generatePassword: () => Promise<string>
 
 	constructor({ userManagementRepository, emailService, generatePassword }: UserManagementServiceDeps) {

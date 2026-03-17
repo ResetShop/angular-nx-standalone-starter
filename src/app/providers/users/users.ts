@@ -10,9 +10,10 @@ import type {
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
 import type { Observable } from 'rxjs'
+import type { UsersApi } from './users.interface'
 
 @Injectable({ providedIn: 'root' })
-export class UsersApiService {
+export class HttpUsersApi implements UsersApi {
 	private readonly http = inject(HttpClient)
 
 	public getAll({

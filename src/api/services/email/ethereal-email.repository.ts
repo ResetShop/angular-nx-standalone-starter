@@ -1,6 +1,6 @@
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
-import type { IEmailRepository, SendEmailParams } from './interfaces'
+import type { EmailRepository, SendEmailParams } from './interfaces'
 
 /**
  * Ethereal email repository using Nodemailer's test service.
@@ -16,7 +16,7 @@ import type { IEmailRepository, SendEmailParams } from './interfaces'
  *
  * Intended for local development and testing only.
  */
-export class EtherealEmailRepository implements IEmailRepository {
+export class EtherealEmailRepository implements EmailRepository {
 	private transporterPromise: Promise<Transporter> | null = null
 
 	public async send(params: SendEmailParams): Promise<void> {

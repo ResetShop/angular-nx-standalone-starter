@@ -3,11 +3,11 @@ import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
-	type IRefreshTokenRepository,
 	type RefreshTokenData,
+	type RefreshTokenRepository,
 } from './interfaces'
 
-export class MockRefreshTokenRepository implements IRefreshTokenRepository {
+export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 	private tokens: Map<string, RefreshTokenData> = new Map()
 	private tokensById: Map<number, RefreshTokenData> = new Map()
 	private tokenIdCounter = 1

@@ -2,7 +2,7 @@ import { parseDurationToMs } from '@utils/duration'
 import { sql } from 'drizzle-orm'
 import type { DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector'
 import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants'
-import type { DatabaseCheck, HealthCheckResponse, IHealthService } from './interfaces'
+import type { DatabaseCheck, HealthCheckResponse } from './interfaces'
 
 interface HealthServiceDeps {
 	db: DrizzlePgConnector
@@ -12,7 +12,7 @@ interface HealthServiceDeps {
  * Service for checking application health status.
  * Performs lightweight database connectivity probes to verify system health.
  */
-export class HealthService implements IHealthService {
+export class HealthService {
 	private db: DrizzlePgConnector
 
 	constructor({ db }: HealthServiceDeps) {

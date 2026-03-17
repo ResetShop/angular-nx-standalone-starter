@@ -6,14 +6,14 @@ import { userRole } from '../../../db/schema/user'
 import { BaseRepository } from '../../helpers/base.repository'
 import { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
-import type { IUserRoleRepository } from './interfaces'
+import type { UserRoleRepository } from './interfaces'
 import { USER_ROLE_ERRORS, userRoleErrors } from './user-role.errors'
 
 /**
  * Repository for user-role relationship database operations.
  * Handles role assignments, permission aggregation, and role membership checks.
  */
-export class UserRoleRepository extends BaseRepository implements IUserRoleRepository {
+export class DrizzleUserRoleRepository extends BaseRepository implements UserRoleRepository {
 	/**
 	 * Retrieves all roles assigned to a user with pagination.
 	 *

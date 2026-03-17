@@ -2,18 +2,18 @@ import { provideHttpClient } from '@angular/common/http'
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing'
 import { TestBed } from '@angular/core/testing'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
-import { AuthApiService } from './auth'
+import { HttpAuthApi } from './auth'
 
-describe('AuthApiService', () => {
-	let service: AuthApiService
+describe('HttpAuthApi', () => {
+	let service: HttpAuthApi
 	let httpMock: HttpTestingController
 
 	beforeEach(() => {
 		TestBed.configureTestingModule({
-			providers: [AuthApiService, provideHttpClient(), provideHttpClientTesting()],
+			providers: [HttpAuthApi, provideHttpClient(), provideHttpClientTesting()],
 		})
 
-		service = TestBed.inject(AuthApiService)
+		service = TestBed.inject(HttpAuthApi)
 		httpMock = TestBed.inject(HttpTestingController)
 	})
 

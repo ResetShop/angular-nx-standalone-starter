@@ -21,6 +21,6 @@ export interface HealthCheckResponse {
 	}
 }
 
-export interface IHealthService {
+export interface HealthService {
 	checkHealth(): Promise<HealthCheckResponse>
 }

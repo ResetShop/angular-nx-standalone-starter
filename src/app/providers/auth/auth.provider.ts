@@ -1,10 +1,11 @@
-import { Provider } from '@angular/core'
-import { AuthApiService } from '@providers/auth/auth'
+import type { Provider } from '@angular/core'
+import { HttpAuthApi } from './auth'
+import { AuthApi } from './auth.interface'
 
 /**
- * Provides auth-related services
- * Note: AuthStore is providedIn: 'root' so doesn't need explicit provider
+ * Provides auth-related services.
+ * Maps the AuthApi token to the HttpAuthApi implementation.
  */
 export function provideAuth(): Provider[] {
-	return [AuthApiService]
+	return [{ provide: AuthApi, useExisting: HttpAuthApi }]
 }

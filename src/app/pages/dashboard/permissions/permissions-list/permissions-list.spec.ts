@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing'
 import type { PermissionData } from '@contracts/role/role.types'
 import { Translation } from '@providers/i18n/translation'
-import { PermissionsApiService } from '@providers/permissions/permissions'
+import { PermissionsApi } from '@providers/permissions/permissions.interface'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
@@ -28,7 +28,7 @@ const mockTranslation = {
 }
 
 describe('PermissionsList', () => {
-	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>
+	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
 
 	beforeEach(() => {
 		clearAllMocks()
@@ -44,7 +44,7 @@ describe('PermissionsList', () => {
 	async function renderComponent() {
 		await render(PermissionsList, {
 			providers: [
-				{ provide: PermissionsApiService, useValue: permissionsApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})

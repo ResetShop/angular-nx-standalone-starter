@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import type { PaginatedResponse } from '@contracts/common/pagination.types'
 import type { RoleData, RoleWithPermissions } from '@contracts/role/role.types'
-import { RolesApiService } from '@providers/roles/roles'
+import { RolesApi } from '@providers/roles/roles.interface'
 import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils'
 import { NEVER, of, throwError } from 'rxjs'
 import { RolesStore } from './roles.store'
@@ -45,7 +45,7 @@ function createMockListResponse(roles: RoleData[], total?: number): PaginatedRes
 
 describe('RolesStore', () => {
 	let store: InstanceType<typeof RolesStore>
-	let rolesApiMock: Record<keyof RolesApiService, MockFn>
+	let rolesApiMock: Record<keyof RolesApi, MockFn>
 
 	/**
 	 * Configures TestBed and injects the store.
@@ -55,7 +55,7 @@ describe('RolesStore', () => {
 	 */
 	function setupStore(): void {
 		TestBed.configureTestingModule({
-			providers: [RolesStore, { provide: RolesApiService, useValue: rolesApiMock }],
+			providers: [RolesStore, { provide: RolesApi, useValue: rolesApiMock }],
 		})
 		store = TestBed.inject(RolesStore)
 		TestBed.tick()

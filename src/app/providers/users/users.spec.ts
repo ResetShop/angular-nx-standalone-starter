@@ -10,7 +10,7 @@ import type {
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
-import { UsersApiService } from './users'
+import { HttpUsersApi } from './users'
 
 function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUser {
 	return {
@@ -29,16 +29,16 @@ function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUse
 	}
 }
 
-describe('UsersApiService', () => {
-	let service: UsersApiService
+describe('HttpUsersApi', () => {
+	let service: HttpUsersApi
 	let httpMock: HttpTestingController
 
 	beforeEach(() => {
 		TestBed.configureTestingModule({
-			providers: [UsersApiService, provideHttpClient(), provideHttpClientTesting()],
+			providers: [HttpUsersApi, provideHttpClient(), provideHttpClientTesting()],
 		})
 
-		service = TestBed.inject(UsersApiService)
+		service = TestBed.inject(HttpUsersApi)
 		httpMock = TestBed.inject(HttpTestingController)
 	})
 

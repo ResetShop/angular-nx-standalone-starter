@@ -3,7 +3,7 @@ import type { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/route
 import { provideRouter, UrlTree } from '@angular/router'
 import { createAuthApiMock } from '@mocks/auth-api.mock'
 import { createMockUser } from '@mocks/user.mock'
-import { AuthApiService } from '@providers/auth/auth'
+import { AuthApi } from '@providers/auth/auth.interface'
 import { AuthStore } from '@store/auth/auth.store'
 import { clearAllMocks } from '@test-utils'
 import type { Observable } from 'rxjs'
@@ -27,7 +27,7 @@ describe('noAuthGuard', () => {
 		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')))
 
 		TestBed.configureTestingModule({
-			providers: [AuthStore, provideRouter([]), { provide: AuthApiService, useValue: authApiMock }],
+			providers: [AuthStore, provideRouter([]), { provide: AuthApi, useValue: authApiMock }],
 		})
 	})
 

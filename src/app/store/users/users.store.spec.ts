@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing'
 import type { PaginatedResponse } from '@contracts/common/pagination.types'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types'
-import { UsersApiService } from '@providers/users/users'
+import { UsersApi } from '@providers/users/users.interface'
 import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils'
 import { EMPTY, NEVER, of, throwError } from 'rxjs'
 import { UsersStore } from './users.store'
@@ -45,7 +45,7 @@ function createMockListResponse(users: ManagedUser[], total?: number): Paginated
 
 describe('UsersStore', () => {
 	let store: InstanceType<typeof UsersStore>
-	let usersApiMock: Record<keyof UsersApiService, MockFn>
+	let usersApiMock: Record<keyof UsersApi, MockFn>
 
 	/**
 	 * Configures TestBed and injects the store.
@@ -55,7 +55,7 @@ describe('UsersStore', () => {
 	 */
 	function setupStore(): void {
 		TestBed.configureTestingModule({
-			providers: [UsersStore, { provide: UsersApiService, useValue: usersApiMock }],
+			providers: [UsersStore, { provide: UsersApi, useValue: usersApiMock }],
 		})
 		store = TestBed.inject(UsersStore)
 		TestBed.tick()

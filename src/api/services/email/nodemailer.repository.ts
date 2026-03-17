@@ -1,6 +1,6 @@
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
-import type { IEmailRepository, SendEmailParams } from './interfaces'
+import type { EmailRepository, SendEmailParams } from './interfaces'
 
 /**
  * Nodemailer email repository using SMTP transport.
@@ -16,7 +16,7 @@ import type { IEmailRepository, SendEmailParams } from './interfaces'
  * - SMTP_SECURE: Use TLS on port 465 (default: false)
  * - SMTP_FROM: Default sender address (default: noreply@example.com)
  */
-export class NodemailerRepository implements IEmailRepository {
+export class NodemailerRepository implements EmailRepository {
 	private readonly transporter: Transporter
 	private readonly fromAddress: string
 

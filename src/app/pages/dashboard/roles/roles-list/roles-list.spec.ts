@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing'
 import type { PaginatedResponse } from '@contracts/common/pagination.types'
 import type { RoleData } from '@contracts/role/role.types'
 import { Translation } from '@providers/i18n/translation'
-import { PermissionsApiService } from '@providers/permissions/permissions'
-import { RolesApiService } from '@providers/roles/roles'
+import { PermissionsApi } from '@providers/permissions/permissions.interface'
+import { RolesApi } from '@providers/roles/roles.interface'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
@@ -41,8 +41,8 @@ const mockTranslation = {
 }
 
 describe('RolesList', () => {
-	let rolesApiMock: Record<keyof RolesApiService, MockFn>
-	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>
+	let rolesApiMock: Record<keyof RolesApi, MockFn>
+	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
 
 	beforeEach(() => {
 		clearAllMocks()
@@ -70,8 +70,8 @@ describe('RolesList', () => {
 	async function renderComponent() {
 		await render(RolesList, {
 			providers: [
-				{ provide: RolesApiService, useValue: rolesApiMock },
-				{ provide: PermissionsApiService, useValue: permissionsApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})

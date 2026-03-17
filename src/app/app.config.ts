@@ -48,7 +48,6 @@ export const appConfig: ApplicationConfig = {
 
 		// Custom providers
 		Analytics,
-		// TODO: Add provider functions for custom providers
 		provideTheme(),
 		provideNavigation(),
 		provideProjectConfig(),

@@ -1,7 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils'
 import { AuthService } from '../modules/auth/auth.service'
 import { container } from './container'
-import { MockContainer } from './container.mock'
+import { InMemoryContainer } from './container.mock'
 import type { Cradle } from './container.types'
 
 /**
@@ -112,7 +112,7 @@ describe('DI Container', () => {
 		it('should return mocked service when test cradle is set', () => {
 			const mockRoleService = createMockRoleService()
 			container.use(
-				new MockContainer({
+				new InMemoryContainer({
 					roleService: mockRoleService,
 				}),
 			)
@@ -122,7 +122,7 @@ describe('DI Container', () => {
 
 		it('should throw when accessing unmocked service in test mode', () => {
 			container.use(
-				new MockContainer({
+				new InMemoryContainer({
 					roleService: createMockRoleService(),
 				}),
 			)
@@ -133,7 +133,7 @@ describe('DI Container', () => {
 
 		it('should return real service after test cradle is reset', () => {
 			container.use(
-				new MockContainer({
+				new InMemoryContainer({
 					roleService: createMockRoleService(),
 				}),
 			)
