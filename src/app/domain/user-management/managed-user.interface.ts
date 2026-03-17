@@ -1,14 +1,4 @@
-import type { UserStatus } from '@contracts/user/user.schemas'
-
-/**
- * Frontend-accessible UserStatus constant — mirrors the backend UserStatus
- * from @contracts/user/user.schemas without pulling in zod.
- */
-export const ManagedUserStatus = Object.freeze({
-	ACTIVE: 'active',
-	DISABLED: 'disabled',
-	DELETED: 'deleted',
-} as const)
+import type { UserStatus } from '@contracts/user/user.constants'
 
 export interface IManagedUserRole {
 	readonly id: number

@@ -1,4 +1,4 @@
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { PaginatedResponse } from '../../interfaces'
