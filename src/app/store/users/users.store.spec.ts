@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import type { PaginatedResponse } from '@contracts/common/pagination.types'
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types'
 import { UsersApiService } from '@providers/users/users'
 import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils'

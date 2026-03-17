@@ -1,4 +1,4 @@
-import { UserStatus } from '@contracts/user/user.schemas'
+import { UserStatus } from '@contracts/user/user.constants'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { IEmailService, SendEmailParams } from '../../services/email/interfaces'
