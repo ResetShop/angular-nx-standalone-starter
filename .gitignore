@@ -52,3 +52,5 @@ Thumbs.db
 # Claude Code workspace (ephemeral review/plan output)
 !workspace/README.md
 /workspace
+.claude/worktrees
+.claude/settings.local.json
