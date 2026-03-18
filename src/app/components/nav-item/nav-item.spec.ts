@@ -371,3 +371,54 @@ describe('NavItem - Expandable Behavior', () => {
 		expect(link).toBeInTheDocument()
 	})
 })
+
+describe('NavItem - Collapsed Mode', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
+	const mockRoute: NavigationRoute = {
+		id: 'test-route',
+		name: 'Test Route',
+		route: '/test',
+		icon: { featherHome },
+	}
+
+	const parentRoute: NavigationRoute = {
+		id: 'parent',
+		name: 'Parent Route',
+		route: '/parent',
+		icon: { featherHome },
+		children: [{ id: 'child1', name: 'Child 1', route: '/parent/child1' }],
+	}
+
+	it('should hide the name text when collapsed', async () => {
+		await render(NavItem, {
+			inputs: { item: mockRoute, collapsed: true },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		})
+
+		expect(screen.queryByText('Test Route')).not.toBeInTheDocument()
+		expect(screen.getByTestId('item-icon')).toBeInTheDocument()
+	})
+
+	it('should set aria-label on the link when collapsed', async () => {
+		await render(NavItem, {
+			inputs: { item: mockRoute, collapsed: true },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		})
+
+		const link = screen.getByRole('link', { name: 'Test Route' })
+		expect(link).toHaveAttribute('aria-label', 'Test Route')
+	})
+
+	it('should render a parent route as a plain link when collapsed', async () => {
+		await render(NavItem, {
+			inputs: { item: parentRoute, collapsed: true },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		})
+
+		expect(screen.getByRole('link')).toBeInTheDocument()
+		expect(screen.queryByRole('button')).not.toBeInTheDocument()
+	})
+})
