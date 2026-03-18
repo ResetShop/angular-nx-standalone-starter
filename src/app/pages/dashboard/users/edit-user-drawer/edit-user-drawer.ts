@@ -24,6 +24,8 @@ import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { RolesStore } from '@store/roles/roles.store'
+import { UIStore } from '@store/ui/ui.store'
+import { NotificationType } from '@store/ui/ui.types'
 import { UsersStore } from '@store/users/users.store'
 import { parseDurationToMs } from '@utils/duration'
 import { RoleSelector } from '../role-selector/role-selector'
@@ -112,6 +114,7 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 })
 export class EditUserDrawer {
 	private readonly usersStore = inject(UsersStore)
+	private readonly uiStore = inject(UIStore)
 	protected readonly rolesStore = inject(RolesStore)
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
@@ -163,11 +166,15 @@ export class EditUserDrawer {
 		untracked(() => {
 			if (!updating && this.submitted && error === null) {
 				this.submitted = false
+				this.uiStore.showNotification({ type: NotificationType.SUCCESS, message: 'User updated successfully.' })
 				this.closingAfterSuccess.set(true)
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
 					this.drawer().close()
 				}, parseDurationToMs('1s'))
+			} else if (!updating && this.submitted && error !== null) {
+				this.submitted = false
+				this.uiStore.showNotification({ type: NotificationType.ERROR, message: error })
 			}
 		})
 	}

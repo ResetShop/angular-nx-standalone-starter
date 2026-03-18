@@ -6,27 +6,14 @@ import { provideRoles } from '@providers/roles/roles.provider'
 import { provideUsers } from '@providers/users/users.provider'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
-import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.types'
 import { UsersStore } from '@store/users/users.store'
-import { parseDurationToMs } from '@utils/duration'
-import { provideToastConfig } from 'ng-primitives/toast'
 
 export default [
 	{
 		path: '',
 		title: '',
 		component: Dashboard,
-		providers: [
-			...provideToastConfig({
-				placement: 'bottom-center',
-				duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
-				dismissible: true,
-				maxToasts: 3,
-				gap: 16,
-				zIndex: 9999,
-			}),
-			ToastBridgeService,
-		],
+		providers: [ToastBridgeService],
 		children: [
 			{
 				path: 'health',

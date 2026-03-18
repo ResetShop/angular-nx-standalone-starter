@@ -18,6 +18,8 @@ import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
+import { UIStore } from '@store/ui/ui.store'
+import { NotificationType } from '@store/ui/ui.types'
 import { parseDurationToMs } from '@utils/duration'
 import { toSnakeCode } from '@utils/slug'
 import { PermissionSelector } from '../permission-selector/permission-selector'
@@ -103,6 +105,7 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 })
 export class CreateRoleDrawer {
 	private readonly rolesStore = inject(RolesStore)
+	private readonly uiStore = inject(UIStore)
 	protected readonly permissionsStore = inject(PermissionsStore)
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
@@ -143,11 +146,15 @@ export class CreateRoleDrawer {
 		untracked(() => {
 			if (!creating && this.submitted && error === null) {
 				this.submitted = false
+				this.uiStore.showNotification({ type: NotificationType.SUCCESS, message: 'Role created successfully.' })
 				this.closingAfterSuccess.set(true)
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
 					this.drawer().close()
 				}, parseDurationToMs('1s'))
+			} else if (!creating && this.submitted && error !== null) {
+				this.submitted = false
+				this.uiStore.showNotification({ type: NotificationType.ERROR, message: error })
 			}
 		})
 	}
