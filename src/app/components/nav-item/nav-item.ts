@@ -96,7 +96,8 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 })
 export default class NavItem {
 	public readonly item = input.required<NavigationRoute>()
-	public readonly collapsed = input<boolean>(false)
+	public readonly collapsedInput = input<boolean>(false, { alias: 'collapsed' })
+	protected readonly collapsed = computed(() => this.collapsedInput())
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.
