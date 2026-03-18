@@ -213,6 +213,8 @@ export class InMemoryRolesApi implements RolesApi {
 			return throwError(() => error)
 		}
 
+		// REASON: Placeholder values — resource/action are irrelevant for assignment tests.
+		// Use addRoleWithPermissions() to control full permission data.
 		const permissions = body.permissionIds.map((pid) => ({
 			id: pid,
 			name: `Permission ${pid}`,

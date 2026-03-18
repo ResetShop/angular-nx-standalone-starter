@@ -20,8 +20,10 @@ export class NavigationMock {
 	}
 }
 
-export const provideNavigationMock = (mock = new NavigationMock()): Provider[] => [
-	{ provide: Navigation, useValue: mock },
-	{ provide: NavigationState, useValue: new NavigationState() },
-	{ provide: NAVIGATION_CONFIG, useValue: { sections: [] } },
-]
+export function provideNavigationMock(mock = new NavigationMock()): Provider[] {
+	return [
+		{ provide: Navigation, useValue: mock },
+		{ provide: NavigationState, useValue: new NavigationState() },
+		{ provide: NAVIGATION_CONFIG, useValue: { sections: [] } },
+	]
+}

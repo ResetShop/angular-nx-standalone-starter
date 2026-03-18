@@ -5,6 +5,7 @@ import { Translation } from '@providers/i18n/translation'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
+import { createMockManagedUser } from '@providers/users/users.mock'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -19,29 +20,7 @@ import { parseDurationToMs } from '@utils/duration'
 import { of, throwError } from 'rxjs'
 import { EditUserDrawer } from './edit-user-drawer'
 
-const MOCK_USER = {
-	id: 1,
-	email: 'john@example.com',
-	firstName: 'John',
-	lastName: 'Doe',
-	status: 'active' as const,
-	statusChangedAt: null,
-	statusChangedBy: null,
-	deletedAt: null,
-	createdAt: new Date('2025-01-01'),
-	updatedAt: new Date('2025-01-01'),
-	roles: [
-		{
-			id: 1,
-			name: 'Admin',
-			code: 'admin',
-			description: null,
-			removable: true,
-			createdAt: null,
-			updatedAt: null,
-		},
-	],
-}
+const MOCK_USER = createMockManagedUser()
 
 describe('EditUserDrawer', () => {
 	let usersApiMock: Record<keyof UsersApi, MockFn>
