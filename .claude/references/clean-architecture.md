@@ -86,9 +86,9 @@ _Source: Robert C. Martin, "Clean Architecture" (2018)_
 
 ---
 
-## Pattern C (Qualified Implementation) — Naming Convention
+## Qualified Implementation Naming Convention
 
-All backend and frontend interfaces follow **Pattern C**: the interface owns the clean name (no `I` prefix), and implementations use a technology/purpose **prefix**.
+All backend and frontend interfaces follow the **Qualified Implementation** convention: the interface owns the clean name (no `I` prefix), and implementations use a technology/purpose **prefix**.
 
 **Backend:**
 
