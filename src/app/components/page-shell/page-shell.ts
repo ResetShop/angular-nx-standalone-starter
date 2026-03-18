@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, input, OnDestroy, signal } from '@angular/core'
-import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert'
 import { Spinner } from '@components/spinner/spinner'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherAlertCircle } from '@ng-icons/feather-icons'
 import { parseDurationToMs } from '@utils/duration'
 
 @Component({
 	selector: 'app-page-shell',
 	standalone: true,
-	imports: [Alert, AlertTitle, AlertDescription, Spinner],
+	imports: [Spinner, NgIcon],
+	providers: [provideIcons({ featherAlertCircle })],
 	template: `
 		<div class="space-y-6">
 			<div>
@@ -28,9 +30,12 @@ import { parseDurationToMs } from '@utils/duration'
 					<span>Cargando...</span>
 				</div>
 			} @else if (error()) {
-				<div class="page-shell-fade-in" appAlert variant="destructive">
-					<h5 appAlertTitle>Error</h5>
-					<p appAlertDescription>{{ error() }}</p>
+				<div
+					class="page-shell-fade-in border-destructive/30 bg-destructive/5 text-destructive flex flex-col items-center justify-center gap-4 rounded-lg border p-8 py-32 text-center"
+					role="alert"
+				>
+					<ng-icon name="featherAlertCircle" size="36" />
+					<p class="text-destructive/80">{{ error() }}</p>
 				</div>
 			} @else {
 				<div class="page-shell-fade-in space-y-6">
@@ -41,17 +46,15 @@ import { parseDurationToMs } from '@utils/duration'
 	`,
 	styles: `
 		.page-shell-fade-in {
-			animation: page-shell-fade-in 300ms ease-out;
+			animation: page-shell-fade-in 500ms ease-out;
 		}
 
 		@keyframes page-shell-fade-in {
 			from {
 				opacity: 0;
-				transform: translateY(4px);
 			}
 			to {
 				opacity: 1;
-				transform: translateY(0);
 			}
 		}
 	`,
