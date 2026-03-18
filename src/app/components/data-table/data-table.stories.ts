@@ -84,12 +84,14 @@ class DataTableStoryComponent {
 	 * Grouping column selector. Maps a user-friendly label to the actual column ID.
 	 * Use 'none' to disable grouping.
 	 */
-	public readonly groupBy = input<'none' | 'role'>('none')
+	public readonly groupBy = input<'none' | 'role' | 'role+name'>('none')
 
 	/** Resolved grouping array from the `groupBy` select control */
 	protected readonly resolvedGrouping = computed(() => {
 		const groupBy = this.groupBy()
-		return groupBy === 'none' ? [] : [groupBy]
+		if (groupBy === 'none') return []
+		if (groupBy === 'role+name') return ['role', 'name']
+		return [groupBy]
 	})
 
 	/**
@@ -190,7 +192,7 @@ A data table component powered by TanStack Table.
 ## Features
 
 - **Sorting**: Click column headers to sort (aria-sort, keyboard support)
-- **Row Grouping**: Group rows by a column with expand/collapse toggle
+- **Row Grouping**: Group rows by one or more columns with nested expand/collapse toggles
 - **Pagination**: Optional page-based data slicing
 - **Loading & Empty States**: Built-in spinner and customizable empty message
 - **Custom Cell Templates**: Content projection via \`appDataTableCellDef\`
@@ -256,10 +258,10 @@ export class UserListComponent {
 		},
 		groupBy: {
 			control: 'select',
-			options: ['none', 'role'],
-			description: 'Column to group rows by',
+			options: ['none', 'role', 'role+name'],
+			description: 'Column(s) to group rows by',
 			table: {
-				type: { summary: "'none' | 'role'" },
+				type: { summary: "'none' | 'role' | 'role+name'" },
 				defaultValue: { summary: 'none' },
 			},
 		},
@@ -329,6 +331,24 @@ export const GroupedByRole: Story = {
 		loading: false,
 		caption: 'Users table',
 		groupBy: 'role',
+		expandedByDefault: true,
+		pageSize: 0,
+		language: 'en',
+	},
+}
+
+/**
+ * Rows grouped by Role (first level) then Name (second level) with nested expand/collapse.
+ * Demonstrates multi-column grouping with depth-aware indentation.
+ */
+export const GroupedByRoleThenName: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
+		loading: false,
+		caption: 'Users table',
+		groupBy: 'role+name',
 		expandedByDefault: true,
 		pageSize: 0,
 		language: 'en',

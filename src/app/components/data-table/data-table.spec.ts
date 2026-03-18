@@ -446,5 +446,61 @@ describe('DataTable', () => {
 			expect(warnSpy.calls).toHaveLength(1)
 			expect(warnSpy.calls[0][0]).toBe('DataTable: grouping column "nonexistent" does not match any column definition.')
 		})
+
+		describe('Multi-column grouping', () => {
+			it('should render first-level group headers for multi-column grouping', async () => {
+				await renderGroupedTable({ grouping: ['role', 'name'] })
+
+				expect(screen.getByRole('button', { name: /admin/i })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: /editor/i })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: /viewer/i })).toBeInTheDocument()
+			})
+
+			it('should render second-level group headers with correct column label', async () => {
+				await renderGroupedTable({ grouping: ['role', 'name'], expandedByDefault: true })
+
+				expect(screen.getByRole('button', { name: /alice/i })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: /carol/i })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: /bob/i })).toBeInTheDocument()
+			})
+
+			it('should indent second-level group headers with 16px padding', async () => {
+				await renderGroupedTable({ grouping: ['role', 'name'], expandedByDefault: true })
+
+				const aliceButton = screen.getByRole('button', { name: /alice/i })
+				expect(aliceButton).toHaveStyle({ paddingLeft: '16px' })
+			})
+
+			it('should not indent first-level group headers', async () => {
+				await renderGroupedTable({ grouping: ['role', 'name'] })
+
+				const adminButton = screen.getByRole('button', { name: /admin/i })
+				expect(adminButton).toHaveStyle({ paddingLeft: '0px' })
+			})
+
+			it('should hide nested group headers when top-level group is collapsed', async () => {
+				const user = userEvent.setup()
+				await renderGroupedTable({ grouping: ['role', 'name'], expandedByDefault: true })
+
+				expect(screen.getByRole('button', { name: /alice/i })).toBeInTheDocument()
+
+				await user.click(screen.getByRole('button', { name: /admin/i }))
+
+				expect(screen.queryByRole('button', { name: /alice/i })).not.toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: /carol/i })).not.toBeInTheDocument()
+			})
+
+			it('should reveal nested group headers when expanding a collapsed top-level group', async () => {
+				const user = userEvent.setup()
+				await renderGroupedTable({ grouping: ['role', 'name'], expandedByDefault: false })
+
+				expect(screen.queryByRole('button', { name: /alice/i })).not.toBeInTheDocument()
+
+				await user.click(screen.getByRole('button', { name: /admin/i }))
+
+				expect(screen.getByRole('button', { name: /alice/i })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: /carol/i })).toBeInTheDocument()
+			})
+		})
 	})
 })
