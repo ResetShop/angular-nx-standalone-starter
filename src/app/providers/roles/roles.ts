@@ -12,8 +12,10 @@ import type {
 } from '@contracts/role/role.types'
 import { forkJoin, map, type Observable } from 'rxjs'
 
+import type { RolesApi } from './roles.interface'
+
 @Injectable({ providedIn: 'root' })
-export class RolesApiService {
+export class HttpRolesApi implements RolesApi {
 	private readonly http = inject(HttpClient)
 
 	public getAll({

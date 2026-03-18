@@ -3,7 +3,7 @@ import type { IPermission } from '@domain/access/permission.interface'
 import { createPermission } from '@domain/access/permission.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { PermissionsApiService } from '@providers/permissions/permissions'
+import { PermissionsApi } from '@providers/permissions/permissions.interface'
 import { catchError, EMPTY, filter, pipe, switchMap, tap } from 'rxjs'
 import type { PermissionsReadError } from './permissions.types'
 import { initialPermissionsState } from './permissions.types'
@@ -51,7 +51,7 @@ export const PermissionsStore = signalStore(
 		}
 	}),
 	withMethods((store) => {
-		const permissionsApi = inject(PermissionsApiService)
+		const permissionsApi = inject(PermissionsApi)
 
 		return {
 			loadPermissions: rxMethod<void>(

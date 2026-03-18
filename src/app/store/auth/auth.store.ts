@@ -4,7 +4,7 @@ import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.m
 import type { IUser } from '@domain/user/user.interface'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { AuthApiService } from '@providers/auth/auth'
+import { AuthApi } from '@providers/auth/auth.interface'
 import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs'
 import { initialAuthState } from './auth.types'
 
@@ -13,7 +13,7 @@ import { initialAuthState } from './auth.types'
  *
  * Manages authentication state using NgRx Signal Store.
  * Components inject this store directly for all auth operations.
- * Uses AuthApiService for HTTP calls.
+ * Uses AuthApi for HTTP calls.
  *
  * Session validation is performed by the route guards on every navigation
  * via `validateSession()`. Works on both browser and server platforms —
@@ -28,7 +28,7 @@ export const AuthStore = signalStore(
 		userRoles: computed(() => store.currentUser()?.roles ?? []),
 	})),
 	withMethods((store) => {
-		const authApi = inject(AuthApiService)
+		const authApi = inject(AuthApi)
 
 		return {
 			/**

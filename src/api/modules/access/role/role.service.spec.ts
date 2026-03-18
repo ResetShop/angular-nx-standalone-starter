@@ -1,13 +1,13 @@
 import { clearAllMocks, fn } from '@test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import type { IUserRoleRepository } from '../../user/interfaces'
+import type { UserRoleRepository } from '../../user/interfaces'
 import type { PermissionData, RoleData } from './interfaces'
-import { MockRoleRepository } from './role.repository.mock'
+import { InMemoryRoleRepository } from './role.repository.mock'
 import { InvalidPermissionIdsError, ROLE_ERRORS, RoleService } from './role.service'
 
 describe('RoleService', () => {
 	let roleService: RoleService
-	let mockRoleRepo: MockRoleRepository
+	let mockRoleRepo: InMemoryRoleRepository
 
 	// Test data
 	const testRole: RoleData = {
@@ -37,8 +37,8 @@ describe('RoleService', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
-		mockRoleRepo = new MockRoleRepository()
-		const mockUserRoleRepository: IUserRoleRepository = {
+		mockRoleRepo = new InMemoryRoleRepository()
+		const mockUserRoleRepository: UserRoleRepository = {
 			findRolesForUser: fn(),
 			findRolesWithPermissionsForUser: fn(),
 			findPermissionsForUser: fn(),

@@ -1,10 +1,7 @@
-import { Provider } from '@angular/core'
-import { AuthApiService } from '@providers/auth/auth'
+import { makeEnvironmentProviders } from '@angular/core'
+import { HttpAuthApi } from './auth'
+import { AuthApi } from './auth.interface'
 
-/**
- * Provides auth-related services
- * Note: AuthStore is providedIn: 'root' so doesn't need explicit provider
- */
-export function provideAuth(): Provider[] {
-	return [AuthApiService]
+export function provideAuth() {
+	return makeEnvironmentProviders([{ provide: AuthApi, useExisting: HttpAuthApi }])
 }

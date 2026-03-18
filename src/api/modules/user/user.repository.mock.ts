@@ -1,6 +1,6 @@
-import { type IUserRepository, type UserData } from './interfaces'
+import { type UserData, type UserRepository } from './interfaces'
 
-export class MockUserRepository implements IUserRepository {
+export class InMemoryUserRepository implements UserRepository {
 	private users: Map<number, UserData> = new Map()
 	private usersByEmail: Map<string, UserData> = new Map()
 

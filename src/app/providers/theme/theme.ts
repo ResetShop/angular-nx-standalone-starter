@@ -1,15 +1,12 @@
 import { isPlatformBrowser } from '@angular/common'
-import { computed, effect, inject, Injectable, PLATFORM_ID, signal } from '@angular/core'
+import { computed, effect, inject, Injectable, makeEnvironmentProviders, PLATFORM_ID, signal } from '@angular/core'
 import { ThemeProvider } from './theme.abstract'
 
-export const provideTheme = () => [
-	{
-		provide: ThemeProvider,
-		useClass: Theme,
-	},
-]
+export function provideTheme() {
+	return makeEnvironmentProviders([{ provide: ThemeProvider, useClass: Theme }])
+}
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class Theme extends ThemeProvider {
 	private readonly THEME_STORAGE_KEY = 'theme-preference'
 	private readonly platformId = inject(PLATFORM_ID)

@@ -1,23 +1,6 @@
 import { UserStatus } from '@contracts/user/user.constants'
-import type { ManagedUser } from '@contracts/user/user.types'
+import { createMockManagedUser } from '@providers/users/users.mock'
 import { mapManagedUserResponse } from './managed-user.mapper'
-
-function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUser {
-	return {
-		id: 1,
-		email: 'john@example.com',
-		firstName: 'John',
-		lastName: 'Doe',
-		status: UserStatus.ACTIVE,
-		statusChangedAt: null,
-		statusChangedBy: null,
-		deletedAt: null,
-		createdAt: new Date('2025-01-01'),
-		updatedAt: new Date('2025-01-01'),
-		roles: [],
-		...overrides,
-	}
-}
 
 describe('mapManagedUserResponse', () => {
 	it('should map all fields from the API response', () => {

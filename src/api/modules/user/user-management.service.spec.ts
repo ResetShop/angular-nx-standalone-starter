@@ -1,15 +1,15 @@
 import { UserStatus } from '@contracts/user/user.constants'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
-import type { IEmailService, SendEmailParams } from '../../services/email/interfaces'
+import type { EmailService, SendEmailParams } from '../../services/email/interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type {
 	CreateUserWithHashedPasswordParams,
-	IUserManagementRepository,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
 	UserData,
+	UserManagementRepository,
 } from './interfaces'
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service'
 
@@ -26,7 +26,7 @@ describe('UserManagementService', () => {
 	const mockUpdateStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData | null>>()
 	const mockSoftDelete = fn<[number, number], Promise<boolean>>()
 
-	const mockRepository: IUserManagementRepository = {
+	const mockRepository: UserManagementRepository = {
 		findAll: mockFindAll,
 		findByIdWithRoles: mockFindByIdWithRoles,
 		findByEmail: mockFindByEmail,
@@ -38,7 +38,7 @@ describe('UserManagementService', () => {
 
 	// Email mock
 	const mockSend = fn<[SendEmailParams], Promise<void>>()
-	const mockEmailService: IEmailService = { send: mockSend }
+	const mockEmailService: EmailService = { send: mockSend }
 
 	// Password generator mock
 	const mockGeneratePassword = fn<[], Promise<string>>()

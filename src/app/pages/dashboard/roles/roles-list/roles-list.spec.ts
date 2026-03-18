@@ -1,48 +1,18 @@
 import { TestBed } from '@angular/core/testing'
-import type { PaginatedResponse } from '@contracts/common/pagination.types'
-import type { RoleData } from '@contracts/role/role.types'
+import { createPaginatedResponse } from '@mocks/pagination.mock'
 import { Translation } from '@providers/i18n/translation'
-import { PermissionsApiService } from '@providers/permissions/permissions'
-import { RolesApiService } from '@providers/roles/roles'
+import { mockTranslation } from '@providers/i18n/translation.mock'
+import { PermissionsApi } from '@providers/permissions/permissions.interface'
+import { RolesApi } from '@providers/roles/roles.interface'
+import { createMockRoleData } from '@providers/roles/roles.mock'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import RolesList from './roles-list'
 
-function createMockRoleData(overrides: Partial<RoleData> = {}): RoleData {
-	return {
-		id: 1,
-		name: 'Admin',
-		code: 'admin',
-		description: 'Administrator role',
-		removable: true,
-		createdAt: new Date(),
-		updatedAt: new Date(),
-		...overrides,
-	}
-}
-
-function createPaginatedResponse(data: RoleData[], total?: number): PaginatedResponse<RoleData> {
-	return { data, total: total ?? data.length, limit: 10, offset: 0 }
-}
-
-const TRANSLATIONS: Record<string, string> = {
-	'DATA_TABLE.EMPTY': 'No data available',
-	'DATA_TABLE.LOADING': 'Loading...',
-	'PAGINATION.LABEL': 'Pagination',
-	'PAGINATION.ROWS_PER_PAGE': 'Rows per page',
-	'PAGINATION.GO_TO_PREVIOUS': 'Previous page',
-	'PAGINATION.GO_TO_NEXT': 'Next page',
-	'PAGINATION.GO_TO_PAGE': 'Go to page {page}',
-}
-
-const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
-}
-
 describe('RolesList', () => {
-	let rolesApiMock: Record<keyof RolesApiService, MockFn>
-	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>
+	let rolesApiMock: Record<keyof RolesApi, MockFn>
+	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
 
 	beforeEach(() => {
 		clearAllMocks()
@@ -70,8 +40,8 @@ describe('RolesList', () => {
 	async function renderComponent() {
 		await render(RolesList, {
 			providers: [
-				{ provide: RolesApiService, useValue: rolesApiMock },
-				{ provide: PermissionsApiService, useValue: permissionsApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})

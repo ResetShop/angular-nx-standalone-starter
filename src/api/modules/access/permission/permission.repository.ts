@@ -4,13 +4,13 @@ import { permission } from '../../../../db/schema/permission'
 import { BaseRepository } from '../../../helpers/base.repository'
 import type { PaginatedResponse } from '../../../interfaces'
 import type { PermissionData } from '../role/interfaces'
-import type { IPermissionRepository, ListPermissionsParams } from './interfaces'
+import type { ListPermissionsParams, PermissionRepository } from './interfaces'
 
 /**
  * Repository for permission-related database operations.
  * Provides read-only access to system permissions with pagination and search support.
  */
-export class PermissionRepository extends BaseRepository implements IPermissionRepository {
+export class DrizzlePermissionRepository extends BaseRepository implements PermissionRepository {
 	/**
 	 * Retrieves all permissions with pagination and optional search filtering.
 	 * Search is case-insensitive and matches against name, description, resource, or action.

@@ -6,46 +6,23 @@ import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import type {
 	AssignPermissionsRequest,
 	CreateRoleRequest,
-	PermissionData,
 	RoleData,
 	UpdateRoleRequest,
 } from '@contracts/role/role.types'
-import { RolesApiService } from './roles'
+import { createMockPermissionData } from '@providers/permissions/permissions.mock'
+import { HttpRolesApi } from './roles'
+import { createMockRoleData } from './roles.mock'
 
-function createMockRoleData(overrides: Partial<RoleData> = {}): RoleData {
-	return {
-		id: 1,
-		name: 'Admin',
-		code: 'admin',
-		description: null,
-		removable: true,
-		createdAt: null,
-		updatedAt: null,
-		...overrides,
-	}
-}
-
-function createMockPermissionData(overrides: Partial<PermissionData> = {}): PermissionData {
-	return {
-		id: 1,
-		name: 'Read Users',
-		description: null,
-		resource: 'users',
-		action: 'read',
-		...overrides,
-	}
-}
-
-describe('RolesApiService', () => {
-	let service: RolesApiService
+describe('HttpRolesApi', () => {
+	let service: HttpRolesApi
 	let httpMock: HttpTestingController
 
 	beforeEach(() => {
 		TestBed.configureTestingModule({
-			providers: [RolesApiService, provideHttpClient(), provideHttpClientTesting()],
+			providers: [HttpRolesApi, provideHttpClient(), provideHttpClientTesting()],
 		})
 
-		service = TestBed.inject(RolesApiService)
+		service = TestBed.inject(HttpRolesApi)
 		httpMock = TestBed.inject(HttpTestingController)
 	})
 
@@ -158,13 +135,7 @@ describe('RolesApiService', () => {
 
 			service.getByIdWithPermissions(5).subscribe((result) => {
 				expect(result).toEqual({
-					id: 5,
-					code: 'editor',
-					name: 'Editor',
-					description: null,
-					removable: true,
-					createdAt: null,
-					updatedAt: null,
+					...mockRole,
 					permissions: mockPermissions,
 				})
 			})

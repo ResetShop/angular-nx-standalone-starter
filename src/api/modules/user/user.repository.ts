@@ -1,13 +1,13 @@
 import { eq } from 'drizzle-orm'
 import { user } from '../../../db/schema/user'
 import { BaseRepository } from '../../helpers/base.repository'
-import { type IUserRepository, type UserData } from './interfaces'
+import { type UserData, type UserRepository } from './interfaces'
 
 /**
  * Repository for user-related database operations.
  * Handles user lookup by email and ID for authentication and profile management.
  */
-export class UserRepository extends BaseRepository implements IUserRepository {
+export class DrizzleUserRepository extends BaseRepository implements UserRepository {
 	/**
 	 * Finds a user by their email address.
 	 * Used during login to retrieve user data for authentication.

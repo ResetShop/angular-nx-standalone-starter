@@ -1,17 +1,17 @@
 import { TestBed } from '@angular/core/testing'
 import type { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router'
 import { provideRouter, UrlTree } from '@angular/router'
-import { createAuthApiMock } from '@mocks/auth-api.mock'
 import { createMockUser } from '@mocks/user.mock'
-import { AuthApiService } from '@providers/auth/auth'
+import { AuthApi } from '@providers/auth/auth.interface'
+import { createMockMeResponse, InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { AuthStore } from '@store/auth/auth.store'
 import { clearAllMocks } from '@test-utils'
 import type { Observable } from 'rxjs'
-import { firstValueFrom, of, throwError } from 'rxjs'
+import { firstValueFrom } from 'rxjs'
 import { noAuthGuard } from './no-auth.guard'
 
 describe('noAuthGuard', () => {
-	let authApiMock: ReturnType<typeof createAuthApiMock>
+	let authApi: InMemoryAuthApi
 
 	// validateSession() always returns an Observable, never a synchronous value
 	function runGuard(): Observable<boolean | UrlTree> {
@@ -23,31 +23,23 @@ describe('noAuthGuard', () => {
 	beforeEach(() => {
 		clearAllMocks()
 
-		authApiMock = createAuthApiMock()
-		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')))
+		authApi = new InMemoryAuthApi()
+		// Default: no session (getMe throws)
 
 		TestBed.configureTestingModule({
-			providers: [AuthStore, provideRouter([]), { provide: AuthApiService, useValue: authApiMock }],
+			providers: [AuthStore, provideRouter([]), { provide: AuthApi, useValue: authApi }],
 		})
 	})
 
 	it('should return true when user is not authenticated', async () => {
-		// getMe is configured to throw in beforeEach — no additional setup needed
+		// Default InMemoryAuthApi has no authenticated user — getMe throws
 		const result = await firstValueFrom(runGuard())
 
 		expect(result).toBe(true)
 	})
 
 	it('should redirect to /dashboard when user is authenticated', async () => {
-		authApiMock.getMe.mockReturnValue(
-			of({
-				id: 1,
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				roles: [],
-			}),
-		)
+		authApi.setAuthenticatedUser(createMockMeResponse())
 
 		const result = await firstValueFrom(runGuard())
 
@@ -56,15 +48,7 @@ describe('noAuthGuard', () => {
 	})
 
 	it('should update currentUser with fresh data from /me response', async () => {
-		authApiMock.getMe.mockReturnValue(
-			of({
-				id: 1,
-				email: 'updated@example.com',
-				firstName: 'Updated',
-				lastName: 'User',
-				roles: [],
-			}),
-		)
+		authApi.setAuthenticatedUser(createMockMeResponse({ email: 'updated@example.com', firstName: 'Updated' }))
 
 		const store = TestBed.inject(AuthStore)
 		await firstValueFrom(runGuard())
@@ -77,7 +61,7 @@ describe('noAuthGuard', () => {
 		const store = TestBed.inject(AuthStore)
 		store.updateCurrentUser(createMockUser({ email: 'stale@example.com' }))
 
-		// getMe is configured to throw in beforeEach — no additional setup needed
+		// Default InMemoryAuthApi has no authenticated user — getMe throws
 		await firstValueFrom(runGuard())
 
 		// validateSession does not clear currentUser on error — the guard redirects instead

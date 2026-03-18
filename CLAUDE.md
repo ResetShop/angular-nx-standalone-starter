@@ -97,7 +97,7 @@ libs/
 
 - **Files:** `kebab-case` (e.g., `user-profile.component.ts`)
 - **Classes:** `PascalCase` (e.g., `UserProfileComponent`)
-- **Interfaces:** `PascalCase`. Use `I` prefix only for domain model interfaces where a concrete class exists (e.g., `IUser`/`User`). Omit prefix for DTOs and general interfaces (e.g., `CreateRoleParams`).
+- **Interfaces:** `PascalCase`, no `I` prefix. Use the **Qualified Implementation** naming convention: the interface owns the clean name, implementations use a technology/purpose prefix. Domain model interfaces keep the `I` prefix only where a runtime class exists (e.g., `IUser`/`User`). DTOs and general interfaces never use a prefix (e.g., `CreateRoleParams`).
 - **Functions/Methods:** `camelCase` (e.g., `getUserById`)
 - **Constants:** `SCREAMING_SNAKE_CASE` for true global constants; `camelCase` for local constants
 
@@ -386,7 +386,7 @@ Stores follow a consistent block ordering with two `withComputed` and two `withM
 
 ```typescript
 // ✅ Correct — structurally linked to the real service
-let apiMock: Record<keyof UsersApiService, MockFn>;
+let apiMock: Record<keyof UsersApi, MockFn>;
 
 // ❌ Incorrect — inline object literal not linked to service
 let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
@@ -669,6 +669,68 @@ interface UserProjection {
 - Keep file-local (not exported) — these are internal to the repository
 - Extract when a query result type is used in method signatures or appears inline with 3+ fields
 - Inline anonymous types in Drizzle `.select()` calls are fine — the `Projection` type captures the output shape when passed between methods
+
+### Frontend API Provider Pattern
+
+API tokens are plain `InjectionToken` instances with **no** `providedIn` / `factory`. The wiring happens exclusively through `provideX()` functions that return `EnvironmentProviders` via `makeEnvironmentProviders()`, preventing component-level registration.
+
+```typescript
+// 1. Interface + token (e.g., auth.interface.ts) — no factory, no providedIn
+export interface AuthApi {
+	login(params: LoginRequest): Observable<LoginResponse>
+	// ...
+}
+export const AuthApi = new InjectionToken<AuthApi>('AuthApi')
+
+// 2. HTTP implementation (e.g., auth.ts) — providedIn: 'root' for tree-shaking
+@Injectable({ providedIn: 'root' })
+export class HttpAuthApi implements AuthApi { ... }
+
+// 3. Provider function (e.g., auth.provider.ts) — environment-only registration
+export function provideAuth() {
+	return makeEnvironmentProviders([{ provide: AuthApi, useExisting: HttpAuthApi }])
+}
+
+// 4. Registration (app.config.ts) — called once at bootstrap
+providers: [provideAuth(), provideUsers(), provideRoles(), providePermissions()]
+
+// 5. Consumer (e.g., auth.store.ts)
+const authApi = inject(AuthApi) // resolves via provideAuth() registration
+
+// 6. Mock provider function (e.g., auth.mock.ts) — same EnvironmentProviders pattern
+export function provideAuthMock(api: InMemoryAuthApi = new InMemoryAuthApi()) {
+	return makeEnvironmentProviders([{ provide: AuthApi, useValue: api }])
+}
+
+// 7. Test usage
+providers: [provideAuthMock()]
+```
+
+**Rules:**
+
+- `InjectionToken` declarations must **not** include `providedIn` or `factory` — use `provideX()` instead
+- `Http*Api` classes keep `@Injectable({ providedIn: 'root' })` for tree-shaking
+- Provider functions return `EnvironmentProviders` (never `Provider[]`) to enforce environment-only registration
+- Mock provider functions follow the same `makeEnvironmentProviders` pattern
+- ESLint `no-restricted-imports` blocks direct API token imports in `src/app/pages/` and `src/app/components/` — components must inject via stores or guards
+
+**Existing provider functions:**
+
+| Function               | File                                  | Registers                               |
+| ---------------------- | ------------------------------------- | --------------------------------------- |
+| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               |
+| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             |
+| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             |
+| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` |
+
+**Mock provider functions:**
+
+| Function                   | File                              |
+| -------------------------- | --------------------------------- |
+| `provideAuthMock()`        | `auth/auth.mock.ts`               |
+| `provideUsersMock()`       | `users/users.mock.ts`             |
+| `provideRolesMock()`       | `roles/roles.mock.ts`             |
+| `providePermissionsMock()` | `permissions/permissions.mock.ts` |
 
 ---
 

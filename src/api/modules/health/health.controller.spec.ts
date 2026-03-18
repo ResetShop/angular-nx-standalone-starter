@@ -1,7 +1,7 @@
 import { clearAllMocks, fn } from '@test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../container/container'
-import { MockContainer } from '../../container/container.mock'
+import { InMemoryContainer } from '../../container/container.mock'
 import { HealthStatus } from './health.constants'
 import healthController from './health.controller'
 import type { HealthCheckResponse } from './interfaces'
@@ -13,7 +13,7 @@ describe('Health Controller', () => {
 		clearAllMocks()
 
 		container.use(
-			new MockContainer({
+			new InMemoryContainer({
 				healthService: {
 					checkHealth: mockCheckHealth,
 				},

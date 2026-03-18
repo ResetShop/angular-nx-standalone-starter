@@ -3,13 +3,13 @@ import { eq, sql } from 'drizzle-orm'
 import { authentication } from '../../../db/schema/authentication'
 import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants'
 import { BaseRepository } from '../../helpers/base.repository'
-import { type AuthenticationData, type IAuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
+import { type AuthenticationData, type AuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
 
 /**
  * Repository for authentication-related database operations.
  * Handles password hash storage, retrieval, and account lockout management.
  */
-export class AuthenticationRepository extends BaseRepository implements IAuthenticationRepository {
+export class DrizzleAuthenticationRepository extends BaseRepository implements AuthenticationRepository {
 	/**
 	 * Gets the maximum number of failed login attempts before account lockout.
 	 * Configurable via AUTH_MAX_FAILED_ATTEMPTS environment variable.

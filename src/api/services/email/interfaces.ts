@@ -24,10 +24,10 @@ export interface SendEmailParams {
  * @throws Error on transport failure (connection refused, authentication, timeout)
  * @throws Error if recipients are rejected by the SMTP server
  */
-export interface IEmailRepository {
+export interface EmailRepository {
 	send(params: SendEmailParams): Promise<void>
 }
 
-export interface IEmailService {
+export interface EmailService {
 	send(params: SendEmailParams): Promise<void>
 }

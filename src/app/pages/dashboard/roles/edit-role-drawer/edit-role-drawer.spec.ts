@@ -2,8 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@components/drawer/drawer-loading'
 import { Translation } from '@providers/i18n/translation'
-import { PermissionsApiService } from '@providers/permissions/permissions'
-import { RolesApiService } from '@providers/roles/roles'
+import { mockTranslation } from '@providers/i18n/translation.mock'
+import { PermissionsApi } from '@providers/permissions/permissions.interface'
+import { RolesApi } from '@providers/roles/roles.interface'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -18,19 +19,9 @@ import { parseDurationToMs } from '@utils/duration'
 import { of, throwError } from 'rxjs'
 import { EditRoleDrawer } from './edit-role-drawer'
 
-const TRANSLATIONS: Record<string, string> = {
-	'VALIDATION.REQUIRED': 'This field is required',
-	'VALIDATION.MAX_LENGTH': 'Maximum {max} characters',
-	'VALIDATION.PATTERN': 'Invalid format',
-}
-
-const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
-}
-
 describe('EditRoleDrawer', () => {
-	let rolesApiMock: Record<keyof RolesApiService, MockFn>
-	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>
+	let rolesApiMock: Record<keyof RolesApi, MockFn>
+	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
 
 	beforeEach(() => {
 		useFakeTimers()
@@ -75,8 +66,8 @@ describe('EditRoleDrawer', () => {
 
 		const { fixture } = await render(EditRoleDrawer, {
 			providers: [
-				{ provide: RolesApiService, useValue: rolesApiMock },
-				{ provide: PermissionsApiService, useValue: permissionsApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})

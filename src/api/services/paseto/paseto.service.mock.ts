@@ -1,6 +1,6 @@
-import { type IPasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces'
+import { type PasetoService, type RefreshTokenPayload, type TokenPayload } from './interfaces'
 
-export class MockPasetoService implements IPasetoService {
+export class InMemoryPasetoService implements PasetoService {
 	private accessTokenCounter = 1
 	private refreshTokenCounter = 1
 

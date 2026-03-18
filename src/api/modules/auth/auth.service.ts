@@ -4,25 +4,25 @@ import { parseDurationToMs } from '@utils/duration'
 import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
 import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
-import { type IPasetoService } from '../../services/paseto/interfaces'
-import { type IUserRepository, type UserData } from '../user/interfaces'
+import { type PasetoService } from '../../services/paseto/interfaces'
+import { type UserData, type UserRepository } from '../user/interfaces'
 import {
 	type AuthCredentials,
 	type AuthResult,
+	type AuthService as AuthServiceInterface,
 	type AuthenticationData,
+	type AuthenticationRepository,
 	type CleanupResult,
-	type IAuthService,
-	type IAuthenticationRepository,
-	type IRefreshTokenRepository,
-	type ITokenMaintenanceService,
 	type RefreshResult,
+	type RefreshTokenRepository,
+	type TokenMaintenanceService,
 } from './interfaces'
 
 interface AuthServiceDeps {
-	userRepository: IUserRepository
-	authRepository: IAuthenticationRepository
-	refreshTokenRepository: IRefreshTokenRepository
-	pasetoService: IPasetoService
+	userRepository: UserRepository
+	authRepository: AuthenticationRepository
+	refreshTokenRepository: RefreshTokenRepository
+	pasetoService: PasetoService
 }
 
 /**
@@ -30,11 +30,11 @@ interface AuthServiceDeps {
  * Handles login, logout, token refresh, and expired token cleanup.
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
-export class AuthService implements IAuthService, ITokenMaintenanceService {
-	private userRepository: IUserRepository
-	private authRepository: IAuthenticationRepository
-	private refreshTokenRepository: IRefreshTokenRepository
-	private pasetoService: IPasetoService
+export class AuthService implements AuthServiceInterface, TokenMaintenanceService {
+	private userRepository: UserRepository
+	private authRepository: AuthenticationRepository
+	private refreshTokenRepository: RefreshTokenRepository
+	private pasetoService: PasetoService
 
 	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService }: AuthServiceDeps) {
 		this.userRepository = userRepository
