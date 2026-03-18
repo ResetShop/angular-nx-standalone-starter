@@ -26,6 +26,52 @@ export function createMockRoleData(overrides: Partial<RoleData> = {}): RoleData 
 	}
 }
 
+/**
+ * Pre-built role list with diverse properties for pagination and search testing.
+ * Includes the non-removable admin, plus 4 removable roles with varying descriptions.
+ */
+export const MOCK_ROLES: RoleData[] = [
+	createMockRoleData({
+		id: 1,
+		name: 'Administrator',
+		code: 'admin',
+		description: 'System administrator with full access',
+		removable: false,
+	}),
+	createMockRoleData({
+		id: 2,
+		name: 'Editor',
+		code: 'editor',
+		description: 'Can edit content and manage users',
+		createdAt: new Date('2025-01-15'),
+		updatedAt: new Date('2025-02-01'),
+	}),
+	createMockRoleData({
+		id: 3,
+		name: 'Viewer',
+		code: 'viewer',
+		description: 'Read-only access to all resources',
+		createdAt: new Date('2025-01-15'),
+		updatedAt: new Date('2025-01-15'),
+	}),
+	createMockRoleData({
+		id: 4,
+		name: 'User Manager',
+		code: 'user_manager',
+		description: 'Manages user accounts and roles',
+		createdAt: new Date('2025-02-01'),
+		updatedAt: new Date('2025-02-01'),
+	}),
+	createMockRoleData({
+		id: 5,
+		name: 'Auditor',
+		code: 'auditor',
+		description: null,
+		createdAt: new Date('2025-03-01'),
+		updatedAt: new Date('2025-03-01'),
+	}),
+]
+
 export function createMockRoleWithPermissions(overrides: Partial<RoleWithPermissions> = {}): RoleWithPermissions {
 	return {
 		id: 1,

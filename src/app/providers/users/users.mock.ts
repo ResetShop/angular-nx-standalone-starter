@@ -40,6 +40,166 @@ export function createMockManagedUser(overrides: Partial<ManagedUser> = {}): Man
 	}
 }
 
+/**
+ * Pre-built user list with diverse statuses, roles, and dates for pagination and search testing.
+ * 12 users across 2 pages at default page size (10), with mixed statuses and role assignments.
+ */
+export const MOCK_USERS: ManagedUser[] = [
+	createMockManagedUser({
+		id: 1,
+		email: 'admin@sistema.com',
+		firstName: 'Administrador',
+		lastName: 'Sistema',
+		roles: [
+			{
+				id: 1,
+				name: 'Administrator',
+				code: 'admin',
+				description: 'System administrator with full access',
+				removable: false,
+				createdAt: null,
+				updatedAt: null,
+			},
+		],
+	}),
+	createMockManagedUser({
+		id: 2,
+		email: 'john@example.com',
+		firstName: 'John',
+		lastName: 'Doe',
+		roles: [
+			{ id: 2, name: 'Editor', code: 'editor', description: null, removable: true, createdAt: null, updatedAt: null },
+		],
+	}),
+	createMockManagedUser({
+		id: 3,
+		email: 'jane@example.com',
+		firstName: 'Jane',
+		lastName: 'Smith',
+		roles: [
+			{ id: 3, name: 'Viewer', code: 'viewer', description: null, removable: true, createdAt: null, updatedAt: null },
+		],
+		createdAt: new Date('2025-01-10'),
+		updatedAt: new Date('2025-01-10'),
+	}),
+	createMockManagedUser({
+		id: 4,
+		email: 'bob@example.com',
+		firstName: 'Bob',
+		lastName: 'Wilson',
+		status: UserStatus.DISABLED,
+		statusChangedAt: new Date('2025-02-15'),
+		statusChangedBy: 1,
+		roles: [],
+		createdAt: new Date('2025-01-05'),
+		updatedAt: new Date('2025-02-15'),
+	}),
+	createMockManagedUser({
+		id: 5,
+		email: 'alice@example.com',
+		firstName: 'Alice',
+		lastName: 'Johnson',
+		roles: [
+			{
+				id: 1,
+				name: 'Administrator',
+				code: 'admin',
+				description: null,
+				removable: false,
+				createdAt: null,
+				updatedAt: null,
+			},
+			{ id: 2, name: 'Editor', code: 'editor', description: null, removable: true, createdAt: null, updatedAt: null },
+		],
+		createdAt: new Date('2025-01-20'),
+		updatedAt: new Date('2025-01-20'),
+	}),
+	createMockManagedUser({
+		id: 6,
+		email: 'charlie@example.com',
+		firstName: 'Charlie',
+		lastName: 'Brown',
+		roles: [],
+		createdAt: new Date('2025-02-01'),
+		updatedAt: new Date('2025-02-01'),
+	}),
+	createMockManagedUser({
+		id: 7,
+		email: 'diana@example.com',
+		firstName: 'Diana',
+		lastName: 'Prince',
+		roles: [
+			{
+				id: 4,
+				name: 'User Manager',
+				code: 'user_manager',
+				description: null,
+				removable: true,
+				createdAt: null,
+				updatedAt: null,
+			},
+		],
+		createdAt: new Date('2025-02-10'),
+		updatedAt: new Date('2025-02-10'),
+	}),
+	createMockManagedUser({
+		id: 8,
+		email: 'eve@example.com',
+		firstName: 'Eve',
+		lastName: 'Taylor',
+		status: UserStatus.DISABLED,
+		statusChangedAt: new Date('2025-03-01'),
+		statusChangedBy: 1,
+		roles: [
+			{ id: 3, name: 'Viewer', code: 'viewer', description: null, removable: true, createdAt: null, updatedAt: null },
+		],
+		createdAt: new Date('2025-02-15'),
+		updatedAt: new Date('2025-03-01'),
+	}),
+	createMockManagedUser({
+		id: 9,
+		email: 'frank@example.com',
+		firstName: 'Frank',
+		lastName: 'Miller',
+		roles: [
+			{ id: 2, name: 'Editor', code: 'editor', description: null, removable: true, createdAt: null, updatedAt: null },
+		],
+		createdAt: new Date('2025-02-20'),
+		updatedAt: new Date('2025-02-20'),
+	}),
+	createMockManagedUser({
+		id: 10,
+		email: 'grace@example.com',
+		firstName: 'Grace',
+		lastName: 'Lee',
+		roles: [
+			{ id: 5, name: 'Auditor', code: 'auditor', description: null, removable: true, createdAt: null, updatedAt: null },
+		],
+		createdAt: new Date('2025-03-01'),
+		updatedAt: new Date('2025-03-01'),
+	}),
+	createMockManagedUser({
+		id: 11,
+		email: 'hank@example.com',
+		firstName: 'Hank',
+		lastName: 'Garcia',
+		roles: [],
+		createdAt: new Date('2025-03-05'),
+		updatedAt: new Date('2025-03-05'),
+	}),
+	createMockManagedUser({
+		id: 12,
+		email: 'iris@example.com',
+		firstName: 'Iris',
+		lastName: 'Chen',
+		roles: [
+			{ id: 3, name: 'Viewer', code: 'viewer', description: null, removable: true, createdAt: null, updatedAt: null },
+		],
+		createdAt: new Date('2025-03-10'),
+		updatedAt: new Date('2025-03-10'),
+	}),
+]
+
 export class InMemoryUsersApi implements UsersApi {
 	private users = new Map<number, ManagedUser>()
 	private errors = new Map<string, Error>()
