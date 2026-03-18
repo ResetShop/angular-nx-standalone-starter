@@ -22,6 +22,7 @@
 
 [ngpComboboxInput] {
 	@apply text-foreground placeholder:text-muted-foreground flex-1 rounded-none bg-transparent px-3 py-2 text-sm outline-none;
+
 	border: none !important;
 	box-shadow: none !important;
 }
@@ -38,6 +39,7 @@
 
 [ngpComboboxDropdown] {
 	@apply bg-background border-border absolute mt-1 max-h-60 overflow-y-auto rounded-lg border p-1 shadow-md outline-none;
+
 	width: var(--ngp-combobox-width);
 	transform-origin: var(--ngp-combobox-transform-origin);
 }
@@ -64,6 +66,7 @@
 		opacity: 0;
 		transform: translateY(-4px) scale(0.95);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0) scale(1);
@@ -75,6 +78,7 @@
 		opacity: 1;
 		transform: translateY(0) scale(1);
 	}
+
 	to {
 		opacity: 0;
 		transform: translateY(-4px) scale(0.95);

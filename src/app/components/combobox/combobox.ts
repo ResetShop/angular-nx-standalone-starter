@@ -101,18 +101,17 @@ export class Combobox extends FormFieldCustomControl implements FormValueControl
 	}
 
 	protected onOpenChange(open: boolean): void {
-		if (open) return
-		const current = this.value()
-		if (current) {
-			const label = this.options().find((o) => o.value === current)?.label ?? ''
+		if (!open) {
+			const current = this.value()
+			const label = current ? (this.options().find((o) => o.value === current)?.label ?? '') : ''
 			this.filter.set(label)
-		} else {
-			this.filter.set('')
+			this.touched.set(true)
 		}
-		this.touched.set(true)
 	}
 
 	protected onFocusOut(): void {
+		// Deferred check: the browser needs a tick to settle the new activeElement
+		// after focusout fires, so we can verify focus truly left the component.
 		setTimeout(() => {
 			if (!this.host.contains(document.activeElement)) {
 				this.touched.set(true)
