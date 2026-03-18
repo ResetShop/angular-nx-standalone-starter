@@ -80,6 +80,8 @@ export class Select extends FormFieldCustomControl implements FormValueControl<s
 	}
 
 	protected onFocusOut(): void {
+		// Deferred check: the browser needs a tick to settle the new activeElement
+		// after focusout fires, so we can verify focus truly left the component.
 		setTimeout(() => {
 			if (!this.host.contains(document.activeElement)) {
 				this.touched.set(true)
