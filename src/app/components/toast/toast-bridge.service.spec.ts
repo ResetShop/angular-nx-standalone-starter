@@ -22,7 +22,7 @@ describe('ToastBridgeService', () => {
 		showMock.mockReturnValue({ dismiss: dismissMock })
 
 		TestBed.configureTestingModule({
-			providers: [{ provide: NgpToastManager, useValue: { show: showMock, dismiss: fn() } }],
+			providers: [ToastBridgeService, { provide: NgpToastManager, useValue: { show: showMock, dismiss: fn() } }],
 		})
 
 		uiStore = TestBed.inject(UIStore)
