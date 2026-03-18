@@ -1,4 +1,4 @@
-import { inject, InjectionToken } from '@angular/core'
+import { InjectionToken } from '@angular/core'
 import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types'
 import type {
 	CreateUserRequest,
@@ -8,7 +8,6 @@ import type {
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
 import type { Observable } from 'rxjs'
-import { HttpUsersApi } from './users'
 
 export interface UsersApi {
 	getAll(params?: SearchPaginationParams): Observable<PaginatedResponse<ManagedUser>>
@@ -19,7 +18,4 @@ export interface UsersApi {
 	updateStatus(id: number, body: UpdateUserStatusRequest): Observable<ManagedUser>
 }
 
-export const UsersApi = new InjectionToken<UsersApi>('UsersApi', {
-	providedIn: 'root',
-	factory: () => inject(HttpUsersApi),
-})
+export const UsersApi = new InjectionToken<UsersApi>('UsersApi')

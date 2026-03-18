@@ -1,7 +1,6 @@
-import { inject, InjectionToken } from '@angular/core'
+import { InjectionToken } from '@angular/core'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import type { Observable } from 'rxjs'
-import { HttpAuthApi } from './auth'
 
 export interface AuthApi {
 	login(params: LoginRequest): Observable<LoginResponse>
@@ -10,7 +9,4 @@ export interface AuthApi {
 	getMe(): Observable<MeResponse>
 }
 
-export const AuthApi = new InjectionToken<AuthApi>('AuthApi', {
-	providedIn: 'root',
-	factory: () => inject(HttpAuthApi),
-})
+export const AuthApi = new InjectionToken<AuthApi>('AuthApi')

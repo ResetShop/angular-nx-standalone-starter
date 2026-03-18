@@ -1,4 +1,4 @@
-import { inject, InjectionToken } from '@angular/core'
+import { InjectionToken } from '@angular/core'
 import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types'
 import type {
 	AssignPermissionsRequest,
@@ -8,7 +8,6 @@ import type {
 	UpdateRoleRequest,
 } from '@contracts/role/role.types'
 import type { Observable } from 'rxjs'
-import { HttpRolesApi } from './roles'
 
 export interface RolesApi {
 	getAll(params?: SearchPaginationParams): Observable<PaginatedResponse<RoleData>>
@@ -20,7 +19,4 @@ export interface RolesApi {
 	assignPermissions(id: number, body: AssignPermissionsRequest): Observable<void>
 }
 
-export const RolesApi = new InjectionToken<RolesApi>('RolesApi', {
-	providedIn: 'root',
-	factory: () => inject(HttpRolesApi),
-})
+export const RolesApi = new InjectionToken<RolesApi>('RolesApi')

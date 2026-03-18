@@ -1,4 +1,4 @@
-import type { Provider } from '@angular/core'
+import { makeEnvironmentProviders } from '@angular/core'
 import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types'
 import { UserStatus } from '@contracts/user/user.constants'
 import type {
@@ -328,6 +328,6 @@ export class InMemoryUsersApi implements UsersApi {
 	}
 }
 
-export const provideUsersMock = (api: InMemoryUsersApi = new InMemoryUsersApi()): Provider[] => [
-	{ provide: UsersApiToken, useValue: api },
-]
+export function provideUsersMock(api: InMemoryUsersApi = new InMemoryUsersApi()) {
+	return makeEnvironmentProviders([{ provide: UsersApiToken, useValue: api }])
+}

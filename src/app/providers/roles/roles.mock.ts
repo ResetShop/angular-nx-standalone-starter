@@ -1,4 +1,4 @@
-import type { Provider } from '@angular/core'
+import { makeEnvironmentProviders } from '@angular/core'
 import type { PaginatedResponse, SearchPaginationParams } from '@contracts/common/pagination.types'
 import type {
 	AssignPermissionsRequest,
@@ -225,6 +225,6 @@ export class InMemoryRolesApi implements RolesApi {
 	}
 }
 
-export const provideRolesMock = (api: InMemoryRolesApi = new InMemoryRolesApi()): Provider[] => [
-	{ provide: RolesApiToken, useValue: api },
-]
+export function provideRolesMock(api: InMemoryRolesApi = new InMemoryRolesApi()) {
+	return makeEnvironmentProviders([{ provide: RolesApiToken, useValue: api }])
+}

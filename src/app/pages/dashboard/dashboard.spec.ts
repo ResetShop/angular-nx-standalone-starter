@@ -4,6 +4,7 @@ import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
+import { provideAuthMock } from '@providers/auth/auth.mock'
 import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
@@ -28,6 +29,7 @@ describe('Dashboard', () => {
 		provideMockTheme(false),
 		provideHttpClient(),
 		provideHttpClientTesting(),
+		provideAuthMock(),
 		NavigationState,
 		{ provide: UIStore, useValue: mockUIStore },
 	]
