@@ -1,5 +1,8 @@
 import { NamedRoute } from '@interfaces/navigation'
 import Dashboard from '@pages/dashboard/dashboard'
+import { providePermissions } from '@providers/permissions/permissions.provider'
+import { provideRoles } from '@providers/roles/roles.provider'
+import { provideUsers } from '@providers/users/users.provider'
 
 export default [
 	{
@@ -22,6 +25,7 @@ export default [
 				path: 'users',
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
+				providers: [provideUsers(), provideRoles()],
 			},
 			{
 				path: 'authorization',
@@ -31,11 +35,13 @@ export default [
 						path: 'permissions',
 						title: 'Permisos',
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
+						providers: [providePermissions()],
 					},
 					{
 						path: 'roles',
 						title: 'Roles',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
+						providers: [provideRoles(), providePermissions()],
 					},
 				],
 			},

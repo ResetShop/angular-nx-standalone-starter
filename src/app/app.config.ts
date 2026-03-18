@@ -14,11 +14,8 @@ import { provideAuth } from '@providers/auth/auth.provider'
 import { initializeTranslation } from '@providers/i18n/translation.initializer'
 import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.strategy'
 import { provideNavigation } from '@providers/navigation/navigation.provider'
-import { providePermissions } from '@providers/permissions/permissions.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
-import { provideRoles } from '@providers/roles/roles.provider'
 import { provideTheme } from '@providers/theme/theme'
-import { provideUsers } from '@providers/users/users.provider'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
 import { authInterceptor } from './interceptors/auth.interceptor'
@@ -59,8 +56,5 @@ export const appConfig: ApplicationConfig = {
 
 		// API providers
 		provideAuth(),
-		provideUsers(),
-		provideRoles(),
-		providePermissions(),
 	],
 }
