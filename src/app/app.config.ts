@@ -16,7 +16,6 @@ import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.
 import { provideNavigation } from '@providers/navigation/navigation.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
 import { provideTheme } from '@providers/theme/theme'
-import { provideToastConfig } from 'ng-primitives/toast'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
 import { authInterceptor } from './interceptors/auth.interceptor'
@@ -47,16 +46,6 @@ export const appConfig: ApplicationConfig = {
 
 		// Signal forms
 		...provideSignalFormsConfig({}),
-
-		// Toast notifications
-		...provideToastConfig({
-			placement: 'bottom-end',
-			duration: 5000,
-			dismissible: true,
-			maxToasts: 3,
-			gap: 16,
-			zIndex: 9999,
-		}),
 
 		// Custom providers
 		Analytics,

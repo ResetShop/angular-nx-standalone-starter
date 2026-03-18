@@ -6,12 +6,23 @@ import { provideUsers } from '@providers/users/users.provider'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { UsersStore } from '@store/users/users.store'
+import { provideToastConfig } from 'ng-primitives/toast'
 
 export default [
 	{
 		path: '',
 		title: '',
 		component: Dashboard,
+		providers: [
+			...provideToastConfig({
+				placement: 'bottom-center',
+				duration: 5000,
+				dismissible: true,
+				maxToasts: 3,
+				gap: 16,
+				zIndex: 9999,
+			}),
+		],
 		children: [
 			{
 				path: 'health',

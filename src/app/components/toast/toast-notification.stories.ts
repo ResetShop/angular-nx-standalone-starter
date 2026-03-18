@@ -1,16 +1,17 @@
-import { Component, inject } from '@angular/core'
+import { Component, inject, input } from '@angular/core'
 import { Button } from '@components/button/button'
-import { UIStore } from '@store/ui/ui.store'
 import type { NotificationType } from '@store/ui/ui.types'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
-import { provideToastConfig } from 'ng-primitives/toast'
-import { ToastBridgeService } from './toast-bridge.service'
+import type { NgpToastOptions } from 'ng-primitives/toast'
+import { NgpToastManager, provideToastConfig } from 'ng-primitives/toast'
+import { ToastNotification } from './toast-notification'
+
+type ToastPlacement = NonNullable<NgpToastOptions['placement']>
 
 /**
- * Wrapper component that triggers toast notifications via UIStore.
- * The ToastNotification component itself cannot be rendered standalone
- * because it depends on the ng-primitives toast portal context.
+ * Wrapper component that triggers toast notifications via NgpToastManager directly,
+ * allowing per-toast placement control from Storybook args.
  */
 @Component({
 	selector: 'app-toast-story',
@@ -29,12 +30,19 @@ import { ToastBridgeService } from './toast-bridge.service'
 	`,
 })
 class ToastStory {
-	private readonly uiStore = inject(UIStore)
-	// Activate the bridge so UIStore notifications render as ng-primitives toasts
-	private readonly _bridge = inject(ToastBridgeService)
+	public readonly placement = input<ToastPlacement>('bottom-center')
+
+	private readonly toastManager = inject(NgpToastManager)
 
 	protected show(type: NotificationType, message: string): void {
-		this.uiStore.showNotification({ type, message })
+		const id = crypto.randomUUID()
+		const notification = { id, type, message }
+
+		this.toastManager.show(ToastNotification, {
+			context: notification,
+			placement: this.placement(),
+			duration: 5000,
+		})
 	}
 }
 
@@ -48,7 +56,7 @@ const meta: Meta<ToastStory> = {
 		applicationConfig({
 			providers: [
 				...provideToastConfig({
-					placement: 'bottom-end',
+					placement: 'bottom-center',
 					duration: 5000,
 					dismissible: true,
 					maxToasts: 3,
@@ -58,6 +66,17 @@ const meta: Meta<ToastStory> = {
 			],
 		}),
 	],
+	argTypes: {
+		placement: {
+			control: 'select',
+			options: ['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-center'],
+			description: 'Position where toasts appear on the screen',
+			table: {
+				type: { summary: 'NgpToastPlacement' },
+				defaultValue: { summary: "'bottom-center'" },
+			},
+		},
+	},
 	parameters: {
 		layout: 'fullscreen',
 		docs: {
@@ -67,6 +86,7 @@ Toast notifications powered by ng-primitives (\`NgpToast\`) with Sonner-style sh
 
 ## Features
 - Four notification types: \`success\`, \`error\`, \`warning\`, \`info\`
+- Configurable placement: top/bottom + start/center/end
 - Auto-dismiss after 5 seconds (configurable per notification)
 - Manual dismiss via X button
 - Swipe-to-dismiss gesture support
@@ -87,5 +107,8 @@ uiStore.showNotification({ type: 'success', message: 'Saved!' });
 
 export default meta
 
-/** Click the buttons to trigger toast notifications of each type */
-export const AllVariants: Story = {}
+/** Click the buttons to trigger toast notifications. Use the placement control to change position. */
+export const AllVariants: Story = {
+	args: { placement: 'bottom-center' },
+	render: (args) => ({ props: args }),
+}
