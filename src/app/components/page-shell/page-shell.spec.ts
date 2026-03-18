@@ -2,7 +2,9 @@ import { Component, input } from '@angular/core'
 import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { parseDurationToMs } from '@utils/duration'
-import { PAGE_SHELL_MIN_DISPLAY, PageShell } from './page-shell'
+import { PageShell } from './page-shell'
+
+const PAGE_SHELL_MIN_DISPLAY = '1s'
 
 @Component({
 	selector: 'app-test-host',
