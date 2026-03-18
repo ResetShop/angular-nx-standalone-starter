@@ -10,14 +10,19 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
 import { UIStore } from '@store/ui/ui.store'
 import { render, screen } from '@testing-library/angular'
+import { NgpToastManager } from 'ng-primitives/toast'
 import Dashboard from './dashboard'
 
 describe('Dashboard', () => {
 	const mockGlobalLoading = signal(false)
 
+	const mockNotifications = signal<unknown[]>([])
+
 	const mockUIStore = {
 		isGlobalLoading: mockGlobalLoading,
 		setGlobalLoading: (value: boolean) => mockGlobalLoading.set(value),
+		notifications: mockNotifications,
+		dismissNotification: () => {},
 	}
 
 	const defaultProviders = () => [
@@ -32,6 +37,7 @@ describe('Dashboard', () => {
 		provideAuthMock(),
 		NavigationState,
 		{ provide: UIStore, useValue: mockUIStore },
+		{ provide: NgpToastManager, useValue: { show: () => ({ dismiss: () => Promise.resolve() }) } },
 	]
 
 	const createNavigationWithSectionsAndBreadcrumbs = (

@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router'
 import { Header } from '@components/header/header'
 import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component'
 import { Sidebar } from '@components/sidebar/sidebar'
+import { ToastBridgeService } from '@components/toast/toast-bridge.service'
 import { UIStore } from '@store/ui/ui.store'
 
 @Component({
@@ -53,4 +54,6 @@ import { UIStore } from '@store/ui/ui.store'
 })
 export default class Dashboard {
 	protected readonly uiStore = inject(UIStore)
+	// Inject to activate the effect that bridges UIStore notifications to NgpToastManager
+	private readonly _toastBridge = inject(ToastBridgeService)
 }
