@@ -79,7 +79,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 				[routerLink]="item().route"
 				[routerLinkActiveOptions]="{ exact: false }"
 				[attr.aria-label]="collapsed() ? item().name : null"
-				[title]="collapsed() ? item().name : ''"
+				[attr.title]="collapsed() ? item().name : null"
 				routerLinkActive="bg-accent text-accent-foreground font-medium"
 				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
 			>
