@@ -97,7 +97,7 @@ libs/
 
 - **Files:** `kebab-case` (e.g., `user-profile.component.ts`)
 - **Classes:** `PascalCase` (e.g., `UserProfileComponent`)
-- **Interfaces:** `PascalCase`, no `I` prefix. Use **Pattern C (Qualified Implementation)**: the interface owns the clean name, implementations use a technology/purpose prefix. Domain model interfaces keep the `I` prefix only where a runtime class exists (e.g., `IUser`/`User`). DTOs and general interfaces never use a prefix (e.g., `CreateRoleParams`).
+- **Interfaces:** `PascalCase`, no `I` prefix. Use the **Qualified Implementation** naming convention: the interface owns the clean name, implementations use a technology/purpose prefix. Domain model interfaces keep the `I` prefix only where a runtime class exists (e.g., `IUser`/`User`). DTOs and general interfaces never use a prefix (e.g., `CreateRoleParams`).
 - **Functions/Methods:** `camelCase` (e.g., `getUserById`)
 - **Constants:** `SCREAMING_SNAKE_CASE` for true global constants; `camelCase` for local constants
 
