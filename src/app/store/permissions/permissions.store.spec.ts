@@ -1,20 +1,9 @@
 import { TestBed } from '@angular/core/testing'
-import type { PermissionData } from '@contracts/role/role.types'
 import { PermissionsApi } from '@providers/permissions/permissions.interface'
+import { createMockPermissionData } from '@providers/permissions/permissions.mock'
 import { clearAllMocks, fn, type MockFn } from '@test-utils'
 import { NEVER, of, throwError } from 'rxjs'
 import { PermissionsStore } from './permissions.store'
-
-function createMockPermissionData(overrides: Partial<PermissionData> = {}): PermissionData {
-	return {
-		id: 1,
-		name: 'Read Users',
-		description: null,
-		resource: 'users',
-		action: 'read',
-		...overrides,
-	}
-}
 
 describe('PermissionsStore', () => {
 	let store: InstanceType<typeof PermissionsStore>

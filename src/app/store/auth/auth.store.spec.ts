@@ -3,6 +3,7 @@ import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth
 import type { IPermission } from '@domain/access/permission.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
+import { createMockLoginResponse, createMockMeResponse } from '@providers/auth/auth.mock'
 import { clearAllMocks, fn, type MockFn } from '@test-utils'
 import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs'
 import { AuthStore } from './auth.store'
@@ -16,23 +17,8 @@ describe('AuthStore', () => {
 		getMe: MockFn<[], Observable<MeResponse>>
 	}
 
-	const mockLoginResponse: LoginResponse = {
-		user: {
-			id: 1,
-			email: 'test@example.com',
-			firstName: 'Test',
-			lastName: 'User',
-		},
-		mustChangePassword: false,
-	}
-
-	const mockMeResponse: MeResponse = {
-		id: 1,
-		email: 'test@example.com',
-		firstName: 'Test',
-		lastName: 'User',
-		roles: [],
-	}
+	const mockLoginResponse = createMockLoginResponse()
+	const mockMeResponse = createMockMeResponse()
 
 	beforeEach(() => {
 		clearAllMocks()

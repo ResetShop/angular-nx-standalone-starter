@@ -1,47 +1,12 @@
 import { TestBed } from '@angular/core/testing'
-import type { PaginatedResponse } from '@contracts/common/pagination.types'
 import { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse, ManagedUser } from '@contracts/user/user.types'
+import type { CreateUserResponse } from '@contracts/user/user.types'
+import { createPaginatedResponse } from '@mocks/pagination.mock'
 import { UsersApi } from '@providers/users/users.interface'
+import { createMockManagedUser } from '@providers/users/users.mock'
 import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils'
 import { EMPTY, NEVER, of, throwError } from 'rxjs'
 import { UsersStore } from './users.store'
-
-function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUser {
-	return {
-		id: 1,
-		email: 'john@example.com',
-		firstName: 'John',
-		lastName: 'Doe',
-		status: UserStatus.ACTIVE,
-		statusChangedAt: null,
-		statusChangedBy: null,
-		deletedAt: null,
-		createdAt: new Date('2025-01-01'),
-		updatedAt: new Date('2025-01-01'),
-		roles: [
-			{
-				id: 1,
-				name: 'Admin',
-				code: 'admin',
-				description: null,
-				removable: true,
-				createdAt: null,
-				updatedAt: null,
-			},
-		],
-		...overrides,
-	}
-}
-
-function createMockListResponse(users: ManagedUser[], total?: number): PaginatedResponse<ManagedUser> {
-	return {
-		data: users,
-		total: total ?? users.length,
-		offset: 0,
-		limit: 10,
-	}
-}
 
 describe('UsersStore', () => {
 	let store: InstanceType<typeof UsersStore>
@@ -75,7 +40,7 @@ describe('UsersStore', () => {
 
 		// Default mock — prevents onInit from firing against an unmocked fn().
 		// Tests that need a different initial response override before calling setupStore().
-		usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 	})
 
 	describe('initial state', () => {
@@ -118,7 +83,7 @@ describe('UsersStore', () => {
 	describe('loadUsers (reactive via onInit)', () => {
 		it('should load users and update state on success', () => {
 			const mockUser = createMockManagedUser()
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([mockUser], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([mockUser], 1)))
 			setupStore()
 
 			expect(store.users()).toHaveLength(1)
@@ -142,7 +107,7 @@ describe('UsersStore', () => {
 		})
 
 		it('should compute totalPages correctly', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 25)))
 			setupStore()
 
 			expect(store.totalPages()).toBe(3)
@@ -197,7 +162,7 @@ describe('UsersStore', () => {
 	describe('createUser', () => {
 		it('should reload the list from the server on success', () => {
 			const existingUser = createMockManagedUser({ id: 1 })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([existingUser], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([existingUser], 1)))
 			setupStore()
 
 			const newUser: CreateUserResponse = {
@@ -208,7 +173,7 @@ describe('UsersStore', () => {
 
 			// After create, the store reloads — mock the server-authoritative response
 			const reloadedUsers = [existingUser, createMockManagedUser({ id: 2, email: 'new@example.com' })]
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(reloadedUsers, 2)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(reloadedUsers, 2)))
 
 			store.createUser({
 				email: 'new@example.com',
@@ -242,14 +207,14 @@ describe('UsersStore', () => {
 	describe('updateUser', () => {
 		it('should reload the list from the server on success', () => {
 			const user = createMockManagedUser({ id: 5, firstName: 'Old' })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))
 			setupStore()
 
 			usersApiMock.update.mockReturnValue(of(createMockManagedUser({ id: 5, firstName: 'Updated' })))
 
 			// After update, the store reloads — mock the server-authoritative response
 			const reloadedUser = createMockManagedUser({ id: 5, firstName: 'Updated' })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([reloadedUser], 1)))
 
 			store.updateUser({ id: 5, body: { firstName: 'Updated' } })
 
@@ -272,11 +237,11 @@ describe('UsersStore', () => {
 	describe('deleteUser', () => {
 		it('should reload the list from the server on success', () => {
 			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })]
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(users, 2)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
 			setupStore()
 
 			usersApiMock.delete.mockReturnValue(of(undefined))
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 2 })], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockManagedUser({ id: 2 })], 1)))
 
 			store.deleteUser(1)
 
@@ -288,18 +253,18 @@ describe('UsersStore', () => {
 
 		it('should navigate to previous page when last item on current page is deleted', () => {
 			const user = createMockManagedUser({ id: 10 })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 11)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 11)))
 			setupStore()
 
 			// Move to page 2 — triggers reactive re-fetch
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 11)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 11)))
 			store.setPage(2)
 			TestBed.tick()
 
 			// Delete the only user on page 2 — patches currentPage to 1,
 			// which triggers the reactive loadUsers chain automatically
 			usersApiMock.delete.mockReturnValue(of(undefined))
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 10)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 10)))
 
 			store.deleteUser(10)
 			TestBed.tick()
@@ -309,12 +274,12 @@ describe('UsersStore', () => {
 
 		it('should clear selectedUser when the deleted user is selected', () => {
 			const user = createMockManagedUser({ id: 1 })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user, createMockManagedUser({ id: 2 })], 2)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user, createMockManagedUser({ id: 2 })], 2)))
 			setupStore()
 			store.selectUser(store.users()[0])
 
 			usersApiMock.delete.mockReturnValue(of(undefined))
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 2 })], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockManagedUser({ id: 2 })], 1)))
 
 			store.deleteUser(1)
 
@@ -323,12 +288,12 @@ describe('UsersStore', () => {
 
 		it('should not clear selectedUser when a different user is deleted', () => {
 			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })]
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse(users, 2)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
 			setupStore()
 			store.selectUser(store.users()[0])
 
 			usersApiMock.delete.mockReturnValue(of(undefined))
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockManagedUser({ id: 1 })], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockManagedUser({ id: 1 })], 1)))
 
 			store.deleteUser(2)
 
@@ -350,14 +315,14 @@ describe('UsersStore', () => {
 	describe('updateUserStatus', () => {
 		it('should reload the list from the server on success', () => {
 			const user = createMockManagedUser({ id: 3, status: UserStatus.ACTIVE })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))
 			setupStore()
 
 			usersApiMock.updateStatus.mockReturnValue(of(createMockManagedUser({ id: 3, status: UserStatus.DISABLED })))
 
 			// After status update, the store reloads — mock the server-authoritative response
 			const reloadedUser = createMockManagedUser({ id: 3, status: UserStatus.DISABLED })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([reloadedUser], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([reloadedUser], 1)))
 
 			store.updateUserStatus({ id: 3, body: { status: UserStatus.DISABLED } })
 
@@ -443,7 +408,7 @@ describe('UsersStore', () => {
 			setupStore()
 			const callsBefore = usersApiMock.getAll.calls.length
 
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 			store.setSearchQuery('a')
 			await advanceTimersByTimeAsync(100)
 			store.setSearchQuery('ad')
@@ -462,7 +427,7 @@ describe('UsersStore', () => {
 	describe('selectUser', () => {
 		it('should set selectedUser from loaded users', () => {
 			const user = createMockManagedUser({ id: 7 })
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([user], 1)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))
 			setupStore()
 
 			store.selectUser(store.users()[0])
@@ -505,7 +470,7 @@ describe('UsersStore', () => {
 
 	describe('computed signals', () => {
 		it('should compute hasNextPage correctly', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 25)))
 			setupStore()
 
 			// Page 1 of 3 → hasNextPage = true
@@ -514,7 +479,7 @@ describe('UsersStore', () => {
 		})
 
 		it('should compute hasPreviousPage correctly', () => {
-			usersApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 25)))
 			setupStore()
 
 			store.setPage(2)

@@ -6,35 +6,12 @@ import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import type {
 	AssignPermissionsRequest,
 	CreateRoleRequest,
-	PermissionData,
 	RoleData,
 	UpdateRoleRequest,
 } from '@contracts/role/role.types'
+import { createMockPermissionData } from '@providers/permissions/permissions.mock'
 import { HttpRolesApi } from './roles'
-
-function createMockRoleData(overrides: Partial<RoleData> = {}): RoleData {
-	return {
-		id: 1,
-		name: 'Admin',
-		code: 'admin',
-		description: null,
-		removable: true,
-		createdAt: null,
-		updatedAt: null,
-		...overrides,
-	}
-}
-
-function createMockPermissionData(overrides: Partial<PermissionData> = {}): PermissionData {
-	return {
-		id: 1,
-		name: 'Read Users',
-		description: null,
-		resource: 'users',
-		action: 'read',
-		...overrides,
-	}
-}
+import { createMockRoleData } from './roles.mock'
 
 describe('HttpRolesApi', () => {
 	let service: HttpRolesApi
@@ -158,13 +135,7 @@ describe('HttpRolesApi', () => {
 
 			service.getByIdWithPermissions(5).subscribe((result) => {
 				expect(result).toEqual({
-					id: 5,
-					code: 'editor',
-					name: 'Editor',
-					description: null,
-					removable: true,
-					createdAt: null,
-					updatedAt: null,
+					...mockRole,
 					permissions: mockPermissions,
 				})
 			})

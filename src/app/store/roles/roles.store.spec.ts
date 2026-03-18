@@ -1,47 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
-import type { PaginatedResponse } from '@contracts/common/pagination.types'
-import type { RoleData, RoleWithPermissions } from '@contracts/role/role.types'
+import { createPaginatedResponse } from '@mocks/pagination.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
+import { createMockRoleData, createMockRoleWithPermissions } from '@providers/roles/roles.mock'
 import { advanceTimersByTimeAsync, clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@test-utils'
 import { NEVER, of, throwError } from 'rxjs'
 import { RolesStore } from './roles.store'
-
-function createMockRoleData(overrides: Partial<RoleData> = {}): RoleData {
-	return {
-		id: 1,
-		name: 'Admin',
-		code: 'admin',
-		description: null,
-		removable: true,
-		createdAt: new Date('2025-01-01'),
-		updatedAt: new Date('2025-01-01'),
-		...overrides,
-	}
-}
-
-function createMockRoleWithPermissions(overrides: Partial<RoleWithPermissions> = {}): RoleWithPermissions {
-	return {
-		id: 1,
-		code: 'admin',
-		name: 'Admin',
-		description: null,
-		removable: true,
-		createdAt: new Date('2025-01-01'),
-		updatedAt: new Date('2025-01-01'),
-		permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
-		...overrides,
-	}
-}
-
-function createMockListResponse(roles: RoleData[], total?: number): PaginatedResponse<RoleData> {
-	return {
-		data: roles,
-		total: total ?? roles.length,
-		offset: 0,
-		limit: 10,
-	}
-}
 
 describe('RolesStore', () => {
 	let store: InstanceType<typeof RolesStore>
@@ -76,7 +40,7 @@ describe('RolesStore', () => {
 
 		// Default mock — prevents onInit from firing against an unmocked fn().
 		// Tests that need a different initial response override before calling setupStore().
-		rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 	})
 
 	describe('initial state', () => {
@@ -123,7 +87,7 @@ describe('RolesStore', () => {
 	describe('loadRoles', () => {
 		it('should load roles and update state on success', () => {
 			const mockRole = createMockRoleData()
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([mockRole], 1)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([mockRole], 1)))
 			setupStore()
 
 			expect(store.roles()).toHaveLength(1)
@@ -138,7 +102,7 @@ describe('RolesStore', () => {
 		it('should send correct offset based on currentPage and pageSize', () => {
 			setupStore()
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 0)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 0)))
 			store.setPage(3)
 			TestBed.tick()
 
@@ -147,7 +111,7 @@ describe('RolesStore', () => {
 		})
 
 		it('should compute totalPages correctly', () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 25)))
 			setupStore()
 
 			expect(store.totalPages()).toBe(3)
@@ -162,12 +126,12 @@ describe('RolesStore', () => {
 		})
 
 		it('should pass search query when set', async () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 			useFakeTimers()
 			try {
 				setupStore()
 
-				rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+				rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 				store.setSearchQuery('admin')
 				await advanceTimersByTimeAsync(300)
 				TestBed.tick()
@@ -273,7 +237,7 @@ describe('RolesStore', () => {
 	describe('createRoleWithPermissions', () => {
 		it('should reload the list from the server on success', () => {
 			const existingRole = createMockRoleData({ id: 1 })
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([existingRole], 1)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([existingRole], 1)))
 			setupStore()
 
 			const newRole = createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })
@@ -281,7 +245,7 @@ describe('RolesStore', () => {
 
 			// After create, the store reloads — mock the server-authoritative response
 			const reloadedRoles = [existingRole, createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })]
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(reloadedRoles, 2)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(reloadedRoles, 2)))
 
 			store.createRoleWithPermissions({ name: 'Editor', code: 'editor', permissionIds: [] })
 
@@ -305,12 +269,12 @@ describe('RolesStore', () => {
 	describe('updateRoleWithPermissions', () => {
 		it('should reload the list from the server on success', () => {
 			const role = createMockRoleData({ id: 5, name: 'Old Name' })
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 1)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([role], 1)))
 			setupStore()
 
 			rolesApiMock.update.mockReturnValue(of(createMockRoleData({ id: 5, name: 'Updated Name' })))
 			rolesApiMock.getAll.mockReturnValue(
-				of(createMockListResponse([createMockRoleData({ id: 5, name: 'Updated Name' })], 1)),
+				of(createPaginatedResponse([createMockRoleData({ id: 5, name: 'Updated Name' })], 1)),
 			)
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(
 				of(createMockRoleWithPermissions({ id: 5, name: 'Updated Name' })),
@@ -324,7 +288,7 @@ describe('RolesStore', () => {
 
 		it('should reload detail when the updated role is selected', () => {
 			const role = createMockRoleData({ id: 5 })
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 1)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([role], 1)))
 			setupStore()
 
 			// Load role detail to set selectedRole
@@ -334,7 +298,7 @@ describe('RolesStore', () => {
 
 			rolesApiMock.update.mockReturnValue(of(createMockRoleData({ id: 5, name: 'Updated' })))
 			rolesApiMock.getAll.mockReturnValue(
-				of(createMockListResponse([createMockRoleData({ id: 5, name: 'Updated' })], 1)),
+				of(createPaginatedResponse([createMockRoleData({ id: 5, name: 'Updated' })], 1)),
 			)
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(createMockRoleWithPermissions({ id: 5, name: 'Updated' })))
 
@@ -360,12 +324,12 @@ describe('RolesStore', () => {
 	describe('deleteRole', () => {
 		it('should reload the list from the server on success', () => {
 			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })]
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles, 2)))
 			setupStore()
 
 			rolesApiMock.delete.mockReturnValue(of(undefined))
 			rolesApiMock.getAll.mockReturnValue(
-				of(createMockListResponse([createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })], 1)),
+				of(createPaginatedResponse([createMockRoleData({ id: 2, name: 'Editor', code: 'editor' })], 1)),
 			)
 
 			store.deleteRole(1)
@@ -378,7 +342,7 @@ describe('RolesStore', () => {
 
 		it('should clear selectedRole when the deleted role is selected', () => {
 			const role = createMockRoleData({ id: 1 })
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role, createMockRoleData({ id: 2 })], 2)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([role, createMockRoleData({ id: 2 })], 2)))
 			setupStore()
 
 			const roleWithPerms = createMockRoleWithPermissions({ id: 1 })
@@ -386,7 +350,7 @@ describe('RolesStore', () => {
 			store.loadRole(1)
 
 			rolesApiMock.delete.mockReturnValue(of(undefined))
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData({ id: 2 })], 1)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockRoleData({ id: 2 })], 1)))
 
 			store.deleteRole(1)
 
@@ -395,7 +359,7 @@ describe('RolesStore', () => {
 
 		it('should not clear selectedRole when a different role is deleted', () => {
 			const roles = [createMockRoleData({ id: 1 }), createMockRoleData({ id: 2 })]
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse(roles, 2)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles, 2)))
 			setupStore()
 
 			const roleWithPerms = createMockRoleWithPermissions({ id: 1 })
@@ -403,7 +367,7 @@ describe('RolesStore', () => {
 			store.loadRole(1)
 
 			rolesApiMock.delete.mockReturnValue(of(undefined))
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData({ id: 1 })], 1)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockRoleData({ id: 1 })], 1)))
 
 			store.deleteRole(2)
 
@@ -412,18 +376,18 @@ describe('RolesStore', () => {
 
 		it('should navigate to previous page when last item on current page is deleted', () => {
 			const role = createMockRoleData({ id: 10 })
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 11)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([role], 11)))
 			setupStore()
 
 			// Move to page 2 — triggers reactive re-fetch
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([role], 11)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([role], 11)))
 			store.setPage(2)
 			TestBed.tick()
 
 			// Delete the only role on page 2 — patches currentPage to 1,
 			// which triggers the reactive loadRoles chain automatically
 			rolesApiMock.delete.mockReturnValue(of(undefined))
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 10)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 10)))
 
 			store.deleteRole(10)
 			TestBed.tick()
@@ -497,7 +461,7 @@ describe('RolesStore', () => {
 			setupStore()
 			const callsBefore = rolesApiMock.getAll.calls.length
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 			store.setPage(3)
 			TestBed.tick()
 
@@ -560,7 +524,7 @@ describe('RolesStore', () => {
 			setupStore()
 			const callsBefore = rolesApiMock.getAll.calls.length
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 			store.setSearchQuery('a')
 			await advanceTimersByTimeAsync(100)
 			store.setSearchQuery('ad')
@@ -580,7 +544,7 @@ describe('RolesStore', () => {
 			setupStore()
 			const callsBefore = rolesApiMock.getAll.calls.length
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([])))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 			store.setSearchQuery('editor')
 			await advanceTimersByTimeAsync(300)
 			TestBed.tick()
@@ -731,7 +695,7 @@ describe('RolesStore', () => {
 			setupStore()
 			const callsBefore = rolesApiMock.getAll.calls.length
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([createMockRoleData()], 1)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockRoleData()], 1)))
 			store.reload()
 
 			expect(rolesApiMock.getAll.calls).toHaveLength(callsBefore + 1)
@@ -741,7 +705,7 @@ describe('RolesStore', () => {
 
 	describe('computed signals', () => {
 		it('should compute hasNextPage correctly', () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 25)))
 			setupStore()
 
 			// Page 1 of 3 → hasNextPage = true
@@ -750,10 +714,10 @@ describe('RolesStore', () => {
 		})
 
 		it('should compute hasPreviousPage correctly', () => {
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 25)))
 			setupStore()
 
-			rolesApiMock.getAll.mockReturnValue(of(createMockListResponse([], 25)))
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([], 25)))
 			store.setPage(2)
 			TestBed.tick()
 
