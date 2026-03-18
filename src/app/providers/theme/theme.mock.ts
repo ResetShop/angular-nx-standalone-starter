@@ -1,12 +1,9 @@
-import { computed, signal } from '@angular/core'
+import { computed, makeEnvironmentProviders, signal } from '@angular/core'
 import { ThemeProvider } from './theme.abstract'
 
-export const provideMockTheme = (isDarkModeInitial: boolean = false) => [
-	{
-		provide: ThemeProvider,
-		useValue: new ThemeMock(isDarkModeInitial),
-	},
-]
+export function provideMockTheme(isDarkModeInitial: boolean = false) {
+	return makeEnvironmentProviders([{ provide: ThemeProvider, useValue: new ThemeMock(isDarkModeInitial) }])
+}
 
 export class ThemeMock extends ThemeProvider {
 	private readonly _isDarkMode = signal<boolean>(false)

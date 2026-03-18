@@ -1,4 +1,4 @@
-import { Injectable, type Provider } from '@angular/core'
+import { Injectable, makeEnvironmentProviders } from '@angular/core'
 import { Analytics } from './analytics'
 
 @Injectable({ providedIn: 'root' })
@@ -7,6 +7,6 @@ export class AnalyticsMock extends Analytics {
 	public override async init() {}
 }
 
-export function provideAnalyticsMock(): Provider[] {
-	return [{ provide: Analytics, useClass: AnalyticsMock }]
+export function provideAnalyticsMock() {
+	return makeEnvironmentProviders([{ provide: Analytics, useClass: AnalyticsMock }])
 }
