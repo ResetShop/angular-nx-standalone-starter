@@ -11,23 +11,7 @@ import type {
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
 import { HttpUsersApi } from './users'
-
-function createMockManagedUser(overrides: Partial<ManagedUser> = {}): ManagedUser {
-	return {
-		id: 1,
-		email: 'test@example.com',
-		firstName: 'Test',
-		lastName: 'User',
-		status: 'active',
-		statusChangedAt: null,
-		statusChangedBy: null,
-		deletedAt: null,
-		createdAt: null,
-		updatedAt: null,
-		roles: [],
-		...overrides,
-	}
-}
+import { createMockManagedUser } from './users.mock'
 
 describe('HttpUsersApi', () => {
 	let service: HttpUsersApi

@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@components/drawer/drawer-loading'
 import { Translation } from '@providers/i18n/translation'
+import { mockTranslation } from '@providers/i18n/translation.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
 import {
@@ -17,16 +18,6 @@ import { fireEvent, render, screen } from '@testing-library/angular'
 import { parseDurationToMs } from '@utils/duration'
 import { of, throwError } from 'rxjs'
 import { CreateUserDrawer } from './create-user-drawer'
-
-const TRANSLATIONS: Record<string, string> = {
-	'VALIDATION.REQUIRED': 'This field is required',
-	'VALIDATION.MAX_LENGTH': 'Maximum {max} characters',
-	'VALIDATION.PATTERN': 'Invalid format',
-}
-
-const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
-}
 
 describe('CreateUserDrawer', () => {
 	let usersApiMock: Record<keyof UsersApi, MockFn>
