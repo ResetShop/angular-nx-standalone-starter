@@ -3,6 +3,9 @@ import Dashboard from '@pages/dashboard/dashboard'
 import { providePermissions } from '@providers/permissions/permissions.provider'
 import { provideRoles } from '@providers/roles/roles.provider'
 import { provideUsers } from '@providers/users/users.provider'
+import { PermissionsStore } from '@store/permissions/permissions.store'
+import { RolesStore } from '@store/roles/roles.store'
+import { UsersStore } from '@store/users/users.store'
 
 export default [
 	{
@@ -25,7 +28,7 @@ export default [
 				path: 'users',
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
-				providers: [provideUsers(), provideRoles()],
+				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
 			},
 			{
 				path: 'authorization',
@@ -35,13 +38,13 @@ export default [
 						path: 'permissions',
 						title: 'Permisos',
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
-						providers: [providePermissions()],
+						providers: [providePermissions(), PermissionsStore],
 					},
 					{
 						path: 'roles',
 						title: 'Roles',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
-						providers: [provideRoles(), providePermissions()],
+						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore],
 					},
 				],
 			},

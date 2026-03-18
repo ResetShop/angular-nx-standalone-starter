@@ -402,6 +402,40 @@ let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
 | `PermissionsStore` | `src/app/store/permissions/permissions.store.ts` |
 | `UIStore`          | `src/app/store/ui/ui.store.ts`                   |
 
+**Route-level store registration:**
+
+Domain stores keep `providedIn: 'root'` for tree-shaking, but must be **explicitly provided** at the route level alongside their API token dependencies. `providedIn: 'root'` is a default — when you explicitly provide a `providedIn: 'root'` service in a route's `providers` array, Angular creates it in that route's `EnvironmentInjector` instead of the root injector. All `inject()` calls inside the store factory then resolve from that route's injector, where the API tokens are available.
+
+```typescript
+// ✅ Correct — store and API token co-provided at the route level
+{
+  path: 'users',
+  loadComponent: () => import('./users/users-list/users-list'),
+  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
+}
+
+// ❌ Incorrect — store not listed, relies on root injector where API token is missing
+{
+  path: 'users',
+  loadComponent: () => import('./users/users-list/users-list'),
+  providers: [provideUsers(), provideRoles()],
+}
+```
+
+**Rules:**
+
+- Every route that uses a domain store must list both `provideX()` and the store in its `providers` array
+- `AuthStore` and `UIStore` are exceptions — their dependencies (`AuthApi`) are provided at root in `app.config.ts`, so they don't need route-level registration
+- Never remove `providedIn: 'root'` from stores — it enables tree-shaking and serves as a fallback when no explicit provider is given
+
+**Current route registrations (`dashboard.routes.ts`):**
+
+| Route                       | Providers                                                                  |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`             |
+| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                 |
+| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore` |
+
 ---
 
 ## Nx Guidelines
@@ -691,8 +725,11 @@ export function provideAuth() {
 	return makeEnvironmentProviders([{ provide: AuthApi, useExisting: HttpAuthApi }])
 }
 
-// 4. Registration (app.config.ts) — called once at bootstrap
-providers: [provideAuth(), provideUsers(), provideRoles(), providePermissions()]
+// 4a. Root registration (app.config.ts) — auth only, called once at bootstrap
+providers: [provideAuth()]
+
+// 4b. Route-level registration (dashboard.routes.ts) — domain providers co-located with their stores
+{ path: 'users', providers: [provideUsers(), provideRoles(), UsersStore, RolesStore] }
 
 // 5. Consumer (e.g., auth.store.ts)
 const authApi = inject(AuthApi) // resolves via provideAuth() registration
@@ -716,12 +753,12 @@ providers: [provideAuthMock()]
 
 **Existing provider functions:**
 
-| Function               | File                                  | Registers                               |
-| ---------------------- | ------------------------------------- | --------------------------------------- |
-| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               |
-| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             |
-| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             |
-| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` |
+| Function               | File                                  | Registers                               | Scope                         |
+| ---------------------- | ------------------------------------- | --------------------------------------- | ----------------------------- |
+| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               | Root (`app.config.ts`)        |
+| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             | Route (`dashboard.routes.ts`) |
+| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             | Route (`dashboard.routes.ts`) |
+| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` | Route (`dashboard.routes.ts`) |
 
 **Mock provider functions:**
 
