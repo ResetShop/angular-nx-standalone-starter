@@ -51,7 +51,7 @@ describe('RolesList', () => {
 	})
 
 	async function renderComponent() {
-		const result = await render(RolesList, {
+		const view = await render(RolesList, {
 			providers: [
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
@@ -60,8 +60,8 @@ describe('RolesList', () => {
 		})
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
-		result.fixture.detectChanges()
-		return result
+		view.fixture.detectChanges()
+		return view
 	}
 
 	it('should render the page heading', async () => {
