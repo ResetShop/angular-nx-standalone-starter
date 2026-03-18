@@ -9,6 +9,8 @@ import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
 import { UIStore } from '@store/ui/ui.store'
+import type { UINotification } from '@store/ui/ui.types'
+import { fn } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { NgpToastManager } from 'ng-primitives/toast'
 import Dashboard from './dashboard'
@@ -16,13 +18,13 @@ import Dashboard from './dashboard'
 describe('Dashboard', () => {
 	const mockGlobalLoading = signal(false)
 
-	const mockNotifications = signal<unknown[]>([])
+	const mockNotifications = signal<UINotification[]>([])
 
 	const mockUIStore = {
 		isGlobalLoading: mockGlobalLoading,
 		setGlobalLoading: (value: boolean) => mockGlobalLoading.set(value),
 		notifications: mockNotifications,
-		dismissNotification: () => {},
+		dismissNotification: fn(),
 	}
 
 	const defaultProviders = () => [
