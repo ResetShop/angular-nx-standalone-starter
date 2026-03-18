@@ -56,7 +56,7 @@ describe('UsersList', () => {
 	})
 
 	async function renderComponent() {
-		const result = await render(UsersList, {
+		const view = await render(UsersList, {
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
@@ -65,8 +65,8 @@ describe('UsersList', () => {
 		})
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
-		result.fixture.detectChanges()
-		return result
+		view.fixture.detectChanges()
+		return view
 	}
 
 	it('should render the page heading', async () => {

@@ -36,7 +36,7 @@ describe('PermissionsList', () => {
 	})
 
 	async function renderComponent() {
-		const result = await render(PermissionsList, {
+		const view = await render(PermissionsList, {
 			providers: [
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
@@ -44,8 +44,8 @@ describe('PermissionsList', () => {
 		})
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
-		result.fixture.detectChanges()
-		return result
+		view.fixture.detectChanges()
+		return view
 	}
 
 	it('should render the page heading', async () => {
