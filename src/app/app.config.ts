@@ -16,6 +16,9 @@ import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.
 import { provideNavigation } from '@providers/navigation/navigation.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
 import { provideTheme } from '@providers/theme/theme'
+import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.types'
+import { parseDurationToMs } from '@utils/duration'
+import { provideToastConfig } from 'ng-primitives/toast'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
 import { authInterceptor } from './interceptors/auth.interceptor'
@@ -53,6 +56,16 @@ export const appConfig: ApplicationConfig = {
 		provideNavigation(),
 		provideProjectConfig(),
 		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },
+
+		// Toast
+		...provideToastConfig({
+			placement: 'bottom-center',
+			duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
+			dismissible: true,
+			maxToasts: 3,
+			gap: 16,
+			zIndex: 9999,
+		}),
 
 		// API providers
 		provideAuth(),
