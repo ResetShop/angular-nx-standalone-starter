@@ -117,23 +117,24 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint                   | Limit                                                                                                                      | Rationale                    |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| Function length              | ≤ 50 lines                                                                                                                 | Readability, SRP             |
-| File length                  | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability              |
-| Cyclomatic complexity        | ≤ 10                                                                                                                       | Testability                  |
-| Nesting depth                | ≤ 3 levels                                                                                                                 | Readability                  |
-| Barrel imports/exports       | Not allowed in any part of the project                                                                                     | Maintainability, Performance |
-| `any` type                   | Forbidden without `// REASON:` comment                                                                                     | Type safety                  |
-| `// @ts-ignore`              | Forbidden without linked issue                                                                                             | Technical debt tracking      |
-| `console.log`                | Remove before commit                                                                                                       | Clean code                   |
-| TypeScript enums             | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety     |
-| Type-only imports            | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity         |
-| Raw time literals            | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency     |
-| `vi.fn()`/`vi.mock()`        | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence       |
-| `firstValueFrom`/`toPromise` | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                      | Signals-first, no promises   |
-| `TestBed.flushEffects()`     | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                 | API deprecation              |
-| External repo issues         | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette         |
+| Constraint                   | Limit                                                                                                                      | Rationale                     |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Function length              | ≤ 50 lines                                                                                                                 | Readability, SRP              |
+| File length                  | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability               |
+| Cyclomatic complexity        | ≤ 10                                                                                                                       | Testability                   |
+| Nesting depth                | ≤ 3 levels                                                                                                                 | Readability                   |
+| Barrel imports/exports       | Not allowed in any part of the project                                                                                     | Maintainability, Performance  |
+| `any` type                   | Forbidden without `// REASON:` comment                                                                                     | Type safety                   |
+| `// @ts-ignore`              | Forbidden without linked issue                                                                                             | Technical debt tracking       |
+| `console.log`                | Remove before commit                                                                                                       | Clean code                    |
+| TypeScript enums             | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety      |
+| Type-only imports            | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity          |
+| Raw time literals            | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency      |
+| `vi.fn()`/`vi.mock()`        | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence        |
+| `firstValueFrom`/`toPromise` | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                      | Signals-first, no promises    |
+| `TestBed.flushEffects()`     | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                 | API deprecation               |
+| Storybook stories            | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                         | Visual testing, documentation |
+| External repo issues         | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette          |
 
 ### Object.freeze() Instead of Enums
 
@@ -469,6 +470,7 @@ nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
 - Add an updated entry in the Bruno API client workspace for each new endpoint
 - Update the entries in the Bruno API client workspace if an endpoint is updated
 - **Backend endpoints require integration tests** — every new or modified API endpoint must have corresponding integration tests in `src/api/integration/`. See `.claude/references/testing.md` for conventions.
+- **Frontend components require Storybook stories** — every new or significantly modified component in `src/app/components/` must have a corresponding `*.stories.ts` file. See `.claude/references/testing.md` for story conventions.
 
 ### Query Priority
 
