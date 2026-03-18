@@ -1,0 +1,86 @@
+@reference "#tailwind-theme";
+
+:host {
+	@apply block;
+}
+
+[ngpCombobox] {
+	@apply border-input bg-background flex w-full items-center rounded-lg border shadow-sm;
+}
+
+[ngpCombobox][data-focus] {
+	@apply border-ring ring-ring ring-1 outline-none;
+}
+
+[ngpCombobox][data-disabled] {
+	@apply bg-muted cursor-not-allowed opacity-60;
+}
+
+.invalid {
+	@apply border-destructive;
+}
+
+[ngpComboboxInput] {
+	@apply text-foreground placeholder:text-muted-foreground flex-1 rounded-none bg-transparent px-3 py-2 text-sm outline-none;
+
+	border: none !important;
+	box-shadow: none !important;
+}
+
+[ngpComboboxInput]:focus {
+	border: none !important;
+	box-shadow: none !important;
+	outline: none !important;
+}
+
+[ngpComboboxButton] {
+	@apply text-muted-foreground flex shrink-0 cursor-pointer items-center border-none bg-transparent px-2;
+}
+
+[ngpComboboxDropdown] {
+	@apply bg-background border-border absolute mt-1 max-h-60 overflow-y-auto rounded-lg border p-1 shadow-md outline-none;
+
+	width: var(--ngp-combobox-width);
+	transform-origin: var(--ngp-combobox-transform-origin);
+}
+
+[ngpComboboxDropdown][data-enter] {
+	animation: dropdown-show 100ms ease-out;
+}
+
+[ngpComboboxDropdown][data-exit] {
+	animation: dropdown-hide 100ms ease-out;
+}
+
+[ngpComboboxOption] {
+	@apply text-foreground cursor-pointer rounded-md px-3 py-2 text-sm;
+}
+
+[ngpComboboxOption][data-hover],
+[ngpComboboxOption][data-active] {
+	@apply bg-accent text-accent-foreground;
+}
+
+@keyframes dropdown-show {
+	from {
+		opacity: 0;
+		transform: translateY(-4px) scale(0.95);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes dropdown-hide {
+	from {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(-4px) scale(0.95);
+	}
+}
