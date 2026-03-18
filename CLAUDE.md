@@ -950,17 +950,22 @@ This is a mandatory step in the workflow:
 
 **CRITICAL:** Before considering any implementation work complete, `npm run ci` MUST pass with exit code 0.
 
-The `npm run ci` command runs all CI checks serially:
+The `npm run ci` command runs CI checks in two parallel batches via `nx run-many`:
 
-1. `npm run stylelint` — CSS/style linting
-2. `npm run lint` — TypeScript/ESLint linting
-3. `npm run typecheck` — Type-check spec files (`tsc --noEmit`)
-4. `npm run test` — Unit tests
-5. `npm run test:integration` — Integration tests (requires PostgreSQL)
-6. `npm run build` — Production build
-7. `npm run storybook:build` — Storybook build
+**Batch 1 (fast checks, parallel):**
 
-If any step fails, the entire command fails. Fix all issues before proceeding to code review.
+- `stylelint` — CSS/style linting
+- `lint` — TypeScript/ESLint linting
+- `typecheck` — Type-check spec files (`tsc --noEmit`)
+
+**Batch 2 (heavy tasks, parallel — runs only if Batch 1 passes):**
+
+- `test` — Unit tests
+- `test-integration` — Integration tests (requires PostgreSQL)
+- `build` — Production build
+- `build-storybook` — Storybook build (`npm run storybook:build`)
+
+If any task in a batch fails, Nx reports an error after all parallel tasks in the batch complete. Batch 2 does not run if Batch 1 exits with an error.
 
 ### When to Trigger
 
