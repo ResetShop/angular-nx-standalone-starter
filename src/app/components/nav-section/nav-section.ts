@@ -17,7 +17,7 @@ import { featherChevronRight } from '@ng-icons/feather-icons'
 	selector: 'app-nav-section',
 	imports: [NgComponentOutlet],
 	template: `
-		@if (showTitle()) {
+		@if (showTitle() && !collapsed()) {
 			<div class="flex h-8 items-center px-2 text-xs font-medium text-black/70 dark:text-white/70">
 				{{ section().name }}
 			</div>
@@ -25,7 +25,13 @@ import { featherChevronRight } from '@ng-icons/feather-icons'
 		<ul>
 			@for (navItem of navItems(); track navItem.id) {
 				<li>
-					<ng-container *ngComponentOutlet="NavItem; inputs: { item: navItem.route }; injector: navItem.injector" />
+					<ng-container
+						*ngComponentOutlet="
+							NavItem;
+							inputs: { item: navItem.route, collapsed: collapsed() };
+							injector: navItem.injector
+						"
+					/>
 				</li>
 			}
 		</ul>
@@ -36,6 +42,7 @@ import { featherChevronRight } from '@ng-icons/feather-icons'
 export default class NavSection {
 	protected readonly NavItem = NavItem
 	public readonly showTitle = input<boolean>(true)
+	public readonly collapsed = input<boolean>(false)
 	public readonly section = input.required<NavigationSection>()
 
 	private readonly injector = inject(EnvironmentInjector)
