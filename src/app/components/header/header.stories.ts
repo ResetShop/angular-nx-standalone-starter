@@ -1,7 +1,7 @@
 import { provideRouter } from '@angular/router'
 import { BreadcrumbItem } from '@interfaces/navigation'
 import { provideIcons } from '@ng-icons/core'
-import { featherChevronRight } from '@ng-icons/feather-icons'
+import { featherChevronRight, featherMenu } from '@ng-icons/feather-icons'
 import { Navigation } from '@providers/navigation/navigation'
 import { provideMockTheme } from '@providers/theme/theme.mock'
 import type { Meta, StoryObj } from '@storybook/angular'
@@ -22,7 +22,7 @@ const meta: Meta<Header> = {
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [provideRouter([]), provideIcons({ featherChevronRight }), provideMockTheme(false)],
+			providers: [provideRouter([]), provideIcons({ featherChevronRight, featherMenu }), provideMockTheme(false)],
 		}),
 	],
 	parameters: {
@@ -58,6 +58,7 @@ export class MyLayout {}
 ## What's Included
 
 The Header displays:
+- **Hamburger Menu**: Toggle button for mobile sidebar (visible below 1024px, wired to UIStore.toggleSidebar)
 - **Breadcrumbs**: Navigation path based on the current route (from Navigation service)
 - **Theme Toggle**: Button to switch between light and dark modes (included in the header)
 
@@ -101,7 +102,7 @@ export const Default: Story = {
 		applicationConfig({
 			providers: [
 				provideRouter([]),
-				provideIcons({ featherChevronRight }),
+				provideIcons({ featherChevronRight, featherMenu }),
 				createNavigationWithBreadcrumbs([
 					{ title: 'Dashboard', path: '/dashboard', isActive: false },
 					{ title: 'Health', path: '/dashboard/health', isActive: true },
@@ -125,7 +126,7 @@ export const SingleLevelBreadcrumb: Story = {
 		applicationConfig({
 			providers: [
 				provideRouter([]),
-				provideIcons({ featherChevronRight }),
+				provideIcons({ featherChevronRight, featherMenu }),
 				createNavigationWithBreadcrumbs([{ title: 'Dashboard', path: '/dashboard', isActive: true }]),
 			],
 		}),
@@ -146,7 +147,7 @@ export const MultiLevelBreadcrumb: Story = {
 		applicationConfig({
 			providers: [
 				provideRouter([]),
-				provideIcons({ featherChevronRight }),
+				provideIcons({ featherChevronRight, featherMenu }),
 				createNavigationWithBreadcrumbs([
 					{ title: 'Dashboard', path: '/dashboard', isActive: false },
 					{ title: 'Settings', path: '/dashboard/settings', isActive: false },
@@ -171,7 +172,7 @@ export const InDashboardLayout: Story = {
 		applicationConfig({
 			providers: [
 				provideRouter([]),
-				provideIcons({ featherChevronRight }),
+				provideIcons({ featherChevronRight, featherMenu }),
 				createNavigationWithBreadcrumbs([
 					{ title: 'Dashboard', path: '/dashboard', isActive: false },
 					{ title: 'Analytics', path: '/dashboard/analytics', isActive: true },
@@ -206,7 +207,7 @@ export const DeeplyNestedBreadcrumb: Story = {
 		applicationConfig({
 			providers: [
 				provideRouter([]),
-				provideIcons({ featherChevronRight }),
+				provideIcons({ featherChevronRight, featherMenu }),
 				createNavigationWithBreadcrumbs([
 					{ title: 'Dashboard', path: '/dashboard', isActive: false },
 					{ title: 'Admin', path: '/dashboard/admin', isActive: false },
@@ -234,7 +235,7 @@ export const ResponsiveDashboardLayout: Story = {
 		applicationConfig({
 			providers: [
 				provideRouter([]),
-				provideIcons({ featherChevronRight }),
+				provideIcons({ featherChevronRight, featherMenu }),
 				createNavigationWithBreadcrumbs([
 					{ title: 'Dashboard', path: '/dashboard', isActive: false },
 					{ title: 'Analytics', path: '/dashboard/analytics', isActive: true },
