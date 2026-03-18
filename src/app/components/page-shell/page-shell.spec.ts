@@ -34,6 +34,19 @@ class TestHost {
 })
 class TestHostNoDescription {}
 
+@Component({
+	selector: 'app-test-host-with-actions',
+	standalone: true,
+	imports: [PageShell],
+	template: `
+		<app-page-shell [loading]="false" title="With Actions">
+			<div pageActions data-testid="page-actions">Search and buttons here</div>
+			<div data-testid="page-content">Content here</div>
+		</app-page-shell>
+	`,
+})
+class TestHostWithActions {}
+
 describe('PageShell', () => {
 	beforeEach(() => {
 		clearAllMocks()
@@ -64,6 +77,16 @@ describe('PageShell', () => {
 		fixture.detectChanges()
 
 		expect(screen.getByRole('heading', { level: 1, name: 'No Desc' })).toBeInTheDocument()
+		expect(screen.getByTestId('page-content')).toBeInTheDocument()
+	})
+
+	it('should project actions content above the main content area', async () => {
+		const { fixture } = await render(TestHostWithActions)
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+		fixture.detectChanges()
+
+		expect(screen.getByTestId('page-actions')).toBeInTheDocument()
+		expect(screen.getByText('Search and buttons here')).toBeInTheDocument()
 		expect(screen.getByTestId('page-content')).toBeInTheDocument()
 	})
 

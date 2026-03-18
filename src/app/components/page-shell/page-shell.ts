@@ -18,6 +18,8 @@ export const PAGE_SHELL_MIN_DISPLAY = '500ms'
 				</p>
 			</div>
 
+			<ng-content select="[pageActions]" />
+
 			@if (showLoading()) {
 				<div
 					class="page-shell-fade-in border-border bg-card text-muted-foreground flex flex-col items-center justify-center gap-4 rounded-lg border p-8 py-12 text-center"

@@ -31,7 +31,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		<app-page-shell [loading]="store.isLoadingList()" [error]="store.readError().list" title="Users">
 			<p pageDescription>Manage system users, their roles, and account status.</p>
 
-			<div class="flex items-center justify-between gap-4">
+			<div pageActions class="flex items-center justify-between gap-4">
 				<input
 					(input)="onSearchInput($event)"
 					type="search"
