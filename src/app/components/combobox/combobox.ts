@@ -1,0 +1,101 @@
+import { ChangeDetectionStrategy, Component, computed, forwardRef, input, model, signal } from '@angular/core'
+import type { FormValueControl } from '@angular/forms/signals'
+import { FormFieldCustomControl } from '@components/form-field/form-field-custom-control'
+import type { SelectOption } from '@components/select/select-option'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherChevronDown } from '@ng-icons/feather-icons'
+import {
+	NgpCombobox,
+	NgpComboboxButton,
+	NgpComboboxDropdown,
+	NgpComboboxInput,
+	NgpComboboxOption,
+	NgpComboboxPortal,
+} from 'ng-primitives/combobox'
+
+@Component({
+	selector: 'app-combobox',
+	standalone: true,
+	imports: [
+		NgpCombobox,
+		NgpComboboxButton,
+		NgpComboboxDropdown,
+		NgpComboboxInput,
+		NgpComboboxOption,
+		NgpComboboxPortal,
+		NgIcon,
+	],
+	providers: [
+		provideIcons({ featherChevronDown }),
+		{ provide: FormFieldCustomControl, useExisting: forwardRef(() => Combobox) },
+	],
+	template: `
+		<div
+			(ngpComboboxValueChange)="onValueChange($event)"
+			(ngpComboboxOpenChange)="onOpenChange($event)"
+			[(ngpComboboxValue)]="value"
+			[ngpComboboxDisabled]="isDisabled()"
+			[attr.aria-disabled]="isDisabled() || null"
+			[class]="triggerClasses()"
+			ngpCombobox
+		>
+			<input (input)="onFilterChange($event)" [value]="filter()" [placeholder]="placeholder()" ngpComboboxInput />
+			<button ngpComboboxButton aria-label="Toggle dropdown">
+				<ng-icon name="featherChevronDown" size="16" />
+			</button>
+
+			<div *ngpComboboxPortal ngpComboboxDropdown>
+				@for (option of filteredOptions(); track option.value) {
+					<div [ngpComboboxOptionValue]="option.value" ngpComboboxOption>
+						{{ option.label }}
+					</div>
+				} @empty {
+					<div class="text-muted-foreground px-3 py-2 text-center text-sm">No options found</div>
+				}
+			</div>
+		</div>
+	`,
+	styleUrl: './combobox.css',
+	changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class Combobox extends FormFieldCustomControl implements FormValueControl<string> {
+	public readonly options = input.required<SelectOption[]>()
+	public readonly value = model<string>('')
+	public readonly placeholder = input<string>('')
+	public readonly isDisabled = input<boolean>(false)
+	public readonly touched = model<boolean>(false)
+
+	protected readonly filter = signal<string>('')
+
+	protected readonly filteredOptions = computed(() => {
+		const query = this.filter().toLowerCase()
+		if (!query) return this.options()
+		return this.options().filter((o) => o.label.toLowerCase().includes(query))
+	})
+
+	protected readonly triggerClasses = computed(() => {
+		return this.ariaInvalid() ? 'invalid' : ''
+	})
+
+	protected onFilterChange(event: Event): void {
+		const input = event.target as HTMLInputElement
+		this.filter.set(input.value)
+	}
+
+	protected onValueChange(value: string): void {
+		const label = this.options().find((o) => o.value === value)?.label ?? ''
+		this.filter.set(label)
+	}
+
+	protected onOpenChange(open: boolean): void {
+		if (open) return
+		const current = this.value()
+		if (current) {
+			const label = this.options().find((o) => o.value === current)?.label ?? ''
+			this.filter.set(label)
+		} else {
+			this.filter.set('')
+		}
+		this.touched.set(true)
+	}
+}
