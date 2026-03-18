@@ -3,8 +3,6 @@ import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert'
 import { Spinner } from '@components/spinner/spinner'
 import { parseDurationToMs } from '@utils/duration'
 
-export const PAGE_SHELL_MIN_DISPLAY = '500ms'
-
 @Component({
 	selector: 'app-page-shell',
 	standalone: true,
@@ -18,11 +16,12 @@ export const PAGE_SHELL_MIN_DISPLAY = '500ms'
 				</p>
 			</div>
 
+			<!-- Actions remain interactive during loading so users can prepare search queries -->
 			<ng-content select="[pageActions]" />
 
 			@if (showLoading()) {
 				<div
-					class="page-shell-fade-in border-border bg-card text-muted-foreground flex flex-col items-center justify-center gap-4 rounded-lg border p-8 py-12 text-center"
+					class="page-shell-fade-in border-border bg-card text-muted-foreground flex flex-col items-center justify-center gap-4 rounded-lg border p-8 py-32 text-center"
 					role="status"
 				>
 					<app-spinner class="size-8" />
@@ -35,7 +34,7 @@ export const PAGE_SHELL_MIN_DISPLAY = '500ms'
 				</div>
 			} @else {
 				<div class="page-shell-fade-in space-y-6">
-					<ng-content class="page-shell-fade-in" />
+					<ng-content />
 				</div>
 			}
 		</div>
@@ -69,6 +68,7 @@ export class PageShell implements OnDestroy {
 	protected readonly showLoading = computed(() => this.loading() || !this.minimumElapsed())
 
 	constructor() {
+		const PAGE_SHELL_MIN_DISPLAY = '1s'
 		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 	}
 
