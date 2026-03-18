@@ -174,7 +174,8 @@ export class DataTable<T> {
 
 	/** Resolve the group label for a grouped row, coercing the unknown cell value to string */
 	protected resolveGroupLabel(row: Row<T>): string {
-		return String(row.getValue(this.grouping()[0]))
+		const columnId = row.groupingColumnId ?? this.grouping()[0]
+		return String(row.getValue(columnId))
 	}
 
 	constructor() {

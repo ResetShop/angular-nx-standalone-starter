@@ -55,6 +55,7 @@
 					<button
 						(click)="row.getToggleExpandedHandler()()"
 						[attr.aria-expanded]="row.getIsExpanded()"
+						[style.paddingLeft.px]="row.depth * 16"
 						class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
 						type="button"
 					>
