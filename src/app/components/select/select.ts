@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, model } from '@angular/core'
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	ElementRef,
+	forwardRef,
+	inject,
+	input,
+	model,
+} from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import { FormFieldCustomControl } from '@components/form-field/form-field-custom-control'
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -17,6 +26,7 @@ import type { SelectOption } from './select-option'
 	template: `
 		<div
 			(ngpSelectOpenChange)="onOpenChange($event)"
+			(focusout)="onFocusOut()"
 			[(ngpSelectValue)]="value"
 			[ngpSelectDisabled]="isDisabled()"
 			[attr.aria-disabled]="isDisabled() || null"
@@ -45,6 +55,8 @@ import type { SelectOption } from './select-option'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Select extends FormFieldCustomControl implements FormValueControl<string> {
+	private readonly host = inject(ElementRef).nativeElement as HTMLElement
+
 	public readonly options = input.required<SelectOption[]>()
 	public readonly value = model<string>('')
 	public readonly placeholder = input<string>('')
@@ -65,5 +77,13 @@ export class Select extends FormFieldCustomControl implements FormValueControl<s
 		if (!open) {
 			this.touched.set(true)
 		}
+	}
+
+	protected onFocusOut(): void {
+		setTimeout(() => {
+			if (!this.host.contains(document.activeElement)) {
+				this.touched.set(true)
+			}
+		})
 	}
 }

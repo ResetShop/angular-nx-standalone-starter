@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, model, signal } from '@angular/core'
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	ElementRef,
+	forwardRef,
+	inject,
+	input,
+	model,
+	signal,
+} from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import { FormFieldCustomControl } from '@components/form-field/form-field-custom-control'
 import type { SelectOption } from '@components/select/select-option'
@@ -33,6 +43,7 @@ import {
 		<div
 			(ngpComboboxValueChange)="onValueChange($event)"
 			(ngpComboboxOpenChange)="onOpenChange($event)"
+			(focusout)="onFocusOut()"
 			[(ngpComboboxValue)]="value"
 			[ngpComboboxDisabled]="isDisabled()"
 			[attr.aria-disabled]="isDisabled() || null"
@@ -59,6 +70,8 @@ import {
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Combobox extends FormFieldCustomControl implements FormValueControl<string> {
+	private readonly host = inject(ElementRef).nativeElement as HTMLElement
+
 	public readonly options = input.required<SelectOption[]>()
 	public readonly value = model<string>('')
 	public readonly placeholder = input<string>('')
@@ -97,5 +110,13 @@ export class Combobox extends FormFieldCustomControl implements FormValueControl
 			this.filter.set('')
 		}
 		this.touched.set(true)
+	}
+
+	protected onFocusOut(): void {
+		setTimeout(() => {
+			if (!this.host.contains(document.activeElement)) {
+				this.touched.set(true)
+			}
+		})
 	}
 }
