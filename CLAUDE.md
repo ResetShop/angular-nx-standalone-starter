@@ -965,7 +965,7 @@ The `npm run ci` command runs CI checks in two parallel batches via `nx run-many
 - `build` — Production build
 - `build-storybook` — Storybook build (`npm run storybook:build`)
 
-If any task in a batch fails, the entire batch is cancelled and errors are reported. Batch 2 does not run if Batch 1 fails.
+If any task in a batch fails, Nx reports an error after all parallel tasks in the batch complete. Batch 2 does not run if Batch 1 exits with an error.
 
 ### When to Trigger
 
