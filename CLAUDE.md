@@ -670,37 +670,6 @@ interface UserProjection {
 - Extract when a query result type is used in method signatures or appears inline with 3+ fields
 - Inline anonymous types in Drizzle `.select()` calls are fine — the `Projection` type captures the output shape when passed between methods
 
-### Pattern C (Qualified Implementation) — Naming Convention
-
-All backend and frontend interfaces follow **Pattern C**: the interface owns the clean name (no `I` prefix), and implementations use a technology/purpose **prefix**.
-
-**Backend:**
-
-| Layer               | Interface         | Implementation                                                             | Test Double               |
-| ------------------- | ----------------- | -------------------------------------------------------------------------- | ------------------------- |
-| Repository          | `UserRepository`  | `DrizzleUserRepository`                                                    | `InMemoryUserRepository`  |
-| Service (sole impl) | `AuthService`     | `AuthService` (same name)                                                  | `InMemoryAuthService`     |
-| Email               | `EmailRepository` | `NodemailerRepository` / `EtherealEmailRepository` / `NoopEmailRepository` | `InMemoryEmailRepository` |
-| Container           | `Container`       | `DependencyContainer`                                                      | `InMemoryContainer`       |
-
-**Frontend:**
-
-| Layer       | Interface + Token                   | Implementation       | Test Double              |
-| ----------- | ----------------------------------- | -------------------- | ------------------------ |
-| API Service | `AuthApi` (`InjectionToken`)        | `HttpAuthApi`        | `InMemoryAuthApi`        |
-| API Service | `UsersApi` (`InjectionToken`)       | `HttpUsersApi`       | `InMemoryUsersApi`       |
-| API Service | `RolesApi` (`InjectionToken`)       | `HttpRolesApi`       | `InMemoryRolesApi`       |
-| API Service | `PermissionsApi` (`InjectionToken`) | `HttpPermissionsApi` | `InMemoryPermissionsApi` |
-
-**Rules:**
-
-- Interface files: `interfaces.ts` (backend) or `*.interface.ts` (frontend)
-- `InMemory*` for all test doubles — never `Mock*`
-- `Drizzle*` prefix for database-backed repository implementations
-- `Http*` prefix for HTTP-based API service implementations
-- Sole-implementation services keep the interface name (no prefix, no `Impl` suffix)
-- Frontend tokens use `InjectionToken` with `providedIn: 'root'` and a factory pointing to the HTTP implementation
-
 ### Frontend API Provider Pattern
 
 API tokens are plain `InjectionToken` instances with **no** `providedIn` / `factory`. The wiring happens exclusively through `provideX()` functions that return `EnvironmentProviders` via `makeEnvironmentProviders()`, preventing component-level registration.
