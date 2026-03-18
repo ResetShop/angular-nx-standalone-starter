@@ -86,6 +86,39 @@ _Source: Robert C. Martin, "Clean Architecture" (2018)_
 
 ---
 
+## Pattern C (Qualified Implementation) — Naming Convention
+
+All backend and frontend interfaces follow **Pattern C**: the interface owns the clean name (no `I` prefix), and implementations use a technology/purpose **prefix**.
+
+**Backend:**
+
+| Layer               | Interface         | Implementation                                                             | Test Double               |
+| ------------------- | ----------------- | -------------------------------------------------------------------------- | ------------------------- |
+| Repository          | `UserRepository`  | `DrizzleUserRepository`                                                    | `InMemoryUserRepository`  |
+| Service (sole impl) | `AuthService`     | `AuthService` (same name)                                                  | `InMemoryAuthService`     |
+| Email               | `EmailRepository` | `NodemailerRepository` / `EtherealEmailRepository` / `NoopEmailRepository` | `InMemoryEmailRepository` |
+| Container           | `Container`       | `DependencyContainer`                                                      | `InMemoryContainer`       |
+
+**Frontend:**
+
+| Layer       | Interface + Token                   | Implementation       | Test Double              |
+| ----------- | ----------------------------------- | -------------------- | ------------------------ |
+| API Service | `AuthApi` (`InjectionToken`)        | `HttpAuthApi`        | `InMemoryAuthApi`        |
+| API Service | `UsersApi` (`InjectionToken`)       | `HttpUsersApi`       | `InMemoryUsersApi`       |
+| API Service | `RolesApi` (`InjectionToken`)       | `HttpRolesApi`       | `InMemoryRolesApi`       |
+| API Service | `PermissionsApi` (`InjectionToken`) | `HttpPermissionsApi` | `InMemoryPermissionsApi` |
+
+**Rules:**
+
+- Interface files: `interfaces.ts` (backend) or `*.interface.ts` (frontend)
+- `InMemory*` for all test doubles — never `Mock*`
+- `Drizzle*` prefix for database-backed repository implementations
+- `Http*` prefix for HTTP-based API service implementations
+- Sole-implementation services keep the interface name (no prefix, no `Impl` suffix)
+- Frontend tokens use plain `InjectionToken` (no `providedIn` / `factory`) — wired via `provideX()` functions
+
+---
+
 ## Project-Specific UI Architecture Rules
 
 ### Create/Edit Drawer Separation
