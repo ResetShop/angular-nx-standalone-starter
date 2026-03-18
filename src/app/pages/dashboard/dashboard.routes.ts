@@ -1,3 +1,4 @@
+import { ToastBridgeService } from '@components/toast/toast-bridge.service'
 import { NamedRoute } from '@interfaces/navigation'
 import Dashboard from '@pages/dashboard/dashboard'
 import { providePermissions } from '@providers/permissions/permissions.provider'
@@ -24,6 +25,7 @@ export default [
 				gap: 16,
 				zIndex: 9999,
 			}),
+			ToastBridgeService,
 		],
 		children: [
 			{
