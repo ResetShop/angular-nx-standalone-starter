@@ -1,7 +1,8 @@
 import { Component, input } from '@angular/core'
-import { clearAllMocks } from '@test-utils'
+import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
-import { PageShell } from './page-shell'
+import { parseDurationToMs } from '@utils/duration'
+import { PAGE_SHELL_MIN_DISPLAY, PageShell } from './page-shell'
 
 @Component({
 	selector: 'app-test-host',
@@ -26,7 +27,7 @@ class TestHost {
 	standalone: true,
 	imports: [PageShell],
 	template: `
-		<app-page-shell title="No Desc">
+		<app-page-shell [loading]="false" title="No Desc">
 			<div data-testid="page-content">Content here</div>
 		</app-page-shell>
 	`,
@@ -36,45 +37,98 @@ class TestHostNoDescription {}
 describe('PageShell', () => {
 	beforeEach(() => {
 		clearAllMocks()
+		useFakeTimers()
+	})
+
+	afterEach(() => {
+		useRealTimers()
 	})
 
 	it('should render the title', async () => {
 		await render(TestHost)
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Test Page' })).toBeInTheDocument()
 	})
 
 	it('should project description content', async () => {
 		await render(TestHost)
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 
 		expect(screen.getByText('A test description')).toBeInTheDocument()
 	})
 
 	it('should hide the description paragraph when no content is projected', async () => {
-		await render(TestHostNoDescription)
+		const { fixture } = await render(TestHostNoDescription)
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+		fixture.detectChanges()
 
 		expect(screen.getByRole('heading', { level: 1, name: 'No Desc' })).toBeInTheDocument()
 		expect(screen.getByTestId('page-content')).toBeInTheDocument()
 	})
 
-	it('should project default content when not loading and no error', async () => {
+	it('should show loading state with spinner and text by default', async () => {
 		await render(TestHost)
 
+		expect(screen.getByRole('status')).toBeInTheDocument()
+		expect(screen.getByText('Cargando...')).toBeInTheDocument()
+		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
+	})
+
+	it('should show loading for at least 500ms even when loading input is false', async () => {
+		const { fixture } = await render(TestHost, {
+			componentInputs: { loading: false },
+		})
+
+		expect(screen.getByRole('status')).toBeInTheDocument()
+		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
+
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+		fixture.detectChanges()
+
+		expect(screen.queryByRole('status')).not.toBeInTheDocument()
 		expect(screen.getByTestId('page-content')).toBeInTheDocument()
 	})
 
-	it('should show spinner when loading', async () => {
+	it('should keep loading visible when minimum elapsed but loading input is still true', async () => {
 		await render(TestHost, {
 			componentInputs: { loading: true },
 		})
 
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+
+		expect(screen.getByRole('status')).toBeInTheDocument()
+		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
+	})
+
+	it('should project content after minimum elapsed and loading is false', async () => {
+		const { fixture } = await render(TestHost)
+
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+
+		fixture.componentRef.setInput('loading', false)
+		fixture.detectChanges()
+
+		expect(screen.queryByRole('status')).not.toBeInTheDocument()
+		expect(screen.getByTestId('page-content')).toBeInTheDocument()
+	})
+
+	it('should show spinner when loading is explicitly true', async () => {
+		await render(TestHost, {
+			componentInputs: { loading: true },
+		})
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+
+		expect(screen.getByRole('status')).toBeInTheDocument()
 		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
 	})
 
 	it('should show error alert when error is set', async () => {
-		await render(TestHost, {
-			componentInputs: { error: 'Something went wrong' },
+		const { fixture } = await render(TestHost, {
+			componentInputs: { error: 'Something went wrong', loading: false },
 		})
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+		fixture.detectChanges()
 
 		expect(screen.getByRole('alert')).toBeInTheDocument()
 		expect(screen.getByText('Something went wrong')).toBeInTheDocument()
