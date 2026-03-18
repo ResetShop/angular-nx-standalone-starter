@@ -504,7 +504,7 @@ nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
 - Add an updated entry in the Bruno API client workspace for each new endpoint
 - Update the entries in the Bruno API client workspace if an endpoint is updated
 - **Backend endpoints require integration tests** — every new or modified API endpoint must have corresponding integration tests in `src/api/integration/`. See `.claude/references/testing.md` for conventions.
-- **Frontend components require Storybook stories** — every new or significantly modified component in `src/app/components/` must have a corresponding `*.stories.ts` file. See `.claude/references/testing.md` for story conventions.
+- **Frontend components require Storybook stories** — every new component in `src/app/components/`, or any component whose inputs, visual states, or public API change, must have a corresponding `*.stories.ts` file. See `.claude/references/testing.md` for story conventions.
 
 ### Query Priority
 
