@@ -21,19 +21,17 @@ import type { ColumnDef } from '@tanstack/angular-table'
 				.
 			</p>
 
-			<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-				<app-data-table
-					[columns]="columns"
-					[data]="store.permissions()"
-					[loading]="store.isLoading()"
-					[grouping]="grouping"
-					caption="Permissions grouped by resource"
-				>
-					<ng-template appDataTableCellDef="identifier" let-value>
-						<span appBadge variant="secondary">{{ value }}</span>
-					</ng-template>
-				</app-data-table>
-			</div>
+			<app-data-table
+				[columns]="columns"
+				[data]="store.permissions()"
+				[loading]="store.isLoading()"
+				[grouping]="grouping"
+				caption="Permissions grouped by resource"
+			>
+				<ng-template appDataTableCellDef="identifier" let-value>
+					<span appBadge variant="secondary">{{ value }}</span>
+				</ng-template>
+			</app-data-table>
 		</app-page-shell>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,

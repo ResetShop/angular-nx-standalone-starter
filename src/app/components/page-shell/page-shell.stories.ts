@@ -15,9 +15,10 @@ A wrapper component for consistent page layouts with title, description, loading
 
 - **Required title** rendered as \`<h1>\`
 - **Optional description** via \`[pageDescription]\` content projection (hidden when empty)
-- **Loading state** shows a centered spinner
+- **Loading state** shows a centered spinner with "Cargando..." text (default state on mount)
+- **Mandatory 500ms minimum display** before content appears, preventing layout flash
 - **Error state** shows a destructive alert
-- **Default content** projected when not loading and no error
+- **Default content** projected after minimum display when not loading and no error
 
 ## Usage
 
@@ -41,8 +42,8 @@ A wrapper component for consistent page layouts with title, description, loading
 		},
 		loading: {
 			control: 'boolean',
-			description: 'Shows a centered spinner when true',
-			table: { defaultValue: { summary: 'false' } },
+			description: 'Shows loading state. Defaults to true — content appears after 500ms minimum.',
+			table: { defaultValue: { summary: 'true' } },
 		},
 		error: {
 			control: 'text',
@@ -60,6 +61,7 @@ export default meta
 
 type Story = StoryObj<PageShell & { description: string }>
 
+/** Default state — loading is true, spinner shown with "Cargando..." text for 500ms minimum */
 export const Default: Story = {
 	args: {
 		title: 'Roles',
@@ -83,6 +85,7 @@ export const Default: Story = {
 	}),
 }
 
+/** Loading state — spinner and "Cargando..." text displayed in a styled container */
 export const Loading: Story = {
 	args: {
 		title: 'Roles',
