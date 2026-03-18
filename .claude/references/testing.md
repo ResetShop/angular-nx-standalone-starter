@@ -457,3 +457,107 @@ describe('Endpoint description (/api/path)', () => {
 - Noop email provider and bcrypt cost 1 are configured automatically in the test environment
 - Group tests by HTTP method + path inside `describe` blocks
 - Cover: happy path, 400 (validation), 401 (unauth), 403 (forbidden), 404 (not found), 409 (conflict)
+
+---
+
+## Storybook Story Conventions
+
+Every new UI component in `src/app/components/` must include a `*.stories.ts` file. Stories serve as living documentation, visual regression baselines, and interactive component catalogs.
+
+### Meta Configuration
+
+```typescript
+import type { Meta, StoryObj } from '@storybook/angular'
+import { MyComponent } from './my-component'
+
+type Story = StoryObj<MyComponent>
+
+const meta: Meta<MyComponent> = {
+	component: MyComponent,
+	title: 'Components/My Component',
+	tags: ['autodocs'],
+	parameters: {
+		docs: {
+			description: {
+				component: `
+Description of the component with Features and Usage sections.
+				`,
+			},
+			canvas: { sourceState: 'shown' },
+		},
+	},
+	argTypes: {
+		// Map each input() to a control
+		myInput: {
+			control: 'select',
+			options: ['a', 'b'],
+			description: 'What this input does',
+			table: {
+				type: { summary: 'string' },
+				defaultValue: { summary: "'a'" },
+			},
+		},
+	},
+}
+
+export default meta
+```
+
+### Required Elements
+
+| Element                                       | Requirement                                                            |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| `tags: ['autodocs']`                          | Always include — generates docs page automatically                     |
+| `parameters.docs.description.component`       | Markdown description with Features and Usage sections                  |
+| `parameters.docs.canvas.sourceState: 'shown'` | Shows source code in docs                                              |
+| `argTypes`                                    | Define for every public `input()` with control, description, and table |
+
+### Decorator Patterns
+
+| Pattern                                  | When to use                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| `moduleMetadata({ imports, providers })` | Per-story component imports and icon providers                             |
+| `applicationConfig({ providers })`       | Global services needed by the component (e.g., Router, Theme, Translation) |
+
+### Story Patterns
+
+**Simple component (no dependencies):** Render directly with `args` and inline template.
+
+**Component with DI dependencies:** Use `applicationConfig` decorator with mock providers.
+
+**Component that cannot render standalone** (e.g., requires portal context, toast manager): Create a wrapper `@Component` that triggers the real component through its normal API. The story exercises the integration, not the isolated component.
+
+```typescript
+// Wrapper pattern for context-dependent components
+@Component({
+	selector: 'app-story-wrapper',
+	imports: [Button],
+	template: `
+		<button (click)="trigger()" appButton>Trigger</button>
+	`,
+})
+class StoryWrapper {
+	private readonly service = inject(SomeService)
+	protected trigger(): void {
+		this.service.doThing()
+	}
+}
+```
+
+### Existing Stories (Reference)
+
+| Component       | File                         | Pattern                                                           |
+| --------------- | ---------------------------- | ----------------------------------------------------------------- |
+| Loading Spinner | `loading-spinner.stories.ts` | Simple, no args, fullscreen layout                                |
+| Button          | `button.stories.ts`          | argTypes, multiple variants, per-story `moduleMetadata` for icons |
+| FormField       | `form-field.stories.ts`      | Wrapper component, `applicationConfig`, signal forms              |
+| Select          | `select.stories.ts`          | argTypes, `applicationConfig` with providers                      |
+| Alert           | `alert.stories.ts`           | Multiple variants via separate stories                            |
+
+### Key Rules
+
+- **Always** update existing stories when component inputs, visual states, or public API change
+- **Use `applicationConfig`** for global providers (Router, services), **`moduleMetadata`** for component-level imports (icons)
+- **One story per visual state** — default, loading, error, collapsed, etc.
+- **Wrapper components** for components that depend on injection context not available in isolation
+- Stories are required only for shared UI components in `src/app/components/`. Page-level components in `src/app/pages/` are exempt.
