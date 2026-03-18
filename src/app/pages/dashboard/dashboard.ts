@@ -54,6 +54,5 @@ import { UIStore } from '@store/ui/ui.store'
 })
 export default class Dashboard {
 	protected readonly uiStore = inject(UIStore)
-	// Inject to activate the effect that bridges UIStore notifications to NgpToastManager
-	private readonly _toastBridge = inject(ToastBridgeService)
+	private readonly toastBridge = inject(ToastBridgeService)
 }
