@@ -1,4 +1,4 @@
-import { Injectable, type Provider } from '@angular/core'
+import { Injectable, makeEnvironmentProviders } from '@angular/core'
 import type { Language } from './translation'
 import { Translation } from './translation'
 import type { TranslationKey } from './translations.schema'
@@ -48,6 +48,6 @@ export class TranslationMock extends Translation {
 	}
 }
 
-export function provideTranslationMock(): Provider[] {
-	return [{ provide: Translation, useClass: TranslationMock }]
+export function provideTranslationMock() {
+	return makeEnvironmentProviders([{ provide: Translation, useClass: TranslationMock }])
 }

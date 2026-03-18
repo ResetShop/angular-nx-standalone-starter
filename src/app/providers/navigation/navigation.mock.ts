@@ -1,4 +1,4 @@
-import { computed, type Provider, signal } from '@angular/core'
+import { computed, makeEnvironmentProviders, signal } from '@angular/core'
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { NAVIGATION_CONFIG } from '@interfaces/navigation'
 import { Navigation } from './navigation'
@@ -20,10 +20,10 @@ export class NavigationMock {
 	}
 }
 
-export function provideNavigationMock(mock = new NavigationMock()): Provider[] {
-	return [
+export function provideNavigationMock(mock = new NavigationMock()) {
+	return makeEnvironmentProviders([
 		{ provide: Navigation, useValue: mock },
 		{ provide: NavigationState, useValue: new NavigationState() },
 		{ provide: NAVIGATION_CONFIG, useValue: { sections: [] } },
-	]
+	])
 }

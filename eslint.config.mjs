@@ -6,6 +6,7 @@ import playwright from 'eslint-plugin-playwright'
 import storybook from 'eslint-plugin-storybook'
 import testingLibrary from 'eslint-plugin-testing-library'
 import formFieldAllowedContent from './tools/form-field-allowed-content.eslint-rule.js'
+import requireEnvironmentProviders from './tools/require-environment-providers.eslint-rule.js'
 
 const commonRestrictedSyntax = [
 	{
@@ -228,6 +229,20 @@ export default [
 					],
 				},
 			],
+		},
+	},
+	{
+		name: 'require-environment-providers',
+		files: ['src/app/providers/**/*.provider.ts', 'src/app/providers/**/*.mock.ts'],
+		plugins: {
+			'custom-providers': {
+				rules: {
+					'require-environment-providers': requireEnvironmentProviders,
+				},
+			},
+		},
+		rules: {
+			'custom-providers/require-environment-providers': 'error',
 		},
 	},
 	{
