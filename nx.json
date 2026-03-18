@@ -76,6 +76,5 @@
 			"style": "css"
 		}
 	},
-	"defaultProject": "app",
-	"analytics": true
+	"defaultProject": "app"
 }
