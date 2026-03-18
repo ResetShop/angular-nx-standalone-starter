@@ -1,8 +1,10 @@
 import { Component, inject, input } from '@angular/core'
 import { Button } from '@components/button/button'
 import type { NotificationType } from '@store/ui/ui.types'
+import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.types'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
+import { parseDurationToMs } from '@utils/duration'
 import type { NgpToastOptions } from 'ng-primitives/toast'
 import { NgpToastManager, provideToastConfig } from 'ng-primitives/toast'
 import { ToastNotification } from './toast-notification'
@@ -41,7 +43,7 @@ class ToastStory {
 		this.toastManager.show(ToastNotification, {
 			context: notification,
 			placement: this.placement(),
-			duration: 5000,
+			duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
 		})
 	}
 }
@@ -57,7 +59,7 @@ const meta: Meta<ToastStory> = {
 			providers: [
 				...provideToastConfig({
 					placement: 'bottom-center',
-					duration: 5000,
+					duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
 					dismissible: true,
 					maxToasts: 3,
 					gap: 16,
