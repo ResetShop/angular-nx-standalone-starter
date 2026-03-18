@@ -17,6 +17,7 @@ import {
 	featherSettings,
 	featherUser,
 } from '@ng-icons/feather-icons'
+import { provideAuthMock } from '@providers/auth/auth.mock'
 import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import type { Meta, StoryObj } from '@storybook/angular'
@@ -60,6 +61,7 @@ const meta: Meta<Sidebar> = {
 					featherChevronsLeft,
 					featherChevronsRight,
 				}),
+				provideAuthMock(),
 				{ provide: NAVIGATION_CONFIG, useValue: mockSidebarNavigationConfig },
 				Navigation,
 				NavigationState,
