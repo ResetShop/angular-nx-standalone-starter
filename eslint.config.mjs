@@ -201,6 +201,36 @@ export default [
 		},
 	},
 	{
+		name: 'no-direct-api-injection',
+		files: ['src/app/pages/**/*.ts', 'src/app/components/**/*.ts'],
+		ignores: ['**/*.spec.ts', '**/*.test.ts', '**/*.stories.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: '@providers/auth/auth.interface',
+							message: 'Inject AuthApi via stores or guards, not directly in components.',
+						},
+						{
+							name: '@providers/users/users.interface',
+							message: 'Inject UsersApi via stores, not directly in components.',
+						},
+						{
+							name: '@providers/roles/roles.interface',
+							message: 'Inject RolesApi via stores, not directly in components.',
+						},
+						{
+							name: '@providers/permissions/permissions.interface',
+							message: 'Inject PermissionsApi via stores, not directly in components.',
+						},
+					],
+				},
+			],
+		},
+	},
+	{
 		files: ['**/*.ts', '**/*.js'],
 		// Override or add rules here
 		rules: {},
