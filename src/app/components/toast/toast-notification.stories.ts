@@ -71,7 +71,7 @@ const meta: Meta<ToastStory> = {
 	argTypes: {
 		placement: {
 			control: 'select',
-			options: ['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-center'],
+			options: ['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end'],
 			description: 'Position where toasts appear on the screen',
 			table: {
 				type: { summary: 'NgpToastPlacement' },
