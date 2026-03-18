@@ -11,27 +11,37 @@ interface User {
 	name: string
 	email: string
 	role: string
+	location: string
 }
 
 const sampleColumns: ColumnDef<User, unknown>[] = [
 	{ accessorKey: 'name', header: 'Name', enableSorting: true },
 	{ accessorKey: 'email', header: 'Email', enableSorting: true },
 	{ accessorKey: 'role', header: 'Role' },
+	{ accessorKey: 'location', header: 'Location' },
 ]
 
 const sampleData: User[] = [
-	{ name: 'Alice Johnson', email: 'alice@example.com', role: 'Admin' },
-	{ name: 'Bob Smith', email: 'bob@example.com', role: 'Editor' },
-	{ name: 'Carol White', email: 'carol@example.com', role: 'Viewer' },
-	{ name: 'Dave Brown', email: 'dave@example.com', role: 'Editor' },
-	{ name: 'Eve Davis', email: 'eve@example.com', role: 'Admin' },
-	{ name: 'Frank Miller', email: 'frank@example.com', role: 'Moderator' },
-	{ name: 'Grace Lee', email: 'grace@example.com', role: 'Viewer' },
-	{ name: 'Henry Wilson', email: 'henry@example.com', role: 'Editor' },
-	{ name: 'Ivy Chen', email: 'ivy@example.com', role: 'Moderator' },
-	{ name: 'Jack Taylor', email: 'jack@example.com', role: 'Viewer' },
-	{ name: 'Karen Adams', email: 'karen@example.com', role: 'Admin' },
-	{ name: 'Leo Martinez', email: 'leo@example.com', role: 'Editor' },
+	{ name: 'Alice Johnson', email: 'alice@example.com', role: 'Admin', location: 'New York, NY' },
+	{ name: 'Bob Smith', email: 'bob@example.com', role: 'Editor', location: 'San Francisco, CA' },
+	{ name: 'Carol White', email: 'carol@example.com', role: 'Viewer', location: 'Austin, TX' },
+	{ name: 'Dave Brown', email: 'dave@example.com', role: 'Editor', location: 'New York, NY' },
+	{ name: 'Eve Davis', email: 'eve@example.com', role: 'Admin', location: 'San Francisco, CA' },
+	{ name: 'Frank Miller', email: 'frank@example.com', role: 'Moderator', location: 'Austin, TX' },
+	{ name: 'Grace Lee', email: 'grace@example.com', role: 'Viewer', location: 'New York, NY' },
+	{ name: 'Henry Wilson', email: 'henry@example.com', role: 'Editor', location: 'Austin, TX' },
+	{ name: 'Ivy Chen', email: 'ivy@example.com', role: 'Moderator', location: 'San Francisco, CA' },
+	{ name: 'Jack Taylor', email: 'jack@example.com', role: 'Viewer', location: 'San Francisco, CA' },
+	{ name: 'Karen Adams', email: 'karen@example.com', role: 'Admin', location: 'Austin, TX' },
+	{ name: 'Leo Martinez', email: 'leo@example.com', role: 'Editor', location: 'New York, NY' },
+	{ name: 'Mia Rodriguez', email: 'mia@example.com', role: 'Admin', location: 'New York, NY' },
+	{ name: 'Nathan Park', email: 'nathan@example.com', role: 'Viewer', location: 'Austin, TX' },
+	{ name: 'Olivia Scott', email: 'olivia@example.com', role: 'Editor', location: 'San Francisco, CA' },
+	{ name: 'Paul Kim', email: 'paul@example.com', role: 'Moderator', location: 'New York, NY' },
+	{ name: 'Quinn Hughes', email: 'quinn@example.com', role: 'Viewer', location: 'New York, NY' },
+	{ name: 'Rosa Hernandez', email: 'rosa@example.com', role: 'Admin', location: 'San Francisco, CA' },
+	{ name: 'Sam Turner', email: 'sam@example.com', role: 'Editor', location: 'Austin, TX' },
+	{ name: 'Tina Patel', email: 'tina@example.com', role: 'Moderator', location: 'Austin, TX' },
 ]
 
 /**
@@ -84,13 +94,13 @@ class DataTableStoryComponent {
 	 * Grouping column selector. Maps a user-friendly label to the actual column ID.
 	 * Use 'none' to disable grouping.
 	 */
-	public readonly groupBy = input<'none' | 'role' | 'role+name'>('none')
+	public readonly groupBy = input<'none' | 'role' | 'role+location'>('none')
 
 	/** Resolved grouping array from the `groupBy` select control */
 	protected readonly resolvedGrouping = computed(() => {
 		const groupBy = this.groupBy()
 		if (groupBy === 'none') return []
-		if (groupBy === 'role+name') return ['role', 'name']
+		if (groupBy === 'role+location') return ['role', 'location']
 		return [groupBy]
 	})
 
@@ -258,10 +268,10 @@ export class UserListComponent {
 		},
 		groupBy: {
 			control: 'select',
-			options: ['none', 'role', 'role+name'],
+			options: ['none', 'role', 'role+location'],
 			description: 'Column(s) to group rows by',
 			table: {
-				type: { summary: "'none' | 'role' | 'role+name'" },
+				type: { summary: "'none' | 'role' | 'role+location'" },
 				defaultValue: { summary: 'none' },
 			},
 		},
@@ -338,17 +348,18 @@ export const GroupedByRole: Story = {
 }
 
 /**
- * Rows grouped by Role (first level) then Name (second level) with nested expand/collapse.
- * Demonstrates multi-column grouping with depth-aware indentation.
+ * Rows grouped by Role (first level) then Location (second level) with nested expand/collapse.
+ * Demonstrates multi-column grouping with depth-aware indentation. Each role contains
+ * users from multiple locations, making the nested grouping meaningful.
  */
-export const GroupedByRoleThenName: Story = {
+export const GroupedByRoleThenLocation: Story = {
 	args: {
 		columns: sampleColumns,
 		data: sampleData,
 		showData: true,
 		loading: false,
 		caption: 'Users table',
-		groupBy: 'role+name',
+		groupBy: 'role+location',
 		expandedByDefault: true,
 		pageSize: 0,
 		language: 'en',
