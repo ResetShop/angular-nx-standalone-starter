@@ -1,4 +1,4 @@
-import type { Provider } from '@angular/core'
+import { makeEnvironmentProviders } from '@angular/core'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import type { Observable } from 'rxjs'
 import { of, throwError } from 'rxjs'
@@ -103,6 +103,6 @@ export class InMemoryAuthApi implements AuthApi {
 	}
 }
 
-export const provideAuthMock = (api: InMemoryAuthApi = new InMemoryAuthApi()): Provider[] => [
-	{ provide: AuthApiToken, useValue: api },
-]
+export function provideAuthMock(api: InMemoryAuthApi = new InMemoryAuthApi()) {
+	return makeEnvironmentProviders([{ provide: AuthApiToken, useValue: api }])
+}

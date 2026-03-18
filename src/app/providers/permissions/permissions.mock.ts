@@ -1,4 +1,4 @@
-import type { Provider } from '@angular/core'
+import { makeEnvironmentProviders } from '@angular/core'
 import type { PermissionData } from '@contracts/role/role.types'
 import type { Observable } from 'rxjs'
 import { of, throwError } from 'rxjs'
@@ -149,6 +149,6 @@ export class InMemoryPermissionsApi implements PermissionsApi {
 	}
 }
 
-export const providePermissionsMock = (api: InMemoryPermissionsApi = new InMemoryPermissionsApi()): Provider[] => [
-	{ provide: PermissionsApiToken, useValue: api },
-]
+export function providePermissionsMock(api: InMemoryPermissionsApi = new InMemoryPermissionsApi()) {
+	return makeEnvironmentProviders([{ provide: PermissionsApiToken, useValue: api }])
+}

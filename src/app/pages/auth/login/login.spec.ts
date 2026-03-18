@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
+import { provideAuthMock } from '@providers/auth/auth.mock'
 import { Translation } from '@providers/i18n/translation'
 import { clearAllMocks } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
@@ -25,6 +26,7 @@ describe('Login', () => {
 		provideRouter([]),
 		provideHttpClient(),
 		provideHttpClientTesting(),
+		provideAuthMock(),
 		{ provide: Translation, useValue: mockTranslation },
 		...provideSignalFormsConfig({}),
 	]
