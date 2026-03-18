@@ -36,7 +36,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 		}
 	`,
 	template: `
-		@if (hasChildren()) {
+		@if (hasChildren() && !collapsed()) {
 			<!-- Parent item with expand button -->
 			<div class="nav-item-container">
 				<button
@@ -74,17 +74,21 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 				</ul>
 			</div>
 		} @else {
-			<!-- Leaf item (no children) - original implementation -->
+			<!-- Leaf item (or collapsed parent) -->
 			<a
 				[routerLink]="item().route"
 				[routerLinkActiveOptions]="{ exact: false }"
+				[attr.aria-label]="collapsed() ? item().name : null"
+				[title]="collapsed() ? item().name : ''"
 				routerLinkActive="bg-accent text-accent-foreground font-medium"
 				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
 			>
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
 				}
-				<span [title]="item().name" class="truncate">{{ item().name }}</span>
+				@if (!collapsed()) {
+					<span [title]="item().name" class="truncate">{{ item().name }}</span>
+				}
 			</a>
 		}
 	`,
@@ -92,6 +96,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 })
 export default class NavItem {
 	public readonly item = input.required<NavigationRoute>()
+	public readonly collapsed = input<boolean>(false)
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.
