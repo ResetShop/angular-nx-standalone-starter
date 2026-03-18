@@ -128,13 +128,13 @@ These patterns are intentional and correct. Do NOT report them as issues:
 - [ ] Timer utilities imported from `@test-utils` (not `vi.useFakeTimers()` directly)
 - [ ] `clearAllMocks()` called in `beforeEach` for test isolation
 
-### Storybook Stories (Blocking for new components)
+### Storybook Stories (Blocking)
 
 - [ ] New components in `src/app/components/` have a corresponding `*.stories.ts` file
 - [ ] Stories include `tags: ['autodocs']` and `parameters.docs.description.component`
 - [ ] Stories cover key variants/states (e.g., default, loading, error, collapsed)
 - [ ] Stories that need providers use `applicationConfig` or `moduleMetadata` decorators
-- [ ] Significantly modified components have their existing stories updated to cover new behavior
+- [ ] Components whose `input()` signals, visual states, or public API change have their stories updated
 
 ### Backend Integration Tests (Blocking)
 

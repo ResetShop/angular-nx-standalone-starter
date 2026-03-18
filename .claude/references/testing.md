@@ -556,14 +556,8 @@ class StoryWrapper {
 
 ### Key Rules
 
-- **Never** skip stories for new components — this is a hard constraint
-- **Always** update existing stories when modifying component behavior (new inputs, new variants, new states)
+- **Always** update existing stories when component inputs, visual states, or public API change
 - **Use `applicationConfig`** for global providers (Router, services), **`moduleMetadata`** for component-level imports (icons)
 - **One story per visual state** — default, loading, error, collapsed, etc.
 - **Wrapper components** for components that depend on injection context not available in isolation
-- **Never** resolve IDs via HTTP list calls — use `getSeededAdminIds()` for direct DB lookup
-- **Always** use `authenticatedRequest()` to attach cookies
-- Tests run sequentially (`fileParallelism: false`) to avoid DB race conditions
-- Noop email provider and bcrypt cost 1 are configured automatically in the test environment
-- Group tests by HTTP method + path inside `describe` blocks
-- Cover: happy path, 400 (validation), 401 (unauth), 403 (forbidden), 404 (not found), 409 (conflict)
+- Stories are required only for shared UI components in `src/app/components/`. Page-level components in `src/app/pages/` are exempt.
