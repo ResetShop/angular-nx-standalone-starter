@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
+import { ToastBridgeService } from '@components/toast/toast-bridge.service'
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
@@ -40,6 +41,7 @@ describe('Dashboard', () => {
 		NavigationState,
 		{ provide: UIStore, useValue: mockUIStore },
 		{ provide: NgpToastManager, useValue: { show: () => ({ dismiss: () => Promise.resolve() }) } },
+		ToastBridgeService,
 	]
 
 	const createNavigationWithSectionsAndBreadcrumbs = (
