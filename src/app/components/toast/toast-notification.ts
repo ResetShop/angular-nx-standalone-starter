@@ -37,27 +37,23 @@ export class ToastNotification {
 	private readonly toast = inject(NgpToast)
 	private readonly manager = inject(NgpToastManager)
 
-	protected readonly icon = computed(() => {
-		const iconMap: Record<NotificationType, string> = {
-			success: 'featherCheckCircle',
-			error: 'featherXCircle',
-			warning: 'featherAlertTriangle',
-			info: 'featherInfo',
-		}
-		return iconMap[this.notification.type]
-	})
+	private readonly iconMap: Record<NotificationType, string> = {
+		success: 'featherCheckCircle',
+		error: 'featherXCircle',
+		warning: 'featherAlertTriangle',
+		info: 'featherInfo',
+	}
 
-	protected readonly hostClasses = computed(() => {
-		const styleMap: Record<NotificationType, string> = {
-			success:
-				'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300',
-			error: 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-300',
-			warning:
-				'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300',
-			info: 'border-neutral-200 bg-neutral-50 text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300',
-		}
-		return styleMap[this.notification.type]
-	})
+	private readonly styleMap: Record<NotificationType, string> = {
+		success: 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300',
+		error: 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-300',
+		warning: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300',
+		info: 'border-neutral-200 bg-neutral-50 text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300',
+	}
+
+	protected readonly icon = computed(() => this.iconMap[this.notification.type])
+
+	protected readonly hostClasses = computed(() => this.styleMap[this.notification.type])
 
 	protected dismiss(): void {
 		this.uiStore.dismissNotification(this.notification.id)
