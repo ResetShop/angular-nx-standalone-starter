@@ -3,7 +3,15 @@ import { Translation } from '@providers/i18n/translation'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { PermissionsApi } from '@providers/permissions/permissions.interface'
 import { createMockPermissionData } from '@providers/permissions/permissions.mock'
-import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
+import {
+	advanceTimersByTimeAsync,
+	clearAllMocks,
+	fn,
+	type MockFn,
+	spyOn,
+	useFakeTimers,
+	useRealTimers,
+} from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import PermissionsList from './permissions-list'
@@ -13,6 +21,7 @@ describe('PermissionsList', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
+		useFakeTimers()
 		spyOn(console, 'error')
 
 		permissionsApiMock = {
@@ -22,14 +31,21 @@ describe('PermissionsList', () => {
 		permissionsApiMock.getAllUnpaginated.mockReturnValue(of([]))
 	})
 
+	afterEach(() => {
+		useRealTimers()
+	})
+
 	async function renderComponent() {
-		await render(PermissionsList, {
+		const result = await render(PermissionsList, {
 			providers: [
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
 		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		result.fixture.detectChanges()
+		return result
 	}
 
 	it('should render the page heading', async () => {
