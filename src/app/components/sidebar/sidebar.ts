@@ -91,12 +91,11 @@ export class Sidebar {
 		})
 	}
 
-	@HostListener('document:keydown', ['$event'])
-	protected onKeydown(event: KeyboardEvent): void {
-		if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
-			event.preventDefault()
-			this.toggleCollapse()
-		}
+	@HostListener('document:keydown.control.b', ['$event'])
+	@HostListener('document:keydown.meta.b', ['$event'])
+	protected onCollapseShortcut(event: Event): void {
+		event.preventDefault()
+		this.toggleCollapse()
 	}
 
 	@HostListener('document:keydown.escape')
