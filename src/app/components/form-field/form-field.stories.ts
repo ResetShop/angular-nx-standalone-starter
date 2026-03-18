@@ -8,6 +8,9 @@ import {
 	FormField as SignalFormField,
 	type FieldTree,
 } from '@angular/forms/signals'
+import { Combobox } from '@components/combobox/combobox'
+import { Select } from '@components/select/select'
+import type { SelectOption } from '@components/select/select-option'
 import { Translation, type Language } from '@providers/i18n/translation'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
@@ -15,12 +18,18 @@ import { FormField } from './form-field'
 
 // --- Story wrapper components ---
 
-type InputType = 'email' | 'text' | 'select' | 'checkbox'
+type InputType = 'email' | 'text' | 'select' | 'checkbox' | 'combobox'
+
+const COUNTRY_OPTIONS: SelectOption[] = [
+	{ value: 'us', label: 'United States' },
+	{ value: 'uk', label: 'United Kingdom' },
+	{ value: 'ca', label: 'Canada' },
+]
 
 @Component({
 	selector: 'app-story-playground',
 	standalone: true,
-	imports: [FormField, SignalFormField],
+	imports: [FormField, SignalFormField, Select, Combobox],
 	template: `
 		@if (isReady()) {
 			@switch (inputType()) {
@@ -40,12 +49,11 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox'
 				}
 				@case ('select') {
 					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
-						<select [formField]="hasRequired() ? selectField : optionalSelectField">
-							<option value="" disabled>Select a country</option>
-							<option value="us">United States</option>
-							<option value="uk">United Kingdom</option>
-							<option value="ca">Canada</option>
-						</select>
+						<app-select
+							[formField]="hasRequired() ? selectField : optionalSelectField"
+							[options]="countryOptions"
+							[placeholder]="'Select a country'"
+						/>
 					</app-form-field>
 				}
 				@case ('checkbox') {
@@ -55,6 +63,15 @@ type InputType = 'email' | 'text' | 'select' | 'checkbox'
 						[showRequired]="showRequired()"
 					>
 						<input [formField]="hasRequired() ? checkboxField : optionalCheckboxField" type="checkbox" />
+					</app-form-field>
+				}
+				@case ('combobox') {
+					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+						<app-combobox
+							[formField]="hasRequired() ? selectField : optionalSelectField"
+							[options]="countryOptions"
+							[placeholder]="'Search a country'"
+						/>
 					</app-form-field>
 				}
 			}
@@ -105,6 +122,8 @@ class StoryPlayground {
 	)
 	protected readonly optionalSelectField: FieldTree<string> = form(this.selectModel)
 
+	protected readonly countryOptions = COUNTRY_OPTIONS
+
 	private readonly checkboxModel = signal(false)
 	protected readonly checkboxField: FieldTree<boolean> = form(
 		this.checkboxModel,
@@ -121,6 +140,7 @@ class StoryPlayground {
 			text: 'Choose a unique username',
 			select: 'Select your country of residence',
 			checkbox: 'Required to proceed',
+			combobox: 'Search and select your country',
 		}
 		return hints[this.inputType()]
 	})
@@ -169,7 +189,7 @@ export const Playground: StoryObj<StoryPlayground> = {
 	argTypes: {
 		inputType: {
 			control: 'select',
-			options: ['email', 'text', 'select', 'checkbox'],
+			options: ['email', 'text', 'select', 'checkbox', 'combobox'],
 			description: 'Type of form input to display',
 			table: {
 				type: { summary: 'InputType' },
