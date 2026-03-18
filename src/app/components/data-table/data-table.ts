@@ -172,8 +172,11 @@ export class DataTable<T> {
 		return ''
 	}
 
+	protected readonly groupIndentPx = 16
+
 	/** Resolve the group label for a grouped row, coercing the unknown cell value to string */
 	protected resolveGroupLabel(row: Row<T>): string {
+		if (!row.getIsGrouped()) return ''
 		const columnId = row.groupingColumnId ?? this.grouping()[0]
 		return String(row.getValue(columnId))
 	}
