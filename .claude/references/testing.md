@@ -5,101 +5,101 @@
 ## Basic Component Test Pattern
 
 ```typescript
-import { render, screen } from '@testing-library/angular';
+import { render, screen } from '@testing-library/angular'
 
 describe('ButtonComponent', () => {
 	it('should render button with text', async () => {
 		await render(`<button appButton>Click me</button>`, {
 			imports: [ButtonComponent],
-		});
+		})
 
-		const button = screen.getByRole('button', { name: /click me/i });
-		expect(button).toBeInTheDocument();
-	});
-});
+		const button = screen.getByRole('button', { name: /click me/i })
+		expect(button).toBeInTheDocument()
+	})
+})
 ```
 
 ## Testing User Interactions
 
 ```typescript
-import { render, screen } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
 
 describe('CounterComponent', () => {
 	it('should increment count on button click', async () => {
-		const user = userEvent.setup();
-		await render(CounterComponent);
+		const user = userEvent.setup()
+		await render(CounterComponent)
 
-		const button = screen.getByRole('button', { name: /increment/i });
-		await user.click(button);
+		const button = screen.getByRole('button', { name: /increment/i })
+		await user.click(button)
 
-		expect(screen.getByText('Count: 1')).toBeInTheDocument();
-	});
-});
+		expect(screen.getByText('Count: 1')).toBeInTheDocument()
+	})
+})
 ```
 
 ## Testing Async Behavior
 
 ```typescript
-import { render, screen, waitFor } from '@testing-library/angular';
+import { render, screen, waitFor } from '@testing-library/angular'
 
 describe('AsyncComponent', () => {
 	it('should display data after loading', async () => {
-		await render(AsyncComponent);
+		await render(AsyncComponent)
 
 		// Wait for async content to appear
 		await waitFor(() => {
-			expect(screen.getByText('Data loaded')).toBeInTheDocument();
-		});
-	});
+			expect(screen.getByText('Data loaded')).toBeInTheDocument()
+		})
+	})
 
 	it('should find element that appears asynchronously', async () => {
-		await render(AsyncComponent);
+		await render(AsyncComponent)
 
 		// findBy* queries have built-in waiting
-		const element = await screen.findByRole('heading', { name: /welcome/i });
-		expect(element).toBeInTheDocument();
-	});
-});
+		const element = await screen.findByRole('heading', { name: /welcome/i })
+		expect(element).toBeInTheDocument()
+	})
+})
 ```
 
 ## Testing Services
 
 ```typescript
-import { render, screen } from '@testing-library/angular';
-import { fn } from '@test-utils';
+import { render, screen } from '@testing-library/angular'
+import { fn } from '@test-utils'
 
 describe('ComponentWithService', () => {
 	it('should use injected service', async () => {
-		const mockGetUser = fn<[], Promise<{ name: string }>>();
-		mockGetUser.mockResolvedValue({ name: 'John' });
+		const mockGetUser = fn<[], Promise<{ name: string }>>()
+		mockGetUser.mockResolvedValue({ name: 'John' })
 
 		await render(UserProfileComponent, {
 			providers: [{ provide: UserService, useValue: { getUser: mockGetUser } }],
-		});
+		})
 
-		expect(await screen.findByText('John')).toBeInTheDocument();
-	});
-});
+		expect(await screen.findByText('John')).toBeInTheDocument()
+	})
+})
 ```
 
 ## Testing Form Inputs
 
 ```typescript
-import { render, screen } from '@testing-library/angular';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
 
 describe('LoginFormComponent', () => {
 	it('should update input value', async () => {
-		const user = userEvent.setup();
-		await render(LoginFormComponent);
+		const user = userEvent.setup()
+		await render(LoginFormComponent)
 
-		const emailInput = screen.getByLabelText(/email/i);
-		await user.type(emailInput, 'test@example.com');
+		const emailInput = screen.getByLabelText(/email/i)
+		await user.type(emailInput, 'test@example.com')
 
-		expect(emailInput).toHaveValue('test@example.com');
-	});
-});
+		expect(emailInput).toHaveValue('test@example.com')
+	})
+})
 ```
 
 ## Instance Type Assertions
@@ -108,10 +108,10 @@ When verifying that an object is an instance of a specific class, always use `to
 
 ```typescript
 // ✅ Correct — type-safe and idiomatic
-expect(container.cradle.authService).toBeInstanceOf(AuthService);
+expect(container.cradle.authService).toBeInstanceOf(AuthService)
 
 // ❌ Incorrect — fragile string comparison
-expect(container.cradle.authService.constructor.name).toBe('AuthService');
+expect(container.cradle.authService.constructor.name).toBe('AuthService')
 ```
 
 `toBeInstanceOf` is safer (survives refactors and minification), more expressive, and produces better error messages on failure.
@@ -136,22 +136,22 @@ The `src/test-utils.ts` module (aliased as `@test-utils`) provides framework-agn
 **`fn()` API example:**
 
 ```typescript
-import { clearAllMocks, fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils'
 
-const mockFetch = fn<[number], Promise<User>>();
+const mockFetch = fn<[number], Promise<User>>()
 
 beforeEach(() => {
-	clearAllMocks();
-});
+	clearAllMocks()
+})
 
 it('should fetch user', async () => {
-	mockFetch.mockResolvedValue({ id: 1, name: 'John' });
+	mockFetch.mockResolvedValue({ id: 1, name: 'John' })
 
-	const result = await mockFetch(1);
+	const result = await mockFetch(1)
 
-	expect(result).toEqual({ id: 1, name: 'John' });
-	expect(mockFetch.calls).toEqual([[1]]);
-});
+	expect(result).toEqual({ id: 1, name: 'John' })
+	expect(mockFetch.calls).toEqual([[1]])
+})
 ```
 
 **Automatic cleanup:** The mock registry auto-clears via an `afterAll` hook registered at module load time, calling `resetAllMocks()` after each test suite.
@@ -171,26 +171,89 @@ Usage with the singleton `container` from `src/api/container/container.ts`:
 | `container.use()`     | Replace active container with a `MockContainer` instance |
 | `container.restore()` | Remove the delegate, restoring the real Awilix container |
 
+### Layer 3: Frontend API Mocks (Angular component/store tests)
+
+Each frontend API service has a co-located `*.mock.ts` file providing:
+
+1. **Mock data factories** — `createMockX(overrides?)` functions for generating test fixtures
+2. **Pre-built data lists** — `MOCK_USERS`, `MOCK_ROLES`, `MOCK_PERMISSIONS` constants for pagination testing
+3. **`InMemory*Api` classes** — Stateful test doubles implementing the API interface with `Map` storage
+4. **`provideXMock()` functions** — `EnvironmentProviders` wrappers for test registration
+
+| Mock File                         | Factory Functions                                         | InMemory Class           | Data List               |
+| --------------------------------- | --------------------------------------------------------- | ------------------------ | ----------------------- |
+| `users/users.mock.ts`             | `createMockManagedUser()`                                 | `InMemoryUsersApi`       | `MOCK_USERS` (12)       |
+| `roles/roles.mock.ts`             | `createMockRoleData()`, `createMockRoleWithPermissions()` | `InMemoryRolesApi`       | `MOCK_ROLES` (5)        |
+| `permissions/permissions.mock.ts` | `createMockPermissionData()`                              | `InMemoryPermissionsApi` | `MOCK_PERMISSIONS` (13) |
+| `auth/auth.mock.ts`               | `createMockLoginResponse()`, `createMockMeResponse()`     | `InMemoryAuthApi`        | —                       |
+| `i18n/translation.mock.ts`        | —                                                         | `TranslationMock`        | `MOCK_TRANSLATIONS`     |
+
+**InMemory class API pattern:**
+
+```typescript
+const usersApi = new InMemoryUsersApi()
+usersApi.addUser(createMockManagedUser({ id: 1 }))
+usersApi.addUser(createMockManagedUser({ id: 2, email: 'jane@example.com' }))
+usersApi.setError('getAll', new Error('Network error')) // simulate failure
+usersApi.clearErrors() // reset
+usersApi.clear() // reset all data
+```
+
+**Store spec pattern (fn() stubs with shared factories):**
+
+```typescript
+import { createPaginatedResponse } from '@mocks/pagination.mock'
+import { createMockManagedUser } from '@providers/users/users.mock'
+
+let usersApiMock: Record<keyof UsersApi, MockFn>
+
+beforeEach(() => {
+	clearAllMocks()
+	usersApiMock = { getAll: fn(), getById: fn(), create: fn(), ... }
+	usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
+})
+```
+
+**Guard/page spec pattern (InMemory with provideXMock):**
+
+```typescript
+import { provideAuthMock, InMemoryAuthApi, createMockMeResponse } from '@providers/auth/auth.mock'
+
+let authApi: InMemoryAuthApi
+
+beforeEach(() => {
+	authApi = new InMemoryAuthApi()
+	TestBed.configureTestingModule({
+		providers: [provideAuthMock(authApi)],
+	})
+})
+
+it('should allow navigation when authenticated', () => {
+	authApi.setAuthenticatedUser(createMockMeResponse())
+	// ...
+})
+```
+
 ### Timer Wrappers
 
 Always use `@test-utils` timer wrappers instead of `vi.useFakeTimers()` directly:
 
 ```typescript
-import { advanceTimersByTime, useFakeTimers, useRealTimers } from '@test-utils';
+import { advanceTimersByTime, useFakeTimers, useRealTimers } from '@test-utils'
 
 beforeEach(() => {
-	useFakeTimers();
-});
+	useFakeTimers()
+})
 
 afterEach(() => {
-	useRealTimers();
-});
+	useRealTimers()
+})
 
 it('should debounce calls', () => {
-	triggerAction();
-	advanceTimersByTime(300);
-	expect(result).toBe(expected);
-});
+	triggerAction()
+	advanceTimersByTime(300)
+	expect(result).toBe(expected)
+})
 ```
 
 ### Signal Effect Flushing in Tests
@@ -199,12 +262,12 @@ Use `TestBed.tick()` to synchronously flush pending signal effects in tests. `Te
 
 ```typescript
 // ✅ Correct — use tick()
-store.setPage(2);
-TestBed.tick();
+store.setPage(2)
+TestBed.tick()
 
 // ❌ Deprecated — do not use flushEffects()
-store.setPage(2);
-TestBed.flushEffects();
+store.setPage(2)
+TestBed.flushEffects()
 ```
 
 **When to call `TestBed.tick()`:** After any state change that triggers a computed signal update which in turn causes a reactive side effect (e.g., `patchState` on `currentPage` updates the `listParams` computed signal, which causes `rxMethod` to re-fire).
@@ -217,19 +280,19 @@ Components using `@defer` with `@placeholder (minimum Xms)` require two test set
 2. **Advance fake timers** past the `@placeholder` minimum duration so the deferred content renders
 
 ```typescript
-import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
-import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@test-utils';
-import { render, screen } from '@testing-library/angular';
+import { DeferBlockBehavior, TestBed } from '@angular/core/testing'
+import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@test-utils'
+import { render, screen } from '@testing-library/angular'
 
 describe('ComponentWithDefer', () => {
 	beforeEach(() => {
-		useFakeTimers();
-		clearAllMocks();
-	});
+		useFakeTimers()
+		clearAllMocks()
+	})
 
 	afterEach(() => {
-		useRealTimers();
-	});
+		useRealTimers()
+	})
 
 	async function renderComponent() {
 		const { fixture } = await render(MyComponent, {
@@ -237,19 +300,19 @@ describe('ComponentWithDefer', () => {
 			providers: [
 				/* ... */
 			],
-		});
-		TestBed.tick();
+		})
+		TestBed.tick()
 		// Advance past the @placeholder minimum (e.g., 500ms)
-		await advanceTimersByTimeAsync(500);
-		fixture.detectChanges();
+		await advanceTimersByTimeAsync(500)
+		fixture.detectChanges()
 	}
 
 	it('should render deferred content after placeholder minimum', async () => {
-		await renderComponent();
+		await renderComponent()
 
-		expect(screen.getByText('Deferred content')).toBeInTheDocument();
-	});
-});
+		expect(screen.getByText('Deferred content')).toBeInTheDocument()
+	})
+})
 ```
 
 **Key rules:**
@@ -264,13 +327,13 @@ Type API mocks as `Record<keyof ServiceClass, MockFn>` to keep the mock structur
 
 ```typescript
 // ✅ Correct — structurally linked to the real service
-let usersApiMock: Record<keyof UsersApiService, MockFn>;
+let usersApiMock: Record<keyof UsersApiService, MockFn>
 
 // ❌ Incorrect — inline object literal, silently drifts from the real service
 let usersApiMock: {
-	getAll: MockFn<[params?: SearchPaginationParams], Observable<PaginatedResponse<ManagedUser>>>;
-	create: MockFn<[CreateUserRequest], Observable<CreateUserResponse>>;
-};
+	getAll: MockFn<[params?: SearchPaginationParams], Observable<PaginatedResponse<ManagedUser>>>
+	create: MockFn<[CreateUserRequest], Observable<CreateUserResponse>>
+}
 ```
 
 ### Store Error State Assertions
@@ -279,12 +342,12 @@ With per-operation structured errors, assert the specific operation key rather t
 
 ```typescript
 // ✅ Correct — assert the specific operation key
-expect(store.mutationError().create).toBe('Failed to create user');
-expect(store.readError().list).toBe('Failed to load users');
+expect(store.mutationError().create).toBe('Failed to create user')
+expect(store.readError().list).toBe('Failed to load users')
 
 // ✅ Correct — assert full shape for initial state or clearErrors
-expect(store.readError()).toEqual({ list: null });
-expect(store.mutationError()).toEqual({ create: null, update: null, delete: null });
+expect(store.readError()).toEqual({ list: null })
+expect(store.mutationError()).toEqual({ create: null, update: null, delete: null })
 ```
 
 ### ESLint Enforcement
@@ -347,42 +410,42 @@ src/api/integration/
 ### Test Pattern
 
 ```typescript
-import type { OpenAPIHono } from '@hono/zod-openapi';
-import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers';
-import { getSeededAdminIds, getTestDb } from '../setup/db-helpers';
-import { createTestApp } from '../setup/test-app';
+import type { OpenAPIHono } from '@hono/zod-openapi'
+import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers'
+import { getSeededAdminIds, getTestDb } from '../setup/db-helpers'
+import { createTestApp } from '../setup/test-app'
 
 describe('Endpoint description (/api/path)', () => {
-	let app: OpenAPIHono;
-	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
+	let app: OpenAPIHono
+	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>
 
 	beforeAll(async () => {
-		app = createTestApp();
-		adminCookies = await loginAsAdmin(app);
-	});
+		app = createTestApp()
+		adminCookies = await loginAsAdmin(app)
+	})
 
 	describe('GET /api/path', () => {
 		it('returns expected data', async () => {
 			const response = await authenticatedRequest(app, '/api/path', {
 				cookies: adminCookies,
-			});
-			expect(response.status).toBe(200);
-		});
+			})
+			expect(response.status).toBe(200)
+		})
 
 		it('returns 401 without authentication', async () => {
-			const response = await app.request('/api/path');
-			expect(response.status).toBe(401);
-		});
+			const response = await app.request('/api/path')
+			expect(response.status).toBe(401)
+		})
 
 		it('returns 403 without required permission', async () => {
-			const restrictedCookies = await loginAsRestricted(app);
+			const restrictedCookies = await loginAsRestricted(app)
 			const response = await authenticatedRequest(app, '/api/path', {
 				cookies: restrictedCookies,
-			});
-			expect(response.status).toBe(403);
-		});
-	});
-});
+			})
+			expect(response.status).toBe(403)
+		})
+	})
+})
 ```
 
 ### Key Rules

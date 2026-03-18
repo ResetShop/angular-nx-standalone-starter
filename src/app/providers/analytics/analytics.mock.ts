@@ -7,4 +7,6 @@ export class AnalyticsMock extends Analytics {
 	public override async init() {}
 }
 
-export const provideAnalyticsMock = (): Provider[] => [{ provide: Analytics, useClass: AnalyticsMock }]
+export function provideAnalyticsMock(): Provider[] {
+	return [{ provide: Analytics, useClass: AnalyticsMock }]
+}

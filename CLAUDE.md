@@ -703,27 +703,65 @@ All backend and frontend interfaces follow **Pattern C**: the interface owns the
 
 ### Frontend API Provider Pattern
 
+API tokens are plain `InjectionToken` instances with **no** `providedIn` / `factory`. The wiring happens exclusively through `provideX()` functions that return `EnvironmentProviders` via `makeEnvironmentProviders()`, preventing component-level registration.
+
 ```typescript
-// Interface + token (e.g., auth.interface.ts)
+// 1. Interface + token (e.g., auth.interface.ts) — no factory, no providedIn
 export interface AuthApi {
 	login(params: LoginRequest): Observable<LoginResponse>
 	// ...
 }
-export const AuthApi = new InjectionToken<AuthApi>('AuthApi', {
-	providedIn: 'root',
-	factory: () => inject(HttpAuthApi),
-})
+export const AuthApi = new InjectionToken<AuthApi>('AuthApi')
 
-// HTTP implementation (e.g., auth.ts)
+// 2. HTTP implementation (e.g., auth.ts) — providedIn: 'root' for tree-shaking
 @Injectable({ providedIn: 'root' })
 export class HttpAuthApi implements AuthApi { ... }
 
-// Consumer (e.g., auth.store.ts)
-const authApi = inject(AuthApi) // injects via token, gets HttpAuthApi by default
+// 3. Provider function (e.g., auth.provider.ts) — environment-only registration
+export function provideAuth() {
+	return makeEnvironmentProviders([{ provide: AuthApi, useExisting: HttpAuthApi }])
+}
 
-// Test override
-{ provide: AuthApi, useValue: mockObj }
+// 4. Registration (app.config.ts) — called once at bootstrap
+providers: [provideAuth(), provideUsers(), provideRoles(), providePermissions()]
+
+// 5. Consumer (e.g., auth.store.ts)
+const authApi = inject(AuthApi) // resolves via provideAuth() registration
+
+// 6. Mock provider function (e.g., auth.mock.ts) — same EnvironmentProviders pattern
+export function provideAuthMock(api: InMemoryAuthApi = new InMemoryAuthApi()) {
+	return makeEnvironmentProviders([{ provide: AuthApi, useValue: api }])
+}
+
+// 7. Test usage
+providers: [provideAuthMock()]
 ```
+
+**Rules:**
+
+- `InjectionToken` declarations must **not** include `providedIn` or `factory` — use `provideX()` instead
+- `Http*Api` classes keep `@Injectable({ providedIn: 'root' })` for tree-shaking
+- Provider functions return `EnvironmentProviders` (never `Provider[]`) to enforce environment-only registration
+- Mock provider functions follow the same `makeEnvironmentProviders` pattern
+- ESLint `no-restricted-imports` blocks direct API token imports in `src/app/pages/` and `src/app/components/` — components must inject via stores or guards
+
+**Existing provider functions:**
+
+| Function               | File                                  | Registers                               |
+| ---------------------- | ------------------------------------- | --------------------------------------- |
+| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               |
+| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             |
+| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             |
+| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` |
+
+**Mock provider functions:**
+
+| Function                   | File                              |
+| -------------------------- | --------------------------------- |
+| `provideAuthMock()`        | `auth/auth.mock.ts`               |
+| `provideUsersMock()`       | `users/users.mock.ts`             |
+| `provideRolesMock()`       | `roles/roles.mock.ts`             |
+| `providePermissionsMock()` | `permissions/permissions.mock.ts` |
 
 ---
 

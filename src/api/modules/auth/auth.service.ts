@@ -9,11 +9,13 @@ import { type UserData, type UserRepository } from '../user/interfaces'
 import {
 	type AuthCredentials,
 	type AuthResult,
+	type AuthService as AuthServiceInterface,
 	type AuthenticationData,
 	type AuthenticationRepository,
 	type CleanupResult,
 	type RefreshResult,
 	type RefreshTokenRepository,
+	type TokenMaintenanceService,
 } from './interfaces'
 
 interface AuthServiceDeps {
@@ -28,7 +30,7 @@ interface AuthServiceDeps {
  * Handles login, logout, token refresh, and expired token cleanup.
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
-export class AuthService {
+export class AuthService implements AuthServiceInterface, TokenMaintenanceService {
 	private userRepository: UserRepository
 	private authRepository: AuthenticationRepository
 	private refreshTokenRepository: RefreshTokenRepository

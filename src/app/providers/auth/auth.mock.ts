@@ -67,6 +67,7 @@ export class InMemoryAuthApi implements AuthApi {
 			return of(this.loginResponse)
 		}
 
+		// REASON: Matches the real HttpErrorResponse shape that auth.store.ts inspects via error.code
 		return throwError(() => ({ error: { code: 'INVALID_CREDENTIALS' } }))
 	}
 

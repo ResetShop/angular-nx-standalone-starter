@@ -21,7 +21,8 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 
 /**
  * Lightweight translation stub for component specs.
- * Returns the translation key as-is, or falls back to the MOCK_TRANSLATIONS lookup.
+ * Looks up the key in MOCK_TRANSLATIONS; returns the raw key for unrecognised keys.
+ * If an assertion needs a translated value, add the key to MOCK_TRANSLATIONS above.
  */
 export const mockTranslation = {
 	instant: (key: string) => MOCK_TRANSLATIONS[key] ?? key,
@@ -47,4 +48,6 @@ export class TranslationMock extends Translation {
 	}
 }
 
-export const provideTranslationMock = (): Provider[] => [{ provide: Translation, useClass: TranslationMock }]
+export function provideTranslationMock(): Provider[] {
+	return [{ provide: Translation, useClass: TranslationMock }]
+}
