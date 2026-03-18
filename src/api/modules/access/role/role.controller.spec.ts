@@ -2,7 +2,7 @@ import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../../container/container'
-import { MockContainer } from '../../../container/container.mock'
+import { InMemoryContainer } from '../../../container/container.mock'
 import type { PaginatedResponse } from '../../../interfaces'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
 import type { ListRolesParams, PermissionData, RoleData } from './interfaces'
@@ -57,7 +57,7 @@ describe('Role Controller', () => {
 		mockGetUserPermissions.mockResolvedValue(allRolePermissions)
 
 		container.use(
-			new MockContainer({
+			new InMemoryContainer({
 				roleService: {
 					getAllRoles: mockGetAllRoles,
 					getRole: mockGetRole,

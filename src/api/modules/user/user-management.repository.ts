@@ -9,11 +9,11 @@ import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type {
 	CreateUserWithHashedPasswordParams,
-	IUserManagementRepository,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
 	UserData,
+	UserManagementRepository,
 } from './interfaces'
 
 // Mirrors UserWithTimestamps but kept file-local per Repository Projection Types convention.
@@ -54,7 +54,7 @@ interface RoleAssignmentProjection {
  * Repository for user management CRUD operations.
  * Handles user listing, creation, updates, and soft deletion.
  */
-export class UserManagementRepository extends BaseRepository implements IUserManagementRepository {
+export class DrizzleUserManagementRepository extends BaseRepository implements UserManagementRepository {
 	/**
 	 * Retrieves all non-deleted users with pagination and optional search.
 	 * Each user includes their assigned roles.

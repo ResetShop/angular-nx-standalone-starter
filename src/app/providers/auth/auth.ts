@@ -2,16 +2,15 @@ import { HttpClient } from '@angular/common/http'
 import { inject, Injectable } from '@angular/core'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import type { Observable } from 'rxjs'
+import type { AuthApi } from './auth.interface'
 
 /**
- * Auth API Service - HTTP Layer
- *
+ * HTTP implementation of AuthApi.
  * Pure API client for authentication endpoints.
  * No state management - just HTTP operations.
- * Injected and used by AuthStore.
  */
 @Injectable({ providedIn: 'root' })
-export class AuthApiService {
+export class HttpAuthApi implements AuthApi {
 	private readonly http = inject(HttpClient)
 
 	/**

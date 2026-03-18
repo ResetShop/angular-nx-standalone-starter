@@ -6,10 +6,10 @@ import { BaseRepository } from '../../../helpers/base.repository'
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
 import type {
 	CreateRoleParams,
-	IRoleRepository,
 	ListRolesParams,
 	PermissionData,
 	RoleData,
+	RoleRepository,
 	UpdateRoleParams,
 } from './interfaces'
 
@@ -17,7 +17,7 @@ import type {
  * Repository for role-related database operations.
  * Handles CRUD operations for roles and role-permission assignments.
  */
-export class RoleRepository extends BaseRepository implements IRoleRepository {
+export class DrizzleRoleRepository extends BaseRepository implements RoleRepository {
 	/**
 	 * Finds a role by its unique identifier.
 	 *

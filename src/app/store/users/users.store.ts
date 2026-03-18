@@ -5,7 +5,7 @@ import type { IManagedUser } from '@domain/user-management/managed-user.interfac
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { UsersApiService } from '@providers/users/users'
+import { UsersApi } from '@providers/users/users.interface'
 import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
 import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
@@ -29,7 +29,7 @@ function patchMutationError(
  *
  * Manages the user list, pagination, search, and CRUD operations.
  * Components inject this store directly for all user management operations.
- * Uses UsersApiService for HTTP calls and mapManagedUserResponse for domain mapping.
+ * Uses UsersApi for HTTP calls and mapManagedUserResponse for domain mapping.
  *
  * The list load is reactive: changing currentPage, pageSize, or searchQuery
  * automatically triggers a re-fetch via rxMethod watching the computed listParams signal.
@@ -62,7 +62,7 @@ export const UsersStore = signalStore(
 		hasPreviousPage: computed(() => store.currentPage() > 1),
 	})),
 	withMethods((store) => {
-		const usersApi = inject(UsersApiService)
+		const usersApi = inject(UsersApi)
 
 		return {
 			loadUsers: rxMethod<SearchPaginationParams>(
@@ -159,7 +159,7 @@ export const UsersStore = signalStore(
 	}),
 	// Mutation methods — all reload the list after success
 	withMethods((store) => {
-		const usersApi = inject(UsersApiService)
+		const usersApi = inject(UsersApi)
 
 		return {
 			reload(): void {

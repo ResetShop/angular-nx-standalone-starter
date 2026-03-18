@@ -2,14 +2,14 @@ import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
 import type {
 	CreateRoleParams,
-	IRoleRepository,
 	ListRolesParams,
 	PermissionData,
 	RoleData,
+	RoleRepository,
 	UpdateRoleParams,
 } from './interfaces'
 
-export class MockRoleRepository implements IRoleRepository {
+export class InMemoryRoleRepository implements RoleRepository {
 	private roles: Map<number, RoleData> = new Map()
 	private rolesByCode: Map<string, RoleData> = new Map()
 	private rolesByName: Map<string, RoleData> = new Map()

@@ -1,13 +1,13 @@
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { EmailService } from './email.service'
-import type { IEmailRepository, SendEmailParams } from './interfaces'
+import type { EmailRepository, SendEmailParams } from './interfaces'
 
 describe('EmailService', () => {
 	const mockSend = fn<[SendEmailParams], Promise<void>>()
 	let consoleErrorSpy: MockFn
 
-	const mockEmailRepository: IEmailRepository = {
+	const mockEmailRepository: EmailRepository = {
 		send: mockSend,
 	}
 

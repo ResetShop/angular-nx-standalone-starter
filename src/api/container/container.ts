@@ -1,18 +1,18 @@
 import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
 import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector'
-import { PermissionRepository } from '../modules/access/permission/permission.repository'
+import { DrizzlePermissionRepository } from '../modules/access/permission/permission.repository'
 import { PermissionService } from '../modules/access/permission/permission.service'
-import { RoleRepository } from '../modules/access/role/role.repository'
+import { DrizzleRoleRepository } from '../modules/access/role/role.repository'
 import { RoleService } from '../modules/access/role/role.service'
 import { AuthService } from '../modules/auth/auth.service'
-import { AuthenticationRepository } from '../modules/auth/authentication.repository'
-import { RefreshTokenRepository } from '../modules/auth/refresh-token.repository'
+import { DrizzleAuthenticationRepository } from '../modules/auth/authentication.repository'
+import { DrizzleRefreshTokenRepository } from '../modules/auth/refresh-token.repository'
 import { HealthService } from '../modules/health/health.service'
-import { UserManagementRepository } from '../modules/user/user-management.repository'
+import { DrizzleUserManagementRepository } from '../modules/user/user-management.repository'
 import { UserManagementService } from '../modules/user/user-management.service'
-import { UserRoleRepository } from '../modules/user/user-role.repository'
+import { DrizzleUserRoleRepository } from '../modules/user/user-role.repository'
 import { UserRoleService } from '../modules/user/user-role.service'
-import { UserRepository } from '../modules/user/user.repository'
+import { DrizzleUserRepository } from '../modules/user/user.repository'
 import { EmailService } from '../services/email/email.service'
 import { EtherealEmailRepository } from '../services/email/ethereal-email.repository'
 import { EMAIL_PROVIDERS } from '../services/email/interfaces'
@@ -20,7 +20,7 @@ import { NodemailerRepository } from '../services/email/nodemailer.repository'
 import { NoopEmailRepository } from '../services/email/noop-email.repository'
 import { PasetoService } from '../services/paseto/paseto.service'
 import { generatePassword } from '../utils/password'
-import type { IContainer } from './container.interface'
+import type { Container } from './container.interface'
 import type { Cradle } from './container.types'
 import { validateEnvironment } from './validate-environment'
 
@@ -41,13 +41,13 @@ function resolveEmailRepository() {
 function registerRepositories(c: AwilixContainer<Cradle>): void {
 	c.register({
 		emailRepository: resolveEmailRepository(),
-		userRepository: asClass(UserRepository).singleton(),
-		authRepository: asClass(AuthenticationRepository).singleton(),
-		refreshTokenRepository: asClass(RefreshTokenRepository).singleton(),
-		roleRepository: asClass(RoleRepository).singleton(),
-		permissionRepository: asClass(PermissionRepository).singleton(),
-		userRoleRepository: asClass(UserRoleRepository).singleton(),
-		userManagementRepository: asClass(UserManagementRepository).singleton(),
+		userRepository: asClass(DrizzleUserRepository).singleton(),
+		authRepository: asClass(DrizzleAuthenticationRepository).singleton(),
+		refreshTokenRepository: asClass(DrizzleRefreshTokenRepository).singleton(),
+		roleRepository: asClass(DrizzleRoleRepository).singleton(),
+		permissionRepository: asClass(DrizzlePermissionRepository).singleton(),
+		userRoleRepository: asClass(DrizzleUserRoleRepository).singleton(),
+		userManagementRepository: asClass(DrizzleUserManagementRepository).singleton(),
 	})
 }
 
@@ -94,12 +94,12 @@ function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
 /**
  * Singleton DI container that supports delegate-based test isolation.
  * In production, cradle/resolve access the real Awilix container (lazy-initialized).
- * In tests, call use(mockContainer) to redirect all resolution to a MockContainer,
+ * In tests, call use(mockContainer) to redirect all resolution to a InMemoryContainer,
  * then restore() in afterEach to revert to the real container.
  */
-class Container implements IContainer {
+class DependencyContainer implements Container {
 	private awilix: Readonly<AwilixContainer<Cradle>> | null = null
-	private delegate: IContainer | null = null
+	private delegate: Container | null = null
 
 	private initAwilix(): Readonly<AwilixContainer<Cradle>> {
 		this.awilix ??= createAwilixContainer()
@@ -131,10 +131,10 @@ class Container implements IContainer {
 	}
 
 	/**
-	 * Replaces the active container with a delegate (e.g. MockContainer for tests).
+	 * Replaces the active container with a delegate (e.g. InMemoryContainer for tests).
 	 * While a delegate is active, cradle and resolve() forward to it.
 	 */
-	public use(delegate: IContainer): void {
+	public use(delegate: Container): void {
 		this.delegate = delegate
 	}
 
@@ -147,4 +147,4 @@ class Container implements IContainer {
 	}
 }
 
-export const container = new Container()
+export const container = new DependencyContainer()

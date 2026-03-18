@@ -1,34 +1,15 @@
 import { TestBed } from '@angular/core/testing'
-import type { PermissionData } from '@contracts/role/role.types'
 import { Translation } from '@providers/i18n/translation'
-import { PermissionsApiService } from '@providers/permissions/permissions'
+import { mockTranslation } from '@providers/i18n/translation.mock'
+import { PermissionsApi } from '@providers/permissions/permissions.interface'
+import { createMockPermissionData } from '@providers/permissions/permissions.mock'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import PermissionsList from './permissions-list'
 
-function createMockPermissionData(overrides: Partial<PermissionData> = {}): PermissionData {
-	return {
-		id: 1,
-		name: 'Read Users',
-		description: 'Can read user records',
-		resource: 'users',
-		action: 'read',
-		...overrides,
-	}
-}
-
-const TRANSLATIONS: Record<string, string> = {
-	'DATA_TABLE.EMPTY': 'No data available',
-	'DATA_TABLE.LOADING': 'Loading...',
-}
-
-const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
-}
-
 describe('PermissionsList', () => {
-	let permissionsApiMock: Record<keyof PermissionsApiService, MockFn>
+	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
 
 	beforeEach(() => {
 		clearAllMocks()
@@ -44,7 +25,7 @@ describe('PermissionsList', () => {
 	async function renderComponent() {
 		await render(PermissionsList, {
 			providers: [
-				{ provide: PermissionsApiService, useValue: permissionsApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})

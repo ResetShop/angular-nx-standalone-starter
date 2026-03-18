@@ -1,6 +1,6 @@
 import { container } from '../../container/container'
 import { HealthStatus } from './health.constants'
-import type { IHealthService } from './interfaces'
+import type { HealthService } from './interfaces'
 
 /**
  * Result of a single health check probe.
@@ -26,7 +26,7 @@ interface HealthCheck {
  */
 export interface VerifyHealthDependencies {
 	verifyContainer: () => void
-	resolveHealthService: () => IHealthService
+	resolveHealthService: () => HealthService
 }
 
 /**

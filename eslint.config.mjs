@@ -6,6 +6,7 @@ import playwright from 'eslint-plugin-playwright'
 import storybook from 'eslint-plugin-storybook'
 import testingLibrary from 'eslint-plugin-testing-library'
 import formFieldAllowedContent from './tools/form-field-allowed-content.eslint-rule.js'
+import requireEnvironmentProviders from './tools/require-environment-providers.eslint-rule.js'
 
 const commonRestrictedSyntax = [
 	{
@@ -198,6 +199,50 @@ export default [
 			'@angular-eslint/template/prefer-self-closing-tags': 'error',
 			'@angular-eslint/template/prefer-ngsrc': 'error',
 			'custom-template/form-field-allowed-content': 'error',
+		},
+	},
+	{
+		name: 'no-direct-api-injection',
+		files: ['src/app/pages/**/*.ts', 'src/app/components/**/*.ts'],
+		ignores: ['**/*.spec.ts', '**/*.test.ts', '**/*.stories.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: '@providers/auth/auth.interface',
+							message: 'Inject AuthApi via stores or guards, not directly in components.',
+						},
+						{
+							name: '@providers/users/users.interface',
+							message: 'Inject UsersApi via stores, not directly in components.',
+						},
+						{
+							name: '@providers/roles/roles.interface',
+							message: 'Inject RolesApi via stores, not directly in components.',
+						},
+						{
+							name: '@providers/permissions/permissions.interface',
+							message: 'Inject PermissionsApi via stores, not directly in components.',
+						},
+					],
+				},
+			],
+		},
+	},
+	{
+		name: 'require-environment-providers',
+		files: ['src/app/providers/**/*.provider.ts', 'src/app/providers/**/*.mock.ts'],
+		plugins: {
+			'custom-providers': {
+				rules: {
+					'require-environment-providers': requireEnvironmentProviders,
+				},
+			},
+		},
+		rules: {
+			'custom-providers/require-environment-providers': 'error',
 		},
 	},
 	{

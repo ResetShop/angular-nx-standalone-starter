@@ -1,4 +1,4 @@
-import type { IContainer } from './container.interface'
+import type { Container } from './container.interface'
 import type { Cradle } from './container.types'
 
 /**
@@ -9,7 +9,7 @@ type MockCradle = {
 	[K in keyof Cradle]?: Partial<Cradle[K]>
 }
 
-export class MockContainer implements IContainer {
+export class InMemoryContainer implements Container {
 	constructor(private readonly mockCradle: MockCradle) {}
 
 	public get cradle(): Cradle {

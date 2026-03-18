@@ -1,12 +1,11 @@
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
-import type { IUserRoleRepository } from '../../user/interfaces'
+import type { UserRoleRepository } from '../../user/interfaces'
 import type {
 	CreateRoleParams,
-	IRoleRepository,
-	IRoleService,
 	ListRolesParams,
 	PermissionData,
 	RoleData,
+	RoleRepository,
 	UpdateRoleParams,
 } from './interfaces'
 import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants'
@@ -55,8 +54,8 @@ export class SelfLockoutError extends Error {
 }
 
 interface RoleServiceDeps {
-	roleRepository: IRoleRepository
-	userRoleRepository: IUserRoleRepository
+	roleRepository: RoleRepository
+	userRoleRepository: UserRoleRepository
 }
 
 /**
@@ -64,9 +63,9 @@ interface RoleServiceDeps {
  * Handles CRUD operations for roles and role-permission assignments.
  * Enforces business rules like unique codes/names and non-removable system roles.
  */
-export class RoleService implements IRoleService {
-	private roleRepository: IRoleRepository
-	private userRoleRepository: IUserRoleRepository
+export class RoleService {
+	private roleRepository: RoleRepository
+	private userRoleRepository: UserRoleRepository
 
 	constructor({ roleRepository, userRoleRepository }: RoleServiceDeps) {
 		this.roleRepository = roleRepository

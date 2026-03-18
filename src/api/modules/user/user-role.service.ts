@@ -1,12 +1,12 @@
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
-import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
-import type { IUserRepository, IUserRoleRepository, IUserRoleService } from './interfaces'
+import type { PermissionData, RoleData, RoleRepository, RoleWithPermissions } from '../access/role/interfaces'
+import type { UserRepository, UserRoleRepository } from './interfaces'
 import { userRoleErrors } from './user-role.errors'
 
 interface UserRoleServiceDeps {
-	userRoleRepository: IUserRoleRepository
-	userRepository: IUserRepository
-	roleRepository: IRoleRepository
+	userRoleRepository: UserRoleRepository
+	userRepository: UserRepository
+	roleRepository: RoleRepository
 }
 
 /**
@@ -14,10 +14,10 @@ interface UserRoleServiceDeps {
  * Handles role assignment, removal, and permission aggregation for users.
  * Validates entity existence before performing operations.
  */
-export class UserRoleService implements IUserRoleService {
-	private userRoleRepository: IUserRoleRepository
-	private userRepository: IUserRepository
-	private roleRepository: IRoleRepository
+export class UserRoleService {
+	private userRoleRepository: UserRoleRepository
+	private userRepository: UserRepository
+	private roleRepository: RoleRepository
 
 	constructor({ userRoleRepository, userRepository, roleRepository }: UserRoleServiceDeps) {
 		this.userRoleRepository = userRoleRepository

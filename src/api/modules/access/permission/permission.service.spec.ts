@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { PermissionData } from '../role/interfaces'
-import { MockPermissionRepository } from './permission.repository.mock'
+import { InMemoryPermissionRepository } from './permission.repository.mock'
 import { PermissionService } from './permission.service'
 
 describe('PermissionService', () => {
 	let permissionService: PermissionService
-	let mockPermissionRepo: MockPermissionRepository
+	let mockPermissionRepo: InMemoryPermissionRepository
 
 	const testPermissions: PermissionData[] = [
 		{ id: 1, name: 'admin:users:create', description: 'Create users', resource: 'users', action: 'create' },
@@ -15,7 +15,7 @@ describe('PermissionService', () => {
 	]
 
 	beforeEach(() => {
-		mockPermissionRepo = new MockPermissionRepository()
+		mockPermissionRepo = new InMemoryPermissionRepository()
 		permissionService = new PermissionService({ permissionRepository: mockPermissionRepo })
 	})
 

@@ -6,13 +6,13 @@ import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ACCESS_TOKEN_COOKIE_NAME } from '../constants/auth.constants'
 import { container } from '../container/container'
-import { MockContainer } from '../container/container.mock'
+import { InMemoryContainer } from '../container/container.mock'
 import type { TokenPayload } from '../services/paseto/interfaces'
 import verifyAccessToken, { type AuthenticatedContext } from './verify-access-token.middleware'
 
 describe('verifyAccessToken middleware', () => {
 	let app: Hono
-	// Shared across tests — registered once in MockContainer per beforeEach, call history cleared by clearAllMocks()
+	// Shared across tests — registered once in InMemoryContainer per beforeEach, call history cleared by clearAllMocks()
 	const mockVerifyAccessToken = fn<[string], Promise<TokenPayload>>()
 
 	const testPayload: TokenPayload = {
@@ -34,7 +34,7 @@ describe('verifyAccessToken middleware', () => {
 		})
 
 		container.use(
-			new MockContainer({
+			new InMemoryContainer({
 				pasetoService: {
 					verifyAccessToken: mockVerifyAccessToken,
 				},

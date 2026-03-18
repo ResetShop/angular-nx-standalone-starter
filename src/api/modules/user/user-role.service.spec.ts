@@ -2,8 +2,8 @@ import { UserStatus } from '@contracts/user/user.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { PaginatedResponse } from '../../interfaces'
-import type { IRoleRepository, PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
-import type { IUserRepository, IUserRoleRepository, UserData } from './interfaces'
+import type { PermissionData, RoleData, RoleRepository, RoleWithPermissions } from '../access/role/interfaces'
+import type { UserData, UserRepository, UserRoleRepository } from './interfaces'
 import { USER_ROLE_ERRORS } from './user-role.errors'
 import { UserRoleService } from './user-role.service'
 
@@ -22,7 +22,7 @@ describe('UserRoleService', () => {
 	const mockFindUserById = fn<[number], Promise<UserData | null>>()
 	const mockFindRoleById = fn<[number], Promise<RoleData | null>>()
 
-	const mockUserRoleRepository: IUserRoleRepository = {
+	const mockUserRoleRepository: UserRoleRepository = {
 		findRolesForUser: mockFindRolesForUser,
 		findPermissionsForUser: mockFindPermissionsForUser,
 		assignRoleToUser: mockAssignRoleToUser,
@@ -32,12 +32,12 @@ describe('UserRoleService', () => {
 		replaceUserRoles: mockReplaceUserRoles,
 	}
 
-	const mockUserRepository: IUserRepository = {
+	const mockUserRepository: UserRepository = {
 		findById: mockFindUserById,
 		findByEmail: fn(),
 	}
 
-	const mockRoleRepository: IRoleRepository = {
+	const mockRoleRepository: RoleRepository = {
 		findById: mockFindRoleById,
 		findByName: fn(),
 		findByCode: fn(),

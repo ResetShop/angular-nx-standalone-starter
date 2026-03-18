@@ -1,17 +1,17 @@
 import type { PaginatedResponse } from '../../../interfaces'
 import type { PermissionData } from '../role/interfaces'
-import type { IPermissionRepository, IPermissionService, ListPermissionsParams } from './interfaces'
+import type { ListPermissionsParams, PermissionRepository } from './interfaces'
 
 interface PermissionServiceDeps {
-	permissionRepository: IPermissionRepository
+	permissionRepository: PermissionRepository
 }
 
 /**
  * Service for permission listing operations.
  * Provides read-only access to system permissions with pagination and search.
  */
-export class PermissionService implements IPermissionService {
-	private permissionRepository: IPermissionRepository
+export class PermissionService {
+	private permissionRepository: PermissionRepository
 
 	constructor({ permissionRepository }: PermissionServiceDeps) {
 		this.permissionRepository = permissionRepository

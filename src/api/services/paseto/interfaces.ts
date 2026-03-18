@@ -14,7 +14,7 @@ export interface RefreshTokenPayload {
 	iss?: string // Issuer
 }
 
-export interface IPasetoService {
+export interface PasetoService {
 	generateAccessToken(payload: TokenPayload): Promise<string>
 	generateRefreshToken(userId: string, tokenFamily?: string): Promise<string>
 	verifyAccessToken(token: string): Promise<TokenPayload>

@@ -21,7 +21,7 @@ export interface IncrementAttemptsResult {
 	lockedUntil?: Date
 }
 
-export interface IAuthenticationRepository {
+export interface AuthenticationRepository {
 	findByUserId(userId: number): Promise<AuthenticationData | null>
 	incrementFailedAttempts(userId: number): Promise<number>
 	lockAccount(userId: number, lockedUntil: Date): Promise<void>
@@ -57,7 +57,7 @@ export interface CleanupResult {
 	incomplete: boolean
 }
 
-export interface IRefreshTokenRepository {
+export interface RefreshTokenRepository {
 	findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null>
 	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>
 	revokeToken(tokenId: number): Promise<void>
@@ -106,7 +106,7 @@ export interface RefreshResult {
 /**
  * Service interface for authentication operations: login, logout, and token refresh.
  */
-export interface IAuthService {
+export interface AuthService {
 	authenticate(credentials: AuthCredentials): Promise<AuthResult>
 	refreshToken(token: string): Promise<RefreshResult>
 	logout(userId: number): Promise<void>
@@ -114,13 +114,13 @@ export interface IAuthService {
 
 /**
  * Service interface for token maintenance operations.
- * Separated from IAuthService per Interface Segregation Principle:
+ * Separated from AuthService per Interface Segregation Principle:
  * consumers like cron jobs and the cleanup endpoint only need this method,
  * not the full authentication surface.
  *
  * Future token maintenance operations (e.g., bulk revocation) should be
- * added here rather than to IAuthService.
+ * added here rather than to AuthService.
  */
-export interface ITokenMaintenanceService {
+export interface TokenMaintenanceService {
 	cleanupExpiredTokens(): Promise<CleanupResult | null>
 }

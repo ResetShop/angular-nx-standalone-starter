@@ -11,13 +11,13 @@ export interface ListPermissionsParams extends PaginationParams {
 /**
  * Permission repository interface for querying system permissions.
  */
-export interface IPermissionRepository {
+export interface PermissionRepository {
 	findAll(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>
 }
 
 /**
  * Permission service interface for listing system permissions.
  */
-export interface IPermissionService {
+export interface PermissionService {
 	getAllPermissions(params?: ListPermissionsParams): Promise<PaginatedResponse<PermissionData>>
 }
