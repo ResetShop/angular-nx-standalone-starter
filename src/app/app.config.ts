@@ -16,7 +16,7 @@ import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.
 import { provideNavigation } from '@providers/navigation/navigation.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
 import { provideTheme } from '@providers/theme/theme'
-import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.types'
+import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.constants'
 import { parseDurationToMs } from '@utils/duration'
 import { provideToastConfig } from 'ng-primitives/toast'
 import { appRoutes } from './app.routes'

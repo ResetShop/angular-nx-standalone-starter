@@ -1,6 +1,6 @@
 import { effect, inject, Injectable } from '@angular/core'
+import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.constants'
 import { UIStore } from '@store/ui/ui.store'
-import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.types'
 import { parseDurationToMs } from '@utils/duration'
 import type { NgpToastRef } from 'ng-primitives/toast'
 import { NgpToastManager } from 'ng-primitives/toast'
