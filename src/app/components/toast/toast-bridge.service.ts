@@ -16,7 +16,7 @@ import { ToastNotification } from './toast-notification'
  * Provided at the Dashboard route level in `dashboard.routes.ts` alongside
  * `provideToastConfig()`. Injected in `Dashboard` to activate the effect.
  */
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class ToastBridgeService {
 	private readonly uiStore = inject(UIStore)
 	private readonly toastManager = inject(NgpToastManager)
