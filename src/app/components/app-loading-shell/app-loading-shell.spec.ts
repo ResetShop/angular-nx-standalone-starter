@@ -11,7 +11,7 @@ import { AppLoadingShell } from './app-loading-shell'
 	`,
 })
 class ToggleWrapper {
-	readonly loading = signal(true)
+	public readonly loading = signal(true)
 }
 
 describe('AppLoadingShell', () => {
