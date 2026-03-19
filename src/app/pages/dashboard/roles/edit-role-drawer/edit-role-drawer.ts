@@ -18,6 +18,7 @@ import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
+import { createMutationToast } from '@store/ui/mutation-toast'
 import { parseDurationToMs } from '@utils/duration'
 import { PermissionSelector } from '../permission-selector/permission-selector'
 
@@ -46,7 +47,14 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 		ConfirmDialog,
 	],
 	template: `
-		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Edit Role" #drawer>
+		<app-drawer
+			(closed)="onDrawerClosed()"
+			(afterClosed)="toast.flushPending()"
+			[closeOnBackdrop]="false"
+			class="w-lg"
+			title="Edit Role"
+			#drawer
+		>
 			<form (submit)="onSubmit($event)" id="edit-role-form" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
@@ -111,6 +119,8 @@ export class EditRoleDrawer {
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
+	protected readonly toast = createMutationToast('Role updated successfully.', { deferred: true })
+
 	private readonly editRoleId = signal<number | null>(null)
 
 	private readonly model = signal<EditRoleFormModel>({ ...EMPTY_MODEL })
@@ -131,7 +141,6 @@ export class EditRoleDrawer {
 	protected readonly mutationError = computed(() => this.rolesStore.mutationError().update)
 
 	private readonly closingAfterSuccess = signal(false)
-	private submitted = false
 
 	constructor() {
 		// Populates form when selectedRole loads — editRoleId guards against stale data
@@ -155,8 +164,7 @@ export class EditRoleDrawer {
 		const updating = this.rolesStore.isUpdating()
 		const error = this.rolesStore.mutationError().update
 		untracked(() => {
-			if (!updating && this.submitted && error === null) {
-				this.submitted = false
+			if (this.toast.handleResult(updating, error) === 'success') {
 				this.closingAfterSuccess.set(true)
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
@@ -181,7 +189,6 @@ export class EditRoleDrawer {
 	}
 
 	protected onDrawerClosed(): void {
-		this.submitted = false
 		this.editRoleId.set(null)
 		this.model.set({ ...EMPTY_MODEL })
 		this.roleForm().reset()
@@ -196,7 +203,7 @@ export class EditRoleDrawer {
 		if (!id) return
 
 		const { name, description, permissionIds } = this.model()
-		this.submitted = true
+		this.toast.markSubmitted()
 		this.rolesStore.updateRoleWithPermissions({
 			id,
 			body: { name, description: description || undefined },

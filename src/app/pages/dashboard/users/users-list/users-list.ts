@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core'
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	effect,
+	inject,
+	signal,
+	untracked,
+	viewChild,
+} from '@angular/core'
 import { Badge } from '@components/badge/badge'
 import { Button } from '@components/button/button'
 import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
@@ -8,6 +17,7 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
@@ -88,12 +98,21 @@ export default class UsersList {
 	protected readonly UserStatus = UserStatus
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
+	private readonly deleteToast = createMutationToast('User deleted successfully.')
 
 	protected readonly userToDelete = signal<IManagedUser | null>(null)
 	protected readonly deleteMessage = computed(() => {
 		const name = this.userToDelete()?.fullName ?? ''
 		return `Are you sure you want to delete the user '${name}'? This action cannot be undone.`
 	})
+
+	constructor() {
+		effect(() => {
+			const deleting = this.store.isDeleting()
+			const error = this.store.mutationError().delete
+			untracked(() => this.deleteToast.handleResult(deleting, error))
+		})
+	}
 
 	protected readonly columns: ColumnDef<IManagedUser, unknown>[] = [
 		{ accessorKey: 'fullName', header: 'Name' },
@@ -120,6 +139,7 @@ export default class UsersList {
 	protected onDeleteConfirmed(): void {
 		const user = this.userToDelete()
 		if (user) {
+			this.deleteToast.markSubmitted()
 			this.store.deleteUser(user.id)
 			this.userToDelete.set(null)
 		}

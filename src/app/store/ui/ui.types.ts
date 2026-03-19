@@ -9,8 +9,6 @@ export const NotificationType = Object.freeze({
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
 
-export const DEFAULT_NOTIFICATION_DURATION: DurationString = '5s'
-
 export interface UINotification {
 	readonly id: string
 	readonly type: NotificationType
