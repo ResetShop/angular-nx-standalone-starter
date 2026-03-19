@@ -14,6 +14,11 @@ export interface TranslationSchema {
 			GENERIC: string
 		}
 	}
+	HTTP: {
+		ERRORS: {
+			FORBIDDEN: string
+		}
+	}
 	DATA_TABLE: {
 		EMPTY: string
 		LOADING: string
