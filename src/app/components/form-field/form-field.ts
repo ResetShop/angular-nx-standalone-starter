@@ -132,13 +132,11 @@ export class FormField {
 
 	private readonly supportedNativeControls = 'input, select, textarea'
 
-	constructor() {
-		afterRenderEffect(() => {
-			this.setupContentValidation()
-			this.resolveInputComponentType()
-			this.setupIdAndAriaSync()
-		})
-	}
+	private readonly contentSetupEffect = afterRenderEffect(() => {
+		this.setupContentValidation()
+		this.resolveInputComponentType()
+		this.setupIdAndAriaSync()
+	})
 
 	/**
 	 * This method verifies that:

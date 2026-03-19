@@ -599,6 +599,41 @@ export default class PermissionsList {
 - `public` for **interface-required members** (e.g., `ngOnDestroy`, `FormValueControl.value`)
 - Never use `public` on internal fields that are only consumed within the component itself
 
+### Effect Field Initializers
+
+All `effect()`, `afterRenderEffect()`, and `afterNextRender()` calls must be declared as **named class field initializers** — never inside constructor bodies. Field initializers in Angular-decorated classes (`@Component`, `@Injectable`, `@Directive`) run in injection context, making the constructor unnecessary for registering reactive effects.
+
+```typescript
+// ✅ Correct — effect as named field initializer
+export class MyComponent {
+	private readonly store = inject(MyStore)
+
+	private readonly syncEffect = effect(() => {
+		const value = this.store.someSignal()
+		untracked(() => this.doSomething(value))
+	})
+}
+
+// ❌ Incorrect — effect inside constructor
+export class MyComponent {
+	private readonly store = inject(MyStore)
+
+	constructor() {
+		effect(() => {
+			const value = this.store.someSignal()
+			untracked(() => this.doSomething(value))
+		})
+	}
+}
+```
+
+**Rules:**
+
+- Effect fields must use descriptive names (e.g., `syncCodeEffect`, `closeOnSuccessEffect`, `deleteToastEffect`)
+- Fields referenced by the effect must be declared **before** the effect field in class body order
+- Constructor bodies should not contain effect registrations
+- Conditional effects (e.g., dev-mode only) use a ternary: `private readonly validateGroupingEffect = isDevMode() ? effect(() => { ... }) : undefined`
+
 ### App Initializer Pattern
 
 All `provideAppInitializer` calls **must** use a named factory function that returns an async closure. Never inline the initializer logic directly in `app.config.ts`.
