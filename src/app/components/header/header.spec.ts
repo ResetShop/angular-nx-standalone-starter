@@ -1,12 +1,31 @@
+import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { BreadcrumbItem } from '@interfaces/navigation'
 import { Navigation } from '@providers/navigation/navigation'
 import { provideMockTheme } from '@providers/theme/theme.mock'
+import { UIStore } from '@store/ui/ui.store'
+import { clearAllMocks, fn } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
 import { Header } from './header'
 
 describe('Header', () => {
-	const defaultProviders = () => [provideRouter([]), provideMockTheme(false)]
+	const mockToggleSidebar = fn()
+
+	const mockUIStore = {
+		toggleSidebar: mockToggleSidebar,
+		isSidebarOpen: signal(false),
+	}
+
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
+	const defaultProviders = () => [
+		provideRouter([]),
+		provideMockTheme(false),
+		{ provide: UIStore, useValue: mockUIStore },
+	]
 
 	const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 		provide: Navigation,
@@ -133,5 +152,30 @@ describe('Header', () => {
 		expect(links).toHaveLength(0)
 
 		expect(screen.getByText('Home')).toHaveAttribute('aria-current', 'page')
+	})
+
+	it('should render hamburger button for mobile navigation', async () => {
+		const breadcrumbs: BreadcrumbItem[] = [{ title: 'Home', path: '/', isActive: true }]
+
+		await render(Header, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+		})
+
+		const hamburger = screen.getByRole('button', { name: /open navigation menu/i })
+		expect(hamburger).toBeInTheDocument()
+	})
+
+	it('should call toggleSidebar when hamburger button is clicked', async () => {
+		const user = userEvent.setup()
+		const breadcrumbs: BreadcrumbItem[] = [{ title: 'Home', path: '/', isActive: true }]
+
+		await render(Header, {
+			providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+		})
+
+		const hamburger = screen.getByRole('button', { name: /open navigation menu/i })
+		await user.click(hamburger)
+
+		expect(mockToggleSidebar.calls).toHaveLength(1)
 	})
 })

@@ -3,15 +3,21 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router'
 import { isParentRoute, type NavigationRoute } from '@interfaces/navigation'
 import { NgIcon } from '@ng-icons/core'
 import { NavigationState } from '@providers/navigation/navigation-state'
+import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink, RouterLinkActive],
+	host: { '[class.collapsed]': 'collapsed()' },
 	styles: `
 		@reference "tailwindcss";
 		:host {
 			@apply cursor-pointer text-sm;
+		}
+
+		:host(.collapsed) {
+			@apply flex h-12 items-center justify-center;
 		}
 
 		.nav-children {
@@ -36,7 +42,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 		}
 	`,
 	template: `
-		@if (hasChildren()) {
+		@if (hasChildren() && !collapsed()) {
 			<!-- Parent item with expand button -->
 			<div class="nav-item-container">
 				<button
@@ -45,7 +51,8 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 					(keydown.space)="$event.preventDefault(); toggleExpanded()"
 					[attr.aria-expanded]="isExpanded()"
 					[attr.aria-controls]="'nav-children-' + item().id"
-					class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left"
+					[class.p-2]="!collapsed()"
+					class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex w-full items-center gap-2 rounded-md text-left"
 				>
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
@@ -74,17 +81,30 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 				</ul>
 			</div>
 		} @else {
-			<!-- Leaf item (no children) - original implementation -->
+			<!-- Leaf item (or collapsed parent) -->
 			<a
 				[routerLink]="item().route"
 				[routerLinkActiveOptions]="{ exact: false }"
+				[attr.aria-label]="collapsed() ? item().name : null"
+				[attr.title]="collapsed() ? item().name : null"
+				[class.h-12]="collapsed()"
+				[class.w-12]="collapsed()"
+				[class.p-2]="!collapsed()"
+				[class.justify-center]="collapsed()"
 				routerLinkActive="bg-accent text-accent-foreground font-medium"
-				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
+				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg"
 			>
 				@if (iconName(); as iconName) {
-					<ng-icon [name]="iconName" data-testid="item-icon" />
+					<ng-icon
+						[name]="iconName"
+						[class.m-2]="collapsed()"
+						[size]="collapsed() ? '28' : '16'"
+						data-testid="item-icon"
+					/>
 				}
-				<span class="truncate">{{ item().name }}</span>
+				@if (!collapsed()) {
+					<span class="truncate">{{ item().name }}</span>
+				}
 			</a>
 		}
 	`,
@@ -92,6 +112,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 })
 export default class NavItem {
 	public readonly item = input.required<NavigationRoute>()
+	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.

@@ -12,15 +12,18 @@ import NavItem from '@components/nav-item/nav-item'
 import { NavigationSection } from '@interfaces/navigation'
 import { provideIcons } from '@ng-icons/core'
 import { featherChevronRight } from '@ng-icons/feather-icons'
+import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	selector: 'app-nav-section',
 	imports: [NgComponentOutlet],
 	template: `
 		@if (showTitle()) {
-			<div class="flex h-8 items-center px-2 text-xs font-medium text-black/70 dark:text-white/70">
-				{{ section().name }}
-			</div>
+			@if (!collapsed()) {
+				<div class="flex h-8 items-center px-2 text-xs font-medium text-wrap text-black/70 dark:text-white/70">
+					{{ section().name }}
+				</div>
+			}
 		}
 		<ul>
 			@for (navItem of navItems(); track navItem.id) {
@@ -37,6 +40,7 @@ export default class NavSection {
 	protected readonly NavItem = NavItem
 	public readonly showTitle = input<boolean>(true)
 	public readonly section = input.required<NavigationSection>()
+	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
 
 	private readonly injector = inject(EnvironmentInjector)
 

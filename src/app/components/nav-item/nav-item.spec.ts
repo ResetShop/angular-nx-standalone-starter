@@ -4,6 +4,7 @@ import { NavigationRoute } from '@interfaces/navigation'
 import { provideIcons } from '@ng-icons/core'
 import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons'
 import { NavigationState } from '@providers/navigation/navigation-state'
+import { UIStore } from '@store/ui/ui.store'
 import { clearAllMocks } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
@@ -369,5 +370,65 @@ describe('NavItem - Expandable Behavior', () => {
 
 		const link = screen.getByRole('link', { name: /empty children/i })
 		expect(link).toBeInTheDocument()
+	})
+})
+
+describe('NavItem - Collapsed Mode', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
+	const mockRoute: NavigationRoute = {
+		id: 'test-route',
+		name: 'Test Route',
+		route: '/test',
+		icon: { featherHome },
+	}
+
+	const parentRoute: NavigationRoute = {
+		id: 'parent',
+		name: 'Parent Route',
+		route: '/parent',
+		icon: { featherHome },
+		children: [{ id: 'child1', name: 'Child 1', route: '/parent/child1' }],
+	}
+
+	it('should hide the name text when collapsed', async () => {
+		const { detectChanges } = await render(NavItem, {
+			inputs: { item: mockRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		})
+
+		TestBed.inject(UIStore).setSidebarCollapsed(true)
+		detectChanges()
+
+		expect(screen.queryByText('Test Route')).not.toBeInTheDocument()
+		expect(screen.getByTestId('item-icon')).toBeInTheDocument()
+	})
+
+	it('should set aria-label on the link when collapsed', async () => {
+		const { detectChanges } = await render(NavItem, {
+			inputs: { item: mockRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		})
+
+		TestBed.inject(UIStore).setSidebarCollapsed(true)
+		detectChanges()
+
+		const link = screen.getByRole('link', { name: 'Test Route' })
+		expect(link).toHaveAttribute('aria-label', 'Test Route')
+	})
+
+	it('should render a parent route as a plain link when collapsed', async () => {
+		const { detectChanges } = await render(NavItem, {
+			inputs: { item: parentRoute },
+			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+		})
+
+		TestBed.inject(UIStore).setSidebarCollapsed(true)
+		detectChanges()
+
+		expect(screen.getByRole('link')).toBeInTheDocument()
+		expect(screen.queryByRole('button')).not.toBeInTheDocument()
 	})
 })
