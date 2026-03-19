@@ -24,6 +24,7 @@ import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { RolesStore } from '@store/roles/roles.store'
+import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import { parseDurationToMs } from '@utils/duration'
 import { RoleSelector } from '../role-selector/role-selector'
@@ -61,7 +62,14 @@ const EMPTY_MODEL: CreateUserFormModel = {
 		ConfirmDialog,
 	],
 	template: `
-		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Create User" #drawer>
+		<app-drawer
+			(closed)="onDrawerClosed()"
+			(afterClosed)="toast.flushPending()"
+			[closeOnBackdrop]="false"
+			class="w-lg"
+			title="Create User"
+			#drawer
+		>
 			<form (submit)="onSubmit($event)" id="create-user-form" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
@@ -122,6 +130,8 @@ export class CreateUserDrawer {
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
+	protected readonly toast = createMutationToast('User created successfully.', { deferred: true })
+
 	private readonly model = signal<CreateUserFormModel>({ ...EMPTY_MODEL })
 	protected readonly userForm = form(
 		this.model,
@@ -141,7 +151,6 @@ export class CreateUserDrawer {
 	protected readonly mutationError = computed(() => this.usersStore.mutationError().create)
 
 	private readonly closingAfterSuccess = signal(false)
-	private submitted = false
 
 	constructor() {
 		effect(() => this.closeOnSuccess())
@@ -151,8 +160,7 @@ export class CreateUserDrawer {
 		const creating = this.usersStore.isCreating()
 		const error = this.usersStore.mutationError().create
 		untracked(() => {
-			if (!creating && this.submitted && error === null) {
-				this.submitted = false
+			if (this.toast.handleResult(creating, error) === 'success') {
 				this.closingAfterSuccess.set(true)
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
@@ -177,7 +185,6 @@ export class CreateUserDrawer {
 	}
 
 	protected onDrawerClosed(): void {
-		this.submitted = false
 		this.model.set({ ...EMPTY_MODEL })
 		this.userForm().reset()
 		this.usersStore.clearMutationError('create')
@@ -188,7 +195,7 @@ export class CreateUserDrawer {
 		if (!this.isFormValid()) return
 
 		const { email, firstName, lastName, roleIds, mustChangePassword } = this.model()
-		this.submitted = true
+		this.toast.markSubmitted()
 		this.usersStore.createUser({
 			email,
 			firstName,

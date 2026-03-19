@@ -1,3 +1,4 @@
+import { provideToast } from '@components/toast/toast.provider'
 import { NamedRoute } from '@interfaces/navigation'
 import Dashboard from '@pages/dashboard/dashboard'
 import { providePermissions } from '@providers/permissions/permissions.provider'
@@ -28,7 +29,7 @@ export default [
 				path: 'users',
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
-				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
+				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
 			},
 			{
 				path: 'authorization',
@@ -44,7 +45,7 @@ export default [
 						path: 'roles',
 						title: 'Roles',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
-						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore],
+						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore, provideToast()],
 					},
 				],
 			},

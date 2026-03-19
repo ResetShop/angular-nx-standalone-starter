@@ -24,6 +24,7 @@ import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { RolesStore } from '@store/roles/roles.store'
+import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import { parseDurationToMs } from '@utils/duration'
 import { RoleSelector } from '../role-selector/role-selector'
@@ -54,7 +55,14 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 		ConfirmDialog,
 	],
 	template: `
-		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Edit User" #drawer>
+		<app-drawer
+			(closed)="onDrawerClosed()"
+			(afterClosed)="toast.flushPending()"
+			[closeOnBackdrop]="false"
+			class="w-lg"
+			title="Edit User"
+			#drawer
+		>
 			<form (submit)="onSubmit($event)" id="edit-user-form" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
@@ -116,6 +124,8 @@ export class EditUserDrawer {
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
+	protected readonly toast = createMutationToast('User updated successfully.', { deferred: true })
+
 	private readonly editUserId = signal<number | null>(null)
 
 	private readonly model = signal<EditUserFormModel>({ ...EMPTY_MODEL })
@@ -137,7 +147,6 @@ export class EditUserDrawer {
 	protected readonly mutationError = computed(() => this.usersStore.mutationError().update)
 
 	private readonly closingAfterSuccess = signal(false)
-	private submitted = false
 
 	constructor() {
 		// Populates form when selectedUser loads — editUserId guards against stale data
@@ -161,8 +170,7 @@ export class EditUserDrawer {
 		const updating = this.usersStore.isUpdating()
 		const error = this.usersStore.mutationError().update
 		untracked(() => {
-			if (!updating && this.submitted && error === null) {
-				this.submitted = false
+			if (this.toast.handleResult(updating, error) === 'success') {
 				this.closingAfterSuccess.set(true)
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
@@ -188,7 +196,6 @@ export class EditUserDrawer {
 	}
 
 	protected onDrawerClosed(): void {
-		this.submitted = false
 		this.editUserId.set(null)
 		this.model.set({ ...EMPTY_MODEL })
 		this.userForm().reset()
@@ -203,7 +210,7 @@ export class EditUserDrawer {
 		if (!id) return
 
 		const { email, firstName, lastName, roleIds } = this.model()
-		this.submitted = true
+		this.toast.markSubmitted()
 		this.usersStore.updateUser({
 			id,
 			body: { email, firstName, lastName, roleIds: roleIds.length ? roleIds : undefined },

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
+import { ToastBridgeService } from '@components/toast/toast-bridge.service'
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
@@ -9,15 +10,22 @@ import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
 import { UIStore } from '@store/ui/ui.store'
+import type { UINotification } from '@store/ui/ui.types'
+import { fn } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
+import { NgpToastManager } from 'ng-primitives/toast'
 import Dashboard from './dashboard'
 
 describe('Dashboard', () => {
 	const mockGlobalLoading = signal(false)
 
+	const mockNotifications = signal<UINotification[]>([])
+
 	const mockUIStore = {
 		isGlobalLoading: mockGlobalLoading,
 		setGlobalLoading: (value: boolean) => mockGlobalLoading.set(value),
+		notifications: mockNotifications,
+		dismissNotification: fn(),
 	}
 
 	const defaultProviders = () => [
@@ -32,6 +40,8 @@ describe('Dashboard', () => {
 		provideAuthMock(),
 		NavigationState,
 		{ provide: UIStore, useValue: mockUIStore },
+		{ provide: NgpToastManager, useValue: { show: () => ({ dismiss: () => Promise.resolve() }) } },
+		ToastBridgeService,
 	]
 
 	const createNavigationWithSectionsAndBreadcrumbs = (
