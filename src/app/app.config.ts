@@ -16,6 +16,7 @@ import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.
 import { provideNavigation } from '@providers/navigation/navigation.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
 import { provideTheme } from '@providers/theme/theme'
+import { UIStore } from '@store/ui/ui.store'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
 import { authInterceptor } from './interceptors/auth.interceptor'
@@ -49,6 +50,7 @@ export const appConfig: ApplicationConfig = {
 
 		// Custom providers
 		Analytics,
+		UIStore,
 		provideTheme(),
 		provideNavigation(),
 		provideProjectConfig(),
