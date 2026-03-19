@@ -42,22 +42,20 @@ class LoginStoryComponent {
 
 	private readonly isReady = signal(false)
 
-	constructor() {
-		effect(() => {
-			const code = this.errorCode()
-			if (!this.isReady()) {
-				storyLoginError.set(null)
-				return
-			}
-			storyLoginError.set(code ? { code } : null)
-		})
+	private readonly syncErrorEffect = effect(() => {
+		const code = this.errorCode()
+		if (!this.isReady()) {
+			storyLoginError.set(null)
+			return
+		}
+		storyLoginError.set(code ? { code } : null)
+	})
 
-		effect(() => {
-			const lang = this.language()
-			this.isReady.set(false)
-			this.translation.setLanguage(lang).then(() => this.isReady.set(true))
-		})
-	}
+	private readonly syncLanguageEffect = effect(() => {
+		const lang = this.language()
+		this.isReady.set(false)
+		this.translation.setLanguage(lang).then(() => this.isReady.set(true))
+	})
 }
 
 const meta: Meta<LoginStoryComponent> = {

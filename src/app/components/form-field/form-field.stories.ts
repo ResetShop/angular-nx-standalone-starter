@@ -145,16 +145,14 @@ class StoryPlayground {
 		return hints[this.inputType()]
 	})
 
-	constructor() {
-		effect(() => {
-			const lang = this.language()
-			this.isReady.set(false)
-			this.translation
-				.setLanguage(lang)
-				.then(() => this.isReady.set(true))
-				.catch((error: unknown) => this.errorHandler.handleError(error))
-		})
-	}
+	private readonly syncLanguageEffect = effect(() => {
+		const lang = this.language()
+		this.isReady.set(false)
+		this.translation
+			.setLanguage(lang)
+			.then(() => this.isReady.set(true))
+			.catch((error: unknown) => this.errorHandler.handleError(error))
+	})
 }
 
 // --- Meta ---
