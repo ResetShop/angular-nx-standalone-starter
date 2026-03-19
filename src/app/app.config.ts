@@ -20,6 +20,7 @@ import { UIStore } from '@store/ui/ui.store'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
 import { authInterceptor } from './interceptors/auth.interceptor'
+import { forbiddenInterceptor } from './interceptors/forbidden.interceptor'
 import { tokenRefreshInterceptor } from './interceptors/token-refresh.interceptor'
 
 function initializeAnalytics() {
@@ -39,7 +40,7 @@ export const appConfig: ApplicationConfig = {
 		provideBrowserGlobalErrorListeners(),
 		provideZonelessChangeDetection(),
 		provideRouter(appRoutes, withViewTransitions()),
-		provideHttpClient(withFetch(), withInterceptors([authInterceptor, tokenRefreshInterceptor])),
+		provideHttpClient(withFetch(), withInterceptors([authInterceptor, tokenRefreshInterceptor, forbiddenInterceptor])),
 
 		// Initializers
 		provideAppInitializer(initializeAnalytics()),

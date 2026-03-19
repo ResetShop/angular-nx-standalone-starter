@@ -13,6 +13,11 @@ const en: TranslationSchema = {
 			GENERIC: 'Login error. Please try again.',
 		},
 	},
+	HTTP: {
+		ERRORS: {
+			FORBIDDEN: "You don't have permission to perform this action",
+		},
+	},
 	DATA_TABLE: {
 		EMPTY: 'No data available',
 		LOADING: 'Loading...',
