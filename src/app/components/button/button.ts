@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { NgpButton } from 'ng-primitives/button'
 
 export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link'
-export type ButtonSize = 'sm' | 'md' | 'lg'
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -120,6 +120,7 @@ export class Button {
 			sm: ['h-8', 'px-2', 'text-sm'],
 			md: ['h-10', 'px-3', 'text-base'],
 			lg: ['h-12', 'px-4', 'text-lg'],
+			icon: ['size-9', 'p-1', 'text-sm'],
 		}
 		classes.push(...sizeClasses[this.size()])
 
@@ -189,6 +190,7 @@ export class Button {
 			sm: 'btn-label px-1',
 			md: 'btn-label px-1',
 			lg: 'btn-label px-2',
+			icon: 'btn-label',
 		}
 		return labelPadding[this.size()]
 	})

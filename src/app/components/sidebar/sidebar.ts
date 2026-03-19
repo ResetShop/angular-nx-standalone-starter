@@ -13,44 +13,78 @@ import { UIStore } from '@store/ui/ui.store'
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appSidebar]',
+	host: {
+		'[class.collapsed]': 'isCollapsed()',
+		'[attr.data-collapsed]': 'isCollapsed() || null',
+		'[attr.data-mobile-open]': 'uiStore.isSidebarOpen() || null',
+	},
 	imports: [Button, NavSection, Brand, NgIcon],
 	providers: [NavigationState],
 	viewProviders: [provideIcons({ featherChevronsLeft, featherChevronsRight })],
 	template: `
-		<div class="p-2">
+		<div class="brand-container">
 			@if (!isCollapsed()) {
 				<app-brand />
 			}
 		</div>
-		<div class="flex flex-col gap-2 overflow-y-auto">
-			@for (section of sections(); track section.id) {
-				<app-nav-section [section]="section" [collapsed]="isCollapsed()" class="px-2" />
+		<div class="nav-container">
+			@for (section of sections(); track section.id; let first = $first) {
+				@if (isCollapsed() && !first) {
+					<hr class="border-border" />
+				}
+				<app-nav-section [section]="section" [collapsed]="isCollapsed()" [class.px-2]="!isCollapsed()" />
 			}
 		</div>
-		<div class="flex items-center justify-between border-t border-gray-200 px-2 dark:border-white/10">
+		<div class="footer">
 			@if (!isCollapsed()) {
 				<button (click)="logout()" appButton variant="link">Cerrar sesión</button>
 			}
 			<button
 				(click)="toggleCollapse()"
 				[attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+				class="me-2"
 				appButton
 				variant="ghost"
-				size="sm"
-				class="ml-auto"
+				size="icon"
 			>
-				<ng-icon [name]="isCollapsed() ? 'featherChevronsRight' : 'featherChevronsLeft'" />
+				<ng-icon
+					[name]="isCollapsed() ? 'featherChevronsRight' : 'featherChevronsLeft'"
+					[size]="isCollapsed() ? '24' : '20'"
+				/>
 			</button>
 		</div>
 	`,
-	host: {
-		'[attr.data-collapsed]': 'isCollapsed() || null',
-		'[attr.data-mobile-open]': 'uiStore.isSidebarOpen() || null',
-	},
 	styles: `
+		@reference "#tailwind-theme";
+
 		:host {
-			@reference "tailwindcss";
-			@apply grid h-svh grid-rows-[64px_1fr_64px] transition-[width] duration-200;
+			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_64px] transition-[width] duration-200;
+
+			.brand-container {
+				@apply p-2;
+			}
+
+			.nav-container {
+				@apply flex flex-col gap-2 overflow-y-auto;
+			}
+
+			.footer {
+				@apply border-border flex items-center justify-between border-t;
+			}
+		}
+
+		:host(.collapsed) {
+			.brand-container {
+				@apply border-border border-b;
+			}
+
+			.nav-container {
+				@apply py-2;
+			}
+
+			.footer {
+				@apply flex justify-center px-2;
+			}
 		}
 
 		@media (max-width: 1023px) {
