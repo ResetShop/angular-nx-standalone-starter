@@ -429,13 +429,44 @@ Domain stores keep `providedIn: 'root'` for tree-shaking, but must be **explicit
 - `AuthStore` and `UIStore` are exceptions — their dependencies (`AuthApi`) are provided at root in `app.config.ts`, so they don't need route-level registration
 - Never remove `providedIn: 'root'` from stores — it enables tree-shaking and serves as a fallback when no explicit provider is given
 
+**Eager instantiation of root singletons at route level:**
+
+Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on constructor side effects (`effect()`) that must be active before the route's components fire notifications. Because `providedIn: 'root'` services are instantiated lazily on first injection, a service that is never injected by any component stays dormant. Use `provideEnvironmentInitializer(() => inject(Service))` in the route's `providers` array to force instantiation when the route activates.
+
+```typescript
+// ✅ Correct — eagerly instantiates the root singleton at route activation
+{
+  path: 'users',
+  providers: [
+    provideUsers(), provideRoles(), UsersStore, RolesStore,
+    provideEnvironmentInitializer(() => inject(ToastBridgeService)),
+  ],
+}
+
+// ❌ Incorrect — re-provides the service, creating a second instance
+{
+  path: 'users',
+  providers: [
+    provideUsers(), provideRoles(), UsersStore, RolesStore,
+    ToastBridgeService, // duplicates the root singleton!
+    provideEnvironmentInitializer(() => inject(ToastBridgeService)),
+  ],
+}
+```
+
+**Rules:**
+
+- Only add `provideEnvironmentInitializer` on routes that actually use the service's side effects (e.g., routes with mutation toasts need `ToastBridgeService`)
+- Never list the service class itself in the route `providers` alongside the initializer — that creates a second instance and duplicates side effects
+- The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created
+
 **Current route registrations (`dashboard.routes.ts`):**
 
-| Route                       | Providers                                                                  |
-| --------------------------- | -------------------------------------------------------------------------- |
-| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`             |
-| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                 |
-| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore` |
+| Route                       | Providers                                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideEnvironmentInitializer(ToastBridge)`             |
+| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                                               |
+| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideEnvironmentInitializer(ToastBridge)` |
 
 ---
 
