@@ -92,15 +92,11 @@ describe('createMutationToast', () => {
 			expect(showNotificationMock.calls).toHaveLength(0)
 		})
 
-		it('should show error notification immediately even when deferred', () => {
+		it('should suppress error notification when deferred (drawer shows inline alert)', () => {
 			toast.markSubmitted()
 
 			expect(toast.handleResult(false, 'Server error')).toBe('error')
-			expect(showNotificationMock.calls).toHaveLength(1)
-			expect(showNotificationMock.calls[0][0]).toEqual({
-				type: NotificationType.ERROR,
-				message: 'Server error',
-			})
+			expect(showNotificationMock.calls).toHaveLength(0)
 		})
 	})
 
