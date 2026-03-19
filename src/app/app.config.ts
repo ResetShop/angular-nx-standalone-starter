@@ -8,7 +8,7 @@ import {
 } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser'
-import { provideRouter, TitleStrategy } from '@angular/router'
+import { provideRouter, TitleStrategy, withViewTransitions } from '@angular/router'
 import { Analytics } from '@providers/analytics/analytics'
 import { provideAuth } from '@providers/auth/auth.provider'
 import { initializeTranslation } from '@providers/i18n/translation.initializer'
@@ -40,7 +40,7 @@ export const appConfig: ApplicationConfig = {
 		provideClientHydration(withEventReplay()),
 		provideBrowserGlobalErrorListeners(),
 		provideZonelessChangeDetection(),
-		provideRouter(appRoutes),
+		provideRouter(appRoutes, withViewTransitions()),
 		provideHttpClient(withFetch(), withInterceptors([authInterceptor, tokenRefreshInterceptor])),
 
 		// Initializers

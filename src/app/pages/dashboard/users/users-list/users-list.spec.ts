@@ -5,7 +5,15 @@ import { mockTranslation } from '@providers/i18n/translation.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
 import { createMockManagedUser } from '@providers/users/users.mock'
-import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
+import {
+	advanceTimersByTimeAsync,
+	clearAllMocks,
+	fn,
+	type MockFn,
+	spyOn,
+	useFakeTimers,
+	useRealTimers,
+} from '@test-utils'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import UsersList from './users-list'
@@ -16,6 +24,7 @@ describe('UsersList', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
+		useFakeTimers()
 		spyOn(console, 'error')
 
 		usersApiMock = {
@@ -42,8 +51,12 @@ describe('UsersList', () => {
 		rolesApiMock.getAllUnpaginated.mockReturnValue(of([]))
 	})
 
+	afterEach(() => {
+		useRealTimers()
+	})
+
 	async function renderComponent() {
-		await render(UsersList, {
+		const view = await render(UsersList, {
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
@@ -51,6 +64,9 @@ describe('UsersList', () => {
 			],
 		})
 		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+		return view
 	}
 
 	it('should render the page heading', async () => {
@@ -173,7 +189,6 @@ describe('UsersList', () => {
 		await renderComponent()
 
 		expect(screen.getByRole('alert')).toBeInTheDocument()
-		expect(screen.getByText('Error')).toBeInTheDocument()
 		expect(screen.getByText('Failed to load users')).toBeInTheDocument()
 	})
 

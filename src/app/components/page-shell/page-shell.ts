@@ -1,11 +1,14 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
-import { Alert, AlertDescription, AlertTitle } from '@components/alert/alert'
+import { ChangeDetectionStrategy, Component, computed, input, OnDestroy, signal } from '@angular/core'
 import { Spinner } from '@components/spinner/spinner'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherAlertCircle } from '@ng-icons/feather-icons'
+import { parseDurationToMs } from '@utils/duration'
 
 @Component({
 	selector: 'app-page-shell',
 	standalone: true,
-	imports: [Alert, AlertTitle, AlertDescription, Spinner],
+	imports: [Spinner, NgIcon],
+	providers: [provideIcons({ featherAlertCircle })],
 	template: `
 		<div class="space-y-6">
 			<div>
@@ -15,24 +18,67 @@ import { Spinner } from '@components/spinner/spinner'
 				</p>
 			</div>
 
-			@if (loading()) {
-				<div class="flex justify-center py-12">
-					<app-spinner class="size-5" />
+			<!-- Actions remain interactive during loading so users can prepare search queries -->
+			<ng-content select="[pageActions]" />
+
+			@if (showLoading()) {
+				<div
+					class="page-shell-fade-in border-border bg-card text-muted-foreground flex flex-col items-center justify-center gap-4 rounded-lg border p-8 py-32 text-center"
+					role="status"
+				>
+					<app-spinner class="size-8" />
+					<span>Cargando...</span>
 				</div>
 			} @else if (error()) {
-				<div appAlert variant="destructive">
-					<h5 appAlertTitle>Error</h5>
-					<p appAlertDescription>{{ error() }}</p>
+				<div
+					class="page-shell-fade-in border-destructive/30 bg-destructive/5 text-destructive flex flex-col items-center justify-center gap-4 rounded-lg border p-8 py-32 text-center"
+					role="alert"
+				>
+					<ng-icon name="featherAlertCircle" size="36" />
+					<p class="text-destructive/80">{{ error() }}</p>
 				</div>
 			} @else {
-				<ng-content />
+				<div class="page-shell-fade-in space-y-6">
+					<ng-content />
+				</div>
 			}
 		</div>
 	`,
+	styles: `
+		.page-shell-fade-in {
+			animation: page-shell-fade-in 500ms ease-out;
+		}
+
+		@keyframes page-shell-fade-in {
+			from {
+				opacity: 0;
+			}
+			to {
+				opacity: 1;
+			}
+		}
+	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PageShell {
+export class PageShell implements OnDestroy {
 	public readonly title = input.required<string>()
-	public readonly loading = input(false)
+	public readonly loading = input(true)
 	public readonly error = input<string | null>(null)
+
+	private readonly minimumElapsed = signal(false)
+	private minimumTimer: ReturnType<typeof setTimeout> | null = null
+
+	protected readonly showLoading = computed(() => this.loading() || !this.minimumElapsed())
+
+	constructor() {
+		const PAGE_SHELL_MIN_DISPLAY = '1s'
+		this.minimumTimer = setTimeout(() => this.minimumElapsed.set(true), parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+	}
+
+	public ngOnDestroy(): void {
+		if (this.minimumTimer) {
+			clearTimeout(this.minimumTimer)
+			this.minimumTimer = null
+		}
+	}
 }
