@@ -1,22 +1,21 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
+import { AppLoadingShell } from '@components/app-loading-shell/app-loading-shell'
 import { Header } from '@components/header/header'
-import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component'
 import { Sidebar } from '@components/sidebar/sidebar'
 import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	selector: 'app-dashboard',
-	imports: [RouterOutlet, Sidebar, Header, LoadingSpinnerComponent],
+	imports: [RouterOutlet, Sidebar, Header, AppLoadingShell],
 	template: `
 		<aside class="border-r-1 border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-black/90" appSidebar></aside>
 		<header class="border-b-1 border-gray-200 p-4 dark:border-white/10 dark:bg-black/95" appHeader></header>
 		<main class="bg-white p-4 dark:bg-black/95">
-			<router-outlet />
+			<app-loading-shell [loading]="uiStore.isGlobalLoading()">
+				<router-outlet />
+			</app-loading-shell>
 		</main>
-		@if (uiStore.isGlobalLoading()) {
-			<app-loading-spinner />
-		}
 	`,
 	styles: `
 		main {
