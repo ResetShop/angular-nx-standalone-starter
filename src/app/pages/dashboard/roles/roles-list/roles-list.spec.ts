@@ -64,6 +64,31 @@ describe('RolesList', () => {
 		return view
 	}
 
+	it('should show action skeletons while loading', async () => {
+		rolesApiMock.getAll.mockReturnValue(NEVER)
+
+		await render(RolesList, {
+			providers: [
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
+				{ provide: Translation, useValue: mockTranslation },
+			],
+		})
+		TestBed.tick()
+
+		expect(screen.getByTestId('roles-actions-skeleton')).toBeInTheDocument()
+		expect(screen.queryByPlaceholderText(/search roles/i)).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /create role/i })).not.toBeInTheDocument()
+	})
+
+	it('should show real actions after loading completes', async () => {
+		await renderComponent()
+
+		expect(screen.queryByTestId('roles-actions-skeleton')).not.toBeInTheDocument()
+		expect(screen.getByPlaceholderText(/search roles/i)).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /create role/i })).toBeInTheDocument()
+	})
+
 	it('should render the page heading', async () => {
 		await renderComponent()
 

@@ -40,6 +40,11 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		<app-page-shell [loading]="store.isLoadingList()" [error]="store.readError().list" title="Roles">
 			<p pageDescription>Manage system roles and their associated permissions.</p>
 
+			<div pageActionsSkeleton class="flex items-center justify-between gap-4" data-testid="roles-actions-skeleton">
+				<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
+				<div class="bg-muted h-9 w-24 animate-pulse rounded-md"></div>
+			</div>
+
 			<div pageActions class="flex items-center justify-between gap-4">
 				<input
 					(input)="onSearchInput($event)"
