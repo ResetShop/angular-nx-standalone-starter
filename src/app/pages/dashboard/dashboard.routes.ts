@@ -35,8 +35,6 @@ export default [
 					provideRoles(),
 					UsersStore,
 					RolesStore,
-					// Eagerly instantiates the root-singleton ToastBridgeService so its
-					// effect() is active before any notification fires on this route.
 					provideEnvironmentInitializer(() => inject(ToastBridgeService)),
 				],
 			},
@@ -59,8 +57,6 @@ export default [
 							providePermissions(),
 							RolesStore,
 							PermissionsStore,
-							// Eagerly instantiates the root-singleton ToastBridgeService so its
-							// effect() is active before any notification fires on this route.
 							provideEnvironmentInitializer(() => inject(ToastBridgeService)),
 						],
 					},
