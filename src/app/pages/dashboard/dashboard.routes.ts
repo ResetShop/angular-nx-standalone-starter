@@ -1,3 +1,4 @@
+import { inject, provideEnvironmentInitializer } from '@angular/core'
 import { ToastBridgeService } from '@components/toast/toast-bridge.service'
 import { NamedRoute } from '@interfaces/navigation'
 import Dashboard from '@pages/dashboard/dashboard'
@@ -13,7 +14,6 @@ export default [
 		path: '',
 		title: '',
 		component: Dashboard,
-		providers: [ToastBridgeService],
 		children: [
 			{
 				path: 'health',
@@ -30,7 +30,13 @@ export default [
 				path: 'users',
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
-				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
+				providers: [
+					provideUsers(),
+					provideRoles(),
+					UsersStore,
+					RolesStore,
+					provideEnvironmentInitializer(() => inject(ToastBridgeService)),
+				],
 			},
 			{
 				path: 'authorization',
@@ -46,7 +52,13 @@ export default [
 						path: 'roles',
 						title: 'Roles',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
-						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore],
+						providers: [
+							provideRoles(),
+							providePermissions(),
+							RolesStore,
+							PermissionsStore,
+							provideEnvironmentInitializer(() => inject(ToastBridgeService)),
+						],
 					},
 				],
 			},
