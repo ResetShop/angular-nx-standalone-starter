@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core'
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	effect,
+	inject,
+	signal,
+	untracked,
+	viewChild,
+} from '@angular/core'
 import { Badge } from '@components/badge/badge'
 import { Button } from '@components/button/button'
 import { ConfirmDialog } from '@components/confirm-dialog/confirm-dialog'
@@ -8,6 +17,7 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import type { IRole } from '@domain/access/role.interface'
 import { RolesStore } from '@store/roles/roles.store'
+import { createMutationToast } from '@store/ui/mutation-toast'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer'
 import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
@@ -86,12 +96,21 @@ export default class RolesList {
 	protected readonly store = inject(RolesStore)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
+	private readonly deleteToast = createMutationToast('Role deleted successfully.')
 
 	protected readonly roleToDelete = signal<IRole | null>(null)
 	protected readonly deleteMessage = computed(() => {
 		const name = this.roleToDelete()?.name ?? ''
 		return `Are you sure you want to delete the role '${name}'? This action cannot be undone.`
 	})
+
+	constructor() {
+		effect(() => {
+			const deleting = this.store.isDeleting()
+			const error = this.store.mutationError().delete
+			untracked(() => this.deleteToast.handleResult(deleting, error))
+		})
+	}
 
 	protected readonly columns: ColumnDef<IRole, unknown>[] = [
 		{ accessorKey: 'name', header: 'Name' },
@@ -113,6 +132,7 @@ export default class RolesList {
 	protected onDeleteConfirmed(): void {
 		const role = this.roleToDelete()
 		if (role) {
+			this.deleteToast.markSubmitted()
 			this.store.deleteRole(role.id)
 			this.roleToDelete.set(null)
 		}

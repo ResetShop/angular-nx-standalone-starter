@@ -32,28 +32,19 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Drawer implements OnDestroy {
-	/** Emits when the drawer opens */
-	public readonly opened = output<void>()
-
-	/** Emits when the drawer closes */
-	public readonly closed = output<void>()
-
-	/** Title displayed in the header (if no custom header template) */
 	public readonly title = input<string>('')
-
-	/** Description displayed below the title */
 	public readonly description = input<string>('')
-
-	/** Whether clicking the backdrop closes the drawer */
 	public readonly closeOnBackdrop = input(true)
-
-	/** Whether pressing ESC closes the drawer */
 	public readonly closeOnEscape = input(true)
 
-	/** Content child for custom header */
-	protected readonly headerTemplate = contentChild(DrawerHeader)
+	public readonly opened = output<void>()
+	public readonly closed = output<void>()
+	public readonly afterClosed = output<void>()
 
-	/** Content child for custom footer */
+	private readonly drawerRef = viewChild.required<ElementRef<HTMLDialogElement>>('drawerRef')
+	private readonly drawerElement = computed(() => this.drawerRef().nativeElement)
+
+	protected readonly headerTemplate = contentChild(DrawerHeader)
 	protected readonly footerTemplate = contentChild(DrawerFooter)
 
 	private readonly drawerTracker = inject(DrawerTracker)
@@ -63,20 +54,11 @@ export class Drawer implements OnDestroy {
 	private readonly transition = inject(DrawerTransition)
 	private readonly panel = inject(DrawerPanel)
 
-	/** Whether the spinner should be shown — public for consumer template access */
 	public readonly showSpinner = this.loading.showSpinner
-
-	/** Combined panel classes */
 	protected readonly panelClasses = this.panel.panelClasses
 
-	/** Unique ID for aria-labelledby */
 	protected readonly titleId = `drawer-title-${this.instanceId}`
-
-	/** Unique ID for aria-describedby */
 	protected readonly descriptionId = `drawer-desc-${this.instanceId}`
-
-	private readonly drawerRef = viewChild.required<ElementRef<HTMLDialogElement>>('drawerRef')
-	private readonly drawerElement = computed(() => this.drawerRef().nativeElement)
 
 	public ngOnDestroy(): void {
 		this.drawerTracker.unregister(this)
@@ -103,7 +85,7 @@ export class Drawer implements OnDestroy {
 
 		this.loading.reset()
 		this.drawerTracker.unregister(this)
-		this.transition.close(drawer)
+		this.transition.close(drawer, () => this.afterClosed.emit())
 		this.closed.emit()
 	}
 

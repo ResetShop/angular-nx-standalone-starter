@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing'
 import { advanceTimersByTimeAsync, clearAllMocks, spyOn, useFakeTimers, useRealTimers } from '@test-utils'
 import { parseDurationToMs } from '@utils/duration'
+import { DEFAULT_NOTIFICATION_DURATION } from './ui.constants'
 import { UIStore } from './ui.store'
-import { DEFAULT_NOTIFICATION_DURATION, NotificationType } from './ui.types'
+import { NotificationType } from './ui.types'
 
 describe('UIStore', () => {
 	let store: InstanceType<typeof UIStore>
