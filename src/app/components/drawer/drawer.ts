@@ -11,6 +11,7 @@ import {
 	output,
 	viewChild,
 } from '@angular/core'
+import { outputFromObservable } from '@angular/core/rxjs-interop'
 import { Spinner } from '../spinner/spinner'
 import { DrawerFooter } from './drawer-footer'
 import { DrawerHeader } from './drawer-header'
@@ -34,8 +35,11 @@ export class Drawer implements OnDestroy {
 	/** Emits when the drawer opens */
 	public readonly opened = output<void>()
 
-	/** Emits when the drawer closes */
+	/** Emits when the drawer closes (before the transition animation finishes) */
 	public readonly closed = output<void>()
+
+	/** Emits after the close transition animation finishes and the native dialog is closed */
+	public readonly afterClosed = outputFromObservable(inject(DrawerTransition).afterClosed$)
 
 	/** Title displayed in the header (if no custom header template) */
 	public readonly title = input<string>('')

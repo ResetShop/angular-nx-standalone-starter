@@ -1,6 +1,6 @@
 import { Directive } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { filter, fromEvent, Subject, switchMap, take } from 'rxjs'
+import { filter, fromEvent, Subject, switchMap, take, tap } from 'rxjs'
 
 /**
  * Manages the open/close CSS transition lifecycle for the Drawer component.
@@ -15,6 +15,9 @@ import { filter, fromEvent, Subject, switchMap, take } from 'rxjs'
 export class DrawerTransition {
 	private readonly close$ = new Subject<HTMLDialogElement>()
 
+	/** Emits after the close transition animation finishes and the native dialog is closed. */
+	public readonly afterClosed$ = new Subject<void>()
+
 	constructor() {
 		this.close$
 			.pipe(
@@ -22,9 +25,9 @@ export class DrawerTransition {
 					fromEvent(element, 'transitionend').pipe(
 						filter((e) => e.target === element),
 						take(1),
-						switchMap(() => {
+						tap(() => {
 							element.close()
-							return []
+							this.afterClosed$.next()
 						}),
 					),
 				),
