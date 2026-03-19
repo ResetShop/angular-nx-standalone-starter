@@ -147,14 +147,11 @@ export class CreateUserDrawer {
 
 	protected readonly isFormValid = computed(() => this.userForm().errors().length === 0)
 	protected readonly isCreating = computed(() => this.usersStore.isCreating())
+	private readonly closingAfterSuccess = signal(false)
 	protected readonly showSubmitSpinner = computed(() => this.isCreating() || this.closingAfterSuccess())
 	protected readonly mutationError = computed(() => this.usersStore.mutationError().create)
 
-	private readonly closingAfterSuccess = signal(false)
-
-	constructor() {
-		effect(() => this.closeOnSuccess())
-	}
+	private readonly closeOnSuccessEffect = effect(() => this.closeOnSuccess())
 
 	private closeOnSuccess(): void {
 		const creating = this.usersStore.isCreating()

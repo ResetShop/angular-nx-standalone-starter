@@ -157,29 +157,27 @@ export default class NavItem {
 		return icon ? Object.keys(icon)[0] : null // Get the key name
 	})
 
-	constructor() {
-		// Auto-expand when child route is active
-		effect(
-			() => {
-				const item = this.item()
-				if (!isParentRoute(item)) return
+	// Auto-expand when child route is active
+	private readonly autoExpandEffect = effect(
+		() => {
+			const item = this.item()
+			if (!isParentRoute(item)) return
 
-				const hasActiveChild = item.children.some((child) =>
-					this.router.isActive(child.route, {
-						paths: 'subset',
-						queryParams: 'ignored',
-						fragment: 'ignored',
-						matrixParams: 'ignored',
-					}),
-				)
+			const hasActiveChild = item.children.some((child) =>
+				this.router.isActive(child.route, {
+					paths: 'subset',
+					queryParams: 'ignored',
+					fragment: 'ignored',
+					matrixParams: 'ignored',
+				}),
+			)
 
-				if (hasActiveChild && !this.isExpanded()) {
-					this.navState.expand(item.id)
-				}
-			},
-			{ manualCleanup: false },
-		)
-	}
+			if (hasActiveChild && !this.isExpanded()) {
+				this.navState.expand(item.id)
+			}
+		},
+		{ manualCleanup: false },
+	)
 
 	/**
 	 * Toggles the expanded state of this navigation item.

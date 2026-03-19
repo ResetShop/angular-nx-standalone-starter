@@ -112,16 +112,16 @@ export class Sidebar {
 	protected readonly sections = computed(() => this.navigation.sections())
 	protected readonly isCollapsed = this.uiStore.isSidebarCollapsed
 
-	constructor() {
-		effect(() => {
-			const user = this.authStore.currentUser()
-			const isLoggingOut = this.authStore.isLoggingOut()
+	// React to logout: navigate when user becomes null and logout is complete
+	private readonly logoutNavigationEffect = effect(() => {
+		const user = this.authStore.currentUser()
+		const isLoggingOut = this.authStore.isLoggingOut()
 
-			if (!user && !isLoggingOut) {
-				this.router.navigate(['/auth/login'])
-			}
-		})
-	}
+		// Only navigate after logout completes (user is null and no longer logging out)
+		if (!user && !isLoggingOut) {
+			this.router.navigate(['/auth/login'])
+		}
+	})
 
 	@HostListener('document:keydown.control.b', ['$event'])
 	@HostListener('document:keydown.meta.b', ['$event'])

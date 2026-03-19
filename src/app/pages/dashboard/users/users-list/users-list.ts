@@ -106,13 +106,11 @@ export default class UsersList {
 		return `Are you sure you want to delete the user '${name}'? This action cannot be undone.`
 	})
 
-	constructor() {
-		effect(() => {
-			const deleting = this.store.isDeleting()
-			const error = this.store.mutationError().delete
-			untracked(() => this.deleteToast.handleResult(deleting, error))
-		})
-	}
+	private readonly deleteToastEffect = effect(() => {
+		const deleting = this.store.isDeleting()
+		const error = this.store.mutationError().delete
+		untracked(() => this.deleteToast.handleResult(deleting, error))
+	})
 
 	protected readonly columns: ColumnDef<IManagedUser, unknown>[] = [
 		{ accessorKey: 'fullName', header: 'Name' },

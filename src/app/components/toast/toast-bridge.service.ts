@@ -23,27 +23,25 @@ export class ToastBridgeService {
 	private readonly toastManager = inject(NgpToastManager)
 	private readonly activeToasts = new Map<string, NgpToastRef>()
 
-	constructor() {
-		effect(() => {
-			const notifications = this.uiStore.notifications()
-			const currentIds = new Set(notifications.map((n) => n.id))
+	private readonly syncNotificationsEffect = effect(() => {
+		const notifications = this.uiStore.notifications()
+		const currentIds = new Set(notifications.map((n) => n.id))
 
-			for (const notification of notifications) {
-				if (!this.activeToasts.has(notification.id)) {
-					const ref = this.toastManager.show(ToastNotification, {
-						context: notification,
-						duration: parseDurationToMs(notification.duration ?? DEFAULT_NOTIFICATION_DURATION),
-					})
-					this.activeToasts.set(notification.id, ref)
-				}
+		for (const notification of notifications) {
+			if (!this.activeToasts.has(notification.id)) {
+				const ref = this.toastManager.show(ToastNotification, {
+					context: notification,
+					duration: parseDurationToMs(notification.duration ?? DEFAULT_NOTIFICATION_DURATION),
+				})
+				this.activeToasts.set(notification.id, ref)
 			}
+		}
 
-			for (const [id, ref] of this.activeToasts) {
-				if (!currentIds.has(id)) {
-					void ref.dismiss()
-					this.activeToasts.delete(id)
-				}
+		for (const [id, ref] of this.activeToasts) {
+			if (!currentIds.has(id)) {
+				void ref.dismiss()
+				this.activeToasts.delete(id)
 			}
-		})
-	}
+		}
+	})
 }

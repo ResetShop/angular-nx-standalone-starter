@@ -143,28 +143,25 @@ export class EditUserDrawer {
 
 	protected readonly isFormValid = computed(() => this.userForm().errors().length === 0)
 	protected readonly isUpdating = computed(() => this.usersStore.isUpdating())
+	private readonly closingAfterSuccess = signal(false)
 	protected readonly showSubmitSpinner = computed(() => this.isUpdating() || this.closingAfterSuccess())
 	protected readonly mutationError = computed(() => this.usersStore.mutationError().update)
 
-	private readonly closingAfterSuccess = signal(false)
+	// Populates form when selectedUser loads — editUserId guards against stale data
+	private readonly populateFormEffect = effect(() => {
+		const user = this.usersStore.selectedUser()
+		if (user && user.id === this.editUserId()) {
+			this.model.set({
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				roleIds: user.roles.map((r) => r.id),
+			})
+			this.drawer().setContentReady()
+		}
+	})
 
-	constructor() {
-		// Populates form when selectedUser loads — editUserId guards against stale data
-		effect(() => {
-			const user = this.usersStore.selectedUser()
-			if (user && user.id === this.editUserId()) {
-				this.model.set({
-					email: user.email,
-					firstName: user.firstName,
-					lastName: user.lastName,
-					roleIds: user.roles.map((r) => r.id),
-				})
-				this.drawer().setContentReady()
-			}
-		})
-
-		effect(() => this.closeOnSuccess())
-	}
+	private readonly closeOnSuccessEffect = effect(() => this.closeOnSuccess())
 
 	private closeOnSuccess(): void {
 		const updating = this.usersStore.isUpdating()
