@@ -41,13 +41,16 @@ class TestHostNoDescription {}
 	standalone: true,
 	imports: [PageShell],
 	template: `
-		<app-page-shell [loading]="false" title="With Actions">
+		<app-page-shell [loading]="loading()" title="With Actions">
+			<div pageActionsSkeleton data-testid="page-actions-skeleton">Skeleton placeholders</div>
 			<div pageActions data-testid="page-actions">Search and buttons here</div>
 			<div data-testid="page-content">Content here</div>
 		</app-page-shell>
 	`,
 })
-class TestHostWithActions {}
+class TestHostWithActions {
+	public readonly loading = input(false)
+}
 
 describe('PageShell', () => {
 	beforeEach(() => {
@@ -146,6 +149,28 @@ describe('PageShell', () => {
 
 		expect(screen.getByRole('status')).toBeInTheDocument()
 		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
+	})
+
+	it('should show action skeletons during loading and hide real actions', async () => {
+		await render(TestHostWithActions, {
+			componentInputs: { loading: true },
+		})
+
+		expect(screen.getByTestId('page-actions-skeleton')).toBeInTheDocument()
+		expect(screen.queryByTestId('page-actions')).not.toBeInTheDocument()
+	})
+
+	it('should show real actions and hide skeletons after loading completes', async () => {
+		const { fixture } = await render(TestHostWithActions, {
+			componentInputs: { loading: true },
+		})
+
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+		fixture.componentRef.setInput('loading', false)
+		fixture.detectChanges()
+
+		expect(screen.getByTestId('page-actions')).toBeInTheDocument()
+		expect(screen.queryByTestId('page-actions-skeleton')).not.toBeInTheDocument()
 	})
 
 	it('should show error alert when error is set', async () => {

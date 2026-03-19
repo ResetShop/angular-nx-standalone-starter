@@ -19,8 +19,11 @@ import { parseDurationToMs } from '@utils/duration'
 				</p>
 			</div>
 
-			<!-- Actions remain interactive during loading so users can prepare search queries -->
-			<ng-content select="[pageActions]" />
+			@if (showLoading()) {
+				<ng-content select="[pageActionsSkeleton]" />
+			} @else {
+				<ng-content select="[pageActions]" />
+			}
 
 			@if (showLoading()) {
 				<div
