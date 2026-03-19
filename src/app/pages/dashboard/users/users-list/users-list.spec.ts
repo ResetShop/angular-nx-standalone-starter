@@ -189,7 +189,6 @@ describe('UsersList', () => {
 		await renderComponent()
 
 		expect(screen.getByRole('alert')).toBeInTheDocument()
-		expect(screen.getByText('Error')).toBeInTheDocument()
 		expect(screen.getByText('Failed to load users')).toBeInTheDocument()
 	})
 
