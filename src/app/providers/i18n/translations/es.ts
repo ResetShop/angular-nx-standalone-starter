@@ -13,6 +13,11 @@ const es: TranslationSchema = {
 			GENERIC: 'Error al iniciar sesión. Por favor, intenta de nuevo.',
 		},
 	},
+	HTTP: {
+		ERRORS: {
+			FORBIDDEN: 'No tienes permiso para realizar esta acción',
+		},
+	},
 	DATA_TABLE: {
 		EMPTY: 'No hay datos disponibles',
 		LOADING: 'Cargando...',
