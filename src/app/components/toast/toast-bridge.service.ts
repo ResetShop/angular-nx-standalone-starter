@@ -13,8 +13,9 @@ import { ToastNotification } from './toast-notification'
  * map of active toasts. New notifications trigger `NgpToastManager.show()`,
  * removed notifications trigger `ref.dismiss()`.
  *
- * Provided at the Dashboard route level in `dashboard.routes.ts` alongside
- * `provideToastConfig()`. Injected in `Dashboard` to activate the effect.
+ * Declared with `providedIn: 'root'` (singleton). Eagerly instantiated at
+ * route activation time via `provideEnvironmentInitializer(() => inject(ToastBridgeService))`
+ * on each route that fires toast notifications (see `dashboard.routes.ts`).
  */
 @Injectable({ providedIn: 'root' })
 export class ToastBridgeService {
