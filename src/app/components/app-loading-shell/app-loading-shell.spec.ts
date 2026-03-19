@@ -1,6 +1,18 @@
+import { Component, signal } from '@angular/core'
 import { clearAllMocks } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { AppLoadingShell } from './app-loading-shell'
+
+@Component({
+	standalone: true,
+	imports: [AppLoadingShell],
+	template: `
+		<app-loading-shell [loading]="loading()"><p>Page content</p></app-loading-shell>
+	`,
+})
+class ToggleWrapper {
+	readonly loading = signal(true)
+}
 
 describe('AppLoadingShell', () => {
 	beforeEach(() => {
@@ -34,17 +46,11 @@ describe('AppLoadingShell', () => {
 	})
 
 	it('should remove loading overlay when loading changes to false', async () => {
-		const { fixture } = await render(
-			`<app-loading-shell [loading]="isLoading"><p>Page content</p></app-loading-shell>`,
-			{
-				imports: [AppLoadingShell],
-				componentProperties: { isLoading: true },
-			},
-		)
+		const { fixture } = await render(ToggleWrapper)
 
 		expect(screen.getByRole('status')).toBeInTheDocument()
 
-		fixture.componentInstance.isLoading = false
+		fixture.componentInstance.loading.set(false)
 		fixture.detectChanges()
 
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
