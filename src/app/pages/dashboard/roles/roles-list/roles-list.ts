@@ -16,6 +16,7 @@ import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import type { IRole } from '@domain/access/role.interface'
+import { AuthStore } from '@store/auth/auth.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import type { ColumnDef } from '@tanstack/angular-table'
@@ -52,18 +53,22 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					placeholder="Search roles..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" appButton>Create Role</button>
+				@if (canCreate()) {
+					<button (click)="createDrawer.open()" appButton>Create Role</button>
+				}
 			</div>
 
-			<app-data-table [columns]="columns" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
+			<app-data-table [columns]="columns()" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
 				<ng-template appDataTableCellDef="code" let-value>
 					<span appBadge variant="secondary">{{ value }}</span>
 				</ng-template>
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
 					<div class="flex gap-2">
-						<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-						@if (row.removable) {
+						@if (canUpdate()) {
+							<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
+						}
+						@if (canDelete() && row.removable) {
 							<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
 								Delete
 							</button>
@@ -83,24 +88,37 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 			}
 		</app-page-shell>
 
-		<app-create-role-drawer #createDrawer />
-		<app-edit-role-drawer #editDrawer />
+		@if (canCreate()) {
+			<app-create-role-drawer #createDrawer />
+		}
+		@if (canUpdate()) {
+			<app-edit-role-drawer #editDrawer />
+		}
 
-		<app-confirm-dialog
-			(confirmed)="onDeleteConfirmed()"
-			[message]="deleteMessage()"
-			#deleteDialog
-			title="Delete Role"
-			confirmText="Delete"
-			confirmVariant="destructive"
-		/>
+		@if (canDelete()) {
+			<app-confirm-dialog
+				(confirmed)="onDeleteConfirmed()"
+				[message]="deleteMessage()"
+				#deleteDialog
+				title="Delete Role"
+				confirmText="Delete"
+				confirmVariant="destructive"
+			/>
+		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore)
 
-	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
+	private readonly authStore = inject(AuthStore)
+	private readonly currentUser = this.authStore.currentUser
+
+	protected readonly canCreate = computed(() => this.currentUser()?.hasPermissionByIdentifier('roles:create') ?? false)
+	protected readonly canUpdate = computed(() => this.currentUser()?.hasPermissionByIdentifier('roles:update') ?? false)
+	protected readonly canDelete = computed(() => this.currentUser()?.hasPermissionByIdentifier('roles:delete') ?? false)
+
+	private readonly deleteDialog = viewChild<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('Role deleted successfully.')
 
 	protected readonly roleToDelete = signal<IRole | null>(null)
@@ -115,12 +133,18 @@ export default class RolesList {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
-	protected readonly columns: ColumnDef<IRole, unknown>[] = [
+	private readonly baseColumns: ColumnDef<IRole, unknown>[] = [
 		{ accessorKey: 'name', header: 'Name' },
 		{ accessorKey: 'code', header: 'Code' },
 		{ accessorKey: 'description', header: 'Description' },
-		{ id: 'actions', header: '', enableSorting: false },
 	]
+
+	protected readonly columns = computed((): ColumnDef<IRole, unknown>[] => {
+		if (this.canUpdate() || this.canDelete()) {
+			return [...this.baseColumns, { id: 'actions', header: '', enableSorting: false }]
+		}
+		return this.baseColumns
+	})
 
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement
@@ -129,7 +153,7 @@ export default class RolesList {
 
 	protected confirmDelete(role: IRole): void {
 		this.roleToDelete.set(role)
-		this.deleteDialog().show()
+		this.deleteDialog()?.show()
 	}
 
 	protected onDeleteConfirmed(): void {

@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
+import { createMockUser } from '@mocks/user.mock'
+import { AuthApi } from '@providers/auth/auth.interface'
+import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { Translation } from '@providers/i18n/translation'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
 import { createMockManagedUser } from '@providers/users/users.mock'
+import { AuthStore } from '@store/auth/auth.store'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -55,14 +59,20 @@ describe('UsersList', () => {
 		useRealTimers()
 	})
 
+	function setUserWithAllPermissions(): void {
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermissionByIdentifier: () => true }))
+	}
+
 	async function renderComponent() {
 		const view = await render(UsersList, {
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
+		setUserWithAllPermissions()
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
 		view.fixture.detectChanges()
@@ -76,9 +86,11 @@ describe('UsersList', () => {
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
+		setUserWithAllPermissions()
 		TestBed.tick()
 
 		expect(screen.getByTestId('users-actions-skeleton')).toBeInTheDocument()

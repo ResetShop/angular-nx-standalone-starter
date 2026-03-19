@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
+import { createMockUser } from '@mocks/user.mock'
+import { AuthApi } from '@providers/auth/auth.interface'
+import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { Translation } from '@providers/i18n/translation'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { PermissionsApi } from '@providers/permissions/permissions.interface'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { createMockRoleData } from '@providers/roles/roles.mock'
+import { AuthStore } from '@store/auth/auth.store'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -50,14 +54,20 @@ describe('RolesList', () => {
 		useRealTimers()
 	})
 
+	function setUserWithAllPermissions(): void {
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermissionByIdentifier: () => true }))
+	}
+
 	async function renderComponent() {
 		const view = await render(RolesList, {
 			providers: [
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
+		setUserWithAllPermissions()
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
 		view.fixture.detectChanges()
@@ -71,9 +81,11 @@ describe('RolesList', () => {
 			providers: [
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
+		setUserWithAllPermissions()
 		TestBed.tick()
 
 		expect(screen.getByTestId('roles-actions-skeleton')).toBeInTheDocument()
