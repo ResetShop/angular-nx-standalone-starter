@@ -601,7 +601,7 @@ export default class PermissionsList {
 
 ### Effect Field Initializers
 
-All `effect()`, `afterRenderEffect()`, and `afterNextRender()` calls must be declared as **named class field initializers** — never inside constructor bodies. Field initializers in Angular 17+ run in injection context, making the constructor unnecessary for registering reactive effects.
+All `effect()`, `afterRenderEffect()`, and `afterNextRender()` calls must be declared as **named class field initializers** — never inside constructor bodies. Field initializers in Angular-decorated classes (`@Component`, `@Injectable`, `@Directive`) run in injection context, making the constructor unnecessary for registering reactive effects.
 
 ```typescript
 // ✅ Correct — effect as named field initializer
@@ -632,7 +632,7 @@ export class MyComponent {
 - Effect fields must use descriptive names (e.g., `syncCodeEffect`, `closeOnSuccessEffect`, `deleteToastEffect`)
 - Fields referenced by the effect must be declared **before** the effect field in class body order
 - Constructor bodies should not contain effect registrations
-- Conditional effects (e.g., dev-mode only) use a ternary: `private readonly validateEffect = isDevMode() ? effect(() => { ... }) : undefined`
+- Conditional effects (e.g., dev-mode only) use a ternary: `private readonly validateGroupingEffect = isDevMode() ? effect(() => { ... }) : undefined`
 
 ### App Initializer Pattern
 
