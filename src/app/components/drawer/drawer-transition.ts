@@ -15,7 +15,7 @@ import { filter, fromEvent, Subject, switchMap, take, tap } from 'rxjs'
 export class DrawerTransition {
 	private readonly close$ = new Subject<HTMLDialogElement>()
 
-	/** Emits after the close transition animation finishes and the native dialog is closed. */
+	/** Emits after the close transition animation finishes and the native dialog is closed. Public for access by the host Drawer component via inject(DrawerTransition). */
 	public readonly afterClosed$ = new Subject<void>()
 
 	constructor() {
