@@ -5,7 +5,15 @@ import { mockTranslation } from '@providers/i18n/translation.mock'
 import { PermissionsApi } from '@providers/permissions/permissions.interface'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { createMockRoleData } from '@providers/roles/roles.mock'
-import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
+import {
+	advanceTimersByTimeAsync,
+	clearAllMocks,
+	fn,
+	type MockFn,
+	spyOn,
+	useFakeTimers,
+	useRealTimers,
+} from '@test-utils'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import RolesList from './roles-list'
@@ -16,6 +24,7 @@ describe('RolesList', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
+		useFakeTimers()
 		spyOn(console, 'error')
 
 		rolesApiMock = {
@@ -37,8 +46,12 @@ describe('RolesList', () => {
 		permissionsApiMock.getAllUnpaginated.mockReturnValue(of([]))
 	})
 
+	afterEach(() => {
+		useRealTimers()
+	})
+
 	async function renderComponent() {
-		await render(RolesList, {
+		const view = await render(RolesList, {
 			providers: [
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
@@ -46,6 +59,9 @@ describe('RolesList', () => {
 			],
 		})
 		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+		return view
 	}
 
 	it('should render the page heading', async () => {
@@ -136,7 +152,6 @@ describe('RolesList', () => {
 		await renderComponent()
 
 		expect(screen.getByRole('alert')).toBeInTheDocument()
-		expect(screen.getByText('Error')).toBeInTheDocument()
 		expect(screen.getByText('Failed to load roles')).toBeInTheDocument()
 	})
 

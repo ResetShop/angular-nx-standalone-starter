@@ -106,12 +106,13 @@ export default class Login {
 	protected readonly isFormValid = computed(() => this.loginForm().errors().length === 0)
 
 	constructor() {
-		effect(() => {
+		const loginEffect = effect(() => {
 			const user = this.authStore.currentUser()
 			const error = this.authStore.loginError()
 
 			if (user) {
 				this.errorMessage.set(null)
+				loginEffect.destroy()
 				this.router.navigate(['/dashboard'])
 			} else if (error) {
 				this.errorMessage.set(
