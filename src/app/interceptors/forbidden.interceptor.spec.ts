@@ -4,17 +4,17 @@ import { PLATFORM_ID } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { Translation } from '@providers/i18n/translation'
 import { UIStore } from '@store/ui/ui.store'
-import { NotificationType } from '@store/ui/ui.types'
+import { NotificationType, type UINotification } from '@store/ui/ui.types'
 import { clearAllMocks, fn, spyOn, type MockFn } from '@test-utils'
 import { forbiddenInterceptor } from './forbidden.interceptor'
 
 type UIStoreMock = {
-	showNotification: MockFn<[{ type: string; message: string }], void>
+	showNotification: MockFn<[Omit<UINotification, 'id'>], void>
 }
 
 function createUIStoreMock(): UIStoreMock {
 	return {
-		showNotification: fn<[{ type: string; message: string }], void>(),
+		showNotification: fn<[Omit<UINotification, 'id'>], void>(),
 	}
 }
 
@@ -98,7 +98,7 @@ describe('forbiddenInterceptor', () => {
 		})
 
 		it('should use translated message for the notification', () => {
-			http.get('/api/roles').subscribe({ error: () => {} })
+			http.get('/api/roles').subscribe({ error: (_e) => {} })
 
 			httpMock.expectOne('/api/roles').flush(null, { status: 403, statusText: 'Forbidden' })
 
@@ -117,7 +117,7 @@ describe('forbiddenInterceptor', () => {
 		})
 
 		it('should log the 403 event for debugging', () => {
-			http.get('/api/users').subscribe({ error: () => {} })
+			http.get('/api/users').subscribe({ error: (_e) => {} })
 
 			httpMock.expectOne('/api/users').flush(null, { status: 403, statusText: 'Forbidden' })
 
@@ -128,8 +128,8 @@ describe('forbiddenInterceptor', () => {
 		})
 
 		it('should show notification for each 403 response independently', () => {
-			http.get('/api/users').subscribe({ error: () => {} })
-			http.get('/api/roles').subscribe({ error: () => {} })
+			http.get('/api/users').subscribe({ error: (_e) => {} })
+			http.get('/api/roles').subscribe({ error: (_e) => {} })
 
 			httpMock.expectOne('/api/users').flush(null, { status: 403, statusText: 'Forbidden' })
 			httpMock.expectOne('/api/roles').flush(null, { status: 403, statusText: 'Forbidden' })
