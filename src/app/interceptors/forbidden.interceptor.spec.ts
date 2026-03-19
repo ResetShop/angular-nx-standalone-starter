@@ -98,7 +98,11 @@ describe('forbiddenInterceptor', () => {
 		})
 
 		it('should use translated message for the notification', () => {
-			http.get('/api/roles').subscribe({ error: (_e) => {} })
+			http.get('/api/roles').subscribe({
+				error: () => {
+					/* empty on purpose */
+				},
+			})
 
 			httpMock.expectOne('/api/roles').flush(null, { status: 403, statusText: 'Forbidden' })
 
@@ -117,7 +121,11 @@ describe('forbiddenInterceptor', () => {
 		})
 
 		it('should log the 403 event for debugging', () => {
-			http.get('/api/users').subscribe({ error: (_e) => {} })
+			http.get('/api/users').subscribe({
+				error: () => {
+					/* empty on purpose */
+				},
+			})
 
 			httpMock.expectOne('/api/users').flush(null, { status: 403, statusText: 'Forbidden' })
 
@@ -128,8 +136,16 @@ describe('forbiddenInterceptor', () => {
 		})
 
 		it('should show notification for each 403 response independently', () => {
-			http.get('/api/users').subscribe({ error: (_e) => {} })
-			http.get('/api/roles').subscribe({ error: (_e) => {} })
+			http.get('/api/users').subscribe({
+				error: () => {
+					/* empty on purpose */
+				},
+			})
+			http.get('/api/roles').subscribe({
+				error: () => {
+					/* empty on purpose */
+				},
+			})
 
 			httpMock.expectOne('/api/users').flush(null, { status: 403, statusText: 'Forbidden' })
 			httpMock.expectOne('/api/roles').flush(null, { status: 403, statusText: 'Forbidden' })
