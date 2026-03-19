@@ -84,6 +84,16 @@ describe('AuthStore', () => {
 			expect(store.mustChangePassword()).toBe(true)
 		})
 
+		it('should reset isTokenRefreshing on successful login', () => {
+			store.startTokenRefresh()
+			expect(store.isTokenRefreshing()).toBe(true)
+
+			authApiMock.login.mockReturnValue(of(mockLoginResponse))
+			store.login({ email: 'test@example.com', password: 'password' })
+
+			expect(store.isTokenRefreshing()).toBe(false)
+		})
+
 		it('should set loginError on failed login', () => {
 			const errorResponse = { error: { code: 'INVALID_CREDENTIALS' } }
 			authApiMock.login.mockReturnValue(throwError(() => errorResponse))
