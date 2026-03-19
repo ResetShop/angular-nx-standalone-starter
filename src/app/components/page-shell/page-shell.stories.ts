@@ -18,7 +18,7 @@ A wrapper component for consistent page layouts with title, description, loading
 - **Optional actions header** via \`[pageActions]\` content projection (search inputs, buttons)
 - **Optional action skeletons** via \`[pageActionsSkeleton]\` — shown during loading, replaced by real actions when loading completes
 - **Loading state** shows a centered spinner with "Cargando..." text (default state on mount)
-- **Mandatory 500ms minimum display** before content appears, preventing layout flash
+- **Mandatory 1s minimum display** before content appears, preventing layout flash
 - **Error state** shows a destructive alert
 - **Default content** projected after minimum display when not loading and no error
 
@@ -44,7 +44,7 @@ A wrapper component for consistent page layouts with title, description, loading
 		},
 		loading: {
 			control: 'boolean',
-			description: 'Shows loading state. Defaults to true — content appears after 500ms minimum.',
+			description: 'Shows loading state. Defaults to true — content appears after 1s minimum.',
 			table: { defaultValue: { summary: 'true' } },
 		},
 		error: {
@@ -63,7 +63,7 @@ export default meta
 
 type Story = StoryObj<PageShell & { description: string }>
 
-/** Default state — loading is true, spinner shown with "Cargando..." text for 500ms minimum */
+/** Default state — loading is true, spinner shown with "Cargando..." text for 1s minimum */
 export const Default: Story = {
 	args: {
 		title: 'Roles',
