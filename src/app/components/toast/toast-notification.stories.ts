@@ -1,7 +1,7 @@
 import { Component, inject, input } from '@angular/core'
 import { Button } from '@components/button/button'
+import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.constants'
 import type { NotificationType } from '@store/ui/ui.types'
-import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.types'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import { parseDurationToMs } from '@utils/duration'
