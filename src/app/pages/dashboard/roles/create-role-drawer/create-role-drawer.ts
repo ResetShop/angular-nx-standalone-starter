@@ -18,8 +18,7 @@ import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
-import { UIStore } from '@store/ui/ui.store'
-import { NotificationType } from '@store/ui/ui.types'
+import { createMutationToast } from '@store/ui/mutation-toast'
 import { parseDurationToMs } from '@utils/duration'
 import { toSnakeCode } from '@utils/slug'
 import { PermissionSelector } from '../permission-selector/permission-selector'
@@ -49,7 +48,14 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 		ConfirmDialog,
 	],
 	template: `
-		<app-drawer (closed)="onDrawerClosed()" [closeOnBackdrop]="false" class="w-lg" title="Create Role" #drawer>
+		<app-drawer
+			(closed)="onDrawerClosed()"
+			(afterClosed)="toast.flushPending()"
+			[closeOnBackdrop]="false"
+			class="w-lg"
+			title="Create Role"
+			#drawer
+		>
 			<form (submit)="onSubmit($event)" id="create-role-form" class="flex h-full flex-col gap-4">
 				@if (mutationError()) {
 					<div appAlert variant="destructive">
@@ -105,10 +111,11 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 })
 export class CreateRoleDrawer {
 	private readonly rolesStore = inject(RolesStore)
-	private readonly uiStore = inject(UIStore)
 	protected readonly permissionsStore = inject(PermissionsStore)
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
+
+	protected readonly toast = createMutationToast('Role created successfully.', { deferred: true })
 
 	private readonly model = signal<CreateRoleFormModel>({ ...EMPTY_MODEL })
 	protected readonly roleForm = form(
@@ -129,7 +136,6 @@ export class CreateRoleDrawer {
 
 	private readonly closingAfterSuccess = signal(false)
 	private readonly nameValue = computed(() => this.model().name)
-	private submitted = false
 
 	constructor() {
 		effect(() => {
@@ -144,17 +150,12 @@ export class CreateRoleDrawer {
 		const creating = this.rolesStore.isCreating()
 		const error = this.rolesStore.mutationError().create
 		untracked(() => {
-			if (!creating && this.submitted && error === null) {
-				this.submitted = false
-				this.uiStore.showNotification({ type: NotificationType.SUCCESS, message: 'Role created successfully.' })
+			if (this.toast.handleResult(creating, error) === 'success') {
 				this.closingAfterSuccess.set(true)
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
 					this.drawer().close()
 				}, parseDurationToMs('1s'))
-			} else if (!creating && this.submitted && error !== null) {
-				this.submitted = false
-				this.uiStore.showNotification({ type: NotificationType.ERROR, message: error })
 			}
 		})
 	}
@@ -173,7 +174,6 @@ export class CreateRoleDrawer {
 	}
 
 	protected onDrawerClosed(): void {
-		this.submitted = false
 		this.model.set({ ...EMPTY_MODEL })
 		this.roleForm().reset()
 		this.rolesStore.clearMutationError('create')
@@ -184,7 +184,7 @@ export class CreateRoleDrawer {
 		if (!this.isFormValid()) return
 
 		const { name, code, description, permissionIds } = this.model()
-		this.submitted = true
+		this.toast.markSubmitted()
 		this.rolesStore.createRoleWithPermissions({
 			name,
 			code,
