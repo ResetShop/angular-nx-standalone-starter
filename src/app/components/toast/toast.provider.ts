@@ -4,6 +4,10 @@ import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.constants'
 import { parseDurationToMs } from '@utils/duration'
 import { provideToastConfig } from 'ng-primitives/toast'
 
+/**
+ * Provides the default toast configuration for the app, abstracting away
+ * the config object creation and injection.
+ */
 export function provideToast(): EnvironmentProviders {
 	return makeEnvironmentProviders(
 		provideToastConfig({
