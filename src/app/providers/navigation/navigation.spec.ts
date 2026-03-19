@@ -2,9 +2,10 @@ import { TestBed } from '@angular/core/testing'
 import { provideRouter } from '@angular/router'
 import { RouterTestingHarness } from '@angular/router/testing'
 import { NAVIGATION_CONFIG, NavigationConfig } from '@interfaces/navigation'
+import { AuthApi } from '@providers/auth/auth.interface'
+import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { Navigation } from './navigation'
 
-//Mocks
 import {
 	DetailPageComponent,
 	RootPageComponent,
@@ -70,10 +71,8 @@ describe('Navigation Provider', () => {
 		TestBed.configureTestingModule({
 			providers: [
 				provideRouter(routes),
-				{
-					provide: NAVIGATION_CONFIG,
-					useValue: mockNavigationConfig,
-				},
+				{ provide: NAVIGATION_CONFIG, useValue: mockNavigationConfig },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 			],
 		})
 
