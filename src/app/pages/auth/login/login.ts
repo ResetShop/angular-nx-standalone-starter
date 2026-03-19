@@ -111,7 +111,7 @@ export default class Login {
 
 		if (user) {
 			this.errorMessage.set(null)
-			this.loginEffect.destroy()
+			this.loginEffect.destroy() // safe: field is assigned before this callback runs
 			this.router.navigate(['/dashboard'])
 		} else if (error) {
 			this.errorMessage.set(this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'))
