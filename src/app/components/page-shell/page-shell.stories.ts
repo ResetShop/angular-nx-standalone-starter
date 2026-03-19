@@ -16,6 +16,7 @@ A wrapper component for consistent page layouts with title, description, loading
 - **Required title** rendered as \`<h1>\`
 - **Optional description** via \`[pageDescription]\` content projection (hidden when empty)
 - **Optional actions header** via \`[pageActions]\` content projection (search inputs, buttons)
+- **Optional action skeletons** via \`[pageActionsSkeleton]\` — shown during loading, replaced by real actions when loading completes
 - **Loading state** shows a centered spinner with "Cargando..." text (default state on mount)
 - **Mandatory 500ms minimum display** before content appears, preventing layout flash
 - **Error state** shows a destructive alert
@@ -148,6 +149,43 @@ export const WithActions: Story = {
 			<div class="bg-background p-6 rounded border border-border">
 				<app-page-shell [title]="title" [loading]="loading" [error]="error">
 					<p pageDescription>{{ description }}</p>
+					<div pageActionsSkeleton class="flex items-center justify-between gap-4">
+						<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
+						<div class="bg-muted h-9 w-24 animate-pulse rounded-md"></div>
+					</div>
+					<div pageActions class="flex items-center justify-between gap-4">
+						<input type="search" placeholder="Search users..."
+							class="border-input bg-background text-foreground h-9 w-full max-w-sm rounded-md border px-3 text-sm" />
+						<button class="bg-primary text-primary-foreground h-9 rounded-md px-4 text-sm font-medium">Create User</button>
+					</div>
+					<div class="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
+						Data table goes here
+					</div>
+				</app-page-shell>
+			</div>
+		`,
+	}),
+}
+
+/** Loading state with skeleton placeholders for action controls */
+export const WithActionsLoading: Story = {
+	args: {
+		title: 'Users',
+		loading: true,
+		error: null,
+		description: 'Manage system users, their roles, and account status.',
+	},
+	render: (args) => ({
+		props: args,
+		moduleMetadata: { imports: [PageShell] },
+		template: `
+			<div class="bg-background p-6 rounded border border-border">
+				<app-page-shell [title]="title" [loading]="loading" [error]="error">
+					<p pageDescription>{{ description }}</p>
+					<div pageActionsSkeleton class="flex items-center justify-between gap-4">
+						<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
+						<div class="bg-muted h-9 w-24 animate-pulse rounded-md"></div>
+					</div>
 					<div pageActions class="flex items-center justify-between gap-4">
 						<input type="search" placeholder="Search users..."
 							class="border-input bg-background text-foreground h-9 w-full max-w-sm rounded-md border px-3 text-sm" />
