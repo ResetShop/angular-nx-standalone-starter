@@ -42,7 +42,7 @@ export default defineConfig({
 			'@contracts': '/src/contracts',
 			'@components': '/src/app/components',
 			'@configs': '/src/app/configs',
-			'@constants/permissions': '/src/app/constants/permissions',
+			'@constants': '/src/app/constants',
 			'@domain': '/src/app/domain',
 			'@guards': '/src/app/guards',
 			'@interfaces': '/src/app/interfaces',

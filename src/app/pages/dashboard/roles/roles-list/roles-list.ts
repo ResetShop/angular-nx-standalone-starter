@@ -15,6 +15,7 @@ import { DataTable } from '@components/data-table/data-table'
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
+import { PermissionId } from '@constants/permissions'
 import type { IRole } from '@domain/access/role.interface'
 import { AuthStore } from '@store/auth/auth.store'
 import { RolesStore } from '@store/roles/roles.store'
@@ -112,11 +113,16 @@ export default class RolesList {
 	protected readonly store = inject(RolesStore)
 
 	private readonly authStore = inject(AuthStore)
-	private readonly currentUser = this.authStore.currentUser
 
-	protected readonly canCreate = computed(() => this.currentUser()?.hasPermissionByIdentifier('roles:create') ?? false)
-	protected readonly canUpdate = computed(() => this.currentUser()?.hasPermissionByIdentifier('roles:update') ?? false)
-	protected readonly canDelete = computed(() => this.currentUser()?.hasPermissionByIdentifier('roles:delete') ?? false)
+	protected readonly canCreate = computed(
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.ROLES_CREATE) ?? false,
+	)
+	protected readonly canUpdate = computed(
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.ROLES_UPDATE) ?? false,
+	)
+	protected readonly canDelete = computed(
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.ROLES_DELETE) ?? false,
+	)
 
 	private readonly deleteDialog = viewChild<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('Role deleted successfully.')
@@ -133,17 +139,16 @@ export default class RolesList {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
-	private readonly baseColumns: ColumnDef<IRole, unknown>[] = [
-		{ accessorKey: 'name', header: 'Name' },
-		{ accessorKey: 'code', header: 'Code' },
-		{ accessorKey: 'description', header: 'Description' },
-	]
-
 	protected readonly columns = computed((): ColumnDef<IRole, unknown>[] => {
+		const base: ColumnDef<IRole, unknown>[] = [
+			{ accessorKey: 'name', header: 'Name' },
+			{ accessorKey: 'code', header: 'Code' },
+			{ accessorKey: 'description', header: 'Description' },
+		]
 		if (this.canUpdate() || this.canDelete()) {
-			return [...this.baseColumns, { id: 'actions', header: '', enableSorting: false }]
+			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
-		return this.baseColumns
+		return base
 	})
 
 	protected onSearchInput(event: Event): void {
