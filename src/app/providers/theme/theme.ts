@@ -15,12 +15,9 @@ export class Theme extends ThemeProvider {
 	public override readonly isDarkMode = computed(() => this._isDarkMode())
 	private readonly _isDarkMode = signal<boolean>(this.getInitialTheme())
 
-	constructor() {
-		super()
-		effect(() => {
-			this.persistTheme(this._isDarkMode())
-		})
-	}
+	private readonly persistThemeEffect = effect(() => {
+		this.persistTheme(this._isDarkMode())
+	})
 
 	public override toggleTheme(): void {
 		this._isDarkMode.update((current) => !current)

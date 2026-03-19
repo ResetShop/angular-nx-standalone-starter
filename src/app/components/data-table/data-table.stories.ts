@@ -161,17 +161,15 @@ class DataTableStoryComponent {
 	 */
 	protected readonly isReady = signal(false)
 
-	constructor() {
-		effect(() => {
-			const lang = this.language()
-			const initialPageSize = this.pageSize()
-			this.currentPageSize.set(initialPageSize)
-			this.isReady.set(false)
-			this.translation.setLanguage(lang).then(() => {
-				this.isReady.set(true)
-			})
+	private readonly syncLanguageEffect = effect(() => {
+		const lang = this.language()
+		const initialPageSize = this.pageSize()
+		this.currentPageSize.set(initialPageSize)
+		this.isReady.set(false)
+		this.translation.setLanguage(lang).then(() => {
+			this.isReady.set(true)
 		})
-	}
+	})
 
 	// --- Pagination handlers ---
 	protected onPageChange(page: number): void {
