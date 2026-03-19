@@ -18,6 +18,7 @@ import { ConfirmDialogTracker } from './confirm-dialog-tracker'
 	selector: 'app-confirm-dialog',
 	standalone: true,
 	imports: [Button],
+	host: { '[attr.title]': 'null' },
 	templateUrl: './confirm-dialog.html',
 	styleUrl: './confirm-dialog.css',
 	changeDetection: ChangeDetectionStrategy.OnPush,

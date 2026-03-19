@@ -50,7 +50,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
 					}
-					<span [title]="item().name" class="truncate">{{ item().name }}</span>
+					<span class="truncate">{{ item().name }}</span>
 					<ng-icon
 						[class.rotate-90]="isExpanded()"
 						name="featherChevronRight"
@@ -84,7 +84,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 				@if (iconName(); as iconName) {
 					<ng-icon [name]="iconName" data-testid="item-icon" />
 				}
-				<span [title]="item().name" class="truncate">{{ item().name }}</span>
+				<span class="truncate">{{ item().name }}</span>
 			</a>
 		}
 	`,
