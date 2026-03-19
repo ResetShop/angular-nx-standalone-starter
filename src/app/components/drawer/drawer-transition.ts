@@ -1,6 +1,4 @@
 import { Directive } from '@angular/core'
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { filter, fromEvent, Subject, switchMap, take, tap } from 'rxjs'
 
 /**
  * Manages the open/close CSS transition lifecycle for the Drawer component.
@@ -13,38 +11,21 @@ import { filter, fromEvent, Subject, switchMap, take, tap } from 'rxjs'
  */
 @Directive({ standalone: true })
 export class DrawerTransition {
-	private readonly close$ = new Subject<HTMLDialogElement>()
-
-	/** Emits after the close transition animation finishes and the native dialog is closed. Public for access by the host Drawer component via inject(DrawerTransition). */
-	public readonly afterClosed$ = new Subject<void>()
-
-	constructor() {
-		this.close$
-			.pipe(
-				switchMap((element) =>
-					fromEvent(element, 'transitionend').pipe(
-						filter((e) => e.target === element),
-						take(1),
-						tap(() => {
-							element.close()
-							this.afterClosed$.next()
-						}),
-					),
-				),
-				takeUntilDestroyed(),
-			)
-			.subscribe()
-	}
-
 	/** Opens the dialog and triggers the slide-in animation after one frame. */
 	public open(element: HTMLDialogElement): void {
 		element.showModal()
 		requestAnimationFrame(() => element.setAttribute('data-open', ''))
 	}
 
-	/** Triggers the close animation and waits for `transitionend` to finalize. */
-	public close(element: HTMLDialogElement): void {
+	/** Triggers the close animation and calls `onComplete` after `transitionend`. */
+	public close(element: HTMLDialogElement, onComplete: () => void): void {
 		element.removeAttribute('data-open')
-		this.close$.next(element)
+		const handler = (e: Event) => {
+			if (e.target !== element) return
+			element.removeEventListener('transitionend', handler)
+			element.close()
+			onComplete()
+		}
+		element.addEventListener('transitionend', handler)
 	}
 }
