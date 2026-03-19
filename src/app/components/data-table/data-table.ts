@@ -181,9 +181,8 @@ export class DataTable<T> {
 		return String(row.getValue(columnId))
 	}
 
-	constructor() {
-		if (isDevMode()) {
-			effect(() => {
+	private readonly validateGroupingEffect = isDevMode()
+		? effect(() => {
 				const groupingIds = this.grouping()
 				if (groupingIds.length === 0) return
 
@@ -199,8 +198,7 @@ export class DataTable<T> {
 					}
 				}
 			})
-		}
-	}
+		: undefined
 
 	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
 		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater

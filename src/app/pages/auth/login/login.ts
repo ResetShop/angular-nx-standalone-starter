@@ -105,22 +105,18 @@ export default class Login {
 
 	protected readonly isFormValid = computed(() => this.loginForm().errors().length === 0)
 
-	constructor() {
-		const loginEffect = effect(() => {
-			const user = this.authStore.currentUser()
-			const error = this.authStore.loginError()
+	private readonly loginEffect = effect(() => {
+		const user = this.authStore.currentUser()
+		const error = this.authStore.loginError()
 
-			if (user) {
-				this.errorMessage.set(null)
-				loginEffect.destroy()
-				this.router.navigate(['/dashboard'])
-			} else if (error) {
-				this.errorMessage.set(
-					this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'),
-				)
-			}
-		})
-	}
+		if (user) {
+			this.errorMessage.set(null)
+			this.loginEffect.destroy()
+			this.router.navigate(['/dashboard'])
+		} else if (error) {
+			this.errorMessage.set(this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'))
+		}
+	})
 
 	protected onSubmit(event: Event) {
 		event.preventDefault()
