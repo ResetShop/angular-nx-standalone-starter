@@ -69,6 +69,31 @@ describe('UsersList', () => {
 		return view
 	}
 
+	it('should show action skeletons while loading', async () => {
+		usersApiMock.getAll.mockReturnValue(NEVER)
+
+		await render(UsersList, {
+			providers: [
+				{ provide: UsersApi, useValue: usersApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: Translation, useValue: mockTranslation },
+			],
+		})
+		TestBed.tick()
+
+		expect(screen.getByTestId('users-actions-skeleton')).toBeInTheDocument()
+		expect(screen.queryByPlaceholderText(/search users/i)).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /create user/i })).not.toBeInTheDocument()
+	})
+
+	it('should show real actions after loading completes', async () => {
+		await renderComponent()
+
+		expect(screen.queryByTestId('users-actions-skeleton')).not.toBeInTheDocument()
+		expect(screen.getByPlaceholderText(/search users/i)).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /create user/i })).toBeInTheDocument()
+	})
+
 	it('should render the page heading', async () => {
 		await renderComponent()
 
