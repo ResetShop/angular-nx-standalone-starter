@@ -52,10 +52,11 @@ Interceptors are registered in two configs and merged via `mergeApplicationConfi
 
 **`app.config.ts` (both platforms):**
 
-| Order | Interceptor               | Purpose                                            |
-| ----- | ------------------------- | -------------------------------------------------- |
-| 1     | `authInterceptor`         | Adds `withCredentials: true` for `/api/` requests  |
-| 2     | `tokenRefreshInterceptor` | Catches 401s, refreshes token, retries the request |
+| Order | Interceptor               | Purpose                                                     |
+| ----- | ------------------------- | ----------------------------------------------------------- |
+| 1     | `authInterceptor`         | Adds `withCredentials: true` for `/api/` requests           |
+| 2     | `tokenRefreshInterceptor` | Catches 401s, refreshes token, retries the request          |
+| 3     | `forbiddenInterceptor`    | Catches 403s, shows translated toast via UIStore, re-throws |
 
 **`app.config.server.ts` (server only):**
 

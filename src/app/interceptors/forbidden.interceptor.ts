@@ -29,6 +29,7 @@ export const forbiddenInterceptor: HttpInterceptorFn = (req, next) => {
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			if (error.status === 403) {
+				// TODO(#66): Replace with structured logging service
 				console.error('[ForbiddenInterceptor] 403 Forbidden:', req.method, req.url)
 				uiStore.showNotification({
 					type: NotificationType.ERROR,
