@@ -49,19 +49,17 @@ class PaginationStoryComponent {
 	 */
 	protected readonly isReady = signal(false)
 
-	constructor() {
-		// Initialize state from inputs and handle language changes
-		effect(() => {
-			this.currentPageState.set(this.initialPage())
-			this.pageSizeState.set(this.initialPageSize())
+	// Initialize state from inputs and handle language changes
+	private readonly syncLanguageEffect = effect(() => {
+		this.currentPageState.set(this.initialPage())
+		this.pageSizeState.set(this.initialPageSize())
 
-			const lang = this.language()
-			this.isReady.set(false)
-			this.translation.setLanguage(lang).then(() => {
-				this.isReady.set(true)
-			})
+		const lang = this.language()
+		this.isReady.set(false)
+		this.translation.setLanguage(lang).then(() => {
+			this.isReady.set(true)
 		})
-	}
+	})
 
 	protected onPageChange(page: number): void {
 		this.currentPageState.set(page)
