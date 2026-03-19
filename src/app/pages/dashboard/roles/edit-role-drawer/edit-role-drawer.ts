@@ -137,28 +137,25 @@ export class EditRoleDrawer {
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
 	protected readonly isUpdating = computed(() => this.rolesStore.isUpdating())
+	private readonly closingAfterSuccess = signal(false)
 	protected readonly showSubmitSpinner = computed(() => this.isUpdating() || this.closingAfterSuccess())
 	protected readonly mutationError = computed(() => this.rolesStore.mutationError().update)
 
-	private readonly closingAfterSuccess = signal(false)
+	// Populates form when selectedRole loads — editRoleId guards against stale data
+	private readonly populateFormEffect = effect(() => {
+		const role = this.rolesStore.selectedRole()
+		if (role && role.id === this.editRoleId()) {
+			this.model.set({
+				name: role.name,
+				code: role.code,
+				description: role.description ?? '',
+				permissionIds: role.permissions.map((p) => p.id),
+			})
+			this.drawer().setContentReady()
+		}
+	})
 
-	constructor() {
-		// Populates form when selectedRole loads — editRoleId guards against stale data
-		effect(() => {
-			const role = this.rolesStore.selectedRole()
-			if (role && role.id === this.editRoleId()) {
-				this.model.set({
-					name: role.name,
-					code: role.code,
-					description: role.description ?? '',
-					permissionIds: role.permissions.map((p) => p.id),
-				})
-				this.drawer().setContentReady()
-			}
-		})
-
-		effect(() => this.closeOnSuccess())
-	}
+	private readonly closeOnSuccessEffect = effect(() => this.closeOnSuccess())
 
 	private closeOnSuccess(): void {
 		const updating = this.rolesStore.isUpdating()

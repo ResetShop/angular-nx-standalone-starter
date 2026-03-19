@@ -64,16 +64,14 @@ class StorySelect {
 	)
 	protected readonly optionalField: FieldTree<string> = form(this.model)
 
-	constructor() {
-		effect(() => {
-			const lang = this.language()
-			this.isReady.set(false)
-			this.translation
-				.setLanguage(lang)
-				.then(() => this.isReady.set(true))
-				.catch((error: unknown) => this.errorHandler.handleError(error))
-		})
-	}
+	private readonly syncLanguageEffect = effect(() => {
+		const lang = this.language()
+		this.isReady.set(false)
+		this.translation
+			.setLanguage(lang)
+			.then(() => this.isReady.set(true))
+			.catch((error: unknown) => this.errorHandler.handleError(error))
+	})
 }
 
 const meta: Meta<StorySelect> = {

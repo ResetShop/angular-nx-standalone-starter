@@ -131,20 +131,17 @@ export class CreateRoleDrawer {
 
 	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
 	protected readonly isCreating = computed(() => this.rolesStore.isCreating())
+	private readonly closingAfterSuccess = signal(false)
+	private readonly nameValue = computed(() => this.model().name)
 	protected readonly showSubmitSpinner = computed(() => this.isCreating() || this.closingAfterSuccess())
 	protected readonly mutationError = computed(() => this.rolesStore.mutationError().create)
 
-	private readonly closingAfterSuccess = signal(false)
-	private readonly nameValue = computed(() => this.model().name)
+	private readonly syncCodeEffect = effect(() => {
+		const code = toSnakeCode(this.nameValue())
+		untracked(() => this.model.update((m) => ({ ...m, code })))
+	})
 
-	constructor() {
-		effect(() => {
-			const code = toSnakeCode(this.nameValue())
-			untracked(() => this.model.update((m) => ({ ...m, code })))
-		})
-
-		effect(() => this.closeOnSuccess())
-	}
+	private readonly closeOnSuccessEffect = effect(() => this.closeOnSuccess())
 
 	private closeOnSuccess(): void {
 		const creating = this.rolesStore.isCreating()
