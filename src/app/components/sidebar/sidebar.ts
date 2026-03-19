@@ -56,7 +56,7 @@ import { UIStore } from '@store/ui/ui.store'
 		@reference "#tailwind-theme";
 
 		:host {
-			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_64px] transition-[width] duration-200;
+			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_64px] overflow-hidden whitespace-nowrap transition-[width] duration-200;
 
 			.brand-container {
 				@apply p-2;
