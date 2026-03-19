@@ -10,11 +10,14 @@ import { provideIcons } from '@ng-icons/core'
 import {
 	featherActivity,
 	featherChevronRight,
+	featherChevronsLeft,
+	featherChevronsRight,
 	featherHome,
 	featherRefreshCw,
 	featherSettings,
 	featherUser,
 } from '@ng-icons/feather-icons'
+import { provideAuthMock } from '@providers/auth/auth.mock'
 import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import type { Meta, StoryObj } from '@storybook/angular'
@@ -55,7 +58,10 @@ const meta: Meta<Sidebar> = {
 					featherSettings,
 					featherUser,
 					featherChevronRight,
+					featherChevronsLeft,
+					featherChevronsRight,
 				}),
+				provideAuthMock(),
 				{ provide: NAVIGATION_CONFIG, useValue: mockSidebarNavigationConfig },
 				Navigation,
 				NavigationState,
@@ -82,6 +88,8 @@ A complete sidebar navigation component for application layouts.
 - **Responsive**: Adapts to different screen sizes
 - **OnPush Change Detection**: Optimized performance
 - **Expandable Navigation**: Supports hierarchical routes with expand/collapse
+- **Collapsible (Icon Mode)**: Reduces to icon-only rail via toggle button or Ctrl+B
+- **Responsive Mobile**: Slides in as overlay sheet on mobile viewports (< 1024px)
 
 ## Layout Structure
 
@@ -289,6 +297,30 @@ export const Playground: Story = {
 							</div>
 						</div>
 					</div>
+				</main>
+			</div>
+		`,
+	}),
+}
+
+/**
+ * Sidebar in collapsed (icon-only) mode.
+ * Use the collapse toggle button at the bottom or press Ctrl+B to toggle.
+ */
+export const Collapsed: Story = {
+	render: () => ({
+		template: `
+			<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+				<div class="border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800" style="width: 48px;">
+					<aside appSidebar></aside>
+				</div>
+				<main class="flex-1 p-8">
+					<h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+						Collapsed Sidebar
+					</h1>
+					<p class="text-gray-600 dark:text-gray-400">
+						The sidebar is in icon-only mode. Click the expand button or press Ctrl+B to expand.
+					</p>
 				</main>
 			</div>
 		`,
