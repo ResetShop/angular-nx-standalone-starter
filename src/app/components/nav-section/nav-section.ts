@@ -17,10 +17,12 @@ import { featherChevronRight } from '@ng-icons/feather-icons'
 	selector: 'app-nav-section',
 	imports: [NgComponentOutlet],
 	template: `
-		@if (showTitle() && !collapsed()) {
-			<div class="flex h-8 items-center px-2 text-xs font-medium text-black/70 dark:text-white/70">
-				{{ section().name }}
-			</div>
+		@if (showTitle()) {
+			@if (!collapsed()) {
+				<div class="flex h-8 items-center px-2 text-xs font-medium text-black/70 dark:text-white/70">
+					{{ section().name }}
+				</div>
+			}
 		}
 		<ul>
 			@for (navItem of navItems(); track navItem.id) {
