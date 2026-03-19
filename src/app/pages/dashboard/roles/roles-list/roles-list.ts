@@ -40,7 +40,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		<app-page-shell [loading]="store.isLoadingList()" [error]="store.readError().list" title="Roles">
 			<p pageDescription>Manage system roles and their associated permissions.</p>
 
-			<div class="flex items-center justify-between gap-4">
+			<div pageActions class="flex items-center justify-between gap-4">
 				<input
 					(input)="onSearchInput($event)"
 					type="search"
@@ -50,24 +50,22 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 				<button (click)="createDrawer.open()" appButton>Create Role</button>
 			</div>
 
-			<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-				<app-data-table [columns]="columns" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
-					<ng-template appDataTableCellDef="code" let-value>
-						<span appBadge variant="secondary">{{ value }}</span>
-					</ng-template>
+			<app-data-table [columns]="columns" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
+				<ng-template appDataTableCellDef="code" let-value>
+					<span appBadge variant="secondary">{{ value }}</span>
+				</ng-template>
 
-					<ng-template appDataTableCellDef="actions" let-value let-row="row">
-						<div class="flex gap-2">
-							<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-							@if (row.removable) {
-								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-									Delete
-								</button>
-							}
-						</div>
-					</ng-template>
-				</app-data-table>
-			</div>
+				<ng-template appDataTableCellDef="actions" let-value let-row="row">
+					<div class="flex gap-2">
+						<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
+						@if (row.removable) {
+							<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
+								Delete
+							</button>
+						}
+					</div>
+				</ng-template>
+			</app-data-table>
 
 			@if (store.totalPages() > 1) {
 				<app-pagination

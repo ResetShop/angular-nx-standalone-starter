@@ -41,7 +41,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		<app-page-shell [loading]="store.isLoadingList()" [error]="store.readError().list" title="Users">
 			<p pageDescription>Manage system users, their roles, and account status.</p>
 
-			<div class="flex items-center justify-between gap-4">
+			<div pageActions class="flex items-center justify-between gap-4">
 				<input
 					(input)="onSearchInput($event)"
 					type="search"
@@ -51,24 +51,22 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 				<button (click)="createDrawer.open()" appButton>Create User</button>
 			</div>
 
-			<div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-				<app-data-table [columns]="columns" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
-					<ng-template appDataTableCellDef="status" let-value>
-						<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
-							{{ value.charAt(0).toUpperCase() + value.slice(1) }}
-						</span>
-					</ng-template>
+			<app-data-table [columns]="columns" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
+				<ng-template appDataTableCellDef="status" let-value>
+					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
+						{{ value.charAt(0).toUpperCase() + value.slice(1) }}
+					</span>
+				</ng-template>
 
-					<ng-template appDataTableCellDef="actions" let-value let-row="row">
-						<div class="flex gap-2">
-							<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-							<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-								Delete
-							</button>
-						</div>
-					</ng-template>
-				</app-data-table>
-			</div>
+				<ng-template appDataTableCellDef="actions" let-value let-row="row">
+					<div class="flex gap-2">
+						<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
+						<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
+							Delete
+						</button>
+					</div>
+				</ng-template>
+			</app-data-table>
 
 			@if (store.totalPages() > 1) {
 				<app-pagination

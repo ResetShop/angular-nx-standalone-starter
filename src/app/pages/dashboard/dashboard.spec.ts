@@ -171,7 +171,7 @@ describe('Dashboard', () => {
 	})
 
 	describe('global loading overlay', () => {
-		it('should not render loading spinner when isGlobalLoading is false', async () => {
+		it('should not render loading overlay when isGlobalLoading is false', async () => {
 			await render(Dashboard, {
 				providers: [
 					...defaultProviders(),
@@ -179,10 +179,10 @@ describe('Dashboard', () => {
 				],
 			})
 
-			expect(screen.queryByText('Cargando...')).not.toBeInTheDocument()
+			expect(screen.queryByRole('status')).not.toBeInTheDocument()
 		})
 
-		it('should render loading spinner when isGlobalLoading is true', async () => {
+		it('should render loading overlay when isGlobalLoading is true', async () => {
 			mockGlobalLoading.set(true)
 
 			const { fixture } = await render(Dashboard, {
@@ -193,10 +193,10 @@ describe('Dashboard', () => {
 			})
 			fixture.detectChanges()
 
-			expect(screen.getByText('Cargando...')).toBeInTheDocument()
+			expect(screen.getByRole('status')).toBeInTheDocument()
 		})
 
-		it('should hide loading spinner when isGlobalLoading is set back to false', async () => {
+		it('should hide loading overlay when isGlobalLoading is set back to false', async () => {
 			mockGlobalLoading.set(true)
 
 			const { fixture } = await render(Dashboard, {
@@ -206,11 +206,11 @@ describe('Dashboard', () => {
 				],
 			})
 			fixture.detectChanges()
-			expect(screen.getByText('Cargando...')).toBeInTheDocument()
+			expect(screen.getByRole('status')).toBeInTheDocument()
 
 			mockGlobalLoading.set(false)
 			fixture.detectChanges()
-			expect(screen.queryByText('Cargando...')).not.toBeInTheDocument()
+			expect(screen.queryByRole('status')).not.toBeInTheDocument()
 		})
 	})
 })
