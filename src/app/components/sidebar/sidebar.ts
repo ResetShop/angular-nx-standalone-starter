@@ -39,18 +39,16 @@ export class Sidebar {
 	private readonly router = inject(Router)
 	protected readonly sections = computed(() => this.navigation.sections())
 
-	constructor() {
-		// React to logout: navigate when user becomes null and logout is complete
-		effect(() => {
-			const user = this.authStore.currentUser()
-			const isLoggingOut = this.authStore.isLoggingOut()
+	// React to logout: navigate when user becomes null and logout is complete
+	private readonly logoutNavigationEffect = effect(() => {
+		const user = this.authStore.currentUser()
+		const isLoggingOut = this.authStore.isLoggingOut()
 
-			// Only navigate after logout completes (user is null and no longer logging out)
-			if (!user && !isLoggingOut) {
-				this.router.navigate(['/auth/login'])
-			}
-		})
-	}
+		// Only navigate after logout completes (user is null and no longer logging out)
+		if (!user && !isLoggingOut) {
+			this.router.navigate(['/auth/login'])
+		}
+	})
 
 	protected logout(): void {
 		this.authStore.logout()
