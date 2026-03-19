@@ -15,6 +15,7 @@ import { DataTable } from '@components/data-table/data-table'
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
+import { PermissionId } from '@constants/permissions'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { AuthStore } from '@store/auth/auth.store'
@@ -116,11 +117,16 @@ export default class UsersList {
 	protected readonly UserStatus = UserStatus
 
 	private readonly authStore = inject(AuthStore)
-	private readonly currentUser = this.authStore.currentUser
 
-	protected readonly canCreate = computed(() => this.currentUser()?.hasPermissionByIdentifier('users:create') ?? false)
-	protected readonly canUpdate = computed(() => this.currentUser()?.hasPermissionByIdentifier('users:update') ?? false)
-	protected readonly canDelete = computed(() => this.currentUser()?.hasPermissionByIdentifier('users:delete') ?? false)
+	protected readonly canCreate = computed(
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.USERS_CREATE) ?? false,
+	)
+	protected readonly canUpdate = computed(
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.USERS_UPDATE) ?? false,
+	)
+	protected readonly canDelete = computed(
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.USERS_DELETE) ?? false,
+	)
 
 	private readonly deleteDialog = viewChild<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('User deleted successfully.')
@@ -137,22 +143,21 @@ export default class UsersList {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
-	private readonly baseColumns: ColumnDef<IManagedUser, unknown>[] = [
-		{ accessorKey: 'fullName', header: 'Name' },
-		{ accessorKey: 'email', header: 'Email' },
-		{ accessorKey: 'status', header: 'Status' },
-		{
-			id: 'roles',
-			header: 'Roles',
-			accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
-		},
-	]
-
 	protected readonly columns = computed((): ColumnDef<IManagedUser, unknown>[] => {
+		const base: ColumnDef<IManagedUser, unknown>[] = [
+			{ accessorKey: 'fullName', header: 'Name' },
+			{ accessorKey: 'email', header: 'Email' },
+			{ accessorKey: 'status', header: 'Status' },
+			{
+				id: 'roles',
+				header: 'Roles',
+				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
+			},
+		]
 		if (this.canUpdate() || this.canDelete()) {
-			return [...this.baseColumns, { id: 'actions', header: '', enableSorting: false }]
+			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
-		return this.baseColumns
+		return base
 	})
 
 	protected onSearchInput(event: Event): void {
