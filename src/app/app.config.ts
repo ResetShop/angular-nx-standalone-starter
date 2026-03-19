@@ -9,7 +9,6 @@ import {
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser'
 import { provideRouter, TitleStrategy, withViewTransitions } from '@angular/router'
-import { provideToast } from '@components/toast/toast.provider'
 import { Analytics } from '@providers/analytics/analytics'
 import { provideAuth } from '@providers/auth/auth.provider'
 import { initializeTranslation } from '@providers/i18n/translation.initializer'
@@ -54,9 +53,6 @@ export const appConfig: ApplicationConfig = {
 		provideNavigation(),
 		provideProjectConfig(),
 		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },
-
-		// Toast
-		provideToast(),
 
 		// API providers
 		provideAuth(),
