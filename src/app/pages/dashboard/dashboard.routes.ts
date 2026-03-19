@@ -1,4 +1,6 @@
 import { provideToast } from '@components/toast/toast.provider'
+import { PermissionId } from '@constants/permissions'
+import { permissionGuard } from '@guards/permission.guard'
 import { NamedRoute } from '@interfaces/navigation'
 import Dashboard from '@pages/dashboard/dashboard'
 import { providePermissions } from '@providers/permissions/permissions.provider'
@@ -29,6 +31,8 @@ export default [
 				path: 'users',
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
+				canActivate: [permissionGuard],
+				data: { requiredPermission: PermissionId.USERS_READ },
 				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
 			},
 			{
@@ -39,12 +43,16 @@ export default [
 						path: 'permissions',
 						title: 'Permisos',
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
+						canActivate: [permissionGuard],
+						data: { requiredPermission: PermissionId.PERMISSIONS_READ },
 						providers: [providePermissions(), PermissionsStore],
 					},
 					{
 						path: 'roles',
 						title: 'Roles',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
+						canActivate: [permissionGuard],
+						data: { requiredPermission: PermissionId.ROLES_READ },
 						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore, provideToast()],
 					},
 				],
