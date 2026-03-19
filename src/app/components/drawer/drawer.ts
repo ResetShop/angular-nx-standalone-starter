@@ -25,6 +25,7 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom'
 	selector: 'app-drawer',
 	standalone: true,
 	imports: [NgTemplateOutlet, Spinner],
+	host: { '[attr.title]': 'null' },
 	hostDirectives: [DrawerLoading, DrawerTransition, { directive: DrawerPanel, inputs: ['direction'] }],
 	templateUrl: './drawer.html',
 	styleUrl: './drawer.css',

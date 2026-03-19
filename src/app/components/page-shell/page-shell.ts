@@ -8,6 +8,7 @@ import { parseDurationToMs } from '@utils/duration'
 	selector: 'app-page-shell',
 	standalone: true,
 	imports: [Spinner, NgIcon],
+	host: { '[attr.title]': 'null' },
 	providers: [provideIcons({ featherAlertCircle })],
 	template: `
 		<div class="space-y-6">

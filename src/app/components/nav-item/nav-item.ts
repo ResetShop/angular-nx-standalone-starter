@@ -57,7 +57,7 @@ import { UIStore } from '@store/ui/ui.store'
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
 					}
-					<span [title]="item().name" class="truncate">{{ item().name }}</span>
+					<span class="truncate">{{ item().name }}</span>
 					<ng-icon
 						[class.rotate-90]="isExpanded()"
 						name="featherChevronRight"
@@ -103,7 +103,7 @@ import { UIStore } from '@store/ui/ui.store'
 					/>
 				}
 				@if (!collapsed()) {
-					<span [title]="item().name" class="truncate">{{ item().name }}</span>
+					<span class="truncate">{{ item().name }}</span>
 				}
 			</a>
 		}
