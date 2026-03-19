@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
+import { ToastBridgeService } from '@components/toast/toast-bridge.service'
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
@@ -9,7 +10,10 @@ import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
 import { UIStore } from '@store/ui/ui.store'
+import type { UINotification } from '@store/ui/ui.types'
+import { fn } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
+import { NgpToastManager } from 'ng-primitives/toast'
 import Dashboard from './dashboard'
 
 describe('Dashboard', () => {
@@ -17,9 +21,13 @@ describe('Dashboard', () => {
 	const mockSidebarCollapsed = signal(false)
 	const mockSidebarOpen = signal(false)
 
+	const mockNotifications = signal<UINotification[]>([])
+
 	const mockUIStore = {
 		isGlobalLoading: mockGlobalLoading,
 		setGlobalLoading: (value: boolean) => mockGlobalLoading.set(value),
+		notifications: mockNotifications,
+		dismissNotification: fn(),
 		isSidebarCollapsed: mockSidebarCollapsed,
 		setSidebarCollapsed: (value: boolean) => mockSidebarCollapsed.set(value),
 		isSidebarOpen: mockSidebarOpen,
@@ -39,6 +47,8 @@ describe('Dashboard', () => {
 		provideAuthMock(),
 		NavigationState,
 		{ provide: UIStore, useValue: mockUIStore },
+		{ provide: NgpToastManager, useValue: { show: () => ({ dismiss: () => Promise.resolve() }) } },
+		ToastBridgeService,
 	]
 
 	const createNavigationWithSectionsAndBreadcrumbs = (
@@ -170,7 +180,7 @@ describe('Dashboard', () => {
 	})
 
 	describe('global loading overlay', () => {
-		it('should not render loading spinner when isGlobalLoading is false', async () => {
+		it('should not render loading overlay when isGlobalLoading is false', async () => {
 			await render(Dashboard, {
 				providers: [
 					...defaultProviders(),
@@ -178,10 +188,10 @@ describe('Dashboard', () => {
 				],
 			})
 
-			expect(screen.queryByText('Cargando...')).not.toBeInTheDocument()
+			expect(screen.queryByRole('status')).not.toBeInTheDocument()
 		})
 
-		it('should render loading spinner when isGlobalLoading is true', async () => {
+		it('should render loading overlay when isGlobalLoading is true', async () => {
 			mockGlobalLoading.set(true)
 
 			const { fixture } = await render(Dashboard, {
@@ -192,10 +202,10 @@ describe('Dashboard', () => {
 			})
 			fixture.detectChanges()
 
-			expect(screen.getByText('Cargando...')).toBeInTheDocument()
+			expect(screen.getByRole('status')).toBeInTheDocument()
 		})
 
-		it('should hide loading spinner when isGlobalLoading is set back to false', async () => {
+		it('should hide loading overlay when isGlobalLoading is set back to false', async () => {
 			mockGlobalLoading.set(true)
 
 			const { fixture } = await render(Dashboard, {
@@ -205,11 +215,11 @@ describe('Dashboard', () => {
 				],
 			})
 			fixture.detectChanges()
-			expect(screen.getByText('Cargando...')).toBeInTheDocument()
+			expect(screen.getByRole('status')).toBeInTheDocument()
 
 			mockGlobalLoading.set(false)
 			fixture.detectChanges()
-			expect(screen.queryByText('Cargando...')).not.toBeInTheDocument()
+			expect(screen.queryByRole('status')).not.toBeInTheDocument()
 		})
 	})
 })

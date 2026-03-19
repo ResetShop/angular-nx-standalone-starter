@@ -1,7 +1,8 @@
 import { computed, DestroyRef, inject } from '@angular/core'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { parseDurationToMs } from '@utils/duration'
-import { DEFAULT_NOTIFICATION_DURATION, initialUIState, type UINotification } from './ui.types'
+import { DEFAULT_NOTIFICATION_DURATION } from './ui.constants'
+import { initialUIState, type UINotification } from './ui.types'
 
 /**
  * UIStore - Signal Store for global UI concerns
