@@ -19,8 +19,15 @@ export interface MutationToast {
  * Factory that creates a mutation toast handler. Must be called in an injection context
  * (field initializer or constructor).
  *
+ * When `deferred` is true (drawer context):
+ * - **Success** notifications are stored until `flushPending()` is called (after the drawer close animation)
+ * - **Error** notifications are suppressed — the drawer stays open and displays the error inline via its alert banner
+ *
+ * When `deferred` is false (default, list context):
+ * - Both success and error notifications are shown immediately as toasts
+ *
  * @param successMessage - Message shown on successful mutation
- * @param options.deferred - When true, success notifications are stored until `flushPending()` is called (for drawers)
+ * @param options.deferred - When true, enables drawer-aware behavior (deferred success, suppressed error toasts)
  */
 export function createMutationToast(successMessage: string, options?: { deferred?: boolean }): MutationToast {
 	const uiStore = inject(UIStore)
@@ -48,7 +55,9 @@ export function createMutationToast(successMessage: string, options?: { deferred
 				return 'success'
 			}
 
-			uiStore.showNotification({ type: NotificationType.ERROR, message: error })
+			if (!deferred) {
+				uiStore.showNotification({ type: NotificationType.ERROR, message: error })
+			}
 			return 'error'
 		},
 
