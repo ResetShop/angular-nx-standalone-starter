@@ -26,8 +26,13 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 			align-items: center;
 		}
 
+		/* Removes the label's box from flex layout when empty (icon-only buttons),
+		   so the parent's gap doesn't create extra space. Uses display:contents
+		   instead of display:none because happy-dom misapplies :empty to non-empty
+		   elements — display:contents is safe since it doesn't exclude the element
+		   from the accessibility tree. */
 		.btn-label:empty {
-			display: none;
+			display: contents;
 		}
 
 		:host ::ng-deep [data-icon] {
