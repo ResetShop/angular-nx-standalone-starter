@@ -17,6 +17,7 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
@@ -53,10 +54,12 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					placeholder="Search users..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" appButton>Create User</button>
+				@if (canCreate()) {
+					<button (click)="createDrawer.open()" appButton>Create User</button>
+				}
 			</div>
 
-			<app-data-table [columns]="columns" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
+			<app-data-table [columns]="columns()" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
 				<ng-template appDataTableCellDef="status" let-value>
 					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
 						{{ value.charAt(0).toUpperCase() + value.slice(1) }}
@@ -65,10 +68,14 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
 					<div class="flex gap-2">
-						<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-						<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-							Delete
-						</button>
+						@if (canUpdate()) {
+							<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
+						}
+						@if (canDelete()) {
+							<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
+								Delete
+							</button>
+						}
 					</div>
 				</ng-template>
 			</app-data-table>
@@ -84,17 +91,23 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 			}
 		</app-page-shell>
 
-		<app-create-user-drawer #createDrawer />
-		<app-edit-user-drawer #editDrawer />
+		@if (canCreate()) {
+			<app-create-user-drawer #createDrawer />
+		}
+		@if (canUpdate()) {
+			<app-edit-user-drawer #editDrawer />
+		}
 
-		<app-confirm-dialog
-			(confirmed)="onDeleteConfirmed()"
-			[message]="deleteMessage()"
-			#deleteDialog
-			title="Delete User"
-			confirmText="Delete"
-			confirmVariant="destructive"
-		/>
+		@if (canDelete()) {
+			<app-confirm-dialog
+				(confirmed)="onDeleteConfirmed()"
+				[message]="deleteMessage()"
+				#deleteDialog
+				title="Delete User"
+				confirmText="Delete"
+				confirmVariant="destructive"
+			/>
+		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -102,7 +115,14 @@ export default class UsersList {
 	protected readonly store = inject(UsersStore)
 	protected readonly UserStatus = UserStatus
 
-	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
+	private readonly authStore = inject(AuthStore)
+	private readonly currentUser = this.authStore.currentUser
+
+	protected readonly canCreate = computed(() => this.currentUser()?.hasPermissionByIdentifier('users:create') ?? false)
+	protected readonly canUpdate = computed(() => this.currentUser()?.hasPermissionByIdentifier('users:update') ?? false)
+	protected readonly canDelete = computed(() => this.currentUser()?.hasPermissionByIdentifier('users:delete') ?? false)
+
+	private readonly deleteDialog = viewChild<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('User deleted successfully.')
 
 	protected readonly userToDelete = signal<IManagedUser | null>(null)
@@ -117,7 +137,7 @@ export default class UsersList {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
-	protected readonly columns: ColumnDef<IManagedUser, unknown>[] = [
+	private readonly baseColumns: ColumnDef<IManagedUser, unknown>[] = [
 		{ accessorKey: 'fullName', header: 'Name' },
 		{ accessorKey: 'email', header: 'Email' },
 		{ accessorKey: 'status', header: 'Status' },
@@ -126,8 +146,14 @@ export default class UsersList {
 			header: 'Roles',
 			accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
 		},
-		{ id: 'actions', header: '', enableSorting: false },
 	]
+
+	protected readonly columns = computed((): ColumnDef<IManagedUser, unknown>[] => {
+		if (this.canUpdate() || this.canDelete()) {
+			return [...this.baseColumns, { id: 'actions', header: '', enableSorting: false }]
+		}
+		return this.baseColumns
+	})
 
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement
@@ -136,7 +162,7 @@ export default class UsersList {
 
 	protected confirmDelete(user: IManagedUser): void {
 		this.userToDelete.set(user)
-		this.deleteDialog().show()
+		this.deleteDialog()?.show()
 	}
 
 	protected onDeleteConfirmed(): void {
