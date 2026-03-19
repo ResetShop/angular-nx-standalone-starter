@@ -23,16 +23,14 @@ import { UIStore } from '@store/ui/ui.store'
 	viewProviders: [provideIcons({ featherChevronsLeft, featherChevronsRight })],
 	template: `
 		<div class="brand-container">
-			@if (!isCollapsed()) {
-				<app-brand />
-			}
+			<app-brand />
 		</div>
 		<div class="nav-container">
 			@for (section of sections(); track section.id; let first = $first) {
 				@if (isCollapsed() && !first) {
 					<hr class="border-border" />
 				}
-				<app-nav-section [section]="section" [collapsed]="isCollapsed()" [class.px-2]="!isCollapsed()" />
+				<app-nav-section [section]="section" [class.px-2]="!isCollapsed()" />
 			}
 		</div>
 		<div class="footer">

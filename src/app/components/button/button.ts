@@ -26,6 +26,10 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 			align-items: center;
 		}
 
+		.btn-label:empty {
+			display: none;
+		}
+
 		:host ::ng-deep [data-icon] {
 			display: inline-flex;
 			align-items: center;

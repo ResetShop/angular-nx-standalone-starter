@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router'
 import { isParentRoute, type NavigationRoute } from '@interfaces/navigation'
 import { NgIcon } from '@ng-icons/core'
 import { NavigationState } from '@providers/navigation/navigation-state'
+import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -111,7 +112,7 @@ import { NavigationState } from '@providers/navigation/navigation-state'
 })
 export default class NavItem {
 	public readonly item = input.required<NavigationRoute>()
-	public readonly collapsed = input<boolean>(false)
+	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.
