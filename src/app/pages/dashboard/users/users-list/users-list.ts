@@ -92,23 +92,17 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 			}
 		</app-page-shell>
 
-		@if (canCreate()) {
-			<app-create-user-drawer #createDrawer />
-		}
-		@if (canUpdate()) {
-			<app-edit-user-drawer #editDrawer />
-		}
+		<app-create-user-drawer #createDrawer />
+		<app-edit-user-drawer #editDrawer />
 
-		@if (canDelete()) {
-			<app-confirm-dialog
-				(confirmed)="onDeleteConfirmed()"
-				[message]="deleteMessage()"
-				#deleteDialog
-				title="Delete User"
-				confirmText="Delete"
-				confirmVariant="destructive"
-			/>
-		}
+		<app-confirm-dialog
+			(confirmed)="onDeleteConfirmed()"
+			[message]="deleteMessage()"
+			#deleteDialog
+			title="Delete User"
+			confirmText="Delete"
+			confirmVariant="destructive"
+		/>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -128,7 +122,7 @@ export default class UsersList {
 		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_USER_PERMISSIONS.DELETE) ?? false,
 	)
 
-	private readonly deleteDialog = viewChild<ConfirmDialog>('deleteDialog')
+	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('User deleted successfully.')
 
 	protected readonly userToDelete = signal<IManagedUser | null>(null)
@@ -167,7 +161,7 @@ export default class UsersList {
 
 	protected confirmDelete(user: IManagedUser): void {
 		this.userToDelete.set(user)
-		this.deleteDialog()?.show()
+		this.deleteDialog().show()
 	}
 
 	protected onDeleteConfirmed(): void {

@@ -89,23 +89,17 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 			}
 		</app-page-shell>
 
-		@if (canCreate()) {
-			<app-create-role-drawer #createDrawer />
-		}
-		@if (canUpdate()) {
-			<app-edit-role-drawer #editDrawer />
-		}
+		<app-create-role-drawer #createDrawer />
+		<app-edit-role-drawer #editDrawer />
 
-		@if (canDelete()) {
-			<app-confirm-dialog
-				(confirmed)="onDeleteConfirmed()"
-				[message]="deleteMessage()"
-				#deleteDialog
-				title="Delete Role"
-				confirmText="Delete"
-				confirmVariant="destructive"
-			/>
-		}
+		<app-confirm-dialog
+			(confirmed)="onDeleteConfirmed()"
+			[message]="deleteMessage()"
+			#deleteDialog
+			title="Delete Role"
+			confirmText="Delete"
+			confirmVariant="destructive"
+		/>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -124,7 +118,7 @@ export default class RolesList {
 		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_ROLE_PERMISSIONS.DELETE) ?? false,
 	)
 
-	private readonly deleteDialog = viewChild<ConfirmDialog>('deleteDialog')
+	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('Role deleted successfully.')
 
 	protected readonly roleToDelete = signal<IRole | null>(null)
@@ -158,7 +152,7 @@ export default class RolesList {
 
 	protected confirmDelete(role: IRole): void {
 		this.roleToDelete.set(role)
-		this.deleteDialog()?.show()
+		this.deleteDialog().show()
 	}
 
 	protected onDeleteConfirmed(): void {
