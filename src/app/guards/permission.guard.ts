@@ -13,7 +13,7 @@ import { AuthStore } from '@store/auth/auth.store'
 export const permissionGuard: CanActivateFn = (route) => {
 	const authStore = inject(AuthStore)
 	const router = inject(Router)
-	const requiredPermission = route.data?.['requiredPermission'] as string | undefined
+	const requiredPermission = route.data['requiredPermission'] as string | undefined
 
 	if (!requiredPermission) {
 		return true
