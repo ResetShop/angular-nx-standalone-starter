@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing'
 import { provideRouter } from '@angular/router'
 import { RouterTestingHarness } from '@angular/router/testing'
-import { NAVIGATION_CONFIG, NavigationConfig } from '@interfaces/navigation'
+import type { NavigationConfig } from '@interfaces/navigation'
+import { NAVIGATION_CONFIG } from '@interfaces/navigation'
+import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { InMemoryAuthApi } from '@providers/auth/auth.mock'
+import { AuthStore } from '@store/auth/auth.store'
+import { clearAllMocks } from '@test-utils'
 import { Navigation } from './navigation'
 
 import {
@@ -196,5 +200,122 @@ describe('Navigation Provider', () => {
 				icon: { featherHome: 'featherHome' },
 			})
 		})
+	})
+})
+
+describe('Navigation Permission Filtering', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
+	function createService(config: NavigationConfig): Navigation {
+		TestBed.configureTestingModule({
+			providers: [
+				provideRouter([]),
+				{ provide: NAVIGATION_CONFIG, useValue: config },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+			],
+		})
+		return TestBed.inject(Navigation)
+	}
+
+	it('should show routes without a permission field to all users', () => {
+		const service = createService({
+			sections: [{ id: 's1', name: 'Public', routes: [{ id: 'r1', name: 'Home', route: '/home' }] }],
+		})
+
+		expect(service.sections()).toHaveLength(1)
+		expect(service.sections()[0].routes).toHaveLength(1)
+	})
+
+	it('should hide routes when user lacks the required permission', () => {
+		const service = createService({
+			sections: [
+				{
+					id: 's1',
+					name: 'Admin',
+					routes: [{ id: 'users', name: 'Users', route: '/users', permission: 'users:read' }],
+				},
+			],
+		})
+
+		// No user set — lacks all permissions
+		expect(service.sections()).toHaveLength(0)
+	})
+
+	it('should show routes when user has the required permission', () => {
+		const service = createService({
+			sections: [
+				{
+					id: 's1',
+					name: 'Admin',
+					routes: [{ id: 'users', name: 'Users', route: '/users', permission: 'users:read' }],
+				},
+			],
+		})
+
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({ hasPermissionByIdentifier: (id: string) => id === 'users:read' }),
+		)
+
+		expect(service.sections()).toHaveLength(1)
+		expect(service.sections()[0].routes[0].id).toBe('users')
+	})
+
+	it('should remove parent route when all children are filtered out', () => {
+		const service = createService({
+			sections: [
+				{
+					id: 's1',
+					name: 'Admin',
+					routes: [
+						{
+							id: 'auth',
+							name: 'Authorization',
+							route: '/auth',
+							children: [
+								{ id: 'roles', name: 'Roles', route: '/roles', permission: 'roles:read' },
+								{ id: 'perms', name: 'Permissions', route: '/perms', permission: 'permissions:read' },
+							],
+						},
+					],
+				},
+			],
+		})
+
+		// No user — all children filtered, parent should be removed, section empty
+		expect(service.sections()).toHaveLength(0)
+	})
+
+	it('should keep parent route with remaining children when some are filtered', () => {
+		const service = createService({
+			sections: [
+				{
+					id: 's1',
+					name: 'Admin',
+					routes: [
+						{
+							id: 'auth',
+							name: 'Authorization',
+							route: '/auth',
+							children: [
+								{ id: 'roles', name: 'Roles', route: '/roles', permission: 'roles:read' },
+								{ id: 'perms', name: 'Permissions', route: '/perms', permission: 'permissions:read' },
+							],
+						},
+					],
+				},
+			],
+		})
+
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({ hasPermissionByIdentifier: (id: string) => id === 'roles:read' }),
+		)
+
+		const sections = service.sections()
+		expect(sections).toHaveLength(1)
+		expect(sections[0].routes).toHaveLength(1)
+		expect((sections[0].routes[0] as { children: unknown[] }).children).toHaveLength(1)
+		expect((sections[0].routes[0] as { children: { id: string }[] }).children[0].id).toBe('roles')
 	})
 })
