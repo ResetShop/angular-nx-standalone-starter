@@ -32,7 +32,7 @@ describe('permissionGuard', () => {
 		const store = TestBed.inject(AuthStore)
 		store.updateCurrentUser(
 			createMockUser({
-				hasPermissionByIdentifier: (id: string) => id === 'admin:users:read',
+				hasPermission: (id: string) => id === 'admin:users:read',
 			}),
 		)
 

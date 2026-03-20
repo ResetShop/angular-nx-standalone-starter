@@ -82,58 +82,6 @@ describe('Role', () => {
 	})
 
 	describe('hasPermission', () => {
-		it('should return true when permission exists', () => {
-			const permissions = createTestPermissions()
-			const role = createRole({
-				id: 1,
-				code: 'admin',
-				name: 'Administrator',
-				description: null,
-				removable: true,
-				createdAt: null,
-				updatedAt: null,
-				permissions,
-			})
-
-			expect(role.hasPermission('users', 'read')).toBe(true)
-			expect(role.hasPermission('users', 'write')).toBe(true)
-			expect(role.hasPermission('roles', 'read')).toBe(true)
-		})
-
-		it('should return false when permission does not exist', () => {
-			const permissions = createTestPermissions()
-			const role = createRole({
-				id: 1,
-				code: 'admin',
-				name: 'Administrator',
-				description: null,
-				removable: true,
-				createdAt: null,
-				updatedAt: null,
-				permissions,
-			})
-
-			expect(role.hasPermission('roles', 'write')).toBe(false)
-			expect(role.hasPermission('posts', 'read')).toBe(false)
-		})
-
-		it('should return false for empty permissions', () => {
-			const role = createRole({
-				id: 1,
-				code: 'guest',
-				name: 'Guest',
-				description: null,
-				removable: true,
-				createdAt: null,
-				updatedAt: null,
-				permissions: [],
-			})
-
-			expect(role.hasPermission('users', 'read')).toBe(false)
-		})
-	})
-
-	describe('hasPermissionByIdentifier', () => {
 		it('should return true when permission identifier exists', () => {
 			const permissions = createTestPermissions()
 			const role = createRole({
@@ -147,9 +95,9 @@ describe('Role', () => {
 				permissions,
 			})
 
-			expect(role.hasPermissionByIdentifier('admin:users:read')).toBe(true)
-			expect(role.hasPermissionByIdentifier('admin:users:write')).toBe(true)
-			expect(role.hasPermissionByIdentifier('admin:roles:read')).toBe(true)
+			expect(role.hasPermission('admin:users:read')).toBe(true)
+			expect(role.hasPermission('admin:users:write')).toBe(true)
+			expect(role.hasPermission('admin:roles:read')).toBe(true)
 		})
 
 		it('should return false when permission identifier does not exist', () => {
@@ -165,8 +113,8 @@ describe('Role', () => {
 				permissions,
 			})
 
-			expect(role.hasPermissionByIdentifier('admin:roles:write')).toBe(false)
-			expect(role.hasPermissionByIdentifier('admin:posts:read')).toBe(false)
+			expect(role.hasPermission('admin:roles:write')).toBe(false)
+			expect(role.hasPermission('admin:posts:read')).toBe(false)
 		})
 
 		it('should return false for empty permissions', () => {
@@ -181,7 +129,7 @@ describe('Role', () => {
 				permissions: [],
 			})
 
-			expect(role.hasPermissionByIdentifier('admin:users:read')).toBe(false)
+			expect(role.hasPermission('admin:users:read')).toBe(false)
 		})
 	})
 })

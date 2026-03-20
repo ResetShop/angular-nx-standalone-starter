@@ -20,7 +20,7 @@ export const permissionGuard: CanActivateFn = (route) => {
 	}
 
 	const user = authStore.currentUser()
-	if (user?.hasPermissionByIdentifier(requiredPermission)) {
+	if (user?.hasPermission(requiredPermission)) {
 		return true
 	}
 

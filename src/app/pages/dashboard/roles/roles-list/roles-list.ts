@@ -109,13 +109,13 @@ export default class RolesList {
 	private readonly authStore = inject(AuthStore)
 
 	protected readonly canCreate = computed(
-		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_ROLE_PERMISSIONS.CREATE) ?? false,
+		() => this.authStore.currentUser()?.hasPermission(ADMIN_ROLE_PERMISSIONS.CREATE) ?? false,
 	)
 	protected readonly canUpdate = computed(
-		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_ROLE_PERMISSIONS.UPDATE) ?? false,
+		() => this.authStore.currentUser()?.hasPermission(ADMIN_ROLE_PERMISSIONS.UPDATE) ?? false,
 	)
 	protected readonly canDelete = computed(
-		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_ROLE_PERMISSIONS.DELETE) ?? false,
+		() => this.authStore.currentUser()?.hasPermission(ADMIN_ROLE_PERMISSIONS.DELETE) ?? false,
 	)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')

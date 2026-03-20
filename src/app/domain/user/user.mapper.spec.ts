@@ -45,7 +45,7 @@ describe('User Mapper', () => {
 			})
 
 			expect(user.permissions).toHaveLength(1)
-			expect(user.hasPermission('users', 'read')).toBe(true)
+			expect(user.hasPermission('admin:users:read')).toBe(true)
 		})
 
 		it('should create user with working hasRole method', () => {

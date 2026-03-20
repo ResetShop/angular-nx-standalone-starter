@@ -6,6 +6,4 @@ export interface IPermission {
 	readonly resource: string
 	readonly action: string
 	readonly identifier: string
-
-	matches(resource: string, action: string): boolean
 }

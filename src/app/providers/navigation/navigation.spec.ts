@@ -255,7 +255,7 @@ describe('Navigation Permission Filtering', () => {
 		})
 
 		TestBed.inject(AuthStore).updateCurrentUser(
-			createMockUser({ hasPermissionByIdentifier: (id: string) => id === 'admin:users:read' }),
+			createMockUser({ hasPermission: (id: string) => id === 'admin:users:read' }),
 		)
 
 		expect(service.sections()).toHaveLength(1)
@@ -309,7 +309,7 @@ describe('Navigation Permission Filtering', () => {
 		})
 
 		TestBed.inject(AuthStore).updateCurrentUser(
-			createMockUser({ hasPermissionByIdentifier: (id: string) => id === 'admin:roles:read' }),
+			createMockUser({ hasPermission: (id: string) => id === 'admin:roles:read' }),
 		)
 
 		const sections = service.sections()
