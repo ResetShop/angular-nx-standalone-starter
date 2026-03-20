@@ -1,3 +1,4 @@
+import { ADMIN_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
 import type { UserRoleRepository } from '../../user/interfaces'
 import type {
@@ -8,7 +9,6 @@ import type {
 	RoleRepository,
 	UpdateRoleParams,
 } from './interfaces'
-import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants'
 
 export const ROLE_ERRORS = {
 	NOT_FOUND: 'Role not found',

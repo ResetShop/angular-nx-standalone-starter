@@ -1,5 +1,6 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas'
 import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas'
+import { ADMIN_USER_PERMISSIONS } from '@contracts/permission/permission.constants'
 import {
 	createUserRequestSchema,
 	createUserResponseSchema,
@@ -10,7 +11,6 @@ import {
 import { createRoute } from '@hono/zod-openapi'
 import { requirePermission } from '../../middlewares/verify-permissions.middleware'
 import { commonResponses, idParamSchema } from '../../openapi-config'
-import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants'
 
 export const listUsersRoute = createRoute({
 	method: 'get',

@@ -16,7 +16,6 @@ function createMockGroups(): PermissionGroup[] {
 					resource: 'users',
 					action: 'read',
 					identifier: 'users:read',
-					matches: () => false,
 				},
 				{
 					id: 2,
@@ -26,7 +25,6 @@ function createMockGroups(): PermissionGroup[] {
 					resource: 'users',
 					action: 'write',
 					identifier: 'users:write',
-					matches: () => false,
 				},
 			],
 		},
@@ -41,7 +39,6 @@ function createMockGroups(): PermissionGroup[] {
 					resource: 'roles',
 					action: 'read',
 					identifier: 'roles:read',
-					matches: () => false,
 				},
 			],
 		},

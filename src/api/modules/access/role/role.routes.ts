@@ -4,6 +4,7 @@ import {
 	paginationParamsSchema,
 	searchPaginationSchema,
 } from '@contracts/common/pagination.schemas'
+import { ADMIN_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
 import {
 	assignPermissionsRequestSchema,
 	createRoleRequestSchema,
@@ -15,7 +16,6 @@ import {
 import { createRoute } from '@hono/zod-openapi'
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware'
 import { commonResponses, idParamSchema } from '../../../openapi-config'
-import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants'
 
 export const listRolesRoute = createRoute({
 	method: 'get',

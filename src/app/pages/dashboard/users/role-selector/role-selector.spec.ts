@@ -16,7 +16,6 @@ function createMockRoles(): IRole[] {
 			updatedAt: null,
 			permissions: [],
 			hasPermission: () => false,
-			hasPermission: () => false,
 		},
 		{
 			id: 2,
@@ -28,7 +27,6 @@ function createMockRoles(): IRole[] {
 			updatedAt: null,
 			permissions: [],
 			hasPermission: () => false,
-			hasPermission: () => false,
 		},
 		{
 			id: 3,
@@ -39,7 +37,6 @@ function createMockRoles(): IRole[] {
 			createdAt: null,
 			updatedAt: null,
 			permissions: [],
-			hasPermission: () => false,
 			hasPermission: () => false,
 		},
 	]

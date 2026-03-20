@@ -1,3 +1,4 @@
+import { ADMIN_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -6,7 +7,6 @@ import { InMemoryContainer } from '../../../container/container.mock'
 import type { PaginatedResponse } from '../../../interfaces'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
 import type { ListRolesParams, PermissionData, RoleData } from './interfaces'
-import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants'
 import roleController from './role.controller'
 import { InvalidPermissionIdsError, ROLE_ERRORS } from './role.service'
 

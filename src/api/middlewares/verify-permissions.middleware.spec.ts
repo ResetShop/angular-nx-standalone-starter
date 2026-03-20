@@ -1,10 +1,10 @@
+import { permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../container/container'
 import { InMemoryContainer } from '../container/container.mock'
 import type { PermissionData } from '../modules/access/role/interfaces'
-import { permission } from '../modules/user/permission-types'
 import type { AuthenticatedContext } from './verify-access-token.middleware'
 import { requireAllPermissions, requireAnyPermission, requirePermission } from './verify-permissions.middleware'
 

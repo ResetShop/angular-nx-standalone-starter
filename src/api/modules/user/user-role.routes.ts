@@ -1,11 +1,11 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas'
 import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas'
+import { ADMIN_USER_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
 import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas'
 import { assignRoleToUserRequestSchema, replaceUserRolesRequestSchema } from '@contracts/user/user.schemas'
 import { createRoute, z } from '@hono/zod-openapi'
 import { requireAllPermissions, requirePermission } from '../../middlewares/verify-permissions.middleware'
 import { commonResponses } from '../../openapi-config'
-import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants'
 
 const userIdField = z.coerce.number().int().positive().openapi({ description: 'User ID', example: 1 })
 
