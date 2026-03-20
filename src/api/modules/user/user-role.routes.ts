@@ -1,6 +1,6 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas'
 import { paginatedResponseSchema, paginationParamsSchema } from '@contracts/common/pagination.schemas'
-import { ADMIN_USER_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/permission.constants'
 import { permissionDataSchema, roleDataSchema } from '@contracts/role/role.schemas'
 import { assignRoleToUserRequestSchema, replaceUserRolesRequestSchema } from '@contracts/user/user.schemas'
 import { createRoute, z } from '@hono/zod-openapi'
@@ -22,7 +22,7 @@ export const getUserRolesRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Get user roles',
 	description: 'Get all roles assigned to a user with pagination.',
-	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.USER_ROLES_READ)] as const,
 	request: {
 		params: userIdParamSchema,
 		query: paginationParamsSchema,
@@ -50,7 +50,7 @@ export const getUserPermissionsRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Get user permissions',
 	description: 'Get all permissions for a user (aggregated from all their roles).',
-	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.USER_ROLES_READ)] as const,
 	request: { params: userIdParamSchema },
 	responses: {
 		200: {
@@ -75,7 +75,7 @@ export const assignRoleRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Assign role to user',
 	description: 'Assign a role to a user.',
-	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.ASSIGN)] as const,
+	middleware: [requirePermission(Permission.USER_ROLES_ASSIGN)] as const,
 	request: {
 		params: userIdParamSchema,
 		body: {
@@ -110,9 +110,7 @@ export const replaceUserRolesRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Replace user roles',
 	description: 'Replace all role assignments for a user.',
-	middleware: [
-		requireAllPermissions([ADMIN_USER_ROLE_PERMISSIONS.ASSIGN, ADMIN_USER_ROLE_PERMISSIONS.REMOVE]),
-	] as const,
+	middleware: [requireAllPermissions([Permission.USER_ROLES_ASSIGN, Permission.USER_ROLES_REMOVE])] as const,
 	request: {
 		params: userIdParamSchema,
 		body: {
@@ -143,7 +141,7 @@ export const removeRoleRoute = createRoute({
 	tags: ['User Roles'],
 	summary: 'Remove role from user',
 	description: 'Remove a role from a user.',
-	middleware: [requirePermission(ADMIN_USER_ROLE_PERMISSIONS.REMOVE)] as const,
+	middleware: [requirePermission(Permission.USER_ROLES_REMOVE)] as const,
 	request: { params: userIdAndRoleIdParamSchema },
 	responses: {
 		200: {

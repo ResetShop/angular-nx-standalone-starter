@@ -4,7 +4,7 @@ import {
 	paginationParamsSchema,
 	searchPaginationSchema,
 } from '@contracts/common/pagination.schemas'
-import { ADMIN_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/permission.constants'
 import {
 	assignPermissionsRequestSchema,
 	createRoleRequestSchema,
@@ -23,7 +23,7 @@ export const listRolesRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'List all roles',
 	description: 'Get all roles with pagination and optional search.',
-	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.ROLES_READ)] as const,
 	request: { query: searchPaginationSchema },
 	responses: {
 		200: {
@@ -40,7 +40,7 @@ export const getRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Get role by ID',
 	description: 'Get a single role by its ID.',
-	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.ROLES_READ)] as const,
 	request: { params: idParamSchema },
 	responses: {
 		200: {
@@ -65,7 +65,7 @@ export const createRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Create a role',
 	description: 'Create a new role.',
-	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.CREATE)] as const,
+	middleware: [requirePermission(Permission.ROLES_CREATE)] as const,
 	request: {
 		body: {
 			content: { 'application/json': { schema: createRoleRequestSchema } },
@@ -91,7 +91,7 @@ export const updateRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Update a role',
 	description: 'Update an existing role.',
-	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.UPDATE)] as const,
+	middleware: [requirePermission(Permission.ROLES_UPDATE)] as const,
 	request: {
 		params: idParamSchema,
 		body: {
@@ -126,7 +126,7 @@ export const deleteRoleRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Delete a role',
 	description: 'Delete an existing role.',
-	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.DELETE)] as const,
+	middleware: [requirePermission(Permission.ROLES_DELETE)] as const,
 	request: { params: idParamSchema },
 	responses: {
 		200: {
@@ -155,7 +155,7 @@ export const getRolePermissionsRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Get role permissions',
 	description: 'Get all permissions assigned to a role with pagination.',
-	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.ROLES_READ)] as const,
 	request: {
 		params: idParamSchema,
 		query: paginationParamsSchema,
@@ -183,7 +183,7 @@ export const assignPermissionsRoute = createRoute({
 	tags: ['Roles'],
 	summary: 'Assign permissions to role',
 	description: 'Replace all permissions for a role. Full replacement operation.',
-	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.UPDATE)] as const,
+	middleware: [requirePermission(Permission.ROLES_UPDATE)] as const,
 	request: {
 		params: idParamSchema,
 		body: {
