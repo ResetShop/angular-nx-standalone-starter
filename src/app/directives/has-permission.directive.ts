@@ -15,7 +15,7 @@ import { AuthStore } from '@store/auth/auth.store'
  * ```
  */
 @Directive({
-	// eslint-disable-next-line @angular-eslint/directive-selector
+	// eslint-disable-next-line @angular-eslint/directive-selector -- intentional: structural directive uses *hasPermission without app prefix for clean template syntax
 	selector: '[hasPermission]',
 	standalone: true,
 })
