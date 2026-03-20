@@ -122,4 +122,40 @@ describe('resolveNavigationConfig', () => {
 		expect(result.sections[0].id).toBe('settings')
 		expect(result.sections[0].name).toBe('Ajustes')
 	})
+
+	it('should resolve 3-level deep nesting correctly', () => {
+		const input: NavigationInputConfig = {
+			sections: [
+				{
+					id: 's1',
+					name: 'Section',
+					basePath: 'app',
+					routes: [
+						{
+							id: 'level1',
+							name: 'Level 1',
+							segment: 'a',
+							children: [
+								{
+									id: 'level2',
+									name: 'Level 2',
+									segment: 'b',
+									children: [{ id: 'level3', name: 'Level 3', segment: 'c' }],
+								},
+							],
+						},
+					],
+				},
+			],
+		}
+
+		const result = resolveNavigationConfig(input)
+		const level1 = result.sections[0].routes[0]
+		const level2 = 'children' in level1 ? level1.children[0] : null
+		const level3 = level2 && 'children' in level2 ? level2.children[0] : null
+
+		expect(level3?.route).toBe('app/a/b/c')
+		expect(level2?.route).toBe('app/a/b/c')
+		expect(level1.route).toBe('app/a/b/c')
+	})
 })

@@ -72,7 +72,7 @@ export interface NavigationConfig {
 export const NAVIGATION_CONFIG = new InjectionToken<NavigationConfig>('Navigation Configuration')
 
 // ============================================================================
-// Authoring types — used only in navigation.config.ts and the resolver
+// Authoring types — segment-based config that gets resolved into runtime types
 // ============================================================================
 
 /**

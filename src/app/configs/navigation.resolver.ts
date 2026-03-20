@@ -34,6 +34,7 @@ function resolveRoutes(configs: NavigationRouteConfig[], prefix: string): Naviga
 				route: resolvedChildren[0].route,
 				...(config.icon && { icon: config.icon }),
 				...(config.permission && { permission: config.permission }),
+				// Safe cast: this branch is only reached when config.children.length > 0 (line 29)
 				children: resolvedChildren as [NavigationRoute, ...NavigationRoute[]],
 			}
 		}
