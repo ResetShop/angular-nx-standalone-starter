@@ -56,12 +56,24 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 				return throwError(() => error)
 			}
 
+			// Logout is a public endpoint — never refresh on its behalf
+			if (pathname.startsWith('/api/auth/logout')) {
+				return throwError(() => error)
+			}
+
 			// If a refresh is already in progress, wait for it then retry
 			if (authStore.isTokenRefreshing()) {
 				return isRefreshing$.pipe(
 					filter((refreshing) => !refreshing),
 					take(1),
-					switchMap(() => next(req)),
+					switchMap(() => {
+						// If user was logged out during refresh, fail immediately
+						// instead of retrying (avoids cascading 401 retry storms)
+						if (!authStore.isAuthenticated()) {
+							return throwError(() => error)
+						}
+						return next(req)
+					}),
 				)
 			}
 

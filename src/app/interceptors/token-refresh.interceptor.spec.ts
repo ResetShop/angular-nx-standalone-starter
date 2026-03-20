@@ -9,6 +9,7 @@ import { tokenRefreshInterceptor } from './token-refresh.interceptor'
 
 type AuthStoreMock = {
 	isTokenRefreshing: ReturnType<typeof signal<boolean>>
+	isAuthenticated: ReturnType<typeof signal<boolean>>
 	startTokenRefresh: MockFn
 	completeTokenRefresh: MockFn
 	failTokenRefresh: MockFn
@@ -19,6 +20,7 @@ type AuthStoreMock = {
 function createAuthStoreMock(): AuthStoreMock {
 	return {
 		isTokenRefreshing: signal(false),
+		isAuthenticated: signal(true),
 		startTokenRefresh: fn(),
 		completeTokenRefresh: fn(),
 		failTokenRefresh: fn(),
@@ -102,6 +104,17 @@ describe('tokenRefreshInterceptor', () => {
 			expect(authStoreMock.logout.calls).toHaveLength(0)
 		})
 
+		it('should pass through 401 on logout endpoint without refreshing', () => {
+			let error: HttpErrorResponse | undefined
+			http.post('/api/auth/logout', {}).subscribe({ error: (e) => (error = e) })
+
+			flush401(httpMock, '/api/auth/logout')
+
+			expect(error?.status).toBe(401)
+			expect(authStoreMock.startTokenRefresh.calls).toHaveLength(0)
+			expect(authStoreMock.logout.calls).toHaveLength(0)
+		})
+
 		it('should refresh token and retry the original request on 401', () => {
 			authStoreMock.refreshToken.mockReturnValue(of({}))
 
@@ -167,6 +180,25 @@ describe('tokenRefreshInterceptor', () => {
 			httpMock.expectOne('/api/users').flush({ data: 'after-concurrent-refresh' })
 
 			expect(result).toEqual({ data: 'after-concurrent-refresh' })
+			expect(authStoreMock.startTokenRefresh.calls).toHaveLength(0)
+		})
+
+		it('should fail immediately when user was logged out during concurrent refresh', () => {
+			authStoreMock.isTokenRefreshing.set(true)
+
+			let error: HttpErrorResponse | undefined
+			http.get('/api/users').subscribe({ error: (e) => (error = e) })
+
+			// Original request fails with 401
+			flush401(httpMock, '/api/users')
+
+			// Simulate refresh failing and user being logged out
+			authStoreMock.isAuthenticated.set(false)
+			authStoreMock.isTokenRefreshing.set(false)
+			TestBed.tick()
+
+			// Should fail immediately — no retry attempt
+			expect(error?.status).toBe(401)
 			expect(authStoreMock.startTokenRefresh.calls).toHaveLength(0)
 		})
 	})
