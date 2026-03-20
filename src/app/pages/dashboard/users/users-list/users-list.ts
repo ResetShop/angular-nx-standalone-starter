@@ -17,6 +17,7 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import { ADMIN_USER_PERMISSIONS } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
+import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
@@ -36,6 +37,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		DataTable,
 		DataTableCellDef,
 		EditUserDrawer,
+		HasPermissionDirective,
 		PageShell,
 		Pagination,
 	],
@@ -55,9 +57,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					placeholder="Search users..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				@if (canCreate()) {
-					<button (click)="createDrawer.open()" appButton>Create User</button>
-				}
+				<button (click)="createDrawer.open()" *appHasPermission="PERMISSIONS.CREATE" appButton>Create User</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
@@ -69,14 +69,25 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
 					<div class="flex gap-2">
-						@if (canUpdate()) {
-							<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-						}
-						@if (canDelete()) {
-							<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-								Delete
-							</button>
-						}
+						<button
+							(click)="editDrawer.open(row.id)"
+							*appHasPermission="PERMISSIONS.UPDATE"
+							appButton
+							variant="ghost"
+							size="sm"
+						>
+							Edit
+						</button>
+						<button
+							(click)="confirmDelete(row)"
+							*appHasPermission="PERMISSIONS.DELETE"
+							appButton
+							variant="ghost"
+							size="sm"
+							class="text-destructive"
+						>
+							Delete
+						</button>
 					</div>
 				</ng-template>
 			</app-data-table>
@@ -109,18 +120,9 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
 	protected readonly UserStatus = UserStatus
+	protected readonly PERMISSIONS = ADMIN_USER_PERMISSIONS
 
 	private readonly authStore = inject(AuthStore)
-
-	protected readonly canCreate = computed(
-		() => this.authStore.currentUser()?.hasPermission(ADMIN_USER_PERMISSIONS.CREATE) ?? false,
-	)
-	protected readonly canUpdate = computed(
-		() => this.authStore.currentUser()?.hasPermission(ADMIN_USER_PERMISSIONS.UPDATE) ?? false,
-	)
-	protected readonly canDelete = computed(
-		() => this.authStore.currentUser()?.hasPermission(ADMIN_USER_PERMISSIONS.DELETE) ?? false,
-	)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('User deleted successfully.')
@@ -148,7 +150,8 @@ export default class UsersList {
 				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
 			},
 		]
-		if (this.canUpdate() || this.canDelete()) {
+		const user = this.authStore.currentUser()
+		if (user?.hasPermission(ADMIN_USER_PERMISSIONS.UPDATE) || user?.hasPermission(ADMIN_USER_PERMISSIONS.DELETE)) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base
