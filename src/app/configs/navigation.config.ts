@@ -4,8 +4,7 @@ import { featherActivity, featherHome, featherShield, featherUsers } from '@ng-i
 export const navigationConfig: NavigationConfig = {
 	sections: [
 		{
-			id: 'settings',
-			name: 'Ajustes y mantenimiento',
+			id: 'home',
 			routes: [
 				{
 					id: 'welcome',
@@ -13,6 +12,12 @@ export const navigationConfig: NavigationConfig = {
 					route: 'dashboard/welcome',
 					icon: { featherHome },
 				},
+			],
+		},
+		{
+			id: 'settings',
+			name: 'Ajustes y mantenimiento',
+			routes: [
 				{
 					id: 'health',
 					name: 'Salud',

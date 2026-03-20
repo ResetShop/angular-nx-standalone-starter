@@ -9,7 +9,7 @@ export interface BreadcrumbItem {
 
 export interface NavigationSection {
 	id: string
-	name: string
+	name?: string
 	routes: NavigationRoute[]
 }
 
