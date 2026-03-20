@@ -49,6 +49,7 @@ export const AuthStore = signalStore(
 										currentUser: user,
 										mustChangePassword: response.mustChangePassword,
 										isLoggingIn: false,
+										isTokenRefreshing: false,
 										loginError: null,
 										networkError: false,
 									})
