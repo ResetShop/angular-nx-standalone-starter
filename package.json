@@ -31,7 +31,9 @@
 		"drizzle:create-migrations": "drizzle-kit generate",
 		"drizzle:push-migrations": "drizzle-kit push",
 		"drizzle:seed": "tsx ./src/db/seed.ts",
-		"drizzle:seed:local": "node --env-file=.env --import tsx ./src/db/seed.ts"
+		"drizzle:seed:local": "node --env-file=.env --import tsx ./src/db/seed.ts",
+		"sync:permissions": "tsx ./src/db/sync-permissions.ts",
+		"sync:permissions:local": "node --env-file=.env --import tsx ./src/db/sync-permissions.ts"
 	},
 	"private": true,
 	"dependencies": {

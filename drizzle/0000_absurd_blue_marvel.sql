@@ -26,6 +26,7 @@ CREATE TABLE "permission" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
+	"module" text NOT NULL,
 	"resource" text NOT NULL,
 	"action" text NOT NULL,
 	"created_at" timestamp DEFAULT now(),
@@ -39,7 +40,7 @@ CREATE TABLE "refresh_token" (
 	"token_family" text NOT NULL,
 	"token_hash" text NOT NULL,
 	"expires_at" timestamp NOT NULL,
-	"is_revoked" boolean DEFAULT false,
+	"is_revoked" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"revoked_at" timestamp,
 	CONSTRAINT "refresh_token_token_hash_unique" UNIQUE("token_hash")
@@ -98,5 +99,7 @@ ALTER TABLE "user_role" ADD CONSTRAINT "user_role_role_id_role_id_fk" FOREIGN KE
 CREATE INDEX "idx_permission_name" ON "permission" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "refresh_token_user_id_idx" ON "refresh_token" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "refresh_token_expires_at_idx" ON "refresh_token" USING btree ("expires_at");--> statement-breakpoint
+CREATE INDEX "refresh_token_token_family_idx" ON "refresh_token" USING btree ("token_family");--> statement-breakpoint
 CREATE INDEX "idx_role_code" ON "role" USING btree ("code");--> statement-breakpoint
+CREATE INDEX "user_status_idx" ON "user" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "user_role_user_id_idx" ON "user_role" USING btree ("user_id");

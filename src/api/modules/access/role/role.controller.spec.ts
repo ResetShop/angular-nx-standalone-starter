@@ -1,4 +1,4 @@
-import { Permission } from '@contracts/permission/permission.constants'
+import { permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -53,7 +53,7 @@ describe('Role Controller', () => {
 	const allRolePermissions: PermissionData[] = [
 		{
 			id: 1,
-			name: Permission.ADMIN_ROLES_READ,
+			name: permission('admin:roles:read'),
 			description: 'Read roles',
 			module: 'admin',
 			resource: 'roles',
@@ -61,7 +61,7 @@ describe('Role Controller', () => {
 		},
 		{
 			id: 2,
-			name: Permission.ADMIN_ROLES_CREATE,
+			name: permission('admin:roles:create'),
 			description: 'Create roles',
 			module: 'admin',
 			resource: 'roles',
@@ -69,7 +69,7 @@ describe('Role Controller', () => {
 		},
 		{
 			id: 3,
-			name: Permission.ADMIN_ROLES_UPDATE,
+			name: permission('admin:roles:update'),
 			description: 'Update roles',
 			module: 'admin',
 			resource: 'roles',
@@ -77,7 +77,7 @@ describe('Role Controller', () => {
 		},
 		{
 			id: 4,
-			name: Permission.ADMIN_ROLES_DELETE,
+			name: permission('admin:roles:delete'),
 			description: 'Delete roles',
 			module: 'admin',
 			resource: 'roles',

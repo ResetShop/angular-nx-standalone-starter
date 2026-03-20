@@ -135,6 +135,7 @@ These are non-negotiable rules. Violations require explicit justification.
 | `TestBed.flushEffects()`     | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                 | API deprecation               |
 | Storybook stories            | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                         | Visual testing, documentation |
 | External repo issues         | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette          |
+| Permission string literals   | Every file using permission identifier strings must have a test validating them against `PERMISSION_DEFINITIONS`           | Catches typos, stale refs     |
 
 ### Object.freeze() Instead of Enums
 

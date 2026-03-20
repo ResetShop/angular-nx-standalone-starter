@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { ToastBridgeService } from '@components/toast/toast-bridge.service'
+import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
@@ -221,5 +222,15 @@ describe('Dashboard', () => {
 			fixture.detectChanges()
 			expect(screen.queryByRole('status')).not.toBeInTheDocument()
 		})
+	})
+})
+
+describe('permission identifiers', () => {
+	const validIdentifiers = new Set(PERMISSION_DEFINITIONS.map((p) => p.identifier))
+
+	it('should use valid permission identifiers', () => {
+		expect(validIdentifiers.has('admin:users:read')).toBe(true)
+		expect(validIdentifiers.has('admin:permissions:read')).toBe(true)
+		expect(validIdentifiers.has('admin:roles:read')).toBe(true)
 	})
 })
