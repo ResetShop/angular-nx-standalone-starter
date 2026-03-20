@@ -56,7 +56,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					placeholder="Search users..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *appHasPermission="'admin:users:create'" appButton>Create User</button>
+				<button (click)="createDrawer.open()" *hasPermission="'admin:users:create'" appButton>Create User</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
@@ -70,7 +70,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					<div class="flex gap-2">
 						<button
 							(click)="editDrawer.open(row.id)"
-							*appHasPermission="'admin:users:update'"
+							*hasPermission="'admin:users:update'"
 							appButton
 							variant="ghost"
 							size="sm"
@@ -79,7 +79,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 						</button>
 						<button
 							(click)="confirmDelete(row)"
-							*appHasPermission="'admin:users:delete'"
+							*hasPermission="'admin:users:delete'"
 							appButton
 							variant="ghost"
 							size="sm"
