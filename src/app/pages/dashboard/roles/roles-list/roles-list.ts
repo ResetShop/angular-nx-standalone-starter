@@ -15,7 +15,6 @@ import { DataTable } from '@components/data-table/data-table'
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
-import { Permission } from '@contracts/permission/permission.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
 import { AuthStore } from '@store/auth/auth.store'
@@ -56,9 +55,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					placeholder="Search roles..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *appHasPermission="Permission.ADMIN_ROLES_CREATE" appButton>
-					Create Role
-				</button>
+				<button (click)="createDrawer.open()" *appHasPermission="'admin:roles:create'" appButton>Create Role</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
@@ -70,14 +67,14 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					<div class="flex gap-2">
 						<button
 							(click)="editDrawer.open(row.id)"
-							*appHasPermission="Permission.ADMIN_ROLES_UPDATE"
+							*appHasPermission="'admin:roles:update'"
 							appButton
 							variant="ghost"
 							size="sm"
 						>
 							Edit
 						</button>
-						<ng-container *appHasPermission="Permission.ADMIN_ROLES_DELETE">
+						<ng-container *appHasPermission="'admin:roles:delete'">
 							@if (row.removable) {
 								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
 									Delete
@@ -115,7 +112,6 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore)
-	protected readonly Permission = Permission
 
 	private readonly authStore = inject(AuthStore)
 
@@ -141,7 +137,7 @@ export default class RolesList {
 			{ accessorKey: 'description', header: 'Description' },
 		]
 		const user = this.authStore.currentUser()
-		if (user?.hasPermission(Permission.ADMIN_ROLES_UPDATE) || user?.hasPermission(Permission.ADMIN_ROLES_DELETE)) {
+		if (user?.hasPermission('admin:roles:update') || user?.hasPermission('admin:roles:delete')) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base
