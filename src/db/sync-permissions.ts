@@ -22,7 +22,7 @@ function computeMissing(existingNames: Set<string>) {
 }
 
 function computeOrphaned(existingNames: Set<string>) {
-	const codeNames = new Set(PERMISSIONS_SEED_DATA.map((p) => p.name))
+	const codeNames = new Set<string>(PERMISSIONS_SEED_DATA.map((p) => p.name))
 	return [...existingNames].filter((name) => !codeNames.has(name))
 }
 
