@@ -10,31 +10,64 @@
  * 3. Run the seed script — PERMISSIONS_SEED_DATA derives everything else automatically
  */
 
+// ============================================================================
+// Branded type
+// ============================================================================
+
+/**
+ * Branded type for permission identifiers in module:resource:action format.
+ * Ensures compile-time safety when passing identifiers to backend middleware.
+ */
+export type PermissionName = string & { readonly __brand: 'PermissionName' }
+
+const PERMISSION_PATTERN = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/
+
+/**
+ * Validates and brands a permission identifier string.
+ * @throws Error if format is invalid
+ */
+export function permission(name: string): PermissionName {
+	if (!PERMISSION_PATTERN.test(name)) {
+		throw new Error(
+			`Invalid permission name: "${name}". Must be in module:resource:action format (e.g., 'admin:users:create')`,
+		)
+	}
+	return name as PermissionName
+}
+
+// ============================================================================
+// Permission groups
+// ============================================================================
+
 export const ADMIN_PERMISSION_PERMISSIONS = Object.freeze({
-	READ: 'admin:permissions:read',
+	READ: permission('admin:permissions:read'),
 } as const)
 
 export const ADMIN_USER_PERMISSIONS = Object.freeze({
-	CREATE: 'admin:users:create',
-	READ: 'admin:users:read',
-	UPDATE: 'admin:users:update',
-	DELETE: 'admin:users:delete',
-	RESET_PASSWORD: 'admin:users:reset_password',
-	DISABLE: 'admin:users:disable',
+	CREATE: permission('admin:users:create'),
+	READ: permission('admin:users:read'),
+	UPDATE: permission('admin:users:update'),
+	DELETE: permission('admin:users:delete'),
+	RESET_PASSWORD: permission('admin:users:reset_password'),
+	DISABLE: permission('admin:users:disable'),
 } as const)
 
 export const ADMIN_ROLE_PERMISSIONS = Object.freeze({
-	CREATE: 'admin:roles:create',
-	READ: 'admin:roles:read',
-	UPDATE: 'admin:roles:update',
-	DELETE: 'admin:roles:delete',
+	CREATE: permission('admin:roles:create'),
+	READ: permission('admin:roles:read'),
+	UPDATE: permission('admin:roles:update'),
+	DELETE: permission('admin:roles:delete'),
 } as const)
 
 export const ADMIN_USER_ROLE_PERMISSIONS = Object.freeze({
-	READ: 'admin:user_roles:read',
-	ASSIGN: 'admin:user_roles:assign',
-	REMOVE: 'admin:user_roles:remove',
+	READ: permission('admin:user_roles:read'),
+	ASSIGN: permission('admin:user_roles:assign'),
+	REMOVE: permission('admin:user_roles:remove'),
 } as const)
+
+// ============================================================================
+// Seed data
+// ============================================================================
 
 /**
  * Human-readable descriptions for each permission, used in DB seeding and UI display.
@@ -56,9 +89,6 @@ const PERMISSION_DESCRIPTIONS: Record<string, string> = {
 	[ADMIN_USER_ROLE_PERMISSIONS.REMOVE]: 'Remove roles from users',
 }
 
-/**
- * Parses a 3-part permission identifier into its components.
- */
 function parseIdentifier(identifier: string): { module: string; resource: string; action: string } {
 	const [module, resource, action] = identifier.split(':')
 	return { module, resource, action }
