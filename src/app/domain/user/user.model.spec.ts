@@ -192,47 +192,6 @@ describe('User', () => {
 	})
 
 	describe('hasPermission', () => {
-		it('should return true when user has permission', () => {
-			const roles = createTestRoles()
-			const user = createUser({
-				id: 1,
-				email: 'john@example.com',
-				firstName: 'John',
-				lastName: 'Doe',
-				roles,
-			})
-
-			expect(user.hasPermission('users', 'read')).toBe(true)
-			expect(user.hasPermission('posts', 'write')).toBe(true)
-		})
-
-		it('should return false when user does not have permission', () => {
-			const roles = createTestRoles()
-			const user = createUser({
-				id: 1,
-				email: 'john@example.com',
-				firstName: 'John',
-				lastName: 'Doe',
-				roles,
-			})
-
-			expect(user.hasPermission('settings', 'read')).toBe(false)
-		})
-
-		it('should return false for user with no roles', () => {
-			const user = createUser({
-				id: 1,
-				email: 'john@example.com',
-				firstName: 'John',
-				lastName: 'Doe',
-				roles: [],
-			})
-
-			expect(user.hasPermission('users', 'read')).toBe(false)
-		})
-	})
-
-	describe('hasPermissionByIdentifier', () => {
 		it('should return true when user has permission by identifier', () => {
 			const roles = createTestRoles()
 			const user = createUser({
@@ -243,8 +202,8 @@ describe('User', () => {
 				roles,
 			})
 
-			expect(user.hasPermissionByIdentifier('admin:users:read')).toBe(true)
-			expect(user.hasPermissionByIdentifier('admin:posts:write')).toBe(true)
+			expect(user.hasPermission('admin:users:read')).toBe(true)
+			expect(user.hasPermission('admin:posts:write')).toBe(true)
 		})
 
 		it('should return false when user does not have permission', () => {
@@ -257,7 +216,7 @@ describe('User', () => {
 				roles,
 			})
 
-			expect(user.hasPermissionByIdentifier('admin:settings:read')).toBe(false)
+			expect(user.hasPermission('admin:settings:read')).toBe(false)
 		})
 
 		it('should return false for user with no roles', () => {
@@ -269,7 +228,7 @@ describe('User', () => {
 				roles: [],
 			})
 
-			expect(user.hasPermissionByIdentifier('admin:users:read')).toBe(false)
+			expect(user.hasPermission('admin:users:read')).toBe(false)
 		})
 	})
 

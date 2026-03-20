@@ -20,8 +20,4 @@ export class Permission implements IPermission {
 	public get identifier(): string {
 		return `${this.module}:${this.resource}:${this.action}`
 	}
-
-	public matches(resource: string, action: string): boolean {
-		return this.resource === resource && this.action === action
-	}
 }

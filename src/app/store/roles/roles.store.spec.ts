@@ -208,7 +208,7 @@ describe('RolesStore', () => {
 			expect(selected?.id).toBe(1)
 			expect(selected?.name).toBe('Admin')
 			expect(selected?.permissions).toHaveLength(1)
-			expect(selected?.hasPermission('users', 'read')).toBe(true)
+			expect(selected?.hasPermission('admin:users:read')).toBe(true)
 			expect(store.isLoadingDetail()).toBe(false)
 		})
 

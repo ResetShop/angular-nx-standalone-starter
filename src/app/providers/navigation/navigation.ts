@@ -46,7 +46,7 @@ export class Navigation {
 	}
 
 	private filterRoute(route: NavigationRoute): NavigationRoute | null {
-		if (!this.hasPermission(route.permission)) {
+		if (!this.isPermitted(route.permission)) {
 			return null
 		}
 
@@ -61,11 +61,11 @@ export class Navigation {
 		return route
 	}
 
-	private hasPermission(permission: string | undefined): boolean {
+	private isPermitted(permission: string | undefined): boolean {
 		if (!permission) {
 			return true
 		}
-		return this.authStore.currentUser()?.hasPermissionByIdentifier(permission) ?? false
+		return this.authStore.currentUser()?.hasPermission(permission) ?? false
 	}
 
 	private buildBreadcrumbs(): BreadcrumbItem[] {

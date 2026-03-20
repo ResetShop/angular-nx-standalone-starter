@@ -39,7 +39,7 @@ describe('Role Mapper', () => {
 			expect(permission.description).toBeNull()
 		})
 
-		it('should create permission with working matches method', () => {
+		it('should create permission with correct identifier', () => {
 			const data: PermissionData = {
 				id: 1,
 				name: 'admin:users:read',
@@ -51,8 +51,7 @@ describe('Role Mapper', () => {
 
 			const permission = mapPermission(data)
 
-			expect(permission.matches('users', 'read')).toBe(true)
-			expect(permission.matches('users', 'write')).toBe(false)
+			expect(permission.identifier).toBe('admin:users:read')
 		})
 	})
 
@@ -131,9 +130,8 @@ describe('Role Mapper', () => {
 
 			const role = mapRole(data)
 
-			expect(role.hasPermission('users', 'read')).toBe(true)
-			expect(role.hasPermission('users', 'write')).toBe(false)
-			expect(role.hasPermissionByIdentifier('admin:users:read')).toBe(true)
+			expect(role.hasPermission('admin:users:read')).toBe(true)
+			expect(role.hasPermission('admin:users:write')).toBe(false)
 		})
 	})
 })

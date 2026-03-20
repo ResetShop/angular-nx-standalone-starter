@@ -53,7 +53,7 @@ describe('Auth Mapper', () => {
 			expect(user.lastName).toBe('Doe')
 			expect(user.roles).toHaveLength(1)
 			expect(user.roles[0].code).toBe('admin')
-			expect(user.hasPermission('users', 'read')).toBe(true)
+			expect(user.hasPermission('admin:users:read')).toBe(true)
 		})
 
 		it('should handle empty roles', () => {

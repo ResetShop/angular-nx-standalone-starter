@@ -55,7 +55,7 @@ describe('RolesList', () => {
 	})
 
 	function setUserWithAllPermissions(): void {
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermissionByIdentifier: () => true }))
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermission: () => true }))
 	}
 
 	async function renderComponent() {
@@ -251,7 +251,7 @@ describe('RolesList', () => {
 
 			TestBed.inject(AuthStore).updateCurrentUser(
 				createMockUser({
-					hasPermissionByIdentifier: (id: string) => allowedPermissions.includes(id),
+					hasPermission: (id: string) => allowedPermissions.includes(id),
 				}),
 			)
 			TestBed.tick()

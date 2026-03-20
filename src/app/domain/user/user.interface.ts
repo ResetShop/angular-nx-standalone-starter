@@ -11,7 +11,6 @@ export interface IUser {
 
 	get permissions(): readonly IPermission[]
 
-	hasPermission(resource: string, action: string): boolean
-	hasPermissionByIdentifier(identifier: string): boolean
+	hasPermission(identifier: string): boolean
 	hasRole(code: string): boolean
 }
