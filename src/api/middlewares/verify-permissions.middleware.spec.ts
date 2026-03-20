@@ -57,8 +57,22 @@ describe('Permissions Middleware', () => {
 
 	// Test permissions
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'admin:users:create', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'admin:users:delete', description: 'Delete users', resource: 'users', action: 'delete' },
+		{
+			id: 1,
+			name: 'admin:users:create',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{
+			id: 2,
+			name: 'admin:users:delete',
+			description: 'Delete users',
+			module: 'admin',
+			resource: 'users',
+			action: 'delete',
+		},
 	]
 
 	beforeEach(() => {

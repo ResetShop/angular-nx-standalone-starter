@@ -17,8 +17,15 @@ describe('Permission Controller', () => {
 	let app: Hono
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'admin:users:create', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'admin:users:read', description: 'View users', resource: 'users', action: 'read' },
+		{
+			id: 1,
+			name: 'admin:users:create',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{ id: 2, name: 'admin:users:read', description: 'View users', module: 'admin', resource: 'users', action: 'read' },
 	]
 
 	// Permission that grants access to the endpoint
@@ -26,6 +33,7 @@ describe('Permission Controller', () => {
 		id: 100,
 		name: ADMIN_PERMISSION_PERMISSIONS.READ,
 		description: 'View all system permissions',
+		module: 'admin',
 		resource: 'permissions',
 		action: 'read',
 	}

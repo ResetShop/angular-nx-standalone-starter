@@ -72,8 +72,22 @@ describe('UserRoleService', () => {
 	}
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'can_delete_users', description: 'Delete users', resource: 'users', action: 'delete' },
+		{
+			id: 1,
+			name: 'can_create_users',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{
+			id: 2,
+			name: 'can_delete_users',
+			description: 'Delete users',
+			module: 'admin',
+			resource: 'users',
+			action: 'delete',
+		},
 	]
 
 	beforeEach(() => {

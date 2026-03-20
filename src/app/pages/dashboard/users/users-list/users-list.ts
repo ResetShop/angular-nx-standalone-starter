@@ -15,7 +15,7 @@ import { DataTable } from '@components/data-table/data-table'
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
-import { PermissionId } from '@constants/permissions'
+import { ADMIN_USER_PERMISSIONS } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { AuthStore } from '@store/auth/auth.store'
@@ -119,13 +119,13 @@ export default class UsersList {
 	private readonly authStore = inject(AuthStore)
 
 	protected readonly canCreate = computed(
-		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.USERS_CREATE) ?? false,
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_USER_PERMISSIONS.CREATE) ?? false,
 	)
 	protected readonly canUpdate = computed(
-		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.USERS_UPDATE) ?? false,
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_USER_PERMISSIONS.UPDATE) ?? false,
 	)
 	protected readonly canDelete = computed(
-		() => this.authStore.currentUser()?.hasPermissionByIdentifier(PermissionId.USERS_DELETE) ?? false,
+		() => this.authStore.currentUser()?.hasPermissionByIdentifier(ADMIN_USER_PERMISSIONS.DELETE) ?? false,
 	)
 
 	private readonly deleteDialog = viewChild<ConfirmDialog>('deleteDialog')

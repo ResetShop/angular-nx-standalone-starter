@@ -39,15 +39,50 @@ describe('Role Controller', () => {
 	}
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
+		{
+			id: 1,
+			name: 'can_create_users',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
 	]
 
 	// All admin:roles:* permissions for testing
 	const allRolePermissions: PermissionData[] = [
-		{ id: 1, name: ADMIN_ROLE_PERMISSIONS.READ, description: 'Read roles', resource: 'roles', action: 'read' },
-		{ id: 2, name: ADMIN_ROLE_PERMISSIONS.CREATE, description: 'Create roles', resource: 'roles', action: 'create' },
-		{ id: 3, name: ADMIN_ROLE_PERMISSIONS.UPDATE, description: 'Update roles', resource: 'roles', action: 'update' },
-		{ id: 4, name: ADMIN_ROLE_PERMISSIONS.DELETE, description: 'Delete roles', resource: 'roles', action: 'delete' },
+		{
+			id: 1,
+			name: ADMIN_ROLE_PERMISSIONS.READ,
+			description: 'Read roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'read',
+		},
+		{
+			id: 2,
+			name: ADMIN_ROLE_PERMISSIONS.CREATE,
+			description: 'Create roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'create',
+		},
+		{
+			id: 3,
+			name: ADMIN_ROLE_PERMISSIONS.UPDATE,
+			description: 'Update roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'update',
+		},
+		{
+			id: 4,
+			name: ADMIN_ROLE_PERMISSIONS.DELETE,
+			description: 'Delete roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'delete',
+		},
 	]
 
 	beforeEach(() => {

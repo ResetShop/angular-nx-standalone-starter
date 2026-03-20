@@ -420,8 +420,8 @@ describe('RolesStore', () => {
 			const updatedPerms = createMockRoleWithPermissions({
 				id: 5,
 				permissions: [
-					{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' },
-					{ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' },
+					{ id: 1, name: 'Read Users', description: null, module: 'admin', resource: 'users', action: 'read' },
+					{ id: 2, name: 'Write Users', description: null, module: 'admin', resource: 'users', action: 'write' },
 				],
 			})
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of(updatedPerms))
