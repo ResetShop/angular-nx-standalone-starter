@@ -31,7 +31,7 @@ describe('Permission Controller', () => {
 	// Permission that grants access to the endpoint
 	const requiredPermission: PermissionData = {
 		id: 100,
-		name: Permission.PERMISSIONS_READ,
+		name: Permission.ADMIN_PERMISSIONS_READ,
 		description: 'View all system permissions',
 		module: 'admin',
 		resource: 'permissions',

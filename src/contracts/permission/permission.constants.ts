@@ -40,23 +40,23 @@ export function permission(name: string): PermissionName {
 
 const PERMISSION_DEFINITIONS = [
 	// Permission management
-	{ key: 'PERMISSIONS_READ', identifier: 'admin:permissions:read', description: 'View all system permissions' },
+	{ key: 'ADMIN_PERMISSIONS_READ', identifier: 'admin:permissions:read', description: 'View all system permissions' },
 	// User management
-	{ key: 'USERS_CREATE', identifier: 'admin:users:create', description: 'Create new users' },
-	{ key: 'USERS_READ', identifier: 'admin:users:read', description: 'View user details' },
-	{ key: 'USERS_UPDATE', identifier: 'admin:users:update', description: 'Update user information' },
-	{ key: 'USERS_DELETE', identifier: 'admin:users:delete', description: 'Delete users' },
-	{ key: 'USERS_RESET_PASSWORD', identifier: 'admin:users:reset_password', description: 'Reset user passwords' },
-	{ key: 'USERS_DISABLE', identifier: 'admin:users:disable', description: 'Manage user account status' },
+	{ key: 'ADMIN_USERS_CREATE', identifier: 'admin:users:create', description: 'Create new users' },
+	{ key: 'ADMIN_USERS_READ', identifier: 'admin:users:read', description: 'View user details' },
+	{ key: 'ADMIN_USERS_UPDATE', identifier: 'admin:users:update', description: 'Update user information' },
+	{ key: 'ADMIN_USERS_DELETE', identifier: 'admin:users:delete', description: 'Delete users' },
+	{ key: 'ADMIN_USERS_RESET_PASSWORD', identifier: 'admin:users:reset_password', description: 'Reset user passwords' },
+	{ key: 'ADMIN_USERS_DISABLE', identifier: 'admin:users:disable', description: 'Manage user account status' },
 	// Role management
-	{ key: 'ROLES_CREATE', identifier: 'admin:roles:create', description: 'Create new roles' },
-	{ key: 'ROLES_READ', identifier: 'admin:roles:read', description: 'View role details' },
-	{ key: 'ROLES_UPDATE', identifier: 'admin:roles:update', description: 'Update roles' },
-	{ key: 'ROLES_DELETE', identifier: 'admin:roles:delete', description: 'Delete roles' },
+	{ key: 'ADMIN_ROLES_CREATE', identifier: 'admin:roles:create', description: 'Create new roles' },
+	{ key: 'ADMIN_ROLES_READ', identifier: 'admin:roles:read', description: 'View role details' },
+	{ key: 'ADMIN_ROLES_UPDATE', identifier: 'admin:roles:update', description: 'Update roles' },
+	{ key: 'ADMIN_ROLES_DELETE', identifier: 'admin:roles:delete', description: 'Delete roles' },
 	// User-role assignment management
-	{ key: 'USER_ROLES_READ', identifier: 'admin:user_roles:read', description: 'View user role assignments' },
-	{ key: 'USER_ROLES_ASSIGN', identifier: 'admin:user_roles:assign', description: 'Assign roles to users' },
-	{ key: 'USER_ROLES_REMOVE', identifier: 'admin:user_roles:remove', description: 'Remove roles from users' },
+	{ key: 'ADMIN_USER_ROLES_READ', identifier: 'admin:user_roles:read', description: 'View user role assignments' },
+	{ key: 'ADMIN_USER_ROLES_ASSIGN', identifier: 'admin:user_roles:assign', description: 'Assign roles to users' },
+	{ key: 'ADMIN_USER_ROLES_REMOVE', identifier: 'admin:user_roles:remove', description: 'Remove roles from users' },
 ] as const
 
 // ============================================================================

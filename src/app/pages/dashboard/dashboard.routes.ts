@@ -32,7 +32,7 @@ export default [
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
 				canActivate: [permissionGuard],
-				data: { requiredPermission: Permission.USERS_READ },
+				data: { requiredPermission: Permission.ADMIN_USERS_READ },
 				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
 			},
 			{
@@ -44,7 +44,7 @@ export default [
 						title: 'Permisos',
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
 						canActivate: [permissionGuard],
-						data: { requiredPermission: Permission.PERMISSIONS_READ },
+						data: { requiredPermission: Permission.ADMIN_PERMISSIONS_READ },
 						providers: [providePermissions(), PermissionsStore],
 					},
 					{
@@ -52,7 +52,7 @@ export default [
 						title: 'Roles',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
 						canActivate: [permissionGuard],
-						data: { requiredPermission: Permission.ROLES_READ },
+						data: { requiredPermission: Permission.ADMIN_ROLES_READ },
 						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore, provideToast()],
 					},
 				],

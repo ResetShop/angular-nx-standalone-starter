@@ -57,7 +57,9 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					placeholder="Search users..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *appHasPermission="Permission.USERS_CREATE" appButton>Create User</button>
+				<button (click)="createDrawer.open()" *appHasPermission="Permission.ADMIN_USERS_CREATE" appButton>
+					Create User
+				</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
@@ -71,7 +73,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					<div class="flex gap-2">
 						<button
 							(click)="editDrawer.open(row.id)"
-							*appHasPermission="Permission.USERS_UPDATE"
+							*appHasPermission="Permission.ADMIN_USERS_UPDATE"
 							appButton
 							variant="ghost"
 							size="sm"
@@ -80,7 +82,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 						</button>
 						<button
 							(click)="confirmDelete(row)"
-							*appHasPermission="Permission.USERS_DELETE"
+							*appHasPermission="Permission.ADMIN_USERS_DELETE"
 							appButton
 							variant="ghost"
 							size="sm"
@@ -151,7 +153,7 @@ export default class UsersList {
 			},
 		]
 		const user = this.authStore.currentUser()
-		if (user?.hasPermission(Permission.USERS_UPDATE) || user?.hasPermission(Permission.USERS_DELETE)) {
+		if (user?.hasPermission(Permission.ADMIN_USERS_UPDATE) || user?.hasPermission(Permission.ADMIN_USERS_DELETE)) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base

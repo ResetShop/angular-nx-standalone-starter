@@ -53,7 +53,7 @@ describe('Role Controller', () => {
 	const allRolePermissions: PermissionData[] = [
 		{
 			id: 1,
-			name: Permission.ROLES_READ,
+			name: Permission.ADMIN_ROLES_READ,
 			description: 'Read roles',
 			module: 'admin',
 			resource: 'roles',
@@ -61,7 +61,7 @@ describe('Role Controller', () => {
 		},
 		{
 			id: 2,
-			name: Permission.ROLES_CREATE,
+			name: Permission.ADMIN_ROLES_CREATE,
 			description: 'Create roles',
 			module: 'admin',
 			resource: 'roles',
@@ -69,7 +69,7 @@ describe('Role Controller', () => {
 		},
 		{
 			id: 3,
-			name: Permission.ROLES_UPDATE,
+			name: Permission.ADMIN_ROLES_UPDATE,
 			description: 'Update roles',
 			module: 'admin',
 			resource: 'roles',
@@ -77,7 +77,7 @@ describe('Role Controller', () => {
 		},
 		{
 			id: 4,
-			name: Permission.ROLES_DELETE,
+			name: Permission.ADMIN_ROLES_DELETE,
 			description: 'Delete roles',
 			module: 'admin',
 			resource: 'roles',

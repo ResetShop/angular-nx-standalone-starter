@@ -243,13 +243,13 @@ export class RoleService {
 
 			// Only need to check for lockout if the user is assigned to the role being modified
 			if (userHasRole) {
-				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === Permission.ROLES_UPDATE)
+				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === Permission.ADMIN_ROLES_UPDATE)
 
 				if (!newPermissionsIncludeUpdate) {
 					// Check if user has UPDATE permission from other roles
 					const currentRolePermissionNames = new Set(currentRolePermissions.data.map((p) => p.name))
 					const otherRolePermissions = userPermissions.filter((p) => !currentRolePermissionNames.has(p.name))
-					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === Permission.ROLES_UPDATE)
+					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === Permission.ADMIN_ROLES_UPDATE)
 
 					if (!hasUpdateFromOtherRole) {
 						throw new SelfLockoutError()
