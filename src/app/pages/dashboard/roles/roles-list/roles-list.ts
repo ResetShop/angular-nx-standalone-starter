@@ -55,7 +55,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					placeholder="Search roles..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *appHasPermission="'admin:roles:create'" appButton>Create Role</button>
+				<button (click)="createDrawer.open()" *hasPermission="'admin:roles:create'" appButton>Create Role</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
@@ -67,14 +67,14 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					<div class="flex gap-2">
 						<button
 							(click)="editDrawer.open(row.id)"
-							*appHasPermission="'admin:roles:update'"
+							*hasPermission="'admin:roles:update'"
 							appButton
 							variant="ghost"
 							size="sm"
 						>
 							Edit
 						</button>
-						<ng-container *appHasPermission="'admin:roles:delete'">
+						<ng-container *hasPermission="'admin:roles:delete'">
 							@if (row.removable) {
 								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
 									Delete
