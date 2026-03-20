@@ -234,4 +234,54 @@ describe('RolesList', () => {
 		expect(rolesApiMock.delete.calls).toHaveLength(1)
 		expect(rolesApiMock.delete.calls[0][0]).toBe(42)
 	})
+
+	describe('permission-conditional rendering', () => {
+		async function renderWithPermissions(allowedPermissions: string[]) {
+			const roles = [createMockRoleData({ removable: true })]
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
+
+			const view = await render(RolesList, {
+				providers: [
+					{ provide: RolesApi, useValue: rolesApiMock },
+					{ provide: PermissionsApi, useValue: permissionsApiMock },
+					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+					{ provide: Translation, useValue: mockTranslation },
+				],
+			})
+
+			TestBed.inject(AuthStore).updateCurrentUser(
+				createMockUser({
+					hasPermissionByIdentifier: (id: string) => allowedPermissions.includes(id),
+				}),
+			)
+			TestBed.tick()
+			await advanceTimersByTimeAsync(1000)
+			view.fixture.detectChanges()
+			return view
+		}
+
+		it('should hide create button when user lacks roles:create', async () => {
+			await renderWithPermissions(['roles:read', 'roles:update', 'roles:delete'])
+
+			expect(screen.queryByRole('button', { name: /create role/i })).not.toBeInTheDocument()
+		})
+
+		it('should hide edit button when user lacks roles:update', async () => {
+			await renderWithPermissions(['roles:read', 'roles:delete'])
+
+			expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+		})
+
+		it('should hide delete button when user lacks roles:delete', async () => {
+			await renderWithPermissions(['roles:read', 'roles:update'])
+
+			expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+		})
+
+		it('should not render actions column when user lacks both update and delete', async () => {
+			await renderWithPermissions(['roles:read', 'roles:create'])
+
+			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
+		})
+	})
 })
