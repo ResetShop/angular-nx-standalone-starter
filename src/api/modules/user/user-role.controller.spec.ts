@@ -1,4 +1,4 @@
-import { ADMIN_USER_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -48,7 +48,7 @@ describe('User Role Controller', () => {
 	const allUserRolePermissions: PermissionData[] = [
 		{
 			id: 1,
-			name: ADMIN_USER_ROLE_PERMISSIONS.READ,
+			name: Permission.USER_ROLES_READ,
 			description: 'Read user roles',
 			module: 'admin',
 			resource: 'user_roles',
@@ -56,7 +56,7 @@ describe('User Role Controller', () => {
 		},
 		{
 			id: 2,
-			name: ADMIN_USER_ROLE_PERMISSIONS.ASSIGN,
+			name: Permission.USER_ROLES_ASSIGN,
 			description: 'Assign roles',
 			module: 'admin',
 			resource: 'user_roles',
@@ -64,7 +64,7 @@ describe('User Role Controller', () => {
 		},
 		{
 			id: 3,
-			name: ADMIN_USER_ROLE_PERMISSIONS.REMOVE,
+			name: Permission.USER_ROLES_REMOVE,
 			description: 'Remove roles',
 			module: 'admin',
 			resource: 'user_roles',

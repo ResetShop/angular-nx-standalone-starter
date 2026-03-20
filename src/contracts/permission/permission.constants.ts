@@ -1,13 +1,12 @@
 /**
- * Permission identifiers using the 3-part format (module:resource:action).
+ * Permission definitions using the 3-part format (module:resource:action).
  *
  * Single source of truth for both backend middleware (requirePermission)
  * and frontend authorization (route guards, sidebar filtering, button visibility).
  *
  * To add a new permission:
- * 1. Add the identifier to the appropriate group below
- * 2. Add its description to PERMISSION_DESCRIPTIONS
- * 3. Run the seed script — PERMISSIONS_SEED_DATA derives everything else automatically
+ * 1. Add an entry to PERMISSION_DEFINITIONS with key, identifier, and description
+ * 2. Run the seed script — everything else is derived automatically
  */
 
 // ============================================================================
@@ -36,58 +35,53 @@ export function permission(name: string): PermissionName {
 }
 
 // ============================================================================
-// Permission groups
+// Permission definitions — the single array you edit to add new permissions
 // ============================================================================
 
-export const ADMIN_PERMISSION_PERMISSIONS = Object.freeze({
-	READ: permission('admin:permissions:read'),
-} as const)
+const PERMISSION_DEFINITIONS = [
+	// Permission management
+	{ key: 'PERMISSIONS_READ', identifier: 'admin:permissions:read', description: 'View all system permissions' },
+	// User management
+	{ key: 'USERS_CREATE', identifier: 'admin:users:create', description: 'Create new users' },
+	{ key: 'USERS_READ', identifier: 'admin:users:read', description: 'View user details' },
+	{ key: 'USERS_UPDATE', identifier: 'admin:users:update', description: 'Update user information' },
+	{ key: 'USERS_DELETE', identifier: 'admin:users:delete', description: 'Delete users' },
+	{ key: 'USERS_RESET_PASSWORD', identifier: 'admin:users:reset_password', description: 'Reset user passwords' },
+	{ key: 'USERS_DISABLE', identifier: 'admin:users:disable', description: 'Manage user account status' },
+	// Role management
+	{ key: 'ROLES_CREATE', identifier: 'admin:roles:create', description: 'Create new roles' },
+	{ key: 'ROLES_READ', identifier: 'admin:roles:read', description: 'View role details' },
+	{ key: 'ROLES_UPDATE', identifier: 'admin:roles:update', description: 'Update roles' },
+	{ key: 'ROLES_DELETE', identifier: 'admin:roles:delete', description: 'Delete roles' },
+	// User-role assignment management
+	{ key: 'USER_ROLES_READ', identifier: 'admin:user_roles:read', description: 'View user role assignments' },
+	{ key: 'USER_ROLES_ASSIGN', identifier: 'admin:user_roles:assign', description: 'Assign roles to users' },
+	{ key: 'USER_ROLES_REMOVE', identifier: 'admin:user_roles:remove', description: 'Remove roles from users' },
+] as const
 
-export const ADMIN_USER_PERMISSIONS = Object.freeze({
-	CREATE: permission('admin:users:create'),
-	READ: permission('admin:users:read'),
-	UPDATE: permission('admin:users:update'),
-	DELETE: permission('admin:users:delete'),
-	RESET_PASSWORD: permission('admin:users:reset_password'),
-	DISABLE: permission('admin:users:disable'),
-} as const)
+// ============================================================================
+// Derived lookup object
+// ============================================================================
 
-export const ADMIN_ROLE_PERMISSIONS = Object.freeze({
-	CREATE: permission('admin:roles:create'),
-	READ: permission('admin:roles:read'),
-	UPDATE: permission('admin:roles:update'),
-	DELETE: permission('admin:roles:delete'),
-} as const)
+type PermissionKey = (typeof PERMISSION_DEFINITIONS)[number]['key']
+type PermissionMap = { readonly [K in PermissionKey]: PermissionName }
 
-export const ADMIN_USER_ROLE_PERMISSIONS = Object.freeze({
-	READ: permission('admin:user_roles:read'),
-	ASSIGN: permission('admin:user_roles:assign'),
-	REMOVE: permission('admin:user_roles:remove'),
-} as const)
+/**
+ * Flat lookup object for all permission identifiers.
+ *
+ * @example
+ * ```typescript
+ * Permission.USERS_READ     // 'admin:users:read'
+ * Permission.ROLES_CREATE   // 'admin:roles:create'
+ * ```
+ */
+export const Permission: PermissionMap = Object.freeze(
+	Object.fromEntries(PERMISSION_DEFINITIONS.map((p) => [p.key, permission(p.identifier)])) as PermissionMap,
+)
 
 // ============================================================================
 // Seed data
 // ============================================================================
-
-/**
- * Human-readable descriptions for each permission, used in DB seeding and UI display.
- */
-const PERMISSION_DESCRIPTIONS: Record<string, string> = {
-	[ADMIN_PERMISSION_PERMISSIONS.READ]: 'View all system permissions',
-	[ADMIN_USER_PERMISSIONS.CREATE]: 'Create new users',
-	[ADMIN_USER_PERMISSIONS.READ]: 'View user details',
-	[ADMIN_USER_PERMISSIONS.UPDATE]: 'Update user information',
-	[ADMIN_USER_PERMISSIONS.DELETE]: 'Delete users',
-	[ADMIN_USER_PERMISSIONS.RESET_PASSWORD]: 'Reset user passwords',
-	[ADMIN_USER_PERMISSIONS.DISABLE]: 'Manage user account status',
-	[ADMIN_ROLE_PERMISSIONS.CREATE]: 'Create new roles',
-	[ADMIN_ROLE_PERMISSIONS.READ]: 'View role details',
-	[ADMIN_ROLE_PERMISSIONS.UPDATE]: 'Update roles',
-	[ADMIN_ROLE_PERMISSIONS.DELETE]: 'Delete roles',
-	[ADMIN_USER_ROLE_PERMISSIONS.READ]: 'View user role assignments',
-	[ADMIN_USER_ROLE_PERMISSIONS.ASSIGN]: 'Assign roles to users',
-	[ADMIN_USER_ROLE_PERMISSIONS.REMOVE]: 'Remove roles from users',
-}
 
 function parseIdentifier(identifier: string): { module: string; resource: string; action: string } {
 	const [module, resource, action] = identifier.split(':')
@@ -96,11 +90,11 @@ function parseIdentifier(identifier: string): { module: string; resource: string
 
 /**
  * All permission definitions for DB seeding.
- * Derived from the grouped constants above — module, resource, and action
- * are parsed from the identifier, descriptions come from PERMISSION_DESCRIPTIONS.
+ * Derived from PERMISSION_DEFINITIONS — module, resource, and action
+ * are parsed from the identifier.
  */
-export const PERMISSIONS_SEED_DATA = Object.entries(PERMISSION_DESCRIPTIONS).map(([identifier, description]) => ({
-	name: identifier,
-	description,
-	...parseIdentifier(identifier),
+export const PERMISSIONS_SEED_DATA = PERMISSION_DEFINITIONS.map((p) => ({
+	name: p.identifier,
+	description: p.description,
+	...parseIdentifier(p.identifier),
 }))

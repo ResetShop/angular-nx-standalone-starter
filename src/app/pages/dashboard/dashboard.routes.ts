@@ -1,9 +1,5 @@
 import { provideToast } from '@components/toast/toast.provider'
-import {
-	ADMIN_PERMISSION_PERMISSIONS,
-	ADMIN_ROLE_PERMISSIONS,
-	ADMIN_USER_PERMISSIONS,
-} from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/permission.constants'
 import { permissionGuard } from '@guards/permission.guard'
 import { NamedRoute } from '@interfaces/navigation'
 import Dashboard from '@pages/dashboard/dashboard'
@@ -36,7 +32,7 @@ export default [
 				title: 'Usuarios',
 				loadComponent: () => import('./users/users-list/users-list'),
 				canActivate: [permissionGuard],
-				data: { requiredPermission: ADMIN_USER_PERMISSIONS.READ },
+				data: { requiredPermission: Permission.USERS_READ },
 				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
 			},
 			{
@@ -48,7 +44,7 @@ export default [
 						title: 'Permisos',
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
 						canActivate: [permissionGuard],
-						data: { requiredPermission: ADMIN_PERMISSION_PERMISSIONS.READ },
+						data: { requiredPermission: Permission.PERMISSIONS_READ },
 						providers: [providePermissions(), PermissionsStore],
 					},
 					{
@@ -56,7 +52,7 @@ export default [
 						title: 'Roles',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
 						canActivate: [permissionGuard],
-						data: { requiredPermission: ADMIN_ROLE_PERMISSIONS.READ },
+						data: { requiredPermission: Permission.ROLES_READ },
 						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore, provideToast()],
 					},
 				],

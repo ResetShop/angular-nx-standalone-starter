@@ -1,8 +1,4 @@
-import {
-	ADMIN_PERMISSION_PERMISSIONS,
-	ADMIN_ROLE_PERMISSIONS,
-	ADMIN_USER_PERMISSIONS,
-} from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/permission.constants'
 import type { NavigationConfig } from '@interfaces/navigation'
 import { featherActivity, featherHome, featherShield, featherUsers } from '@ng-icons/feather-icons'
 
@@ -55,7 +51,7 @@ export const navigationConfig: NavigationConfig = {
 					name: 'Usuarios',
 					route: 'dashboard/users',
 					icon: { featherUsers },
-					permission: ADMIN_USER_PERMISSIONS.READ,
+					permission: Permission.USERS_READ,
 				},
 				{
 					id: 'authorization',
@@ -67,13 +63,13 @@ export const navigationConfig: NavigationConfig = {
 							id: 'roles',
 							name: 'Roles',
 							route: 'dashboard/authorization/roles',
-							permission: ADMIN_ROLE_PERMISSIONS.READ,
+							permission: Permission.ROLES_READ,
 						},
 						{
 							id: 'permissions',
 							name: 'Permisos',
 							route: 'dashboard/authorization/permissions',
-							permission: ADMIN_PERMISSION_PERMISSIONS.READ,
+							permission: Permission.PERMISSIONS_READ,
 						},
 					],
 				},

@@ -15,7 +15,7 @@ import { DataTable } from '@components/data-table/data-table'
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
-import { ADMIN_USER_PERMISSIONS } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
@@ -57,7 +57,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					placeholder="Search users..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *appHasPermission="PERMISSIONS.CREATE" appButton>Create User</button>
+				<button (click)="createDrawer.open()" *appHasPermission="Permission.USERS_CREATE" appButton>Create User</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
@@ -71,7 +71,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					<div class="flex gap-2">
 						<button
 							(click)="editDrawer.open(row.id)"
-							*appHasPermission="PERMISSIONS.UPDATE"
+							*appHasPermission="Permission.USERS_UPDATE"
 							appButton
 							variant="ghost"
 							size="sm"
@@ -80,7 +80,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 						</button>
 						<button
 							(click)="confirmDelete(row)"
-							*appHasPermission="PERMISSIONS.DELETE"
+							*appHasPermission="Permission.USERS_DELETE"
 							appButton
 							variant="ghost"
 							size="sm"
@@ -120,7 +120,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
 	protected readonly UserStatus = UserStatus
-	protected readonly PERMISSIONS = ADMIN_USER_PERMISSIONS
+	protected readonly Permission = Permission
 
 	private readonly authStore = inject(AuthStore)
 
@@ -151,7 +151,7 @@ export default class UsersList {
 			},
 		]
 		const user = this.authStore.currentUser()
-		if (user?.hasPermission(ADMIN_USER_PERMISSIONS.UPDATE) || user?.hasPermission(ADMIN_USER_PERMISSIONS.DELETE)) {
+		if (user?.hasPermission(Permission.USERS_UPDATE) || user?.hasPermission(Permission.USERS_DELETE)) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base
