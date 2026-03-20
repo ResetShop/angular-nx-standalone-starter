@@ -1,6 +1,6 @@
 /**
  * Vitest globalSetup — runs once before all test files in a separate process.
- * Pushes the DB schema to the test database and seeds base data.
+ * Drops all tables, pushes the DB schema, and seeds base data.
  * On teardown, truncates all tables.
  *
  * Seeding and truncation are delegated to db-helpers.ts to avoid duplicating
@@ -13,6 +13,7 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 	console.log('[Integration] Pushing schema to test database...')
 	const { pushSchema } = await import('drizzle-kit/api')
 	const { drizzle } = await import('drizzle-orm/node-postgres')
+	const { sql } = await import('drizzle-orm')
 
 	const allSchemaImports: Record<string, unknown> = {
 		...(await import('../../../db/schema/user')),
@@ -24,6 +25,30 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 	}
 
 	const db = drizzle(connectionString)
+
+	// Drop all tables first to avoid drizzle-kit introspection issues
+	// when diffing schema changes (known issue with pushSchema + parameterized queries)
+	await db.execute(sql`
+		DO $$ DECLARE
+			r RECORD;
+		BEGIN
+			FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+				EXECUTE 'DROP TABLE IF EXISTS "' || r.tablename || '" CASCADE';
+			END LOOP;
+		END $$;
+	`)
+
+	// Also drop custom enum types that drizzle-kit creates
+	await db.execute(sql`
+		DO $$ DECLARE
+			r RECORD;
+		BEGIN
+			FOR r IN (SELECT typname FROM pg_type WHERE typnamespace = 'public'::regnamespace AND typtype = 'e') LOOP
+				EXECUTE 'DROP TYPE IF EXISTS "' || r.typname || '" CASCADE';
+			END LOOP;
+		END $$;
+	`)
+
 	const pushResult = await pushSchema(allSchemaImports, db)
 
 	if (pushResult.warnings.length > 0) {
@@ -42,9 +67,8 @@ export async function setup(): Promise<void> {
 	await pushSchemaToTestDb(connectionString)
 
 	console.log('[Integration] Seeding base data...')
-	const { getTestDb, closeTestDb, truncateAllTables, seedBaseData } = await import('./db-helpers')
+	const { getTestDb, closeTestDb, seedBaseData } = await import('./db-helpers')
 	const db = getTestDb()
-	await truncateAllTables(db)
 	await seedBaseData(db)
 	await closeTestDb()
 	console.log('[Integration] Base data seeded successfully.')
