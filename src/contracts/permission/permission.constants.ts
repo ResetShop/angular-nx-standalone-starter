@@ -5,12 +5,12 @@
  * and frontend authorization (route guards, sidebar filtering, button visibility).
  *
  * To add a new permission:
- * 1. Add an entry to PERMISSION_DEFINITIONS with key, identifier, and description
- * 2. Run the seed script — everything else is derived automatically
+ * 1. Add an entry to PERMISSION_DEFINITIONS with identifier and description
+ * 2. Run `npm run sync:permissions` to insert it into the database
  */
 
 // ============================================================================
-// Branded type
+// Branded type and validation
 // ============================================================================
 
 /**
@@ -34,50 +34,38 @@ export function permission(name: string): PermissionName {
 	return name as PermissionName
 }
 
+/**
+ * Type guard that checks if a string is a valid permission identifier.
+ * Does not throw — returns false for invalid formats.
+ */
+export function isPermissionName(name: string): name is PermissionName {
+	return PERMISSION_PATTERN.test(name)
+}
+
 // ============================================================================
 // Permission definitions — the single array you edit to add new permissions
 // ============================================================================
 
-const PERMISSION_DEFINITIONS = [
+export const PERMISSION_DEFINITIONS = [
 	// Permission management
-	{ key: 'ADMIN_PERMISSIONS_READ', identifier: 'admin:permissions:read', description: 'View all system permissions' },
+	{ identifier: 'admin:permissions:read', description: 'View all system permissions' },
 	// User management
-	{ key: 'ADMIN_USERS_CREATE', identifier: 'admin:users:create', description: 'Create new users' },
-	{ key: 'ADMIN_USERS_READ', identifier: 'admin:users:read', description: 'View user details' },
-	{ key: 'ADMIN_USERS_UPDATE', identifier: 'admin:users:update', description: 'Update user information' },
-	{ key: 'ADMIN_USERS_DELETE', identifier: 'admin:users:delete', description: 'Delete users' },
-	{ key: 'ADMIN_USERS_RESET_PASSWORD', identifier: 'admin:users:reset_password', description: 'Reset user passwords' },
-	{ key: 'ADMIN_USERS_DISABLE', identifier: 'admin:users:disable', description: 'Manage user account status' },
+	{ identifier: 'admin:users:create', description: 'Create new users' },
+	{ identifier: 'admin:users:read', description: 'View user details' },
+	{ identifier: 'admin:users:update', description: 'Update user information' },
+	{ identifier: 'admin:users:delete', description: 'Delete users' },
+	{ identifier: 'admin:users:reset_password', description: 'Reset user passwords' },
+	{ identifier: 'admin:users:disable', description: 'Manage user account status' },
 	// Role management
-	{ key: 'ADMIN_ROLES_CREATE', identifier: 'admin:roles:create', description: 'Create new roles' },
-	{ key: 'ADMIN_ROLES_READ', identifier: 'admin:roles:read', description: 'View role details' },
-	{ key: 'ADMIN_ROLES_UPDATE', identifier: 'admin:roles:update', description: 'Update roles' },
-	{ key: 'ADMIN_ROLES_DELETE', identifier: 'admin:roles:delete', description: 'Delete roles' },
+	{ identifier: 'admin:roles:create', description: 'Create new roles' },
+	{ identifier: 'admin:roles:read', description: 'View role details' },
+	{ identifier: 'admin:roles:update', description: 'Update roles' },
+	{ identifier: 'admin:roles:delete', description: 'Delete roles' },
 	// User-role assignment management
-	{ key: 'ADMIN_USER_ROLES_READ', identifier: 'admin:user_roles:read', description: 'View user role assignments' },
-	{ key: 'ADMIN_USER_ROLES_ASSIGN', identifier: 'admin:user_roles:assign', description: 'Assign roles to users' },
-	{ key: 'ADMIN_USER_ROLES_REMOVE', identifier: 'admin:user_roles:remove', description: 'Remove roles from users' },
+	{ identifier: 'admin:user_roles:read', description: 'View user role assignments' },
+	{ identifier: 'admin:user_roles:assign', description: 'Assign roles to users' },
+	{ identifier: 'admin:user_roles:remove', description: 'Remove roles from users' },
 ] as const
-
-// ============================================================================
-// Derived lookup object
-// ============================================================================
-
-type PermissionKey = (typeof PERMISSION_DEFINITIONS)[number]['key']
-type PermissionMap = { readonly [K in PermissionKey]: PermissionName }
-
-/**
- * Flat lookup object for all permission identifiers.
- *
- * @example
- * ```typescript
- * Permission.USERS_READ     // 'admin:users:read'
- * Permission.ROLES_CREATE   // 'admin:roles:create'
- * ```
- */
-export const Permission: PermissionMap = Object.freeze(
-	Object.fromEntries(PERMISSION_DEFINITIONS.map((p) => [p.key, permission(p.identifier)])) as PermissionMap,
-)
 
 // ============================================================================
 // Seed data
