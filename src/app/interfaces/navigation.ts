@@ -70,32 +70,3 @@ export interface NavigationConfig {
 }
 
 export const NAVIGATION_CONFIG = new InjectionToken<NavigationConfig>('Navigation Configuration')
-
-// ============================================================================
-// Authoring types — segment-based config that gets resolved into runtime types
-// ============================================================================
-
-/**
- * Segment-based route definition for authoring navigation config.
- * Each route declares only its own segment; the resolver concatenates
- * basePath + parent segments + own segment into a full route at registration time.
- */
-export interface NavigationRouteConfig {
-	id: string
-	name: string
-	segment: string
-	icon?: Record<string, string>
-	permission?: string
-	children?: [NavigationRouteConfig, ...NavigationRouteConfig[]]
-}
-
-export interface NavigationSectionConfig {
-	id: string
-	name: string
-	basePath: string
-	routes: NavigationRouteConfig[]
-}
-
-export interface NavigationInputConfig {
-	sections: NavigationSectionConfig[]
-}
