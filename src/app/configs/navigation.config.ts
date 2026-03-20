@@ -1,42 +1,46 @@
-import type { NavigationConfig } from '@interfaces/navigation'
+import type { NavigationInputConfig } from '@interfaces/navigation'
 import { featherActivity, featherHome, featherShield, featherUsers } from '@ng-icons/feather-icons'
 
 /**
- * Navigation configuration for the application.
+ * Segment-based navigation configuration.
  *
- * Routes can be either:
- * - LeafNavigationRoute: No children property (renders as link)
- * - ParentNavigationRoute: Has children array with at least 1 child (renders as expandable)
+ * Each route declares only its own `segment` — the resolver in `navigation.resolver.ts`
+ * concatenates basePath + parent segments + own segment into full route paths at registration time.
+ * This eliminates path duplication across parent/child routes.
+ *
+ * The resolver is called in `provideNavigation()` before the config reaches the injection token.
  *
  * @example Leaf route
- * { id: 'home', name: 'Home', route: '/home', icon: { featherHome } }
+ * { id: 'home', name: 'Home', segment: 'home', icon: { featherHome } }
+ * // Resolves to: route = 'dashboard/home'
  *
- * @example Parent route (will cause TypeScript error if children is empty)
+ * @example Parent route with children
  * {
- *   id: 'settings',
- *   name: 'Settings',
- *   route: '/settings',
- *   children: [ // Must have at least 1 child
- *     { id: 'profile', name: 'Profile', route: '/settings/profile' }
+ *   id: 'auth', name: 'Authorization', segment: 'authorization',
+ *   children: [
+ *     { id: 'roles', name: 'Roles', segment: 'roles' }
  *   ]
  * }
+ * // Parent resolves to first child: route = 'dashboard/authorization/roles'
+ * // Child resolves to: route = 'dashboard/authorization/roles'
  */
-export const navigationConfig: NavigationConfig = {
+export const navigationInputConfig: NavigationInputConfig = {
 	sections: [
 		{
 			id: 'settings',
 			name: 'Ajustes y mantenimiento',
+			basePath: 'dashboard',
 			routes: [
 				{
 					id: 'welcome',
 					name: 'Configuración inicial',
-					route: 'dashboard/welcome',
+					segment: 'welcome',
 					icon: { featherHome },
 				},
 				{
 					id: 'health',
 					name: 'Salud',
-					route: 'dashboard/health',
+					segment: 'health',
 					icon: { featherActivity },
 				},
 			],
@@ -44,30 +48,31 @@ export const navigationConfig: NavigationConfig = {
 		{
 			id: 'admin',
 			name: 'Administración',
+			basePath: 'dashboard',
 			routes: [
 				{
 					id: 'users',
 					name: 'Usuarios',
-					route: 'dashboard/users',
+					segment: 'users',
 					icon: { featherUsers },
 					permission: 'admin:users:read',
 				},
 				{
 					id: 'authorization',
 					name: 'Autorización',
-					route: 'dashboard/authorization/roles',
+					segment: 'authorization',
 					icon: { featherShield },
 					children: [
 						{
 							id: 'roles',
 							name: 'Roles',
-							route: 'dashboard/authorization/roles',
+							segment: 'roles',
 							permission: 'admin:roles:read',
 						},
 						{
 							id: 'permissions',
 							name: 'Permisos',
-							route: 'dashboard/authorization/permissions',
+							segment: 'permissions',
 							permission: 'admin:permissions:read',
 						},
 					],
