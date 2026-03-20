@@ -16,6 +16,7 @@ import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import { ADMIN_ROLE_PERMISSIONS } from '@contracts/permission/permission.constants'
+import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
 import { AuthStore } from '@store/auth/auth.store'
 import { RolesStore } from '@store/roles/roles.store'
@@ -35,6 +36,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		DataTable,
 		DataTableCellDef,
 		EditRoleDrawer,
+		HasPermissionDirective,
 		PageShell,
 		Pagination,
 	],
@@ -54,9 +56,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					placeholder="Search roles..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				@if (canCreate()) {
-					<button (click)="createDrawer.open()" appButton>Create Role</button>
-				}
+				<button (click)="createDrawer.open()" *appHasPermission="PERMISSIONS.CREATE" appButton>Create Role</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
@@ -66,14 +66,22 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
 					<div class="flex gap-2">
-						@if (canUpdate()) {
-							<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-						}
-						@if (canDelete() && row.removable) {
-							<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-								Delete
-							</button>
-						}
+						<button
+							(click)="editDrawer.open(row.id)"
+							*appHasPermission="PERMISSIONS.UPDATE"
+							appButton
+							variant="ghost"
+							size="sm"
+						>
+							Edit
+						</button>
+						<ng-container *appHasPermission="PERMISSIONS.DELETE">
+							@if (row.removable) {
+								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
+									Delete
+								</button>
+							}
+						</ng-container>
 					</div>
 				</ng-template>
 			</app-data-table>
@@ -105,18 +113,9 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore)
+	protected readonly PERMISSIONS = ADMIN_ROLE_PERMISSIONS
 
 	private readonly authStore = inject(AuthStore)
-
-	protected readonly canCreate = computed(
-		() => this.authStore.currentUser()?.hasPermission(ADMIN_ROLE_PERMISSIONS.CREATE) ?? false,
-	)
-	protected readonly canUpdate = computed(
-		() => this.authStore.currentUser()?.hasPermission(ADMIN_ROLE_PERMISSIONS.UPDATE) ?? false,
-	)
-	protected readonly canDelete = computed(
-		() => this.authStore.currentUser()?.hasPermission(ADMIN_ROLE_PERMISSIONS.DELETE) ?? false,
-	)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('Role deleted successfully.')
@@ -139,7 +138,8 @@ export default class RolesList {
 			{ accessorKey: 'code', header: 'Code' },
 			{ accessorKey: 'description', header: 'Description' },
 		]
-		if (this.canUpdate() || this.canDelete()) {
+		const user = this.authStore.currentUser()
+		if (user?.hasPermission(ADMIN_ROLE_PERMISSIONS.UPDATE) || user?.hasPermission(ADMIN_ROLE_PERMISSIONS.DELETE)) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base
