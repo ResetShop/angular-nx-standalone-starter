@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
+import { createMockUser } from '@mocks/user.mock'
+import { AuthApi } from '@providers/auth/auth.interface'
+import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { Translation } from '@providers/i18n/translation'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
 import { createMockManagedUser } from '@providers/users/users.mock'
+import { AuthStore } from '@store/auth/auth.store'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -55,14 +59,20 @@ describe('UsersList', () => {
 		useRealTimers()
 	})
 
+	function setUserWithAllPermissions(): void {
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermission: () => true }))
+	}
+
 	async function renderComponent() {
 		const view = await render(UsersList, {
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
+		setUserWithAllPermissions()
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
 		view.fixture.detectChanges()
@@ -76,9 +86,11 @@ describe('UsersList', () => {
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
+		setUserWithAllPermissions()
 		TestBed.tick()
 
 		expect(screen.getByTestId('users-actions-skeleton')).toBeInTheDocument()
@@ -258,5 +270,55 @@ describe('UsersList', () => {
 
 		expect(usersApiMock.delete.calls).toHaveLength(1)
 		expect(usersApiMock.delete.calls[0][0]).toBe(42)
+	})
+
+	describe('permission-conditional rendering', () => {
+		async function renderWithPermissions(allowedPermissions: string[]) {
+			const users = [createMockManagedUser()]
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+			const view = await render(UsersList, {
+				providers: [
+					{ provide: UsersApi, useValue: usersApiMock },
+					{ provide: RolesApi, useValue: rolesApiMock },
+					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+					{ provide: Translation, useValue: mockTranslation },
+				],
+			})
+
+			TestBed.inject(AuthStore).updateCurrentUser(
+				createMockUser({
+					hasPermission: (id: string) => allowedPermissions.includes(id),
+				}),
+			)
+			TestBed.tick()
+			await advanceTimersByTimeAsync(1000)
+			view.fixture.detectChanges()
+			return view
+		}
+
+		it('should hide create button when user lacks users:create', async () => {
+			await renderWithPermissions(['admin:users:read', 'admin:users:update', 'admin:users:delete'])
+
+			expect(screen.queryByRole('button', { name: /create user/i })).not.toBeInTheDocument()
+		})
+
+		it('should hide edit button when user lacks users:update', async () => {
+			await renderWithPermissions(['admin:users:read', 'admin:users:delete'])
+
+			expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+		})
+
+		it('should hide delete button when user lacks users:delete', async () => {
+			await renderWithPermissions(['admin:users:read', 'admin:users:update'])
+
+			expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+		})
+
+		it('should not render actions column when user lacks both update and delete', async () => {
+			await renderWithPermissions(['admin:users:read', 'admin:users:create'])
+
+			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
+		})
 	})
 })

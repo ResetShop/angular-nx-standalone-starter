@@ -192,9 +192,9 @@ describe('AuthStore', () => {
 				resource: 'users',
 				name: 'users:read',
 				description: 'Read users',
+				module: 'admin',
 				action: 'read',
 				identifier: 'users:read',
-				matches: () => true,
 			}
 
 			store.updateCurrentUser(createMockUser({ permissions: [mockPermission] }))

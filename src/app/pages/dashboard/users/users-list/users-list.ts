@@ -15,8 +15,11 @@ import { DataTable } from '@components/data-table/data-table'
 import { DataTableCellDef } from '@components/data-table/data-table-cell-def'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
+import { Permission } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
+import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
@@ -34,6 +37,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		DataTable,
 		DataTableCellDef,
 		EditUserDrawer,
+		HasPermissionDirective,
 		PageShell,
 		Pagination,
 	],
@@ -53,10 +57,12 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					placeholder="Search users..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" appButton>Create User</button>
+				<button (click)="createDrawer.open()" *appHasPermission="Permission.ADMIN_USERS_CREATE" appButton>
+					Create User
+				</button>
 			</div>
 
-			<app-data-table [columns]="columns" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
+			<app-data-table [columns]="columns()" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
 				<ng-template appDataTableCellDef="status" let-value>
 					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
 						{{ value.charAt(0).toUpperCase() + value.slice(1) }}
@@ -65,8 +71,23 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
 					<div class="flex gap-2">
-						<button (click)="editDrawer.open(row.id)" appButton variant="ghost" size="sm">Edit</button>
-						<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
+						<button
+							(click)="editDrawer.open(row.id)"
+							*appHasPermission="Permission.ADMIN_USERS_UPDATE"
+							appButton
+							variant="ghost"
+							size="sm"
+						>
+							Edit
+						</button>
+						<button
+							(click)="confirmDelete(row)"
+							*appHasPermission="Permission.ADMIN_USERS_DELETE"
+							appButton
+							variant="ghost"
+							size="sm"
+							class="text-destructive"
+						>
 							Delete
 						</button>
 					</div>
@@ -101,6 +122,9 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
 	protected readonly UserStatus = UserStatus
+	protected readonly Permission = Permission
+
+	private readonly authStore = inject(AuthStore)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast('User deleted successfully.')
@@ -117,17 +141,23 @@ export default class UsersList {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
-	protected readonly columns: ColumnDef<IManagedUser, unknown>[] = [
-		{ accessorKey: 'fullName', header: 'Name' },
-		{ accessorKey: 'email', header: 'Email' },
-		{ accessorKey: 'status', header: 'Status' },
-		{
-			id: 'roles',
-			header: 'Roles',
-			accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
-		},
-		{ id: 'actions', header: '', enableSorting: false },
-	]
+	protected readonly columns = computed((): ColumnDef<IManagedUser, unknown>[] => {
+		const base: ColumnDef<IManagedUser, unknown>[] = [
+			{ accessorKey: 'fullName', header: 'Name' },
+			{ accessorKey: 'email', header: 'Email' },
+			{ accessorKey: 'status', header: 'Status' },
+			{
+				id: 'roles',
+				header: 'Roles',
+				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
+			},
+		]
+		const user = this.authStore.currentUser()
+		if (user?.hasPermission(Permission.ADMIN_USERS_UPDATE) || user?.hasPermission(Permission.ADMIN_USERS_DELETE)) {
+			return [...base, { id: 'actions', header: '', enableSorting: false }]
+		}
+		return base
+	})
 
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement

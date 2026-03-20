@@ -1,9 +1,9 @@
 import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas'
+import { Permission } from '@contracts/permission/permission.constants'
 import { permissionDataSchema } from '@contracts/role/role.schemas'
 import { createRoute } from '@hono/zod-openapi'
 import { requirePermission } from '../../../middlewares/verify-permissions.middleware'
 import { commonResponses } from '../../../openapi-config'
-import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants'
 
 export const listPermissionsRoute = createRoute({
 	method: 'get',
@@ -11,7 +11,7 @@ export const listPermissionsRoute = createRoute({
 	tags: ['Permissions'],
 	summary: 'List all permissions',
 	description: 'List all system permissions with pagination and optional search.',
-	middleware: [requirePermission(ADMIN_PERMISSION_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.ADMIN_PERMISSIONS_READ)] as const,
 	request: {
 		query: searchPaginationSchema,
 	},

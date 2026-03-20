@@ -31,8 +31,22 @@ describe('RoleService', () => {
 	}
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'can_delete_users', description: 'Delete users', resource: 'users', action: 'delete' },
+		{
+			id: 1,
+			name: 'can_create_users',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{
+			id: 2,
+			name: 'can_delete_users',
+			description: 'Delete users',
+			module: 'admin',
+			resource: 'users',
+			action: 'delete',
+		},
 	]
 
 	beforeEach(() => {
@@ -378,10 +392,10 @@ describe('RoleService', () => {
 
 	describe('assignPermissionsToRole', () => {
 		const availablePermissions: PermissionData[] = [
-			{ id: 1, name: 'perm_1', description: 'Permission 1', resource: 'resource', action: 'action' },
-			{ id: 2, name: 'perm_2', description: 'Permission 2', resource: 'resource', action: 'action' },
-			{ id: 3, name: 'perm_3', description: 'Permission 3', resource: 'resource', action: 'action' },
-			{ id: 5, name: 'perm_5', description: 'Permission 5', resource: 'resource', action: 'action' },
+			{ id: 1, name: 'perm_1', description: 'Permission 1', module: 'admin', resource: 'resource', action: 'action' },
+			{ id: 2, name: 'perm_2', description: 'Permission 2', module: 'admin', resource: 'resource', action: 'action' },
+			{ id: 3, name: 'perm_3', description: 'Permission 3', module: 'admin', resource: 'resource', action: 'action' },
+			{ id: 5, name: 'perm_5', description: 'Permission 5', module: 'admin', resource: 'resource', action: 'action' },
 		]
 
 		beforeEach(() => {

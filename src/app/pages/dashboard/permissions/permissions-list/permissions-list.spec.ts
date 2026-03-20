@@ -63,7 +63,7 @@ describe('PermissionsList', () => {
 	it('should render data table when there is no error', async () => {
 		const permissions = [
 			createMockPermissionData({ id: 1, resource: 'users', action: 'read' }),
-			createMockPermissionData({ id: 2, resource: 'users', action: 'write', name: 'Write Users' }),
+			createMockPermissionData({ id: 2, resource: 'users', action: 'write', name: 'admin:users:write' }),
 		]
 		permissionsApiMock.getAllUnpaginated.mockReturnValue(of(permissions))
 
@@ -118,7 +118,7 @@ describe('PermissionsList', () => {
 
 		await renderComponent()
 
-		expect(screen.getByText('users:read')).toBeInTheDocument()
+		expect(screen.getByText('admin:users:read')).toBeInTheDocument()
 		expect(screen.getByText('Can read user records')).toBeInTheDocument()
 	})
 })

@@ -1,3 +1,4 @@
+import { Permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -6,7 +7,6 @@ import { InMemoryContainer } from '../../container/container.mock'
 import type { PaginatedResponse } from '../../interfaces'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
-import { ADMIN_USER_ROLE_PERMISSIONS } from '../access/role/permissions.constants'
 import userRoleController from './user-role.controller'
 import { USER_ROLE_ERRORS } from './user-role.errors'
 
@@ -34,29 +34,39 @@ describe('User Role Controller', () => {
 	}
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
+		{
+			id: 1,
+			name: 'can_create_users',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
 	]
 
 	// All admin:user_roles:* permissions for testing (for authenticated user ID 999)
 	const allUserRolePermissions: PermissionData[] = [
 		{
 			id: 1,
-			name: ADMIN_USER_ROLE_PERMISSIONS.READ,
+			name: Permission.ADMIN_USER_ROLES_READ,
 			description: 'Read user roles',
+			module: 'admin',
 			resource: 'user_roles',
 			action: 'read',
 		},
 		{
 			id: 2,
-			name: ADMIN_USER_ROLE_PERMISSIONS.ASSIGN,
+			name: Permission.ADMIN_USER_ROLES_ASSIGN,
 			description: 'Assign roles',
+			module: 'admin',
 			resource: 'user_roles',
 			action: 'assign',
 		},
 		{
 			id: 3,
-			name: ADMIN_USER_ROLE_PERMISSIONS.REMOVE,
+			name: Permission.ADMIN_USER_ROLES_REMOVE,
 			description: 'Remove roles',
+			module: 'admin',
 			resource: 'user_roles',
 			action: 'remove',
 		},

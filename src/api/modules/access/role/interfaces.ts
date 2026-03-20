@@ -56,6 +56,7 @@ export interface PermissionData {
 	id: number
 	name: string
 	description: string | null
+	module: string
 	resource: string
 	action: string
 }

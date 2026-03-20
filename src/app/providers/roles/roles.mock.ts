@@ -81,7 +81,7 @@ export function createMockRoleWithPermissions(overrides: Partial<RoleWithPermiss
 		removable: true,
 		createdAt: new Date('2025-01-01'),
 		updatedAt: new Date('2025-01-01'),
-		permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
+		permissions: [{ id: 1, name: 'Read Users', description: null, module: 'admin', resource: 'users', action: 'read' }],
 		...overrides,
 	}
 }
@@ -219,6 +219,7 @@ export class InMemoryRolesApi implements RolesApi {
 			id: pid,
 			name: `Permission ${pid}`,
 			description: null,
+			module: 'admin',
 			resource: 'unknown',
 			action: 'unknown',
 		}))
