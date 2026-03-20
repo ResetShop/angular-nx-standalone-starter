@@ -2,7 +2,7 @@ import { eq, inArray } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { environment } from '../api/helpers/environment'
-import { ADMIN_PERMISSIONS_SEED_DATA } from '../api/modules/access/role/permissions.constants'
+import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
 import { authentication } from './schema/authentication'
 import { permission } from './schema/permission'
 import { role, rolePermission } from './schema/role'
@@ -94,22 +94,22 @@ async function seed() {
 			// Step 5: Create permissions (batch insert)
 			await tx
 				.insert(permission)
-				.values([...ADMIN_PERMISSIONS_SEED_DATA])
+				.values([...PERMISSIONS_SEED_DATA])
 				.onConflictDoNothing()
 
 			// Get all permission IDs by name
-			const permissionNames = ADMIN_PERMISSIONS_SEED_DATA.map((p) => p.name)
+			const permissionNames = PERMISSIONS_SEED_DATA.map((p) => p.name)
 			const createdPermissions = await tx
 				.select({ id: permission.id })
 				.from(permission)
 				.where(inArray(permission.name, permissionNames))
 
-			if (createdPermissions.length !== ADMIN_PERMISSIONS_SEED_DATA.length) {
+			if (createdPermissions.length !== PERMISSIONS_SEED_DATA.length) {
 				throw new Error(
-					`Permission count mismatch: expected ${ADMIN_PERMISSIONS_SEED_DATA.length}, got ${createdPermissions.length}`,
+					`Permission count mismatch: expected ${PERMISSIONS_SEED_DATA.length}, got ${createdPermissions.length}`,
 				)
 			}
-			console.log(`✅ ${ADMIN_PERMISSIONS_SEED_DATA.length} permissions created/verified`)
+			console.log(`✅ ${PERMISSIONS_SEED_DATA.length} permissions created/verified`)
 
 			// Step 6: Assign all permissions to Administrator role (batch insert)
 			const rolePermissionValues = createdPermissions.map((p) => ({
