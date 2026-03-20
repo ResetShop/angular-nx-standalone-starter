@@ -17,6 +17,10 @@ const db = drizzle(pool)
 /**
  * Seeds the database with initial data in a transaction.
  * Creates admin user, Administrator role, permissions, and role assignments.
+ *
+ * This is a full bootstrap script for fresh databases.
+ * For adding new permissions to an existing database, use `npm run sync:permissions` instead.
+ * See `src/db/sync-permissions.ts`.
  */
 async function seed() {
 	try {

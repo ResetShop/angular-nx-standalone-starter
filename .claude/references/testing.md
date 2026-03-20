@@ -561,3 +561,41 @@ class StoryWrapper {
 - **One story per visual state** — default, loading, error, collapsed, etc.
 - **Wrapper components** for components that depend on injection context not available in isolation
 - Stories are required only for shared UI components in `src/app/components/`. Page-level components in `src/app/pages/` are exempt.
+
+---
+
+## Permission String Literal Testing
+
+Every file that uses permission identifier string literals (e.g., `'admin:users:read'`) **must** have a corresponding test that validates each literal against `PERMISSION_DEFINITIONS`. This catches typos and stale references when permissions are renamed or removed.
+
+### Pattern
+
+```typescript
+import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
+
+describe('permission identifiers', () => {
+	const validIdentifiers = new Set(PERMISSION_DEFINITIONS.map((p) => p.identifier))
+
+	it('should use valid permission identifiers', () => {
+		expect(validIdentifiers.has('admin:users:create')).toBe(true)
+		expect(validIdentifiers.has('admin:users:read')).toBe(true)
+		// one assertion per unique literal used in the source file
+	})
+})
+```
+
+### Rules
+
+- The `describe('permission identifiers')` block must be at the **top level** of the spec file, not nested inside other describe blocks
+- Every unique permission string literal in the source file must have a corresponding assertion
+- The test imports `PERMISSION_DEFINITIONS` from contracts — if the array changes, stale references fail at test time
+- This applies to: route data (`requiredPermission`), navigation config (`permission` field), directive inputs (`*hasPermission`), and `hasPermission()` calls in computed signals
+
+### Files currently requiring coverage
+
+| Source file            | Test file                   | Literals                                                         |
+| ---------------------- | --------------------------- | ---------------------------------------------------------------- |
+| `users-list.ts`        | `users-list.spec.ts`        | `admin:users:create`, `admin:users:update`, `admin:users:delete` |
+| `roles-list.ts`        | `roles-list.spec.ts`        | `admin:roles:create`, `admin:roles:update`, `admin:roles:delete` |
+| `dashboard.routes.ts`  | `dashboard.spec.ts`         | `admin:users:read`, `admin:permissions:read`, `admin:roles:read` |
+| `navigation.config.ts` | `navigation.config.spec.ts` | `admin:users:read`, `admin:roles:read`, `admin:permissions:read` |

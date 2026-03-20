@@ -1,4 +1,4 @@
-import { Permission } from '@contracts/permission/permission.constants'
+import { permission } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { clearAllMocks, fn } from '@test-utils'
@@ -56,7 +56,7 @@ describe('User Management Controller', () => {
 	const allUserPermissions: PermissionData[] = [
 		{
 			id: 1,
-			name: Permission.ADMIN_USERS_READ,
+			name: permission('admin:users:read'),
 			description: 'Read users',
 			module: 'admin',
 			resource: 'users',
@@ -64,7 +64,7 @@ describe('User Management Controller', () => {
 		},
 		{
 			id: 2,
-			name: Permission.ADMIN_USERS_CREATE,
+			name: permission('admin:users:create'),
 			description: 'Create users',
 			module: 'admin',
 			resource: 'users',
@@ -72,7 +72,7 @@ describe('User Management Controller', () => {
 		},
 		{
 			id: 3,
-			name: Permission.ADMIN_USERS_UPDATE,
+			name: permission('admin:users:update'),
 			description: 'Update users',
 			module: 'admin',
 			resource: 'users',
@@ -80,7 +80,7 @@ describe('User Management Controller', () => {
 		},
 		{
 			id: 4,
-			name: Permission.ADMIN_USERS_DELETE,
+			name: permission('admin:users:delete'),
 			description: 'Delete users',
 			module: 'admin',
 			resource: 'users',
@@ -88,7 +88,7 @@ describe('User Management Controller', () => {
 		},
 		{
 			id: 5,
-			name: Permission.ADMIN_USERS_DISABLE,
+			name: permission('admin:users:disable'),
 			description: 'Manage user status',
 			module: 'admin',
 			resource: 'users',

@@ -13,7 +13,7 @@ import { HasPermissionDirective } from './has-permission.directive'
 	standalone: true,
 	imports: [HasPermissionDirective],
 	template: `
-		<button *appHasPermission="permission()" data-testid="guarded-button">Action</button>
+		<button *hasPermission="permission()" data-testid="guarded-button">Action</button>
 		<span data-testid="always-visible">Always here</span>
 	`,
 })

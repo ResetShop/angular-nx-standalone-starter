@@ -1,21 +1,26 @@
-import { Directive, effect, inject, input, TemplateRef, ViewContainerRef } from '@angular/core'
+import { Directive, effect, inject, input, isDevMode, TemplateRef, ViewContainerRef } from '@angular/core'
+import { isPermissionName } from '@contracts/permission/permission.constants'
 import { AuthStore } from '@store/auth/auth.store'
 
 /**
  * Structural directive that conditionally renders its host element
  * based on the current user's permissions.
  *
+ * In dev mode, logs an error if the provided identifier is not a valid
+ * permission name (module:resource:action format).
+ *
  * @example
  * ```html
- * <button *appHasPermission="'admin:users:create'" appButton>Create User</button>
+ * <button *hasPermission="'admin:users:create'" appButton>Create User</button>
  * ```
  */
 @Directive({
-	selector: '[appHasPermission]',
+	// eslint-disable-next-line @angular-eslint/directive-selector -- intentional: structural directive uses *hasPermission without app prefix for clean template syntax
+	selector: '[hasPermission]',
 	standalone: true,
 })
 export class HasPermissionDirective {
-	public readonly appHasPermission = input.required<string>()
+	public readonly hasPermission = input.required<string>()
 
 	private readonly authStore = inject(AuthStore)
 	private readonly templateRef = inject(TemplateRef<unknown>)
@@ -24,8 +29,15 @@ export class HasPermissionDirective {
 	private hasView = false
 
 	private readonly permissionEffect = effect(() => {
+		const identifier = this.hasPermission()
 		const user = this.authStore.currentUser()
-		const permitted = user?.hasPermission(this.appHasPermission()) ?? false
+
+		if (isDevMode() && !isPermissionName(identifier)) {
+			// TODO(#66): Replace with structured logging service
+			console.error(`[HasPermission] Invalid permission identifier: "${identifier}"`)
+		}
+
+		const permitted = user?.hasPermission(identifier) ?? false
 
 		if (permitted && !this.hasView) {
 			this.viewContainer.createEmbeddedView(this.templateRef)

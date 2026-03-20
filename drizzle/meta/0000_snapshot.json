@@ -1,5 +1,5 @@
 {
-	"id": "61387247-4e92-4b86-8fcc-95af11dfcd58",
+	"id": "833112e0-0cb4-4c0f-981e-b62d804ebe09",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -176,6 +176,12 @@
 					"primaryKey": false,
 					"notNull": false
 				},
+				"module": {
+					"name": "module",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
 				"resource": {
 					"name": "resource",
 					"type": "text",
@@ -271,7 +277,7 @@
 					"name": "is_revoked",
 					"type": "boolean",
 					"primaryKey": false,
-					"notNull": false,
+					"notNull": true,
 					"default": false
 				},
 				"created_at": {
@@ -309,6 +315,21 @@
 					"columns": [
 						{
 							"expression": "expires_at",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"refresh_token_token_family_idx": {
+					"name": "refresh_token_token_family_idx",
+					"columns": [
+						{
+							"expression": "token_family",
 							"isExpression": false,
 							"asc": true,
 							"nulls": "last"
@@ -560,7 +581,23 @@
 					"default": "now()"
 				}
 			},
-			"indexes": {},
+			"indexes": {
+				"user_status_idx": {
+					"name": "user_status_idx",
+					"columns": [
+						{
+							"expression": "status",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
 			"foreignKeys": {
 				"user_status_changed_by_user_id_fk": {
 					"name": "user_status_changed_by_user_id_fk",

@@ -1,4 +1,4 @@
-import { Permission } from '@contracts/permission/permission.constants'
+import { permission } from '@contracts/permission/permission.constants'
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
 import type { UserRoleRepository } from '../../user/interfaces'
 import type {
@@ -243,13 +243,14 @@ export class RoleService {
 
 			// Only need to check for lockout if the user is assigned to the role being modified
 			if (userHasRole) {
-				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === Permission.ADMIN_ROLES_UPDATE)
+				const rolesUpdatePermission = permission('admin:roles:update')
+				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === rolesUpdatePermission)
 
 				if (!newPermissionsIncludeUpdate) {
 					// Check if user has UPDATE permission from other roles
 					const currentRolePermissionNames = new Set(currentRolePermissions.data.map((p) => p.name))
 					const otherRolePermissions = userPermissions.filter((p) => !currentRolePermissionNames.has(p.name))
-					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === Permission.ADMIN_ROLES_UPDATE)
+					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === rolesUpdatePermission)
 
 					if (!hasUpdateFromOtherRole) {
 						throw new SelfLockoutError()

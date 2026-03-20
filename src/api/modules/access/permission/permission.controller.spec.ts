@@ -1,4 +1,4 @@
-import { Permission } from '@contracts/permission/permission.constants'
+import { permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -31,7 +31,7 @@ describe('Permission Controller', () => {
 	// Permission that grants access to the endpoint
 	const requiredPermission: PermissionData = {
 		id: 100,
-		name: Permission.ADMIN_PERMISSIONS_READ,
+		name: permission('admin:permissions:read'),
 		description: 'View all system permissions',
 		module: 'admin',
 		resource: 'permissions',
