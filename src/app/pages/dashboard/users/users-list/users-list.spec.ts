@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing'
+import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
@@ -320,5 +321,15 @@ describe('UsersList', () => {
 
 			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
 		})
+	})
+})
+
+describe('permission identifiers', () => {
+	const validIdentifiers = new Set(PERMISSION_DEFINITIONS.map((p) => p.identifier))
+
+	it('should use valid permission identifiers', () => {
+		expect(validIdentifiers.has('admin:users:create')).toBe(true)
+		expect(validIdentifiers.has('admin:users:update')).toBe(true)
+		expect(validIdentifiers.has('admin:users:delete')).toBe(true)
 	})
 })
