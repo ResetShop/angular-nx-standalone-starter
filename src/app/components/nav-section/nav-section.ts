@@ -18,7 +18,7 @@ import { UIStore } from '@store/ui/ui.store'
 	selector: 'app-nav-section',
 	imports: [NgComponentOutlet],
 	template: `
-		@if (showTitle()) {
+		@if (showTitle() && section().name) {
 			@if (!collapsed()) {
 				<div class="flex h-8 items-center px-2 text-xs font-medium text-wrap text-black/70 dark:text-white/70">
 					{{ section().name }}
