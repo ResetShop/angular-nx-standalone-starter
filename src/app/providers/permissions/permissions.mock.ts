@@ -18,7 +18,7 @@ export function createMockPermissionData(overrides: Partial<PermissionData> = {}
 }
 
 /**
- * All 14 system permissions mirroring ADMIN_PERMISSIONS_SEED_DATA.
+ * All 14 system permissions mirroring PERMISSIONS_SEED_DATA.
  * Grouped by resource: permissions (1), users (6), roles (4), user_roles (3).
  */
 export const MOCK_PERMISSIONS: PermissionData[] = [

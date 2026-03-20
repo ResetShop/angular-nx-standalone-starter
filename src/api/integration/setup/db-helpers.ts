@@ -1,3 +1,4 @@
+import { PERMISSIONS_SEED_DATA } from '@contracts/permission/permission.constants'
 import { hash } from 'bcryptjs'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
@@ -5,7 +6,6 @@ import { authentication } from '../../../db/schema/authentication'
 import { permission } from '../../../db/schema/permission'
 import { role, rolePermission } from '../../../db/schema/role'
 import { user, userRole } from '../../../db/schema/user'
-import { ADMIN_PERMISSIONS_SEED_DATA } from '../../modules/access/role/permissions.constants'
 
 // Schema for relational queries
 import { authenticationRelations } from '../../../db/schema/authentication'
@@ -153,9 +153,9 @@ export async function seedBaseData(db: TestDb): Promise<{ adminUserId: number; a
 
 	await db.insert(userRole).values({ userId: adminUser.id, roleId: adminRole.id })
 
-	await db.insert(permission).values([...ADMIN_PERMISSIONS_SEED_DATA])
+	await db.insert(permission).values([...PERMISSIONS_SEED_DATA])
 
-	const permissionNames = ADMIN_PERMISSIONS_SEED_DATA.map((p) => p.name)
+	const permissionNames = PERMISSIONS_SEED_DATA.map((p) => p.name)
 	const createdPermissions = await db
 		.select({ id: permission.id })
 		.from(permission)
