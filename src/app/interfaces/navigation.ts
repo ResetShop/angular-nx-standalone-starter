@@ -36,7 +36,7 @@ export interface ParentNavigationRoute {
 	name: string
 	route: string
 	icon?: Record<string, string>
-	/** Permission identifier required to view this route. For parents, children are also filtered individually. */
+	/** Permission required to display the parent group itself. Children are independently filtered by their own permission fields. */
 	permission?: string
 	children: [NavigationRoute, ...NavigationRoute[]] // Non-empty array
 }
