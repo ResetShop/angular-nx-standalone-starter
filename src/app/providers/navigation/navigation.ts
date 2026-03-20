@@ -31,6 +31,7 @@ export class Navigation {
 			})
 	}
 
+	/** Filters out routes the current user lacks permission for, recursively for parent routes. */
 	private filterSections(sections: NavigationSection[]): NavigationSection[] {
 		return sections
 			.map((section) => ({
