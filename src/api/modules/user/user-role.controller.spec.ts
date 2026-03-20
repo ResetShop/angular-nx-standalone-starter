@@ -34,7 +34,14 @@ describe('User Role Controller', () => {
 	}
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
+		{
+			id: 1,
+			name: 'can_create_users',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
 	]
 
 	// All admin:user_roles:* permissions for testing (for authenticated user ID 999)
@@ -43,6 +50,7 @@ describe('User Role Controller', () => {
 			id: 1,
 			name: ADMIN_USER_ROLE_PERMISSIONS.READ,
 			description: 'Read user roles',
+			module: 'admin',
 			resource: 'user_roles',
 			action: 'read',
 		},
@@ -50,6 +58,7 @@ describe('User Role Controller', () => {
 			id: 2,
 			name: ADMIN_USER_ROLE_PERMISSIONS.ASSIGN,
 			description: 'Assign roles',
+			module: 'admin',
 			resource: 'user_roles',
 			action: 'assign',
 		},
@@ -57,6 +66,7 @@ describe('User Role Controller', () => {
 			id: 3,
 			name: ADMIN_USER_ROLE_PERMISSIONS.REMOVE,
 			description: 'Remove roles',
+			module: 'admin',
 			resource: 'user_roles',
 			action: 'remove',
 		},

@@ -1,42 +1,31 @@
-import { permission } from '../../user/permission-types'
+import {
+	ADMIN_PERMISSION_PERMISSIONS as _ADMIN_PERMISSION_PERMISSIONS,
+	ADMIN_ROLE_PERMISSIONS as _ADMIN_ROLE_PERMISSIONS,
+	ADMIN_USER_PERMISSIONS as _ADMIN_USER_PERMISSIONS,
+	ADMIN_USER_ROLE_PERMISSIONS as _ADMIN_USER_ROLE_PERMISSIONS,
+} from '@contracts/permission/permission.constants'
+import type { PermissionName } from '../../user/permission-types'
 
 /**
- * Admin module permissions for permission management.
+ * Re-exports shared permission identifiers branded as PermissionName
+ * for backend middleware type safety. The source of truth is
+ * `src/contracts/permission/permission.constants.ts`.
  */
-export const ADMIN_PERMISSION_PERMISSIONS = {
-	READ: permission('admin:permissions:read'),
-} as const
+export const ADMIN_PERMISSION_PERMISSIONS = _ADMIN_PERMISSION_PERMISSIONS as {
+	readonly [K in keyof typeof _ADMIN_PERMISSION_PERMISSIONS]: PermissionName
+}
 
-/**
- * Admin module permissions for user management.
- */
-export const ADMIN_USER_PERMISSIONS = {
-	CREATE: permission('admin:users:create'),
-	READ: permission('admin:users:read'),
-	UPDATE: permission('admin:users:update'),
-	DELETE: permission('admin:users:delete'),
-	RESET_PASSWORD: permission('admin:users:reset_password'),
-	DISABLE: permission('admin:users:disable'),
-} as const
+export const ADMIN_USER_PERMISSIONS = _ADMIN_USER_PERMISSIONS as {
+	readonly [K in keyof typeof _ADMIN_USER_PERMISSIONS]: PermissionName
+}
 
-/**
- * Admin module permissions for role management.
- */
-export const ADMIN_ROLE_PERMISSIONS = {
-	CREATE: permission('admin:roles:create'),
-	READ: permission('admin:roles:read'),
-	UPDATE: permission('admin:roles:update'),
-	DELETE: permission('admin:roles:delete'),
-} as const
+export const ADMIN_ROLE_PERMISSIONS = _ADMIN_ROLE_PERMISSIONS as {
+	readonly [K in keyof typeof _ADMIN_ROLE_PERMISSIONS]: PermissionName
+}
 
-/**
- * Admin module permissions for user-role assignment management.
- */
-export const ADMIN_USER_ROLE_PERMISSIONS = {
-	READ: permission('admin:user_roles:read'),
-	ASSIGN: permission('admin:user_roles:assign'),
-	REMOVE: permission('admin:user_roles:remove'),
-} as const
+export const ADMIN_USER_ROLE_PERMISSIONS = _ADMIN_USER_ROLE_PERMISSIONS as {
+	readonly [K in keyof typeof _ADMIN_USER_ROLE_PERMISSIONS]: PermissionName
+}
 
 /**
  * All admin permission definitions for seeding.

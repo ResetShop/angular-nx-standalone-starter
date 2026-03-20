@@ -29,6 +29,7 @@ describe('HttpPermissionsApi', () => {
 				id: 1,
 				name: 'Read Users',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			}
@@ -56,8 +57,15 @@ describe('HttpPermissionsApi', () => {
 
 		it('should extract data array from paginated response', () => {
 			const permissions: PermissionData[] = [
-				{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' },
-				{ id: 2, name: 'Write Users', description: 'Can write users', resource: 'users', action: 'write' },
+				{ id: 1, name: 'Read Users', description: null, module: 'admin', resource: 'users', action: 'read' },
+				{
+					id: 2,
+					name: 'Write Users',
+					description: 'Can write users',
+					module: 'admin',
+					resource: 'users',
+					action: 'write',
+				},
 			]
 			const mockResponse: PaginatedResponse<PermissionData> = {
 				data: permissions,

@@ -54,14 +54,43 @@ describe('User Management Controller', () => {
 
 	// All admin:users:* permissions for the authenticated user
 	const allUserPermissions: PermissionData[] = [
-		{ id: 1, name: ADMIN_USER_PERMISSIONS.READ, description: 'Read users', resource: 'users', action: 'read' },
-		{ id: 2, name: ADMIN_USER_PERMISSIONS.CREATE, description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 3, name: ADMIN_USER_PERMISSIONS.UPDATE, description: 'Update users', resource: 'users', action: 'update' },
-		{ id: 4, name: ADMIN_USER_PERMISSIONS.DELETE, description: 'Delete users', resource: 'users', action: 'delete' },
+		{
+			id: 1,
+			name: ADMIN_USER_PERMISSIONS.READ,
+			description: 'Read users',
+			module: 'admin',
+			resource: 'users',
+			action: 'read',
+		},
+		{
+			id: 2,
+			name: ADMIN_USER_PERMISSIONS.CREATE,
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{
+			id: 3,
+			name: ADMIN_USER_PERMISSIONS.UPDATE,
+			description: 'Update users',
+			module: 'admin',
+			resource: 'users',
+			action: 'update',
+		},
+		{
+			id: 4,
+			name: ADMIN_USER_PERMISSIONS.DELETE,
+			description: 'Delete users',
+			module: 'admin',
+			resource: 'users',
+			action: 'delete',
+		},
 		{
 			id: 5,
 			name: ADMIN_USER_PERMISSIONS.DISABLE,
 			description: 'Manage user status',
+			module: 'admin',
 			resource: 'users',
 			action: 'disable',
 		},
