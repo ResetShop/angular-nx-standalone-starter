@@ -5,15 +5,17 @@ describe('Permission', () => {
 		it('should create a permission with all properties', () => {
 			const permission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: 'Can read user data',
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})
 
 			expect(permission.id).toBe(1)
-			expect(permission.name).toBe('Read Users')
+			expect(permission.name).toBe('admin:users:read')
 			expect(permission.description).toBe('Can read user data')
+			expect(permission.module).toBe('admin')
 			expect(permission.resource).toBe('users')
 			expect(permission.action).toBe('read')
 		})
@@ -21,8 +23,9 @@ describe('Permission', () => {
 		it('should allow null description', () => {
 			const permission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})
@@ -32,36 +35,39 @@ describe('Permission', () => {
 	})
 
 	describe('identifier', () => {
-		it('should return resource:action format', () => {
+		it('should return module:resource:action format', () => {
 			const permission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})
 
-			expect(permission.identifier).toBe('users:read')
+			expect(permission.identifier).toBe('admin:users:read')
 		})
 
 		it('should handle different resource and action combinations', () => {
 			const permission1 = createPermission({
 				id: 1,
-				name: 'Create Roles',
+				name: 'admin:roles:create',
 				description: null,
+				module: 'admin',
 				resource: 'roles',
 				action: 'create',
 			})
 			const permission2 = createPermission({
 				id: 2,
-				name: 'Delete Posts',
+				name: 'admin:posts:delete',
 				description: null,
+				module: 'admin',
 				resource: 'posts',
 				action: 'delete',
 			})
 
-			expect(permission1.identifier).toBe('roles:create')
-			expect(permission2.identifier).toBe('posts:delete')
+			expect(permission1.identifier).toBe('admin:roles:create')
+			expect(permission2.identifier).toBe('admin:posts:delete')
 		})
 	})
 
@@ -69,8 +75,9 @@ describe('Permission', () => {
 		it('should return true when resource and action match', () => {
 			const permission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})
@@ -81,8 +88,9 @@ describe('Permission', () => {
 		it('should return false when resource does not match', () => {
 			const permission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})
@@ -93,8 +101,9 @@ describe('Permission', () => {
 		it('should return false when action does not match', () => {
 			const permission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})
@@ -105,8 +114,9 @@ describe('Permission', () => {
 		it('should return false when neither resource nor action match', () => {
 			const permission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})

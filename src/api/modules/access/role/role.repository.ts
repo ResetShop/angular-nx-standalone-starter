@@ -252,6 +252,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 					id: permission.id,
 					name: permission.name,
 					description: permission.description,
+					module: permission.module,
 					resource: permission.resource,
 					action: permission.action,
 				})
@@ -288,6 +289,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 				id: permission.id,
 				name: permission.name,
 				description: permission.description,
+				module: permission.module,
 				resource: permission.resource,
 				action: permission.action,
 			})

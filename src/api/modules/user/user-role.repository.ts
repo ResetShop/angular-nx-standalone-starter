@@ -89,6 +89,7 @@ export class DrizzleUserRoleRepository extends BaseRepository implements UserRol
 				id: rp.permission.id,
 				name: rp.permission.name,
 				description: rp.permission.description,
+				module: rp.permission.module,
 				resource: rp.permission.resource,
 				action: rp.permission.action,
 			})),
@@ -108,6 +109,7 @@ export class DrizzleUserRoleRepository extends BaseRepository implements UserRol
 				id: permission.id,
 				name: permission.name,
 				description: permission.description,
+				module: permission.module,
 				resource: permission.resource,
 				action: permission.action,
 			})

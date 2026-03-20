@@ -34,7 +34,7 @@ describe('User Mapper', () => {
 		})
 
 		it('should create user with aggregated permissions', () => {
-			const permissions = [new Permission(1, 'Read Users', null, 'users', 'read')]
+			const permissions = [new Permission(1, 'admin:users:read', null, 'admin', 'users', 'read')]
 			const roles = [new Role(1, 'admin', 'Administrator', null, true, null, null, permissions)]
 			const user = createUser({
 				id: 1,

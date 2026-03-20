@@ -32,11 +32,11 @@ describe('permissionGuard', () => {
 		const store = TestBed.inject(AuthStore)
 		store.updateCurrentUser(
 			createMockUser({
-				hasPermissionByIdentifier: (id: string) => id === 'users:read',
+				hasPermissionByIdentifier: (id: string) => id === 'admin:users:read',
 			}),
 		)
 
-		const result = runGuard('users:read')
+		const result = runGuard('admin:users:read')
 
 		expect(result).toBe(true)
 	})
@@ -45,14 +45,14 @@ describe('permissionGuard', () => {
 		const store = TestBed.inject(AuthStore)
 		store.updateCurrentUser(createMockUser())
 
-		const result = runGuard('users:read')
+		const result = runGuard('admin:users:read')
 
 		expect(result).toBeInstanceOf(UrlTree)
 		expect((result as UrlTree).toString()).toBe('/dashboard')
 	})
 
 	it('should redirect to /dashboard when user is null', () => {
-		const result = runGuard('users:read')
+		const result = runGuard('admin:users:read')
 
 		expect(result).toBeInstanceOf(UrlTree)
 		expect((result as UrlTree).toString()).toBe('/dashboard')

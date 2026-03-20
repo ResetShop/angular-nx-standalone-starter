@@ -9,6 +9,7 @@ export const permission = pgTable(
 		id: serial('id').primaryKey(),
 		name: text('name').notNull().unique(),
 		description: text('description'),
+		module: text('module').notNull(),
 		resource: text('resource').notNull(),
 		action: text('action').notNull(),
 		createdAt: timestamp('created_at').defaultNow(),
