@@ -48,7 +48,7 @@ describe('User Role Controller', () => {
 	const allUserRolePermissions: PermissionData[] = [
 		{
 			id: 1,
-			name: Permission.USER_ROLES_READ,
+			name: Permission.ADMIN_USER_ROLES_READ,
 			description: 'Read user roles',
 			module: 'admin',
 			resource: 'user_roles',
@@ -56,7 +56,7 @@ describe('User Role Controller', () => {
 		},
 		{
 			id: 2,
-			name: Permission.USER_ROLES_ASSIGN,
+			name: Permission.ADMIN_USER_ROLES_ASSIGN,
 			description: 'Assign roles',
 			module: 'admin',
 			resource: 'user_roles',
@@ -64,7 +64,7 @@ describe('User Role Controller', () => {
 		},
 		{
 			id: 3,
-			name: Permission.USER_ROLES_REMOVE,
+			name: Permission.ADMIN_USER_ROLES_REMOVE,
 			description: 'Remove roles',
 			module: 'admin',
 			resource: 'user_roles',

@@ -11,7 +11,7 @@ export const listPermissionsRoute = createRoute({
 	tags: ['Permissions'],
 	summary: 'List all permissions',
 	description: 'List all system permissions with pagination and optional search.',
-	middleware: [requirePermission(Permission.PERMISSIONS_READ)] as const,
+	middleware: [requirePermission(Permission.ADMIN_PERMISSIONS_READ)] as const,
 	request: {
 		query: searchPaginationSchema,
 	},

@@ -56,7 +56,9 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					placeholder="Search roles..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *appHasPermission="Permission.ROLES_CREATE" appButton>Create Role</button>
+				<button (click)="createDrawer.open()" *appHasPermission="Permission.ADMIN_ROLES_CREATE" appButton>
+					Create Role
+				</button>
 			</div>
 
 			<app-data-table [columns]="columns()" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
@@ -68,14 +70,14 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					<div class="flex gap-2">
 						<button
 							(click)="editDrawer.open(row.id)"
-							*appHasPermission="Permission.ROLES_UPDATE"
+							*appHasPermission="Permission.ADMIN_ROLES_UPDATE"
 							appButton
 							variant="ghost"
 							size="sm"
 						>
 							Edit
 						</button>
-						<ng-container *appHasPermission="Permission.ROLES_DELETE">
+						<ng-container *appHasPermission="Permission.ADMIN_ROLES_DELETE">
 							@if (row.removable) {
 								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
 									Delete
@@ -139,7 +141,7 @@ export default class RolesList {
 			{ accessorKey: 'description', header: 'Description' },
 		]
 		const user = this.authStore.currentUser()
-		if (user?.hasPermission(Permission.ROLES_UPDATE) || user?.hasPermission(Permission.ROLES_DELETE)) {
+		if (user?.hasPermission(Permission.ADMIN_ROLES_UPDATE) || user?.hasPermission(Permission.ADMIN_ROLES_DELETE)) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base
