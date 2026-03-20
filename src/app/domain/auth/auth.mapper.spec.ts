@@ -38,7 +38,9 @@ describe('Auth Mapper', () => {
 						name: 'Administrator',
 						description: null,
 						removable: true,
-						permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
+						permissions: [
+							{ id: 1, name: 'Read Users', description: null, module: 'admin', resource: 'users', action: 'read' },
+						],
 					},
 				],
 			}
@@ -51,7 +53,7 @@ describe('Auth Mapper', () => {
 			expect(user.lastName).toBe('Doe')
 			expect(user.roles).toHaveLength(1)
 			expect(user.roles[0].code).toBe('admin')
-			expect(user.hasPermission('users', 'read')).toBe(true)
+			expect(user.hasPermission('admin:users:read')).toBe(true)
 		})
 
 		it('should handle empty roles', () => {

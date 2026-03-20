@@ -42,6 +42,7 @@ export default defineConfig({
 			'@contracts': '/src/contracts',
 			'@components': '/src/app/components',
 			'@configs': '/src/app/configs',
+			'@directives': '/src/app/directives',
 			'@domain': '/src/app/domain',
 			'@guards': '/src/app/guards',
 			'@interfaces': '/src/app/interfaces',

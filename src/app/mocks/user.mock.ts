@@ -18,7 +18,6 @@ export function createMockUser(overrides: Partial<IUser> = {}): IUser {
 		roles: [],
 		permissions: [],
 		hasPermission: () => false,
-		hasPermissionByIdentifier: () => false,
 		hasRole: () => false,
 		...overrides,
 	}

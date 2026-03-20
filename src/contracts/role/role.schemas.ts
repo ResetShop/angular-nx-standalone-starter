@@ -9,13 +9,14 @@ import { QUERY_DEFAULTS } from '../common/query.constants'
  * Permission data schema for role-permission relationships.
  *
  * The frontend domain model computes an `identifier` field as
- * `${resource}:${action}` for permission matching. This is intentionally
+ * `${module}:${resource}:${action}` for permission matching. This is intentionally
  * not part of the API contract to avoid redundant data transfer.
  */
 export const permissionDataSchema = z.object({
 	id: z.number(),
 	name: z.string(),
 	description: z.string().nullable(),
+	module: z.string(),
 	resource: z.string(),
 	action: z.string(),
 })

@@ -22,6 +22,8 @@ export interface LeafNavigationRoute {
 	name: string
 	route: string
 	icon?: Record<string, string>
+	/** Permission identifier required to view this route (e.g. 'users:read'). Omit for public routes. */
+	permission?: string
 }
 
 /**
@@ -34,6 +36,8 @@ export interface ParentNavigationRoute {
 	name: string
 	route: string
 	icon?: Record<string, string>
+	/** Permission required to display the parent group itself. Children are independently filtered by their own permission fields. */
+	permission?: string
 	children: [NavigationRoute, ...NavigationRoute[]] // Non-empty array
 }
 

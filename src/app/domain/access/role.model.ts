@@ -34,11 +34,7 @@ export class Role implements IRole {
 		this._permissionIdentifiers = new Set(permissions.map((p) => p.identifier))
 	}
 
-	public hasPermission(resource: string, action: string): boolean {
-		return this._permissionIdentifiers.has(`${resource}:${action}`)
-	}
-
-	public hasPermissionByIdentifier(identifier: string): boolean {
+	public hasPermission(identifier: string): boolean {
 		return this._permissionIdentifiers.has(identifier)
 	}
 }

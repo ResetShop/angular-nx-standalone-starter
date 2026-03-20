@@ -62,8 +62,15 @@ describe('Auth Controller - /me endpoint', () => {
 				createdAt: new Date('2025-01-01'),
 				updatedAt: new Date('2025-01-01'),
 				permissions: [
-					{ id: 1, name: 'Read Users', description: 'View users', resource: 'users', action: 'read' },
-					{ id: 2, name: 'Write Users', description: 'Create/update users', resource: 'users', action: 'write' },
+					{ id: 1, name: 'Read Users', description: 'View users', module: 'admin', resource: 'users', action: 'read' },
+					{
+						id: 2,
+						name: 'Write Users',
+						description: 'Create/update users',
+						module: 'admin',
+						resource: 'users',
+						action: 'write',
+					},
 				],
 			},
 		]

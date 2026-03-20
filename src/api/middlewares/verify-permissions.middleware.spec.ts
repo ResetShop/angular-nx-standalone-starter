@@ -1,10 +1,10 @@
+import { permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../container/container'
 import { InMemoryContainer } from '../container/container.mock'
 import type { PermissionData } from '../modules/access/role/interfaces'
-import { permission } from '../modules/user/permission-types'
 import type { AuthenticatedContext } from './verify-access-token.middleware'
 import { requireAllPermissions, requireAnyPermission, requirePermission } from './verify-permissions.middleware'
 
@@ -57,8 +57,22 @@ describe('Permissions Middleware', () => {
 
 	// Test permissions
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'admin:users:create', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'admin:users:delete', description: 'Delete users', resource: 'users', action: 'delete' },
+		{
+			id: 1,
+			name: 'admin:users:create',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{
+			id: 2,
+			name: 'admin:users:delete',
+			description: 'Delete users',
+			module: 'admin',
+			resource: 'users',
+			action: 'delete',
+		},
 	]
 
 	beforeEach(() => {

@@ -1,3 +1,4 @@
+import { Permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -6,7 +7,6 @@ import { InMemoryContainer } from '../../../container/container.mock'
 import type { PaginatedResponse } from '../../../interfaces'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
 import type { ListRolesParams, PermissionData, RoleData } from './interfaces'
-import { ADMIN_ROLE_PERMISSIONS } from './permissions.constants'
 import roleController from './role.controller'
 import { InvalidPermissionIdsError, ROLE_ERRORS } from './role.service'
 
@@ -39,15 +39,50 @@ describe('Role Controller', () => {
 	}
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'can_create_users', description: 'Create users', resource: 'users', action: 'create' },
+		{
+			id: 1,
+			name: 'can_create_users',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
 	]
 
 	// All admin:roles:* permissions for testing
 	const allRolePermissions: PermissionData[] = [
-		{ id: 1, name: ADMIN_ROLE_PERMISSIONS.READ, description: 'Read roles', resource: 'roles', action: 'read' },
-		{ id: 2, name: ADMIN_ROLE_PERMISSIONS.CREATE, description: 'Create roles', resource: 'roles', action: 'create' },
-		{ id: 3, name: ADMIN_ROLE_PERMISSIONS.UPDATE, description: 'Update roles', resource: 'roles', action: 'update' },
-		{ id: 4, name: ADMIN_ROLE_PERMISSIONS.DELETE, description: 'Delete roles', resource: 'roles', action: 'delete' },
+		{
+			id: 1,
+			name: Permission.ADMIN_ROLES_READ,
+			description: 'Read roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'read',
+		},
+		{
+			id: 2,
+			name: Permission.ADMIN_ROLES_CREATE,
+			description: 'Create roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'create',
+		},
+		{
+			id: 3,
+			name: Permission.ADMIN_ROLES_UPDATE,
+			description: 'Update roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'update',
+		},
+		{
+			id: 4,
+			name: Permission.ADMIN_ROLES_DELETE,
+			description: 'Delete roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'delete',
+		},
 	]
 
 	beforeEach(() => {

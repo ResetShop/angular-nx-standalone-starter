@@ -1,3 +1,4 @@
+import { Permission } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { clearAllMocks, fn } from '@test-utils'
@@ -8,7 +9,6 @@ import { InMemoryContainer } from '../../container/container.mock'
 import type { PaginatedResponse } from '../../interfaces'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import type { PermissionData, RoleData } from '../access/role/interfaces'
-import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants'
 import type { CreateUserParams, ManagedUserData, UpdateUserParams, UpdateUserStatusParams } from './interfaces'
 import userManagementController from './user-management.controller'
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
@@ -54,14 +54,43 @@ describe('User Management Controller', () => {
 
 	// All admin:users:* permissions for the authenticated user
 	const allUserPermissions: PermissionData[] = [
-		{ id: 1, name: ADMIN_USER_PERMISSIONS.READ, description: 'Read users', resource: 'users', action: 'read' },
-		{ id: 2, name: ADMIN_USER_PERMISSIONS.CREATE, description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 3, name: ADMIN_USER_PERMISSIONS.UPDATE, description: 'Update users', resource: 'users', action: 'update' },
-		{ id: 4, name: ADMIN_USER_PERMISSIONS.DELETE, description: 'Delete users', resource: 'users', action: 'delete' },
+		{
+			id: 1,
+			name: Permission.ADMIN_USERS_READ,
+			description: 'Read users',
+			module: 'admin',
+			resource: 'users',
+			action: 'read',
+		},
+		{
+			id: 2,
+			name: Permission.ADMIN_USERS_CREATE,
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{
+			id: 3,
+			name: Permission.ADMIN_USERS_UPDATE,
+			description: 'Update users',
+			module: 'admin',
+			resource: 'users',
+			action: 'update',
+		},
+		{
+			id: 4,
+			name: Permission.ADMIN_USERS_DELETE,
+			description: 'Delete users',
+			module: 'admin',
+			resource: 'users',
+			action: 'delete',
+		},
 		{
 			id: 5,
-			name: ADMIN_USER_PERMISSIONS.DISABLE,
+			name: Permission.ADMIN_USERS_DISABLE,
 			description: 'Manage user status',
+			module: 'admin',
 			resource: 'users',
 			action: 'disable',
 		},

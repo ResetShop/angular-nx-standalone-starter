@@ -1,5 +1,6 @@
 import { errorResponseSchema, successMessageSchema } from '@contracts/common/error.schemas'
 import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas'
+import { Permission } from '@contracts/permission/permission.constants'
 import {
 	createUserRequestSchema,
 	createUserResponseSchema,
@@ -10,7 +11,6 @@ import {
 import { createRoute } from '@hono/zod-openapi'
 import { requirePermission } from '../../middlewares/verify-permissions.middleware'
 import { commonResponses, idParamSchema } from '../../openapi-config'
-import { ADMIN_USER_PERMISSIONS } from '../access/role/permissions.constants'
 
 export const listUsersRoute = createRoute({
 	method: 'get',
@@ -18,7 +18,7 @@ export const listUsersRoute = createRoute({
 	tags: ['Users'],
 	summary: 'List users',
 	description: 'List users with pagination and optional search.',
-	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.ADMIN_USERS_READ)] as const,
 	request: { query: searchPaginationSchema },
 	responses: {
 		200: {
@@ -35,7 +35,7 @@ export const getUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Get user by ID',
 	description: 'Get user details with roles.',
-	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.READ)] as const,
+	middleware: [requirePermission(Permission.ADMIN_USERS_READ)] as const,
 	request: { params: idParamSchema },
 	responses: {
 		200: {
@@ -60,7 +60,7 @@ export const createUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Create a user',
 	description: 'Create a new user with optional role assignments.',
-	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.CREATE)] as const,
+	middleware: [requirePermission(Permission.ADMIN_USERS_CREATE)] as const,
 	request: {
 		body: {
 			content: { 'application/json': { schema: createUserRequestSchema } },
@@ -86,7 +86,7 @@ export const updateUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Update a user',
 	description: 'Update user details or role assignments.',
-	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.UPDATE)] as const,
+	middleware: [requirePermission(Permission.ADMIN_USERS_UPDATE)] as const,
 	request: {
 		params: idParamSchema,
 		body: {
@@ -121,7 +121,7 @@ export const updateUserStatusRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Update user status',
 	description: 'Update user account status with state machine enforcement.',
-	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.DISABLE)] as const,
+	middleware: [requirePermission(Permission.ADMIN_USERS_DISABLE)] as const,
 	request: {
 		params: idParamSchema,
 		body: {
@@ -160,7 +160,7 @@ export const deleteUserRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Delete a user',
 	description: 'Soft delete a user.',
-	middleware: [requirePermission(ADMIN_USER_PERMISSIONS.DELETE)] as const,
+	middleware: [requirePermission(Permission.ADMIN_USERS_DELETE)] as const,
 	request: { params: idParamSchema },
 	responses: {
 		200: {

@@ -10,6 +10,5 @@ export interface IRole {
 	readonly updatedAt: Date | null
 	readonly permissions: readonly IPermission[]
 
-	hasPermission(resource: string, action: string): boolean
-	hasPermissionByIdentifier(identifier: string): boolean
+	hasPermission(identifier: string): boolean
 }

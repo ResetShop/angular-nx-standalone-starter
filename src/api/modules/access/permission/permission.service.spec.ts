@@ -8,10 +8,24 @@ describe('PermissionService', () => {
 	let mockPermissionRepo: InMemoryPermissionRepository
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'admin:users:create', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'admin:users:read', description: 'View users', resource: 'users', action: 'read' },
-		{ id: 3, name: 'admin:roles:create', description: 'Create roles', resource: 'roles', action: 'create' },
-		{ id: 4, name: 'admin:roles:read', description: 'View roles', resource: 'roles', action: 'read' },
+		{
+			id: 1,
+			name: 'admin:users:create',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{ id: 2, name: 'admin:users:read', description: 'View users', module: 'admin', resource: 'users', action: 'read' },
+		{
+			id: 3,
+			name: 'admin:roles:create',
+			description: 'Create roles',
+			module: 'admin',
+			resource: 'roles',
+			action: 'create',
+		},
+		{ id: 4, name: 'admin:roles:read', description: 'View roles', module: 'admin', resource: 'roles', action: 'read' },
 	]
 
 	beforeEach(() => {

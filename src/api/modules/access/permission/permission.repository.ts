@@ -13,7 +13,7 @@ import type { ListPermissionsParams, PermissionRepository } from './interfaces'
 export class DrizzlePermissionRepository extends BaseRepository implements PermissionRepository {
 	/**
 	 * Retrieves all permissions with pagination and optional search filtering.
-	 * Search is case-insensitive and matches against name, description, resource, or action.
+	 * Search is case-insensitive and matches against name, description, module, resource, or action.
 	 *
 	 * @param params - Optional list parameters
 	 * @param params.offset - Number of records to skip (default: 0)
@@ -32,6 +32,7 @@ export class DrizzlePermissionRepository extends BaseRepository implements Permi
 					id: permission.id,
 					name: permission.name,
 					description: permission.description,
+					module: permission.module,
 					resource: permission.resource,
 					action: permission.action,
 				})
@@ -52,7 +53,7 @@ export class DrizzlePermissionRepository extends BaseRepository implements Permi
 
 	/**
 	 * Builds a case-insensitive search condition for filtering permissions
-	 * by name, description, resource, or action.
+	 * by name, description, module, resource, or action.
 	 * SQL wildcard characters (%, _) are escaped to be treated as literals.
 	 *
 	 * @param search - The search term to filter by
@@ -68,6 +69,7 @@ export class DrizzlePermissionRepository extends BaseRepository implements Permi
 		return or(
 			ilike(permission.name, pattern),
 			ilike(permission.description, pattern),
+			ilike(permission.module, pattern),
 			ilike(permission.resource, pattern),
 			ilike(permission.action, pattern),
 		)

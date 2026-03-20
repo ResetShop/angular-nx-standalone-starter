@@ -1,3 +1,4 @@
+import { Permission } from '@contracts/permission/permission.constants'
 import { clearAllMocks, fn } from '@test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -6,7 +7,6 @@ import { InMemoryContainer } from '../../../container/container.mock'
 import type { PaginatedResponse } from '../../../interfaces'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
 import type { PermissionData } from '../role/interfaces'
-import { ADMIN_PERMISSION_PERMISSIONS } from '../role/permissions.constants'
 import type { ListPermissionsParams } from './interfaces'
 import permissionController from './permission.controller'
 
@@ -17,15 +17,23 @@ describe('Permission Controller', () => {
 	let app: Hono
 
 	const testPermissions: PermissionData[] = [
-		{ id: 1, name: 'admin:users:create', description: 'Create users', resource: 'users', action: 'create' },
-		{ id: 2, name: 'admin:users:read', description: 'View users', resource: 'users', action: 'read' },
+		{
+			id: 1,
+			name: 'admin:users:create',
+			description: 'Create users',
+			module: 'admin',
+			resource: 'users',
+			action: 'create',
+		},
+		{ id: 2, name: 'admin:users:read', description: 'View users', module: 'admin', resource: 'users', action: 'read' },
 	]
 
 	// Permission that grants access to the endpoint
 	const requiredPermission: PermissionData = {
 		id: 100,
-		name: ADMIN_PERMISSION_PERMISSIONS.READ,
+		name: Permission.ADMIN_PERMISSIONS_READ,
 		description: 'View all system permissions',
+		module: 'admin',
 		resource: 'permissions',
 		action: 'read',
 	}

@@ -1,5 +1,5 @@
+import { PERMISSIONS_SEED_DATA } from '@contracts/permission/permission.constants'
 import type { OpenAPIHono } from '@hono/zod-openapi'
-import { ADMIN_PERMISSIONS_SEED_DATA } from '../../modules/access/role/permissions.constants'
 import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers'
 import { createTestApp } from '../setup/test-app'
 
@@ -22,7 +22,7 @@ describe('Permission endpoints (/api/access/permissions)', () => {
 			const body = await response.json()
 			expect(body.data).toBeInstanceOf(Array)
 			expect(body.data.length).toBeGreaterThan(0)
-			expect(body.total).toBeGreaterThanOrEqual(ADMIN_PERMISSIONS_SEED_DATA.length)
+			expect(body.total).toBeGreaterThanOrEqual(PERMISSIONS_SEED_DATA.length)
 		})
 
 		it('supports search parameter', async () => {
@@ -43,7 +43,7 @@ describe('Permission endpoints (/api/access/permissions)', () => {
 			expect(response.status).toBe(200)
 			const body = await response.json()
 			expect(body.data.length).toBeLessThanOrEqual(2)
-			expect(body.total).toBeGreaterThanOrEqual(ADMIN_PERMISSIONS_SEED_DATA.length)
+			expect(body.total).toBeGreaterThanOrEqual(PERMISSIONS_SEED_DATA.length)
 		})
 
 		it('returns 401 without authentication', async () => {
