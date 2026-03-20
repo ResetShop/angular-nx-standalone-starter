@@ -1,20 +1,20 @@
 /**
- * Frontend permission identifiers using the 2-part format (resource:action).
+ * Frontend permission identifiers using the 3-part format (module:resource:action).
  *
- * The backend uses 3-part identifiers (module:resource:action, e.g. "admin:users:read"),
- * but the frontend Permission domain model computes identifier as "${resource}:${action}".
- * These constants match the frontend format used by User.hasPermissionByIdentifier().
+ * These match the backend permission identifiers defined in
+ * `src/api/modules/access/role/permissions.constants.ts` and the
+ * `Permission.identifier` getter which computes `${module}:${resource}:${action}`.
  */
 export const PermissionId = Object.freeze({
-	USERS_READ: 'users:read',
-	USERS_CREATE: 'users:create',
-	USERS_UPDATE: 'users:update',
-	USERS_DELETE: 'users:delete',
-	ROLES_READ: 'roles:read',
-	ROLES_CREATE: 'roles:create',
-	ROLES_UPDATE: 'roles:update',
-	ROLES_DELETE: 'roles:delete',
-	PERMISSIONS_READ: 'permissions:read',
+	USERS_READ: 'admin:users:read',
+	USERS_CREATE: 'admin:users:create',
+	USERS_UPDATE: 'admin:users:update',
+	USERS_DELETE: 'admin:users:delete',
+	ROLES_READ: 'admin:roles:read',
+	ROLES_CREATE: 'admin:roles:create',
+	ROLES_UPDATE: 'admin:roles:update',
+	ROLES_DELETE: 'admin:roles:delete',
+	PERMISSIONS_READ: 'admin:permissions:read',
 } as const)
 
 export type PermissionId = (typeof PermissionId)[keyof typeof PermissionId]

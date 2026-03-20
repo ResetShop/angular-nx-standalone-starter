@@ -5,12 +5,40 @@ import { createUser } from './user.mapper'
 describe('User', () => {
 	const createTestRoles = () => {
 		const adminPermissions = [
-			createPermission({ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }),
-			createPermission({ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' }),
+			createPermission({
+				id: 1,
+				name: 'admin:users:read',
+				description: null,
+				module: 'admin',
+				resource: 'users',
+				action: 'read',
+			}),
+			createPermission({
+				id: 2,
+				name: 'admin:users:write',
+				description: null,
+				module: 'admin',
+				resource: 'users',
+				action: 'write',
+			}),
 		]
 		const editorPermissions = [
-			createPermission({ id: 3, name: 'Read Posts', description: null, resource: 'posts', action: 'read' }),
-			createPermission({ id: 4, name: 'Write Posts', description: null, resource: 'posts', action: 'write' }),
+			createPermission({
+				id: 3,
+				name: 'admin:posts:read',
+				description: null,
+				module: 'admin',
+				resource: 'posts',
+				action: 'read',
+			}),
+			createPermission({
+				id: 4,
+				name: 'admin:posts:write',
+				description: null,
+				module: 'admin',
+				resource: 'posts',
+				action: 'write',
+			}),
 		]
 
 		return [
@@ -111,8 +139,9 @@ describe('User', () => {
 		it('should deduplicate permissions across roles', () => {
 			const sharedPermission = createPermission({
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			})
@@ -146,7 +175,7 @@ describe('User', () => {
 			})
 
 			expect(user.permissions).toHaveLength(1)
-			expect(user.permissions[0].identifier).toBe('users:read')
+			expect(user.permissions[0].identifier).toBe('admin:users:read')
 		})
 
 		it('should return empty array for user with no roles', () => {
@@ -214,8 +243,8 @@ describe('User', () => {
 				roles,
 			})
 
-			expect(user.hasPermissionByIdentifier('users:read')).toBe(true)
-			expect(user.hasPermissionByIdentifier('posts:write')).toBe(true)
+			expect(user.hasPermissionByIdentifier('admin:users:read')).toBe(true)
+			expect(user.hasPermissionByIdentifier('admin:posts:write')).toBe(true)
 		})
 
 		it('should return false when user does not have permission', () => {
@@ -228,7 +257,7 @@ describe('User', () => {
 				roles,
 			})
 
-			expect(user.hasPermissionByIdentifier('settings:read')).toBe(false)
+			expect(user.hasPermissionByIdentifier('admin:settings:read')).toBe(false)
 		})
 
 		it('should return false for user with no roles', () => {
@@ -240,7 +269,7 @@ describe('User', () => {
 				roles: [],
 			})
 
-			expect(user.hasPermissionByIdentifier('users:read')).toBe(false)
+			expect(user.hasPermissionByIdentifier('admin:users:read')).toBe(false)
 		})
 	})
 

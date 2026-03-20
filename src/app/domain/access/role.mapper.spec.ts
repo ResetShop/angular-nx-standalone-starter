@@ -6,8 +6,9 @@ describe('Role Mapper', () => {
 		it('should map PermissionData to IPermission', () => {
 			const data: PermissionData = {
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: 'Can read user data',
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			}
@@ -15,18 +16,20 @@ describe('Role Mapper', () => {
 			const permission = mapPermission(data)
 
 			expect(permission.id).toBe(1)
-			expect(permission.name).toBe('Read Users')
+			expect(permission.name).toBe('admin:users:read')
 			expect(permission.description).toBe('Can read user data')
+			expect(permission.module).toBe('admin')
 			expect(permission.resource).toBe('users')
 			expect(permission.action).toBe('read')
-			expect(permission.identifier).toBe('users:read')
+			expect(permission.identifier).toBe('admin:users:read')
 		})
 
 		it('should handle null description', () => {
 			const data: PermissionData = {
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			}
@@ -39,8 +42,9 @@ describe('Role Mapper', () => {
 		it('should create permission with working matches method', () => {
 			const data: PermissionData = {
 				id: 1,
-				name: 'Read Users',
+				name: 'admin:users:read',
 				description: null,
+				module: 'admin',
 				resource: 'users',
 				action: 'read',
 			}
@@ -60,9 +64,11 @@ describe('Role Mapper', () => {
 				name: 'Administrator',
 				description: 'Full access',
 				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [
-					{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' },
-					{ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' },
+					{ id: 1, name: 'admin:users:read', description: null, module: 'admin', resource: 'users', action: 'read' },
+					{ id: 2, name: 'admin:users:write', description: null, module: 'admin', resource: 'users', action: 'write' },
 				],
 			}
 
@@ -82,6 +88,8 @@ describe('Role Mapper', () => {
 				name: 'Guest',
 				description: null,
 				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [],
 			}
 
@@ -97,6 +105,8 @@ describe('Role Mapper', () => {
 				name: 'Guest',
 				description: null,
 				removable: true,
+				createdAt: null,
+				updatedAt: null,
 				permissions: [],
 			}
 
@@ -112,14 +122,18 @@ describe('Role Mapper', () => {
 				name: 'Administrator',
 				description: null,
 				removable: true,
-				permissions: [{ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }],
+				createdAt: null,
+				updatedAt: null,
+				permissions: [
+					{ id: 1, name: 'admin:users:read', description: null, module: 'admin', resource: 'users', action: 'read' },
+				],
 			}
 
 			const role = mapRole(data)
 
 			expect(role.hasPermission('users', 'read')).toBe(true)
 			expect(role.hasPermission('users', 'write')).toBe(false)
-			expect(role.hasPermissionByIdentifier('users:read')).toBe(true)
+			expect(role.hasPermissionByIdentifier('admin:users:read')).toBe(true)
 		})
 	})
 })

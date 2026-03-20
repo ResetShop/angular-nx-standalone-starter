@@ -9,6 +9,7 @@ export function mapPermission(data: PermissionData): IPermission {
 		id: data.id,
 		name: data.name,
 		description: data.description,
+		module: data.module,
 		resource: data.resource,
 		action: data.action,
 	})

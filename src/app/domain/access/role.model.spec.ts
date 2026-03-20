@@ -3,9 +3,30 @@ import { createRole } from './role.mapper'
 
 describe('Role', () => {
 	const createTestPermissions = () => [
-		createPermission({ id: 1, name: 'Read Users', description: null, resource: 'users', action: 'read' }),
-		createPermission({ id: 2, name: 'Write Users', description: null, resource: 'users', action: 'write' }),
-		createPermission({ id: 3, name: 'Read Roles', description: null, resource: 'roles', action: 'read' }),
+		createPermission({
+			id: 1,
+			name: 'admin:users:read',
+			description: null,
+			module: 'admin',
+			resource: 'users',
+			action: 'read',
+		}),
+		createPermission({
+			id: 2,
+			name: 'admin:users:write',
+			description: null,
+			module: 'admin',
+			resource: 'users',
+			action: 'write',
+		}),
+		createPermission({
+			id: 3,
+			name: 'admin:roles:read',
+			description: null,
+			module: 'admin',
+			resource: 'roles',
+			action: 'read',
+		}),
 	]
 
 	describe('createRole', () => {
@@ -126,9 +147,9 @@ describe('Role', () => {
 				permissions,
 			})
 
-			expect(role.hasPermissionByIdentifier('users:read')).toBe(true)
-			expect(role.hasPermissionByIdentifier('users:write')).toBe(true)
-			expect(role.hasPermissionByIdentifier('roles:read')).toBe(true)
+			expect(role.hasPermissionByIdentifier('admin:users:read')).toBe(true)
+			expect(role.hasPermissionByIdentifier('admin:users:write')).toBe(true)
+			expect(role.hasPermissionByIdentifier('admin:roles:read')).toBe(true)
 		})
 
 		it('should return false when permission identifier does not exist', () => {
@@ -144,8 +165,8 @@ describe('Role', () => {
 				permissions,
 			})
 
-			expect(role.hasPermissionByIdentifier('roles:write')).toBe(false)
-			expect(role.hasPermissionByIdentifier('posts:read')).toBe(false)
+			expect(role.hasPermissionByIdentifier('admin:roles:write')).toBe(false)
+			expect(role.hasPermissionByIdentifier('admin:posts:read')).toBe(false)
 		})
 
 		it('should return false for empty permissions', () => {
@@ -160,7 +181,7 @@ describe('Role', () => {
 				permissions: [],
 			})
 
-			expect(role.hasPermissionByIdentifier('users:read')).toBe(false)
+			expect(role.hasPermissionByIdentifier('admin:users:read')).toBe(false)
 		})
 	})
 })

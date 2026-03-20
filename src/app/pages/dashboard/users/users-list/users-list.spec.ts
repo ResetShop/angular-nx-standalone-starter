@@ -298,25 +298,25 @@ describe('UsersList', () => {
 		}
 
 		it('should hide create button when user lacks users:create', async () => {
-			await renderWithPermissions(['users:read', 'users:update', 'users:delete'])
+			await renderWithPermissions(['admin:users:read', 'admin:users:update', 'admin:users:delete'])
 
 			expect(screen.queryByRole('button', { name: /create user/i })).not.toBeInTheDocument()
 		})
 
 		it('should hide edit button when user lacks users:update', async () => {
-			await renderWithPermissions(['users:read', 'users:delete'])
+			await renderWithPermissions(['admin:users:read', 'admin:users:delete'])
 
 			expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
 		})
 
 		it('should hide delete button when user lacks users:delete', async () => {
-			await renderWithPermissions(['users:read', 'users:update'])
+			await renderWithPermissions(['admin:users:read', 'admin:users:update'])
 
 			expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
 		})
 
 		it('should not render actions column when user lacks both update and delete', async () => {
-			await renderWithPermissions(['users:read', 'users:create'])
+			await renderWithPermissions(['admin:users:read', 'admin:users:create'])
 
 			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
 		})

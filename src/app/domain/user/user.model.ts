@@ -29,7 +29,7 @@ export class User implements IUser {
 	}
 
 	public hasPermission(resource: string, action: string): boolean {
-		return this._permissionIdentifiers.has(`${resource}:${action}`)
+		return this._permissions.some((p) => p.matches(resource, action))
 	}
 
 	public hasPermissionByIdentifier(identifier: string): boolean {
