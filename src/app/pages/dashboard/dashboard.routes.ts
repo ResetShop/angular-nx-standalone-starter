@@ -2,18 +2,21 @@ import { provideToast } from '@components/toast/toast.provider'
 import { permissionGuard } from '@guards/permission.guard'
 import { NamedRoute } from '@interfaces/navigation'
 import Dashboard from '@pages/dashboard/dashboard'
+import { provideNavigation, provideNavigationConfig } from '@providers/navigation/navigation.provider'
 import { providePermissions } from '@providers/permissions/permissions.provider'
 import { provideRoles } from '@providers/roles/roles.provider'
 import { provideUsers } from '@providers/users/users.provider'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { UsersStore } from '@store/users/users.store'
+import { dashboardNavigationConfig } from './dashboard.navigation'
 
 export default [
 	{
 		path: '',
 		title: '',
 		component: Dashboard,
+		providers: [provideNavigation(), provideNavigationConfig(dashboardNavigationConfig)],
 		children: [
 			{
 				path: 'health',

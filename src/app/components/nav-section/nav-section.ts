@@ -45,7 +45,7 @@ export default class NavSection {
 	private readonly injector = inject(EnvironmentInjector)
 
 	// We use a custom injector for the nav items to load ng-icons on demand using lazy loading
-	// By providing the icon definitions in navigation.config.ts we're able to directly load the icons
+	// By providing the icon definitions in each *.navigation.ts file we're able to directly load the icons
 	// that are rendered on the sidebar
 	// We also provide the chevron icon for expandable navigation items
 	protected readonly navItems = computed(() =>
