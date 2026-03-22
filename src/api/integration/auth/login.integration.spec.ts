@@ -50,7 +50,7 @@ describe('POST /api/auth/login', () => {
 		it('returns 400 for missing body', async () => {
 			const response = await app.request('/api/auth/login', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.255.0.1' },
 				body: JSON.stringify({}),
 			})
 			expect(response.status).toBe(400)
@@ -59,7 +59,7 @@ describe('POST /api/auth/login', () => {
 		it('returns 400 for invalid email format', async () => {
 			const response = await app.request('/api/auth/login', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.255.0.2' },
 				body: JSON.stringify({ email: 'not-an-email', password: adminPassword }),
 			})
 			expect(response.status).toBe(400)

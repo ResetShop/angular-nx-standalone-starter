@@ -152,8 +152,23 @@ PASETO was chosen over JWT for the following reasons:
 
 - **Deleted accounts**: Return generic "Invalid credentials" (prevents enumeration)
 - **Disabled accounts**: Return specific "Account is disabled" message
-- **Rate limiting**: (Recommended) Should be added for production
-- **Failed login tracking**: (TODO) Increment failed attempts counter
+- **Failed login tracking**: Tracks consecutive failures per user, locks account after threshold
+
+### Rate Limiting
+
+HTTP-level rate limiting is applied per-route to auth endpoints using `hono-rate-limiter`:
+
+| Endpoint                 | Limit       | Window     | Purpose                               |
+| ------------------------ | ----------- | ---------- | ------------------------------------- |
+| `POST /api/auth/login`   | 5 requests  | 15 minutes | Prevents brute force password attacks |
+| `POST /api/auth/refresh` | 10 requests | 1 minute   | Prevents token refresh abuse          |
+
+Rate limiting is keyed by client IP (`X-Forwarded-For` → `X-Real-IP` → `'unknown'`). When a limit is exceeded, a `429 Too Many Requests` response is returned with `RateLimit-*` headers (draft-7 standard).
+
+Rate limiting and account lockout are complementary layers:
+
+- **Rate limiting** operates at the transport level — limits request volume before the application is reached
+- **Account lockout** operates at the application level — tracks per-user failures across all IPs
 
 ### Race Condition Protection
 
