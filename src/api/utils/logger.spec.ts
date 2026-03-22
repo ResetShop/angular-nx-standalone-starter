@@ -1,4 +1,4 @@
-import { fn } from '@test-utils'
+import { clearAllMocks, fn } from '@test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { logger } from './logger'
 
@@ -12,6 +12,7 @@ describe('logger', () => {
 	let mockError: ReturnType<typeof fn>
 
 	beforeEach(() => {
+		clearAllMocks()
 		mockLog = fn()
 		mockWarn = fn()
 		mockError = fn()
