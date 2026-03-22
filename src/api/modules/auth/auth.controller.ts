@@ -20,6 +20,7 @@ import {
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { createOpenAPIApp, registerRoute } from '../../openapi-app'
+import { logger } from '../../utils/logger'
 import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
 
 const app = createOpenAPIApp()
@@ -233,8 +234,7 @@ registerRoute(app, cleanupTokensRoute, async (c) => {
 			incomplete: result.incomplete,
 		})
 	} catch (error) {
-		// TODO(#66): Replace with structured logging service
-		console.error('[TokenCleanup] Error:', error)
+		logger.error('TokenCleanup', 'Cleanup endpoint error', error)
 		return c.json({ error: 'Cleanup failed' }, 500)
 	}
 })

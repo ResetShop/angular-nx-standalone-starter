@@ -5,6 +5,7 @@ import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
 import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import { type PasetoService } from '../../services/paseto/interfaces'
+import { logger } from '../../utils/logger'
 import { type UserData, type UserRepository } from '../user/interfaces'
 import {
 	type AuthCredentials,
@@ -117,15 +118,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 	 */
 	private checkAccountLockout(authRecord: AuthenticationData | null, userId?: number): void {
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
-			// TODO(#66): Replace with structured logging service
-			console.log(
-				JSON.stringify({
-					event: 'login_blocked_account_locked',
-					userId,
-					lockedUntil: authRecord.lockedUntil.toISOString(),
-					timestamp: new Date().toISOString(),
-				}),
-			)
+			logger.security('login_blocked_account_locked', { userId, lockedUntil: authRecord.lockedUntil.toISOString() })
 			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED)
 		}
 	}
@@ -179,16 +172,11 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		const result = await this.authRepository.incrementAndLockIfNeeded(user.id)
 
 		if (result.wasLocked && result.lockedUntil) {
-			// TODO(#66): Replace with structured logging service
-			console.log(
-				JSON.stringify({
-					event: 'account_locked',
-					userId: user.id,
-					failedAttempts: result.failedAttempts,
-					lockedUntil: result.lockedUntil.toISOString(),
-					timestamp: new Date().toISOString(),
-				}),
-			)
+			logger.security('account_locked', {
+				userId: user.id,
+				failedAttempts: result.failedAttempts,
+				lockedUntil: result.lockedUntil.toISOString(),
+			})
 		}
 
 		this.logAuthFailure(user, authRecord)
@@ -200,18 +188,17 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 	 * @param user - User object or null
 	 * @param authRecord - Authentication record or null
 	 */
-	// TODO(#66): Replace with structured logging service
 	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
 		if (!user) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND))
+			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND))
 		} else if (!authRecord) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND))
+			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND))
 		} else if (user.status === UserStatus.DELETED) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED))
+			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED))
 		} else if (user.status === UserStatus.DISABLED) {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED))
+			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED))
 		} else {
-			console.error(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
+			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
 		}
 	}
 
@@ -296,20 +283,11 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		// 5. Token reuse detection: if a non-expired revoked token is replayed, an attacker
 		// may have stolen it. Revoke the entire token family to protect the user.
 		if (storedToken.isRevoked) {
-			// TODO(#66): Replace with structured logging service
-			console.log(
-				JSON.stringify({
-					event: 'token_reuse_detected',
-					userId: storedToken.userId,
-					tokenFamily: storedToken.tokenFamily,
-					timestamp: new Date().toISOString(),
-				}),
-			)
+			logger.security('token_reuse_detected', { userId: storedToken.userId, tokenFamily: storedToken.tokenFamily })
 			try {
 				await this.refreshTokenRepository.revokeTokenFamily(storedToken.tokenFamily)
 			} catch (error) {
-				// TODO(#66): Replace with structured logging service
-				console.error('[TokenReuse] Failed to revoke token family:', error)
+				logger.error('TokenReuse', 'Failed to revoke token family', error)
 			}
 			throw new AuthError(InternalAuthErrorCode.TOKEN_REUSE_DETECTED)
 		}
@@ -383,14 +361,12 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		try {
 			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock()
 		} catch (error) {
-			// TODO(#66): Replace with structured logging service
-			console.error('[TokenCleanup] Failed to acquire advisory lock:', error)
+			logger.error('TokenCleanup', 'Failed to acquire advisory lock', error)
 			return null
 		}
 
 		if (!lockAcquired) {
-			// TODO(#66): Replace with structured logging service
-			console.log('[TokenCleanup] Skipped - cleanup already in progress (another instance holds the lock)')
+			logger.info('TokenCleanup', 'Skipped - cleanup already in progress (another instance holds the lock)')
 			return null
 		}
 
@@ -399,35 +375,21 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 			const result = await this.refreshTokenRepository.deleteAllExpiredTokens()
 			const durationMs = Date.now() - startTime
 
-			// TODO(#66): Replace with structured logging service
-			console.log(
-				JSON.stringify({
-					event: 'token_cleanup',
-					deletedCount: result.deletedCount,
-					durationMs,
-					incomplete: result.incomplete,
-					timestamp: new Date().toISOString(),
-				}),
-			)
-
-			// TODO(#66): Replace with structured logging service
-			console.log(`[TokenCleanup] Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`)
+			logger.security('token_cleanup', { deletedCount: result.deletedCount, durationMs, incomplete: result.incomplete })
+			logger.info('TokenCleanup', `Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`)
 			if (result.incomplete) {
-				console.warn('[TokenCleanup] Cleanup was incomplete - more expired tokens may remain')
+				logger.warn('TokenCleanup', 'Cleanup was incomplete - more expired tokens may remain')
 			}
 			return result
 		} finally {
 			try {
 				await this.refreshTokenRepository.releaseCleanupLock()
 			} catch (error) {
-				// TODO(#66): Replace with structured logging service
-				// PostgreSQL session advisory locks (pg_advisory_lock) are automatically
-				// released when the database session/connection ends. This is a safety net
-				// - the lock won't persist indefinitely even if explicit release fails.
-				// In serverless with connection pooling, the lock releases when the
-				// pooled connection is recycled or the pool closes.
-				console.error(
-					'[TokenCleanup] Failed to release advisory lock. Lock will auto-release when DB session ends:',
+				// PostgreSQL session advisory locks are automatically released when the
+				// database session/connection ends — the lock won't persist indefinitely.
+				logger.error(
+					'TokenCleanup',
+					'Failed to release advisory lock. Lock will auto-release when DB session ends',
 					error,
 				)
 			}

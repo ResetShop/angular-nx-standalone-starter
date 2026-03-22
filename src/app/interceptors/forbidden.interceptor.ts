@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common'
 import { HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http'
 import { inject, PLATFORM_ID } from '@angular/core'
 import { Translation } from '@providers/i18n/translation'
+import { LoggerService } from '@providers/logger/logger.service'
 import { UIStore } from '@store/ui/ui.store'
 import { NotificationType } from '@store/ui/ui.types'
 import { catchError, throwError } from 'rxjs'
@@ -25,12 +26,12 @@ export const forbiddenInterceptor: HttpInterceptorFn = (req, next) => {
 
 	const uiStore = inject(UIStore)
 	const translation = inject(Translation)
+	const loggerService = inject(LoggerService)
 
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			if (error.status === 403) {
-				// TODO(#66): Replace with structured logging service
-				console.error('[ForbiddenInterceptor] 403 Forbidden:', req.method, req.url)
+				loggerService.error('ForbiddenInterceptor', `403 Forbidden: ${req.method} ${req.url}`)
 				uiStore.showNotification({
 					type: NotificationType.ERROR,
 					message: translation.instant('HTTP.ERRORS.FORBIDDEN'),

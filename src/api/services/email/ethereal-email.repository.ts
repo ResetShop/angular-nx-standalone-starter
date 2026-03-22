@@ -1,5 +1,6 @@
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
+import { logger } from '../../utils/logger'
 import type { EmailRepository, SendEmailParams } from './interfaces'
 
 /**
@@ -32,15 +33,7 @@ export class EtherealEmailRepository implements EmailRepository {
 
 		const previewUrl = nodemailer.getTestMessageUrl(info)
 		if (previewUrl) {
-			// TODO(#66): Replace with structured logging service
-			console.log(
-				JSON.stringify({
-					event: 'ethereal_email_preview',
-					previewUrl,
-					recipient: params.to,
-					subject: params.subject,
-				}),
-			)
+			logger.security('ethereal_email_preview', { previewUrl, recipient: params.to, subject: params.subject })
 		}
 	}
 
@@ -72,8 +65,7 @@ export class EtherealEmailRepository implements EmailRepository {
 				}),
 			)
 			.catch((error) => {
-				// TODO(#66): Replace with structured logging service
-				console.error('Failed to create Ethereal test account:', error)
+				logger.error('EtherealEmailRepository', 'Failed to create Ethereal test account', error)
 				throw error
 			})
 	}

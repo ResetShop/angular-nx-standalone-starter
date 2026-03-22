@@ -4,12 +4,12 @@ import { generatePassword } from './password'
 
 describe('generatePassword', () => {
 	const originalAppLanguage = process.env['APP_LANGUAGE']
-	let consoleErrorSpy: MockFn
+	let consoleWarnSpy: MockFn
 
 	beforeEach(() => {
 		clearAllMocks()
 		delete process.env['APP_LANGUAGE']
-		consoleErrorSpy = spyOn(console, 'error')
+		consoleWarnSpy = spyOn(console, 'warn')
 	})
 
 	afterEach(() => {
@@ -49,22 +49,22 @@ describe('generatePassword', () => {
 			const password = await generatePassword(0)
 
 			expect(password.split('.')).toHaveLength(3)
-			expect(consoleErrorSpy.calls).toHaveLength(1)
-			expect(consoleErrorSpy.calls[0][0]).toContain('[generatePassword]')
+			expect(consoleWarnSpy.calls).toHaveLength(1)
+			expect(consoleWarnSpy.calls[0][0]).toContain('[generatePassword]')
 		})
 
 		it('should fall back to default for negative values and log error', async () => {
 			const password = await generatePassword(-1)
 
 			expect(password.split('.')).toHaveLength(3)
-			expect(consoleErrorSpy.calls).toHaveLength(1)
+			expect(consoleWarnSpy.calls).toHaveLength(1)
 		})
 
 		it('should fall back to default for non-integer values and log error', async () => {
 			const password = await generatePassword(2.5)
 
 			expect(password.split('.')).toHaveLength(3)
-			expect(consoleErrorSpy.calls).toHaveLength(1)
+			expect(consoleWarnSpy.calls).toHaveLength(1)
 		})
 
 		it('should accept a custom word count', async () => {

@@ -5,6 +5,7 @@ import type { IUser } from '@domain/user/user.interface'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { AuthApi } from '@providers/auth/auth.interface'
+import { LoggerService } from '@providers/logger/logger.service'
 import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs'
 import { initialAuthState } from './auth.types'
 
@@ -29,6 +30,7 @@ export const AuthStore = signalStore(
 	})),
 	withMethods((store) => {
 		const authApi = inject(AuthApi)
+		const loggerService = inject(LoggerService)
 
 		return {
 			/**
@@ -83,11 +85,8 @@ export const AuthStore = signalStore(
 						authApi.logout().pipe(
 							tap({
 								next: () => patchState(store, { isLoggingOut: false }),
-								// TODO(#66): Replace with security event logging — HIGH priority
-								// Logout failures in a cookie-based auth flow may leave stale
-								// server sessions, so visibility into these errors is critical.
 								error: (err) => {
-									console.error('[AuthStore] Logout error:', err)
+									loggerService.error('AuthStore', 'Logout error', err)
 									patchState(store, { isLoggingOut: false })
 								},
 							}),
