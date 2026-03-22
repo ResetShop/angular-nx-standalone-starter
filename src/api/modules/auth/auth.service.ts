@@ -278,14 +278,16 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 			throw new AuthError(InternalAuthErrorCode.TOKEN_MISSING_FAMILY)
 		}
 
-		// 3. Check if token is revoked in database
+		// 3. Find token and user in a single joined query (reduces 2 sequential queries to 1)
 		const tokenHash = createHash('sha256').update(token).digest('hex')
-		const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash)
+		const result = await this.refreshTokenRepository.findByTokenHashWithUser(tokenHash)
 
 		// Treat missing tokens as revoked — covers garbage-collected, never-stored, or deleted token cases
-		if (!storedToken) {
+		if (!result) {
 			throw new AuthError(InternalAuthErrorCode.TOKEN_REVOKED)
 		}
+
+		const { token: storedToken, user } = result
 
 		// 4. Check if token is expired (before reuse detection, so expired+revoked tokens
 		// don't trigger family revocation — expiry is the expected lifecycle outcome)
@@ -314,9 +316,8 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 			throw new AuthError(InternalAuthErrorCode.TOKEN_REUSE_DETECTED)
 		}
 
-		// 6. Get user data and validate account status
-		const user = await this.userRepository.findById(Number(payload.sub))
-		if (!user || user.status === UserStatus.DELETED) {
+		// 6. Validate account status (user data already fetched via joined query)
+		if (user.status === UserStatus.DELETED) {
 			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND)
 		}
 

@@ -1,3 +1,4 @@
+import type { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@utils/duration'
 import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
 import {
@@ -5,11 +6,21 @@ import {
 	type CreateRefreshTokenParams,
 	type RefreshTokenData,
 	type RefreshTokenRepository,
+	type RefreshTokenWithUser,
 } from './interfaces'
+
+interface MockUserData {
+	id: number
+	email: string
+	firstName: string
+	lastName: string
+	status: UserStatus
+}
 
 export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 	private tokens: Map<string, RefreshTokenData> = new Map()
 	private tokensById: Map<number, RefreshTokenData> = new Map()
+	private users: Map<number, MockUserData> = new Map()
 	private tokenIdCounter = 1
 
 	// Track method calls for assertions
@@ -45,11 +56,26 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 	}
 
 	/**
+	 * Register a user for joined queries (findByTokenHashWithUser).
+	 */
+	public setUser(userData: MockUserData): void {
+		this.users.set(userData.id, userData)
+	}
+
+	/**
+	 * Remove a user from the mock (simulates user not found in joined query).
+	 */
+	public removeUser(userId: number): void {
+		this.users.delete(userId)
+	}
+
+	/**
 	 * Clear all tokens and reset tracking arrays.
 	 */
 	public clear(): void {
 		this.tokens.clear()
 		this.tokensById.clear()
+		this.users.clear()
 		this.revokedTokenIds.length = 0
 		this.revokedUserIds.length = 0
 		this.deletedExpiredForUsers.length = 0
@@ -63,6 +89,14 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 
 	public async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
 		return this.tokens.get(tokenHash) ?? null
+	}
+
+	public async findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null> {
+		const token = this.tokens.get(tokenHash)
+		if (!token) return null
+		const userData = this.users.get(token.userId)
+		if (!userData) return null
+		return { token, user: userData }
 	}
 
 	public async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {

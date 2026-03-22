@@ -1,3 +1,4 @@
+import type { UserStatus } from '@contracts/user/user.constants'
 import type { AuthUser } from '@contracts/user/user.types'
 
 export interface AuthenticationData {
@@ -40,6 +41,21 @@ export interface RefreshTokenData {
 	revokedAt: Date | null
 }
 
+/**
+ * Joined result from findByTokenHashWithUser — token data plus the owning user's profile.
+ * Eliminates the need for a separate user lookup during token refresh.
+ */
+export interface RefreshTokenWithUser {
+	token: RefreshTokenData
+	user: {
+		id: number
+		email: string
+		firstName: string
+		lastName: string
+		status: UserStatus
+	}
+}
+
 export interface CreateRefreshTokenParams {
 	userId: number
 	tokenFamily: string
@@ -59,6 +75,7 @@ export interface CleanupResult {
 
 export interface RefreshTokenRepository {
 	findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null>
+	findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null>
 	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>
 	revokeToken(tokenId: number): Promise<void>
 	revokeAllForUser(userId: number): Promise<void>
