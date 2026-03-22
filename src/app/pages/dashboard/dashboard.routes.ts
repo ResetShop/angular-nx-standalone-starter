@@ -19,6 +19,12 @@ export default [
 		providers: [provideNavigation(), provideNavigationConfig(dashboardNavigationConfig)],
 		children: [
 			{
+				path: '',
+				title: 'Dashboard',
+				pathMatch: 'full',
+				loadComponent: () => import('./pages/dashboard-home/dashboard-home'),
+			},
+			{
 				path: 'health',
 				title: 'Salud',
 				loadComponent: () => import('./pages/health/health'),
@@ -41,6 +47,12 @@ export default [
 				path: 'authorization',
 				title: 'Autorización',
 				children: [
+					{
+						path: '',
+						title: 'Autorización',
+						pathMatch: 'full',
+						loadComponent: () => import('./authorization/authorization-home'),
+					},
 					{
 						path: 'permissions',
 						title: 'Permisos',
