@@ -1,3 +1,4 @@
+import { parseDurationToMs } from '@utils/duration'
 import { eq, sql } from 'drizzle-orm'
 import { authentication } from '../../../db/schema/authentication'
 import { BaseRepository, type BaseRepositoryDeps } from '../../helpers/base.repository'
@@ -131,7 +132,7 @@ export class DrizzleAuthenticationRepository extends BaseRepository implements A
 			const newAttemptCount = incrementResult[0]?.failedLoginAttempts ?? 1
 
 			if (newAttemptCount >= this.authConfig.maxFailedAttempts) {
-				const lockedUntil = new Date(Date.now() + this.authConfig.lockoutDurationMs)
+				const lockedUntil = new Date(Date.now() + parseDurationToMs(this.authConfig.lockoutDuration))
 				await tx
 					.update(authentication)
 					.set({

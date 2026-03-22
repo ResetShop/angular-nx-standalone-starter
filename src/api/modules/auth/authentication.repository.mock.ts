@@ -20,9 +20,9 @@ export class InMemoryAuthenticationRepository implements AuthenticationRepositor
 	public lockedUsers: Array<{ userId: number; lockedUntil: Date }> = []
 	public resetUsers: number[] = []
 
-	constructor(options?: { maxFailedAttempts?: number; lockoutDurationMs?: number }) {
+	constructor(options?: { maxFailedAttempts?: number; lockoutDuration?: string }) {
 		this.maxAttempts = options?.maxFailedAttempts ?? DEFAULT_MAX_FAILED_ATTEMPTS
-		this.lockDuration = options?.lockoutDurationMs ?? parseDurationToMs(DEFAULT_LOCKOUT_DURATION)
+		this.lockDuration = parseDurationToMs(options?.lockoutDuration ?? DEFAULT_LOCKOUT_DURATION)
 	}
 
 	/**

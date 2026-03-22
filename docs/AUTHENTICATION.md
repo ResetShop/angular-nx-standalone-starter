@@ -161,9 +161,9 @@ The token refresh interceptor implements a mutex pattern to prevent multiple con
 
 ```typescript
 // AuthStore manages refresh state via signals
-authStore.isTokenRefreshing(); // signal<boolean>
-authStore.startTokenRefresh(); // sets isTokenRefreshing to true
-authStore.completeTokenRefresh(); // sets isTokenRefreshing to false
+authStore.isTokenRefreshing() // signal<boolean>
+authStore.startTokenRefresh() // sets isTokenRefreshing to true
+authStore.completeTokenRefresh() // sets isTokenRefreshing to false
 
 // Interceptor checks store state
 if (authStore.isTokenRefreshing()) {
@@ -171,7 +171,7 @@ if (authStore.isTokenRefreshing()) {
 		filter((refreshing) => !refreshing),
 		take(1),
 		switchMap(() => next(req)),
-	);
+	)
 }
 ```
 
@@ -185,6 +185,8 @@ if (authStore.isTokenRefreshing()) {
 | `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                                  |
 | `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation              |
 | `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only)     |
+| `AUTH_MAX_FAILED_ATTEMPTS`    | No       | "5"                     | Max consecutive failed login attempts before lockout    |
+| `AUTH_LOCKOUT_DURATION`       | No       | "15m"                   | Account lockout duration (e.g. '15m', '1h', '30s')      |
 | `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                        |
 | `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)      |
 | `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 86400000                | Cleanup interval in ms (min: 1m, max: 7d, default: 24h) |
@@ -467,7 +469,7 @@ The `AuthStore` (`src/app/store/auth/auth.store.ts`) manages authentication stat
 
 ```typescript
 // Login
-authStore.login({ email, password });
+authStore.login({ email, password })
 
 // Check authentication
 if (authStore.isAuthenticated()) {
@@ -475,10 +477,10 @@ if (authStore.isAuthenticated()) {
 }
 
 // Get current user
-const user = authStore.currentUser();
+const user = authStore.currentUser()
 
 // Logout
-authStore.logout();
+authStore.logout()
 ```
 
 ### Interceptors
@@ -518,7 +520,7 @@ cors({
 	allowHeaders: ['Content-Type', 'Authorization'],
 	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 	maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Default: 24 hours
-});
+})
 ```
 
 ### Key Points
