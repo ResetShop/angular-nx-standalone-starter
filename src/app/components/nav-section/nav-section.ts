@@ -18,7 +18,7 @@ import { UIStore } from '@store/ui/ui.store'
 	selector: 'app-nav-section',
 	imports: [NgComponentOutlet],
 	template: `
-		@if (showTitle()) {
+		@if (showTitle() && section().name) {
 			@if (!collapsed()) {
 				<div class="flex h-8 items-center px-2 text-xs font-medium text-wrap text-black/70 dark:text-white/70">
 					{{ section().name }}
@@ -45,7 +45,7 @@ export default class NavSection {
 	private readonly injector = inject(EnvironmentInjector)
 
 	// We use a custom injector for the nav items to load ng-icons on demand using lazy loading
-	// By providing the icon definitions in navigation.config.ts we're able to directly load the icons
+	// By providing the icon definitions in each *.navigation.ts file we're able to directly load the icons
 	// that are rendered on the sidebar
 	// We also provide the chevron icon for expandable navigation items
 	protected readonly navItems = computed(() =>

@@ -13,7 +13,6 @@ import { Analytics } from '@providers/analytics/analytics'
 import { provideAuth } from '@providers/auth/auth.provider'
 import { initializeTranslation } from '@providers/i18n/translation.initializer'
 import { NavigationTitleStrategy } from '@providers/navigation/navigation-title.strategy'
-import { provideNavigation } from '@providers/navigation/navigation.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
 import { provideTheme } from '@providers/theme/theme'
 import { UIStore } from '@store/ui/ui.store'
@@ -53,7 +52,6 @@ export const appConfig: ApplicationConfig = {
 		Analytics,
 		UIStore,
 		provideTheme(),
-		provideNavigation(),
 		provideProjectConfig(),
 		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },
 

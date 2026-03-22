@@ -465,6 +465,7 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 
 | Route                       | Providers                                                                                                                |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                                              |
 | `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideEnvironmentInitializer(ToastBridge)`             |
 | `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                                               |
 | `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideEnvironmentInitializer(ToastBridge)` |
