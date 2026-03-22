@@ -152,8 +152,23 @@ PASETO was chosen over JWT for the following reasons:
 
 - **Deleted accounts**: Return generic "Invalid credentials" (prevents enumeration)
 - **Disabled accounts**: Return specific "Account is disabled" message
-- **Rate limiting**: (Recommended) Should be added for production
-- **Failed login tracking**: (TODO) Increment failed attempts counter
+- **Failed login tracking**: Tracks consecutive failures per user, locks account after threshold
+
+### Rate Limiting
+
+HTTP-level rate limiting is applied per-route to auth endpoints using `hono-rate-limiter`:
+
+| Endpoint                 | Limit       | Window     | Purpose                               |
+| ------------------------ | ----------- | ---------- | ------------------------------------- |
+| `POST /api/auth/login`   | 5 requests  | 15 minutes | Prevents brute force password attacks |
+| `POST /api/auth/refresh` | 10 requests | 1 minute   | Prevents token refresh abuse          |
+
+Rate limiting is keyed by client IP (`X-Forwarded-For` → `X-Real-IP` → `'unknown'`). When a limit is exceeded, a `429 Too Many Requests` response is returned with `RateLimit-*` headers (draft-7 standard).
+
+Rate limiting and account lockout are complementary layers:
+
+- **Rate limiting** operates at the transport level — limits request volume before the application is reached
+- **Account lockout** operates at the application level — tracks per-user failures across all IPs
 
 ### Race Condition Protection
 
@@ -161,9 +176,9 @@ The token refresh interceptor implements a mutex pattern to prevent multiple con
 
 ```typescript
 // AuthStore manages refresh state via signals
-authStore.isTokenRefreshing(); // signal<boolean>
-authStore.startTokenRefresh(); // sets isTokenRefreshing to true
-authStore.completeTokenRefresh(); // sets isTokenRefreshing to false
+authStore.isTokenRefreshing() // signal<boolean>
+authStore.startTokenRefresh() // sets isTokenRefreshing to true
+authStore.completeTokenRefresh() // sets isTokenRefreshing to false
 
 // Interceptor checks store state
 if (authStore.isTokenRefreshing()) {
@@ -171,7 +186,7 @@ if (authStore.isTokenRefreshing()) {
 		filter((refreshing) => !refreshing),
 		take(1),
 		switchMap(() => next(req)),
-	);
+	)
 }
 ```
 
@@ -467,7 +482,7 @@ The `AuthStore` (`src/app/store/auth/auth.store.ts`) manages authentication stat
 
 ```typescript
 // Login
-authStore.login({ email, password });
+authStore.login({ email, password })
 
 // Check authentication
 if (authStore.isAuthenticated()) {
@@ -475,10 +490,10 @@ if (authStore.isAuthenticated()) {
 }
 
 // Get current user
-const user = authStore.currentUser();
+const user = authStore.currentUser()
 
 // Logout
-authStore.logout();
+authStore.logout()
 ```
 
 ### Interceptors
@@ -518,7 +533,7 @@ cors({
 	allowHeaders: ['Content-Type', 'Authorization'],
 	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 	maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Default: 24 hours
-});
+})
 ```
 
 ### Key Points

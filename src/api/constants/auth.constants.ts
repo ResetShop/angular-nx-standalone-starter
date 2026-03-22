@@ -51,3 +51,15 @@ export const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token'
 
 /** HttpOnly cookie name for the PASETO access token. */
 export const ACCESS_TOKEN_COOKIE_NAME = 'access_token'
+
+/** Rate limit window for login endpoint. */
+export const LOGIN_RATE_LIMIT_WINDOW = '15m'
+
+/** Maximum login attempts per window. */
+export const LOGIN_RATE_LIMIT_MAX = 5
+
+/** Rate limit window for refresh endpoint. */
+export const REFRESH_RATE_LIMIT_WINDOW = '1m'
+
+/** Maximum refresh attempts per window. */
+export const REFRESH_RATE_LIMIT_MAX = 10
