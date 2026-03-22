@@ -1,20 +1,16 @@
 import { provideRouter } from '@angular/router'
-import { provideIcons } from '@ng-icons/core'
 import { featherKey, featherShield, featherUsers } from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import NavigationCard from './navigation-card'
 
-const meta: Meta<typeof NavigationCard> = {
+const meta: Meta<NavigationCard> = {
 	component: NavigationCard,
 	title: 'Components/NavigationCard',
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [
-				provideRouter([{ path: '**', component: NavigationCard }]),
-				provideIcons({ featherUsers, featherShield, featherKey }),
-			],
+			providers: [provideRouter([{ path: '**', component: NavigationCard }])],
 		}),
 	],
 	parameters: {
@@ -28,7 +24,7 @@ A clickable card for navigating to child routes, following the Supabase CardButt
 - **Horizontal layout**: Icon on the left, text stacking on the right
 - **Chevron indicator**: Slides left on hover with color brightening
 - **Subtle hover**: Background shifts, border strengthens, icon scales up
-- **Icon support**: Optional icon via \`Record<string, string>\` (same shape as \`NavigationRoute.icon\`)
+- **Lazy icon loading**: Icons are registered in a per-card child injector via \`createEnvironmentInjector\`, matching the sidebar's lazy loading pattern
 
 ## Usage
 
@@ -37,7 +33,7 @@ A clickable card for navigating to child routes, following the Supabase CardButt
   route="/dashboard/users"
   name="Users"
   description="Manage user accounts and access"
-  [icons]="{ featherUsers }"
+  [icon]="{ featherUsers }"
 />
 \`\`\`
 				`,
@@ -51,21 +47,21 @@ A clickable card for navigating to child routes, following the Supabase CardButt
 
 export default meta
 
-type Story = StoryObj<typeof NavigationCard>
+type Story = StoryObj<NavigationCard>
 
 /**
  * A single navigation card with an icon.
  */
 export const Default: Story = {
 	render: () => ({
-		props: { icons: { featherUsers } },
+		props: { icon: { featherUsers } },
 		template: `
 			<div class="max-w-sm">
 				<app-navigation-card
 					route="/dashboard/users"
 					name="Users"
 					description="Manage user accounts, roles, and permissions for your application."
-					[icons]="icons"
+					[icon]="icon"
 				/>
 			</div>
 		`,
@@ -109,19 +105,19 @@ export const CardDeck: Story = {
 								route="/dashboard/users"
 								name="Users"
 								description="Manage user accounts, roles, and permissions for your application."
-								[icons]="usersIcon"
+								[icon]="usersIcon"
 							/>
 							<app-navigation-card
 								route="/dashboard/authorization/roles"
 								name="Roles"
 								description="Define roles and assign permissions to control access across the platform."
-								[icons]="rolesIcon"
+								[icon]="rolesIcon"
 							/>
 							<app-navigation-card
 								route="/dashboard/authorization/permissions"
 								name="Permissions"
 								description="View and manage the granular permission definitions available in the system."
-								[icons]="permissionsIcon"
+								[icon]="permissionsIcon"
 							/>
 						</div>
 					</div>
@@ -134,19 +130,19 @@ export const CardDeck: Story = {
 								route="/dashboard/users"
 								name="Users"
 								description="Manage user accounts, roles, and permissions for your application."
-								[icons]="usersIcon"
+								[icon]="usersIcon"
 							/>
 							<app-navigation-card
 								route="/dashboard/authorization/roles"
 								name="Roles"
 								description="Define roles and assign permissions to control access across the platform."
-								[icons]="rolesIcon"
+								[icon]="rolesIcon"
 							/>
 							<app-navigation-card
 								route="/dashboard/authorization/permissions"
 								name="Permissions"
 								description="View and manage the granular permission definitions available in the system."
-								[icons]="permissionsIcon"
+								[icon]="permissionsIcon"
 							/>
 						</div>
 					</div>
