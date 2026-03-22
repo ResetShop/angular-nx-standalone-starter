@@ -1,5 +1,5 @@
 import { parseDurationToMs } from '@utils/duration'
-import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants'
+import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants'
 import { type AuthenticationData, type AuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
 
 interface MockAuthRecord {
@@ -12,11 +12,18 @@ interface MockAuthRecord {
 export class InMemoryAuthenticationRepository implements AuthenticationRepository {
 	private authRecords: Map<number, MockAuthRecord> = new Map()
 	private nextId = 1
+	private readonly maxAttempts: number
+	private readonly lockDuration: number
 
 	// Track method calls for testing
 	public incrementedUsers: number[] = []
 	public lockedUsers: Array<{ userId: number; lockedUntil: Date }> = []
 	public resetUsers: number[] = []
+
+	constructor(options?: { maxFailedAttempts?: number; lockoutDurationMs?: number }) {
+		this.maxAttempts = options?.maxFailedAttempts ?? DEFAULT_MAX_FAILED_ATTEMPTS
+		this.lockDuration = options?.lockoutDurationMs ?? parseDurationToMs(DEFAULT_LOCKOUT_DURATION)
+	}
 
 	/**
 	 * Add an authentication record for a user.
@@ -81,9 +88,8 @@ export class InMemoryAuthenticationRepository implements AuthenticationRepositor
 	}
 
 	public async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
-		// Read from env vars to match production behavior
-		const maxAttempts = Number(process.env['AUTH_MAX_FAILED_ATTEMPTS'] ?? '5')
-		const lockDuration = parseDurationToMs(DEFAULT_LOCKOUT_DURATION)
+		const maxAttempts = this.maxAttempts
+		const lockDuration = this.lockDuration
 
 		this.incrementedUsers.push(userId)
 		const record = this.authRecords.get(userId)

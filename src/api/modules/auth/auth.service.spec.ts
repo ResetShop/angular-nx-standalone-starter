@@ -4,9 +4,15 @@ import { fn } from '@test-utils'
 import { parseDurationToMs } from '@utils/duration'
 import { hash } from 'bcryptjs'
 import { createHash } from 'crypto'
-import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants'
+import {
+	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_LOCKOUT_DURATION,
+	DEFAULT_MAX_FAILED_ATTEMPTS,
+	DEFAULT_REFRESH_TOKEN_EXPIRY,
+} from '../../constants/auth.constants'
 import { InMemoryPasetoService } from '../../services/paseto/paseto.service.mock'
 import { InMemoryUserRepository } from '../user/user.repository.mock'
+import type { AuthConfig } from './auth.config'
 import { AuthService } from './auth.service'
 import { InMemoryAuthenticationRepository } from './authentication.repository.mock'
 import { InMemoryRefreshTokenRepository } from './refresh-token.repository.mock'
@@ -17,6 +23,14 @@ describe('AuthService', () => {
 	let mockAuthRepo: InMemoryAuthenticationRepository
 	let mockRefreshTokenRepo: InMemoryRefreshTokenRepository
 	let mockPasetoService: InMemoryPasetoService
+
+	const testAuthConfig: AuthConfig = {
+		cookieSecure: true,
+		accessTokenExpiry: DEFAULT_ACCESS_TOKEN_EXPIRY,
+		refreshTokenExpiry: DEFAULT_REFRESH_TOKEN_EXPIRY,
+		maxFailedAttempts: DEFAULT_MAX_FAILED_ATTEMPTS,
+		lockoutDurationMs: parseDurationToMs(DEFAULT_LOCKOUT_DURATION),
+	}
 
 	// Test data
 	const testPassword = 'password123'
@@ -53,6 +67,7 @@ describe('AuthService', () => {
 			authRepository: mockAuthRepo,
 			refreshTokenRepository: mockRefreshTokenRepo,
 			pasetoService: mockPasetoService,
+			authConfig: testAuthConfig,
 		})
 	})
 
@@ -308,34 +323,33 @@ describe('AuthService', () => {
 			expect(authRecord?.failedLoginAttempts).toBe(0)
 		})
 
-		it('should respect custom AUTH_MAX_FAILED_ATTEMPTS env variable', async () => {
-			const originalEnv = process.env['AUTH_MAX_FAILED_ATTEMPTS']
-			process.env['AUTH_MAX_FAILED_ATTEMPTS'] = '3'
+		it('should respect custom maxFailedAttempts config', async () => {
+			const customAuthConfig: AuthConfig = { ...testAuthConfig, maxFailedAttempts: 3 }
+			const customAuthRepo = new InMemoryAuthenticationRepository({ maxFailedAttempts: 3 })
+			const customAuthService = new AuthService({
+				userRepository: mockUserRepo,
+				authRepository: customAuthRepo,
+				refreshTokenRepository: mockRefreshTokenRepo,
+				pasetoService: mockPasetoService,
+				authConfig: customAuthConfig,
+			})
 
-			try {
-				// Set up user with 2 failed attempts
-				mockAuthRepo.clear()
-				mockAuthRepo.addAuthRecord(testUser.id, {
-					passwordHash: testPasswordHash,
-					failedLoginAttempts: 2,
-				})
+			// Set up user with 2 failed attempts
+			mockUserRepo.addUser(testUser)
+			customAuthRepo.addAuthRecord(testUser.id, {
+				passwordHash: testPasswordHash,
+				failedLoginAttempts: 2,
+			})
 
-				// This should be the 3rd attempt, triggering lockout with custom threshold
-				await expect(
-					authService.authenticate({
-						email: testUser.email,
-						password: 'wrongpassword',
-					}),
-				).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
+			// This should be the 3rd attempt, triggering lockout with custom threshold
+			await expect(
+				customAuthService.authenticate({
+					email: testUser.email,
+					password: 'wrongpassword',
+				}),
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
 
-				expect(mockAuthRepo.lockedUsers).toHaveLength(1)
-			} finally {
-				if (originalEnv === undefined) {
-					delete process.env['AUTH_MAX_FAILED_ATTEMPTS']
-				} else {
-					process.env['AUTH_MAX_FAILED_ATTEMPTS'] = originalEnv
-				}
-			}
+			expect(customAuthRepo.lockedUsers).toHaveLength(1)
 		})
 	})
 
