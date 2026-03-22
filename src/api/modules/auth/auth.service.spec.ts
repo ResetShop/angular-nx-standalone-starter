@@ -29,7 +29,7 @@ describe('AuthService', () => {
 		accessTokenExpiry: DEFAULT_ACCESS_TOKEN_EXPIRY,
 		refreshTokenExpiry: DEFAULT_REFRESH_TOKEN_EXPIRY,
 		maxFailedAttempts: DEFAULT_MAX_FAILED_ATTEMPTS,
-		lockoutDurationMs: parseDurationToMs(DEFAULT_LOCKOUT_DURATION),
+		lockoutDuration: DEFAULT_LOCKOUT_DURATION,
 	}
 
 	// Test data

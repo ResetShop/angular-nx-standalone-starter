@@ -15,8 +15,8 @@ export interface AuthConfig {
 	refreshTokenExpiry: string
 	/** Maximum failed login attempts before account lockout. */
 	maxFailedAttempts: number
-	/** Account lockout duration in milliseconds. */
-	lockoutDurationMs: number
+	/** Account lockout duration as a duration string (e.g. '15m'). Resolve via parseDurationToMs() at point of use. */
+	lockoutDuration: string
 }
 
 /**
@@ -31,7 +31,7 @@ export function createAuthConfig(): AuthConfig {
 		accessTokenExpiry: process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY,
 		refreshTokenExpiry: process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY,
 		maxFailedAttempts: parseMaxFailedAttempts(process.env['AUTH_MAX_FAILED_ATTEMPTS']),
-		lockoutDurationMs: parseLockoutDuration(process.env['AUTH_LOCKOUT_DURATION']),
+		lockoutDuration: parseLockoutDuration(process.env['AUTH_LOCKOUT_DURATION']),
 	})
 }
 
@@ -40,11 +40,12 @@ function parseMaxFailedAttempts(value: string | undefined): number {
 	return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_FAILED_ATTEMPTS
 }
 
-function parseLockoutDuration(value: string | undefined): number {
-	if (!value) return parseDurationToMs(DEFAULT_LOCKOUT_DURATION)
+function parseLockoutDuration(value: string | undefined): string {
+	if (!value) return DEFAULT_LOCKOUT_DURATION
 	try {
-		return parseDurationToMs(value)
+		parseDurationToMs(value) // validate the format
+		return value
 	} catch {
-		return parseDurationToMs(DEFAULT_LOCKOUT_DURATION)
+		return DEFAULT_LOCKOUT_DURATION
 	}
 }

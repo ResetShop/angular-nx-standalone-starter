@@ -32,11 +32,11 @@ interface AuthServiceDeps {
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
 export class AuthService implements AuthServiceInterface, TokenMaintenanceService {
-	private userRepository: UserRepository
-	private authRepository: AuthenticationRepository
-	private refreshTokenRepository: RefreshTokenRepository
-	private pasetoService: PasetoService
-	private authConfig: AuthConfig
+	private readonly userRepository: UserRepository
+	private readonly authRepository: AuthenticationRepository
+	private readonly refreshTokenRepository: RefreshTokenRepository
+	private readonly pasetoService: PasetoService
+	private readonly authConfig: AuthConfig
 
 	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService, authConfig }: AuthServiceDeps) {
 		this.userRepository = userRepository

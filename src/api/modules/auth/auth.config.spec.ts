@@ -1,4 +1,3 @@
-import { parseDurationToMs } from '@utils/duration'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
 	DEFAULT_ACCESS_TOKEN_EXPIRY,
@@ -87,20 +86,20 @@ describe('createAuthConfig', () => {
 		})
 	})
 
-	describe('lockoutDurationMs', () => {
+	describe('lockoutDuration', () => {
 		it('should use DEFAULT_LOCKOUT_DURATION when env var is unset', () => {
 			delete process.env['AUTH_LOCKOUT_DURATION']
-			expect(createAuthConfig().lockoutDurationMs).toBe(parseDurationToMs(DEFAULT_LOCKOUT_DURATION))
+			expect(createAuthConfig().lockoutDuration).toBe(DEFAULT_LOCKOUT_DURATION)
 		})
 
-		it('should parse a valid duration string', () => {
+		it('should use a valid duration string', () => {
 			process.env['AUTH_LOCKOUT_DURATION'] = '30m'
-			expect(createAuthConfig().lockoutDurationMs).toBe(parseDurationToMs('30m'))
+			expect(createAuthConfig().lockoutDuration).toBe('30m')
 		})
 
 		it('should fall back to default when value is invalid', () => {
 			process.env['AUTH_LOCKOUT_DURATION'] = 'not-a-duration'
-			expect(createAuthConfig().lockoutDurationMs).toBe(parseDurationToMs(DEFAULT_LOCKOUT_DURATION))
+			expect(createAuthConfig().lockoutDuration).toBe(DEFAULT_LOCKOUT_DURATION)
 		})
 	})
 
