@@ -1,6 +1,6 @@
 import { Directive, effect, inject, input, isDevMode, TemplateRef, ViewContainerRef } from '@angular/core'
 import { isPermissionName } from '@contracts/permission/permission.constants'
-import { LoggerService } from '@providers/logger/logger.service'
+import { Logger } from '@providers/logger/logger.token'
 import { AuthStore } from '@store/auth/auth.store'
 
 /**
@@ -26,7 +26,7 @@ export class HasPermissionDirective {
 	private readonly authStore = inject(AuthStore)
 	private readonly templateRef = inject(TemplateRef<unknown>)
 	private readonly viewContainer = inject(ViewContainerRef)
-	private readonly loggerService = inject(LoggerService)
+	private readonly loggerService = inject(Logger)
 
 	private hasView = false
 

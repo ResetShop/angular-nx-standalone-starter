@@ -1,9 +1,21 @@
 /**
- * Structured logger for backend services.
+ * Logger interface for structured logging across backend and frontend.
  * Security events emit JSON with `_type: 'security_event'` for log aggregation.
  * Operational messages use `[context] message` prefix for searchability.
  */
-export const logger = {
+export interface Logger {
+	info(context: string, message: string): void
+	warn(context: string, message: string): void
+	error(context: string, message: string, err?: unknown): void
+	security(event: string, payload?: Record<string, unknown>): void
+}
+
+/**
+ * Default logger implementation backed by `console`.
+ * Used directly by non-DI consumers (middleware, utilities) and registered
+ * as the default provider in both Angular and Awilix DI containers.
+ */
+export const logger: Logger = {
 	info(context: string, message: string): void {
 		console.log(`[${context}] ${message}`)
 	},

@@ -5,7 +5,7 @@ import type { IRole } from '@domain/access/role.interface'
 import { mapRole, mapRoleFromData } from '@domain/access/role.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { LoggerService } from '@providers/logger/logger.service'
+import { Logger } from '@providers/logger/logger.token'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
@@ -71,7 +71,7 @@ export const RolesStore = signalStore(
 	})),
 	withMethods((store) => {
 		const rolesApi = inject(RolesApi)
-		const loggerService = inject(LoggerService)
+		const loggerService = inject(Logger)
 
 		return {
 			loadRoles: rxMethod<SearchPaginationParams>(
@@ -194,7 +194,7 @@ export const RolesStore = signalStore(
 	// Mutation methods — all reload the list after success
 	withMethods((store) => {
 		const rolesApi = inject(RolesApi)
-		const loggerService = inject(LoggerService)
+		const loggerService = inject(Logger)
 
 		return {
 			reload(): void {

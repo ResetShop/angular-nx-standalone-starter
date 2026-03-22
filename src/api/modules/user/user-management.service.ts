@@ -1,11 +1,11 @@
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
+import { logger } from '@utils/logger'
 import { hash } from 'bcryptjs'
 import { getBcryptSaltRounds } from '../../constants/auth.constants'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
 import { buildWelcomeEmail } from '../../services/email/welcome-email.builder'
-import { logger } from '../../utils/logger'
 import type {
 	CreateUserParams,
 	ManagedUserData,

@@ -100,7 +100,7 @@ The Angular frontend is signals-first. `rxMethod` integrates naturally with `@ng
 - Use `switchMap` as the default flattening operator (cancels stale requests)
 - Reload the full list from the server after every mutation — no optimistic in-place updates
 - Use per-operation structured error objects (`readError: { list, detail }`, `mutationError: { create, update, delete }`)
-- Log errors via `loggerService.error(storeName, 'methodName failed', err)` in every error handler (inject `LoggerService` from `@providers/logger/logger.service`)
+- Log errors via `logger.error(storeName, 'methodName failed', err)` in every error handler (inject `Logger` token from `@providers/logger/logger.token`)
 - Derive values like `totalPages` as computed signals — never store them in state
 
 **Don't:**

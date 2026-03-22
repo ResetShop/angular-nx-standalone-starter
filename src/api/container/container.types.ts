@@ -1,3 +1,4 @@
+import type { Logger } from '@utils/logger'
 import type { DrizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import type { PermissionRepository, PermissionService } from '../modules/access/permission/interfaces'
 import type { RoleRepository, RoleService } from '../modules/access/role/interfaces'
@@ -61,6 +62,7 @@ import type { PasetoService } from '../services/paseto/interfaces'
 export interface Cradle {
 	// Values (registerValues)
 	db: DrizzlePgConnector
+	logger: Logger
 	generatePassword: () => Promise<string>
 
 	// Repositories (registerRepositories)

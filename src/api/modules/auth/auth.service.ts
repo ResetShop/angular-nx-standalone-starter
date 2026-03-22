@@ -1,11 +1,11 @@
 import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@utils/duration'
+import { logger } from '@utils/logger'
 import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
 import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import { type PasetoService } from '../../services/paseto/interfaces'
-import { logger } from '../../utils/logger'
 import { type UserData, type UserRepository } from '../user/interfaces'
 import {
 	type AuthCredentials,
