@@ -4,6 +4,7 @@ import { DrizzlePermissionRepository } from '../modules/access/permission/permis
 import { PermissionService } from '../modules/access/permission/permission.service'
 import { DrizzleRoleRepository } from '../modules/access/role/role.repository'
 import { RoleService } from '../modules/access/role/role.service'
+import { createAuthConfig } from '../modules/auth/auth.config'
 import { AuthService } from '../modules/auth/auth.service'
 import { DrizzleAuthenticationRepository } from '../modules/auth/authentication.repository'
 import { DrizzleRefreshTokenRepository } from '../modules/auth/refresh-token.repository'
@@ -27,6 +28,7 @@ import { validateEnvironment } from './validate-environment'
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
 		db: asValue(drizzlePgConnector),
+		authConfig: asValue(createAuthConfig()),
 		generatePassword: asValue(generatePassword),
 	})
 }

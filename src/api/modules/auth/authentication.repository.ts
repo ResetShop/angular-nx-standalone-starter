@@ -1,41 +1,25 @@
-import { parseDurationToMs } from '@utils/duration'
 import { eq, sql } from 'drizzle-orm'
 import { authentication } from '../../../db/schema/authentication'
-import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants'
-import { BaseRepository } from '../../helpers/base.repository'
+import { BaseRepository, type BaseRepositoryDeps } from '../../helpers/base.repository'
+import type { AuthConfig } from './auth.config'
 import { type AuthenticationData, type AuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
+
+interface AuthenticationRepositoryDeps extends BaseRepositoryDeps {
+	authConfig: AuthConfig
+}
 
 /**
  * Repository for authentication-related database operations.
  * Handles password hash storage, retrieval, and account lockout management.
  */
 export class DrizzleAuthenticationRepository extends BaseRepository implements AuthenticationRepository {
-	/**
-	 * Gets the maximum number of failed login attempts before account lockout.
-	 * Configurable via AUTH_MAX_FAILED_ATTEMPTS environment variable.
-	 *
-	 * @returns Maximum failed attempts threshold
-	 */
-	private getMaxFailedAttempts(): number {
-		const envValue = process.env['AUTH_MAX_FAILED_ATTEMPTS']
-		const parsed = parseInt(envValue ?? '', 10)
-		return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_FAILED_ATTEMPTS
+	private readonly authConfig: AuthConfig
+
+	constructor({ db, authConfig }: AuthenticationRepositoryDeps) {
+		super({ db })
+		this.authConfig = authConfig
 	}
 
-	/**
-	 * Gets the account lockout duration in milliseconds.
-	 * Configurable via AUTH_LOCKOUT_DURATION environment variable.
-	 *
-	 * @returns Lockout duration in milliseconds
-	 */
-	private getLockoutDuration(): number {
-		const duration = process.env['AUTH_LOCKOUT_DURATION'] ?? DEFAULT_LOCKOUT_DURATION
-		try {
-			return parseDurationToMs(duration)
-		} catch {
-			return parseDurationToMs(DEFAULT_LOCKOUT_DURATION)
-		}
-	}
 	/**
 	 * Finds authentication data for a user by their ID.
 	 * Used during login to retrieve the stored password hash and lockout status.
@@ -129,15 +113,11 @@ export class DrizzleAuthenticationRepository extends BaseRepository implements A
 	 * Atomically increments failed login attempts and locks account if threshold is reached.
 	 * Uses database transaction to ensure both operations succeed or fail together,
 	 * preventing race conditions during concurrent login attempts.
-	 * Configuration (max attempts, lockout duration) is read from environment variables.
 	 *
 	 * @param userId - The user's primary key
 	 * @returns Result containing new attempt count, lock status, and lockout timestamp
 	 */
 	public async incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult> {
-		const maxAttempts = this.getMaxFailedAttempts()
-		const lockDuration = this.getLockoutDuration()
-
 		return this.db.transaction(async (tx) => {
 			const incrementResult = await tx
 				.update(authentication)
@@ -150,8 +130,8 @@ export class DrizzleAuthenticationRepository extends BaseRepository implements A
 
 			const newAttemptCount = incrementResult[0]?.failedLoginAttempts ?? 1
 
-			if (newAttemptCount >= maxAttempts) {
-				const lockedUntil = new Date(Date.now() + lockDuration)
+			if (newAttemptCount >= this.authConfig.maxFailedAttempts) {
+				const lockedUntil = new Date(Date.now() + this.authConfig.lockoutDurationMs)
 				await tx
 					.update(authentication)
 					.set({
