@@ -5,7 +5,7 @@ import type { IManagedUser } from '@domain/user-management/managed-user.interfac
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { LoggerService } from '@providers/logger/logger.service'
+import { Logger } from '@providers/logger/logger.token'
 import { UsersApi } from '@providers/users/users.interface'
 import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
@@ -64,7 +64,7 @@ export const UsersStore = signalStore(
 	})),
 	withMethods((store) => {
 		const usersApi = inject(UsersApi)
-		const loggerService = inject(LoggerService)
+		const loggerService = inject(Logger)
 
 		return {
 			loadUsers: rxMethod<SearchPaginationParams>(
@@ -160,7 +160,7 @@ export const UsersStore = signalStore(
 	// Mutation methods — all reload the list after success
 	withMethods((store) => {
 		const usersApi = inject(UsersApi)
-		const loggerService = inject(LoggerService)
+		const loggerService = inject(Logger)
 
 		return {
 			reload(): void {

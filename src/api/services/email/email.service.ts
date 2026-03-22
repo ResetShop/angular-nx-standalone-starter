@@ -1,5 +1,5 @@
+import { logger } from '@utils/logger'
 import { z } from 'zod'
-import { logger } from '../../utils/logger'
 import type { EmailRepository, SendEmailParams } from './interfaces'
 
 interface EmailServiceDeps {

@@ -1,8 +1,8 @@
+import { logger } from '@utils/logger'
 import { Context, Next } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { ACCESS_TOKEN_COOKIE_NAME } from '../constants/auth.constants'
 import { container } from '../container/container'
-import { logger } from '../utils/logger'
 
 export interface AuthenticatedContext extends Context {
 	user?: {

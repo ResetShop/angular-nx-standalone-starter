@@ -1,6 +1,6 @@
+import { logger } from '@utils/logger'
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
-import { logger } from '../../utils/logger'
 import type { EmailRepository, SendEmailParams } from './interfaces'
 
 /**

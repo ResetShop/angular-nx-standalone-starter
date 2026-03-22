@@ -283,7 +283,7 @@ createUser: rxMethod<CreateUserRequest>(
             store.loadUsers(store.listParams()); // full reload, not optimistic
           },
           error: (err) => {
-            loggerService.error('UsersStore', 'createUser failed', err);
+            logger.error('UsersStore', 'createUser failed', err);
             patchState(store, {
               isCreating: false,
               mutationError: patchMutationError(store.mutationError(), 'create', 'Failed to create user'),
@@ -370,7 +370,7 @@ readError: string | null
 mutationError: string | null
 ```
 
-Helper functions `patchReadError` / `patchMutationError` in each store handle type-safe error patching. Computed signals `hasReadError` / `hasMutationError` provide boolean checks for the UI. Every error handler must log via `loggerService.error(storeName, 'methodName failed', err)` (inject `LoggerService` from `@providers/logger/logger.service`).
+Helper functions `patchReadError` / `patchMutationError` in each store handle type-safe error patching. Computed signals `hasReadError` / `hasMutationError` provide boolean checks for the UI. Every error handler must log via `logger.error(storeName, 'methodName failed', err)` (inject `Logger` token from `@providers/logger/logger.token`).
 
 **Store builder block structure:**
 

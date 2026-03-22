@@ -2,7 +2,7 @@ import { isPlatformBrowser } from '@angular/common'
 import { HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http'
 import { inject, PLATFORM_ID } from '@angular/core'
 import { Translation } from '@providers/i18n/translation'
-import { LoggerService } from '@providers/logger/logger.service'
+import { Logger } from '@providers/logger/logger.token'
 import { UIStore } from '@store/ui/ui.store'
 import { NotificationType } from '@store/ui/ui.types'
 import { catchError, throwError } from 'rxjs'
@@ -26,7 +26,7 @@ export const forbiddenInterceptor: HttpInterceptorFn = (req, next) => {
 
 	const uiStore = inject(UIStore)
 	const translation = inject(Translation)
-	const loggerService = inject(LoggerService)
+	const loggerService = inject(Logger)
 
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {

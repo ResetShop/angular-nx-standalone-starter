@@ -1,3 +1,4 @@
+import { logger } from '@utils/logger'
 import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
 import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import { DrizzlePermissionRepository } from '../modules/access/permission/permission.repository'
@@ -27,6 +28,7 @@ import { validateEnvironment } from './validate-environment'
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
 		db: asValue(drizzlePgConnector),
+		logger: asValue(logger),
 		generatePassword: asValue(generatePassword),
 	})
 }

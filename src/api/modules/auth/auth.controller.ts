@@ -8,6 +8,7 @@ import {
 } from '@contracts/auth/auth.errors'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import { parseDurationToSeconds } from '@utils/duration'
+import { logger } from '@utils/logger'
 import { timingSafeEqual } from 'crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import {
@@ -20,7 +21,6 @@ import {
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { createOpenAPIApp, registerRoute } from '../../openapi-app'
-import { logger } from '../../utils/logger'
 import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
 
 const app = createOpenAPIApp()

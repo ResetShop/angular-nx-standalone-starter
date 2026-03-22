@@ -5,7 +5,7 @@ import type { IUser } from '@domain/user/user.interface'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { AuthApi } from '@providers/auth/auth.interface'
-import { LoggerService } from '@providers/logger/logger.service'
+import { Logger } from '@providers/logger/logger.token'
 import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs'
 import { initialAuthState } from './auth.types'
 
@@ -30,7 +30,7 @@ export const AuthStore = signalStore(
 	})),
 	withMethods((store) => {
 		const authApi = inject(AuthApi)
-		const loggerService = inject(LoggerService)
+		const loggerService = inject(Logger)
 
 		return {
 			/**

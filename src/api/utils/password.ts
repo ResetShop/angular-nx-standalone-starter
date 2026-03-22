@@ -1,8 +1,8 @@
+import { logger } from '@utils/logger'
 import { randomInt } from 'crypto'
 import { readFile } from 'fs/promises'
 import { resolve } from 'path'
 import { z } from 'zod'
-import { logger } from './logger'
 
 const wordListCache = new Map<string, readonly string[]>()
 const wordCountSchema = z.number().int().positive()
