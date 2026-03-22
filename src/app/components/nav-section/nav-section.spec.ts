@@ -238,4 +238,45 @@ describe('NavSection', () => {
 
 		expect(fixture.componentRef.changeDetectorRef).toBeDefined()
 	})
+
+	it('should not render title when section has no name', async () => {
+		const sectionWithoutName: NavigationSection = {
+			id: 'no-name',
+			routes: [
+				{
+					id: 'route1',
+					name: 'Route 1',
+					route: '/route1',
+					icon: { featherHome },
+				},
+			],
+		}
+
+		await render(NavSection, {
+			inputs: { section: sectionWithoutName },
+			providers: defaultProviders(),
+		})
+
+		expect(screen.getByText('Route 1')).toBeInTheDocument()
+		expect(screen.queryByText('no-name')).not.toBeInTheDocument()
+	})
+
+	it('should render routes normally when section name is omitted', async () => {
+		const sectionWithoutName: NavigationSection = {
+			id: 'unnamed',
+			routes: [
+				{ id: 'a', name: 'Alpha', route: '/a', icon: { featherHome } },
+				{ id: 'b', name: 'Beta', route: '/b', icon: { featherActivity } },
+			],
+		}
+
+		await render(NavSection, {
+			inputs: { section: sectionWithoutName },
+			providers: defaultProviders(),
+		})
+
+		expect(screen.getAllByRole('link')).toHaveLength(2)
+		expect(screen.getByText('Alpha')).toBeInTheDocument()
+		expect(screen.getByText('Beta')).toBeInTheDocument()
+	})
 })

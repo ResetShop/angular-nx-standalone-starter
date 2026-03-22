@@ -593,9 +593,11 @@ describe('permission identifiers', () => {
 
 ### Files currently requiring coverage
 
-| Source file            | Test file                   | Literals                                                         |
-| ---------------------- | --------------------------- | ---------------------------------------------------------------- |
-| `users-list.ts`        | `users-list.spec.ts`        | `admin:users:create`, `admin:users:update`, `admin:users:delete` |
-| `roles-list.ts`        | `roles-list.spec.ts`        | `admin:roles:create`, `admin:roles:update`, `admin:roles:delete` |
-| `dashboard.routes.ts`  | `dashboard.spec.ts`         | `admin:users:read`, `admin:permissions:read`, `admin:roles:read` |
-| `navigation.config.ts` | `navigation.config.spec.ts` | `admin:users:read`, `admin:roles:read`, `admin:permissions:read` |
+| Source file                 | Test file                        | Literals                                                         |
+| --------------------------- | -------------------------------- | ---------------------------------------------------------------- |
+| `users-list.ts`             | `users-list.spec.ts`             | `admin:users:create`, `admin:users:update`, `admin:users:delete` |
+| `roles-list.ts`             | `roles-list.spec.ts`             | `admin:roles:create`, `admin:roles:update`, `admin:roles:delete` |
+| `dashboard.routes.ts`       | `dashboard.spec.ts`              | `admin:users:read`, `admin:permissions:read`, `admin:roles:read` |
+| `users.navigation.ts`       | `users.navigation.spec.ts`       | `admin:users:read`                                               |
+| `roles.navigation.ts`       | `roles.navigation.spec.ts`       | `admin:roles:read`                                               |
+| `permissions.navigation.ts` | `permissions.navigation.spec.ts` | `admin:permissions:read`                                         |
