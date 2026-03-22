@@ -75,6 +75,7 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 	public clear(): void {
 		this.tokens.clear()
 		this.tokensById.clear()
+		// users map is cleared — call setUser() again if findByTokenHashWithUser will be used
 		this.users.clear()
 		this.revokedTokenIds.length = 0
 		this.revokedUserIds.length = 0
@@ -85,10 +86,6 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 		this.deleteAllExpiredCalled = false
 		this.releaseCleanupLockError = null
 		this.tokenIdCounter = 1
-	}
-
-	public async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
-		return this.tokens.get(tokenHash) ?? null
 	}
 
 	public async findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null> {

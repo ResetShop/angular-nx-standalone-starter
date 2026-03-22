@@ -42,18 +42,23 @@ export interface RefreshTokenData {
 }
 
 /**
+ * Subset of user fields returned by the joined token-user query.
+ */
+export interface RefreshTokenUserProfile {
+	id: number
+	email: string
+	firstName: string
+	lastName: string
+	status: UserStatus
+}
+
+/**
  * Joined result from findByTokenHashWithUser — token data plus the owning user's profile.
  * Eliminates the need for a separate user lookup during token refresh.
  */
 export interface RefreshTokenWithUser {
 	token: RefreshTokenData
-	user: {
-		id: number
-		email: string
-		firstName: string
-		lastName: string
-		status: UserStatus
-	}
+	user: RefreshTokenUserProfile
 }
 
 export interface CreateRefreshTokenParams {
@@ -74,7 +79,6 @@ export interface CleanupResult {
 }
 
 export interface RefreshTokenRepository {
-	findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null>
 	findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null>
 	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>
 	revokeToken(tokenId: number): Promise<void>
