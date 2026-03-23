@@ -472,6 +472,10 @@ describe('Role Controller', () => {
 	})
 
 	describe('PUT /access/roles/:id/permissions', () => {
+		beforeEach(() => {
+			mockGetRolePermissions.mockResolvedValue({ data: [] as PermissionData[], total: 0, offset: 0, limit: 1000 })
+		})
+
 		it('should assign permissions to role', async () => {
 			mockAssignPermissionsToRole.mockResolvedValue(undefined)
 

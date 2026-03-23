@@ -162,10 +162,10 @@ registerRoute(app, assignPermissionsRoute, async (c) => {
 	const { permissionIds }: AssignPermissionsRequest = c.req.valid('json')
 	const actorId = Number((c as AuthenticatedContext).user.sub)
 
-	const existing = await roleService.getRolePermissions(id, { limit: 1000 })
-	const oldPermissionIds = existing.data.map((p) => p.id)
-
 	try {
+		const existing = await roleService.getRolePermissions(id, { limit: 1000 })
+		const oldPermissionIds = existing.data.map((p) => p.id)
+
 		await roleService.assignPermissionsToRole(id, permissionIds, actorId)
 		logger.security('role_permissions_changed', {
 			roleId: id,

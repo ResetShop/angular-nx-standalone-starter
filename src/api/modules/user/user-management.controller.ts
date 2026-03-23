@@ -122,9 +122,8 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const body: UpdateUserStatusRequest = c.req.valid('json')
 	const actorId = Number((c as AuthenticatedContext).user.sub)
 
-	const existingUser = await userManagementService.getUser(id)
-
 	try {
+		const existingUser = await userManagementService.getUser(id)
 		const userData = await userManagementService.updateUserStatus(id, {
 			status: body.status,
 			changedBy: actorId,

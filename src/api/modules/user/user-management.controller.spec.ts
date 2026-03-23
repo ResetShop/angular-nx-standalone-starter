@@ -400,6 +400,10 @@ describe('User Management Controller', () => {
 	})
 
 	describe('PATCH /users/:id/status', () => {
+		beforeEach(() => {
+			mockGetUser.mockResolvedValue(testManagedUser)
+		})
+
 		it('should update user status', async () => {
 			const disabledUser = { ...testManagedUser, status: UserStatus.DISABLED }
 			mockUpdateUserStatus.mockResolvedValue(disabledUser)

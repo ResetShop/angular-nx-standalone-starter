@@ -97,10 +97,10 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
 	const userId = Number(c.req.param('userId'))
 	const { roleIds }: ReplaceUserRolesRequest = c.req.valid('json')
 
-	const existing = await userRoleService.getUserRoles(userId, { limit: 1000 })
-	const oldRoleIds = existing.data.map((r) => r.id)
-
 	try {
+		const existing = await userRoleService.getUserRoles(userId, { limit: 1000 })
+		const oldRoleIds = existing.data.map((r) => r.id)
+
 		await userRoleService.replaceUserRoles(userId, roleIds)
 		logger.security('user_roles_replaced', { userId, oldRoleIds, newRoleIds: roleIds, actorId })
 		return c.json<SuccessMessage>({ message: 'Roles replaced successfully' }, 200)

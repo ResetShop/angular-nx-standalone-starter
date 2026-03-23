@@ -356,6 +356,10 @@ describe('User Role Controller', () => {
 	})
 
 	describe('PUT /users/:userId/roles', () => {
+		beforeEach(() => {
+			mockGetUserRoles.mockResolvedValue({ data: [] as RoleData[], total: 0, offset: 0, limit: 1000 })
+		})
+
 		it('should return 403 when caller lacks required permissions', async () => {
 			mockGetUserPermissions.mockImplementation((userId: number) => {
 				if (userId === ADMIN_USER_ID) {
