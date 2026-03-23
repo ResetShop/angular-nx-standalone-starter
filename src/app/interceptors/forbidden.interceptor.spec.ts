@@ -130,9 +130,9 @@ describe('forbiddenInterceptor', () => {
 			httpMock.expectOne('/api/users').flush(null, { status: 403, statusText: 'Forbidden' })
 
 			expect(consoleErrorSpy.calls).toHaveLength(1)
-			expect(consoleErrorSpy.calls[0][0]).toBe('[ForbiddenInterceptor] 403 Forbidden:')
-			expect(consoleErrorSpy.calls[0][1]).toBe('GET')
-			expect(consoleErrorSpy.calls[0][2]).toContain('/api/users')
+			expect(consoleErrorSpy.calls[0][0]).toContain('[ForbiddenInterceptor]')
+			expect(consoleErrorSpy.calls[0][0]).toContain('403 Forbidden')
+			expect(consoleErrorSpy.calls[0][0]).toContain('GET')
 		})
 
 		it('should show notification for each 403 response independently', () => {

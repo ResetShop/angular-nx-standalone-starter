@@ -5,6 +5,7 @@ import type { IRole } from '@domain/access/role.interface'
 import { mapRole, mapRoleFromData } from '@domain/access/role.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
+import { Logger } from '@providers/logger/logger.token'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
@@ -70,6 +71,7 @@ export const RolesStore = signalStore(
 	})),
 	withMethods((store) => {
 		const rolesApi = inject(RolesApi)
+		const loggerService = inject(Logger)
 
 		return {
 			loadRoles: rxMethod<SearchPaginationParams>(
@@ -90,9 +92,8 @@ export const RolesStore = signalStore(
 										isLoadingList: false,
 									})
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[RolesStore] loadRoles failed:', err)
+									loggerService.error('RolesStore', 'loadRoles failed', err)
 									patchState(store, {
 										isLoadingList: false,
 										readError: patchReadError(store.readError(), 'list', 'Failed to load roles'),
@@ -117,9 +118,8 @@ export const RolesStore = signalStore(
 						rolesApi.getByIdWithPermissions(id).pipe(
 							tap({
 								next: (response) => patchState(store, { selectedRole: mapRole(response), isLoadingDetail: false }),
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[RolesStore] loadRole failed:', err)
+									loggerService.error('RolesStore', 'loadRole failed', err)
 									patchState(store, {
 										isLoadingDetail: false,
 										readError: patchReadError(store.readError(), 'detail', 'Failed to load role'),
@@ -144,9 +144,8 @@ export const RolesStore = signalStore(
 						rolesApi.getAllUnpaginated().pipe(
 							tap({
 								next: (roles) => patchState(store, { allRoles: roles.map(mapRoleFromData), isLoadingAll: false }),
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[RolesStore] loadAllRoles failed:', err)
+									loggerService.error('RolesStore', 'loadAllRoles failed', err)
 									patchState(store, {
 										isLoadingAll: false,
 										readError: patchReadError(store.readError(), 'all', 'Failed to load all roles'),
@@ -195,6 +194,7 @@ export const RolesStore = signalStore(
 	// Mutation methods — all reload the list after success
 	withMethods((store) => {
 		const rolesApi = inject(RolesApi)
+		const loggerService = inject(Logger)
 
 		return {
 			reload(): void {
@@ -226,9 +226,8 @@ export const RolesStore = signalStore(
 										store.loadRoles(store.listParams())
 									}
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[RolesStore] deleteRole failed:', err)
+									loggerService.error('RolesStore', 'deleteRole failed', err)
 									patchState(store, {
 										isDeleting: false,
 										mutationError: patchMutationError(
@@ -260,9 +259,8 @@ export const RolesStore = signalStore(
 									patchState(store, { isAssigningPermissions: false })
 									store.loadRole(id)
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[RolesStore] assignPermissions failed:', err)
+									loggerService.error('RolesStore', 'assignPermissions failed', err)
 									patchState(store, {
 										isAssigningPermissions: false,
 										mutationError: patchMutationError(
@@ -299,9 +297,8 @@ export const RolesStore = signalStore(
 									patchState(store, { isCreating: false })
 									store.loadRoles(store.listParams())
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[RolesStore] createRoleWithPermissions failed:', err)
+									loggerService.error('RolesStore', 'createRoleWithPermissions failed', err)
 									patchState(store, {
 										isCreating: false,
 										mutationError: patchMutationError(
@@ -340,9 +337,8 @@ export const RolesStore = signalStore(
 									store.loadRoles(store.listParams())
 									store.loadRole(id)
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[RolesStore] updateRoleWithPermissions failed:', err)
+									loggerService.error('RolesStore', 'updateRoleWithPermissions failed', err)
 									patchState(store, {
 										isUpdating: false,
 										mutationError: patchMutationError(

@@ -1,3 +1,4 @@
+import { logger } from '@utils/logger'
 import { z } from 'zod'
 import type { EmailRepository, SendEmailParams } from './interfaces'
 
@@ -34,20 +35,11 @@ export class EmailService {
 		try {
 			await this.emailRepository.send(params)
 		} catch (error) {
-			// TODO(#66): Replace with structured logging service
-			try {
-				console.error(
-					JSON.stringify({
-						event: 'email_send_failed',
-						recipient: params.to,
-						subject: params.subject,
-						error: error instanceof Error ? error.message : String(error),
-						timestamp: new Date().toISOString(),
-					}),
-				)
-			} catch {
-				console.error('email_send_failed', params.to, params.subject)
-			}
+			logger.security('email_send_failed', {
+				recipient: params.to,
+				subject: params.subject,
+				error: error instanceof Error ? error.message : String(error),
+			})
 
 			throw error
 		}

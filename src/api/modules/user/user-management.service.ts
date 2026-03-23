@@ -1,5 +1,6 @@
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
+import { logger } from '@utils/logger'
 import { hash } from 'bcryptjs'
 import { getBcryptSaltRounds } from '../../constants/auth.constants'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
@@ -133,8 +134,7 @@ export class UserManagementService {
 			await this.emailService.send({ to: email, ...emailContent })
 			return true
 		} catch (error: unknown) {
-			// TODO(#66): Replace with structured logging service
-			console.error('[UserManagementService] Welcome email failed:', error)
+			logger.error('UserManagementService', 'Welcome email failed', error)
 			return false
 		}
 	}

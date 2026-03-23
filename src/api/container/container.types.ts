@@ -1,3 +1,4 @@
+import type { Logger } from '@utils/logger'
 import type { DrizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import type { PermissionRepository, PermissionService } from '../modules/access/permission/interfaces'
 import type { RoleRepository, RoleService } from '../modules/access/role/interfaces'
@@ -66,6 +67,7 @@ export interface Cradle {
 	// Values (registerValues)
 	db: DrizzlePgConnector
 	authConfig: AuthConfig
+	logger: Logger
 	generatePassword: () => Promise<string>
 
 	// Repositories (registerRepositories)
