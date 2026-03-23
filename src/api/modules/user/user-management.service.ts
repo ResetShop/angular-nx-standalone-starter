@@ -95,7 +95,6 @@ export class UserManagementService {
 	 * @throws Error if email already exists
 	 */
 	public async createUser(params: CreateUserParams, actorId: number): Promise<CreateUserResponse> {
-		void actorId
 		const existingUser = await this.userManagementRepository.findByEmail(params.email)
 		if (existingUser) {
 			throw userManagementErrors.emailExists(params.email)
@@ -106,14 +105,17 @@ export class UserManagementService {
 
 		const mustChangePassword = params.mustChangePassword ?? true
 
-		const user = await this.userManagementRepository.create({
-			email: params.email,
-			firstName: params.firstName,
-			lastName: params.lastName,
-			passwordHash,
-			mustChangePassword,
-			roleIds: [...new Set(params.roleIds ?? [])],
-		})
+		const user = await this.userManagementRepository.create(
+			{
+				email: params.email,
+				firstName: params.firstName,
+				lastName: params.lastName,
+				passwordHash,
+				mustChangePassword,
+				roleIds: [...new Set(params.roleIds ?? [])],
+			},
+			actorId,
+		)
 
 		const passwordEmailSent = await this.sendWelcomeEmail(
 			params.email,
@@ -152,7 +154,6 @@ export class UserManagementService {
 	 * @throws Error if email conflicts with existing user
 	 */
 	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData> {
-		void actorId
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id)
@@ -167,7 +168,7 @@ export class UserManagementService {
 		}
 
 		// Update user fields
-		await this.userManagementRepository.update(id, params)
+		await this.userManagementRepository.update(id, params, actorId)
 
 		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!updatedUser) {

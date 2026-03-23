@@ -95,8 +95,8 @@ export interface UserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>
 	findByEmail(email: string): Promise<UserData | null>
-	create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData>
-	update(id: number, params: UpdateUserParams): Promise<UserData | null>
+	create(params: CreateUserWithHashedPasswordParams, actorId: number): Promise<ManagedUserData>
+	update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null>
 	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>
 	softDelete(id: number, changedBy: number): Promise<boolean>
 }
@@ -148,12 +148,12 @@ export interface UserRoleRepository {
 	 * Assign a role to a user
 	 * @returns true if role was assigned, false if already assigned
 	 */
-	assignRoleToUser(userId: number, roleId: number): Promise<boolean>
+	assignRoleToUser(userId: number, roleId: number, actorId: number): Promise<boolean>
 
 	/**
 	 * Remove a role from a user
 	 */
-	removeRoleFromUser(userId: number, roleId: number): Promise<boolean>
+	removeRoleFromUser(userId: number, roleId: number, actorId: number): Promise<boolean>
 
 	/**
 	 * Check if a user has a specific role
@@ -164,7 +164,7 @@ export interface UserRoleRepository {
 	 * Replace all role assignments for a user
 	 * @throws Error if any role ID does not exist
 	 */
-	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>
+	replaceUserRoles(userId: number, roleIds: number[], actorId: number): Promise<void>
 }
 
 /**

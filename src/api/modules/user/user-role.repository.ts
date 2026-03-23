@@ -3,6 +3,7 @@ import { and, count, eq, inArray } from 'drizzle-orm'
 import { permission } from '../../../db/schema/permission'
 import { role, rolePermission } from '../../../db/schema/role'
 import { userRole } from '../../../db/schema/user'
+import { UserRoleHistoryAction, userRoleHistory } from '../../../db/schema/user-role-history'
 import { BaseRepository } from '../../helpers/base.repository'
 import { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
@@ -129,14 +130,26 @@ export class DrizzleUserRoleRepository extends BaseRepository implements UserRol
 	 * @param roleId - The role's primary key to assign
 	 * @returns true if the role was assigned, false if already assigned
 	 */
-	public async assignRoleToUser(userId: number, roleId: number): Promise<boolean> {
-		const result = await this.db
-			.insert(userRole)
-			.values({ userId, roleId })
-			.onConflictDoNothing()
-			.returning({ id: userRole.id })
+	public async assignRoleToUser(userId: number, roleId: number, actorId: number): Promise<boolean> {
+		return this.db.transaction(async (tx) => {
+			const result = await tx
+				.insert(userRole)
+				.values({ userId, roleId })
+				.onConflictDoNothing()
+				.returning({ id: userRole.id })
 
-		return result.length > 0
+			if (result.length > 0) {
+				await tx.insert(userRoleHistory).values({
+					userId,
+					roleId,
+					action: UserRoleHistoryAction.ASSIGNED,
+					changedBy: actorId,
+					changedAt: new Date(),
+				})
+			}
+
+			return result.length > 0
+		})
 	}
 
 	/**
@@ -146,13 +159,25 @@ export class DrizzleUserRoleRepository extends BaseRepository implements UserRol
 	 * @param roleId - The role's primary key to remove
 	 * @returns true if the role was removed, false if it wasn't assigned
 	 */
-	public async removeRoleFromUser(userId: number, roleId: number): Promise<boolean> {
-		const result = await this.db
-			.delete(userRole)
-			.where(and(eq(userRole.userId, userId), eq(userRole.roleId, roleId)))
-			.returning({ id: userRole.id })
+	public async removeRoleFromUser(userId: number, roleId: number, actorId: number): Promise<boolean> {
+		return this.db.transaction(async (tx) => {
+			const result = await tx
+				.delete(userRole)
+				.where(and(eq(userRole.userId, userId), eq(userRole.roleId, roleId)))
+				.returning({ id: userRole.id })
 
-		return result.length > 0
+			if (result.length > 0) {
+				await tx.insert(userRoleHistory).values({
+					userId,
+					roleId,
+					action: UserRoleHistoryAction.REMOVED,
+					changedBy: actorId,
+					changedAt: new Date(),
+				})
+			}
+
+			return result.length > 0
+		})
 	}
 
 	/**
@@ -181,7 +206,7 @@ export class DrizzleUserRoleRepository extends BaseRepository implements UserRol
 	 * @param roleIds - Array of role IDs to assign (replaces existing)
 	 * @throws Error if any role ID does not exist
 	 */
-	public async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
+	public async replaceUserRoles(userId: number, roleIds: number[], actorId: number): Promise<void> {
 		await this.db.transaction(async (tx) => {
 			if (roleIds.length > 0) {
 				const existingRoles = await tx.select({ id: role.id }).from(role).where(inArray(role.id, roleIds))
@@ -192,9 +217,7 @@ export class DrizzleUserRoleRepository extends BaseRepository implements UserRol
 				}
 			}
 
-			// We check for non-removable roles that are missing from the replaced roleIds
-			// If there's any non-removable role already assigned to the user that's missing,
-			// then an error is thrown
+			// Check for non-removable roles that would be removed
 			const nonRemovableResult = await tx
 				.select({ roleId: userRole.roleId })
 				.from(userRole)
@@ -206,10 +229,50 @@ export class DrizzleUserRoleRepository extends BaseRepository implements UserRol
 				throw userRoleErrors.nonRemovableRoles(missingNonRemovable)
 			}
 
+			// Snapshot existing role IDs for audit diff
+			const currentAssignments = await tx
+				.select({ roleId: userRole.roleId })
+				.from(userRole)
+				.where(eq(userRole.userId, userId))
+			const oldRoleIds = new Set(currentAssignments.map((r) => r.roleId))
+			const newRoleIds = new Set(roleIds)
+
 			await tx.delete(userRole).where(eq(userRole.userId, userId))
 			if (roleIds.length > 0) {
 				const values = roleIds.map((roleId) => ({ userId, roleId }))
 				await tx.insert(userRole).values(values)
+			}
+
+			// Write history rows for each change
+			const now = new Date()
+			const historyRows: Array<{ userId: number; roleId: number; action: string; changedBy: number; changedAt: Date }> =
+				[]
+
+			for (const id of oldRoleIds) {
+				if (!newRoleIds.has(id)) {
+					historyRows.push({
+						userId,
+						roleId: id,
+						action: UserRoleHistoryAction.REMOVED,
+						changedBy: actorId,
+						changedAt: now,
+					})
+				}
+			}
+			for (const id of newRoleIds) {
+				if (!oldRoleIds.has(id)) {
+					historyRows.push({
+						userId,
+						roleId: id,
+						action: UserRoleHistoryAction.ASSIGNED,
+						changedBy: actorId,
+						changedAt: now,
+					})
+				}
+			}
+
+			if (historyRows.length > 0) {
+				await tx.insert(userRoleHistory).values(historyRows)
 			}
 		})
 	}

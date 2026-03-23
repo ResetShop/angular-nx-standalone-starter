@@ -83,7 +83,6 @@ export class UserRoleService {
 	 * @throws Error if role is already assigned to the user
 	 */
 	public async assignRoleToUser(userId: number, roleId: number, actorId: number): Promise<void> {
-		void actorId
 		// Verify user exists
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
@@ -97,7 +96,7 @@ export class UserRoleService {
 		}
 
 		// Attempt to assign role - database constraint handles duplicates atomically
-		const assigned = await this.userRoleRepository.assignRoleToUser(userId, roleId)
+		const assigned = await this.userRoleRepository.assignRoleToUser(userId, roleId, actorId)
 		if (!assigned) {
 			throw userRoleErrors.roleAlreadyAssigned(userId, roleId)
 		}
@@ -114,14 +113,13 @@ export class UserRoleService {
 	 * @throws Error if role is not assigned to the user
 	 */
 	public async removeRoleFromUser(userId: number, roleId: number, actorId: number): Promise<void> {
-		void actorId
 		// Verify user exists
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
 			throw userRoleErrors.userNotFound(userId)
 		}
 
-		const removed = await this.userRoleRepository.removeRoleFromUser(userId, roleId)
+		const removed = await this.userRoleRepository.removeRoleFromUser(userId, roleId, actorId)
 		if (!removed) {
 			throw userRoleErrors.roleNotAssigned(userId, roleId)
 		}
@@ -139,12 +137,11 @@ export class UserRoleService {
 	 * @throws Error if any role ID does not exist
 	 */
 	public async replaceUserRoles(userId: number, roleIds: number[], actorId: number): Promise<void> {
-		void actorId
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
 			throw userRoleErrors.userNotFound(userId)
 		}
 
-		await this.userRoleRepository.replaceUserRoles(userId, roleIds)
+		await this.userRoleRepository.replaceUserRoles(userId, roleIds, actorId)
 	}
 }
