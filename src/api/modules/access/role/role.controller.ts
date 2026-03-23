@@ -88,7 +88,11 @@ registerRoute(app, updateRoleRoute, async (c) => {
 
 	try {
 		const role = await roleService.updateRole(id, body)
-		logger.security('role_updated', { roleId: id, changes: body, actorId })
+		logger.security('role_updated', {
+			roleId: id,
+			changes: { name: body.name, description: body.description },
+			actorId,
+		})
 		return c.json<RoleData>(role)
 	} catch (error) {
 		if (error instanceof Error) {
@@ -163,7 +167,9 @@ registerRoute(app, assignPermissionsRoute, async (c) => {
 	const actorId = Number((c as AuthenticatedContext).user.sub)
 
 	try {
-		const existing = await roleService.getRolePermissions(id, { limit: 1000 })
+		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
+		const auditSnapshotLimit = 1000
+		const existing = await roleService.getRolePermissions(id, { limit: auditSnapshotLimit })
 		const oldPermissionIds = existing.data.map((p) => p.id)
 
 		await roleService.assignPermissionsToRole(id, permissionIds, actorId)

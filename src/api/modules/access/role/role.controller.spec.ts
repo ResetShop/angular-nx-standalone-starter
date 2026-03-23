@@ -1,5 +1,6 @@
 import { permission } from '@contracts/permission/permission.constants'
-import { clearAllMocks, fn } from '@test-utils'
+import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
+import { logger } from '@utils/logger'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../../container/container'
@@ -85,8 +86,11 @@ describe('Role Controller', () => {
 		},
 	]
 
+	let loggerSecuritySpy: MockFn
+
 	beforeEach(() => {
 		clearAllMocks()
+		loggerSecuritySpy = spyOn(logger, 'security')
 
 		// Mock getUserPermissions to return all role permissions
 		mockGetUserPermissions.mockResolvedValue(allRolePermissions)
@@ -255,6 +259,7 @@ describe('Role Controller', () => {
 			expect(res.status).toBe(201)
 			const data = await res.json()
 			expect(data.code).toBe('editor')
+			expect(loggerSecuritySpy.calls[0][0]).toBe('role_created')
 		})
 
 		it('should return 409 when code already exists', async () => {
@@ -332,6 +337,7 @@ describe('Role Controller', () => {
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.description).toBe('Updated description')
+			expect(loggerSecuritySpy.calls[0][0]).toBe('role_updated')
 		})
 
 		it('should return 404 when role not found', async () => {
@@ -386,6 +392,7 @@ describe('Role Controller', () => {
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.message).toBe('Role deleted successfully')
+			expect(loggerSecuritySpy.calls[0][0]).toBe('role_deleted')
 		})
 
 		it('should return 404 when role not found', async () => {
@@ -491,6 +498,7 @@ describe('Role Controller', () => {
 			const data = await res.json()
 			expect(data.message).toBe('Permissions assigned successfully')
 			expect(mockAssignPermissionsToRole.calls).toEqual([[1, [1, 2, 3], 1]])
+			expect(loggerSecuritySpy.calls[0][0]).toBe('role_permissions_changed')
 		})
 
 		it('should return 404 when role not found', async () => {

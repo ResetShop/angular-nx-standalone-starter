@@ -98,7 +98,9 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
 	const { roleIds }: ReplaceUserRolesRequest = c.req.valid('json')
 
 	try {
-		const existing = await userRoleService.getUserRoles(userId, { limit: 1000 })
+		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
+		const auditSnapshotLimit = 1000
+		const existing = await userRoleService.getUserRoles(userId, { limit: auditSnapshotLimit })
 		const oldRoleIds = existing.data.map((r) => r.id)
 
 		await userRoleService.replaceUserRoles(userId, roleIds)

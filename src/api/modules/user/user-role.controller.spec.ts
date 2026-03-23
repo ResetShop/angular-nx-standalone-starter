@@ -1,5 +1,6 @@
 import { permission } from '@contracts/permission/permission.constants'
-import { clearAllMocks, fn } from '@test-utils'
+import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
+import { logger } from '@utils/logger'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../container/container'
@@ -75,8 +76,11 @@ describe('User Role Controller', () => {
 	// The authenticated admin user ID
 	const ADMIN_USER_ID = 999
 
+	let loggerSecuritySpy: MockFn
+
 	beforeEach(() => {
 		clearAllMocks()
+		loggerSecuritySpy = spyOn(logger, 'security')
 
 		// Mock getUserPermissions to return different results based on user ID:
 		// - For the authenticated admin user (ID 999): return all user_role permissions
@@ -225,6 +229,7 @@ describe('User Role Controller', () => {
 			const data = await res.json()
 			expect(data.message).toBe('Role assigned successfully')
 			expect(mockAssignRoleToUser.calls).toEqual([[1, 1]])
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_role_assigned')
 		})
 
 		it('should return 404 when user not found', async () => {
@@ -312,6 +317,7 @@ describe('User Role Controller', () => {
 			const data = await res.json()
 			expect(data.message).toBe('Role removed successfully')
 			expect(mockRemoveRoleFromUser.calls).toEqual([[1, 1]])
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_role_removed')
 		})
 
 		it('should return 404 when user not found', async () => {
@@ -390,6 +396,7 @@ describe('User Role Controller', () => {
 			const data = await res.json()
 			expect(data.message).toBe('Roles replaced successfully')
 			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]])
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_roles_replaced')
 		})
 
 		it('should accept empty roleIds array', async () => {

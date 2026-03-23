@@ -1,7 +1,8 @@
 import { permission } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
-import { clearAllMocks, fn } from '@test-utils'
+import { clearAllMocks, fn, type MockFn, spyOn } from '@test-utils'
+import { logger } from '@utils/logger'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../container/container'
@@ -98,8 +99,11 @@ describe('User Management Controller', () => {
 
 	const ADMIN_USER_ID = 999
 
+	let loggerSecuritySpy: MockFn
+
 	beforeEach(() => {
 		clearAllMocks()
+		loggerSecuritySpy = spyOn(logger, 'security')
 
 		mockGetUserPermissions.mockResolvedValue(allUserPermissions)
 
@@ -243,6 +247,7 @@ describe('User Management Controller', () => {
 			const data = await res.json()
 			expect(data.email).toBe('test@example.com')
 			expect(data.passwordEmailSent).toBe(true)
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_created')
 		})
 
 		it('should return 409 when email already exists', async () => {
@@ -358,6 +363,7 @@ describe('User Management Controller', () => {
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.firstName).toBe('Updated')
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_updated')
 		})
 
 		it('should return 404 when user not found', async () => {
@@ -418,6 +424,7 @@ describe('User Management Controller', () => {
 			const data = await res.json()
 			expect(data.status).toBe(UserStatus.DISABLED)
 			expect(mockUpdateUserStatus.calls[0]).toEqual([1, { status: UserStatus.DISABLED, changedBy: ADMIN_USER_ID }])
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_status_changed')
 		})
 
 		it('should return 403 when trying to change own status', async () => {
@@ -494,6 +501,7 @@ describe('User Management Controller', () => {
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.message).toBe('User deleted successfully')
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_deleted')
 		})
 
 		it('should return 404 when user not found', async () => {

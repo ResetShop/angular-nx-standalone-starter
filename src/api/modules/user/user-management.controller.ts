@@ -103,7 +103,11 @@ registerRoute(app, updateUserRoute, async (c) => {
 
 	try {
 		const userData = await userManagementService.updateUser(id, body)
-		logger.security('user_updated', { userId: id, changes: body, actorId })
+		logger.security('user_updated', {
+			userId: id,
+			changes: { email: body.email, firstName: body.firstName, lastName: body.lastName },
+			actorId,
+		})
 		return c.json<ManagedUser>(userData)
 	} catch (error) {
 		const mapped = resolveErrorStatus(error)
@@ -123,6 +127,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const actorId = Number((c as AuthenticatedContext).user.sub)
 
 	try {
+		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
 		const existingUser = await userManagementService.getUser(id)
 		const userData = await userManagementService.updateUserStatus(id, {
 			status: body.status,
