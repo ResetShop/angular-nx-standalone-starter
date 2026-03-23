@@ -1,6 +1,7 @@
 import type { DrizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import type { PermissionRepository, PermissionService } from '../modules/access/permission/interfaces'
 import type { RoleRepository, RoleService } from '../modules/access/role/interfaces'
+import type { AuthConfig } from '../modules/auth/auth.config'
 import type {
 	AuthService,
 	AuthenticationRepository,
@@ -26,11 +27,14 @@ import type { PasetoService } from '../services/paseto/interfaces'
  *
  * HealthService ──────────────► db
  *
+ * AuthConfig (value, no deps)
+ *
  * AuthService (satisfies AuthService & TokenMaintenanceService interfaces)
  *   ├── UserRepository ──────► db
- *   ├── AuthRepository ──────► db
+ *   ├── AuthRepository ──────► db, authConfig
  *   ├── RefreshTokenRepository ► db
- *   └── PasetoService (no deps)
+ *   ├── PasetoService (no deps)
+ *   └── authConfig
  *
  * TokenMaintenanceService ──► AuthService (same instance, narrower interface)
  *
@@ -61,6 +65,7 @@ import type { PasetoService } from '../services/paseto/interfaces'
 export interface Cradle {
 	// Values (registerValues)
 	db: DrizzlePgConnector
+	authConfig: AuthConfig
 	generatePassword: () => Promise<string>
 
 	// Repositories (registerRepositories)
