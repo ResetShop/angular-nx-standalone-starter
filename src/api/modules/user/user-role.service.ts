@@ -77,6 +77,7 @@ export class UserRoleService {
 	 *
 	 * @param userId - The user's primary key
 	 * @param roleId - The role's primary key to assign
+	 * @param actorId - ID of the user performing the action
 	 * @throws Error if user not found
 	 * @throws Error if role not found
 	 * @throws Error if role is already assigned to the user
@@ -108,6 +109,7 @@ export class UserRoleService {
 	 *
 	 * @param userId - The user's primary key
 	 * @param roleId - The role's primary key to remove
+	 * @param actorId - ID of the user performing the action
 	 * @throws Error if user not found
 	 * @throws Error if role is not assigned to the user
 	 */
@@ -132,6 +134,7 @@ export class UserRoleService {
 	 *
 	 * @param userId - The user's primary key
 	 * @param roleIds - Array of role IDs to assign (replaces all existing)
+	 * @param actorId - ID of the user performing the action
 	 * @throws Error if user not found
 	 * @throws Error if any role ID does not exist
 	 */

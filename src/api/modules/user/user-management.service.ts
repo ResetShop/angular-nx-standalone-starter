@@ -90,6 +90,7 @@ export class UserManagementService {
 	 * and sends a welcome email with the temporary password (failure-tolerant).
 	 *
 	 * @param params - User creation parameters (email, firstName, lastName, roleIds, mustChangePassword)
+	 * @param actorId - ID of the user performing the action
 	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
@@ -145,6 +146,7 @@ export class UserManagementService {
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
+	 * @param actorId - ID of the user performing the action
 	 * @returns Updated user with roles
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
