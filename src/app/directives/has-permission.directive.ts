@@ -1,12 +1,13 @@
 import { Directive, effect, inject, input, isDevMode, TemplateRef, ViewContainerRef } from '@angular/core'
 import { isPermissionName } from '@contracts/permission/permission.constants'
+import { Logger } from '@providers/logger/logger.token'
 import { AuthStore } from '@store/auth/auth.store'
 
 /**
  * Structural directive that conditionally renders its host element
  * based on the current user's permissions.
  *
- * In dev mode, logs an error if the provided identifier is not a valid
+ * In dev mode, logs a warning if the provided identifier is not a valid
  * permission name (module:resource:action format).
  *
  * @example
@@ -25,6 +26,7 @@ export class HasPermissionDirective {
 	private readonly authStore = inject(AuthStore)
 	private readonly templateRef = inject(TemplateRef<unknown>)
 	private readonly viewContainer = inject(ViewContainerRef)
+	private readonly loggerService = inject(Logger)
 
 	private hasView = false
 
@@ -33,8 +35,7 @@ export class HasPermissionDirective {
 		const user = this.authStore.currentUser()
 
 		if (isDevMode() && !isPermissionName(identifier)) {
-			// TODO(#66): Replace with structured logging service
-			console.error(`[HasPermission] Invalid permission identifier: "${identifier}"`)
+			this.loggerService.warn('HasPermission', `Invalid permission identifier: "${identifier}"`)
 		}
 
 		const permitted = user?.hasPermission(identifier) ?? false

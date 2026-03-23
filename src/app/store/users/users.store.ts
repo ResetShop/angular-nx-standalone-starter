@@ -5,6 +5,7 @@ import type { IManagedUser } from '@domain/user-management/managed-user.interfac
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
+import { Logger } from '@providers/logger/logger.token'
 import { UsersApi } from '@providers/users/users.interface'
 import { extractErrorMessage } from '@store/utils/extract-error-message'
 import { parseDurationToMs } from '@utils/duration'
@@ -63,6 +64,7 @@ export const UsersStore = signalStore(
 	})),
 	withMethods((store) => {
 		const usersApi = inject(UsersApi)
+		const loggerService = inject(Logger)
 
 		return {
 			loadUsers: rxMethod<SearchPaginationParams>(
@@ -80,9 +82,8 @@ export const UsersStore = signalStore(
 									const users = response.data.map(mapManagedUserResponse)
 									patchState(store, { users, totalItems: response.total, isLoadingList: false })
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] loadUsers failed:', err)
+									loggerService.error('UsersStore', 'loadUsers failed', err)
 									patchState(store, {
 										isLoadingList: false,
 										readError: patchReadError(store.readError(), 'list', 'Failed to load users'),
@@ -126,9 +127,8 @@ export const UsersStore = signalStore(
 										selectedUser: mapManagedUserResponse(response),
 										isLoadingDetail: false,
 									}),
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] loadUser failed:', err)
+									loggerService.error('UsersStore', 'loadUser failed', err)
 									patchState(store, {
 										isLoadingDetail: false,
 										readError: patchReadError(store.readError(), 'detail', 'Failed to load user'),
@@ -160,6 +160,7 @@ export const UsersStore = signalStore(
 	// Mutation methods — all reload the list after success
 	withMethods((store) => {
 		const usersApi = inject(UsersApi)
+		const loggerService = inject(Logger)
 
 		return {
 			reload(): void {
@@ -181,9 +182,8 @@ export const UsersStore = signalStore(
 									patchState(store, { isCreating: false })
 									store.loadUsers(store.listParams())
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] createUser failed:', err)
+									loggerService.error('UsersStore', 'createUser failed', err)
 									patchState(store, {
 										isCreating: false,
 										mutationError: patchMutationError(
@@ -215,9 +215,8 @@ export const UsersStore = signalStore(
 									patchState(store, { isUpdating: false })
 									store.loadUsers(store.listParams())
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] updateUser failed:', err)
+									loggerService.error('UsersStore', 'updateUser failed', err)
 									patchState(store, {
 										isUpdating: false,
 										mutationError: patchMutationError(
@@ -249,9 +248,8 @@ export const UsersStore = signalStore(
 									patchState(store, { isUpdating: false })
 									store.loadUsers(store.listParams())
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] updateUserStatus failed:', err)
+									loggerService.error('UsersStore', 'updateUserStatus failed', err)
 									patchState(store, {
 										isUpdating: false,
 										mutationError: patchMutationError(
@@ -293,9 +291,8 @@ export const UsersStore = signalStore(
 										store.loadUsers(store.listParams())
 									}
 								},
-								// TODO(#66): Replace with structured logging service
 								error: (err) => {
-									console.error('[UsersStore] deleteUser failed:', err)
+									loggerService.error('UsersStore', 'deleteUser failed', err)
 									patchState(store, {
 										isDeleting: false,
 										mutationError: patchMutationError(

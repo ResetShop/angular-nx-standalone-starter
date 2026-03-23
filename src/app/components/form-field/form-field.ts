@@ -151,7 +151,6 @@ export class FormField {
 		const directChildren = wrapper.children
 
 		if (directChildren.length > 1) {
-			// TODO (#66): Replace errorHandler.handleError with logging service when available
 			this.errorHandler.handleError(
 				new Error(`FormField expects a single projected element, but received ${directChildren.length}.`),
 			)

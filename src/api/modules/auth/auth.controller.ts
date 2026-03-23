@@ -8,6 +8,7 @@ import {
 } from '@contracts/auth/auth.errors'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import { parseDurationToSeconds } from '@utils/duration'
+import { logger } from '@utils/logger'
 import { timingSafeEqual } from 'crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import {
@@ -228,8 +229,7 @@ registerRoute(app, cleanupTokensRoute, async (c) => {
 			incomplete: result.incomplete,
 		})
 	} catch (error) {
-		// TODO(#66): Replace with structured logging service
-		console.error('[TokenCleanup] Error:', error)
+		logger.error('TokenCleanup', 'Cleanup endpoint error', error)
 		return c.json({ error: 'Cleanup failed' }, 500)
 	}
 })

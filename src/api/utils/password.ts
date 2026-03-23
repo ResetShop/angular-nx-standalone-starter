@@ -1,3 +1,4 @@
+import { logger } from '@utils/logger'
 import { randomInt } from 'crypto'
 import { readFile } from 'fs/promises'
 import { resolve } from 'path'
@@ -68,8 +69,7 @@ async function getWordList(language: string): Promise<readonly string[]> {
 export async function generatePassword(wordCount = 3): Promise<string> {
 	const parsed = wordCountSchema.safeParse(wordCount)
 	if (!parsed.success) {
-		// TODO(#66): Replace with structured logging service
-		console.error(`[generatePassword] Invalid wordCount (${wordCount}), using default:`, parsed.error.message)
+		logger.warn('generatePassword', `Invalid wordCount (${wordCount}), using default: ${parsed.error.message}`)
 	}
 	const effectiveWordCount = parsed.success ? wordCount : 3
 
