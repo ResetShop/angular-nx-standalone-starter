@@ -76,7 +76,7 @@ const COUNTRY_OPTIONS: SelectOption[] = [
 				}
 				@case ('date') {
 					<app-form-field [label]="'Birth date'" [hint]="resolvedHint()" [showRequired]="showRequired()">
-						<input [formField]="hasRequired() ? dateField : optionalDateField" type="date" />
+						<input [formField]="hasRequired() ? dateField : optionalDateField" [attr.lang]="language()" type="date" />
 					</app-form-field>
 				}
 			}
