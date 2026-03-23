@@ -8,6 +8,13 @@
 			"when": 1774028042262,
 			"tag": "0000_absurd_blue_marvel",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1774295687041,
+			"tag": "0001_zippy_loners",
+			"breakpoints": true
 		}
 	]
 }
