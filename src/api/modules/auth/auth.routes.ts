@@ -9,6 +9,7 @@ import {
 } from '@contracts/auth/auth.schemas'
 import { errorResponseSchema } from '@contracts/common/error.schemas'
 import { createRoute } from '@hono/zod-openapi'
+import { loginRateLimiter, refreshRateLimiter } from '../../middlewares/rate-limit.middleware'
 import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonResponses } from '../../openapi-config'
 
 export const loginRoute = createRoute({
@@ -18,6 +19,7 @@ export const loginRoute = createRoute({
 	summary: 'Authenticate user',
 	description: 'Authenticates a user with email and password. Sets access and refresh tokens as HttpOnly cookies.',
 	security: [],
+	middleware: [loginRateLimiter] as const,
 	request: {
 		body: {
 			content: { 'application/json': { schema: loginRequestSchema } },
@@ -37,6 +39,10 @@ export const loginRoute = createRoute({
 			description: 'Authentication failed',
 			content: { 'application/json': { schema: authErrorResponseSchema } },
 		},
+		429: {
+			description: 'Too many requests',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 	},
 })
 
@@ -47,6 +53,7 @@ export const refreshRoute = createRoute({
 	summary: 'Refresh access token',
 	description: 'Exchanges refresh token cookie for new access and refresh tokens.',
 	security: [],
+	middleware: [refreshRateLimiter] as const,
 	responses: {
 		200: {
 			description: 'Tokens refreshed successfully',
@@ -55,6 +62,10 @@ export const refreshRoute = createRoute({
 		401: {
 			description: 'Invalid or missing refresh token',
 			content: { 'application/json': { schema: authErrorResponseSchema } },
+		},
+		429: {
+			description: 'Too many requests',
+			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 	},
 })

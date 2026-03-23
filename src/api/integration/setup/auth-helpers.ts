@@ -35,14 +35,20 @@ export function parseCookies(response: Response): ParsedCookies {
 /**
  * Logs in with the given credentials and returns parsed cookies.
  */
+// Counter for generating unique IPs to avoid rate limiter collisions between tests
+let loginCounter = 0
+
 export async function loginAs(
 	app: OpenAPIHono,
 	email: string,
 	password: string,
 ): Promise<{ response: Response; cookies: ParsedCookies }> {
+	// Each login call uses a unique IP to avoid triggering the rate limiter across tests
+	const uniqueIp = `10.0.0.${++loginCounter}`
+
 	const response = await app.request('/api/auth/login', {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': uniqueIp },
 		body: JSON.stringify({ email, password }),
 	})
 
