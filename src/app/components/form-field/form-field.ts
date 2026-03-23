@@ -97,10 +97,6 @@ import { FormFieldCustomControl } from './form-field-custom-control'
 		:host-context(.dark) ::ng-deep input[type='date'] {
 			color-scheme: dark;
 		}
-
-		:host-context(.dark) ::ng-deep input[type='date']::-webkit-calendar-picker-indicator {
-			filter: invert(1);
-		}
 	`,
 })
 export class FormField {
