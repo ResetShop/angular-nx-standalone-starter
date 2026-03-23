@@ -211,8 +211,8 @@ export interface UserRoleService {
 export interface UserManagementService {
 	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	getUser(id: number): Promise<ManagedUserData>
-	createUser(params: CreateUserParams): Promise<CreateUserResponse>
-	updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData>
+	createUser(params: CreateUserParams, actorId: number): Promise<CreateUserResponse>
+	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
 	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
 	deleteUser(id: number, currentUserId: number): Promise<void>
 }

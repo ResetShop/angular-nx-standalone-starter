@@ -93,7 +93,7 @@ export class UserManagementService {
 	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
-	public async createUser(params: CreateUserParams): Promise<CreateUserResponse> {
+	public async createUser(params: CreateUserParams, _actorId: number): Promise<CreateUserResponse> {
 		const existingUser = await this.userManagementRepository.findByEmail(params.email)
 		if (existingUser) {
 			throw userManagementErrors.emailExists(params.email)
@@ -148,7 +148,7 @@ export class UserManagementService {
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
 	 */
-	public async updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData> {
+	public async updateUser(id: number, params: UpdateUserParams, _actorId: number): Promise<ManagedUserData> {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id)
