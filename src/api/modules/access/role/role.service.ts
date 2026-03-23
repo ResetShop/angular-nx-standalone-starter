@@ -211,12 +211,12 @@ export class RoleService {
 	 *
 	 * @param roleId - The role's primary key
 	 * @param permissionIds - Array of permission IDs to assign (replaces existing)
-	 * @param actorId - Optional ID of the user performing the action (used for self-lockout prevention)
+	 * @param actorId - ID of the user performing the action (used for self-lockout prevention and audit)
 	 * @throws Error if role not found
 	 * @throws InvalidPermissionIdsError if any permission IDs don't exist in database
 	 * @throws SelfLockoutError if update would remove user's ability to manage roles
 	 */
-	public async assignPermissionsToRole(roleId: number, permissionIds: number[], actorId?: number): Promise<void> {
+	public async assignPermissionsToRole(roleId: number, permissionIds: number[], actorId: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(roleId)
 
 		if (!existingRole) {
@@ -236,32 +236,30 @@ export class RoleService {
 		}
 
 		// Self-lockout prevention check
-		if (actorId !== undefined) {
-			// Fetch actor's current permissions and role assignment in parallel
-			const [userPermissions, userHasRole, currentRolePermissions] = await Promise.all([
-				this.userRoleRepository.findPermissionsForUser(actorId),
-				this.userRoleRepository.findUserHasRole(actorId, roleId),
-				this.roleRepository.findPermissionsForRole(roleId, { limit: 1000 }),
-			])
+		// Fetch actor's current permissions and role assignment in parallel
+		const [userPermissions, userHasRole, currentRolePermissions] = await Promise.all([
+			this.userRoleRepository.findPermissionsForUser(actorId),
+			this.userRoleRepository.findUserHasRole(actorId, roleId),
+			this.roleRepository.findPermissionsForRole(roleId, { limit: 1000 }),
+		])
 
-			// Only need to check for lockout if the user is assigned to the role being modified
-			if (userHasRole) {
-				const rolesUpdatePermission = permission('admin:roles:update')
-				const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === rolesUpdatePermission)
+		// Only need to check for lockout if the user is assigned to the role being modified
+		if (userHasRole) {
+			const rolesUpdatePermission = permission('admin:roles:update')
+			const newPermissionsIncludeUpdate = foundPermissions.some((p) => p.name === rolesUpdatePermission)
 
-				if (!newPermissionsIncludeUpdate) {
-					// Check if user has UPDATE permission from other roles
-					const currentRolePermissionNames = new Set(currentRolePermissions.data.map((p) => p.name))
-					const otherRolePermissions = userPermissions.filter((p) => !currentRolePermissionNames.has(p.name))
-					const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === rolesUpdatePermission)
+			if (!newPermissionsIncludeUpdate) {
+				// Check if user has UPDATE permission from other roles
+				const currentRolePermissionNames = new Set(currentRolePermissions.data.map((p) => p.name))
+				const otherRolePermissions = userPermissions.filter((p) => !currentRolePermissionNames.has(p.name))
+				const hasUpdateFromOtherRole = otherRolePermissions.some((p) => p.name === rolesUpdatePermission)
 
-					if (!hasUpdateFromOtherRole) {
-						throw new SelfLockoutError()
-					}
+				if (!hasUpdateFromOtherRole) {
+					throw new SelfLockoutError()
 				}
 			}
 		}
 
-		await this.roleRepository.assignPermissions(roleId, permissionIds, actorId ?? 0)
+		await this.roleRepository.assignPermissions(roleId, permissionIds, actorId)
 	}
 }

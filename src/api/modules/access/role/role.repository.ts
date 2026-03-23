@@ -162,6 +162,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 	 */
 	public async create(params: CreateRoleParams, actorId: number): Promise<RoleData> {
 		return this.db.transaction(async (tx) => {
+			const now = new Date()
 			const result = await tx
 				.insert(role)
 				.values({
@@ -187,7 +188,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 				oldValues: null,
 				newValues: { name: created.name, code: created.code, description: created.description },
 				changedBy: actorId,
-				changedAt: new Date(),
+				changedAt: now,
 			})
 
 			return created
@@ -207,6 +208,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 	 */
 	public async update(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData | null> {
 		return this.db.transaction(async (tx) => {
+			const now = new Date()
 			const existing = await tx
 				.select({ name: role.name, code: role.code, description: role.description })
 				.from(role)
@@ -215,7 +217,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 
 			if (existing.length === 0) return null
 
-			const updateData: Partial<typeof role.$inferInsert> = { updatedAt: new Date() }
+			const updateData: Partial<typeof role.$inferInsert> = { updatedAt: now }
 			if (params.name !== undefined) updateData.name = params.name
 			if (params.description !== undefined) updateData.description = params.description
 
@@ -237,7 +239,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 				oldValues: existing[0],
 				newValues: { name: result[0].name, code: result[0].code, description: result[0].description },
 				changedBy: actorId,
-				changedAt: new Date(),
+				changedAt: now,
 			})
 
 			return result[0]
@@ -253,6 +255,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 	 */
 	public async delete(id: number, actorId: number): Promise<void> {
 		await this.db.transaction(async (tx) => {
+			const now = new Date()
 			const existing = await tx
 				.select({ name: role.name, code: role.code, description: role.description })
 				.from(role)
@@ -272,7 +275,7 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 					oldValues: existing[0],
 					newValues: null,
 					changedBy: actorId,
-					changedAt: new Date(),
+					changedAt: now,
 				})
 			}
 		})

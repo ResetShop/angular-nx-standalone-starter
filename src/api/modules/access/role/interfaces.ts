@@ -107,5 +107,5 @@ export interface RoleService {
 	updateRole(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData>
 	deleteRole(id: number, actorId: number): Promise<void>
 	getRolePermissions(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>>
-	assignPermissionsToRole(roleId: number, permissionIds: number[], actorId?: number): Promise<void>
+	assignPermissionsToRole(roleId: number, permissionIds: number[], actorId: number): Promise<void>
 }
