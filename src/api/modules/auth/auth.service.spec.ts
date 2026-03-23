@@ -4,9 +4,15 @@ import { fn } from '@test-utils'
 import { parseDurationToMs } from '@utils/duration'
 import { hash } from 'bcryptjs'
 import { createHash } from 'crypto'
-import { DEFAULT_LOCKOUT_DURATION } from '../../constants/auth.constants'
+import {
+	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_LOCKOUT_DURATION,
+	DEFAULT_MAX_FAILED_ATTEMPTS,
+	DEFAULT_REFRESH_TOKEN_EXPIRY,
+} from '../../constants/auth.constants'
 import { InMemoryPasetoService } from '../../services/paseto/paseto.service.mock'
 import { InMemoryUserRepository } from '../user/user.repository.mock'
+import type { AuthConfig } from './auth.config'
 import { AuthService } from './auth.service'
 import { InMemoryAuthenticationRepository } from './authentication.repository.mock'
 import { InMemoryRefreshTokenRepository } from './refresh-token.repository.mock'
@@ -17,6 +23,14 @@ describe('AuthService', () => {
 	let mockAuthRepo: InMemoryAuthenticationRepository
 	let mockRefreshTokenRepo: InMemoryRefreshTokenRepository
 	let mockPasetoService: InMemoryPasetoService
+
+	const testAuthConfig: AuthConfig = {
+		cookieSecure: true,
+		accessTokenExpiry: DEFAULT_ACCESS_TOKEN_EXPIRY,
+		refreshTokenExpiry: DEFAULT_REFRESH_TOKEN_EXPIRY,
+		maxFailedAttempts: DEFAULT_MAX_FAILED_ATTEMPTS,
+		lockoutDuration: DEFAULT_LOCKOUT_DURATION,
+	}
 
 	// Test data
 	const testPassword = 'password123'
@@ -53,6 +67,7 @@ describe('AuthService', () => {
 			authRepository: mockAuthRepo,
 			refreshTokenRepository: mockRefreshTokenRepo,
 			pasetoService: mockPasetoService,
+			authConfig: testAuthConfig,
 		})
 	})
 
@@ -308,34 +323,33 @@ describe('AuthService', () => {
 			expect(authRecord?.failedLoginAttempts).toBe(0)
 		})
 
-		it('should respect custom AUTH_MAX_FAILED_ATTEMPTS env variable', async () => {
-			const originalEnv = process.env['AUTH_MAX_FAILED_ATTEMPTS']
-			process.env['AUTH_MAX_FAILED_ATTEMPTS'] = '3'
+		it('should respect custom maxFailedAttempts config', async () => {
+			const customAuthConfig: AuthConfig = { ...testAuthConfig, maxFailedAttempts: 3 }
+			const customAuthRepo = new InMemoryAuthenticationRepository({ maxFailedAttempts: 3 })
+			const customAuthService = new AuthService({
+				userRepository: mockUserRepo,
+				authRepository: customAuthRepo,
+				refreshTokenRepository: mockRefreshTokenRepo,
+				pasetoService: mockPasetoService,
+				authConfig: customAuthConfig,
+			})
 
-			try {
-				// Set up user with 2 failed attempts
-				mockAuthRepo.clear()
-				mockAuthRepo.addAuthRecord(testUser.id, {
-					passwordHash: testPasswordHash,
-					failedLoginAttempts: 2,
-				})
+			// Set up user with 2 failed attempts
+			mockUserRepo.addUser(testUser)
+			customAuthRepo.addAuthRecord(testUser.id, {
+				passwordHash: testPasswordHash,
+				failedLoginAttempts: 2,
+			})
 
-				// This should be the 3rd attempt, triggering lockout with custom threshold
-				await expect(
-					authService.authenticate({
-						email: testUser.email,
-						password: 'wrongpassword',
-					}),
-				).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
+			// This should be the 3rd attempt, triggering lockout with custom threshold
+			await expect(
+				customAuthService.authenticate({
+					email: testUser.email,
+					password: 'wrongpassword',
+				}),
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
 
-				expect(mockAuthRepo.lockedUsers).toHaveLength(1)
-			} finally {
-				if (originalEnv === undefined) {
-					delete process.env['AUTH_MAX_FAILED_ATTEMPTS']
-				} else {
-					process.env['AUTH_MAX_FAILED_ATTEMPTS'] = originalEnv
-				}
-			}
+			expect(customAuthRepo.lockedUsers).toHaveLength(1)
 		})
 	})
 
@@ -345,6 +359,7 @@ describe('AuthService', () => {
 
 		beforeEach(() => {
 			mockUserRepo.addUser(testUser)
+			mockRefreshTokenRepo.setUser(testUser)
 
 			// Set up the mock to verify the refresh token
 			mockPasetoService.setRefreshTokenPayload(existingRefreshToken, {
@@ -398,8 +413,8 @@ describe('AuthService', () => {
 		})
 
 		it('should throw TOKEN_REUSE_DETECTED and revoke token family when replaying a revoked token', async () => {
-			// Clear and add a revoked token
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 			mockRefreshTokenRepo.addToken(tokenHash, {
 				userId: testUser.id,
@@ -429,6 +444,7 @@ describe('AuthService', () => {
 
 		it('should revoke all sibling tokens in the same family when reuse is detected', async () => {
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 
 			// Add the revoked (old) token
@@ -456,8 +472,8 @@ describe('AuthService', () => {
 		})
 
 		it('should throw REFRESH_TOKEN_EXPIRED error when token is expired', async () => {
-			// Clear and add an expired token
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 			mockRefreshTokenRepo.addToken(tokenHash, {
 				userId: testUser.id,
@@ -475,6 +491,7 @@ describe('AuthService', () => {
 			// Regression guard: expiry check must run before reuse detection.
 			// An expired+revoked token is a routine lifecycle outcome, not an attack.
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 			mockRefreshTokenRepo.addToken(tokenHash, {
 				userId: testUser.id,
@@ -491,17 +508,20 @@ describe('AuthService', () => {
 			expect(mockRefreshTokenRepo.revokedTokenFamilies).toHaveLength(0)
 		})
 
-		it('should throw USER_NOT_FOUND error when user not found', async () => {
-			mockUserRepo.clear()
+		it('should throw TOKEN_REVOKED error when user not found (joined query returns null)', async () => {
+			// When the user doesn't exist, the INNER JOIN returns no rows,
+			// so findByTokenHashWithUser returns null — treated as a revoked token.
+			// In production, this is prevented by the ON DELETE CASCADE FK,
+			// but the error path is still safe.
+			mockRefreshTokenRepo.removeUser(testUser.id)
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
-				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
+				getInternalErrorMessage(InternalAuthErrorCode.TOKEN_REVOKED),
 			)
 		})
 
 		it('should throw USER_NOT_FOUND error when user is deleted', async () => {
-			mockUserRepo.clear()
-			mockUserRepo.addUser({ ...testUser, status: UserStatus.DELETED })
+			mockRefreshTokenRepo.setUser({ ...testUser, status: UserStatus.DELETED })
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
@@ -509,8 +529,7 @@ describe('AuthService', () => {
 		})
 
 		it('should throw ACCOUNT_DISABLED error when user is disabled', async () => {
-			mockUserRepo.clear()
-			mockUserRepo.addUser({ ...testUser, status: UserStatus.DISABLED })
+			mockRefreshTokenRepo.setUser({ ...testUser, status: UserStatus.DISABLED })
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED),

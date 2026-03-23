@@ -4,9 +4,9 @@ import { parseDurationToMs } from '@utils/duration'
 import { logger } from '@utils/logger'
 import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
-import { DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import { type PasetoService } from '../../services/paseto/interfaces'
 import { type UserData, type UserRepository } from '../user/interfaces'
+import type { AuthConfig } from './auth.config'
 import {
 	type AuthCredentials,
 	type AuthResult,
@@ -24,6 +24,7 @@ interface AuthServiceDeps {
 	authRepository: AuthenticationRepository
 	refreshTokenRepository: RefreshTokenRepository
 	pasetoService: PasetoService
+	authConfig: AuthConfig
 }
 
 /**
@@ -32,28 +33,18 @@ interface AuthServiceDeps {
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
 export class AuthService implements AuthServiceInterface, TokenMaintenanceService {
-	private userRepository: UserRepository
-	private authRepository: AuthenticationRepository
-	private refreshTokenRepository: RefreshTokenRepository
-	private pasetoService: PasetoService
+	private readonly userRepository: UserRepository
+	private readonly authRepository: AuthenticationRepository
+	private readonly refreshTokenRepository: RefreshTokenRepository
+	private readonly pasetoService: PasetoService
+	private readonly authConfig: AuthConfig
 
-	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService }: AuthServiceDeps) {
+	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService, authConfig }: AuthServiceDeps) {
 		this.userRepository = userRepository
 		this.authRepository = authRepository
 		this.refreshTokenRepository = refreshTokenRepository
 		this.pasetoService = pasetoService
-	}
-
-	/**
-	 * Calculates refresh token expiry date based on PASETO_REFRESH_TOKEN_EXPIRY env variable.
-	 *
-	 * @returns Date object representing the token expiration time
-	 */
-	private getRefreshTokenExpiry(): Date {
-		// duration is read directly from env vars to allow changing the generated refresh token expiration time at runtime
-		const duration = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY
-		const expiryMs = parseDurationToMs(duration)
-		return new Date(Date.now() + expiryMs)
+		this.authConfig = authConfig
 	}
 
 	/**
@@ -238,7 +229,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 			userId: user.id,
 			tokenFamily,
 			tokenHash: refreshTokenHash,
-			expiresAt: this.getRefreshTokenExpiry(),
+			expiresAt: new Date(Date.now() + parseDurationToMs(this.authConfig.refreshTokenExpiry)),
 		})
 
 		return {
@@ -265,14 +256,16 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 			throw new AuthError(InternalAuthErrorCode.TOKEN_MISSING_FAMILY)
 		}
 
-		// 3. Check if token is revoked in database
+		// 3. Find token and user in a single joined query (reduces 2 sequential queries to 1)
 		const tokenHash = createHash('sha256').update(token).digest('hex')
-		const storedToken = await this.refreshTokenRepository.findByTokenHash(tokenHash)
+		const result = await this.refreshTokenRepository.findByTokenHashWithUser(tokenHash)
 
 		// Treat missing tokens as revoked — covers garbage-collected, never-stored, or deleted token cases
-		if (!storedToken) {
+		if (!result) {
 			throw new AuthError(InternalAuthErrorCode.TOKEN_REVOKED)
 		}
+
+		const { token: storedToken, user } = result
 
 		// 4. Check if token is expired (before reuse detection, so expired+revoked tokens
 		// don't trigger family revocation — expiry is the expected lifecycle outcome)
@@ -292,9 +285,8 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 			throw new AuthError(InternalAuthErrorCode.TOKEN_REUSE_DETECTED)
 		}
 
-		// 6. Get user data and validate account status
-		const user = await this.userRepository.findById(Number(payload.sub))
-		if (!user || user.status === UserStatus.DELETED) {
+		// 6. Validate account status (user data already fetched via joined query)
+		if (user.status === UserStatus.DELETED) {
 			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND)
 		}
 
@@ -324,7 +316,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 			userId: user.id,
 			tokenFamily: payload.tokenFamily,
 			tokenHash: newTokenHash,
-			expiresAt: this.getRefreshTokenExpiry(),
+			expiresAt: new Date(Date.now() + parseDurationToMs(this.authConfig.refreshTokenExpiry)),
 		})
 
 		return {
