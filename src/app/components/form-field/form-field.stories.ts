@@ -18,7 +18,7 @@ import { FormField } from './form-field'
 
 // --- Story wrapper components ---
 
-type InputType = 'email' | 'text' | 'select' | 'checkbox' | 'combobox'
+type InputType = 'email' | 'text' | 'select' | 'checkbox' | 'combobox' | 'date'
 
 const COUNTRY_OPTIONS: SelectOption[] = [
 	{ value: 'us', label: 'United States' },
@@ -72,6 +72,11 @@ const COUNTRY_OPTIONS: SelectOption[] = [
 							[options]="countryOptions"
 							[placeholder]="'Search a country'"
 						/>
+					</app-form-field>
+				}
+				@case ('date') {
+					<app-form-field [label]="'Birth date'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+						<input [formField]="hasRequired() ? dateField : optionalDateField" [attr.lang]="language()" type="date" />
 					</app-form-field>
 				}
 			}
@@ -133,6 +138,15 @@ class StoryPlayground {
 	)
 	protected readonly optionalCheckboxField: FieldTree<boolean> = form(this.checkboxModel)
 
+	private readonly dateModel = signal('')
+	protected readonly dateField: FieldTree<string> = form(
+		this.dateModel,
+		schema<string>((path) => {
+			required(path)
+		}),
+	)
+	protected readonly optionalDateField: FieldTree<string> = form(this.dateModel)
+
 	protected readonly resolvedHint = computed(() => {
 		if (!this.showHint()) return undefined
 		const hints: Record<InputType, string> = {
@@ -141,6 +155,7 @@ class StoryPlayground {
 			select: 'Select your country of residence',
 			checkbox: 'Required to proceed',
 			combobox: 'Search and select your country',
+			date: 'Enter your date of birth',
 		}
 		return hints[this.inputType()]
 	})
@@ -187,7 +202,7 @@ export const Playground: StoryObj<StoryPlayground> = {
 	argTypes: {
 		inputType: {
 			control: 'select',
-			options: ['email', 'text', 'select', 'checkbox', 'combobox'],
+			options: ['email', 'text', 'select', 'checkbox', 'combobox', 'date'],
 			description: 'Type of form input to display',
 			table: {
 				type: { summary: 'InputType' },
@@ -217,6 +232,15 @@ export const Playground: StoryObj<StoryPlayground> = {
 			table: {
 				type: { summary: 'boolean | undefined' },
 				defaultValue: { summary: 'undefined (auto-detect)' },
+			},
+		},
+		language: {
+			control: 'select',
+			options: ['en', 'es'],
+			description: 'Language for translated validation messages and date picker locale (date input only)',
+			table: {
+				type: { summary: 'Language' },
+				defaultValue: { summary: 'en' },
 			},
 		},
 	},

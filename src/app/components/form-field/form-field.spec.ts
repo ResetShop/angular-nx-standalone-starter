@@ -268,6 +268,26 @@ class FakeCustomControl extends FormFieldCustomControl implements FormValueContr
 }
 
 @Component({
+	selector: 'app-test-host-date',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Birth date'">
+			<input [formField]="dateField" type="date" />
+		</app-form-field>
+	`,
+})
+class TestHostDate {
+	private readonly model = signal('')
+	public readonly dateField: FieldTree<string> = form(
+		this.model,
+		schema<string>((datePath) => {
+			required(datePath)
+		}),
+	)
+}
+
+@Component({
 	selector: 'app-test-host-custom-control',
 	standalone: true,
 	imports: [FormField, SignalFormField, FakeCustomControl],
@@ -738,6 +758,54 @@ describe('FormField', () => {
 			fixture.detectChanges()
 			await fixture.whenStable()
 
+			expect(screen.getByRole('alert')).toHaveTextContent('This field is required')
+		})
+	})
+
+	describe('date input', () => {
+		async function renderDateHost() {
+			return render(TestHostDate, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			})
+		}
+
+		it('should render a date input accessible by label', async () => {
+			await renderDateHost()
+
+			const input = screen.getByLabelText(/birth date/i)
+			expect(input).toBeInTheDocument()
+			expect(input).toHaveAttribute('type', 'date')
+		})
+
+		it('should associate label for with input id', async () => {
+			await renderDateHost()
+
+			const input = screen.getByLabelText(/birth date/i)
+			const label = screen.getByText(/birth date/i)
+
+			expect(input.getAttribute('id')).toBeTruthy()
+			expect(label.getAttribute('for')).toBe(input.getAttribute('id'))
+		})
+
+		it('should show required asterisk when required validator is present', async () => {
+			await renderDateHost()
+
+			expect(screen.getByText('*')).toBeInTheDocument()
+		})
+
+		it('should not show error when field is untouched', async () => {
+			await renderDateHost()
+
+			expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+		})
+
+		it('should show aria-invalid and error alert when touched and empty', async () => {
+			const { fixture } = await renderDateHost()
+
+			fixture.componentInstance.dateField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByLabelText(/birth date/i)).toHaveAttribute('aria-invalid', 'true')
 			expect(screen.getByRole('alert')).toHaveTextContent('This field is required')
 		})
 	})
