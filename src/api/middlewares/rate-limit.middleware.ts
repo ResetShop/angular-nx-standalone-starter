@@ -1,4 +1,5 @@
 import { parseDurationToMs } from '@utils/duration'
+import { logger } from '@utils/logger'
 import type { Context } from 'hono'
 import { rateLimiter } from 'hono-rate-limiter'
 import {
@@ -22,15 +23,7 @@ export function getClientIp(c: Context): string {
 
 function createRateLimitHandler(endpoint: string) {
 	return (c: Context) => {
-		// TODO(#66): Replace with structured logging service
-		console.log(
-			JSON.stringify({
-				event: 'rate_limit_hit',
-				endpoint,
-				ip: getClientIp(c),
-				timestamp: new Date().toISOString(),
-			}),
-		)
+		logger.security('rate_limit_hit', { endpoint, ip: getClientIp(c) })
 		return c.json({ error: 'Too many requests. Please try again later.' }, 429)
 	}
 }
