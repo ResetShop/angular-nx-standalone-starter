@@ -190,19 +190,19 @@ export interface UserRoleService {
 	 * Assign a role to a user
 	 * @throws Error if user or role not found, or already assigned
 	 */
-	assignRoleToUser(userId: number, roleId: number): Promise<void>
+	assignRoleToUser(userId: number, roleId: number, actorId: number): Promise<void>
 
 	/**
 	 * Remove a role from a user
 	 * @throws Error if user not found or role not assigned
 	 */
-	removeRoleFromUser(userId: number, roleId: number): Promise<void>
+	removeRoleFromUser(userId: number, roleId: number, actorId: number): Promise<void>
 
 	/**
 	 * Replace all role assignments for a user
 	 * @throws Error if user not found or any role ID does not exist
 	 */
-	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>
+	replaceUserRoles(userId: number, roleIds: number[], actorId: number): Promise<void>
 }
 
 /**

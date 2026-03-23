@@ -68,7 +68,7 @@ registerRoute(app, assignRoleRoute, async (c) => {
 	const { roleId }: AssignRoleToUserRequest = c.req.valid('json')
 
 	try {
-		await userRoleService.assignRoleToUser(userId, roleId)
+		await userRoleService.assignRoleToUser(userId, roleId, actorId)
 		logger.security('user_role_assigned', { userId, roleId, actorId })
 		return c.json<SuccessMessage>({ message: 'Role assigned successfully' }, 201)
 	} catch (error) {
@@ -103,7 +103,7 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
 		const existing = await userRoleService.getUserRoles(userId, { limit: auditSnapshotLimit })
 		const oldRoleIds = existing.data.map((r) => r.id)
 
-		await userRoleService.replaceUserRoles(userId, roleIds)
+		await userRoleService.replaceUserRoles(userId, roleIds, actorId)
 		logger.security('user_roles_replaced', { userId, oldRoleIds, newRoleIds: roleIds, actorId })
 		return c.json<SuccessMessage>({ message: 'Roles replaced successfully' }, 200)
 	} catch (error) {
@@ -133,7 +133,7 @@ registerRoute(app, removeRoleRoute, async (c) => {
 	const roleId = Number(c.req.param('roleId'))
 
 	try {
-		await userRoleService.removeRoleFromUser(userId, roleId)
+		await userRoleService.removeRoleFromUser(userId, roleId, actorId)
 		logger.security('user_role_removed', { userId, roleId, actorId })
 		return c.json<SuccessMessage>({ message: 'Role removed successfully' })
 	} catch (error) {

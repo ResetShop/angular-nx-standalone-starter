@@ -228,7 +228,7 @@ describe('User Role Controller', () => {
 			expect(res.status).toBe(201)
 			const data = await res.json()
 			expect(data.message).toBe('Role assigned successfully')
-			expect(mockAssignRoleToUser.calls).toEqual([[1, 1]])
+			expect(mockAssignRoleToUser.calls).toEqual([[1, 1, ADMIN_USER_ID]])
 			expect(loggerSecuritySpy.calls[0][0]).toBe('user_role_assigned')
 		})
 
@@ -316,7 +316,7 @@ describe('User Role Controller', () => {
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.message).toBe('Role removed successfully')
-			expect(mockRemoveRoleFromUser.calls).toEqual([[1, 1]])
+			expect(mockRemoveRoleFromUser.calls).toEqual([[1, 1, ADMIN_USER_ID]])
 			expect(loggerSecuritySpy.calls[0][0]).toBe('user_role_removed')
 		})
 
@@ -395,7 +395,7 @@ describe('User Role Controller', () => {
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.message).toBe('Roles replaced successfully')
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2]]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2], ADMIN_USER_ID]])
 			expect(loggerSecuritySpy.calls[0][0]).toBe('user_roles_replaced')
 		})
 
@@ -411,7 +411,7 @@ describe('User Role Controller', () => {
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.message).toBe('Roles replaced successfully')
-			expect(mockReplaceUserRoles.calls).toEqual([[1, []]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [], ADMIN_USER_ID]])
 		})
 
 		it('should return 404 when user not found', async () => {

@@ -81,7 +81,8 @@ export class UserRoleService {
 	 * @throws Error if role not found
 	 * @throws Error if role is already assigned to the user
 	 */
-	public async assignRoleToUser(userId: number, roleId: number): Promise<void> {
+	public async assignRoleToUser(userId: number, roleId: number, actorId: number): Promise<void> {
+		void actorId
 		// Verify user exists
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
@@ -110,7 +111,8 @@ export class UserRoleService {
 	 * @throws Error if user not found
 	 * @throws Error if role is not assigned to the user
 	 */
-	public async removeRoleFromUser(userId: number, roleId: number): Promise<void> {
+	public async removeRoleFromUser(userId: number, roleId: number, actorId: number): Promise<void> {
+		void actorId
 		// Verify user exists
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
@@ -133,7 +135,8 @@ export class UserRoleService {
 	 * @throws Error if user not found
 	 * @throws Error if any role ID does not exist
 	 */
-	public async replaceUserRoles(userId: number, roleIds: number[]): Promise<void> {
+	public async replaceUserRoles(userId: number, roleIds: number[], actorId: number): Promise<void> {
+		void actorId
 		const user = await this.userRepository.findById(userId)
 		if (!user) {
 			throw userRoleErrors.userNotFound(userId)

@@ -110,7 +110,8 @@ export class RoleService {
 	 * @returns The newly created role data
 	 * @throws Error if a role with the same code or name already exists
 	 */
-	public async createRole(params: CreateRoleParams, _actorId: number): Promise<RoleData> {
+	public async createRole(params: CreateRoleParams, actorId: number): Promise<RoleData> {
+		void actorId
 		// Check if code already exists
 		const existingByCode = await this.roleRepository.findByCode(params.code)
 		if (existingByCode) {
@@ -135,7 +136,8 @@ export class RoleService {
 	 * @returns The updated role data
 	 * @throws Error if role not found or new name conflicts with existing role
 	 */
-	public async updateRole(id: number, params: UpdateRoleParams, _actorId: number): Promise<RoleData> {
+	public async updateRole(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData> {
+		void actorId
 		// Check if role exists
 		const existingRole = await this.roleRepository.findById(id)
 		if (!existingRole) {
@@ -166,7 +168,8 @@ export class RoleService {
 	 * @param id - The role's primary key
 	 * @throws Error if role not found or is a non-removable system role
 	 */
-	public async deleteRole(id: number, _actorId: number): Promise<void> {
+	public async deleteRole(id: number, actorId: number): Promise<void> {
+		void actorId
 		const existingRole = await this.roleRepository.findById(id)
 
 		if (!existingRole) {
