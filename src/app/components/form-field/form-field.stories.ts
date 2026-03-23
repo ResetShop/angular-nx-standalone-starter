@@ -234,6 +234,15 @@ export const Playground: StoryObj<StoryPlayground> = {
 				defaultValue: { summary: 'undefined (auto-detect)' },
 			},
 		},
+		language: {
+			control: 'select',
+			options: ['en', 'es'],
+			description: 'Language for translated validation messages and date picker locale (date input only)',
+			table: {
+				type: { summary: 'Language' },
+				defaultValue: { summary: 'en' },
+			},
+		},
 	},
 	render: (args) => ({ props: args }),
 }
