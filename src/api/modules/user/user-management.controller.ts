@@ -7,6 +7,7 @@ import type {
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
+import { logger } from '@utils/logger'
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { createOpenAPIApp, registerRoute } from '../../openapi-app'
@@ -75,10 +76,12 @@ registerRoute(app, getUserRoute, async (c) => {
  */
 registerRoute(app, createUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 	const body: CreateUserRequest = c.req.valid('json')
 
 	try {
 		const result = await userManagementService.createUser(body)
+		logger.security('user_created', { userId: result.id, email: result.email, actorId })
 		return c.json<CreateUserResponse>(result, 201)
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
@@ -94,11 +97,17 @@ registerRoute(app, createUserRoute, async (c) => {
  */
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 	const { id }: { id: number } = c.req.valid('param')
 	const body: UpdateUserRequest = c.req.valid('json')
 
 	try {
 		const userData = await userManagementService.updateUser(id, body)
+		logger.security('user_updated', {
+			userId: id,
+			changes: { email: body.email, firstName: body.firstName, lastName: body.lastName },
+			actorId,
+		})
 		return c.json<ManagedUser>(userData)
 	} catch (error) {
 		const mapped = resolveErrorStatus(error)
@@ -115,15 +124,26 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
 	const body: UpdateUserStatusRequest = c.req.valid('json')
-	const currentUserId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 
 	try {
+		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
+		const existingUser = await userManagementService.getUser(id)
 		const userData = await userManagementService.updateUserStatus(id, {
 			status: body.status,
-			changedBy: currentUserId,
+			changedBy: actorId,
+		})
+		logger.security('user_status_changed', {
+			userId: id,
+			oldStatus: existingUser.status,
+			newStatus: body.status,
+			actorId,
 		})
 		return c.json<ManagedUser>(userData)
 	} catch (error) {
+		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
+			logger.security('self_lockout_blocked', { actorId, operation: 'user_status_changed', reason: error.message })
+		}
 		const mapped = resolveErrorStatus(error)
 		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
 		throw error
@@ -137,12 +157,16 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 registerRoute(app, deleteUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
-	const currentUserId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 
 	try {
-		await userManagementService.deleteUser(id, currentUserId)
+		await userManagementService.deleteUser(id, actorId)
+		logger.security('user_deleted', { userId: id, actorId })
 		return c.json<SuccessMessage>({ message: 'User deleted successfully' })
 	} catch (error) {
+		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
+			logger.security('self_lockout_blocked', { actorId, operation: 'user_deleted', reason: error.message })
+		}
 		const mapped = resolveErrorStatus(error)
 		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
 		throw error

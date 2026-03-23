@@ -8,6 +8,7 @@ import type {
 	RoleData,
 	UpdateRoleRequest,
 } from '@contracts/role/role.types'
+import { logger } from '@utils/logger'
 import { container } from '../../../container/container'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
 import { createOpenAPIApp, registerRoute } from '../../../openapi-app'
@@ -58,10 +59,12 @@ registerRoute(app, getRoleRoute, async (c) => {
  */
 registerRoute(app, createRoleRoute, async (c) => {
 	const { roleService } = container.cradle
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 	const body: CreateRoleRequest = c.req.valid('json')
 
 	try {
 		const role = await roleService.createRole(body)
+		logger.security('role_created', { roleId: role.id, name: role.name, code: role.code, actorId })
 		return c.json<RoleData>(role, 201)
 	} catch (error) {
 		if (error instanceof Error) {
@@ -79,12 +82,17 @@ registerRoute(app, createRoleRoute, async (c) => {
  */
 registerRoute(app, updateRoleRoute, async (c) => {
 	const { roleService } = container.cradle
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 	const id = Number(c.req.param('id'))
-
 	const body: UpdateRoleRequest = c.req.valid('json')
 
 	try {
 		const role = await roleService.updateRole(id, body)
+		logger.security('role_updated', {
+			roleId: id,
+			changes: { name: body.name, description: body.description },
+			actorId,
+		})
 		return c.json<RoleData>(role)
 	} catch (error) {
 		if (error instanceof Error) {
@@ -105,10 +113,12 @@ registerRoute(app, updateRoleRoute, async (c) => {
  */
 registerRoute(app, deleteRoleRoute, async (c) => {
 	const { roleService } = container.cradle
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 	const id = Number(c.req.param('id'))
 
 	try {
 		await roleService.deleteRole(id)
+		logger.security('role_deleted', { roleId: id, actorId })
 		return c.json<SuccessMessage>({ message: 'Role deleted successfully' })
 	} catch (error) {
 		if (error instanceof Error) {
@@ -153,15 +163,26 @@ registerRoute(app, getRolePermissionsRoute, async (c) => {
 registerRoute(app, assignPermissionsRoute, async (c) => {
 	const { roleService } = container.cradle
 	const id = Number(c.req.param('id'))
-
 	const { permissionIds }: AssignPermissionsRequest = c.req.valid('json')
-	const userId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user.sub)
 
 	try {
-		await roleService.assignPermissionsToRole(id, permissionIds, userId)
+		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
+		const auditSnapshotLimit = 1000
+		const existing = await roleService.getRolePermissions(id, { limit: auditSnapshotLimit })
+		const oldPermissionIds = existing.data.map((p) => p.id)
+
+		await roleService.assignPermissionsToRole(id, permissionIds, actorId)
+		logger.security('role_permissions_changed', {
+			roleId: id,
+			oldPermissionIds,
+			newPermissionIds: permissionIds,
+			actorId,
+		})
 		return c.json<SuccessMessage>({ message: 'Permissions assigned successfully' })
 	} catch (error) {
 		if (error instanceof SelfLockoutError) {
+			logger.security('self_lockout_blocked', { actorId, operation: 'role_permissions_changed', reason: error.message })
 			return c.json<ErrorResponse>({ error: error.message }, 403)
 		}
 		if (error instanceof InvalidPermissionIdsError) {
