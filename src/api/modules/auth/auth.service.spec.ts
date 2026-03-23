@@ -359,6 +359,7 @@ describe('AuthService', () => {
 
 		beforeEach(() => {
 			mockUserRepo.addUser(testUser)
+			mockRefreshTokenRepo.setUser(testUser)
 
 			// Set up the mock to verify the refresh token
 			mockPasetoService.setRefreshTokenPayload(existingRefreshToken, {
@@ -412,8 +413,8 @@ describe('AuthService', () => {
 		})
 
 		it('should throw TOKEN_REUSE_DETECTED and revoke token family when replaying a revoked token', async () => {
-			// Clear and add a revoked token
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 			mockRefreshTokenRepo.addToken(tokenHash, {
 				userId: testUser.id,
@@ -443,6 +444,7 @@ describe('AuthService', () => {
 
 		it('should revoke all sibling tokens in the same family when reuse is detected', async () => {
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 
 			// Add the revoked (old) token
@@ -470,8 +472,8 @@ describe('AuthService', () => {
 		})
 
 		it('should throw REFRESH_TOKEN_EXPIRED error when token is expired', async () => {
-			// Clear and add an expired token
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 			mockRefreshTokenRepo.addToken(tokenHash, {
 				userId: testUser.id,
@@ -489,6 +491,7 @@ describe('AuthService', () => {
 			// Regression guard: expiry check must run before reuse detection.
 			// An expired+revoked token is a routine lifecycle outcome, not an attack.
 			mockRefreshTokenRepo.clear()
+			mockRefreshTokenRepo.setUser(testUser)
 			const tokenHash = createHash('sha256').update(existingRefreshToken).digest('hex')
 			mockRefreshTokenRepo.addToken(tokenHash, {
 				userId: testUser.id,
@@ -505,17 +508,20 @@ describe('AuthService', () => {
 			expect(mockRefreshTokenRepo.revokedTokenFamilies).toHaveLength(0)
 		})
 
-		it('should throw USER_NOT_FOUND error when user not found', async () => {
-			mockUserRepo.clear()
+		it('should throw TOKEN_REVOKED error when user not found (joined query returns null)', async () => {
+			// When the user doesn't exist, the INNER JOIN returns no rows,
+			// so findByTokenHashWithUser returns null — treated as a revoked token.
+			// In production, this is prevented by the ON DELETE CASCADE FK,
+			// but the error path is still safe.
+			mockRefreshTokenRepo.removeUser(testUser.id)
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
-				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
+				getInternalErrorMessage(InternalAuthErrorCode.TOKEN_REVOKED),
 			)
 		})
 
 		it('should throw USER_NOT_FOUND error when user is deleted', async () => {
-			mockUserRepo.clear()
-			mockUserRepo.addUser({ ...testUser, status: UserStatus.DELETED })
+			mockRefreshTokenRepo.setUser({ ...testUser, status: UserStatus.DELETED })
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
@@ -523,8 +529,7 @@ describe('AuthService', () => {
 		})
 
 		it('should throw ACCOUNT_DISABLED error when user is disabled', async () => {
-			mockUserRepo.clear()
-			mockUserRepo.addUser({ ...testUser, status: UserStatus.DISABLED })
+			mockRefreshTokenRepo.setUser({ ...testUser, status: UserStatus.DISABLED })
 
 			await expect(authService.refreshToken(existingRefreshToken)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED),
