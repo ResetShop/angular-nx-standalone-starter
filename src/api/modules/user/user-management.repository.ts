@@ -233,7 +233,8 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 * @param params - Fields to update
 	 * @returns Updated user data, or null if not found
 	 */
-	public async update(id: number, params: UpdateUserParams, _actorId: number): Promise<UserData | null> {
+	public async update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null> {
+		void actorId
 		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() }
 
 		if (params.email !== undefined) {
