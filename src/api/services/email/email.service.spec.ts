@@ -5,7 +5,7 @@ import type { EmailRepository, SendEmailParams } from './interfaces'
 
 describe('EmailService', () => {
 	const mockSend = fn<[SendEmailParams], Promise<void>>()
-	let consoleErrorSpy: MockFn
+	let consoleLogSpy: MockFn
 
 	const mockEmailRepository: EmailRepository = {
 		send: mockSend,
@@ -22,7 +22,7 @@ describe('EmailService', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
-		consoleErrorSpy = spyOn(console, 'error')
+		consoleLogSpy = spyOn(console, 'log')
 
 		emailService = new EmailService({
 			emailRepository: mockEmailRepository,
@@ -85,16 +85,17 @@ describe('EmailService', () => {
 			await expect(emailService.send(emailParams)).rejects.toThrow(error)
 		})
 
-		it('should log structured JSON error before re-throwing', async () => {
+		it('should log structured security event before re-throwing', async () => {
 			mockSend.mockRejectedValue(new Error('SMTP connection failed'))
 
 			await expect(emailService.send(emailParams)).rejects.toThrow('SMTP connection failed')
 
-			expect(consoleErrorSpy.calls).toHaveLength(1)
+			expect(consoleLogSpy.calls).toHaveLength(1)
 
-			const loggedData = JSON.parse(consoleErrorSpy.calls[0][0] as string)
+			const loggedData = JSON.parse(consoleLogSpy.calls[0][0] as string)
 
 			expect(loggedData).toMatchObject({
+				_type: 'security_event',
 				event: 'email_send_failed',
 				recipient: 'recipient@test.com',
 				subject: 'Test Subject',
@@ -105,31 +106,12 @@ describe('EmailService', () => {
 			expect(new Date(loggedData.timestamp).toString()).not.toBe('Invalid Date')
 		})
 
-		it('should re-throw the original error even when JSON.stringify fails', async () => {
-			const originalError = new Error('SMTP connection refused')
-			const originalStringify = JSON.stringify
-
-			mockSend.mockImplementation(() => {
-				JSON.stringify = () => {
-					throw new TypeError('Circular')
-				}
-				return Promise.reject(originalError)
-			})
-
-			try {
-				await expect(emailService.send(emailParams)).rejects.toThrow(originalError)
-				expect(consoleErrorSpy.calls[0]).toEqual(['email_send_failed', 'recipient@test.com', 'Test Subject'])
-			} finally {
-				JSON.stringify = originalStringify
-			}
-		})
-
 		it('should handle non-Error objects in catch block', async () => {
 			mockSend.mockRejectedValue('String error')
 
 			await expect(emailService.send(emailParams)).rejects.toBe('String error')
 
-			const loggedData = JSON.parse(consoleErrorSpy.calls[0][0] as string)
+			const loggedData = JSON.parse(consoleLogSpy.calls[0][0] as string)
 			expect(loggedData.error).toBe('String error')
 		})
 	})

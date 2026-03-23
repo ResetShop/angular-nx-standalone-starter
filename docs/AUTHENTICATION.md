@@ -200,6 +200,8 @@ if (authStore.isTokenRefreshing()) {
 | `PASETO_REFRESH_TOKEN_EXPIRY` | No       | "7d"                    | Refresh token lifetime                                  |
 | `PASETO_CLOCK_TOLERANCE`      | No       | "1m"                    | Clock drift tolerance for token validation              |
 | `COOKIE_SECURE`               | No       | "true"                  | Set to "false" to disable secure cookies (dev only)     |
+| `AUTH_MAX_FAILED_ATTEMPTS`    | No       | "5"                     | Max consecutive failed login attempts before lockout    |
+| `AUTH_LOCKOUT_DURATION`       | No       | "15m"                   | Account lockout duration (e.g. '15m', '1h', '30s')      |
 | `CORS_ORIGIN`                 | No       | "http://localhost:4200" | Allowed origin for CORS requests                        |
 | `CORS_MAX_AGE`                | No       | 86400                   | Preflight cache duration in seconds (default: 24h)      |
 | `TOKEN_CLEANUP_INTERVAL_MS`   | No       | 86400000                | Cleanup interval in ms (min: 1m, max: 7d, default: 24h) |

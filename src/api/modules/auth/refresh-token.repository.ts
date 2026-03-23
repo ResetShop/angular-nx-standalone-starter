@@ -1,6 +1,7 @@
 import { parseDurationToMs } from '@utils/duration'
 import { and, eq, inArray, lt, sql } from 'drizzle-orm'
 import { refreshToken } from '../../../db/schema/refresh-token'
+import { user } from '../../../db/schema/user'
 import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
 import { BaseRepository } from '../../helpers/base.repository'
 import { isServerless } from '../../utils/environment'
@@ -9,6 +10,7 @@ import {
 	type CreateRefreshTokenParams,
 	type RefreshTokenData,
 	type RefreshTokenRepository,
+	type RefreshTokenWithUser,
 } from './interfaces'
 
 // Token cleanup configuration - configurable via environment variables
@@ -120,11 +122,40 @@ export class DrizzleRefreshTokenRepository extends BaseRepository implements Ref
 		await this.db.execute(sql`SELECT pg_advisory_unlock(${TOKEN_CLEANUP_LOCK_KEY})`)
 	}
 	/**
-	 * Find refresh token by its hash
-	 * @param tokenHash Hash of the token to find. This is the token itself, not the ID.
+	 * Find refresh token by its hash with the owning user's profile in a single joined query.
+	 * Reduces the token refresh flow from 2 sequential queries to 1.
+	 *
+	 * Relies on the FK CASCADE between refresh_token.userId and user.id —
+	 * if the user is hard-deleted, the CASCADE removes their tokens so this JOIN returns null.
+	 *
+	 * @param tokenHash Hash of the token to find
+	 * @returns Token data with user profile, or null if not found
 	 */
-	public async findByTokenHash(tokenHash: string): Promise<RefreshTokenData | null> {
-		const result = await this.db.select().from(refreshToken).where(eq(refreshToken.tokenHash, tokenHash)).limit(1)
+	public async findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null> {
+		const result = await this.db
+			.select({
+				token: {
+					id: refreshToken.id,
+					userId: refreshToken.userId,
+					tokenFamily: refreshToken.tokenFamily,
+					tokenHash: refreshToken.tokenHash,
+					expiresAt: refreshToken.expiresAt,
+					isRevoked: refreshToken.isRevoked,
+					createdAt: refreshToken.createdAt,
+					revokedAt: refreshToken.revokedAt,
+				},
+				user: {
+					id: user.id,
+					email: user.email,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					status: user.status,
+				},
+			})
+			.from(refreshToken)
+			.innerJoin(user, eq(refreshToken.userId, user.id))
+			.where(eq(refreshToken.tokenHash, tokenHash))
+			.limit(1)
 
 		return result.length > 0 ? result[0] : null
 	}

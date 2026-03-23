@@ -8,40 +8,21 @@ import {
 } from '@contracts/auth/auth.errors'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
 import { parseDurationToSeconds } from '@utils/duration'
+import { logger } from '@utils/logger'
 import { timingSafeEqual } from 'crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import {
 	ACCESS_TOKEN_COOKIE_NAME,
-	DEFAULT_ACCESS_TOKEN_EXPIRY,
-	DEFAULT_REFRESH_TOKEN_EXPIRY,
 	MIN_CRON_SECRET_LENGTH,
 	REFRESH_TOKEN_COOKIE_NAME,
 } from '../../constants/auth.constants'
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { createOpenAPIApp, registerRoute } from '../../openapi-app'
+import { buildBaseCookieOptions } from './auth.config'
 import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
 
 const app = createOpenAPIApp()
-
-// WARNING: COOKIE_SECURE=false must ONLY be used in local development (no HTTPS).
-// In production, omit the variable entirely — it defaults to true (HTTPS required).
-const BASE_COOKIE_OPTIONS = {
-	httpOnly: true, // Cannot be accessed by JavaScript (XSS protection)
-	secure: process.env['COOKIE_SECURE'] !== 'false', // Defaults to true; false only for local dev
-	sameSite: 'Strict' as const, // CSRF protection
-	path: '/',
-}
-
-const REFRESH_TOKEN_COOKIE_OPTIONS = {
-	...BASE_COOKIE_OPTIONS,
-	maxAge: parseDurationToSeconds(process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY),
-}
-
-const ACCESS_TOKEN_COOKIE_OPTIONS = {
-	...BASE_COOKIE_OPTIONS,
-	maxAge: parseDurationToSeconds(process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY),
-}
 
 /**
  * POST /api/auth/login - Authenticate user
@@ -70,7 +51,8 @@ const ACCESS_TOKEN_COOKIE_OPTIONS = {
  * - Both tokens set as HttpOnly, Secure, SameSite=Strict cookies
  */
 registerRoute(app, loginRoute, async (c) => {
-	const { authService } = container.cradle
+	const { authService, authConfig } = container.cradle
+	const baseCookieOptions = buildBaseCookieOptions(authConfig)
 
 	try {
 		const { email, password }: LoginRequest = c.req.valid('json')
@@ -78,8 +60,14 @@ registerRoute(app, loginRoute, async (c) => {
 		const response = await authService.authenticate({ email, password })
 
 		// Set tokens as HttpOnly cookies
-		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS)
-		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, ACCESS_TOKEN_COOKIE_OPTIONS)
+		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, {
+			...baseCookieOptions,
+			maxAge: parseDurationToSeconds(authConfig.refreshTokenExpiry),
+		})
+		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, {
+			...baseCookieOptions,
+			maxAge: parseDurationToSeconds(authConfig.accessTokenExpiry),
+		})
 
 		// Return only user info (both tokens are in cookies)
 		return c.json<LoginResponse>(
@@ -101,7 +89,8 @@ registerRoute(app, loginRoute, async (c) => {
 
 // POST /api/auth/refresh - Exchange refresh token for new access + refresh tokens
 registerRoute(app, refreshRoute, async (c) => {
-	const { authService } = container.cradle
+	const { authService, authConfig } = container.cradle
+	const baseCookieOptions = buildBaseCookieOptions(authConfig)
 
 	try {
 		// Read refresh token from HttpOnly cookie
@@ -117,8 +106,14 @@ registerRoute(app, refreshRoute, async (c) => {
 		const response = await authService.refreshToken(refreshToken)
 
 		// Update both token cookies
-		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS)
-		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, ACCESS_TOKEN_COOKIE_OPTIONS)
+		setCookie(c, REFRESH_TOKEN_COOKIE_NAME, response.refreshToken, {
+			...baseCookieOptions,
+			maxAge: parseDurationToSeconds(authConfig.refreshTokenExpiry),
+		})
+		setCookie(c, ACCESS_TOKEN_COOKIE_NAME, response.token, {
+			...baseCookieOptions,
+			maxAge: parseDurationToSeconds(authConfig.accessTokenExpiry),
+		})
 
 		// No body needed — tokens are in cookies
 		return c.json<RefreshResponse>({}, 200)
@@ -161,14 +156,15 @@ registerRoute(app, meRoute, async (c) => {
 // Uses refresh token from cookie to identify user (no access token needed)
 // Always succeeds from client perspective - cleans up what it can
 registerRoute(app, logoutRoute, async (c) => {
-	const { authService, pasetoService } = container.cradle
+	const { authService, pasetoService, authConfig } = container.cradle
+	const baseCookieOptions = buildBaseCookieOptions(authConfig)
 
 	// Get refresh token before deleting cookie
 	const refreshToken = getCookie(c, REFRESH_TOKEN_COOKIE_NAME)
 
 	// Always delete both cookies (flags must match creation options for correct targeting)
-	deleteCookie(c, ACCESS_TOKEN_COOKIE_NAME, BASE_COOKIE_OPTIONS)
-	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, BASE_COOKIE_OPTIONS)
+	deleteCookie(c, ACCESS_TOKEN_COOKIE_NAME, baseCookieOptions)
+	deleteCookie(c, REFRESH_TOKEN_COOKIE_NAME, baseCookieOptions)
 
 	try {
 		if (!refreshToken) {
@@ -233,8 +229,7 @@ registerRoute(app, cleanupTokensRoute, async (c) => {
 			incomplete: result.incomplete,
 		})
 	} catch (error) {
-		// TODO(#66): Replace with structured logging service
-		console.error('[TokenCleanup] Error:', error)
+		logger.error('TokenCleanup', 'Cleanup endpoint error', error)
 		return c.json({ error: 'Cleanup failed' }, 500)
 	}
 })

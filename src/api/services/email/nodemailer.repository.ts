@@ -1,3 +1,4 @@
+import { logger } from '@utils/logger'
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
 import type { EmailRepository, SendEmailParams } from './interfaces'
@@ -58,15 +59,7 @@ export class NodemailerRepository implements EmailRepository {
 
 		const rejected = Array.isArray(info.rejected) ? info.rejected : []
 		if (rejected.length > 0) {
-			// TODO(#66): Replace with structured logging service
-			console.error(
-				JSON.stringify({
-					event: 'email_recipients_rejected',
-					rejected,
-					recipient: params.to,
-					subject: params.subject,
-				}),
-			)
+			logger.security('email_recipients_rejected', { rejected, recipient: params.to, subject: params.subject })
 			throw new Error(`Recipients rejected by SMTP server: ${rejected.join(', ')}`)
 		}
 	}

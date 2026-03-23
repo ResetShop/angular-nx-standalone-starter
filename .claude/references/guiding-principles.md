@@ -68,16 +68,16 @@
 return api.getData().pipe(
 	map((response) => mapResponseToModel(response)),
 	tap((model) => patchState(store, { data: model })),
-);
+)
 
 // ❌ Incorrect — side effect hidden inside pure operator
 return api.getData().pipe(
 	map((response) => {
-		const model = mapResponseToModel(response);
-		patchState(store, { data: model }); // side effect in map!
-		return model;
+		const model = mapResponseToModel(response)
+		patchState(store, { data: model }) // side effect in map!
+		return model
 	}),
-);
+)
 ```
 
 **Practical test:** If you removed the `subscribe()` call, would the operator still make sense? `map` should — it's just a data transformation. `tap` shouldn't — that's how you know the side effect is in the right place.
@@ -100,7 +100,7 @@ The Angular frontend is signals-first. `rxMethod` integrates naturally with `@ng
 - Use `switchMap` as the default flattening operator (cancels stale requests)
 - Reload the full list from the server after every mutation — no optimistic in-place updates
 - Use per-operation structured error objects (`readError: { list, detail }`, `mutationError: { create, update, delete }`)
-- Log errors via `console.error('[StoreName] methodName failed:', err)` in every error handler
+- Log errors via `logger.error(storeName, 'methodName failed', err)` in every error handler (inject `Logger` token from `@providers/logger/logger.token`)
 - Derive values like `totalPages` as computed signals — never store them in state
 
 **Don't:**
