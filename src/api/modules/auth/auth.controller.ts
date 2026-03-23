@@ -18,19 +18,10 @@ import {
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { createOpenAPIApp, registerRoute } from '../../openapi-app'
-import type { AuthConfig } from './auth.config'
+import { buildBaseCookieOptions } from './auth.config'
 import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
 
 const app = createOpenAPIApp()
-
-function buildBaseCookieOptions(authConfig: AuthConfig) {
-	return {
-		httpOnly: true,
-		secure: authConfig.cookieSecure,
-		sameSite: 'Strict' as const,
-		path: '/',
-	}
-}
 
 /**
  * POST /api/auth/login - Authenticate user

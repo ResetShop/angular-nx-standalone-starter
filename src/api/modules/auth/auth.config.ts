@@ -23,6 +23,15 @@ export interface AuthConfig {
  * Reads and validates auth-related environment variables at startup.
  * Returns a frozen config object suitable for injection into services and repositories.
  */
+export function buildBaseCookieOptions(authConfig: AuthConfig) {
+	return {
+		httpOnly: true,
+		secure: authConfig.cookieSecure,
+		sameSite: 'Strict' as const,
+		path: '/',
+	}
+}
+
 export function createAuthConfig(): AuthConfig {
 	return Object.freeze({
 		// WARNING: COOKIE_SECURE=false must ONLY be used in local development (no HTTPS).
