@@ -63,7 +63,7 @@ registerRoute(app, createRoleRoute, async (c) => {
 	const body: CreateRoleRequest = c.req.valid('json')
 
 	try {
-		const role = await roleService.createRole(body)
+		const role = await roleService.createRole(body, actorId)
 		logger.security('role_created', { roleId: role.id, name: role.name, code: role.code, actorId })
 		return c.json<RoleData>(role, 201)
 	} catch (error) {
@@ -87,7 +87,7 @@ registerRoute(app, updateRoleRoute, async (c) => {
 	const body: UpdateRoleRequest = c.req.valid('json')
 
 	try {
-		const role = await roleService.updateRole(id, body)
+		const role = await roleService.updateRole(id, body, actorId)
 		logger.security('role_updated', {
 			roleId: id,
 			changes: { name: body.name, description: body.description },
@@ -117,7 +117,7 @@ registerRoute(app, deleteRoleRoute, async (c) => {
 	const id = Number(c.req.param('id'))
 
 	try {
-		await roleService.deleteRole(id)
+		await roleService.deleteRole(id, actorId)
 		logger.security('role_deleted', { roleId: id, actorId })
 		return c.json<SuccessMessage>({ message: 'Role deleted successfully' })
 	} catch (error) {

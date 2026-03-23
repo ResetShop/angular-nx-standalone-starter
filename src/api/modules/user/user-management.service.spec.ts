@@ -145,12 +145,15 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(testManagedUser)
 
-			const { passwordEmailSent, ...user } = await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				roleIds: [1],
-			})
+			const { passwordEmailSent, ...user } = await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+					roleIds: [1],
+				},
+				999,
+			)
 
 			expect(user).toEqual(testManagedUser)
 			expect(passwordEmailSent).toBe(true)
@@ -164,11 +167,14 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(userWithNoRoles)
 
-			const result = await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-			})
+			const result = await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				},
+				999,
+			)
 
 			expect(result.roles).toEqual([])
 			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [] })
@@ -178,11 +184,14 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(testUser)
 
 			await expect(
-				service.createUser({
-					email: 'test@example.com',
-					firstName: 'Test',
-					lastName: 'User',
-				}),
+				service.createUser(
+					{
+						email: 'test@example.com',
+						firstName: 'Test',
+						lastName: 'User',
+					},
+					999,
+				),
 			).rejects.toThrow(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)
 		})
 
@@ -190,11 +199,14 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(testManagedUser)
 
-			await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-			})
+			await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				},
+				999,
+			)
 
 			expect(mockGeneratePassword.calls).toHaveLength(1)
 			const { passwordHash } = mockCreate.calls[0][0]
@@ -206,11 +218,14 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(testManagedUser)
 
-			await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-			})
+			await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				},
+				999,
+			)
 
 			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true })
 		})
@@ -219,12 +234,15 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(testManagedUser)
 
-			await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				mustChangePassword: false,
-			})
+			await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+					mustChangePassword: false,
+				},
+				999,
+			)
 
 			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: false })
 		})
@@ -233,12 +251,15 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(testManagedUser)
 
-			await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-				mustChangePassword: false,
-			})
+			await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+					mustChangePassword: false,
+				},
+				999,
+			)
 
 			const sentEmail = mockSend.calls[0][0]
 			expect(sentEmail.text).not.toContain('change your password')
@@ -250,11 +271,14 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(testManagedUser)
 
-			await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-			})
+			await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				},
+				999,
+			)
 
 			expect(mockSend.calls).toHaveLength(1)
 			const sentEmail = mockSend.calls[0][0]
@@ -268,11 +292,14 @@ describe('UserManagementService', () => {
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(testManagedUser)
 
-			const result = await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-			})
+			const result = await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				},
+				999,
+			)
 
 			expect(result.passwordEmailSent).toBe(true)
 		})
@@ -282,11 +309,14 @@ describe('UserManagementService', () => {
 			mockCreate.mockResolvedValue(testManagedUser)
 			mockSend.mockRejectedValue(new Error('SMTP connection refused'))
 
-			const result = await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-			})
+			const result = await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				},
+				999,
+			)
 
 			expect(result.passwordEmailSent).toBe(false)
 			expect(consoleErrorSpy.calls).toHaveLength(1)
@@ -298,11 +328,14 @@ describe('UserManagementService', () => {
 			mockCreate.mockResolvedValue(testManagedUser)
 			mockSend.mockRejectedValue(new Error('SMTP connection refused'))
 
-			const { passwordEmailSent, ...user } = await service.createUser({
-				email: 'test@example.com',
-				firstName: 'Test',
-				lastName: 'User',
-			})
+			const { passwordEmailSent, ...user } = await service.createUser(
+				{
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				},
+				999,
+			)
 
 			expect(mockCreate.calls).toHaveLength(1)
 			expect(user).toEqual(testManagedUser)
@@ -316,7 +349,7 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValueOnce(testManagedUser).mockResolvedValueOnce(updatedUser)
 			mockUpdate.mockResolvedValue({ ...testUser, firstName: 'Updated' })
 
-			const result = await service.updateUser(1, { firstName: 'Updated' })
+			const result = await service.updateUser(1, { firstName: 'Updated' }, 999)
 
 			expect(result.firstName).toBe('Updated')
 		})
@@ -324,14 +357,16 @@ describe('UserManagementService', () => {
 		it('should throw NOT_FOUND when user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null)
 
-			await expect(service.updateUser(999, { firstName: 'Updated' })).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND)
+			await expect(service.updateUser(999, { firstName: 'Updated' }, 999)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.NOT_FOUND,
+			)
 		})
 
 		it('should throw EMAIL_EXISTS when changing to taken email', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockFindByEmail.mockResolvedValue({ ...testUser, id: 2, email: 'taken@example.com' })
 
-			await expect(service.updateUser(1, { email: 'taken@example.com' })).rejects.toThrow(
+			await expect(service.updateUser(1, { email: 'taken@example.com' }, 999)).rejects.toThrow(
 				USER_MANAGEMENT_ERRORS.EMAIL_EXISTS,
 			)
 		})

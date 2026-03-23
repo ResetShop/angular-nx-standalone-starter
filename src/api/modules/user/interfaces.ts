@@ -190,19 +190,19 @@ export interface UserRoleService {
 	 * Assign a role to a user
 	 * @throws Error if user or role not found, or already assigned
 	 */
-	assignRoleToUser(userId: number, roleId: number): Promise<void>
+	assignRoleToUser(userId: number, roleId: number, actorId: number): Promise<void>
 
 	/**
 	 * Remove a role from a user
 	 * @throws Error if user not found or role not assigned
 	 */
-	removeRoleFromUser(userId: number, roleId: number): Promise<void>
+	removeRoleFromUser(userId: number, roleId: number, actorId: number): Promise<void>
 
 	/**
 	 * Replace all role assignments for a user
 	 * @throws Error if user not found or any role ID does not exist
 	 */
-	replaceUserRoles(userId: number, roleIds: number[]): Promise<void>
+	replaceUserRoles(userId: number, roleIds: number[], actorId: number): Promise<void>
 }
 
 /**
@@ -211,8 +211,8 @@ export interface UserRoleService {
 export interface UserManagementService {
 	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	getUser(id: number): Promise<ManagedUserData>
-	createUser(params: CreateUserParams): Promise<CreateUserResponse>
-	updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData>
+	createUser(params: CreateUserParams, actorId: number): Promise<CreateUserResponse>
+	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
 	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
 	deleteUser(id: number, currentUserId: number): Promise<void>
 }

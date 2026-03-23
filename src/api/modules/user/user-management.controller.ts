@@ -80,7 +80,7 @@ registerRoute(app, createUserRoute, async (c) => {
 	const body: CreateUserRequest = c.req.valid('json')
 
 	try {
-		const result = await userManagementService.createUser(body)
+		const result = await userManagementService.createUser(body, actorId)
 		logger.security('user_created', { userId: result.id, email: result.email, actorId })
 		return c.json<CreateUserResponse>(result, 201)
 	} catch (error) {
@@ -102,7 +102,7 @@ registerRoute(app, updateUserRoute, async (c) => {
 	const body: UpdateUserRequest = c.req.valid('json')
 
 	try {
-		const userData = await userManagementService.updateUser(id, body)
+		const userData = await userManagementService.updateUser(id, body, actorId)
 		logger.security('user_updated', {
 			userId: id,
 			changes: { email: body.email, firstName: body.firstName, lastName: body.lastName },

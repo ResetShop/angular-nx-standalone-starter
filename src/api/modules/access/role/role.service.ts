@@ -107,10 +107,12 @@ export class RoleService {
 	 * Validates that both code and name are unique.
 	 *
 	 * @param params - Role creation parameters (name, code, description)
+	 * @param actorId - ID of the user performing the action
 	 * @returns The newly created role data
 	 * @throws Error if a role with the same code or name already exists
 	 */
-	public async createRole(params: CreateRoleParams): Promise<RoleData> {
+	public async createRole(params: CreateRoleParams, actorId: number): Promise<RoleData> {
+		void actorId
 		// Check if code already exists
 		const existingByCode = await this.roleRepository.findByCode(params.code)
 		if (existingByCode) {
@@ -132,10 +134,12 @@ export class RoleService {
 	 *
 	 * @param id - The role's primary key
 	 * @param params - Fields to update (name, description)
+	 * @param actorId - ID of the user performing the action
 	 * @returns The updated role data
 	 * @throws Error if role not found or new name conflicts with existing role
 	 */
-	public async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
+	public async updateRole(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData> {
+		void actorId
 		// Check if role exists
 		const existingRole = await this.roleRepository.findById(id)
 		if (!existingRole) {
@@ -164,9 +168,11 @@ export class RoleService {
 	 * System roles (removable=false) cannot be deleted.
 	 *
 	 * @param id - The role's primary key
+	 * @param actorId - ID of the user performing the action
 	 * @throws Error if role not found or is a non-removable system role
 	 */
-	public async deleteRole(id: number): Promise<void> {
+	public async deleteRole(id: number, actorId: number): Promise<void> {
+		void actorId
 		const existingRole = await this.roleRepository.findById(id)
 
 		if (!existingRole) {
@@ -208,12 +214,12 @@ export class RoleService {
 	 *
 	 * @param roleId - The role's primary key
 	 * @param permissionIds - Array of permission IDs to assign (replaces existing)
-	 * @param userId - Optional user ID for self-lockout prevention check
+	 * @param actorId - Optional ID of the user performing the action (used for self-lockout prevention)
 	 * @throws Error if role not found
 	 * @throws InvalidPermissionIdsError if any permission IDs don't exist in database
 	 * @throws SelfLockoutError if update would remove user's ability to manage roles
 	 */
-	public async assignPermissionsToRole(roleId: number, permissionIds: number[], userId?: number): Promise<void> {
+	public async assignPermissionsToRole(roleId: number, permissionIds: number[], actorId?: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(roleId)
 
 		if (!existingRole) {
@@ -233,11 +239,11 @@ export class RoleService {
 		}
 
 		// Self-lockout prevention check
-		if (userId !== undefined) {
-			// Fetch user's current permissions and role assignment in parallel
+		if (actorId !== undefined) {
+			// Fetch actor's current permissions and role assignment in parallel
 			const [userPermissions, userHasRole, currentRolePermissions] = await Promise.all([
-				this.userRoleRepository.findPermissionsForUser(userId),
-				this.userRoleRepository.findUserHasRole(userId, roleId),
+				this.userRoleRepository.findPermissionsForUser(actorId),
+				this.userRoleRepository.findUserHasRole(actorId, roleId),
 				this.roleRepository.findPermissionsForRole(roleId, { limit: 1000 }),
 			])
 

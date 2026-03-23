@@ -90,10 +90,12 @@ export class UserManagementService {
 	 * and sends a welcome email with the temporary password (failure-tolerant).
 	 *
 	 * @param params - User creation parameters (email, firstName, lastName, roleIds, mustChangePassword)
+	 * @param actorId - ID of the user performing the action
 	 * @returns The newly created user with roles and passwordEmailSent flag
 	 * @throws Error if email already exists
 	 */
-	public async createUser(params: CreateUserParams): Promise<CreateUserResponse> {
+	public async createUser(params: CreateUserParams, actorId: number): Promise<CreateUserResponse> {
+		void actorId
 		const existingUser = await this.userManagementRepository.findByEmail(params.email)
 		if (existingUser) {
 			throw userManagementErrors.emailExists(params.email)
@@ -144,11 +146,13 @@ export class UserManagementService {
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
+	 * @param actorId - ID of the user performing the action
 	 * @returns Updated user with roles
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
 	 */
-	public async updateUser(id: number, params: UpdateUserParams): Promise<ManagedUserData> {
+	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData> {
+		void actorId
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id)
