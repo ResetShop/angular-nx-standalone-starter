@@ -235,7 +235,7 @@ describe('RoleService', () => {
 				description: 'A new role',
 			}
 
-			const result = await roleService.createRole(params)
+			const result = await roleService.createRole(params, 999)
 
 			expect(result.name).toBe(params.name)
 			expect(result.code).toBe(params.code)
@@ -247,10 +247,13 @@ describe('RoleService', () => {
 			mockRoleRepo.addRole(testRole)
 
 			await expect(
-				roleService.createRole({
-					name: 'Another Admin',
-					code: testRole.code,
-				}),
+				roleService.createRole(
+					{
+						name: 'Another Admin',
+						code: testRole.code,
+					},
+					999,
+				),
 			).rejects.toThrow(new RegExp(ROLE_ERRORS.CODE_EXISTS))
 		})
 
@@ -258,10 +261,13 @@ describe('RoleService', () => {
 			mockRoleRepo.addRole(testRole)
 
 			await expect(
-				roleService.createRole({
-					name: testRole.name,
-					code: 'different_code',
-				}),
+				roleService.createRole(
+					{
+						name: testRole.name,
+						code: 'different_code',
+					},
+					999,
+				),
 			).rejects.toThrow(new RegExp(ROLE_ERRORS.NAME_EXISTS))
 		})
 
@@ -271,7 +277,7 @@ describe('RoleService', () => {
 				code: 'minimal_role',
 			}
 
-			const result = await roleService.createRole(params)
+			const result = await roleService.createRole(params, 999)
 
 			expect(result.name).toBe(params.name)
 			expect(result.description).toBeNull()
@@ -282,9 +288,13 @@ describe('RoleService', () => {
 		it('should update role description', async () => {
 			mockRoleRepo.addRole(testRole)
 
-			const result = await roleService.updateRole(testRole.id, {
-				description: 'Updated description',
-			})
+			const result = await roleService.updateRole(
+				testRole.id,
+				{
+					description: 'Updated description',
+				},
+				999,
+			)
 
 			expect(result.description).toBe('Updated description')
 		})
@@ -292,18 +302,26 @@ describe('RoleService', () => {
 		it('should update role name', async () => {
 			mockRoleRepo.addRole(removableRole)
 
-			const result = await roleService.updateRole(removableRole.id, {
-				name: 'Updated Name',
-			})
+			const result = await roleService.updateRole(
+				removableRole.id,
+				{
+					name: 'Updated Name',
+				},
+				999,
+			)
 
 			expect(result.name).toBe('Updated Name')
 		})
 
 		it('should throw NOT_FOUND when role does not exist', async () => {
 			await expect(
-				roleService.updateRole(999, {
-					description: 'New description',
-				}),
+				roleService.updateRole(
+					999,
+					{
+						description: 'New description',
+					},
+					999,
+				),
 			).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND))
 		})
 
@@ -312,19 +330,27 @@ describe('RoleService', () => {
 			mockRoleRepo.addRole(removableRole)
 
 			await expect(
-				roleService.updateRole(removableRole.id, {
-					name: testRole.name,
-				}),
+				roleService.updateRole(
+					removableRole.id,
+					{
+						name: testRole.name,
+					},
+					999,
+				),
 			).rejects.toThrow(new RegExp(ROLE_ERRORS.NAME_EXISTS))
 		})
 
 		it('should allow updating to same name (no change)', async () => {
 			mockRoleRepo.addRole(testRole)
 
-			const result = await roleService.updateRole(testRole.id, {
-				name: testRole.name,
-				description: 'New description',
-			})
+			const result = await roleService.updateRole(
+				testRole.id,
+				{
+					name: testRole.name,
+					description: 'New description',
+				},
+				999,
+			)
 
 			expect(result.name).toBe(testRole.name)
 			expect(result.description).toBe('New description')
@@ -335,20 +361,20 @@ describe('RoleService', () => {
 		it('should delete removable role', async () => {
 			mockRoleRepo.addRole(removableRole)
 
-			await roleService.deleteRole(removableRole.id)
+			await roleService.deleteRole(removableRole.id, 999)
 
 			const result = await roleService.getRole(removableRole.id)
 			expect(result).toBeNull()
 		})
 
 		it('should throw NOT_FOUND when role does not exist', async () => {
-			await expect(roleService.deleteRole(999)).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND))
+			await expect(roleService.deleteRole(999, 999)).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND))
 		})
 
 		it('should throw NOT_REMOVABLE when role is not removable', async () => {
 			mockRoleRepo.addRole(testRole) // testRole has removable: false
 
-			await expect(roleService.deleteRole(testRole.id)).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_REMOVABLE))
+			await expect(roleService.deleteRole(testRole.id, 999)).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_REMOVABLE))
 		})
 	})
 

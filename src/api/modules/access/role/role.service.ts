@@ -110,7 +110,7 @@ export class RoleService {
 	 * @returns The newly created role data
 	 * @throws Error if a role with the same code or name already exists
 	 */
-	public async createRole(params: CreateRoleParams): Promise<RoleData> {
+	public async createRole(params: CreateRoleParams, _actorId: number): Promise<RoleData> {
 		// Check if code already exists
 		const existingByCode = await this.roleRepository.findByCode(params.code)
 		if (existingByCode) {
@@ -135,7 +135,7 @@ export class RoleService {
 	 * @returns The updated role data
 	 * @throws Error if role not found or new name conflicts with existing role
 	 */
-	public async updateRole(id: number, params: UpdateRoleParams): Promise<RoleData> {
+	public async updateRole(id: number, params: UpdateRoleParams, _actorId: number): Promise<RoleData> {
 		// Check if role exists
 		const existingRole = await this.roleRepository.findById(id)
 		if (!existingRole) {
@@ -166,7 +166,7 @@ export class RoleService {
 	 * @param id - The role's primary key
 	 * @throws Error if role not found or is a non-removable system role
 	 */
-	public async deleteRole(id: number): Promise<void> {
+	public async deleteRole(id: number, _actorId: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(id)
 
 		if (!existingRole) {
@@ -213,7 +213,7 @@ export class RoleService {
 	 * @throws InvalidPermissionIdsError if any permission IDs don't exist in database
 	 * @throws SelfLockoutError if update would remove user's ability to manage roles
 	 */
-	public async assignPermissionsToRole(roleId: number, permissionIds: number[], userId?: number): Promise<void> {
+	public async assignPermissionsToRole(roleId: number, permissionIds: number[], actorId?: number): Promise<void> {
 		const existingRole = await this.roleRepository.findById(roleId)
 
 		if (!existingRole) {
@@ -233,11 +233,11 @@ export class RoleService {
 		}
 
 		// Self-lockout prevention check
-		if (userId !== undefined) {
-			// Fetch user's current permissions and role assignment in parallel
+		if (actorId !== undefined) {
+			// Fetch actor's current permissions and role assignment in parallel
 			const [userPermissions, userHasRole, currentRolePermissions] = await Promise.all([
-				this.userRoleRepository.findPermissionsForUser(userId),
-				this.userRoleRepository.findUserHasRole(userId, roleId),
+				this.userRoleRepository.findPermissionsForUser(actorId),
+				this.userRoleRepository.findUserHasRole(actorId, roleId),
 				this.roleRepository.findPermissionsForRole(roleId, { limit: 1000 }),
 			])
 
