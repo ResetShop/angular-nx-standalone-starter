@@ -7,6 +7,7 @@ import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constan
 import type { BreadcrumbItem, NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
@@ -50,6 +51,7 @@ describe('Dashboard', () => {
 		{ provide: UIStore, useValue: mockUIStore },
 		{ provide: NgpToastManager, useValue: { show: () => ({ dismiss: () => Promise.resolve() }) } },
 		ToastBridgeService,
+		provideTranslationMock(),
 	]
 
 	const createNavigationWithSectionsAndBreadcrumbs = (

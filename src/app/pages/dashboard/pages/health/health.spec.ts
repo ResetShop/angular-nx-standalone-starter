@@ -67,7 +67,7 @@ describe('Health Component', () => {
 			providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslationMock()],
 		})
 
-		expect(screen.getByRole('heading', { name: /Application health checker:/i })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: /Application Health Checker/i })).toBeInTheDocument()
 	})
 
 	it('should display all health data fields', async () => {

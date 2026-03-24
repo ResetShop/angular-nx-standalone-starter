@@ -16,7 +16,11 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'PAGINATION.GO_TO_NEXT': 'Next page',
 	'PAGINATION.GO_TO_PAGE': 'Go to page {page}',
 	'VALIDATION.REQUIRED': 'This field is required',
+	'VALIDATION.EMAIL': 'Please enter a valid email address',
+	'VALIDATION.MIN_LENGTH': 'Must be at least {min} characters',
 	'VALIDATION.MAX_LENGTH': 'Maximum {max} characters',
+	'VALIDATION.MIN': 'Must be at least {min}',
+	'VALIDATION.MAX': 'Must be no more than {max}',
 	'VALIDATION.PATTERN': 'Invalid format',
 
 	// Auth
@@ -115,6 +119,13 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	// Health
 	'HEALTH.TITLE': 'Application Health Checker',
 	'HEALTH.LOADING': 'Loading...',
+	'HEALTH.STATUS_LABEL': 'Status:',
+	'HEALTH.DATE_TIME_LABEL': 'Date & Time:',
+	'HEALTH.CHECKS_HEADER': 'Checks',
+	'HEALTH.ERROR_TITLE': 'Error:',
+	'HEALTH.DATABASE.HEADER': 'Database',
+	'HEALTH.DATABASE.STATUS': 'Status:',
+	'HEALTH.DATABASE.RESPONSE_TIME': 'Response Time:',
 }
 
 /**

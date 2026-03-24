@@ -151,6 +151,7 @@ describe('PageShell', () => {
 
 	it('should show action skeletons during loading and hide real actions', async () => {
 		await render(TestHostWithActions, {
+			providers: [provideTranslationMock()],
 			componentInputs: { loading: true },
 		})
 
@@ -160,6 +161,7 @@ describe('PageShell', () => {
 
 	it('should show real actions and hide skeletons after loading completes', async () => {
 		const { fixture } = await render(TestHostWithActions, {
+			providers: [provideTranslationMock()],
 			componentInputs: { loading: true },
 		})
 
