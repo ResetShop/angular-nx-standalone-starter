@@ -20,7 +20,7 @@ import { Navigation } from '@providers/navigation/navigation'
 						@for (route of section.routes; track route.id) {
 							<app-navigation-card
 								[route]="'/' + route.route"
-								[name]="route.name"
+								[name]="route.name | translate"
 								[description]="getDescription(route.id)"
 								[icon]="route.icon"
 							/>
