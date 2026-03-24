@@ -1,13 +1,14 @@
 import { provideHttpClient } from '@angular/common/http'
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing'
 import { TestBed } from '@angular/core/testing'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { render, screen, waitFor } from '@testing-library/angular'
 import Health from './health'
 
 describe('Health Component', () => {
 	it('should display loading state initially', async () => {
 		await render(Health, {
-			providers: [provideHttpClient(), provideHttpClientTesting()],
+			providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslationMock()],
 		})
 
 		expect(screen.getByText('Loading...')).toBeInTheDocument()
@@ -15,7 +16,7 @@ describe('Health Component', () => {
 
 	it('should display health status data when API responds successfully', async () => {
 		await render(Health, {
-			providers: [provideHttpClient(), provideHttpClientTesting()],
+			providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslationMock()],
 		})
 
 		const httpTesting = TestBed.inject(HttpTestingController)
@@ -46,7 +47,7 @@ describe('Health Component', () => {
 
 	it('should display error message when API fails', async () => {
 		await render(Health, {
-			providers: [provideHttpClient(), provideHttpClientTesting()],
+			providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslationMock()],
 		})
 
 		const httpTesting = TestBed.inject(HttpTestingController)
@@ -63,7 +64,7 @@ describe('Health Component', () => {
 
 	it('should render the component with correct structure', async () => {
 		await render(Health, {
-			providers: [provideHttpClient(), provideHttpClientTesting()],
+			providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslationMock()],
 		})
 
 		expect(screen.getByRole('heading', { name: /Application health checker:/i })).toBeInTheDocument()
@@ -71,7 +72,7 @@ describe('Health Component', () => {
 
 	it('should display all health data fields', async () => {
 		await render(Health, {
-			providers: [provideHttpClient(), provideHttpClientTesting()],
+			providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslationMock()],
 		})
 
 		const httpTesting = TestBed.inject(HttpTestingController)
@@ -102,7 +103,7 @@ describe('Health Component', () => {
 
 	it('should display unhealthy database status with error message', async () => {
 		await render(Health, {
-			providers: [provideHttpClient(), provideHttpClientTesting()],
+			providers: [provideHttpClient(), provideHttpClientTesting(), provideTranslationMock()],
 		})
 
 		const httpTesting = TestBed.inject(HttpTestingController)

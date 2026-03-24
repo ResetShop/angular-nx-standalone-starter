@@ -17,7 +17,7 @@ import type { TranslationKey } from './translations.schema'
 export class TranslatePipe implements PipeTransform {
 	private readonly translation = inject(Translation)
 
-	public transform(key: TranslationKey): string {
-		return this.translation.instant(key)
+	public transform(key: string): string {
+		return this.translation.instant(key as TranslationKey)
 	}
 }

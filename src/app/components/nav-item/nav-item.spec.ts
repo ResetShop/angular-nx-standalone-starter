@@ -3,6 +3,7 @@ import { provideRouter, Router } from '@angular/router'
 import { NavigationRoute } from '@interfaces/navigation'
 import { provideIcons } from '@ng-icons/core'
 import { featherActivity, featherChevronRight, featherHome } from '@ng-icons/feather-icons'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { UIStore } from '@store/ui/ui.store'
 import { clearAllMocks } from '@test-utils'
@@ -35,6 +36,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -48,6 +50,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -61,6 +64,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -76,6 +80,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -90,6 +95,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -111,6 +117,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -127,6 +134,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -142,6 +150,7 @@ describe('NavItem', () => {
 				provideRouter([{ path: 'test', children: [] }]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -176,6 +185,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -203,6 +213,7 @@ describe('NavItem', () => {
 				provideRouter([]),
 				provideIcons({ featherHome, featherActivity, featherChevronRight }),
 				NavigationState,
+				provideTranslationMock(),
 			],
 		})
 
@@ -243,7 +254,12 @@ describe('NavItem - Expandable Behavior', () => {
 	it('should render expand button when item has children', async () => {
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		const button = screen.getByRole('button', { name: /parent route/i })
@@ -255,7 +271,12 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		const button = screen.getByRole('button', { name: /parent route/i })
@@ -270,7 +291,12 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		const button = screen.getByRole('button')
@@ -284,7 +310,12 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		const button = screen.getByRole('button')
@@ -298,7 +329,12 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		const button = screen.getByRole('button')
@@ -312,7 +348,12 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		const button = screen.getByRole('button')
@@ -333,7 +374,7 @@ describe('NavItem - Expandable Behavior', () => {
 
 		await render(NavItem, {
 			inputs: { item: leafRoute },
-			providers: [provideRouter([]), NavigationState],
+			providers: [provideRouter([]), NavigationState, provideTranslationMock()],
 		})
 
 		const link = screen.getByRole('link', { name: /leaf route/i })
@@ -344,7 +385,12 @@ describe('NavItem - Expandable Behavior', () => {
 		const user = userEvent.setup()
 		await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		const button = screen.getByRole('button')
@@ -365,7 +411,7 @@ describe('NavItem - Expandable Behavior', () => {
 
 		await render(NavItem, {
 			inputs: { item: emptyChildrenRoute },
-			providers: [provideRouter([]), NavigationState],
+			providers: [provideRouter([]), NavigationState, provideTranslationMock()],
 		})
 
 		const link = screen.getByRole('link', { name: /empty children/i })
@@ -396,7 +442,12 @@ describe('NavItem - Collapsed Mode', () => {
 	it('should hide the name text when collapsed', async () => {
 		const { detectChanges } = await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		TestBed.inject(UIStore).setSidebarCollapsed(true)
@@ -409,7 +460,12 @@ describe('NavItem - Collapsed Mode', () => {
 	it('should set aria-label on the link when collapsed', async () => {
 		const { detectChanges } = await render(NavItem, {
 			inputs: { item: mockRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		TestBed.inject(UIStore).setSidebarCollapsed(true)
@@ -422,7 +478,12 @@ describe('NavItem - Collapsed Mode', () => {
 	it('should render a parent route as a plain link when collapsed', async () => {
 		const { detectChanges } = await render(NavItem, {
 			inputs: { item: parentRoute },
-			providers: [provideRouter([]), provideIcons({ featherHome, featherChevronRight }), NavigationState],
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
 		})
 
 		TestBed.inject(UIStore).setSidebarCollapsed(true)
