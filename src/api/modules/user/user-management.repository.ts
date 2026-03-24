@@ -4,6 +4,7 @@ import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
 import { authentication } from '../../../db/schema/authentication'
 import { role } from '../../../db/schema/role'
 import { user, userRole } from '../../../db/schema/user'
+import { userProfileHistory } from '../../../db/schema/user-profile-history'
 import { UserRoleHistoryAction, userRoleHistory } from '../../../db/schema/user-role-history'
 import { userStatusHistory } from '../../../db/schema/user-status-history'
 import { BaseRepository } from '../../helpers/base.repository'
@@ -234,32 +235,39 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 * @returns Updated user data, or null if not found
 	 */
 	public async update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null> {
-		void actorId // No history table for profile field changes — accepted for interface consistency
-		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() }
+		return this.db.transaction(async (tx) => {
+			const now = new Date()
+			const updateData: Partial<typeof user.$inferInsert> = { updatedAt: now }
 
-		if (params.email !== undefined) {
-			updateData.email = params.email
-		}
-		if (params.firstName !== undefined) {
-			updateData.firstName = params.firstName
-		}
-		if (params.lastName !== undefined) {
-			updateData.lastName = params.lastName
-		}
+			if (params.email !== undefined) updateData.email = params.email
+			if (params.firstName !== undefined) updateData.firstName = params.firstName
+			if (params.lastName !== undefined) updateData.lastName = params.lastName
 
-		const result = await this.db
-			.update(user)
-			.set(updateData)
-			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-			.returning({
-				id: user.id,
-				email: user.email,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				status: user.status,
+			const result = await tx
+				.update(user)
+				.set(updateData)
+				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
+				.returning({
+					id: user.id,
+					email: user.email,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					status: user.status,
+				})
+
+			if (result.length === 0) return null
+
+			await tx.insert(userProfileHistory).values({
+				userId: id,
+				email: result[0].email,
+				firstName: result[0].firstName,
+				lastName: result[0].lastName,
+				changedBy: actorId,
+				changedAt: now,
 			})
 
-		return result.length > 0 ? result[0] : null
+			return result[0]
+		})
 	}
 
 	/**
@@ -271,8 +279,8 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 */
 	public async softDelete(id: number, changedBy: number): Promise<boolean> {
 		return this.db.transaction(async (tx) => {
-			const existing = await tx.select({ status: user.status }).from(user).where(eq(user.id, id)).limit(1)
-			if (existing.length === 0) return false
+			const exists = await tx.select({ id: user.id }).from(user).where(eq(user.id, id)).limit(1)
+			if (exists.length === 0) return false
 
 			const now = new Date()
 			const result = await tx
@@ -290,8 +298,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 			if (result.length > 0) {
 				await tx.insert(userStatusHistory).values({
 					userId: id,
-					oldStatus: existing[0].status,
-					newStatus: UserStatus.DELETED,
+					status: UserStatus.DELETED,
 					changedBy,
 					changedAt: now,
 				})
@@ -311,8 +318,8 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 */
 	public async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
 		return this.db.transaction(async (tx) => {
-			const existing = await tx.select({ status: user.status }).from(user).where(eq(user.id, id)).limit(1)
-			if (existing.length === 0) return null
+			const exists = await tx.select({ id: user.id }).from(user).where(eq(user.id, id)).limit(1)
+			if (exists.length === 0) return null
 
 			const now = new Date()
 			const result = await tx
@@ -341,8 +348,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 
 			await tx.insert(userStatusHistory).values({
 				userId: id,
-				oldStatus: existing[0].status,
-				newStatus: params.status,
+				status: params.status,
 				changedBy: params.changedBy,
 				changedAt: now,
 			})

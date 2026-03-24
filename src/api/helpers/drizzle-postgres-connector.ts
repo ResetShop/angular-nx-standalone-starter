@@ -7,6 +7,7 @@ import { role, rolePermission, rolePermissionRelations, roleRelations } from '..
 import { roleHistory } from '../../db/schema/role-history'
 import { rolePermissionHistory } from '../../db/schema/role-permission-history'
 import { user, userRelations, userRole, userRoleRelations } from '../../db/schema/user'
+import { userProfileHistory } from '../../db/schema/user-profile-history'
 import { userRoleHistory } from '../../db/schema/user-role-history'
 import { userStatusHistory } from '../../db/schema/user-status-history'
 import { environment } from './environment'
@@ -32,6 +33,7 @@ const schema = {
 	userRole,
 	userRelations,
 	userRoleRelations,
+	userProfileHistory,
 	userRoleHistory,
 	userStatusHistory,
 }

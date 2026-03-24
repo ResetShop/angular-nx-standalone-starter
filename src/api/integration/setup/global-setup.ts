@@ -24,6 +24,7 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 		...(await import('../../../db/schema/permission-route')),
 		...(await import('../../../db/schema/role-history')),
 		...(await import('../../../db/schema/role-permission-history')),
+		...(await import('../../../db/schema/user-profile-history')),
 		...(await import('../../../db/schema/user-role-history')),
 		...(await import('../../../db/schema/user-status-history')),
 	}

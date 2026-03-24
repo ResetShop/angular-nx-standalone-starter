@@ -84,6 +84,7 @@ export async function truncateAllTables(db: TestDb): Promise<void> {
 		TRUNCATE TABLE
 			role_history,
 			role_permission_history,
+			user_profile_history,
 			user_role_history,
 			user_status_history,
 			permission_route,
