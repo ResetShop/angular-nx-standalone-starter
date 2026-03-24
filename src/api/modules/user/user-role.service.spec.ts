@@ -14,11 +14,11 @@ describe('UserRoleService', () => {
 		Promise<PaginatedResponse<RoleData>>
 	>()
 	const mockFindPermissionsForUser = fn<[number], Promise<PermissionData[]>>()
-	const mockAssignRoleToUser = fn<[number, number], Promise<boolean>>()
-	const mockRemoveRoleFromUser = fn<[number, number], Promise<boolean>>()
+	const mockAssignRoleToUser = fn<[number, number, number], Promise<boolean>>()
+	const mockRemoveRoleFromUser = fn<[number, number, number], Promise<boolean>>()
 	const mockFindUserHasRole = fn<[number, number], Promise<boolean>>()
 	const mockFindRolesWithPermissionsForUser = fn<[number], Promise<RoleWithPermissions[]>>()
-	const mockReplaceUserRoles = fn<[number, number[]], Promise<void>>()
+	const mockReplaceUserRoles = fn<[number, number[], number], Promise<void>>()
 	const mockFindUserById = fn<[number], Promise<UserData | null>>()
 	const mockFindRoleById = fn<[number], Promise<RoleData | null>>()
 
@@ -171,7 +171,7 @@ describe('UserRoleService', () => {
 
 			expect(mockFindUserById.calls).toEqual([[1]])
 			expect(mockFindRoleById.calls).toEqual([[1]])
-			expect(mockAssignRoleToUser.calls).toEqual([[1, 1]])
+			expect(mockAssignRoleToUser.calls).toEqual([[1, 1, 999]])
 		})
 
 		it('should throw USER_NOT_FOUND when user does not exist', async () => {
@@ -204,7 +204,7 @@ describe('UserRoleService', () => {
 			await service.removeRoleFromUser(1, 1, 999)
 
 			expect(mockFindUserById.calls).toEqual([[1]])
-			expect(mockRemoveRoleFromUser.calls).toEqual([[1, 1]])
+			expect(mockRemoveRoleFromUser.calls).toEqual([[1, 1, 999]])
 		})
 
 		it('should throw USER_NOT_FOUND when user does not exist', async () => {
@@ -229,7 +229,7 @@ describe('UserRoleService', () => {
 			await service.replaceUserRoles(1, [1, 2, 3], 999)
 
 			expect(mockFindUserById.calls).toEqual([[1]])
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2, 3]]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2, 3], 999]])
 		})
 
 		it('should handle empty roleIds array', async () => {
@@ -238,7 +238,7 @@ describe('UserRoleService', () => {
 
 			await service.replaceUserRoles(1, [], 999)
 
-			expect(mockReplaceUserRoles.calls).toEqual([[1, []]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [], 999]])
 		})
 
 		it('should throw USER_NOT_FOUND when user does not exist', async () => {

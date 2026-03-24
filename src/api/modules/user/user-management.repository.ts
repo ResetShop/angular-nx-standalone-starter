@@ -1,9 +1,12 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import { UserStatus } from '@contracts/user/user.constants'
+import { authentication } from '@schema/authentication'
+import { role } from '@schema/role'
+import { user, userRole } from '@schema/user'
+import { userProfileHistory } from '@schema/user-profile-history'
+import { UserRoleHistoryAction, userRoleHistory } from '@schema/user-role-history'
+import { userStatusHistory } from '@schema/user-status-history'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
-import { authentication } from '../../../db/schema/authentication'
-import { role } from '../../../db/schema/role'
-import { user, userRole } from '../../../db/schema/user'
 import { BaseRepository } from '../../helpers/base.repository'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
@@ -173,7 +176,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 * @param params - User creation parameters including password hash and role IDs
 	 * @returns The newly created user with roles
 	 */
-	public async create(params: CreateUserWithHashedPasswordParams): Promise<ManagedUserData> {
+	public async create(params: CreateUserWithHashedPasswordParams, actorId: number): Promise<ManagedUserData> {
 		return this.db.transaction(async (tx) => {
 			const userResult = await tx
 				.insert(user)
@@ -206,6 +209,16 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 			if (params.roleIds.length > 0) {
 				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }))
 				await tx.insert(userRole).values(values)
+
+				const now = new Date()
+				const historyRows = params.roleIds.map((roleId) => ({
+					userId: newUser.id,
+					roleId,
+					action: UserRoleHistoryAction.ASSIGNED,
+					changedBy: actorId,
+					changedAt: now,
+				}))
+				await tx.insert(userRoleHistory).values(historyRows)
 			}
 
 			const [result] = await this.attachRolesToUsers([newUser])
@@ -221,32 +234,40 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 * @param params - Fields to update
 	 * @returns Updated user data, or null if not found
 	 */
-	public async update(id: number, params: UpdateUserParams): Promise<UserData | null> {
-		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: new Date() }
+	public async update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null> {
+		return this.db.transaction(async (tx) => {
+			const now = new Date()
+			const updateData: Partial<typeof user.$inferInsert> = { updatedAt: now }
 
-		if (params.email !== undefined) {
-			updateData.email = params.email
-		}
-		if (params.firstName !== undefined) {
-			updateData.firstName = params.firstName
-		}
-		if (params.lastName !== undefined) {
-			updateData.lastName = params.lastName
-		}
+			if (params.email !== undefined) updateData.email = params.email
+			if (params.firstName !== undefined) updateData.firstName = params.firstName
+			if (params.lastName !== undefined) updateData.lastName = params.lastName
 
-		const result = await this.db
-			.update(user)
-			.set(updateData)
-			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-			.returning({
-				id: user.id,
-				email: user.email,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				status: user.status,
+			const result = await tx
+				.update(user)
+				.set(updateData)
+				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
+				.returning({
+					id: user.id,
+					email: user.email,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					status: user.status,
+				})
+
+			if (result.length === 0) return null
+
+			await tx.insert(userProfileHistory).values({
+				userId: id,
+				email: result[0].email,
+				firstName: result[0].firstName,
+				lastName: result[0].lastName,
+				changedBy: actorId,
+				changedAt: now,
 			})
 
-		return result.length > 0 ? result[0] : null
+			return result[0]
+		})
 	}
 
 	/**
@@ -257,20 +278,34 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 * @returns true if the user was deleted, false if not found
 	 */
 	public async softDelete(id: number, changedBy: number): Promise<boolean> {
-		const now = new Date()
-		const result = await this.db
-			.update(user)
-			.set({
-				status: UserStatus.DELETED,
-				statusChangedAt: now,
-				statusChangedBy: changedBy,
-				deletedAt: now,
-				updatedAt: now,
-			})
-			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-			.returning({ id: user.id })
+		return this.db.transaction(async (tx) => {
+			const exists = await tx.select({ id: user.id }).from(user).where(eq(user.id, id)).limit(1)
+			if (exists.length === 0) return false
 
-		return result.length > 0
+			const now = new Date()
+			const result = await tx
+				.update(user)
+				.set({
+					status: UserStatus.DELETED,
+					statusChangedAt: now,
+					statusChangedBy: changedBy,
+					deletedAt: now,
+					updatedAt: now,
+				})
+				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
+				.returning({ id: user.id })
+
+			if (result.length > 0) {
+				await tx.insert(userStatusHistory).values({
+					userId: id,
+					status: UserStatus.DELETED,
+					changedBy,
+					changedAt: now,
+				})
+			}
+
+			return result.length > 0
+		})
 	}
 
 	/**
@@ -282,35 +317,45 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 * @returns Updated user data with roles, or null if not found or deleted
 	 */
 	public async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
-		const now = new Date()
-		const result = await this.db
-			.update(user)
-			.set({
+		return this.db.transaction(async (tx) => {
+			const exists = await tx.select({ id: user.id }).from(user).where(eq(user.id, id)).limit(1)
+			if (exists.length === 0) return null
+
+			const now = new Date()
+			const result = await tx
+				.update(user)
+				.set({
+					status: params.status,
+					statusChangedAt: now,
+					statusChangedBy: params.changedBy,
+					updatedAt: now,
+				})
+				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
+				.returning({
+					id: user.id,
+					email: user.email,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					status: user.status,
+					statusChangedAt: user.statusChangedAt,
+					statusChangedBy: user.statusChangedBy,
+					deletedAt: user.deletedAt,
+					createdAt: user.createdAt,
+					updatedAt: user.updatedAt,
+				})
+
+			if (result.length === 0) return null
+
+			await tx.insert(userStatusHistory).values({
+				userId: id,
 				status: params.status,
-				statusChangedAt: now,
-				statusChangedBy: params.changedBy,
-				updatedAt: now,
-			})
-			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-			.returning({
-				id: user.id,
-				email: user.email,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				status: user.status,
-				statusChangedAt: user.statusChangedAt,
-				statusChangedBy: user.statusChangedBy,
-				deletedAt: user.deletedAt,
-				createdAt: user.createdAt,
-				updatedAt: user.updatedAt,
+				changedBy: params.changedBy,
+				changedAt: now,
 			})
 
-		if (result.length === 0) {
-			return null
-		}
-
-		const [updatedWithRoles] = await this.attachRolesToUsers(result)
-		return updatedWithRoles
+			const [updatedWithRoles] = await this.attachRolesToUsers(result)
+			return updatedWithRoles
+		})
 	}
 
 	/**

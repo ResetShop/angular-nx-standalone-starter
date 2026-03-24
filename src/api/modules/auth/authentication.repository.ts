@@ -1,6 +1,6 @@
+import { authentication } from '@schema/authentication'
 import { parseDurationToMs } from '@utils/duration'
 import { eq, sql } from 'drizzle-orm'
-import { authentication } from '../../../db/schema/authentication'
 import { BaseRepository, type BaseRepositoryDeps } from '../../helpers/base.repository'
 import type { AuthConfig } from './auth.config'
 import { type AuthenticationData, type AuthenticationRepository, type IncrementAttemptsResult } from './interfaces'

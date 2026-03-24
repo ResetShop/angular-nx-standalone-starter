@@ -1,7 +1,9 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
+import { permission } from '@schema/permission'
+import { role, rolePermission } from '@schema/role'
+import { RoleHistoryAction, roleHistory } from '@schema/role-history'
+import { RolePermissionHistoryAction, rolePermissionHistory } from '@schema/role-permission-history'
 import { type SQL, count, eq, ilike, inArray, or } from 'drizzle-orm'
-import { permission } from '../../../../db/schema/permission'
-import { role, rolePermission } from '../../../../db/schema/role'
 import { BaseRepository } from '../../../helpers/base.repository'
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
 import type {
@@ -158,25 +160,40 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 	 * @param params.description - Optional description of the role
 	 * @returns The newly created role data
 	 */
-	public async create(params: CreateRoleParams): Promise<RoleData> {
-		const result = await this.db
-			.insert(role)
-			.values({
-				name: params.name,
-				code: params.code,
-				description: params.description,
-			})
-			.returning({
-				id: role.id,
-				name: role.name,
-				code: role.code,
-				description: role.description,
-				removable: role.removable,
-				createdAt: role.createdAt,
-				updatedAt: role.updatedAt,
+	public async create(params: CreateRoleParams, actorId: number): Promise<RoleData> {
+		return this.db.transaction(async (tx) => {
+			const now = new Date()
+			const result = await tx
+				.insert(role)
+				.values({
+					name: params.name,
+					code: params.code,
+					description: params.description,
+				})
+				.returning({
+					id: role.id,
+					name: role.name,
+					code: role.code,
+					description: role.description,
+					removable: role.removable,
+					createdAt: role.createdAt,
+					updatedAt: role.updatedAt,
+				})
+
+			const created = result[0]
+
+			await tx.insert(roleHistory).values({
+				roleId: created.id,
+				action: RoleHistoryAction.CREATED,
+				name: created.name,
+				code: created.code,
+				description: created.description,
+				changedBy: actorId,
+				changedAt: now,
 			})
 
-		return result[0]
+			return created
+		})
 	}
 
 	/**
@@ -190,27 +207,40 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 	 * @param params.description - New description (optional)
 	 * @returns The updated role data, or null if not found
 	 */
-	public async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
-		const updateData: Partial<typeof role.$inferInsert> = { updatedAt: new Date() }
+	public async update(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData | null> {
+		return this.db.transaction(async (tx) => {
+			const now = new Date()
+			const exists = await tx.select({ id: role.id }).from(role).where(eq(role.id, id)).limit(1)
+			if (exists.length === 0) return null
 
-		if (params.name !== undefined) {
-			updateData.name = params.name
-		}
-		if (params.description !== undefined) {
-			updateData.description = params.description
-		}
+			const updateData: Partial<typeof role.$inferInsert> = { updatedAt: now }
+			if (params.name !== undefined) updateData.name = params.name
+			if (params.description !== undefined) updateData.description = params.description
 
-		const result = await this.db.update(role).set(updateData).where(eq(role.id, id)).returning({
-			id: role.id,
-			name: role.name,
-			code: role.code,
-			description: role.description,
-			removable: role.removable,
-			createdAt: role.createdAt,
-			updatedAt: role.updatedAt,
+			const result = await tx.update(role).set(updateData).where(eq(role.id, id)).returning({
+				id: role.id,
+				name: role.name,
+				code: role.code,
+				description: role.description,
+				removable: role.removable,
+				createdAt: role.createdAt,
+				updatedAt: role.updatedAt,
+			})
+
+			if (result.length === 0) return null
+
+			await tx.insert(roleHistory).values({
+				roleId: id,
+				action: RoleHistoryAction.UPDATED,
+				name: result[0].name,
+				code: result[0].code,
+				description: result[0].description,
+				changedBy: actorId,
+				changedAt: now,
+			})
+
+			return result[0]
 		})
-
-		return result.length > 0 ? result[0] : null
 	}
 
 	/**
@@ -220,13 +250,32 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 	 * @param id - The role's primary key
 	 * @throws Will throw if role doesn't exist (no rows affected)
 	 */
-	public async delete(id: number): Promise<void> {
+	public async delete(id: number, actorId: number): Promise<void> {
 		await this.db.transaction(async (tx) => {
+			const now = new Date()
+			const existing = await tx
+				.select({ name: role.name, code: role.code, description: role.description })
+				.from(role)
+				.where(eq(role.id, id))
+				.limit(1)
+
 			// Delete role_permission entries first (no CASCADE on this FK)
 			await tx.delete(rolePermission).where(eq(rolePermission.roleId, id))
 
 			// Delete the role
 			await tx.delete(role).where(eq(role.id, id))
+
+			if (existing.length > 0) {
+				await tx.insert(roleHistory).values({
+					roleId: id,
+					action: RoleHistoryAction.DELETED,
+					name: existing[0].name,
+					code: existing[0].code,
+					description: existing[0].description,
+					changedBy: actorId,
+					changedAt: now,
+				})
+			}
 		})
 	}
 
@@ -305,19 +354,60 @@ export class DrizzleRoleRepository extends BaseRepository implements RoleReposit
 	 * @param roleId - The role's primary key
 	 * @param permissionIds - Array of permission IDs to assign (replaces existing)
 	 */
-	public async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
+	public async assignPermissions(roleId: number, permissionIds: number[], actorId: number): Promise<void> {
 		await this.db.transaction(async (tx) => {
+			// Snapshot existing permissions for audit diff
+			const existingPerms = await tx
+				.select({ permissionId: rolePermission.permissionId })
+				.from(rolePermission)
+				.where(eq(rolePermission.roleId, roleId))
+			const oldPermissionIds = new Set(existingPerms.map((p) => p.permissionId))
+			const newPermissionIds = new Set(permissionIds)
+
 			// Remove existing permissions
 			await tx.delete(rolePermission).where(eq(rolePermission.roleId, roleId))
 
 			// Add new permissions
 			if (permissionIds.length > 0) {
-				const values = permissionIds.map((permissionId) => ({
-					roleId,
-					permissionId,
-				}))
-
+				const values = permissionIds.map((permissionId) => ({ roleId, permissionId }))
 				await tx.insert(rolePermission).values(values).onConflictDoNothing()
+			}
+
+			// Write permission history rows for each change
+			const now = new Date()
+			const historyRows: Array<{
+				roleId: number
+				permissionId: number
+				action: string
+				changedBy: number
+				changedAt: Date
+			}> = []
+
+			for (const id of oldPermissionIds) {
+				if (!newPermissionIds.has(id)) {
+					historyRows.push({
+						roleId,
+						permissionId: id,
+						action: RolePermissionHistoryAction.REMOVED,
+						changedBy: actorId,
+						changedAt: now,
+					})
+				}
+			}
+			for (const id of newPermissionIds) {
+				if (!oldPermissionIds.has(id)) {
+					historyRows.push({
+						roleId,
+						permissionId: id,
+						action: RolePermissionHistoryAction.ASSIGNED,
+						changedBy: actorId,
+						changedAt: now,
+					})
+				}
+			}
+
+			if (historyRows.length > 0) {
+				await tx.insert(rolePermissionHistory).values(historyRows)
 			}
 		})
 	}

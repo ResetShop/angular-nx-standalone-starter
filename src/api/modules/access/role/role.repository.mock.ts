@@ -90,7 +90,8 @@ export class InMemoryRoleRepository implements RoleRepository {
 		}
 	}
 
-	public async create(params: CreateRoleParams): Promise<RoleData> {
+	public async create(params: CreateRoleParams, actorId: number): Promise<RoleData> {
+		void actorId
 		const now = new Date()
 		const role: RoleData = {
 			id: this.nextId++,
@@ -109,7 +110,8 @@ export class InMemoryRoleRepository implements RoleRepository {
 		return role
 	}
 
-	public async update(id: number, params: UpdateRoleParams): Promise<RoleData | null> {
+	public async update(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData | null> {
+		void actorId
 		const existing = this.roles.get(id)
 		if (!existing) {
 			return null
@@ -134,7 +136,8 @@ export class InMemoryRoleRepository implements RoleRepository {
 		return updated
 	}
 
-	public async delete(id: number): Promise<void> {
+	public async delete(id: number, actorId: number): Promise<void> {
+		void actorId
 		const role = this.roles.get(id)
 		if (role) {
 			this.roles.delete(id)
@@ -169,7 +172,8 @@ export class InMemoryRoleRepository implements RoleRepository {
 		return ids.map((id) => this.availablePermissions.get(id)).filter((p): p is PermissionData => p !== undefined)
 	}
 
-	public async assignPermissions(roleId: number, permissionIds: number[]): Promise<void> {
+	public async assignPermissions(roleId: number, permissionIds: number[], actorId: number): Promise<void> {
+		void actorId
 		// Get permissions from available permissions
 		const permissions = await this.findPermissionsByIds(permissionIds)
 		this.rolePermissions.set(roleId, permissions)

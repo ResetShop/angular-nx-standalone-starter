@@ -432,21 +432,23 @@ describe('RoleService', () => {
 		it('should assign permissions to role', async () => {
 			mockRoleRepo.addRole(testRole)
 
-			await roleService.assignPermissionsToRole(testRole.id, [1, 2, 3])
+			await roleService.assignPermissionsToRole(testRole.id, [1, 2, 3], 999)
 
 			const result = await roleService.getRolePermissions(testRole.id)
 			expect(result.data).toHaveLength(3)
 		})
 
 		it('should throw NOT_FOUND when role does not exist', async () => {
-			await expect(roleService.assignPermissionsToRole(999, [1, 2])).rejects.toThrow(new RegExp(ROLE_ERRORS.NOT_FOUND))
+			await expect(roleService.assignPermissionsToRole(999, [1, 2], 999)).rejects.toThrow(
+				new RegExp(ROLE_ERRORS.NOT_FOUND),
+			)
 		})
 
 		it('should replace existing permissions', async () => {
 			mockRoleRepo.addRole(testRole)
 			mockRoleRepo.addPermissionsForRole(testRole.id, testPermissions)
 
-			await roleService.assignPermissionsToRole(testRole.id, [5])
+			await roleService.assignPermissionsToRole(testRole.id, [5], 999)
 
 			const result = await roleService.getRolePermissions(testRole.id)
 			expect(result.data).toHaveLength(1)
@@ -456,7 +458,7 @@ describe('RoleService', () => {
 		it('should throw InvalidPermissionIdsError when permission IDs do not exist', async () => {
 			mockRoleRepo.addRole(testRole)
 
-			await expect(roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000])).rejects.toThrow(
+			await expect(roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000], 999)).rejects.toThrow(
 				InvalidPermissionIdsError,
 			)
 		})
@@ -464,7 +466,7 @@ describe('RoleService', () => {
 		it('should include invalid IDs in the error', async () => {
 			mockRoleRepo.addRole(testRole)
 
-			const error = await roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000]).catch((e: unknown) => e)
+			const error = await roleService.assignPermissionsToRole(testRole.id, [1, 999, 1000], 999).catch((e: unknown) => e)
 
 			expect(error).toBeInstanceOf(InvalidPermissionIdsError)
 			const invalidError = error as InvalidPermissionIdsError
@@ -476,7 +478,7 @@ describe('RoleService', () => {
 			mockRoleRepo.addRole(testRole)
 			mockRoleRepo.addPermissionsForRole(testRole.id, testPermissions)
 
-			await roleService.assignPermissionsToRole(testRole.id, [])
+			await roleService.assignPermissionsToRole(testRole.id, [], 999)
 
 			const result = await roleService.getRolePermissions(testRole.id)
 			expect(result.data).toHaveLength(0)

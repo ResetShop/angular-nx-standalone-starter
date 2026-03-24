@@ -87,12 +87,12 @@ export interface RoleRepository {
 	findByCode(code: string): Promise<RoleData | null>
 	findByName(name: string): Promise<RoleData | null>
 	findAll(params?: ListRolesParams): Promise<PaginatedResponse<RoleData>>
-	create(params: CreateRoleParams): Promise<RoleData>
-	update(id: number, params: UpdateRoleParams): Promise<RoleData | null>
-	delete(id: number): Promise<void>
+	create(params: CreateRoleParams, actorId: number): Promise<RoleData>
+	update(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData | null>
+	delete(id: number, actorId: number): Promise<void>
 	findPermissionsForRole(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>>
 	findPermissionsByIds(ids: number[]): Promise<PermissionData[]>
-	assignPermissions(roleId: number, permissionIds: number[]): Promise<void>
+	assignPermissions(roleId: number, permissionIds: number[], actorId: number): Promise<void>
 	removeAllPermissions(roleId: number): Promise<void>
 }
 
@@ -107,5 +107,5 @@ export interface RoleService {
 	updateRole(id: number, params: UpdateRoleParams, actorId: number): Promise<RoleData>
 	deleteRole(id: number, actorId: number): Promise<void>
 	getRolePermissions(roleId: number, pagination?: PaginationParams): Promise<PaginatedResponse<PermissionData>>
-	assignPermissionsToRole(roleId: number, permissionIds: number[], actorId?: number): Promise<void>
+	assignPermissionsToRole(roleId: number, permissionIds: number[], actorId: number): Promise<void>
 }

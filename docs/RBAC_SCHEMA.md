@@ -4,7 +4,7 @@ This document describes the Role-Based Access Control (RBAC) database schema and
 
 ## Schema Overview
 
-The RBAC system consists of 6 core tables with the following relationships:
+The RBAC system consists of 6 core tables and 5 audit history tables:
 
 ```
 User
@@ -17,6 +17,13 @@ User
 
 Authentication (one-to-one with User)
   └── User
+
+Audit History Tables:
+  ├── UserStatusHistory     (tracks user status transitions)
+  ├── UserProfileHistory    (tracks email/name changes)
+  ├── UserRoleHistory       (tracks role assignment/removal)
+  ├── RoleHistory           (tracks role CRUD operations)
+  └── RolePermissionHistory (tracks permission assignment/removal)
 ```
 
 ## Tables
@@ -192,6 +199,73 @@ Stores password hashes and login security information (one-to-one with User).
 **Relations:**
 
 - `user`: one(User)
+
+### 8. Audit History Tables
+
+All history tables follow a **snapshot pattern** — each row captures the entity's state after the change. What changed is derivable by comparing consecutive rows.
+
+#### UserStatusHistory
+
+| Column    | Type      | Constraints                    |
+| --------- | --------- | ------------------------------ |
+| id        | serial    | PRIMARY KEY                    |
+| userId    | integer   | FK → User.id (CASCADE)         |
+| status    | text      | NOT NULL — status after change |
+| changedBy | integer   | FK → User.id (RESTRICT)        |
+| changedAt | timestamp | NOT NULL                       |
+
+#### UserProfileHistory
+
+| Column    | Type      | Constraints                   |
+| --------- | --------- | ----------------------------- |
+| id        | serial    | PRIMARY KEY                   |
+| userId    | integer   | FK → User.id (CASCADE)        |
+| email     | text      | NOT NULL — email after change |
+| firstName | text      | NOT NULL — name after change  |
+| lastName  | text      | NOT NULL — name after change  |
+| changedBy | integer   | FK → User.id (RESTRICT)       |
+| changedAt | timestamp | NOT NULL                      |
+
+#### UserRoleHistory
+
+| Column    | Type      | Constraints                          |
+| --------- | --------- | ------------------------------------ |
+| id        | serial    | PRIMARY KEY                          |
+| userId    | integer   | FK → User.id (CASCADE)               |
+| roleId    | integer   | NOT NULL (no FK — survives deletion) |
+| action    | text      | NOT NULL ('assigned' / 'removed')    |
+| changedBy | integer   | FK → User.id (RESTRICT)              |
+| changedAt | timestamp | NOT NULL                             |
+
+#### RoleHistory
+
+| Column      | Type      | Constraints                                  |
+| ----------- | --------- | -------------------------------------------- |
+| id          | serial    | PRIMARY KEY                                  |
+| roleId      | integer   | NOT NULL (no FK — survives deletion)         |
+| action      | text      | NOT NULL ('created' / 'updated' / 'deleted') |
+| name        | text      | NOT NULL — name after change                 |
+| code        | text      | NOT NULL — code after change                 |
+| description | text      | nullable — description after change          |
+| changedBy   | integer   | FK → User.id (RESTRICT)                      |
+| changedAt   | timestamp | NOT NULL                                     |
+
+#### RolePermissionHistory
+
+| Column       | Type      | Constraints                          |
+| ------------ | --------- | ------------------------------------ |
+| id           | serial    | PRIMARY KEY                          |
+| roleId       | integer   | NOT NULL (no FK — survives deletion) |
+| permissionId | integer   | NOT NULL (no FK — survives deletion) |
+| action       | text      | NOT NULL ('assigned' / 'removed')    |
+| changedBy    | integer   | FK → User.id (RESTRICT)              |
+| changedAt    | timestamp | NOT NULL                             |
+
+**Design notes:**
+
+- `changedBy` uses `onDelete: RESTRICT` — prevents hard-deletion of users referenced in audit history
+- `roleId` and `permissionId` in history tables are NOT foreign keys — deleted entities retain their audit trail
+- Action values are enforced at the application layer via `Object.freeze` constants, not database enums
 
 ## Example Data Flow
 
