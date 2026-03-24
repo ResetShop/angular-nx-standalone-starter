@@ -1,9 +1,9 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
+import { permission } from '@schema/permission'
+import { role, rolePermission } from '@schema/role'
+import { RoleHistoryAction, roleHistory } from '@schema/role-history'
+import { RolePermissionHistoryAction, rolePermissionHistory } from '@schema/role-permission-history'
 import { type SQL, count, eq, ilike, inArray, or } from 'drizzle-orm'
-import { permission } from '../../../../db/schema/permission'
-import { role, rolePermission } from '../../../../db/schema/role'
-import { RoleHistoryAction, roleHistory } from '../../../../db/schema/role-history'
-import { RolePermissionHistoryAction, rolePermissionHistory } from '../../../../db/schema/role-permission-history'
 import { BaseRepository } from '../../../helpers/base.repository'
 import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
 import type {

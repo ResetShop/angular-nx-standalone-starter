@@ -1,19 +1,19 @@
 import { PERMISSIONS_SEED_DATA } from '@contracts/permission/permission.constants'
+import { authentication } from '@schema/authentication'
+import { permission } from '@schema/permission'
+import { role, rolePermission } from '@schema/role'
+import { user, userRole } from '@schema/user'
 import { hash } from 'bcryptjs'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { authentication } from '../../../db/schema/authentication'
-import { permission } from '../../../db/schema/permission'
-import { role, rolePermission } from '../../../db/schema/role'
-import { user, userRole } from '../../../db/schema/user'
 
 // Schema for relational queries
-import { authenticationRelations } from '../../../db/schema/authentication'
-import { permissionRelations } from '../../../db/schema/permission'
-import { permissionRoute, permissionRouteRelations } from '../../../db/schema/permission-route'
-import { refreshToken } from '../../../db/schema/refresh-token'
-import { rolePermissionRelations, roleRelations } from '../../../db/schema/role'
-import { userRelations, userRoleRelations } from '../../../db/schema/user'
+import { authenticationRelations } from '@schema/authentication'
+import { permissionRelations } from '@schema/permission'
+import { permissionRoute, permissionRouteRelations } from '@schema/permission-route'
+import { refreshToken } from '@schema/refresh-token'
+import { rolePermissionRelations, roleRelations } from '@schema/role'
+import { userRelations, userRoleRelations } from '@schema/user'
 
 const schema = {
 	authentication,
