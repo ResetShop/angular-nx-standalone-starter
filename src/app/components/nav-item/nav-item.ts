@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input } f
 import { Router, RouterLink, RouterLinkActive } from '@angular/router'
 import { isParentRoute, type NavigationRoute } from '@interfaces/navigation'
 import { NgIcon } from '@ng-icons/core'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appNavItem]',
-	imports: [NgIcon, RouterLink, RouterLinkActive],
+	imports: [NgIcon, RouterLink, RouterLinkActive, TranslatePipe],
 	host: { '[class.collapsed]': 'collapsed()' },
 	styles: `
 		@reference "tailwindcss";
@@ -57,7 +58,7 @@ import { UIStore } from '@store/ui/ui.store'
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
 					}
-					<span class="truncate">{{ item().name }}</span>
+					<span class="truncate">{{ item().name | translate }}</span>
 					<ng-icon
 						[class.rotate-90]="isExpanded()"
 						name="featherChevronRight"
@@ -103,7 +104,7 @@ import { UIStore } from '@store/ui/ui.store'
 					/>
 				}
 				@if (!collapsed()) {
-					<span class="truncate">{{ item().name }}</span>
+					<span class="truncate">{{ item().name | translate }}</span>
 				}
 			</a>
 		}
