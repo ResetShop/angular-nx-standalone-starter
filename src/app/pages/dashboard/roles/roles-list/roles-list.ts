@@ -17,6 +17,8 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { Pagination } from '@components/pagination/pagination'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
+import { Translation } from '@providers/i18n/translation'
 import { AuthStore } from '@store/auth/auth.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
@@ -38,10 +40,15 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		HasPermissionDirective,
 		PageShell,
 		Pagination,
+		TranslatePipe,
 	],
 	template: `
-		<app-page-shell [loading]="store.isLoadingList()" [error]="store.readError().list" title="Roles">
-			<p pageDescription>Manage system roles and their associated permissions.</p>
+		<app-page-shell
+			[loading]="store.isLoadingList()"
+			[error]="store.readError().list"
+			[title]="'ROLES.PAGE.TITLE' | translate"
+		>
+			<p pageDescription>{{ 'ROLES.PAGE.DESCRIPTION' | translate }}</p>
 
 			<div pageActionsSkeleton class="flex items-center justify-between gap-4" data-testid="roles-actions-skeleton">
 				<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
@@ -51,14 +58,21 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 			<div pageActions class="flex items-center justify-between gap-4">
 				<input
 					(input)="onSearchInput($event)"
+					[placeholder]="'ROLES.PAGE.SEARCH' | translate"
 					type="search"
-					placeholder="Search roles..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *hasPermission="'admin:roles:create'" appButton>Create Role</button>
+				<button (click)="createDrawer.open()" *hasPermission="'admin:roles:create'" appButton>
+					{{ 'ROLES.PAGE.CREATE_BUTTON' | translate }}
+				</button>
 			</div>
 
-			<app-data-table [columns]="columns()" [data]="store.roles()" [loading]="store.isMutating()" caption="Roles list">
+			<app-data-table
+				[columns]="columns()"
+				[data]="store.roles()"
+				[loading]="store.isMutating()"
+				[caption]="'ROLES.TABLE.CAPTION' | translate"
+			>
 				<ng-template appDataTableCellDef="code" let-value>
 					<span appBadge variant="secondary">{{ value }}</span>
 				</ng-template>
@@ -72,12 +86,12 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 							variant="ghost"
 							size="sm"
 						>
-							Edit
+							{{ 'COMMON.EDIT' | translate }}
 						</button>
 						<ng-container *hasPermission="'admin:roles:delete'">
 							@if (row.removable) {
 								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-									Delete
+									{{ 'COMMON.DELETE' | translate }}
 								</button>
 							}
 						</ng-container>
@@ -102,9 +116,9 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
 			[message]="deleteMessage()"
+			[title]="'ROLES.PAGE.DELETE_DIALOG.TITLE' | translate"
+			[confirmText]="'COMMON.DELETE' | translate"
 			#deleteDialog
-			title="Delete Role"
-			confirmText="Delete"
 			confirmVariant="destructive"
 		/>
 	`,
@@ -114,14 +128,15 @@ export default class RolesList {
 	protected readonly store = inject(RolesStore)
 
 	private readonly authStore = inject(AuthStore)
+	private readonly translation = inject(Translation)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
-	private readonly deleteToast = createMutationToast('Role deleted successfully.')
+	private readonly deleteToast = createMutationToast(this.translation.instant('ROLES.DELETE_TOAST'))
 
 	protected readonly roleToDelete = signal<IRole | null>(null)
 	protected readonly deleteMessage = computed(() => {
 		const name = this.roleToDelete()?.name ?? ''
-		return `Are you sure you want to delete the role '${name}'? This action cannot be undone.`
+		return this.translation.instant('ROLES.PAGE.DELETE_DIALOG.MESSAGE').replace('{name}', name)
 	})
 
 	private readonly deleteToastEffect = effect(() => {
@@ -132,9 +147,9 @@ export default class RolesList {
 
 	protected readonly columns = computed((): ColumnDef<IRole, unknown>[] => {
 		const base: ColumnDef<IRole, unknown>[] = [
-			{ accessorKey: 'name', header: 'Name' },
-			{ accessorKey: 'code', header: 'Code' },
-			{ accessorKey: 'description', header: 'Description' },
+			{ accessorKey: 'name', header: this.translation.instant('ROLES.TABLE.HEADER.NAME') },
+			{ accessorKey: 'code', header: this.translation.instant('ROLES.TABLE.HEADER.CODE') },
+			{ accessorKey: 'description', header: this.translation.instant('ROLES.TABLE.HEADER.DESCRIPTION') },
 		]
 		const user = this.authStore.currentUser()
 		if (user?.hasPermission('admin:roles:update') || user?.hasPermission('admin:roles:delete')) {

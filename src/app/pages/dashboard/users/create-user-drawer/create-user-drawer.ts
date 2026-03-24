@@ -23,6 +23,8 @@ import { Drawer } from '@components/drawer/drawer'
 import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
+import { Translation } from '@providers/i18n/translation'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
@@ -60,14 +62,15 @@ const EMPTY_MODEL: CreateUserFormModel = {
 		Alert,
 		AlertDescription,
 		ConfirmDialog,
+		TranslatePipe,
 	],
 	template: `
 		<app-drawer
 			(closed)="onDrawerClosed()"
 			(afterClosed)="toast.flushPending()"
 			[closeOnBackdrop]="false"
+			[title]="'USERS.CREATE_DRAWER.TITLE' | translate"
 			class="w-lg"
-			title="Create User"
 			#drawer
 		>
 			<form (submit)="onSubmit($event)" id="create-user-form" class="flex h-full flex-col gap-4">
@@ -77,24 +80,24 @@ const EMPTY_MODEL: CreateUserFormModel = {
 					</div>
 				}
 
-				<app-form-field label="First Name">
+				<app-form-field [label]="'USERS.CREATE_DRAWER.FIRST_NAME' | translate">
 					<input [formField]="userForm.firstName" type="text" autocomplete="given-name" />
 				</app-form-field>
 
-				<app-form-field label="Last Name">
+				<app-form-field [label]="'USERS.CREATE_DRAWER.LAST_NAME' | translate">
 					<input [formField]="userForm.lastName" type="text" autocomplete="family-name" />
 				</app-form-field>
 
-				<app-form-field label="Email">
+				<app-form-field [label]="'USERS.CREATE_DRAWER.EMAIL' | translate">
 					<input [formField]="userForm.email" type="email" autocomplete="email" />
 				</app-form-field>
 
-				<app-form-field label="Must change password on first login">
+				<app-form-field [label]="'USERS.CREATE_DRAWER.MUST_CHANGE_PASSWORD' | translate">
 					<input [formField]="userForm.mustChangePassword" type="checkbox" />
 				</app-form-field>
 
 				@if (rolesStore.allRoles().length > 0) {
-					<app-form-field label="Roles" class="flex min-h-0 flex-1 flex-col">
+					<app-form-field [label]="'USERS.CREATE_DRAWER.ROLES_LABEL' | translate" class="flex min-h-0 flex-1 flex-col">
 						<app-role-selector [formField]="userForm.roleIds" [roles]="rolesStore.allRoles()" />
 					</app-form-field>
 				}
@@ -102,12 +105,12 @@ const EMPTY_MODEL: CreateUserFormModel = {
 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
-					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
+					<button (click)="onCancel()" appButton variant="outline">{{ 'COMMON.CANCEL' | translate }}</button>
 					<button [disabled]="showSubmitSpinner() || !isFormValid()" appButton type="submit" form="create-user-form">
 						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
 						}
-						{{ showSubmitSpinner() ? 'Creating...' : 'Create' }}
+						{{ showSubmitSpinner() ? ('COMMON.CREATING' | translate) : ('COMMON.CREATE' | translate) }}
 					</button>
 				</div>
 			</ng-template>
@@ -115,9 +118,9 @@ const EMPTY_MODEL: CreateUserFormModel = {
 
 		<app-confirm-dialog
 			(confirmed)="drawer.close()"
-			title="Discard changes"
-			message="You have unsaved changes. Are you sure you want to discard them?"
-			confirmText="Discard"
+			[title]="'COMMON.DISCARD_DIALOG.TITLE' | translate"
+			[message]="'COMMON.DISCARD_DIALOG.MESSAGE' | translate"
+			[confirmText]="'COMMON.DISCARD_DIALOG.CONFIRM' | translate"
 			confirmVariant="destructive"
 			#discardDialog
 		/>
@@ -127,10 +130,13 @@ const EMPTY_MODEL: CreateUserFormModel = {
 export class CreateUserDrawer {
 	private readonly usersStore = inject(UsersStore)
 	protected readonly rolesStore = inject(RolesStore)
+	private readonly translation = inject(Translation)
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
-	protected readonly toast = createMutationToast('User created successfully.', { deferred: true })
+	protected readonly toast = createMutationToast(this.translation.instant('USERS.CREATE_DRAWER.SUCCESS_TOAST'), {
+		deferred: true,
+	})
 
 	private readonly model = signal<CreateUserFormModel>({ ...EMPTY_MODEL })
 	protected readonly userForm = form(

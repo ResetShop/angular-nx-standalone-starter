@@ -18,6 +18,8 @@ import { Pagination } from '@components/pagination/pagination'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
+import { Translation } from '@providers/i18n/translation'
 import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
@@ -39,10 +41,15 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		HasPermissionDirective,
 		PageShell,
 		Pagination,
+		TranslatePipe,
 	],
 	template: `
-		<app-page-shell [loading]="store.isLoadingList()" [error]="store.readError().list" title="Users">
-			<p pageDescription>Manage system users, their roles, and account status.</p>
+		<app-page-shell
+			[loading]="store.isLoadingList()"
+			[error]="store.readError().list"
+			[title]="'USERS.PAGE.TITLE' | translate"
+		>
+			<p pageDescription>{{ 'USERS.PAGE.DESCRIPTION' | translate }}</p>
 
 			<div pageActionsSkeleton class="flex items-center justify-between gap-4" data-testid="users-actions-skeleton">
 				<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
@@ -52,14 +59,21 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 			<div pageActions class="flex items-center justify-between gap-4">
 				<input
 					(input)="onSearchInput($event)"
+					[placeholder]="'USERS.PAGE.SEARCH' | translate"
 					type="search"
-					placeholder="Search users..."
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
 				/>
-				<button (click)="createDrawer.open()" *hasPermission="'admin:users:create'" appButton>Create User</button>
+				<button (click)="createDrawer.open()" *hasPermission="'admin:users:create'" appButton>
+					{{ 'USERS.PAGE.CREATE_BUTTON' | translate }}
+				</button>
 			</div>
 
-			<app-data-table [columns]="columns()" [data]="store.users()" [loading]="store.isMutating()" caption="Users list">
+			<app-data-table
+				[columns]="columns()"
+				[data]="store.users()"
+				[loading]="store.isMutating()"
+				[caption]="'USERS.TABLE.CAPTION' | translate"
+			>
 				<ng-template appDataTableCellDef="status" let-value>
 					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
 						{{ value.charAt(0).toUpperCase() + value.slice(1) }}
@@ -75,7 +89,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 							variant="ghost"
 							size="sm"
 						>
-							Edit
+							{{ 'COMMON.EDIT' | translate }}
 						</button>
 						<button
 							(click)="confirmDelete(row)"
@@ -85,7 +99,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 							size="sm"
 							class="text-destructive"
 						>
-							Delete
+							{{ 'COMMON.DELETE' | translate }}
 						</button>
 					</div>
 				</ng-template>
@@ -108,9 +122,9 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
 			[message]="deleteMessage()"
+			[title]="'USERS.PAGE.DELETE_DIALOG.TITLE' | translate"
+			[confirmText]="'COMMON.DELETE' | translate"
 			#deleteDialog
-			title="Delete User"
-			confirmText="Delete"
 			confirmVariant="destructive"
 		/>
 	`,
@@ -121,14 +135,15 @@ export default class UsersList {
 	protected readonly UserStatus = UserStatus
 
 	private readonly authStore = inject(AuthStore)
+	private readonly translation = inject(Translation)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
-	private readonly deleteToast = createMutationToast('User deleted successfully.')
+	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
 
 	protected readonly userToDelete = signal<IManagedUser | null>(null)
 	protected readonly deleteMessage = computed(() => {
 		const name = this.userToDelete()?.fullName ?? ''
-		return `Are you sure you want to delete the user '${name}'? This action cannot be undone.`
+		return this.translation.instant('USERS.PAGE.DELETE_DIALOG.MESSAGE').replace('{name}', name)
 	})
 
 	private readonly deleteToastEffect = effect(() => {
@@ -139,12 +154,12 @@ export default class UsersList {
 
 	protected readonly columns = computed((): ColumnDef<IManagedUser, unknown>[] => {
 		const base: ColumnDef<IManagedUser, unknown>[] = [
-			{ accessorKey: 'fullName', header: 'Name' },
-			{ accessorKey: 'email', header: 'Email' },
-			{ accessorKey: 'status', header: 'Status' },
+			{ accessorKey: 'fullName', header: this.translation.instant('USERS.TABLE.HEADER.NAME') },
+			{ accessorKey: 'email', header: this.translation.instant('USERS.TABLE.HEADER.EMAIL') },
+			{ accessorKey: 'status', header: this.translation.instant('USERS.TABLE.HEADER.STATUS') },
 			{
 				id: 'roles',
-				header: 'Roles',
+				header: this.translation.instant('USERS.TABLE.HEADER.ROLES'),
 				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
 			},
 		]

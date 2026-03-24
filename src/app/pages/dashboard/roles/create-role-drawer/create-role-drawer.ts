@@ -16,6 +16,8 @@ import { Drawer } from '@components/drawer/drawer'
 import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
+import { Translation } from '@providers/i18n/translation'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
@@ -46,14 +48,15 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 		Alert,
 		AlertDescription,
 		ConfirmDialog,
+		TranslatePipe,
 	],
 	template: `
 		<app-drawer
 			(closed)="onDrawerClosed()"
 			(afterClosed)="toast.flushPending()"
 			[closeOnBackdrop]="false"
+			[title]="'ROLES.CREATE_DRAWER.TITLE' | translate"
 			class="w-lg"
-			title="Create Role"
 			#drawer
 		>
 			<form (submit)="onSubmit($event)" id="create-role-form" class="flex h-full flex-col gap-4">
@@ -63,20 +66,23 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 					</div>
 				}
 
-				<app-form-field label="Name">
+				<app-form-field [label]="'ROLES.CREATE_DRAWER.NAME' | translate">
 					<input [formField]="roleForm.name" type="text" autocomplete="off" />
 				</app-form-field>
 
-				<app-form-field label="Code" hint="Auto-generated from name">
+				<app-form-field
+					[label]="'ROLES.CREATE_DRAWER.CODE' | translate"
+					[hint]="'ROLES.CREATE_DRAWER.CODE_HINT' | translate"
+				>
 					<input [formField]="roleForm.code" type="text" />
 				</app-form-field>
 
-				<app-form-field label="Description">
+				<app-form-field [label]="'ROLES.CREATE_DRAWER.DESCRIPTION' | translate">
 					<textarea [formField]="roleForm.description" rows="3"></textarea>
 				</app-form-field>
 
 				@if (permissionsStore.permissionsGroupedArray().length > 0) {
-					<app-form-field label="Permissions" class="flex min-h-0 flex-1 flex-col">
+					<app-form-field [label]="'ROLES.CREATE_DRAWER.PERMISSIONS' | translate" class="flex min-h-0 flex-1 flex-col">
 						<app-permission-selector
 							[formField]="roleForm.permissionIds"
 							[groups]="permissionsStore.permissionsGroupedArray()"
@@ -87,12 +93,12 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
-					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
+					<button (click)="onCancel()" appButton variant="outline">{{ 'COMMON.CANCEL' | translate }}</button>
 					<button [disabled]="showSubmitSpinner() || !isFormValid()" appButton type="submit" form="create-role-form">
 						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
 						}
-						{{ showSubmitSpinner() ? 'Creating...' : 'Create' }}
+						{{ showSubmitSpinner() ? ('COMMON.CREATING' | translate) : ('COMMON.CREATE' | translate) }}
 					</button>
 				</div>
 			</ng-template>
@@ -100,9 +106,9 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 
 		<app-confirm-dialog
 			(confirmed)="drawer.close()"
-			title="Discard changes"
-			message="You have unsaved changes. Are you sure you want to discard them?"
-			confirmText="Discard"
+			[title]="'COMMON.DISCARD_DIALOG.TITLE' | translate"
+			[message]="'COMMON.DISCARD_DIALOG.MESSAGE' | translate"
+			[confirmText]="'COMMON.DISCARD_DIALOG.CONFIRM' | translate"
 			confirmVariant="destructive"
 			#discardDialog
 		/>
@@ -112,10 +118,13 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 export class CreateRoleDrawer {
 	private readonly rolesStore = inject(RolesStore)
 	protected readonly permissionsStore = inject(PermissionsStore)
+	private readonly translation = inject(Translation)
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
-	protected readonly toast = createMutationToast('Role created successfully.', { deferred: true })
+	protected readonly toast = createMutationToast(this.translation.instant('ROLES.CREATE_DRAWER.SUCCESS_TOAST'), {
+		deferred: true,
+	})
 
 	private readonly model = signal<CreateRoleFormModel>({ ...EMPTY_MODEL })
 	protected readonly roleForm = form(
