@@ -3,7 +3,7 @@ import { featherUsers } from '@ng-icons/feather-icons'
 
 export const usersNavigation: LeafNavigationRoute = {
 	id: 'users',
-	name: 'NAV.ADMIN.USERS',
+	name: 'USERS.PAGE.NAV',
 	route: 'dashboard/users',
 	icon: { featherUsers },
 	permission: 'admin:users:read',

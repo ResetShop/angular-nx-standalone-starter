@@ -51,6 +51,7 @@ const es: TranslationSchema = {
 	},
 	USERS: {
 		PAGE: {
+			NAV: 'Usuarios',
 			TITLE: 'Usuarios',
 			DESCRIPTION: 'Administrar usuarios del sistema, sus roles y estado de cuenta.',
 			SEARCH: 'Buscar usuarios...',
@@ -90,6 +91,7 @@ const es: TranslationSchema = {
 	},
 	ROLES: {
 		PAGE: {
+			NAV: 'Roles',
 			TITLE: 'Roles',
 			DESCRIPTION: 'Administrar roles del sistema y sus permisos asociados.',
 			SEARCH: 'Buscar roles...',
@@ -129,6 +131,7 @@ const es: TranslationSchema = {
 	},
 	PERMISSIONS: {
 		PAGE: {
+			NAV: 'Permisos',
 			TITLE: 'Permisos',
 			DESCRIPTION_INTRO:
 				'Ver todos los permisos del sistema organizados por recurso. Cada identificador sigue el patrón',
@@ -145,6 +148,7 @@ const es: TranslationSchema = {
 		},
 	},
 	SETTINGS: {
+		NAV: 'Ajustes',
 		TITLE: 'Ajustes',
 		DESCRIPTION: 'Configura las preferencias de tu aplicación.',
 		LANGUAGE: {
@@ -153,24 +157,8 @@ const es: TranslationSchema = {
 			SPANISH: 'Español',
 		},
 	},
-	NAV: {
-		HOME: {
-			WELCOME: 'Configuración Inicial',
-			SETTINGS: 'Ajustes',
-		},
-		SETTINGS: {
-			SECTION: 'Ajustes y Mantenimiento',
-			HEALTH: 'Salud',
-		},
-		ADMIN: {
-			SECTION: 'Administración',
-			USERS: 'Usuarios',
-			AUTHORIZATION: 'Autorización',
-			ROLES: 'Roles',
-			PERMISSIONS: 'Permisos',
-		},
-	},
 	HEALTH: {
+		NAV: 'Salud',
 		TITLE: 'Verificador de Salud de la Aplicación',
 		LOADING: 'Cargando...',
 		STATUS_LABEL: 'Estado:',
@@ -185,7 +173,12 @@ const es: TranslationSchema = {
 	},
 	DASHBOARD: {
 		BREADCRUMB: 'Panel Principal',
+		SECTIONS: {
+			SETTINGS: 'Ajustes y Mantenimiento',
+			ADMIN: 'Administración',
+		},
 		HOME: {
+			NAV: 'Configuración Inicial',
 			DESCRIPTIONS: {
 				WELCOME: 'Guía de configuración inicial para preparar tu aplicación.',
 				SETTINGS: 'Configura las preferencias de tu aplicación e idioma.',
@@ -195,6 +188,7 @@ const es: TranslationSchema = {
 			},
 		},
 		AUTHORIZATION: {
+			NAV: 'Autorización',
 			TITLE: 'Autorización',
 			ROLES_CARD: {
 				NAME: 'Roles',

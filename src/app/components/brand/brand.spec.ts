@@ -28,7 +28,7 @@ describe('Brand', () => {
 		})
 
 		const link = screen.getByRole('link', { name: /reset starter repo/i })
-		expect(link).toHaveAttribute('href', '/welcome')
+		expect(link).toHaveAttribute('href', '/dashboard')
 	})
 
 	it('should render icon within the brand button', async () => {

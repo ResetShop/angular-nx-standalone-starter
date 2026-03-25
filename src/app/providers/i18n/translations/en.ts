@@ -51,6 +51,7 @@ const en: TranslationSchema = {
 	},
 	USERS: {
 		PAGE: {
+			NAV: 'Users',
 			TITLE: 'Users',
 			DESCRIPTION: 'Manage system users, their roles, and account status.',
 			SEARCH: 'Search users...',
@@ -90,6 +91,7 @@ const en: TranslationSchema = {
 	},
 	ROLES: {
 		PAGE: {
+			NAV: 'Roles',
 			TITLE: 'Roles',
 			DESCRIPTION: 'Manage system roles and their associated permissions.',
 			SEARCH: 'Search roles...',
@@ -129,6 +131,7 @@ const en: TranslationSchema = {
 	},
 	PERMISSIONS: {
 		PAGE: {
+			NAV: 'Permissions',
 			TITLE: 'Permissions',
 			DESCRIPTION_INTRO: 'View all system permissions organized by resource. Each identifier follows the',
 			DESCRIPTION_PATTERN: 'pattern.',
@@ -144,6 +147,7 @@ const en: TranslationSchema = {
 		},
 	},
 	SETTINGS: {
+		NAV: 'Settings',
 		TITLE: 'Settings',
 		DESCRIPTION: 'Configure your application preferences.',
 		LANGUAGE: {
@@ -152,24 +156,8 @@ const en: TranslationSchema = {
 			SPANISH: 'Spanish',
 		},
 	},
-	NAV: {
-		HOME: {
-			WELCOME: 'Initial Setup',
-			SETTINGS: 'Settings',
-		},
-		SETTINGS: {
-			SECTION: 'Settings & Maintenance',
-			HEALTH: 'Health',
-		},
-		ADMIN: {
-			SECTION: 'Administration',
-			USERS: 'Users',
-			AUTHORIZATION: 'Authorization',
-			ROLES: 'Roles',
-			PERMISSIONS: 'Permissions',
-		},
-	},
 	HEALTH: {
+		NAV: 'Health',
 		TITLE: 'Application Health Checker',
 		LOADING: 'Loading...',
 		STATUS_LABEL: 'Status:',
@@ -184,7 +172,12 @@ const en: TranslationSchema = {
 	},
 	DASHBOARD: {
 		BREADCRUMB: 'Dashboard',
+		SECTIONS: {
+			SETTINGS: 'Settings & Maintenance',
+			ADMIN: 'Administration',
+		},
 		HOME: {
+			NAV: 'Initial Setup',
 			DESCRIPTIONS: {
 				WELCOME: 'Initial setup guide to prepare your application.',
 				SETTINGS: 'Configure your application preferences and language.',
@@ -194,6 +187,7 @@ const en: TranslationSchema = {
 			},
 		},
 		AUTHORIZATION: {
+			NAV: 'Authorization',
 			TITLE: 'Authorization',
 			ROLES_CARD: {
 				NAME: 'Roles',

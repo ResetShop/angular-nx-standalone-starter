@@ -133,7 +133,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'SETTINGS.LANGUAGE.LABEL': 'Language',
 	'SETTINGS.LANGUAGE.ENGLISH': 'English',
 	'SETTINGS.LANGUAGE.SPANISH': 'Spanish',
-	'NAV.HOME.SETTINGS': 'Settings',
+	'SETTINGS.NAV': 'Settings',
 
 	// Common extras
 	'COMMON.LOGOUT': 'Logout',

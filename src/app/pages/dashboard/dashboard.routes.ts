@@ -31,13 +31,13 @@ export default [
 			},
 			{
 				path: 'health',
-				title: 'NAV.SETTINGS.HEALTH',
+				title: 'HEALTH.NAV',
 				loadComponent: () => import('./pages/health/health'),
 			},
 			// TODO: Remove access to this route once the project setup is completed
 			{
 				path: 'welcome',
-				title: 'NAV.HOME.WELCOME',
+				title: 'DASHBOARD.HOME.NAV',
 				loadComponent: () => import('./pages/welcome/welcome'),
 			},
 			{
@@ -50,11 +50,11 @@ export default [
 			},
 			{
 				path: 'authorization',
-				title: 'NAV.ADMIN.AUTHORIZATION',
+				title: 'DASHBOARD.AUTHORIZATION.NAV',
 				children: [
 					{
 						path: '',
-						title: 'NAV.ADMIN.AUTHORIZATION',
+						title: 'DASHBOARD.AUTHORIZATION.NAV',
 						pathMatch: 'full',
 						loadComponent: () => import('./authorization/authorization-home'),
 					},

@@ -52,6 +52,7 @@ export interface TranslationSchema {
 	}
 	USERS: {
 		PAGE: {
+			NAV: string
 			TITLE: string
 			DESCRIPTION: string
 			SEARCH: string
@@ -91,6 +92,7 @@ export interface TranslationSchema {
 	}
 	ROLES: {
 		PAGE: {
+			NAV: string
 			TITLE: string
 			DESCRIPTION: string
 			SEARCH: string
@@ -130,6 +132,7 @@ export interface TranslationSchema {
 	}
 	PERMISSIONS: {
 		PAGE: {
+			NAV: string
 			TITLE: string
 			DESCRIPTION_INTRO: string
 			DESCRIPTION_PATTERN: string
@@ -145,6 +148,7 @@ export interface TranslationSchema {
 		}
 	}
 	SETTINGS: {
+		NAV: string
 		TITLE: string
 		DESCRIPTION: string
 		LANGUAGE: {
@@ -153,24 +157,8 @@ export interface TranslationSchema {
 			SPANISH: string
 		}
 	}
-	NAV: {
-		HOME: {
-			WELCOME: string
-			SETTINGS: string
-		}
-		SETTINGS: {
-			SECTION: string
-			HEALTH: string
-		}
-		ADMIN: {
-			SECTION: string
-			USERS: string
-			AUTHORIZATION: string
-			ROLES: string
-			PERMISSIONS: string
-		}
-	}
 	HEALTH: {
+		NAV: string
 		TITLE: string
 		LOADING: string
 		STATUS_LABEL: string
@@ -185,7 +173,12 @@ export interface TranslationSchema {
 	}
 	DASHBOARD: {
 		BREADCRUMB: string
+		SECTIONS: {
+			SETTINGS: string
+			ADMIN: string
+		}
 		HOME: {
+			NAV: string
 			DESCRIPTIONS: {
 				WELCOME: string
 				SETTINGS: string
@@ -195,6 +188,7 @@ export interface TranslationSchema {
 			}
 		}
 		AUTHORIZATION: {
+			NAV: string
 			TITLE: string
 			ROLES_CARD: {
 				NAME: string

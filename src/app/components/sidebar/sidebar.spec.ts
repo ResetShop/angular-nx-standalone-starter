@@ -166,8 +166,8 @@ describe('Sidebar', () => {
 		const brandLink = screen.getByRole('link', { name: /reset starter repo/i })
 		expect(brandLink).toBeInTheDocument()
 
-		// Verify it has the correct routing to the welcome page
-		expect(brandLink).toHaveAttribute('href', '/welcome')
+		// Verify it has the correct routing to the dashboard page
+		expect(brandLink).toHaveAttribute('href', '/dashboard')
 	})
 
 	it('should have proper structure with all sections and sign out button', async () => {

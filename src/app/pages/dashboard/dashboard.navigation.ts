@@ -8,15 +8,15 @@ export const dashboardNavigationConfig: NavigationConfig = {
 		{
 			id: 'home',
 			routes: [
-				{ id: 'welcome', name: 'NAV.HOME.WELCOME', route: 'dashboard/welcome', icon: { featherHome } },
-				{ id: 'settings', name: 'NAV.HOME.SETTINGS', route: 'dashboard/settings', icon: { featherSettings } },
+				{ id: 'welcome', name: 'DASHBOARD.HOME.NAV', route: 'dashboard/welcome', icon: { featherHome } },
+				{ id: 'settings', name: 'SETTINGS.NAV', route: 'dashboard/settings', icon: { featherSettings } },
 			],
 		},
 		{
 			id: 'settings',
-			name: 'NAV.SETTINGS.SECTION',
-			routes: [{ id: 'health', name: 'NAV.SETTINGS.HEALTH', route: 'dashboard/health', icon: { featherActivity } }],
+			name: 'DASHBOARD.SECTIONS.SETTINGS',
+			routes: [{ id: 'health', name: 'HEALTH.NAV', route: 'dashboard/health', icon: { featherActivity } }],
 		},
-		{ id: 'admin', name: 'NAV.ADMIN.SECTION', routes: [usersNavigation, authorizationNavigation] },
+		{ id: 'admin', name: 'DASHBOARD.SECTIONS.ADMIN', routes: [usersNavigation, authorizationNavigation] },
 	],
 }
