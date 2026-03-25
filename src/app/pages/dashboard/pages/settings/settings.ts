@@ -1,31 +1,27 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { FormField } from '@components/form-field/form-field'
 import { PageShell } from '@components/page-shell/page-shell'
+import { Select } from '@components/select/select'
+import type { SelectOption } from '@components/select/select-option'
 import { TranslatePipe } from '@providers/i18n/translate.pipe'
 import { type Language, Translation } from '@providers/i18n/translation'
 
 @Component({
 	selector: 'app-settings',
-	imports: [PageShell, TranslatePipe],
+	imports: [PageShell, TranslatePipe, FormField, Select],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<app-page-shell [title]="'SETTINGS.TITLE' | translate" [loading]="false">
 			<p pageDescription>{{ 'SETTINGS.DESCRIPTION' | translate }}</p>
 
 			<div class="max-w-md space-y-6">
-				<div class="space-y-2">
-					<label for="language-select" class="text-foreground text-sm font-medium">
-						{{ 'SETTINGS.LANGUAGE.LABEL' | translate }}
-					</label>
-					<select
-						(change)="onLanguageChange($event)"
+				<app-form-field [label]="'SETTINGS.LANGUAGE.LABEL' | translate">
+					<app-select
+						(valueChange)="onLanguageChange($event)"
+						[options]="languageOptions()"
 						[value]="translation.currentLanguage()"
-						id="language-select"
-						class="border-input bg-background text-foreground focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-					>
-						<option value="en">{{ 'SETTINGS.LANGUAGE.ENGLISH' | translate }}</option>
-						<option value="es">{{ 'SETTINGS.LANGUAGE.SPANISH' | translate }}</option>
-					</select>
-				</div>
+					/>
+				</app-form-field>
 			</div>
 		</app-page-shell>
 	`,
@@ -33,8 +29,12 @@ import { type Language, Translation } from '@providers/i18n/translation'
 export default class Settings {
 	protected readonly translation = inject(Translation)
 
-	protected onLanguageChange(event: Event): void {
-		const lang = (event.target as HTMLSelectElement).value as Language
-		this.translation.setLanguage(lang)
+	protected readonly languageOptions = computed<SelectOption[]>(() => [
+		{ value: 'en', label: this.translation.instant('SETTINGS.LANGUAGE.ENGLISH') },
+		{ value: 'es', label: this.translation.instant('SETTINGS.LANGUAGE.SPANISH') },
+	])
+
+	protected onLanguageChange(lang: string): void {
+		this.translation.setLanguage(lang as Language)
 	}
 }
