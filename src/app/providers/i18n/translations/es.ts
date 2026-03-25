@@ -143,9 +143,19 @@ const es: TranslationSchema = {
 			},
 		},
 	},
+	SETTINGS: {
+		TITLE: 'Ajustes',
+		DESCRIPTION: 'Configura las preferencias de tu aplicación.',
+		LANGUAGE: {
+			LABEL: 'Idioma',
+			ENGLISH: 'Inglés',
+			SPANISH: 'Español',
+		},
+	},
 	NAV: {
 		HOME: {
 			WELCOME: 'Configuración Inicial',
+			SETTINGS: 'Ajustes',
 		},
 		SETTINGS: {
 			SECTION: 'Ajustes y Mantenimiento',
@@ -176,6 +186,7 @@ const es: TranslationSchema = {
 		HOME: {
 			DESCRIPTIONS: {
 				WELCOME: 'Guía de configuración inicial para preparar tu aplicación.',
+				SETTINGS: 'Configura las preferencias de tu aplicación e idioma.',
 				HEALTH: 'Monitorea el estado y la salud de los servicios de tu aplicación.',
 				USERS: 'Gestiona las cuentas de usuario, sus roles y permisos de acceso.',
 				AUTHORIZATION: 'Administra los roles y permisos que controlan el acceso a la plataforma.',

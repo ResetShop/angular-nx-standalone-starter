@@ -142,9 +142,19 @@ const en: TranslationSchema = {
 			},
 		},
 	},
+	SETTINGS: {
+		TITLE: 'Settings',
+		DESCRIPTION: 'Configure your application preferences.',
+		LANGUAGE: {
+			LABEL: 'Language',
+			ENGLISH: 'English',
+			SPANISH: 'Spanish',
+		},
+	},
 	NAV: {
 		HOME: {
 			WELCOME: 'Initial Setup',
+			SETTINGS: 'Settings',
 		},
 		SETTINGS: {
 			SECTION: 'Settings & Maintenance',
@@ -175,6 +185,7 @@ const en: TranslationSchema = {
 		HOME: {
 			DESCRIPTIONS: {
 				WELCOME: 'Initial setup guide to prepare your application.',
+				SETTINGS: 'Configure your application preferences and language.',
 				HEALTH: 'Monitor the health and status of your application services.',
 				USERS: 'Manage user accounts, their roles, and access permissions.',
 				AUTHORIZATION: 'Manage roles and permissions that control access to the platform.',

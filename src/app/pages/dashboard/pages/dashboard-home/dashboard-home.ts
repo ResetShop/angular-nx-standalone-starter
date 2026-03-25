@@ -38,6 +38,7 @@ export default class DashboardHome {
 	protected getDescription(routeId: string): string {
 		const keyMap: Record<string, TranslationKey> = {
 			welcome: 'DASHBOARD.HOME.DESCRIPTIONS.WELCOME',
+			settings: 'DASHBOARD.HOME.DESCRIPTIONS.SETTINGS',
 			health: 'DASHBOARD.HOME.DESCRIPTIONS.HEALTH',
 			users: 'DASHBOARD.HOME.DESCRIPTIONS.USERS',
 			authorization: 'DASHBOARD.HOME.DESCRIPTIONS.AUTHORIZATION',

@@ -3,9 +3,9 @@ import { Translation } from './translation'
 import type { TranslationKey } from './translations.schema'
 
 /**
- * Pure pipe that translates a key using the Translation service.
- * Translations are loaded synchronously by the app initializer before the first render,
- * so this pipe is safe to use as a pure pipe (output is stable for the session's language).
+ * Impure pipe that translates a key using the Translation service.
+ * Marked impure so it re-evaluates when the active language changes at runtime.
+ * The `instant()` call is a hashmap lookup — the per-cycle cost is negligible.
  *
  * @example
  * ```html
@@ -13,7 +13,7 @@ import type { TranslationKey } from './translations.schema'
  * <button>{{ 'COMMON.CANCEL' | translate }}</button>
  * ```
  */
-@Pipe({ name: 'translate', pure: true, standalone: true })
+@Pipe({ name: 'translate', pure: false, standalone: true })
 export class TranslatePipe implements PipeTransform {
 	private readonly translation = inject(Translation)
 

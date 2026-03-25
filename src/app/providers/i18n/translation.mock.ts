@@ -126,6 +126,14 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'HEALTH.DATABASE.HEADER': 'Database',
 	'HEALTH.DATABASE.STATUS': 'Status:',
 	'HEALTH.DATABASE.RESPONSE_TIME': 'Response Time:',
+
+	// Settings
+	'SETTINGS.TITLE': 'Settings',
+	'SETTINGS.DESCRIPTION': 'Configure your application preferences.',
+	'SETTINGS.LANGUAGE.LABEL': 'Language',
+	'SETTINGS.LANGUAGE.ENGLISH': 'English',
+	'SETTINGS.LANGUAGE.SPANISH': 'Spanish',
+	'NAV.HOME.SETTINGS': 'Settings',
 }
 
 /**

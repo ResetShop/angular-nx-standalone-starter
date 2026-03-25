@@ -25,6 +25,11 @@ export default [
 				loadComponent: () => import('./pages/dashboard-home/dashboard-home'),
 			},
 			{
+				path: 'settings',
+				title: 'Settings',
+				loadComponent: () => import('./pages/settings/settings'),
+			},
+			{
 				path: 'health',
 				title: 'Salud',
 				loadComponent: () => import('./pages/health/health'),

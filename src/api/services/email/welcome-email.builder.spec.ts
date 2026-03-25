@@ -14,6 +14,7 @@ describe('buildWelcomeEmail', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
+		delete process.env['APP_LANGUAGE']
 	})
 
 	afterEach(() => {

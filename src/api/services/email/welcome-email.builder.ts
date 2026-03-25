@@ -53,14 +53,15 @@ function resolveEmailLanguage(lang: string | undefined): EmailLanguage {
  * Returns subject, HTML, and plain text email content
  *
  * @param params User details and temporary password
+ * @param lang - Optional language override. Falls back to APP_LANGUAGE env var, then 'en'.
  * @returns Email content with subject, HTML, and text versions
  */
-export function buildWelcomeEmail(params: WelcomeEmailParams): EmailContent {
-	const lang = resolveEmailLanguage(process.env['APP_LANGUAGE'])
-	const t = EMAIL_TRANSLATIONS[lang]
+export function buildWelcomeEmail(params: WelcomeEmailParams, lang?: string): EmailContent {
+	const resolvedLang = resolveEmailLanguage(lang ?? process.env['APP_LANGUAGE'])
+	const t = EMAIL_TRANSLATIONS[resolvedLang]
 
 	const text = buildTextContent(params, t)
-	const html = buildHtmlContent(params, t, lang)
+	const html = buildHtmlContent(params, t, resolvedLang)
 
 	return { subject: t.subject, html, text }
 }

@@ -143,9 +143,19 @@ export interface TranslationSchema {
 			}
 		}
 	}
+	SETTINGS: {
+		TITLE: string
+		DESCRIPTION: string
+		LANGUAGE: {
+			LABEL: string
+			ENGLISH: string
+			SPANISH: string
+		}
+	}
 	NAV: {
 		HOME: {
 			WELCOME: string
+			SETTINGS: string
 		}
 		SETTINGS: {
 			SECTION: string
@@ -176,6 +186,7 @@ export interface TranslationSchema {
 		HOME: {
 			DESCRIPTIONS: {
 				WELCOME: string
+				SETTINGS: string
 				HEALTH: string
 				USERS: string
 				AUTHORIZATION: string
