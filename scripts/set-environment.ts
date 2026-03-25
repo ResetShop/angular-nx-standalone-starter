@@ -130,8 +130,5 @@ writeFile(targetPath, environmentFileContent, { flag: 'w' }, function (err: Errn
 		return
 	}
 	console.log(`Environment variables written to ${targetPath}`)
-	console.log('Vercel Environment - VERCEL_TARGET_ENV = ', process.env['VERCEL_TARGET_ENV'])
-	console.log('Vercel Environment - VERCEL_URL = ', process.env['VERCEL_URL'])
-	console.log('Vercel branch URL - VERCEL_BRANCH_URL = ', process.env['VERCEL_BRANCH_URL'])
 	console.log('API and Website URL = ', apiUrl)
 })
