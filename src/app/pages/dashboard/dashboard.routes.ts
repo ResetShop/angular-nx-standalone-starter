@@ -20,7 +20,7 @@ export default [
 		children: [
 			{
 				path: '',
-				title: 'DASHBOARD.BREADCRUMB',
+				title: '',
 				pathMatch: 'full',
 				loadComponent: () => import('./pages/dashboard-home/dashboard-home'),
 			},
