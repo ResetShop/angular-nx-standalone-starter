@@ -3,12 +3,13 @@ import { RouterLink } from '@angular/router'
 
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronRight } from '@ng-icons/feather-icons'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
 import { Navigation } from '@providers/navigation/navigation'
 
 @Component({
 	selector: 'app-breadcrumb',
 	standalone: true,
-	imports: [NgIcon, RouterLink],
+	imports: [NgIcon, RouterLink, TranslatePipe],
 	providers: [provideIcons({ featherChevronRight })],
 	template: `
 		<nav class="flex items-center gap-1" aria-label="Breadcrumb">
@@ -18,12 +19,12 @@ import { Navigation } from '@providers/navigation/navigation'
 						<div class="flex items-center gap-1">
 							@if (!item.isActive) {
 								<a [routerLink]="item.path" class="text-muted-foreground hover:text-foreground text-sm font-medium">
-									{{ item.title }}
+									{{ item.title | translate }}
 								</a>
 							}
 							@if (item.isActive) {
 								<span class="text-foreground text-sm font-medium" aria-current="page">
-									{{ item.title }}
+									{{ item.title | translate }}
 								</span>
 							}
 						</div>

@@ -10,7 +10,14 @@ import { UIStore } from '@store/ui/ui.store'
 	imports: [Button, NgIcon, RouterLink],
 	template: `
 		<!--	TODO: Replace with the navigation to your home page / initial page -->
-		<a [routerLink]="['welcome']" [fullWidth]="true" appButton variant="default" size="sm" class="gap-2 font-semibold">
+		<a
+			[routerLink]="['..', 'dashboard']"
+			[fullWidth]="true"
+			appButton
+			variant="default"
+			size="sm"
+			class="gap-2 font-semibold"
+		>
 			<ng-icon name="featherRefreshCw" data-icon="start" />
 			@if (!collapsed()) {
 				Reset Starter Repo

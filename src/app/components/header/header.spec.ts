@@ -1,6 +1,7 @@
 import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { BreadcrumbItem } from '@interfaces/navigation'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { Navigation } from '@providers/navigation/navigation'
 import { provideMockTheme } from '@providers/theme/theme.mock'
 import { UIStore } from '@store/ui/ui.store'
@@ -22,6 +23,7 @@ describe('Header', () => {
 	})
 
 	const defaultProviders = () => [
+		provideTranslationMock(),
 		provideRouter([]),
 		provideMockTheme(false),
 		{ provide: UIStore, useValue: mockUIStore },

@@ -12,16 +12,17 @@ import NavItem from '@components/nav-item/nav-item'
 import { NavigationSection } from '@interfaces/navigation'
 import { provideIcons } from '@ng-icons/core'
 import { featherChevronRight } from '@ng-icons/feather-icons'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
 import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	selector: 'app-nav-section',
-	imports: [NgComponentOutlet],
+	imports: [NgComponentOutlet, TranslatePipe],
 	template: `
 		@if (showTitle() && section().name) {
 			@if (!collapsed()) {
 				<div class="flex h-8 items-center px-2 text-xs font-medium text-wrap text-black/70 dark:text-white/70">
-					{{ section().name }}
+					{{ section().name | translate }}
 				</div>
 			}
 		}

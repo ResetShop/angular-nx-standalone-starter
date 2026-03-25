@@ -1,4 +1,5 @@
 import { Component, input } from '@angular/core'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import { parseDurationToMs } from '@utils/duration'
@@ -63,21 +64,21 @@ describe('PageShell', () => {
 	})
 
 	it('should render the title', async () => {
-		await render(TestHost)
+		await render(TestHost, { providers: [provideTranslationMock()] })
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 
 		expect(screen.getByRole('heading', { level: 1, name: 'Test Page' })).toBeInTheDocument()
 	})
 
 	it('should project description content', async () => {
-		await render(TestHost)
+		await render(TestHost, { providers: [provideTranslationMock()] })
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 
 		expect(screen.getByText('A test description')).toBeInTheDocument()
 	})
 
 	it('should hide the description paragraph when no content is projected', async () => {
-		const { fixture } = await render(TestHostNoDescription)
+		const { fixture } = await render(TestHostNoDescription, { providers: [provideTranslationMock()] })
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 		fixture.detectChanges()
 
@@ -86,7 +87,7 @@ describe('PageShell', () => {
 	})
 
 	it('should project actions content above the main content area', async () => {
-		const { fixture } = await render(TestHostWithActions)
+		const { fixture } = await render(TestHostWithActions, { providers: [provideTranslationMock()] })
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 		fixture.detectChanges()
 
@@ -96,15 +97,16 @@ describe('PageShell', () => {
 	})
 
 	it('should show loading state with spinner and text by default', async () => {
-		await render(TestHost)
+		await render(TestHost, { providers: [provideTranslationMock()] })
 
 		expect(screen.getByRole('status')).toBeInTheDocument()
-		expect(screen.getByText('Cargando...')).toBeInTheDocument()
+		expect(screen.getByText('Loading...')).toBeInTheDocument()
 		expect(screen.queryByTestId('page-content')).not.toBeInTheDocument()
 	})
 
 	it('should show loading for at least 500ms even when loading input is false', async () => {
 		const { fixture } = await render(TestHost, {
+			providers: [provideTranslationMock()],
 			componentInputs: { loading: false },
 		})
 
@@ -119,9 +121,7 @@ describe('PageShell', () => {
 	})
 
 	it('should keep loading visible when minimum elapsed but loading input is still true', async () => {
-		await render(TestHost, {
-			componentInputs: { loading: true },
-		})
+		await render(TestHost, { providers: [provideTranslationMock()], componentInputs: { loading: true } })
 
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 
@@ -130,7 +130,7 @@ describe('PageShell', () => {
 	})
 
 	it('should project content after minimum elapsed and loading is false', async () => {
-		const { fixture } = await render(TestHost)
+		const { fixture } = await render(TestHost, { providers: [provideTranslationMock()] })
 
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 
@@ -142,9 +142,7 @@ describe('PageShell', () => {
 	})
 
 	it('should show spinner when loading is explicitly true', async () => {
-		await render(TestHost, {
-			componentInputs: { loading: true },
-		})
+		await render(TestHost, { providers: [provideTranslationMock()], componentInputs: { loading: true } })
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
 
 		expect(screen.getByRole('status')).toBeInTheDocument()
@@ -153,6 +151,7 @@ describe('PageShell', () => {
 
 	it('should show action skeletons during loading and hide real actions', async () => {
 		await render(TestHostWithActions, {
+			providers: [provideTranslationMock()],
 			componentInputs: { loading: true },
 		})
 
@@ -162,6 +161,7 @@ describe('PageShell', () => {
 
 	it('should show real actions and hide skeletons after loading completes', async () => {
 		const { fixture } = await render(TestHostWithActions, {
+			providers: [provideTranslationMock()],
 			componentInputs: { loading: true },
 		})
 
@@ -175,6 +175,7 @@ describe('PageShell', () => {
 
 	it('should show error alert when error is set', async () => {
 		const { fixture } = await render(TestHost, {
+			providers: [provideTranslationMock()],
 			componentInputs: { error: 'Something went wrong', loading: false },
 		})
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))

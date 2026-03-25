@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, input, OnDestroy, signal 
 import { Spinner } from '@components/spinner/spinner'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherAlertCircle } from '@ng-icons/feather-icons'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
 import { parseDurationToMs } from '@utils/duration'
 
 @Component({
 	selector: 'app-page-shell',
 	standalone: true,
-	imports: [Spinner, NgIcon],
+	imports: [Spinner, NgIcon, TranslatePipe],
 	host: { '[attr.title]': 'null' },
 	providers: [provideIcons({ featherAlertCircle })],
 	template: `
@@ -31,7 +32,7 @@ import { parseDurationToMs } from '@utils/duration'
 					role="status"
 				>
 					<app-spinner class="size-8" />
-					<span>Cargando...</span>
+					<span>{{ 'COMMON.LOADING' | translate }}</span>
 				</div>
 			} @else if (error()) {
 				<div

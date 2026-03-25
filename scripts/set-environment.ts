@@ -31,7 +31,7 @@ const targetPath = `${dirPath}/environment.ts`
 // Include your shareable default values for .env files, if any
 const defaultEnvVariables = {
 	NODE_ENV: 'development',
-	DEFAULT_LANGUAGE: 'en',
+	APP_LANGUAGE: 'en',
 }
 
 // Creates an .env with default variables if it doesn't exist yet
@@ -105,7 +105,7 @@ const exportedEnvironment = {
 	website: `${apiUrl ?? ''}`, // TODO: Include production domain here, if exists
 	apiUrl: `${apiUrl}`,
 	clarityProjectId: '',
-	defaultLanguage: (process.env['DEFAULT_LANGUAGE'] as 'en' | 'es') ?? 'en',
+	defaultLanguage: (process.env['APP_LANGUAGE'] as 'en' | 'es') ?? 'en',
 }
 
 // Checks if the environment variable for Microsoft Clarity analytics exists
@@ -130,8 +130,5 @@ writeFile(targetPath, environmentFileContent, { flag: 'w' }, function (err: Errn
 		return
 	}
 	console.log(`Environment variables written to ${targetPath}`)
-	console.log('Vercel Environment - VERCEL_TARGET_ENV = ', process.env['VERCEL_TARGET_ENV'])
-	console.log('Vercel Environment - VERCEL_URL = ', process.env['VERCEL_URL'])
-	console.log('Vercel branch URL - VERCEL_BRANCH_URL = ', process.env['VERCEL_BRANCH_URL'])
 	console.log('API and Website URL = ', apiUrl)
 })

@@ -5,7 +5,7 @@ import { rolesNavigation } from '../roles/roles.navigation'
 
 export const authorizationNavigation: ParentNavigationRoute = {
 	id: 'authorization',
-	name: 'Autorización',
+	name: 'DASHBOARD.AUTHORIZATION.NAV',
 	route: 'dashboard/authorization/roles',
 	icon: { featherShield },
 	children: [rolesNavigation, permissionsNavigation],

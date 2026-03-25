@@ -1,11 +1,12 @@
 import { provideRouter } from '@angular/router'
 import { Breadcrumb } from '@components/breadcrumb/breadcrumb'
 import { BreadcrumbItem } from '@interfaces/navigation'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { Navigation } from '@providers/navigation/navigation'
 import { render, screen } from '@testing-library/angular'
 
 describe('Breadcrumb', () => {
-	const defaultProviders = () => [provideRouter([])]
+	const defaultProviders = () => [provideTranslationMock(), provideRouter([])]
 
 	const createNavigationWithBreadcrumbs = (breadcrumbs: BreadcrumbItem[]) => ({
 		provide: Navigation,

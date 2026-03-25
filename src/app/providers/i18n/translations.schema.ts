@@ -4,6 +4,19 @@
  */
 export interface TranslationSchema {
 	AUTH: {
+		LOGIN: {
+			TITLE: string
+			EMAIL_LABEL: string
+			PASSWORD_LABEL: string
+			FORGOT_PASSWORD: string
+			SUBMIT: string
+		}
+		RESET_PASSWORD: {
+			TITLE: string
+			EMAIL_LABEL: string
+			SUBMIT: string
+			BACK_TO_LOGIN: string
+		}
 		ERRORS: {
 			INVALID_CREDENTIALS: string
 			ACCOUNT_LOCKED: string
@@ -12,6 +25,179 @@ export interface TranslationSchema {
 			TOKEN_EXPIRED: string
 			TOKEN_INVALID: string
 			GENERIC: string
+		}
+	}
+	COMMON: {
+		LOADING: string
+		CANCEL: string
+		SAVE: string
+		SAVING: string
+		CREATE: string
+		CREATING: string
+		EDIT: string
+		DELETE: string
+		DISCARD: string
+		CONFIRM: string
+		DISCARD_DIALOG: {
+			TITLE: string
+			MESSAGE: string
+			CONFIRM: string
+		}
+		LOGOUT: string
+		STATUS: {
+			ACTIVE: string
+			DISABLED: string
+			DELETED: string
+		}
+	}
+	USERS: {
+		PAGE: {
+			NAV: string
+			TITLE: string
+			DESCRIPTION: string
+			SEARCH: string
+			CREATE_BUTTON: string
+			DELETE_DIALOG: {
+				TITLE: string
+				MESSAGE: string
+			}
+		}
+		TABLE: {
+			CAPTION: string
+			HEADER: {
+				NAME: string
+				EMAIL: string
+				STATUS: string
+				ROLES: string
+			}
+		}
+		CREATE_DRAWER: {
+			TITLE: string
+			FIRST_NAME: string
+			LAST_NAME: string
+			EMAIL: string
+			MUST_CHANGE_PASSWORD: string
+			ROLES_LABEL: string
+			SUCCESS_TOAST: string
+		}
+		EDIT_DRAWER: {
+			TITLE: string
+			FIRST_NAME: string
+			LAST_NAME: string
+			EMAIL: string
+			ROLES_LABEL: string
+			SUCCESS_TOAST: string
+		}
+		DELETE_TOAST: string
+	}
+	ROLES: {
+		PAGE: {
+			NAV: string
+			TITLE: string
+			DESCRIPTION: string
+			SEARCH: string
+			CREATE_BUTTON: string
+			DELETE_DIALOG: {
+				TITLE: string
+				MESSAGE: string
+			}
+		}
+		TABLE: {
+			CAPTION: string
+			HEADER: {
+				NAME: string
+				CODE: string
+				DESCRIPTION: string
+			}
+		}
+		CREATE_DRAWER: {
+			TITLE: string
+			NAME: string
+			CODE: string
+			CODE_HINT: string
+			DESCRIPTION: string
+			PERMISSIONS: string
+			SUCCESS_TOAST: string
+		}
+		EDIT_DRAWER: {
+			TITLE: string
+			NAME: string
+			CODE: string
+			CODE_HINT: string
+			DESCRIPTION: string
+			PERMISSIONS: string
+			SUCCESS_TOAST: string
+		}
+		DELETE_TOAST: string
+	}
+	PERMISSIONS: {
+		PAGE: {
+			NAV: string
+			TITLE: string
+			DESCRIPTION_INTRO: string
+			DESCRIPTION_PATTERN: string
+		}
+		TABLE: {
+			CAPTION: string
+			HEADER: {
+				RESOURCE: string
+				ACTION: string
+				IDENTIFIER: string
+				DESCRIPTION: string
+			}
+		}
+	}
+	SETTINGS: {
+		NAV: string
+		TITLE: string
+		DESCRIPTION: string
+		LANGUAGE: {
+			LABEL: string
+			ENGLISH: string
+			SPANISH: string
+		}
+	}
+	HEALTH: {
+		NAV: string
+		TITLE: string
+		LOADING: string
+		STATUS_LABEL: string
+		DATE_TIME_LABEL: string
+		CHECKS_HEADER: string
+		ERROR_TITLE: string
+		DATABASE: {
+			HEADER: string
+			STATUS: string
+			RESPONSE_TIME: string
+		}
+	}
+	DASHBOARD: {
+		BREADCRUMB: string
+		SECTIONS: {
+			SETTINGS: string
+			ADMIN: string
+		}
+		HOME: {
+			NAV: string
+			DESCRIPTIONS: {
+				WELCOME: string
+				SETTINGS: string
+				HEALTH: string
+				USERS: string
+				AUTHORIZATION: string
+			}
+		}
+		AUTHORIZATION: {
+			NAV: string
+			TITLE: string
+			ROLES_CARD: {
+				NAME: string
+				DESCRIPTION: string
+			}
+			PERMISSIONS_CARD: {
+				NAME: string
+				DESCRIPTION: string
+			}
 		}
 	}
 	HTTP: {

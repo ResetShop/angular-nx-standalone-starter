@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router'
 import { Button } from '@components/button/button'
 import Card from '@components/card/card'
 import { FormField } from '@components/form-field/form-field'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
 
 interface ResetPasswordForm {
 	email: string
@@ -12,7 +13,7 @@ interface ResetPasswordForm {
 
 @Component({
 	selector: 'app-reset-password-page',
-	imports: [Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField],
+	imports: [Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField, TranslatePipe],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
 			<form (ngSubmit)="onSubmit()" class="z-10">
@@ -20,13 +21,13 @@ interface ResetPasswordForm {
 				<ng-template #cardTitle>
 					<div class="mt-4 flex flex-col gap-4">
 						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-						<div class="mb-8 text-center">Restablecer contraseña</div>
+						<div class="mb-8 text-center">{{ 'AUTH.RESET_PASSWORD.TITLE' | translate }}</div>
 					</div>
 				</ng-template>
 
 				<ng-template #cardContent>
 					<div class="flex w-96 flex-col gap-6">
-						<app-form-field [label]="'Dirección de email'">
+						<app-form-field [label]="'AUTH.RESET_PASSWORD.EMAIL_LABEL' | translate">
 							<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" />
 						</app-form-field>
 					</div>
@@ -35,11 +36,13 @@ interface ResetPasswordForm {
 				<ng-template #cardFooter>
 					<div class="flex flex-col gap-4 font-semibold">
 						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton variant="default" size="md" type="submit">
-							Enviar enlace de restablecimiento
+							{{ 'AUTH.RESET_PASSWORD.SUBMIT' | translate }}
 						</button>
 
 						<div class="text-muted-foreground text-center text-sm">
-							<a [routerLink]="loginUrl" appButton variant="link">Volver al inicio de sesión</a>
+							<a [routerLink]="loginUrl" appButton variant="link">
+								{{ 'AUTH.RESET_PASSWORD.BACK_TO_LOGIN' | translate }}
+							</a>
 						</div>
 					</div>
 				</ng-template>

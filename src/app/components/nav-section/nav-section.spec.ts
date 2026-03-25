@@ -1,6 +1,7 @@
 import { provideRouter } from '@angular/router'
 import { NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome, featherRefreshCw, featherSettings } from '@ng-icons/feather-icons'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { render, screen } from '@testing-library/angular'
 import NavSection from './nav-section'
@@ -62,7 +63,7 @@ describe('NavSection', () => {
 		],
 	}
 
-	const defaultProviders = () => [provideRouter([]), NavigationState]
+	const defaultProviders = () => [provideRouter([]), NavigationState, provideTranslationMock()]
 
 	it('should create the nav section component', async () => {
 		const { fixture } = await render(NavSection, {

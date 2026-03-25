@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router'
 import { NavigationSection } from '@interfaces/navigation'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { provideMockTheme } from '@providers/theme/theme.mock'
@@ -25,6 +26,7 @@ describe('Sidebar', () => {
 		provideHttpClientTesting(),
 		provideAuthMock(),
 		NavigationState,
+		provideTranslationMock(),
 	]
 
 	const createNavigationWithSections = (sections: NavigationSection[]) => ({
@@ -108,7 +110,7 @@ describe('Sidebar', () => {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		})
 
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 		expect(signOutButton).toBeInTheDocument()
 		expect(signOutButton).toHaveAttribute('variant', 'link')
 	})
@@ -132,7 +134,7 @@ describe('Sidebar', () => {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		})
 
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 		expect(signOutButton).toBeInTheDocument()
 
 		await user.click(signOutButton)
@@ -164,8 +166,8 @@ describe('Sidebar', () => {
 		const brandLink = screen.getByRole('link', { name: /reset starter repo/i })
 		expect(brandLink).toBeInTheDocument()
 
-		// Verify it has the correct routing to the welcome page
-		expect(brandLink).toHaveAttribute('href', '/welcome')
+		// Verify it has the correct routing to the dashboard page
+		expect(brandLink).toHaveAttribute('href', '/dashboard')
 	})
 
 	it('should have proper structure with all sections and sign out button', async () => {
@@ -175,7 +177,7 @@ describe('Sidebar', () => {
 
 		const sectionTitles = screen.getByText('Ajustes y mantenimiento')
 		const adminTitle = screen.getByText('Administración')
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 
 		expect(sectionTitles).toBeInTheDocument()
 		expect(adminTitle).toBeInTheDocument()

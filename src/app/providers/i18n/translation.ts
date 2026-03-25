@@ -7,36 +7,37 @@ import type { TranslationKey, TranslationSchema } from './translations.schema'
  */
 export type Language = 'en' | 'es'
 
+const LANGUAGE_STORAGE_KEY = 'app_language'
+
+function isLanguage(value: string | null): value is Language {
+	return value === 'en' || value === 'es'
+}
+
 /**
- * Simple translation provider for i18n support.
+ * Translation provider for i18n support.
  *
- * This provider offers basic translation capabilities using JSON files.
- * Translations are loaded asynchronously and cached in memory.
+ * Translations are lazy-loaded via dynamic imports and cached in memory.
+ * Language preference is persisted in localStorage and restored on init.
  *
- * Usage:
+ * @example
  * ```typescript
- * constructor(private i18n: Translation) {}
- *
- * getMessage() {
- *   return this.i18n.instant('AUTH.ERRORS.INVALID_CREDENTIALS');
- * }
- * ```
- *
- * @example
- * // Set language
- * translation.setLanguage('es');
- *
- * @example
  * // Get translated string
  * const message = translation.instant('AUTH.ERRORS.ACCOUNT_LOCKED');
+ *
+ * // Switch language at runtime (lazy-loads the translation file)
+ * await translation.setLanguage('es');
+ * ```
  */
 @Injectable({ providedIn: 'root' })
 export class Translation {
 	/**
-	 * Current active language.
-	 * Defaults to the value set in environment.defaultLanguage, or 'en' if not set.
+	 * Current active language signal.
+	 * Initializes from localStorage (if available), then environment default, then 'en'.
 	 */
-	private readonly currentLang = signal<Language>((environment.defaultLanguage as Language) ?? 'en')
+	private readonly currentLang = signal<Language>(this.resolveInitialLanguage())
+
+	/** Public readonly signal for the current language. */
+	public readonly currentLanguage = this.currentLang.asReadonly()
 
 	/**
 	 * In-memory cache of loaded translations.
@@ -94,14 +95,6 @@ export class Translation {
 	 * @param key - Translation key in dot notation (e.g., 'AUTH.ERRORS.INVALID_CREDENTIALS')
 	 * @returns Translated string or the key if not found
 	 * @throws Error if translations for the current language are not loaded
-	 *
-	 * @example
-	 * ```typescript
-	 * const message = translation.instant('AUTH.ERRORS.ACCOUNT_LOCKED');
-	 * // Returns: "Tu cuenta ha sido bloqueada..." (if language is 'es')
-	 * // TypeScript will error if you use an invalid key:
-	 * // translation.instant('INVALID.KEY'); // ❌ Type error
-	 * ```
 	 */
 	public instant(key: TranslationKey): string {
 		const currentTranslations = this.translations[this.currentLang()]
@@ -128,18 +121,18 @@ export class Translation {
 
 	/**
 	 * Sets the active language.
-	 * Automatically loads the translation file if not already loaded.
+	 * Lazy-loads the translation file if not already cached, then switches.
+	 * Persists the choice in localStorage for subsequent visits.
 	 *
 	 * @param lang - Language code to set as active
-	 *
-	 * @example
-	 * ```typescript
-	 * await translation.setLanguage('en');
-	 * ```
 	 */
 	public async setLanguage(lang: Language): Promise<void> {
 		await this.loadTranslation(lang)
 		this.currentLang.set(lang)
+
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem(LANGUAGE_STORAGE_KEY, lang)
+		}
 	}
 
 	/**
@@ -149,5 +142,16 @@ export class Translation {
 	 */
 	public getCurrentLanguage(): Language {
 		return this.currentLang()
+	}
+
+	/**
+	 * Resolves the initial language from localStorage → environment default → 'en'.
+	 */
+	private resolveInitialLanguage(): Language {
+		if (typeof localStorage !== 'undefined') {
+			const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY)
+			if (isLanguage(stored)) return stored
+		}
+		return (environment.defaultLanguage as Language) ?? 'en'
 	}
 }

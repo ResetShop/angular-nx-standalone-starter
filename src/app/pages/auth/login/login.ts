@@ -15,12 +15,23 @@ import { Button } from '@components/button/button'
 import Card from '@components/card/card'
 import { FormField } from '@components/form-field/form-field'
 import type { LoginForm } from '@interfaces/auth'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
 import { Translation } from '@providers/i18n/translation'
 import { AuthStore } from '@store/auth/auth.store'
 
 @Component({
 	selector: 'app-login-page',
-	imports: [Alert, AlertDescription, Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField],
+	imports: [
+		Alert,
+		AlertDescription,
+		Card,
+		Button,
+		NgOptimizedImage,
+		RouterLink,
+		FormField,
+		SignalFormField,
+		TranslatePipe,
+	],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
 			<form (submit)="onSubmit($event)" class="z-10 sm:h-[420px] sm:w-[420px]">
@@ -34,18 +45,18 @@ import { AuthStore } from '@store/auth/auth.store'
 					<!-- TODO: Replace the image for your system/company logo -->
 					<div class="mt-4 flex flex-col gap-4">
 						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-						<div class="text-foreground mb-8 text-center">Ingresar al sistema</div>
+						<div class="text-foreground mb-8 text-center">{{ 'AUTH.LOGIN.TITLE' | translate }}</div>
 					</div>
 				</ng-template>
 
 				<ng-template #cardContent>
 					<div class="flex w-96 flex-col gap-6">
-						<app-form-field [label]="'Dirección de email'" [showRequired]="false">
+						<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
 							<input [formField]="loginForm.email" type="email" autocomplete="email" />
 						</app-form-field>
 
 						<div>
-							<app-form-field [label]="'Contraseña'" [showRequired]="false">
+							<app-form-field [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate" [showRequired]="false">
 								<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
 							</app-form-field>
 							<div class="mt-1 text-right text-sm">
@@ -53,7 +64,7 @@ import { AuthStore } from '@store/auth/auth.store'
 									[routerLink]="resetPassword"
 									class="text-default hover:text-default/90 font-semibold hover:underline"
 								>
-									¿Olvidaste tu contraseña?
+									{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
 								</a>
 							</div>
 						</div>
@@ -69,7 +80,7 @@ import { AuthStore } from '@store/auth/auth.store'
 				<ng-template #cardFooter>
 					<div class="flex justify-center font-semibold">
 						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton size="md" type="submit">
-							Iniciar sesión
+							{{ 'AUTH.LOGIN.SUBMIT' | translate }}
 						</button>
 					</div>
 				</ng-template>

@@ -6,13 +6,13 @@ import { NamedRoute } from '@interfaces/navigation'
 export const appRoutes: Route[] = [
 	{
 		path: 'auth',
-		title: 'Autenticación',
+		title: 'AUTH.LOGIN.TITLE',
 		canActivate: [noAuthGuard],
 		loadChildren: () => import('./pages/auth.routes'),
 	},
 	{
 		path: 'dashboard',
-		title: 'Panel Principal',
+		title: 'DASHBOARD.BREADCRUMB',
 		canActivate: [authGuard],
 		loadChildren: () => import('./pages/dashboard/dashboard.routes'),
 	},

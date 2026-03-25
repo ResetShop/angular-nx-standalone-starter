@@ -3,21 +3,11 @@ import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { provideAuthMock } from '@providers/auth/auth.mock'
-import { Translation } from '@providers/i18n/translation'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { clearAllMocks } from '@test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import Login from './login'
-
-const TRANSLATIONS: Record<string, string> = {
-	'VALIDATION.REQUIRED': 'This field is required',
-	'VALIDATION.EMAIL': 'Please enter a valid email address',
-	'VALIDATION.MIN_LENGTH': 'Must be at least {min} characters',
-}
-
-const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
-}
 
 describe('Login', () => {
 	beforeEach(() => clearAllMocks())
@@ -27,7 +17,7 @@ describe('Login', () => {
 		provideHttpClient(),
 		provideHttpClientTesting(),
 		provideAuthMock(),
-		{ provide: Translation, useValue: mockTranslation },
+		provideTranslationMock(),
 		...provideSignalFormsConfig({}),
 	]
 
@@ -42,14 +32,14 @@ describe('Login', () => {
 	it('should render the login form with email and password fields', async () => {
 		await renderLogin()
 
-		expect(screen.getByLabelText(/dirección de email/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/contraseña/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/Email address/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/Password/i)).toBeInTheDocument()
 	})
 
 	it('should render submit button with appButton directive', async () => {
 		await renderLogin()
 
-		const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
+		const submitButton = screen.getByRole('button', { name: /Sign in/i })
 
 		expect(submitButton).toHaveClass('bg-default')
 		expect(submitButton).toHaveClass('inline-flex')
@@ -60,7 +50,7 @@ describe('Login', () => {
 		const user = userEvent.setup()
 		await renderLogin()
 
-		const emailInput = screen.getByLabelText(/dirección de email/i)
+		const emailInput = screen.getByLabelText(/Email address/i)
 		await user.click(emailInput)
 		await user.tab()
 
@@ -71,7 +61,7 @@ describe('Login', () => {
 		const user = userEvent.setup()
 		await renderLogin()
 
-		const emailInput = screen.getByLabelText(/dirección de email/i)
+		const emailInput = screen.getByLabelText(/Email address/i)
 		await user.type(emailInput, 'invalid-email')
 		await user.tab()
 
@@ -82,7 +72,7 @@ describe('Login', () => {
 		const user = userEvent.setup()
 		await renderLogin()
 
-		const passwordInput = screen.getByLabelText(/contraseña/i)
+		const passwordInput = screen.getByLabelText(/Password/i)
 		await user.click(passwordInput)
 		await user.tab()
 
@@ -93,7 +83,7 @@ describe('Login', () => {
 		const user = userEvent.setup()
 		await renderLogin()
 
-		const passwordInput = screen.getByLabelText(/contraseña/i)
+		const passwordInput = screen.getByLabelText(/Password/i)
 		await user.type(passwordInput, '1234567')
 		await user.tab()
 
@@ -105,28 +95,28 @@ describe('Login', () => {
 
 		await renderLogin()
 
-		const emailInput = screen.getByLabelText(/dirección de email/i)
-		const passwordInput = screen.getByLabelText(/contraseña/i)
+		const emailInput = screen.getByLabelText(/Email address/i)
+		const passwordInput = screen.getByLabelText(/Password/i)
 
 		await user.type(emailInput, 'test@example.com')
 		await user.type(passwordInput, 'password123')
 
-		const submitButton = screen.getByRole('button', { name: /iniciar sesión/i })
+		const submitButton = screen.getByRole('button', { name: /Sign in/i })
 		expect(submitButton).toBeEnabled()
 	})
 
 	it('should render forgot password link', async () => {
 		await renderLogin()
 
-		const forgotPasswordLink = screen.getByText(/¿olvidaste tu contraseña?/i)
+		const forgotPasswordLink = screen.getByText(/forgot your password/i)
 		expect(forgotPasswordLink).toBeInTheDocument()
 	})
 
 	it('should have correct form structure', async () => {
 		await renderLogin()
 
-		const emailInput = screen.getByLabelText(/dirección de email/i)
-		const passwordInput = screen.getByLabelText(/contraseña/i)
+		const emailInput = screen.getByLabelText(/Email address/i)
+		const passwordInput = screen.getByLabelText(/Password/i)
 
 		expect(emailInput).toBeInTheDocument()
 		expect(passwordInput).toBeInTheDocument()

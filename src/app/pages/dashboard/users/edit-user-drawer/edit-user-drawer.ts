@@ -23,6 +23,8 @@ import { Drawer } from '@components/drawer/drawer'
 import { DrawerFooter } from '@components/drawer/drawer-footer'
 import { FormField } from '@components/form-field/form-field'
 import { Spinner } from '@components/spinner/spinner'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
+import { Translation } from '@providers/i18n/translation'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
@@ -53,14 +55,15 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 		Alert,
 		AlertDescription,
 		ConfirmDialog,
+		TranslatePipe,
 	],
 	template: `
 		<app-drawer
 			(closed)="onDrawerClosed()"
 			(afterClosed)="toast.flushPending()"
 			[closeOnBackdrop]="false"
+			[title]="'USERS.EDIT_DRAWER.TITLE' | translate"
 			class="w-lg"
-			title="Edit User"
 			#drawer
 		>
 			<form (submit)="onSubmit($event)" id="edit-user-form" class="flex h-full flex-col gap-4">
@@ -70,20 +73,20 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 					</div>
 				}
 
-				<app-form-field label="First Name">
+				<app-form-field [label]="'USERS.EDIT_DRAWER.FIRST_NAME' | translate">
 					<input [formField]="userForm.firstName" type="text" autocomplete="given-name" />
 				</app-form-field>
 
-				<app-form-field label="Last Name">
+				<app-form-field [label]="'USERS.EDIT_DRAWER.LAST_NAME' | translate">
 					<input [formField]="userForm.lastName" type="text" autocomplete="family-name" />
 				</app-form-field>
 
-				<app-form-field label="Email">
+				<app-form-field [label]="'USERS.EDIT_DRAWER.EMAIL' | translate">
 					<input [formField]="userForm.email" type="email" autocomplete="email" />
 				</app-form-field>
 
 				@if (rolesStore.allRoles().length > 0) {
-					<app-form-field label="Roles" class="flex min-h-0 flex-1 flex-col">
+					<app-form-field [label]="'USERS.EDIT_DRAWER.ROLES_LABEL' | translate" class="flex min-h-0 flex-1 flex-col">
 						<app-role-selector [formField]="userForm.roleIds" [roles]="rolesStore.allRoles()" />
 					</app-form-field>
 				}
@@ -91,7 +94,7 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 
 			<ng-template appDrawerFooter>
 				<div class="flex justify-end gap-3">
-					<button (click)="onCancel()" appButton variant="outline">Cancel</button>
+					<button (click)="onCancel()" appButton variant="outline">{{ 'COMMON.CANCEL' | translate }}</button>
 					<button
 						[disabled]="drawer.showSpinner() || showSubmitSpinner() || !isFormValid()"
 						type="submit"
@@ -101,7 +104,7 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 						@if (showSubmitSpinner()) {
 							<app-spinner data-icon="start" />
 						}
-						{{ showSubmitSpinner() ? 'Saving...' : 'Save' }}
+						{{ showSubmitSpinner() ? ('COMMON.SAVING' | translate) : ('COMMON.SAVE' | translate) }}
 					</button>
 				</div>
 			</ng-template>
@@ -109,9 +112,9 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 
 		<app-confirm-dialog
 			(confirmed)="drawer.close()"
-			title="Discard changes"
-			message="You have unsaved changes. Are you sure you want to discard them?"
-			confirmText="Discard"
+			[title]="'COMMON.DISCARD_DIALOG.TITLE' | translate"
+			[message]="'COMMON.DISCARD_DIALOG.MESSAGE' | translate"
+			[confirmText]="'COMMON.DISCARD_DIALOG.CONFIRM' | translate"
 			confirmVariant="destructive"
 			#discardDialog
 		/>
@@ -121,10 +124,13 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 export class EditUserDrawer {
 	private readonly usersStore = inject(UsersStore)
 	protected readonly rolesStore = inject(RolesStore)
+	private readonly translation = inject(Translation)
 	protected readonly drawer = viewChild.required<Drawer>('drawer')
 	private readonly discardDialog = viewChild.required<ConfirmDialog>('discardDialog')
 
-	protected readonly toast = createMutationToast('User updated successfully.', { deferred: true })
+	protected readonly toast = createMutationToast(this.translation.instant('USERS.EDIT_DRAWER.SUCCESS_TOAST'), {
+		deferred: true,
+	})
 
 	private readonly editUserId = signal<number | null>(null)
 
