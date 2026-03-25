@@ -42,6 +42,7 @@ const en: TranslationSchema = {
 			MESSAGE: 'You have unsaved changes. Are you sure you want to discard them?',
 			CONFIRM: 'Discard',
 		},
+		LOGOUT: 'Logout',
 		STATUS: {
 			ACTIVE: 'Active',
 			DISABLED: 'Disabled',
@@ -182,6 +183,7 @@ const en: TranslationSchema = {
 		},
 	},
 	DASHBOARD: {
+		BREADCRUMB: 'Dashboard',
 		HOME: {
 			DESCRIPTIONS: {
 				WELCOME: 'Initial setup guide to prepare your application.',

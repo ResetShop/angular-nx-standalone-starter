@@ -5,6 +5,7 @@ import { Button } from '@components/button/button'
 import NavSection from '@components/nav-section/nav-section'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronsLeft, featherChevronsRight } from '@ng-icons/feather-icons'
+import { TranslatePipe } from '@providers/i18n/translate.pipe'
 import { Navigation } from '@providers/navigation/navigation'
 import { NavigationState } from '@providers/navigation/navigation-state'
 import { AuthStore } from '@store/auth/auth.store'
@@ -18,7 +19,7 @@ import { UIStore } from '@store/ui/ui.store'
 		'[attr.data-collapsed]': 'isCollapsed() || null',
 		'[attr.data-mobile-open]': 'uiStore.isSidebarOpen() || null',
 	},
-	imports: [Button, NavSection, Brand, NgIcon],
+	imports: [Button, NavSection, Brand, NgIcon, TranslatePipe],
 	providers: [NavigationState],
 	viewProviders: [provideIcons({ featherChevronsLeft, featherChevronsRight })],
 	template: `
@@ -35,7 +36,7 @@ import { UIStore } from '@store/ui/ui.store'
 		</div>
 		<div class="footer">
 			@if (!isCollapsed()) {
-				<button (click)="logout()" appButton variant="link">Cerrar sesión</button>
+				<button (click)="logout()" appButton variant="link">{{ 'COMMON.LOGOUT' | translate }}</button>
 			}
 			<button
 				(click)="toggleCollapse()"

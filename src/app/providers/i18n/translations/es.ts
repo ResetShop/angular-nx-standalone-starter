@@ -42,6 +42,7 @@ const es: TranslationSchema = {
 			MESSAGE: 'Tienes cambios sin guardar. ¿Estás seguro de que deseas descartarlos?',
 			CONFIRM: 'Descartar',
 		},
+		LOGOUT: 'Cerrar sesión',
 		STATUS: {
 			ACTIVE: 'Activo',
 			DISABLED: 'Deshabilitado',
@@ -183,6 +184,7 @@ const es: TranslationSchema = {
 		},
 	},
 	DASHBOARD: {
+		BREADCRUMB: 'Panel Principal',
 		HOME: {
 			DESCRIPTIONS: {
 				WELCOME: 'Guía de configuración inicial para preparar tu aplicación.',

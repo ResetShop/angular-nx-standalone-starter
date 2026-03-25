@@ -178,7 +178,7 @@ describe('Dashboard', () => {
 			],
 		})
 
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 		expect(signOutButton).toBeInTheDocument()
 	})
 

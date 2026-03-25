@@ -20,29 +20,29 @@ export default [
 		children: [
 			{
 				path: '',
-				title: 'Dashboard',
+				title: 'DASHBOARD.BREADCRUMB',
 				pathMatch: 'full',
 				loadComponent: () => import('./pages/dashboard-home/dashboard-home'),
 			},
 			{
 				path: 'settings',
-				title: 'Settings',
+				title: 'SETTINGS.TITLE',
 				loadComponent: () => import('./pages/settings/settings'),
 			},
 			{
 				path: 'health',
-				title: 'Salud',
+				title: 'NAV.SETTINGS.HEALTH',
 				loadComponent: () => import('./pages/health/health'),
 			},
 			// TODO: Remove access to this route once the project setup is completed
 			{
 				path: 'welcome',
-				title: 'Configuración Inicial',
+				title: 'NAV.HOME.WELCOME',
 				loadComponent: () => import('./pages/welcome/welcome'),
 			},
 			{
 				path: 'users',
-				title: 'Usuarios',
+				title: 'USERS.PAGE.TITLE',
 				loadComponent: () => import('./users/users-list/users-list'),
 				canActivate: [permissionGuard],
 				data: { requiredPermission: 'admin:users:read' },
@@ -50,17 +50,17 @@ export default [
 			},
 			{
 				path: 'authorization',
-				title: 'Autorización',
+				title: 'NAV.ADMIN.AUTHORIZATION',
 				children: [
 					{
 						path: '',
-						title: 'Autorización',
+						title: 'NAV.ADMIN.AUTHORIZATION',
 						pathMatch: 'full',
 						loadComponent: () => import('./authorization/authorization-home'),
 					},
 					{
 						path: 'permissions',
-						title: 'Permisos',
+						title: 'PERMISSIONS.PAGE.TITLE',
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
 						canActivate: [permissionGuard],
 						data: { requiredPermission: 'admin:permissions:read' },
@@ -68,7 +68,7 @@ export default [
 					},
 					{
 						path: 'roles',
-						title: 'Roles',
+						title: 'ROLES.PAGE.TITLE',
 						loadComponent: () => import('./roles/roles-list/roles-list'),
 						canActivate: [permissionGuard],
 						data: { requiredPermission: 'admin:roles:read' },

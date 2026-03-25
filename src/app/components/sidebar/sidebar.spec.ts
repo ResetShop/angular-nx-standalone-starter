@@ -110,7 +110,7 @@ describe('Sidebar', () => {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		})
 
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 		expect(signOutButton).toBeInTheDocument()
 		expect(signOutButton).toHaveAttribute('variant', 'link')
 	})
@@ -134,7 +134,7 @@ describe('Sidebar', () => {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		})
 
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 		expect(signOutButton).toBeInTheDocument()
 
 		await user.click(signOutButton)
@@ -177,7 +177,7 @@ describe('Sidebar', () => {
 
 		const sectionTitles = screen.getByText('Ajustes y mantenimiento')
 		const adminTitle = screen.getByText('Administración')
-		const signOutButton = screen.getByRole('button', { name: /cerrar sesión/i })
+		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 
 		expect(sectionTitles).toBeInTheDocument()
 		expect(adminTitle).toBeInTheDocument()

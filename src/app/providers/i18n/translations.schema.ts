@@ -43,6 +43,7 @@ export interface TranslationSchema {
 			MESSAGE: string
 			CONFIRM: string
 		}
+		LOGOUT: string
 		STATUS: {
 			ACTIVE: string
 			DISABLED: string
@@ -183,6 +184,7 @@ export interface TranslationSchema {
 		}
 	}
 	DASHBOARD: {
+		BREADCRUMB: string
 		HOME: {
 			DESCRIPTIONS: {
 				WELCOME: string
