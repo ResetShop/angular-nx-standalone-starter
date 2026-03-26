@@ -45,12 +45,45 @@
 							"maximumError": "8kb"
 						}
 					],
-					"outputHashing": "all"
+					"outputHashing": "all",
+					"define": {
+						"__ENV_ENVIRONMENT__": "'production'",
+						"__ENV_API_URL__": "'/'",
+						"__ENV_CLARITY_PROJECT_ID__": "''",
+						"__ENV_DEFAULT_LANGUAGE__": "'en'"
+					}
+				},
+				"staging": {
+					"budgets": [
+						{
+							"type": "initial",
+							"maximumWarning": "500kb",
+							"maximumError": "1mb"
+						},
+						{
+							"type": "anyComponentStyle",
+							"maximumWarning": "4kb",
+							"maximumError": "8kb"
+						}
+					],
+					"outputHashing": "all",
+					"define": {
+						"__ENV_ENVIRONMENT__": "'staging'",
+						"__ENV_API_URL__": "'/'",
+						"__ENV_CLARITY_PROJECT_ID__": "''",
+						"__ENV_DEFAULT_LANGUAGE__": "'en'"
+					}
 				},
 				"development": {
 					"optimization": false,
 					"extractLicenses": false,
-					"sourceMap": true
+					"sourceMap": true,
+					"define": {
+						"__ENV_ENVIRONMENT__": "'development'",
+						"__ENV_API_URL__": "'/'",
+						"__ENV_CLARITY_PROJECT_ID__": "''",
+						"__ENV_DEFAULT_LANGUAGE__": "'en'"
+					}
 				}
 			},
 			"defaultConfiguration": "production"

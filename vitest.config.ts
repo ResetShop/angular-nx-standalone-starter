@@ -3,6 +3,12 @@ import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+	define: {
+		__ENV_ENVIRONMENT__: "'development'",
+		__ENV_API_URL__: "'/'",
+		__ENV_CLARITY_PROJECT_ID__: "''",
+		__ENV_DEFAULT_LANGUAGE__: "'en'",
+	},
 	plugins: [angular(), nxViteTsPaths()],
 	test: {
 		globals: true,
