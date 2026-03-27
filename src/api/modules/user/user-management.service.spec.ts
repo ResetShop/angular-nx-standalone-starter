@@ -41,7 +41,7 @@ describe('UserManagementService', () => {
 	const mockEmailService: EmailService = { send: mockSend }
 
 	// Password generator mock
-	const mockGeneratePassword = fn<[], Promise<string>>()
+	const mockGeneratePassword = fn<[], string>()
 
 	// Suppress console.error in tests that trigger non-blocking email failures
 	let consoleErrorSpy: MockFn
@@ -80,7 +80,7 @@ describe('UserManagementService', () => {
 		clearAllMocks()
 		consoleErrorSpy = spyOn(console, 'error')
 
-		mockGeneratePassword.mockResolvedValue('indigo.rabbit.troop')
+		mockGeneratePassword.mockReturnValue('indigo.rabbit.troop')
 		mockSend.mockResolvedValue(undefined)
 
 		service = new UserManagementService({

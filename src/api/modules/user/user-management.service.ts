@@ -36,7 +36,7 @@ export const userManagementErrors = {
 interface UserManagementServiceDeps {
 	userManagementRepository: UserManagementRepository
 	emailService: EmailService
-	generatePassword: () => Promise<string>
+	generatePassword: () => string
 }
 
 /**
@@ -47,7 +47,7 @@ interface UserManagementServiceDeps {
 export class UserManagementService {
 	private userManagementRepository: UserManagementRepository
 	private emailService: EmailService
-	private generatePassword: () => Promise<string>
+	private generatePassword: () => string
 
 	constructor({ userManagementRepository, emailService, generatePassword }: UserManagementServiceDeps) {
 		this.userManagementRepository = userManagementRepository
@@ -100,7 +100,7 @@ export class UserManagementService {
 			throw userManagementErrors.emailExists(params.email)
 		}
 
-		const plainPassword = await this.generatePassword()
+		const plainPassword = this.generatePassword()
 		const passwordHash = await hash(plainPassword, getBcryptSaltRounds())
 
 		const mustChangePassword = params.mustChangePassword ?? true

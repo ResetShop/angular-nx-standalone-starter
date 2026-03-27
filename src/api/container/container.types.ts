@@ -68,7 +68,7 @@ export interface Cradle {
 	db: DrizzlePgConnector
 	authConfig: AuthConfig
 	logger: Logger
-	generatePassword: () => Promise<string>
+	generatePassword: () => string
 
 	// Repositories (registerRepositories)
 	emailRepository: EmailRepository
