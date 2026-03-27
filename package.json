@@ -16,7 +16,6 @@
 		"ci": "nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
 		"dev": "nx serve",
 		"build": "nx build",
-		"postbuild": "nx run app:copy-server-assets",
 		"storybook": "nx run app:storybook",
 		"storybook:build": "nx run app:build-storybook",
 		"lint": "nx lint --skip-nx-cache",
