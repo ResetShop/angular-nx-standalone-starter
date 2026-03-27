@@ -3,14 +3,12 @@
 Word lists used by `generatePassword()` to produce diceware-style passphrases
 in the format `word.word.word`.
 
-## File Format
-
-- **Line 1:** Total word count (e.g., `7776`)
-- **Lines 2+:** One lowercase word per line
+Word lists are embedded as TypeScript `readonly string[]` constants in `en.ts`
+and `es.ts`. They are imported at build time — no filesystem access at runtime.
 
 ## Sources and Credits
 
-### en-password-seed.txt
+### en.ts
 
 - **Name:** EFF Large Wordlist for Passphrases
 - **Author:** Electronic Frontier Foundation (EFF)
@@ -19,7 +17,7 @@ in the format `word.word.word`.
 - **License:** [CC BY 3.0 US](https://creativecommons.org/licenses/by/3.0/us/)
 - **Words:** 7,776 (6^5 — designed for five-dice rolls)
 
-### es-password-seed.txt
+### es.ts
 
 - **Name:** Dadoware Bonito ES
 - **Author:** mir123

@@ -4,13 +4,6 @@ import { z } from 'zod'
 import { EN_PASSWORD_WORDS } from './wordlists/en'
 import { ES_PASSWORD_WORDS } from './wordlists/es'
 
-const wordCountSchema = z.number().int().positive()
-
-const WORD_LISTS: Record<string, readonly string[]> = {
-	en: EN_PASSWORD_WORDS,
-	es: ES_PASSWORD_WORDS,
-}
-
 /**
  * Generate a cryptographically secure passphrase in the format: word.word.word
  *
@@ -24,18 +17,22 @@ const WORD_LISTS: Record<string, readonly string[]> = {
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
 export function generatePassword(wordCount = 3): string {
+	const wordCountSchema = z.number().int().positive()
 	const parsed = wordCountSchema.safeParse(wordCount)
 	if (!parsed.success) {
 		logger.warn('generatePassword', `Invalid wordCount (${wordCount}), using default: ${parsed.error.message}`)
 	}
 	const effectiveWordCount = parsed.success ? wordCount : 3
 
+	const wordLists: Record<string, readonly string[]> = {
+		en: EN_PASSWORD_WORDS,
+		es: ES_PASSWORD_WORDS,
+	}
+
 	const language = process.env['APP_LANGUAGE'] || 'en'
-	const words = WORD_LISTS[language]
+	const words = wordLists[language]
 	if (!words) {
-		throw new Error(
-			`No word list available for language: ${language}. Supported: ${Object.keys(WORD_LISTS).join(', ')}`,
-		)
+		throw new Error(`No word list available for language: ${language}. Supported: ${Object.keys(wordLists).join(', ')}`)
 	}
 
 	return Array.from({ length: effectiveWordCount }, () => words[randomInt(words.length)]).join('.')
