@@ -2,7 +2,7 @@
 
 ## How to use this repo
 
-This repository is a starter project for an SSR-ready Angular 20.3 app, which uses Hono for its backend web API and that is ready to be deployed in Vercel.
+This repository is a starter project for an SSR-ready Angular application, which uses Hono for its backend web API.
 
 Search for the TODOs! They indicate places where you'll need to update fields to suit your project architecture and folder structure.
 
@@ -48,30 +48,22 @@ cd angular-nx-standalone-starter
 npm install
 ```
 
-Note: The `npm install` command automatically runs the configuration script (`scripts/set-environment.ts`) and database migrations via the postinstall hook.
+Note: The `npm install` command automatically runs database migrations and seed via the postinstall hook.
 
 #### 2. Environment Variables Configuration **[Required]**
 
-The project uses environment variables for different deployment environments. Configuration is handled automatically for development, but you'll need to set values for staging/production deployments.
+The project uses build-time environment configuration via Angular's `define` option in `project.json`. Each build configuration (`development`, `staging`, `production`) has its own `define` block that injects values into `src/app/environments/environment.ts` at build time.
 
-**Key Environment Variables:**
+**Frontend Environment Variables** (configured in `project.json` → `build.configurations.<env>.define`):
 
-- **Staging Domain** (`scripts/set-environment.ts:83`): Configure your Vercel staging branch URL
-  - Edit the `generateApiUrl` function to set your staging domain
-  - Used for preview deployments on specific branches
+- **`__ENV_ENVIRONMENT__`**: Build environment identifier (`'development'`, `'staging'`, `'production'`)
+- **`__ENV_API_URL__`**: API base URL (default: `'/'` — same-origin, SSR proxies API calls)
+- **`__ENV_CLARITY_PROJECT_ID__`**: Microsoft Clarity analytics project ID (default: `''` — disabled)
+- **`__ENV_DEFAULT_LANGUAGE__`**: Default UI language (default: `'en'`)
 
-- **Production Domain** (`scripts/set-environment.ts:104`): Set your production website URL
-  - Configure the production environment URL in the `exportedEnvironment` object
-  - Automatically uses `VERCEL_PROJECT_PRODUCTION_URL` if available
+**Backend Environment Variables** (configured in `.env` file, read at runtime by the server):
 
-- **CLARITY_PROJECT_ID** (Optional): Microsoft Clarity analytics project ID
-  - Set this environment variable to enable Clarity analytics
-  - See `scripts/set-environment.ts:110-112` for implementation details
-
-**Configuration Locations:**
-
-- **Development**: Automatically creates `.env` file via the config script
-- **Vercel Deployment**: Set environment variables in your Vercel project settings
+See the `.env` file and `src/api/helpers/environment.ts` for all backend configuration.
 
 #### 3. Authentication Configuration **[Required]**
 
@@ -94,7 +86,7 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
     ```bash
     PASETO_SECRET_KEY=your_generated_key_here
     ```
-  - **Set in production:** Configure in your Vercel project environment variables
+  - **Set in production:** Configure in your deployment platform's environment variables
 
 **Required Environment Variables:**
 
@@ -111,7 +103,7 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
   - Set to "false" for local development without HTTPS
   - **Always keep as "true" in production**
 - **`CORS_ORIGIN`**: Allowed origin for CORS requests (default: "http://localhost:4200")
-  - Set to your frontend domain in production (e.g., "https://app.example.com")
+  - Set to your frontend domain in production (e.g., `"https://app.example.com"`)
   - Required for cookie-based authentication when frontend and backend are on different origins
 - **`CORS_MAX_AGE`**: Preflight request cache duration in seconds (default: 86400 = 24 hours)
   - Controls how long browsers cache OPTIONS preflight responses
@@ -197,17 +189,13 @@ Integrate Sanity.io headless CMS for content management.
 3. **Enable Sanity in Environment Config:**
    - Uncomment Sanity configuration in `src/api/helpers/environment.ts:4,32`
 
-4. **Configure Environment Script (if using local Sanity Studio):**
-   - Note: `scripts/set-environment.ts:53` contains setup for local Sanity Studio under `cms/` folder
-   - Only uncomment if you're running Sanity Studio locally in this repository
-
-5. **Set Environment Variables:**
+4. **Set Environment Variables:**
    - Add Sanity project ID and dataset to your environment variables
    - Configure API version and authentication token as needed
 
 #### 3. Analytics Integration **[Optional]**
 
-Enable analytics tracking with Microsoft Clarity and/or Vercel Speed Insights.
+Enable analytics tracking with Microsoft Clarity.
 
 ##### Microsoft Clarity
 
@@ -226,21 +214,8 @@ Enable analytics tracking with Microsoft Clarity and/or Vercel Speed Insights.
 4. **Uncomment Environment Configuration:**
    - Files: `src/api/helpers/environment.ts:11,39`
 
-5. **Set Environment Variable:**
-   - Add `CLARITY_PROJECT_ID` with your Microsoft Clarity project ID
-   - See `scripts/set-environment.ts:110` for how this variable is used
-
-##### Vercel Speed Insights
-
-1. **Install Speed Insights:**
-
-   ```bash
-   npm install @vercel/speed-insights
-   ```
-
-2. **Uncomment in Analytics Provider:**
-   - Files: `src/app/providers/analytics/analytics.ts:2,11`
-   - Uncomment the Speed Insights initialization code
+5. **Set Build-Time Variable:**
+   - Set `__ENV_CLARITY_PROJECT_ID__` in the `production` define block of `project.json` with your Microsoft Clarity project ID
 
 #### 4. Development Tools **[Optional]**
 
