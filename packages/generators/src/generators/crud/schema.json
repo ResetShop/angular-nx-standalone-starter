@@ -1,0 +1,20 @@
+{
+	"$schema": "https://json-schema.org/schema",
+	"id": "crud",
+	"title": "Generate Full CRUD Vertical Slice",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "Entity name (e.g. 'product')",
+			"$default": { "$source": "argv", "index": 0 }
+		},
+		"module": { "type": "string", "description": "Backend module path", "default": "" },
+		"appRoot": {
+			"type": "string",
+			"description": "Root directory of the target app",
+			"default": "apps/reference-app"
+		}
+	},
+	"required": ["name"]
+}

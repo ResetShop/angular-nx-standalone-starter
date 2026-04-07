@@ -1,0 +1,13 @@
+import { InjectionToken } from '@angular/core'
+import type { Observable } from 'rxjs'
+
+// TODO: Define methods for <%= className %>Api
+export interface <%= className %>Api {
+	// getAll(params?: SearchPaginationParams): Observable<PaginatedResponse<unknown>>
+	// getById(id: number): Observable<unknown>
+	// create(body: unknown): Observable<unknown>
+	// update(id: number, body: unknown): Observable<unknown>
+	// delete(id: number): Observable<void>
+}
+
+export const <%= className %>Api = new InjectionToken<<%= className %>Api>('<%= className %>Api')

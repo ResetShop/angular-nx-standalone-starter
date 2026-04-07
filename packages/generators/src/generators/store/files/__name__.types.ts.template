@@ -1,0 +1,39 @@
+export interface <%= className %>ReadError {
+	list: string | null
+}
+
+export interface <%= className %>MutationError {
+	create: string | null
+	update: string | null
+	delete: string | null
+}
+
+export interface <%= className %>State {
+	items: unknown[]
+	selectedItem: unknown | null
+	currentPage: number
+	pageSize: number
+	totalItems: number
+	searchQuery: string
+	isLoadingList: boolean
+	isCreating: boolean
+	isUpdating: boolean
+	isDeleting: boolean
+	readError: <%= className %>ReadError
+	mutationError: <%= className %>MutationError
+}
+
+export const initial<%= className %>State: <%= className %>State = {
+	items: [],
+	selectedItem: null,
+	currentPage: 1,
+	pageSize: 10,
+	totalItems: 0,
+	searchQuery: '',
+	isLoadingList: false,
+	isCreating: false,
+	isUpdating: false,
+	isDeleting: false,
+	readError: { list: null },
+	mutationError: { create: null, update: null, delete: null },
+}

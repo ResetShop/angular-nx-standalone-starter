@@ -1,0 +1,53 @@
+import { TestBed } from '@angular/core/testing'
+import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
+import { EMPTY } from 'rxjs'
+import { <%= className %>Store } from './<%= name %>.store'
+
+// TODO: import your API token
+// import { <%= className %>Api } from '../../providers/<%= name %>/<%= name %>.interface'
+
+describe('<%= className %>Store', () => {
+	let store: InstanceType<typeof <%= className %>Store>
+	// TODO: update keys to match your API interface
+	// let apiMock: Record<keyof <%= className %>Api, MockFn>
+	let apiMock: Record<string, MockFn>
+
+	function setupStore(): void {
+		TestBed.configureTestingModule({
+			providers: [
+				<%= className %>Store,
+				// TODO: provide your API mock
+				// { provide: <%= className %>Api, useValue: apiMock },
+			],
+		})
+		store = TestBed.inject(<%= className %>Store)
+		TestBed.tick()
+	}
+
+	beforeEach(() => {
+		clearAllMocks()
+
+		apiMock = {
+			getAll: fn(),
+			getById: fn(),
+			create: fn(),
+			update: fn(),
+			delete: fn(),
+		}
+
+		apiMock.getAll.mockReturnValue(EMPTY)
+	})
+
+	it('should initialize', () => {
+		setupStore()
+
+		expect(store.items()).toEqual([])
+		expect(store.currentPage()).toBe(1)
+		expect(store.pageSize()).toBe(10)
+		expect(store.totalItems()).toBe(0)
+		expect(store.searchQuery()).toBe('')
+		expect(store.isLoadingList()).toBe(false)
+		expect(store.readError()).toEqual({ list: null })
+		expect(store.mutationError()).toEqual({ create: null, update: null, delete: null })
+	})
+})

@@ -1,0 +1,24 @@
+import type { PaginatedResponse, PaginationParams } from '../../../interfaces'
+
+/**
+ * Parameters for listing <%= propertyName %>s with optional search filtering.
+ */
+export interface List<%= className %>sParams extends PaginationParams {
+	search?: string
+}
+
+/**
+ * <%= className %> repository interface for querying <%= propertyName %>s.
+ */
+export interface <%= className %>Repository {
+	findAll(params?: List<%= className %>sParams): Promise<PaginatedResponse<unknown>>
+	findById(id: number): Promise<unknown | null>
+}
+
+/**
+ * <%= className %> service interface for <%= propertyName %> operations.
+ */
+export interface <%= className %>Service {
+	getAll<%= className %>s(params?: List<%= className %>sParams): Promise<PaginatedResponse<unknown>>
+	get<%= className %>(id: number): Promise<unknown | null>
+}

@@ -1,0 +1,99 @@
+import { computed, inject } from '@angular/core'
+import type { SearchPaginationParams } from '@libs/contracts/common/pagination.types'
+import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
+import { rxMethod } from '@ngrx/signals/rxjs-interop'
+import { Logger } from '@resetshop/angular-core/logger/logger.token'
+import { parseDurationToMs } from '@resetshop/util'
+import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
+import type { <%= className %>MutationError, <%= className %>ReadError } from './<%= name %>.types'
+import { initial<%= className %>State } from './<%= name %>.types'
+
+function patchReadError(current: <%= className %>ReadError, key: keyof <%= className %>ReadError, value: string | null): <%= className %>ReadError {
+	return { ...current, [key]: value }
+}
+
+function patchMutationError(
+	current: <%= className %>MutationError,
+	key: keyof <%= className %>MutationError,
+	value: string | null,
+): <%= className %>MutationError {
+	return { ...current, [key]: value }
+}
+
+export const <%= className %>Store = signalStore(
+	{ providedIn: 'root' },
+	withState(initial<%= className %>State),
+	withComputed((store) => ({
+		totalPages: computed(() => (store.totalItems() === 0 ? 0 : Math.ceil(store.totalItems() / store.pageSize()))),
+		isAnyLoading: computed(() => store.isLoadingList() || store.isCreating() || store.isUpdating() || store.isDeleting()),
+		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
+		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
+		isMutating: computed(() => store.isCreating() || store.isUpdating() || store.isDeleting()),
+		listParams: computed(() => ({
+			offset: (store.currentPage() - 1) * store.pageSize(),
+			limit: store.pageSize(),
+			search: store.searchQuery() || undefined,
+		})),
+	})),
+	withComputed((store) => ({
+		hasNextPage: computed(() => store.currentPage() < store.totalPages()),
+		hasPreviousPage: computed(() => store.currentPage() > 1),
+	})),
+	withMethods((store) => {
+		// TODO: inject your API token here
+		// const api = inject(<%= className %>Api)
+		const loggerService = inject(Logger)
+
+		return {
+			load<%= className %>: rxMethod<SearchPaginationParams>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isLoadingList: true,
+							readError: patchReadError(store.readError(), 'list', null),
+						}),
+					),
+					switchMap(({ offset, limit, search }) => {
+						// TODO: replace with actual API call
+						// return api.getAll({ offset, limit, search }).pipe(...)
+						loggerService.warn('<%= className %>Store', 'load<%= className %> not implemented')
+						patchState(store, { isLoadingList: false })
+						return EMPTY
+					}),
+				),
+			),
+
+			setPage(page: number): void {
+				patchState(store, { currentPage: page })
+			},
+
+			setPageSize(size: number): void {
+				patchState(store, { pageSize: size, currentPage: 1 })
+			},
+
+			setSearchQuery: rxMethod<string>(
+				pipe(
+					debounceTime(parseDurationToMs('300ms')),
+					tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
+				),
+			),
+
+			clearErrors(): void {
+				patchState(store, {
+					readError: { list: null },
+					mutationError: { create: null, update: null, delete: null },
+				})
+			},
+		}
+	}),
+	withMethods((store) => ({
+		reload(): void {
+			store.load<%= className %>(store.listParams())
+		},
+	})),
+	withHooks({
+		onInit(store) {
+			store.load<%= className %>(store.listParams)
+		},
+	}),
+)
