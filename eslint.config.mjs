@@ -135,7 +135,7 @@ export default [
 						},
 						{
 							sourceTag: 'type:ui',
-							onlyDependOnLibsWithTags: ['type:ui', 'type:util'],
+							onlyDependOnLibsWithTags: ['type:ui', 'type:angular-core', 'type:util'],
 						},
 						{
 							sourceTag: 'type:angular-core',
