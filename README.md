@@ -6,6 +6,28 @@ This repository is a starter project for an SSR-ready Angular application, which
 
 Search for the TODOs! They indicate places where you'll need to update fields to suit your project architecture and folder structure.
 
+### Forking workflow
+
+This repo is designed to be **forked**, not consumed as a published package set. Starter code lives in `packages/*`, `apps/reference-app`, and root config; your apps live in `apps/<name>` and are created via the schematic — never by hand-copying `apps/reference-app`.
+
+```bash
+# 1. Fork on GitHub, then clone your fork locally
+git clone https://github.com/<your-org>/<your-fork>.git
+cd <your-fork>
+git remote add upstream https://github.com/ResetShop/angular-nx-standalone-starter.git
+npm install
+
+# 2. Create your first app from the canonical reference template.
+# `--name` is required; omitting it triggers an interactive prompt.
+npm run generate:app -- --name="My App"
+
+# 3. Pull upstream improvements at any time
+git fetch upstream
+git merge upstream/main
+```
+
+`apps/reference-app` is **upstream-owned** and must never be modified in a fork. See [`docs/forking.md`](docs/forking.md) for the full workflow, ownership boundaries, conflict resolution, and the changelog contract.
+
 ## Live demo
 
 - App: https://angular-nx-standalone-starter.vercel.app/
