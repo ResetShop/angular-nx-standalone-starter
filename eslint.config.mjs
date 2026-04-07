@@ -107,6 +107,66 @@ export default [
 	...nx.configs['flat/angular'],
 	...nx.configs['flat/angular-template'],
 	{
+		// Tags are inactive until packages/* and libs/* projects are created
+		// (Epic 1, PRs 1.2 onward). The rule fires zero findings today
+		// because no project carries any `type:*` tag yet — the constraints
+		// will start enforcing naturally as projects are scaffolded.
+		name: 'module-boundaries',
+		files: ['**/*.ts'],
+		rules: {
+			'@nx/enforce-module-boundaries': [
+				'error',
+				{
+					enforceBuildableLibDependency: true,
+					allow: [],
+					depConstraints: [
+						{
+							sourceTag: 'type:app',
+							onlyDependOnLibsWithTags: [
+								'type:app',
+								'type:ui',
+								'type:angular-core',
+								'type:hono-core',
+								'type:data-access',
+								'type:backend',
+								'type:contracts',
+								'type:util',
+							],
+						},
+						{
+							sourceTag: 'type:ui',
+							onlyDependOnLibsWithTags: ['type:ui', 'type:util'],
+						},
+						{
+							sourceTag: 'type:angular-core',
+							onlyDependOnLibsWithTags: ['type:angular-core', 'type:util'],
+						},
+						{
+							sourceTag: 'type:hono-core',
+							onlyDependOnLibsWithTags: ['type:hono-core', 'type:util'],
+						},
+						{
+							sourceTag: 'type:data-access',
+							onlyDependOnLibsWithTags: ['type:data-access', 'type:angular-core', 'type:contracts', 'type:util'],
+						},
+						{
+							sourceTag: 'type:backend',
+							onlyDependOnLibsWithTags: ['type:backend', 'type:hono-core', 'type:contracts', 'type:util'],
+						},
+						{
+							sourceTag: 'type:contracts',
+							onlyDependOnLibsWithTags: ['type:contracts'],
+						},
+						{
+							sourceTag: 'type:util',
+							onlyDependOnLibsWithTags: ['type:util'],
+						},
+					],
+				},
+			],
+		},
+	},
+	{
 		name: 'testing',
 		files: ['**/src/**/?(*.)+(spec|test).ts'],
 		plugins: {
@@ -179,9 +239,21 @@ export default [
 	},
 	{
 		name: 'test-utils',
-		files: ['src/test-utils.ts'],
+		files: ['src/test-utils.ts', 'packages/util/src/lib/test-utils.ts'],
 		rules: {
 			'no-restricted-syntax': ['error', ...commonRestrictedSyntax],
+		},
+	},
+	{
+		// Two-tree intent: packages/ holds Nx-scaffolded `@resetshop/*`
+		// reusable packages, while libs/ holds the manually managed `@libs/*`
+		// app-domain libraries (libs/contracts, libs/data-access, libs/backend).
+		// Both legitimately need a single barrel index.ts as their public API,
+		// so the no-barrel-files rule is exempted for those entry points only.
+		name: 'barrel-exception',
+		files: ['packages/*/src/index.ts', 'libs/*/src/index.ts'],
+		rules: {
+			'no-barrel-files/no-barrel-files': 'off',
 		},
 	},
 	{
