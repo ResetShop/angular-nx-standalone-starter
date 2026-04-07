@@ -1,0 +1,17 @@
+{
+	"name": "@resetshop/util",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"import": "./src/index.ts",
+			"types": "./src/index.ts"
+		},
+		"./test-utils": {
+			"import": "./src/lib/test-utils.ts",
+			"types": "./src/lib/test-utils.ts"
+		}
+	}
+}
