@@ -4,34 +4,34 @@
 	"version": "1.0.0-next.0",
 	"license": "CC-BY-SA 4.0",
 	"imports": {
-		"#tailwind-theme": "./src/app/assets/css/tailwind.config.css"
+		"#tailwind-theme": "./tailwind.config.css"
 	},
 	"engines": {
 		"node": "^20.19.0 || ^22.19.0"
 	},
 	"scripts": {
 		"postinstall": "npm run drizzle:push-migrations && npm run drizzle:seed",
-		"serve:ssr": "node dist/app/server/server.mjs",
+		"serve:ssr": "node dist/reference-app/server/server.mjs",
 		"prepare": "husky",
 		"ci": "nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
-		"dev": "nx serve",
-		"build": "nx build",
-		"storybook": "nx run app:storybook",
-		"storybook:build": "nx run app:build-storybook",
-		"lint": "nx lint --skip-nx-cache",
-		"stylelint": "nx stylelint app --skip-nx-cache",
-		"typecheck": "nx typecheck --skip-nx-cache",
-		"test": "nx test --skip-nx-cache",
-		"test:integration": "nx test-integration --skip-nx-cache",
-		"test:watch": "nx test --watch",
-		"test:ui": "nx test --configuration=ui -- --ui",
-		"test:e2e": "nx run app:e2e",
+		"dev": "nx serve reference-app",
+		"build": "nx build reference-app",
+		"storybook": "nx run reference-app:storybook",
+		"storybook:build": "nx run reference-app:build-storybook",
+		"lint": "nx run-many -t lint --skip-nx-cache",
+		"stylelint": "nx stylelint reference-app --skip-nx-cache",
+		"typecheck": "nx run-many -t typecheck --skip-nx-cache",
+		"test": "nx run-many -t test --skip-nx-cache",
+		"test:integration": "nx test-integration reference-app --skip-nx-cache",
+		"test:watch": "nx test reference-app --watch",
+		"test:ui": "nx test reference-app --configuration=ui -- --ui",
+		"test:e2e": "nx run reference-app:e2e",
 		"drizzle:create-migrations": "drizzle-kit generate",
 		"drizzle:push-migrations": "drizzle-kit push",
-		"drizzle:seed": "tsx ./src/db/seed.ts",
-		"drizzle:seed:local": "node --env-file=.env --import tsx ./src/db/seed.ts",
-		"sync:permissions": "tsx ./src/db/sync-permissions.ts",
-		"sync:permissions:local": "node --env-file=.env --import tsx ./src/db/sync-permissions.ts"
+		"drizzle:seed": "tsx ./apps/reference-app/src/db/seed.ts",
+		"drizzle:seed:local": "node --env-file=.env --import tsx ./apps/reference-app/src/db/seed.ts",
+		"sync:permissions": "tsx ./apps/reference-app/src/db/sync-permissions.ts",
+		"sync:permissions:local": "node --env-file=.env --import tsx ./apps/reference-app/src/db/sync-permissions.ts"
 	},
 	"private": true,
 	"dependencies": {
