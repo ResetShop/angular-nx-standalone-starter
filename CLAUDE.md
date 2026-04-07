@@ -83,6 +83,20 @@ This is a hard constraint. Violations break the workflow and require user interv
 1. **Never prefix git commands with `cd`** — the working directory is already at the project root. Using `cd <root> && git ...` changes the command signature and breaks auto-approve permission patterns.
 2. **Use simple `git commit -m "message"`** — never use `$(cat <<'EOF'...)` HEREDOC substitution for commit messages. It changes the command signature and requires manual permission approval.
 
+### Canonical App Creation Workflow
+
+`apps/reference-app` is the **canonical template** and is upstream-owned. It must never be modified by forks and never renamed. It is the only source from which new apps are generated.
+
+To create a new app, always use the schematic:
+
+```
+npm run generate:app -- --name="My App"
+```
+
+The schematic clones `apps/reference-app` into `apps/<slug>` (where `<slug>` is the kebab-case slug derived from the human-readable name) and rewrites every `reference-app` reference inside the copied files to the new slug. The `<title>` in `index.html` is set to the human-readable display name.
+
+**Never** create a new app by hand-copying `apps/reference-app`, scaffolding from `nx g @nx/angular:application`, or modifying `apps/reference-app` directly. The fork-based distribution model (see [`docs/forking.md`](docs/forking.md), planned in Epic 2) depends on this contract.
+
 ### Folder Structure Conventions
 
 ```

@@ -6,9 +6,5 @@
 // runtime callers. This re-export exists so the build target has a meaningful
 // `main` entry and so external scripts can import the generator factories
 // directly if they need to.
-//
-// Note: under Epic 1 the `app` generator is a stub. Its full implementation
-// (plus the `slugifyAppName` helper) lands in Epic 2 PR 2.1 (#290), which will
-// expand this barrel accordingly.
 
-export { default as appGenerator } from './generators/app/index'
+export { default as appGenerator, slugifyAppName } from './generators/app/index'
