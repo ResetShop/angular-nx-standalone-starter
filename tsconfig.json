@@ -1,36 +1,8 @@
 {
 	"extends": "./tsconfig.base.json",
-	"compilerOptions": {
-		"paths": {
-			"@contracts/*": ["src/contracts/*"],
-			"@components/*": ["src/app/components/*"],
-			"@configs/*": ["src/app/configs/*"],
-			"@directives/*": ["src/app/directives/*"],
-			"@domain/*": ["src/app/domain/*"],
-			"@guards/*": ["src/app/guards/*"],
-			"@interfaces/*": ["src/app/interfaces/*"],
-			"@mocks/*": ["src/app/mocks/*"],
-			"@pages/*": ["src/app/pages/*"],
-			"@providers/*": ["src/app/providers/*"],
-			"@store/*": ["src/app/store/*"],
-			"@schema/*": ["src/db/schema/*"],
-			"@test-utils": ["src/test-utils"],
-			"@utils/*": ["src/utils/*"]
-		}
-	},
 	"files": [],
 	"include": [],
-	"references": [
-		{
-			"path": "./tsconfig.app.json"
-		},
-		{
-			"path": "./tsconfig.spec.json"
-		},
-		{
-			"path": "./.storybook/tsconfig.json"
-		}
-	],
+	"references": [],
 	"compileOnSave": false,
 	"exclude": ["node_modules", "tmp"],
 	"ts-node": {

@@ -1,0 +1,196 @@
+{
+	"name": "reference-app",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"includedScripts": [],
+	"projectType": "application",
+	"prefix": "app",
+	"sourceRoot": "apps/reference-app/src",
+	"tags": ["type:app", "scope:shared"],
+	"targets": {
+		"build": {
+			"executor": "@angular/build:application",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/reference-app",
+				"browser": "apps/reference-app/src/main.ts",
+				"polyfills": [],
+				"externalDependencies": ["awilix", "zod"],
+				"index": "apps/reference-app/src/index.html",
+				"tsConfig": "apps/reference-app/tsconfig.app.json",
+				"assets": [
+					"apps/reference-app/src/assets",
+					{
+						"glob": "**/*",
+						"input": "public"
+					}
+				],
+				"styles": ["apps/reference-app/src/styles.css"],
+				"server": "apps/reference-app/src/main.server.ts",
+				"ssr": {
+					"entry": "apps/reference-app/src/server.ts"
+				},
+				"outputMode": "server"
+			},
+			"configurations": {
+				"production": {
+					"budgets": [
+						{
+							"type": "initial",
+							"maximumWarning": "500kb",
+							"maximumError": "1mb"
+						},
+						{
+							"type": "anyComponentStyle",
+							"maximumWarning": "4kb",
+							"maximumError": "8kb"
+						}
+					],
+					"outputHashing": "all"
+				},
+				"development": {
+					"optimization": false,
+					"extractLicenses": false,
+					"sourceMap": true
+				}
+			},
+			"defaultConfiguration": "production"
+		},
+		"copy-server-assets": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node scripts/copy-server-assets.mjs"
+			}
+		},
+		"serve": {
+			"continuous": true,
+			"executor": "@angular/build:dev-server",
+			"configurations": {
+				"production": {
+					"buildTarget": "reference-app:build:production"
+				},
+				"development": {
+					"buildTarget": "reference-app:build:development"
+				}
+			},
+			"defaultConfiguration": "development"
+		},
+		"extract-i18n": {
+			"executor": "@angular/build:extract-i18n",
+			"options": {
+				"buildTarget": "reference-app:build"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["apps/reference-app/src"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/{projectName}"],
+			"options": {
+				"config": "apps/reference-app/vitest.config.ts",
+				"reportsDirectory": "{projectRoot}/coverage/app"
+			},
+			"configurations": {
+				"ui": {
+					"watch": true
+				}
+			}
+		},
+		"serve-static": {
+			"continuous": true,
+			"executor": "@nx/web:file-server",
+			"options": {
+				"buildTarget": "reference-app:build",
+				"port": 4200,
+				"staticFilePath": "dist/app/browser",
+				"spa": true
+			}
+		},
+		"e2e": {
+			"executor": "@nx/playwright:playwright",
+			"outputs": ["{workspaceRoot}/playwright-report"],
+			"options": {
+				"config": "{projectRoot}/playwright.config.ts"
+			},
+			"configurations": {
+				"ci": {
+					"ci": true
+				}
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p apps/reference-app/tsconfig.spec.json"
+			}
+		},
+		"test-integration": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"command": "node scripts/skip-if-no-db.mjs && vitest run --config apps/reference-app/vitest.integration.config.ts"
+			}
+		},
+		"stylelint": {
+			"executor": "nx-stylelint:lint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": ["**/*.css"]
+			}
+		},
+		"storybook": {
+			"executor": "@storybook/angular:start-storybook",
+			"options": {
+				"port": 4400,
+				"configDir": "./.storybook",
+				"browserTarget": "reference-app:build",
+				"compodoc": false
+			},
+			"configurations": {
+				"ci": {
+					"quiet": true
+				}
+			}
+		},
+		"build-storybook": {
+			"executor": "@storybook/angular:build-storybook",
+			"outputs": ["{options.outputDir}"],
+			"options": {
+				"outputDir": "dist/storybook/app",
+				"configDir": "./.storybook",
+				"browserTarget": "reference-app:build",
+				"compodoc": false
+			},
+			"configurations": {
+				"ci": {
+					"quiet": true
+				}
+			}
+		},
+		"test-storybook": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "test-storybook -c ./.storybook --url=http://localhost:4400"
+			}
+		},
+		"static-storybook": {
+			"executor": "@nx/web:file-server",
+			"dependsOn": ["build-storybook"],
+			"options": {
+				"buildTarget": "reference-app:build-storybook",
+				"staticFilePath": "dist/storybook/app",
+				"spa": true
+			},
+			"configurations": {
+				"ci": {
+					"buildTarget": "reference-app:build-storybook:ci"
+				}
+			}
+		}
+	}
+}

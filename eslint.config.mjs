@@ -5,8 +5,8 @@ import noBarrelFiles from 'eslint-plugin-no-barrel-files'
 import playwright from 'eslint-plugin-playwright'
 import storybook from 'eslint-plugin-storybook'
 import testingLibrary from 'eslint-plugin-testing-library'
-import formFieldAllowedContent from './tools/form-field-allowed-content.eslint-rule.js'
-import requireEnvironmentProviders from './tools/require-environment-providers.eslint-rule.js'
+import requireEnvironmentProviders from './packages/angular-core/eslint/require-environment-providers.js'
+import formFieldAllowedContent from './packages/ui/eslint/form-field-allowed-content.js'
 
 const commonRestrictedSyntax = [
 	{

@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/angular'
+import type { Decorator, Preview } from '@storybook/angular'
 
 export const tags = ['autodocs']
 
@@ -26,19 +26,16 @@ const preview: Preview = {
 
 export default preview
 
-// Global decorator to handle dark mode
-export const decorators = [
-	(story: any, context: any) => {
-		const selectedBackground = context.globals.backgrounds?.value
+// Defer class toggle until after Storybook renders the story frame
+export const decorators: Decorator[] = [
+	(story, context) => {
+		const selectedBackground = context.globals['backgrounds']?.value
 
-		// Use setTimeout to ensure DOM is ready
 		setTimeout(() => {
 			const isDark = selectedBackground === 'dark'
 
-			// Apply to document root
 			document.documentElement.classList.toggle('dark', isDark)
 
-			// Also apply to all .sbdocs elements (Storybook docs containers)
 			const sbdocsElements = document.querySelectorAll('.sbdocs')
 			sbdocsElements.forEach((element) => {
 				element.classList.toggle('dark', isDark)
