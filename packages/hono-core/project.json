@@ -1,0 +1,24 @@
+{
+	"name": "hono-core",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/hono-core/src",
+	"projectType": "library",
+	"tags": ["type:hono-core", "scope:shared"],
+	"targets": {
+		"build": {
+			"executor": "@nx/js:tsc",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/hono-core",
+				"main": "packages/hono-core/src/index.ts",
+				"tsConfig": "packages/hono-core/tsconfig.lib.json"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["packages/hono-core/src/**/*.ts"]
+			}
+		}
+	}
+}
