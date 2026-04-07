@@ -36,11 +36,6 @@ jobs:
         env:
           PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
 
-      - name: Generate testing environment file
-        run: npm run config
-        env:
-          PG_CONNECTION_STRING: ${{ secrets.PG_CONNECTION_STRING }}
-
       - name: Cache repository
         uses: actions/cache@v4.2.3
         with:
