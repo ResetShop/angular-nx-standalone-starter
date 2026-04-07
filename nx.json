@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/nx/schemas/nx-schema.json",
-	"defaultBase": "master",
+	"defaultBase": "main",
 	"workspaceLayout": {
 		"appsDir": "apps",
 		"libsDir": "packages"
@@ -26,7 +26,6 @@
 	"targetDefaults": {
 		"@angular/build:application": {
 			"cache": true,
-			"dependsOn": ["^build"],
 			"inputs": ["production", "^production"]
 		},
 		"@nx/eslint:lint": {
@@ -88,6 +87,5 @@
 			}
 		}
 	},
-	"defaultProject": "app",
 	"analytics": false
 }

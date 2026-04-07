@@ -532,9 +532,8 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 **Project Tags** (for `@nx/enforce-module-boundaries`):
 
 - `type:*` — `type:app`, `type:ui`, `type:angular-core`, `type:hono-core`, `type:util` (and `type:data-access`, `type:backend`, `type:contracts` if reintroduced)
-- `scope:shared` — currently used by all `packages/*` and `apps/reference-app` (Epic 1 state). PR 2.3 (#292) renames these to `scope:starter`.
-- `scope:starter` — _planned (Epic 2 PR 2.3)_ — all upstream-owned `packages/*` and `apps/reference-app`
-- `scope:app` — _planned (Epic 2 PR 2.3)_ — all fork-generated apps. The schematic in `@resetshop/generators:app` already emits this tag for new apps; the rewrite is a no-op until the workspace tags are renamed in PR 2.3.
+- `scope:starter` — all upstream-owned projects (`packages/*` and `apps/reference-app`). May only depend on other `scope:starter` projects, enforced by `@nx/enforce-module-boundaries`.
+- `scope:app` — all fork-generated apps (created by `@resetshop/generators:app`). May depend on both `scope:starter` and `scope:app`. The schematic emits this tag automatically when cloning `apps/reference-app`.
 
 **Generators:**
 

@@ -8,11 +8,26 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ### Planned for the next release
 
-- **Nx tag scheme `scope:starter` / `scope:app`** with ESLint `@nx/enforce-module-boundaries` enforcement (Epic 2 PR 2.3, #292)
-- **ESLint cross-boundary relative-import bans** between `packages/*` and `apps/*` (Epic 2 PR 2.3)
-- **`nx.json` `defaultBase` cleanup** (`master` → `main`) and removal of `defaultProject` (Epic 2 PR 2.3)
 - **Upstream CI guards** — `boundary-guard` and `changelog-guard` workflows + PR template (Epic 2 PR 2.4, #293)
 - **Holistic cross-cutting cleanup** (Epic 2 PR 2.5, #294)
+
+## [1.0.0-beta.1] — 2026-04-07
+
+Adds the starter/app boundary enforcement layer on top of the structural restructure shipped in `1.0.0-beta.0`.
+
+### Added
+
+- **Nx tag scheme `scope:starter` / `scope:app`** — all upstream-owned projects (`packages/*` and `apps/reference-app`) carry `scope:starter`; fork-generated apps emit `scope:app` from the schematic. The schematic's tag rewrite now actually fires against the renamed workspace.
+- **ESLint `@nx/enforce-module-boundaries` `depConstraints` for `scope:*`** — `scope:starter` projects may only depend on other `scope:starter` projects; `scope:app` projects may depend on both `scope:starter` and `scope:app`. Stacks with the existing `type:*` constraints.
+- **ESLint cross-boundary relative-import bans** — two new flat-config blocks (`no-cross-boundary-relative-imports-from-packages` and `no-cross-boundary-relative-imports-from-apps`) using depth-agnostic `^(\.\./)+(apps|packages)/` regex patterns. Forces consumers to use the `@<scope>/*` package aliases instead of relative paths across the boundary.
+
+### Changed
+
+- **`nx.json` `defaultBase` changed from `master` to `main`** — matches the actual upstream branch name; fixes silent breakage of `nx affected` and Nx Cloud CIPE diffs. **Fork action:** if your fork's primary branch is not `main`, change `defaultBase` once to match your branch name after merging this version.
+
+### Removed
+
+- **`nx.json` `defaultProject`** — relied on by direct `nx` CLI calls which are forbidden by CLAUDE.md's command policy. Removing it eliminates a fork-merge conflict surface and forces explicit project naming in every command.
 
 ## [1.0.0-beta.0] — 2026-04-06
 

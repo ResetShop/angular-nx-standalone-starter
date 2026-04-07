@@ -48,9 +48,7 @@ The model works because the repository is structured so that **starter-owned** f
 | `apps/<your-app>` (anything other than `reference-app`)                                                                                               | **App-owned**                                | ✅ Yours. Upstream never touches these paths.                                            |
 | `workspace/`                                                                                                                                          | Ephemeral, gitignored                        | n/a                                                                                      |
 
-> **Tag scheme:** _Planned (Epic 2 PR 2.3, #292)._ All starter-owned projects (`packages/*` and `apps/reference-app`) will carry the Nx tag `scope:starter`. Fork-generated apps (created via the schematic) will carry `scope:app`. ESLint's `@nx/enforce-module-boundaries` will enforce that `scope:starter` projects may only depend on other `scope:starter` projects, while `scope:app` projects may depend on both `scope:starter` and `scope:app`.
->
-> **Current state:** all projects on the integration branch carry `scope:shared`. The schematic from Epic 1 already emits `scope:app` for newly-generated apps in anticipation, but the rewrite is a no-op against the workspace until PR 2.3 lands.
+> **Tag scheme:** All starter-owned projects (`packages/*` and `apps/reference-app`) carry the Nx tag `scope:starter`. Fork-generated apps (created via the schematic) carry `scope:app`. ESLint's `@nx/enforce-module-boundaries` enforces that `scope:starter` projects may only depend on other `scope:starter` projects, while `scope:app` projects may depend on both `scope:starter` and `scope:app`.
 
 The shorthand: **`apps/reference-app` is read-only in a fork; everything under `apps/<your-app>` is yours.**
 
@@ -92,7 +90,7 @@ The generator:
 - Clones every file under `apps/reference-app/` into `apps/my-app/`.
 - Rewrites every `reference-app` literal in text files to the slug (paths, project name, build target references, output directories).
 - Rewrites the `<title>` tag in `index.html` to the human-readable display name (HTML-escaped).
-- Rewrites the `scope:starter` Nx tag to `scope:app` so the new project is correctly classified as fork-owned. _(This rewrite is a no-op until Epic 2 PR 2.3 (#292) lands the uniform tag rename — until then projects carry `scope:shared` and the schematic doesn't find anything to rewrite.)_
+- Rewrites the `scope:starter` Nx tag to `scope:app` so the new project is correctly classified as fork-owned.
 - Excludes starter-owned files that don't belong in a fork app (e.g. `IMPORT_MIGRATION.md`).
 - Refuses to overwrite an existing directory and refuses reserved slugs (`node`, `dist`, `src`, `app`, `apps`, `packages`, `node_modules`, `tmp`). The authoritative list lives in `RESERVED_SLUGS` inside `packages/generators/src/generators/app/index.ts`.
 
@@ -148,7 +146,7 @@ Merged lockfiles are syntactically opaque and rarely correct; starting from scra
 
 Hand-resolve. These files rarely change upstream, and when they do the change is usually a small targeted addition (a new path alias, a new ESLint rule, a new target default). Accept upstream's change and re-apply any fork additions on top.
 
-**`nx.json` `defaultBase`:** the upstream value will be `"main"` once Epic 2 PR 2.3 (#292) lands its `nx.json` cleanup; until then it remains `"master"` from the original single-app baseline. If your fork's primary branch is named differently (`master`, `develop`, etc.), update this value once after forking to match — `nx affected` and Nx Cloud CIPE diffs depend on it.
+**`nx.json` `defaultBase`:** the upstream value is `"main"`. If your fork's primary branch is named differently (`master`, `develop`, etc.), update this value once after forking to match — `nx affected` and Nx Cloud CIPE diffs depend on it.
 
 **`tsconfig.base.json` path aliases convention:** keep all starter `@<scope>/*` aliases grouped at the top of `compilerOptions.paths`. The starter block is ordered by package dependency layering (`util` → `ui` → `angular-core` → `hono-core`), **not alphabetically**, and must not be resorted by fork maintainers during merge resolution — resorting creates an unnecessary diff conflict on every upstream merge. Forks add their own app-scoped aliases (e.g. `@<your-app>/*`) **below** the starter block, alphabetized within that fork section.
 

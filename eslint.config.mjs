@@ -107,10 +107,6 @@ export default [
 	...nx.configs['flat/angular'],
 	...nx.configs['flat/angular-template'],
 	{
-		// Tags are inactive until packages/* and libs/* projects are created
-		// (Epic 1, PRs 1.2 onward). The rule fires zero findings today
-		// because no project carries any `type:*` tag yet — the constraints
-		// will start enforcing naturally as projects are scaffolded.
 		name: 'module-boundaries',
 		files: ['**/*.ts'],
 		rules: {
@@ -120,6 +116,30 @@ export default [
 					enforceBuildableLibDependency: true,
 					allow: [],
 					depConstraints: [
+						// Scope constraints — fork-distribution model.
+						// scope:starter projects (packages/*, apps/reference-app) may
+						// only depend on other scope:starter projects. They never reach
+						// into a fork's app code.
+						//
+						// Note: this constraint is fork-side enforcement. In the upstream
+						// repo no scope:app project exists, so the rule will only fire
+						// against violations once a fork generates an app. The CI guards
+						// from Steps 6 and 7 catch the upstream side of the contract.
+						{
+							sourceTag: 'scope:starter',
+							onlyDependOnLibsWithTags: ['scope:starter'],
+						},
+						// scope:app projects (fork-generated apps) may depend on both
+						// scope:starter (the canonical building blocks) and other
+						// scope:app projects in the same fork.
+						//
+						// Generated apps must carry BOTH `type:app` AND `scope:app` tags
+						// for both enforcement layers to apply — the schematic in
+						// `@resetshop/generators:app` emits both automatically.
+						{
+							sourceTag: 'scope:app',
+							onlyDependOnLibsWithTags: ['scope:starter', 'scope:app'],
+						},
 						{
 							sourceTag: 'type:app',
 							onlyDependOnLibsWithTags: [
@@ -245,13 +265,8 @@ export default [
 		},
 	},
 	{
-		// Two-tree intent: packages/ holds Nx-scaffolded `@resetshop/*`
-		// reusable packages, while libs/ holds the manually managed `@libs/*`
-		// app-domain libraries (libs/contracts, libs/data-access, libs/backend).
-		// Both legitimately need a single barrel index.ts as their public API,
-		// so the no-barrel-files rule is exempted for those entry points only.
 		name: 'barrel-exception',
-		files: ['packages/*/src/index.ts', 'libs/*/src/index.ts'],
+		files: ['packages/*/src/index.ts'],
 		rules: {
 			'no-barrel-files/no-barrel-files': 'off',
 		},
@@ -271,6 +286,54 @@ export default [
 			'@angular-eslint/template/prefer-self-closing-tags': 'error',
 			'@angular-eslint/template/prefer-ngsrc': 'error',
 			'custom-template/form-field-allowed-content': 'error',
+		},
+	},
+	{
+		// Spec files are intentionally NOT excluded — even tests must respect
+		// the package/app boundary, otherwise a spec under apps/ could reach
+		// into packages/ internals via a relative path and create an
+		// undocumented coupling that the regular boundary rules don't catch.
+		//
+		// Note on the regex below: TypeScript import specifiers always use
+		// forward-slash separators, so the `^(\.\./)+packages/` pattern matches
+		// every nesting depth without having to handle Windows backslash variants.
+		name: 'no-cross-boundary-relative-imports-from-packages',
+		files: ['packages/**/*.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							// Matches any number of `../` segments leading into apps/.
+							regex: '^(\\.\\./)+apps/',
+							message:
+								'packages/* must never import from apps/*. The fork-distribution model requires starter code to be self-contained.',
+						},
+					],
+				},
+			],
+		},
+	},
+	{
+		// Applies to all apps including apps/reference-app — starter code must
+		// also use package aliases, not relative paths into packages/.
+		name: 'no-cross-boundary-relative-imports-from-apps',
+		files: ['apps/**/*.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							// Matches any number of `../` segments leading into packages/.
+							regex: '^(\\.\\./)+packages/',
+							message:
+								'Use the package alias (e.g. `@<scope>/ui`) instead of a relative path into packages/*. This keeps fork apps decoupled from the starter directory layout.',
+						},
+					],
+				},
+			],
 		},
 	},
 	{
