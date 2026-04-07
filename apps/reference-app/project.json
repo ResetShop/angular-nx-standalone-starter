@@ -105,7 +105,7 @@
 			"options": {
 				"buildTarget": "reference-app:build",
 				"port": 4200,
-				"staticFilePath": "dist/app/browser",
+				"staticFilePath": "dist/reference-app/browser",
 				"spa": true
 			}
 		},

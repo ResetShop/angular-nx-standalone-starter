@@ -59,7 +59,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.12
+          node-version: 22.20
 
       - name: Run Tests
         run: npx nx test --skip-nx-cache
@@ -79,7 +79,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.12
+          node-version: 22.20
 
       - name: Run Linter
         run: npx nx lint --skip-nx-cache
@@ -99,10 +99,10 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.12
+          node-version: 22.20
 
       - name: Run stylelint
-        run: npx nx stylelint app --skip-nx-cache
+        run: npx nx stylelint reference-app --skip-nx-cache
 
   test-integration:
     needs: setup
@@ -133,7 +133,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.12
+          node-version: 22.20
 
       - name: Run integration tests
         run: npm run test:integration
@@ -156,7 +156,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.12
+          node-version: 22.20
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -165,7 +165,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: npx nx run app:e2e --skip-nx-cache
+        run: npx nx run reference-app:e2e --skip-nx-cache
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -189,13 +189,13 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.12
+          node-version: 22.20
 
       - name: Generate PASETO key for CI
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run build
-        run: npx nx run app:build:production --skip-nx-cache
+        run: npx nx run reference-app:build:production --skip-nx-cache
 
   storybook:
     needs: setup
@@ -212,7 +212,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.12
+          node-version: 22.20
 
       - name: Run Storybook build
-        run: npx nx run app:build-storybook --skip-nx-cache
+        run: npx nx run reference-app:build-storybook --skip-nx-cache

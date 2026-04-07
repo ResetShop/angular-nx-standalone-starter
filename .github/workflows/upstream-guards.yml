@@ -29,7 +29,7 @@ jobs:
     # Full owner/repo comparison: the owner prefix is what makes this safe on
     # forks — even a brand-new fork that retains the upstream repo *name*
     # carries a different owner, so this check disables the guard for them.
-    if: github.repository == 'ResetShop/angular-nx-standalone-starter' && github.event.pull_request != null
+    if: github.repository == 'ResetShop/angular-nx-standalone-starter'
     steps:
       - name: Check out PR
         uses: actions/checkout@v4
@@ -93,7 +93,7 @@ jobs:
   changelog-guard:
     name: Require CHANGELOG entry for starter-code changes
     runs-on: ubuntu-latest
-    if: github.repository == 'ResetShop/angular-nx-standalone-starter' && github.event.pull_request != null
+    if: github.repository == 'ResetShop/angular-nx-standalone-starter'
     steps:
       - name: Check out PR
         uses: actions/checkout@v4

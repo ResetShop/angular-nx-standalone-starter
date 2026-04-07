@@ -6,9 +6,21 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
-### Planned for the next release
+## [1.0.0-beta.3] — 2026-04-07
 
-- **Holistic cross-cutting cleanup** (Epic 2 PR 2.5, #294)
+Final Epic 2 cleanup. Closes the milestone (`Monorepo restructure + fork distribution`).
+
+### Changed
+
+- **`.github/workflows/ci.yml`** — replaced four stale `nx run app:*` references (`stylelint`, `e2e`, `build:production`, `build-storybook`) with the current `nx run reference-app:*` invocations. The legacy `app` project name was removed when `apps/reference-app` was created in Epic 1; the CI workflow had not been updated alongside.
+- **`.github/workflows/ci.yml`** — aligned all worker jobs to `node-version: 22.20` to match the `setup` job that builds the `node_modules` cache. Prior version mismatch (`22.12` on workers vs `22.20` on setup) was ABI-compatible but misleading.
+- **`.github/workflows/upstream-guards.yml`** — removed redundant `&& github.event.pull_request != null` null checks from both job `if:` conditions. The `pull_request` event guarantees the field is non-null; the `github.repository ==` check alone is the meaningful gate.
+- **`docs/forking.md`** — top-of-file status banner flipped from "target state with planned callouts" to "live as it exists today" now that Epic 2 is complete.
+
+### Fixed
+
+- **`apps/reference-app/project.json`** `serve-static` target — `staticFilePath` was `"dist/app/browser"` (the old single-app output dir). Build's `outputPath` is `"dist/reference-app"`, so the correct serve path is `"dist/reference-app/browser"`. The target had been silently serving from a non-existent directory.
+- **`apps/reference-app/src/api/utils/password.ts`** comment — said `"copied to dist/app/server/wordlists/"`. Updated to `dist/reference-app/server/wordlists/`. Runtime was unaffected (the code uses `import.meta.dirname`), but the comment misled developers debugging wordlist loading.
 
 ## [1.0.0-beta.2] — 2026-04-07
 
@@ -84,7 +96,8 @@ This is the first tagged version of the starter under the fork-distribution mode
   here so the markdown anchor format is established for future versions.
 -->
 
-[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.2...HEAD
+[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.3...HEAD
+[1.0.0-beta.3]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.2...v1.0.0-beta.3
 [1.0.0-beta.2]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.1...v1.0.0-beta.2
 [1.0.0-beta.1]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.0...v1.0.0-beta.1
 [1.0.0-beta.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0-beta.0
