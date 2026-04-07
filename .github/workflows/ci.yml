@@ -62,7 +62,27 @@ jobs:
           node-version: 22.20
 
       - name: Run Tests
-        run: npx nx test --skip-nx-cache
+        run: npm run test
+
+  typecheck:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore repository
+        uses: actions/cache@v4.2.3
+        with:
+          path: .
+          key: repo-${{ github.sha }}
+          restore-keys: |
+            repo-${{ github.sha }}
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22.20
+
+      - name: Run typecheck
+        run: npm run typecheck
 
   lint:
     needs: setup
@@ -82,7 +102,7 @@ jobs:
           node-version: 22.20
 
       - name: Run Linter
-        run: npx nx lint --skip-nx-cache
+        run: npm run lint
 
   stylelint:
     needs: setup
@@ -102,7 +122,7 @@ jobs:
           node-version: 22.20
 
       - name: Run stylelint
-        run: npx nx stylelint reference-app --skip-nx-cache
+        run: npm run stylelint
 
   test-integration:
     needs: setup
@@ -165,7 +185,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: npx nx run reference-app:e2e --skip-nx-cache
+        run: npm run test:e2e
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -195,7 +215,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run build
-        run: npx nx run reference-app:build:production --skip-nx-cache
+        run: npm run build
 
   storybook:
     needs: setup
@@ -215,4 +235,4 @@ jobs:
           node-version: 22.20
 
       - name: Run Storybook build
-        run: npx nx run reference-app:build-storybook --skip-nx-cache
+        run: npm run storybook:build

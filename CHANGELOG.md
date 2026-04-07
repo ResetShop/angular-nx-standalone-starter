@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ### Fixed
 
+- **`package.json` `drizzle:seed` / `sync:permissions` scripts** — added `--tsconfig apps/reference-app/tsconfig.json` so tsx resolves the app-scoped `@contracts/*` / `@schema/*` path aliases. Running `npm run drizzle:seed` from the workspace root was failing with `ERR_MODULE_NOT_FOUND: Cannot find package '@contracts/user'` because tsx was resolving against `tsconfig.base.json`, where the app-scoped aliases are not declared.
+- **`.github/workflows/ci.yml`** — replaced all `npx nx <target> --skip-nx-cache` invocations with `npm run <task>` so the GitHub Actions pipeline and local `npm run ci` execute the same scripts. Added a `typecheck` job (previously only run locally). Prevents silent drift between the two pipelines.
+- **`npm run ci`** — added a `ci:tsx-smoke` step that imports `apps/reference-app/src/db/schema/user.ts` via tsx with the app tsconfig. Catches tsx alias-resolution regressions (like the one above) locally before they reach GitHub Actions. ([#319](https://github.com/ResetShop/angular-nx-standalone-starter/issues/319))
 - **`README.md` Project Setup Guide** — corrected 8 stale file references that still pointed at the pre-restructure single-app layout (`src/api/helpers/`, `src/app/`). Connector templates and environment config now correctly point at `packages/hono-core/src/lib/`; remaining app-specific paths now carry the `apps/reference-app/` prefix. A fork user following the optional integration instructions was previously hitting paths that no longer existed.
 
 ## [1.0.0-beta.3] — 2026-04-07

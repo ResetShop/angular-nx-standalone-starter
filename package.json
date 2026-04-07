@@ -13,7 +13,8 @@
 		"postinstall": "npm run drizzle:push-migrations && npm run drizzle:seed",
 		"serve:ssr": "node dist/reference-app/server/server.mjs",
 		"prepare": "husky",
-		"ci": "nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
+		"ci": "npm run ci:tsx-smoke && nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
+		"ci:tsx-smoke": "tsx --tsconfig apps/reference-app/tsconfig.json apps/reference-app/src/db/schema/user.ts",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app",
 		"storybook": "nx run reference-app:storybook",
@@ -29,10 +30,10 @@
 		"generate:app": "nx g @resetshop/generators:app",
 		"drizzle:create-migrations": "drizzle-kit generate",
 		"drizzle:push-migrations": "drizzle-kit push",
-		"drizzle:seed": "tsx ./apps/reference-app/src/db/seed.ts",
-		"drizzle:seed:local": "node --env-file=.env --import tsx ./apps/reference-app/src/db/seed.ts",
-		"sync:permissions": "tsx ./apps/reference-app/src/db/sync-permissions.ts",
-		"sync:permissions:local": "node --env-file=.env --import tsx ./apps/reference-app/src/db/sync-permissions.ts"
+		"drizzle:seed": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
+		"drizzle:seed:local": "tsx --env-file=.env --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
+		"sync:permissions": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts",
+		"sync:permissions:local": "tsx --env-file=.env --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts"
 	},
 	"private": true,
 	"dependencies": {
