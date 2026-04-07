@@ -21,6 +21,14 @@
 				"config": "packages/util/vitest.config.ts"
 			}
 		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p packages/util/tsconfig.spec.json"
+			}
+		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
 			"options": {
