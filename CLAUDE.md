@@ -95,19 +95,27 @@ npm run generate:app -- --name="My App"
 
 The schematic clones `apps/reference-app` into `apps/<slug>` (where `<slug>` is the kebab-case slug derived from the human-readable name) and rewrites every `reference-app` reference inside the copied files to the new slug. The `<title>` in `index.html` is set to the human-readable display name.
 
-**Never** create a new app by hand-copying `apps/reference-app`, scaffolding from `nx g @nx/angular:application`, or modifying `apps/reference-app` directly. The fork-based distribution model (see [`docs/forking.md`](docs/forking.md), planned in Epic 2) depends on this contract.
+**Never** create a new app by hand-copying `apps/reference-app`, scaffolding from `nx g @nx/angular:application`, or modifying `apps/reference-app` directly. The fork-based distribution model depends on this contract. The full forking workflow document (`docs/forking.md`) is planned for Epic 2 PR 2.2 (#291) and is not yet available; until it lands, treat the rules in this section as authoritative.
 
 ### Folder Structure Conventions
 
 ```
 apps/
-  └── <app-name>/
-libs/
-  ├── feature/          # Smart components, route containers
-  ├── ui/               # Presentational/dumb components
-  ├── data-access/      # Services, state management, API calls
-  └── util/             # Pure functions, helpers, types
+  └── reference-app/    # Canonical example app (and source for the schematic)
+       └── src/
+            ├── api/         # Hono backend (modules, middleware, services, helpers)
+            ├── app/         # Angular frontend (pages, components, store, providers)
+            ├── contracts/   # Shared Zod schemas + TypeScript types
+            └── db/schema/   # Drizzle table schemas
+packages/
+  ├── util/             # Pure functions, helpers, types — framework-free
+  ├── ui/               # Presentational Angular components + Storybook stories
+  ├── angular-core/     # Shared Angular providers (i18n, theme, navigation, logger)
+  ├── hono-core/        # Hono backend infrastructure (createOpenAPIApp, isServerless)
+  └── generators/       # Nx generators (store, api-provider, backend-module, page, crud, drizzle-schema, app)
 ```
+
+All `packages/*` are exposed via `@resetshop/*` path aliases in `tsconfig.base.json`. App-scoped aliases live in `apps/reference-app/tsconfig.json` and currently include `@components/*`, `@configs/*`, `@contracts/*`, `@directives/*`, `@domain/*`, `@guards/*`, `@pages/*`, `@providers/*`, `@schema/*`, and `@store/*`. Refer to that file for the authoritative list.
 
 ### Naming Conventions
 
@@ -523,18 +531,25 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 
 **Project Tags** (for `@nx/enforce-module-boundaries`):
 
-- `type:app`, `type:feature`, `type:ui`, `type:data-access`, `type:util`
-- `scope:shared`, `scope:feature-*`
+- `type:*` — `type:app`, `type:ui`, `type:angular-core`, `type:hono-core`, `type:util` (and `type:data-access`, `type:backend`, `type:contracts` if reintroduced)
+- `scope:shared` — currently used by all `packages/*` and `apps/reference-app` (Epic 1 state). PR 2.3 (#292) renames these to `scope:starter`.
+- `scope:starter` — _planned (Epic 2 PR 2.3)_ — all upstream-owned `packages/*` and `apps/reference-app`
+- `scope:app` — _planned (Epic 2 PR 2.3)_ — all fork-generated apps. The schematic in `@resetshop/generators:app` already emits this tag for new apps; the rewrite is a no-op until the workspace tags are renamed in PR 2.3.
 
 **Generators:**
 
 ```bash
-# Prefer standalone components
-nx g @nx/angular:component --standalone
-
-# New library
-nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
+# Create a new app via the schematic (the only supported path; see Canonical
+# App Creation Workflow above for details)
+npm run generate:app -- --name="My App"
 ```
+
+Other generators (`store`, `api-provider`, `backend-module`, `drizzle-schema`,
+`page`, `crud`) live in `packages/generators/src/generators/` and should be
+invoked via `nx g @resetshop/generators:<name>` or wrapped in `npm run` scripts
+as they get adopted. **Do not** call `nx g @nx/angular:library --directory=libs/...`
+— this repository uses the `packages/*` + `apps/reference-app` layout, not the
+Nx libs convention.
 
 <!-- nx configuration end-->
 

@@ -1,4 +1,5 @@
-import { Tree, generateFiles, joinPathFragments, names } from '@nx/devkit'
+import type { Tree } from '@nx/devkit'
+import { generateFiles, joinPathFragments, logger, names } from '@nx/devkit'
 import apiProviderGenerator from '../api-provider/index'
 import storeGenerator from '../store/index'
 
@@ -35,9 +36,9 @@ export default async function pageGenerator(tree: Tree, schema: PageGeneratorSch
 	}
 
 	const route = schema.route || n.fileName
-	console.log(`[page] Generated page at ${targetDir}`)
-	console.log(`[page] Add this route to dashboard.routes.ts:`)
-	console.log(
+	logger.info(`[page] Generated page at ${targetDir}`)
+	logger.info(`[page] Add this route to dashboard.routes.ts:`)
+	logger.info(
 		`  { path: '${route}', loadComponent: () => import('./${n.fileName}/${n.fileName}-list/${n.fileName}-list') }`,
 	)
 }

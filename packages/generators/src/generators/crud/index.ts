@@ -1,4 +1,5 @@
-import { Tree, joinPathFragments, names } from '@nx/devkit'
+import type { Tree } from '@nx/devkit'
+import { joinPathFragments, logger, names } from '@nx/devkit'
 import apiProviderGenerator from '../api-provider/index'
 import backendModuleGenerator from '../backend-module/index'
 import drizzleSchemaGenerator from '../drizzle-schema/index'
@@ -15,17 +16,17 @@ export default async function crudGenerator(tree: Tree, schema: CrudGeneratorSch
 	const n = names(schema.name)
 	const appRoot = schema.appRoot || 'apps/reference-app'
 
-	console.log(`[crud] Orchestrating full CRUD slice for "${n.className}" in ${appRoot}...`)
+	logger.info(`[crud] Orchestrating full CRUD slice for "${n.className}" in ${appRoot}...`)
 
 	await drizzleSchemaGenerator(tree, {
 		name: schema.name,
-		directory: 'libs/backend/src/lib/db/schema',
+		directory: joinPathFragments(appRoot, 'src/db/schema'),
 	})
 
 	await backendModuleGenerator(tree, {
 		name: schema.name,
 		module: schema.module,
-		directory: 'libs/backend/src/lib/modules',
+		directory: joinPathFragments(appRoot, 'src/api/modules'),
 	})
 
 	await apiProviderGenerator(tree, {
@@ -45,8 +46,8 @@ export default async function crudGenerator(tree: Tree, schema: CrudGeneratorSch
 		directory: joinPathFragments(appRoot, 'src/app/pages/dashboard'),
 	})
 
-	console.log(`[crud] Done. Remember to:`)
-	console.log(`  1. Add the route to ${appRoot}/src/app/pages/dashboard/dashboard.routes.ts`)
-	console.log(`  2. Add navigation entry to the NavigationConfig`)
-	console.log(`  3. Register the Drizzle schema in the connector`)
+	logger.info(`[crud] Done. Remember to:`)
+	logger.info(`  1. Add the route to ${appRoot}/src/app/pages/dashboard/dashboard.routes.ts`)
+	logger.info(`  2. Add navigation entry to the NavigationConfig`)
+	logger.info(`  3. Register the Drizzle schema in the connector`)
 }

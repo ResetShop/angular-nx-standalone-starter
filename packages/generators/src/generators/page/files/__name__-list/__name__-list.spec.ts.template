@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/angular'
-import { provideTranslationMock } from '@libs/data-access/providers/i18n/translation.mock'
+import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import <%= className %>List from './<%= fileName %>-list'
 
 describe('<%= className %>List', () => {

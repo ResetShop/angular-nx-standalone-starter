@@ -1,6 +1,6 @@
 import { createRoute } from '@hono/zod-openapi'
-import { errorResponseSchema } from '@libs/contracts/common/error.schemas'
-import { paginatedResponseSchema, searchPaginationSchema } from '@libs/contracts/common/pagination.schemas'
+import { errorResponseSchema } from '@contracts/common/error.schemas'
+import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas'
 import { commonResponses, idParamSchema } from '../../../openapi-config'
 
 // TODO: Replace with actual response schema

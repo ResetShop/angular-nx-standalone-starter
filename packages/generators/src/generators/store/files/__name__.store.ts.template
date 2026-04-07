@@ -1,5 +1,5 @@
 import { computed, inject } from '@angular/core'
-import type { SearchPaginationParams } from '@libs/contracts/common/pagination.types'
+import type { SearchPaginationParams } from '@contracts/common/pagination.types'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { Logger } from '@resetshop/angular-core/logger/logger.token'
