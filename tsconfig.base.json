@@ -1,0 +1,35 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "bundler",
+		"emitDecoratorMetadata": false,
+		"target": "es2022",
+		"module": "preserve",
+		"lib": ["dom", "es2022"],
+		"baseUrl": ".",
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"paths": {
+			"@resetshop/util": ["packages/util/src/index.ts"],
+			"@resetshop/util/test-utils": ["packages/util/src/lib/test-utils.ts"],
+			"@resetshop/ui": ["packages/ui/src/index.ts"],
+			"@resetshop/ui/*": ["packages/ui/src/lib/*"],
+			"@resetshop/angular-core": ["packages/angular-core/src/index.ts"],
+			"@resetshop/angular-core/*": ["packages/angular-core/src/lib/*"],
+			"@resetshop/hono-core": ["packages/hono-core/src/index.ts"],
+			"@resetshop/hono-core/*": ["packages/hono-core/src/lib/*"],
+			"@libs/contracts": ["libs/contracts/src/index.ts"],
+			"@libs/contracts/*": ["libs/contracts/src/lib/*"],
+			"@libs/data-access": ["libs/data-access/src/index.ts"],
+			"@libs/data-access/*": ["libs/data-access/src/lib/*"],
+			"@libs/backend": ["libs/backend/src/index.ts"],
+			"@libs/backend/*": ["libs/backend/src/lib/*"]
+		}
+	},
+	"angularCompilerOptions": {
+		"enableI18nLegacyMessageIdFormat": false,
+		"strictInjectionParameters": true,
+		"strictInputAccessModifiers": true,
+		"typeCheckHostBindings": true,
+		"strictTemplates": true
+	}
+}
