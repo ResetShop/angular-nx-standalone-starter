@@ -4,7 +4,7 @@
 	"sourceRoot": "packages/ui/src",
 	"projectType": "library",
 	"prefix": "rs",
-	"tags": ["type:ui", "scope:shared"],
+	"tags": ["type:ui", "scope:starter"],
 	"targets": {
 		"test": {
 			"executor": "@nx/vitest:test",

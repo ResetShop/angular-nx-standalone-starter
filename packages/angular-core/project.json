@@ -3,7 +3,7 @@
 	"$schema": "../../node_modules/nx/schemas/project-schema.json",
 	"sourceRoot": "packages/angular-core/src",
 	"projectType": "library",
-	"tags": ["type:angular-core", "scope:shared"],
+	"tags": ["type:angular-core", "scope:starter"],
 	"targets": {
 		"test": {
 			"executor": "@nx/vitest:test",

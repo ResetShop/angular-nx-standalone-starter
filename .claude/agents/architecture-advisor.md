@@ -96,7 +96,7 @@ When evaluating new backend modules or endpoints, verify the plan includes:
 ### Module Boundary Tags
 
 - `type:app`, `type:feature`, `type:ui`, `type:data-access`, `type:util`
-- `scope:shared`, `scope:feature-*`
+- `scope:starter`, `scope:app`
 
 ## Output Format
 
