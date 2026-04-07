@@ -6,23 +6,9 @@ interface AppGeneratorSchema {
 	directory?: string
 }
 
+// SOURCE_APP is module-level because it is used by `validateNames`,
+// `copyTreeWithRewrites`, and `appGenerator` itself.
 const SOURCE_APP = 'reference-app'
-
-/**
- * Files inside `apps/reference-app` that are starter-owned (relevant only to
- * upstream contributors) and must NOT be propagated to generated fork apps.
- * Paths are relative to the source app root.
- */
-const EXCLUDED_FROM_COPY = new Set(['IMPORT_MIGRATION.md'])
-
-/**
- * Slug values that would collide with bundler/tooling resolution and are
- * therefore rejected even though they are valid kebab-case identifiers.
- *
- * If you change this list, also update `docs/forking.md` §4 where it is
- * documented for fork users.
- */
-const RESERVED_SLUGS = new Set(['app', 'apps', 'dist', 'node', 'node_modules', 'packages', 'src', 'tmp'])
 
 /**
  * Slugifies a human-readable display name into a kebab-case identifier.
@@ -50,6 +36,11 @@ function escapeHtml(value: string): string {
 }
 
 function validateNames(displayName: string, slug: string): void {
+	// Slug values that would collide with bundler/tooling resolution and are
+	// therefore rejected even though they are valid kebab-case identifiers.
+	// If you change this list, also update `docs/forking.md` §4 where it is
+	// documented for fork users.
+	const RESERVED_SLUGS = new Set(['app', 'apps', 'dist', 'node', 'node_modules', 'packages', 'src', 'tmp'])
 	if (!displayName) {
 		throw new Error('--name is required (the human-readable display name of the new app)')
 	}
@@ -97,6 +88,10 @@ function isTextFile(path: string): boolean {
  * occurrences in the canonical template are project-name references.
  */
 function copyTreeWithRewrites(tree: Tree, sourceRoot: string, targetRoot: string, slug: string): void {
+	// Files inside `apps/reference-app` that are starter-owned (relevant only
+	// to upstream contributors) and must NOT be propagated to generated fork
+	// apps. Paths are relative to the source app root.
+	const EXCLUDED_FROM_COPY = new Set(['IMPORT_MIGRATION.md'])
 	visitNotIgnoredFiles(tree, sourceRoot, (filePath) => {
 		const relative = filePath.substring(sourceRoot.length + 1)
 		if (EXCLUDED_FROM_COPY.has(relative)) return

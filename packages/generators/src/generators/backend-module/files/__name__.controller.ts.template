@@ -1,5 +1,5 @@
-import type { ErrorResponse } from '@libs/contracts/common/error.types'
-import type { PaginatedResponse } from '@libs/contracts/common/pagination.types'
+import type { ErrorResponse } from '@contracts/common/error.types'
+import type { PaginatedResponse } from '@contracts/common/pagination.types'
 import { container } from '../../../container/container'
 import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
 import { get<%= className %>Route, list<%= className %>sRoute } from './<%= fileName %>.routes'

@@ -1,4 +1,4 @@
-import { QUERY_DEFAULTS } from '@libs/contracts/common/query.constants'
+import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import { BaseRepository } from '../../../helpers/base.repository'
 import type { PaginatedResponse } from '../../../interfaces'
 import type { <%= className %>Repository, List<%= className %>sParams } from './interfaces'
