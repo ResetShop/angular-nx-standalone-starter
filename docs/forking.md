@@ -18,7 +18,7 @@
 
 ---
 
-> **Status:** This document describes the **target state** of the fork-distribution model. The model is being delivered across Epic 1 (#263, complete) and Epic 2 (#264, in progress). Sections that depend on still-unimplemented work are flagged inline with `> **Planned (PR X):**` callouts. The PLAN.md document under `workspace/` (gitignored, lives only in the upstream contributor environment) tracks which steps are complete.
+> **Status:** This document describes the fork-distribution model as it exists today. All sections are live; nothing is planned-but-unimplemented at this point.
 
 ## 1. Philosophy
 

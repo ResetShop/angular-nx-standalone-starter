@@ -10,7 +10,7 @@ const wordCountSchema = z.number().int().positive()
 async function readWordListFile(filename: string): Promise<string> {
 	/**
 	 * Candidate directories for wordlist files, checked in order.
-	 * - Production: copied to dist/app/server/wordlists/ via copy-server-assets Nx target
+	 * - Production: copied to dist/reference-app/server/wordlists/ via copy-server-assets Nx target
 	 * - Development: source tree location
 	 */
 	const candidateDirs = [resolve(import.meta.dirname, 'wordlists'), resolve(process.cwd(), 'src/api/utils/wordlists')]
