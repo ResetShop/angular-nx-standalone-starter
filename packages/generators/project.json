@@ -1,0 +1,39 @@
+{
+	"name": "generators",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/generators/src",
+	"projectType": "library",
+	"tags": ["type:util", "scope:shared"],
+	"targets": {
+		"build": {
+			"executor": "@nx/js:tsc",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/generators",
+				"main": "packages/generators/src/index.ts",
+				"tsConfig": "packages/generators/tsconfig.json"
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p packages/generators/tsconfig.spec.json"
+			}
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/packages/generators"],
+			"options": {
+				"config": "packages/generators/vitest.config.ts"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["packages/generators/src/**/*.ts"]
+			}
+		}
+	}
+}

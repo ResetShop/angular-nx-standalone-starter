@@ -1,0 +1,43 @@
+import { QUERY_DEFAULTS } from '@libs/contracts/common/query.constants'
+import { BaseRepository } from '../../../helpers/base.repository'
+import type { PaginatedResponse } from '../../../interfaces'
+import type { <%= className %>Repository, List<%= className %>sParams } from './interfaces'
+
+/**
+ * Repository for <%= propertyName %>-related database operations.
+ * Provides read access to <%= propertyName %>s with pagination and search support.
+ */
+export class Drizzle<%= className %>Repository extends BaseRepository implements <%= className %>Repository {
+	/**
+	 * Retrieves all <%= propertyName %>s with pagination and optional search filtering.
+	 *
+	 * @param params - Optional list parameters
+	 * @param params.offset - Number of records to skip (default: 0)
+	 * @param params.limit - Maximum records to return (default: 10)
+	 * @param params.search - Optional search term
+	 * @returns Paginated response containing <%= propertyName %>s and metadata
+	 */
+	public async findAll(params?: List<%= className %>sParams): Promise<PaginatedResponse<unknown>> {
+		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT
+		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET
+
+		// TODO: Implement query against actual table
+		return {
+			data: [],
+			total: 0,
+			offset,
+			limit,
+		}
+	}
+
+	/**
+	 * Retrieves a single <%= propertyName %> by its ID.
+	 *
+	 * @param id - The <%= propertyName %> ID
+	 * @returns The <%= propertyName %> data or null if not found
+	 */
+	public async findById(id: number): Promise<unknown | null> {
+		// TODO: Implement query against actual table
+		return null
+	}
+}

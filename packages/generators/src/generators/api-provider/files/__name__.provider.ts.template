@@ -1,0 +1,7 @@
+import { makeEnvironmentProviders } from '@angular/core'
+import { Http<%= className %>Api } from './<%= fileName %>'
+import { <%= className %>Api } from './<%= fileName %>.interface'
+
+export function provide<%= className %>() {
+	return makeEnvironmentProviders([{ provide: <%= className %>Api, useExisting: Http<%= className %>Api }])
+}

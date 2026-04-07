@@ -1,0 +1,15 @@
+import { render, screen } from '@testing-library/angular'
+import { provideTranslationMock } from '@libs/data-access/providers/i18n/translation.mock'
+import <%= className %>List from './<%= fileName %>-list'
+
+describe('<%= className %>List', () => {
+	const defaultProviders = () => [provideTranslationMock()]
+
+	it('should render the page', async () => {
+		const { fixture } = await render(<%= className %>List, {
+			providers: defaultProviders(),
+		})
+
+		expect(fixture.componentInstance).toBeTruthy()
+	})
+})

@@ -1,0 +1,21 @@
+{
+	"$schema": "https://json-schema.org/schema",
+	"id": "app",
+	"title": "Generate a new app from the reference-app template",
+	"description": "Clones apps/reference-app into apps/<slug> where <slug> is derived from the human-readable name. Use this generator to create a new application in a fork without modifying the canonical reference template.",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "Human-readable display name of the new app (e.g. \"Shine\"). The slug used for paths and project names is derived from this value.",
+			"$default": { "$source": "argv", "index": 0 },
+			"x-prompt": "What is the display name of the new app? (e.g. \"Shine\")"
+		},
+		"directory": {
+			"type": "string",
+			"description": "Directory where the new app folder is created.",
+			"default": "apps"
+		}
+	},
+	"required": ["name"]
+}
