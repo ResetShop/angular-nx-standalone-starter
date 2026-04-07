@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 
 @Component({
 	selector: 'app-loading-spinner',
@@ -15,7 +15,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 					<div class="spinner-ring border-t-default border-transparent"></div>
 					<div class="spinner-ring border-t-default border-transparent"></div>
 				</div>
-				<p class="text-muted-foreground text-center text-lg font-medium">Cargando...</p>
+				<p class="text-muted-foreground text-center text-lg font-medium">{{ message() }}</p>
 			</div>
 		</dialog>
 	`,
@@ -56,4 +56,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 		}
 	`,
 })
-export class LoadingSpinnerComponent {}
+export class LoadingSpinnerComponent {
+	/** Loading message displayed under the spinner. Defaults to English. Forks may pass a translated string. */
+	public readonly message = input<string>('Loading...')
+}

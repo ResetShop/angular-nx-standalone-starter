@@ -18,7 +18,7 @@ export interface EnvironmentConfig {
 	//   dataset: string;
 	// };
 
-	// TODO: Uncomment the Microsfot Clarity configuration if you're using Clarity analytics
+	// TODO: Uncomment the Microsoft Clarity configuration if you're using Clarity analytics
 	// clarity?: {
 	//   projectId: string;
 	//   token: string;
@@ -46,7 +46,7 @@ export const environment: EnvironmentConfig = {
 	//   token: process.env['SANITY_STUDIO_TOKEN'] as string,
 	// },
 
-	// TODO: Uncomment the Microsfot Clarity configuration if you're using Clarity analytics
+	// TODO: Uncomment the Microsoft Clarity configuration if you're using Clarity analytics
 	// clarity: {
 	//   projectId: process.env['CLARITY_PROJECT_ID'] as string,
 	//   token: process.env['CLARITY_TOKEN'] as string,

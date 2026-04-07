@@ -95,7 +95,7 @@ npm run generate:app -- --name="My App"
 
 The schematic clones `apps/reference-app` into `apps/<slug>` (where `<slug>` is the kebab-case slug derived from the human-readable name) and rewrites every `reference-app` reference inside the copied files to the new slug. The `<title>` in `index.html` is set to the human-readable display name.
 
-**Never** create a new app by hand-copying `apps/reference-app`, scaffolding from `nx g @nx/angular:application`, or modifying `apps/reference-app` directly. The fork-based distribution model depends on this contract. The full forking workflow document (`docs/forking.md`) is planned for Epic 2 PR 2.2 (#291) and is not yet available; until it lands, treat the rules in this section as authoritative.
+**Never** create a new app by hand-copying `apps/reference-app`, scaffolding from `nx g @nx/angular:application`, or modifying `apps/reference-app` directly. The fork-based distribution model depends on this contract. See [`docs/forking.md`](docs/forking.md) for the full workflow documentation.
 
 ### Folder Structure Conventions
 
