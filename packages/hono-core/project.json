@@ -14,6 +14,14 @@
 				"tsConfig": "packages/hono-core/tsconfig.lib.json"
 			}
 		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p packages/hono-core/tsconfig.lib.json"
+			}
+		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
 			"options": {
