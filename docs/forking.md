@@ -152,7 +152,7 @@ Hand-resolve. These files rarely change upstream, and when they do the change is
 
 ### `apps/<your-app>` conflicts
 
-If upstream is producing conflicts in `apps/<your-app>`, **something has gone wrong**: either you committed your app under `apps/reference-app` by mistake, or upstream landed a change in a path it shouldn't have. The boundary CI guard (see [§9](#9-ci-guards-on-the-upstream-repository)) **will prevent** the upstream side once Epic 2 PR 2.4 (#293) lands; until then, check your fork for the former.
+If upstream is producing conflicts in `apps/<your-app>`, **something has gone wrong**: either you committed your app under `apps/reference-app` by mistake, or upstream landed a change in a path it shouldn't have. The boundary CI guard (see [§9](#9-ci-guards-on-the-upstream-repository)) prevents the upstream side; check your fork for the former.
 
 ---
 
@@ -192,16 +192,14 @@ Once it's merged upstream, you can drop your local copy and pick it up via the n
 
 ## 9. CI guards on the upstream repository
 
-> **Planned (Epic 2 PR 2.4, #293):** Neither guard nor the PR template exist on the integration branch yet. This section documents the intended contract.
+The upstream repository runs two guard jobs on every PR via `.github/workflows/upstream-guards.yml` (gated to only run on `ResetShop/angular-nx-standalone-starter` via a `github.repository ==` check, so they don't fire on forks):
 
-The upstream repository will run two guard jobs on every PR via `.github/workflows/upstream-guards.yml` (gated to only run on `ResetShop/angular-nx-standalone-starter` via a `github.repository ==` check, so they don't fire on forks):
+1. **Boundary guard** — Fails if a PR touches any path under `apps/` other than `apps/reference-app` or its subdirectories. Ensures upstream PRs never modify fork-owned paths. Sibling-named directories such as `apps/reference-app-staging/` are deliberately treated as offending. Bypass label: `allow-app-change` (for the rare legitimate case of renaming the reference app).
+2. **Changelog guard** — Fails if a PR modifies starter-owned code without adding an entry to `CHANGELOG.md`. Starter-owned paths are: anything under `packages/`, `apps/reference-app/`, `scripts/`, `docs/`, `drizzle/`, `e2e/`, `.github/`, `.claude/`, plus the root files `package.json`, `package-lock.json`, `nx.json`, `tsconfig.base.json`, `tsconfig.json`, `eslint.config.mjs`, `prettier.config.mjs`, `.stylelintrc.json`, `tailwind.config.css`, `drizzle.config.ts`, `migrations.json`, `vitest.config.ts`, `vitest.integration.config.ts`, `AGENTS.md`, `CLAUDE.md`, and `README.md`. (`CHANGELOG.md` itself is intentionally excluded — it is the requirement, not the trigger.) Bypass label: `skip-changelog` (for trivial typo / comment-only PRs with no fork-visible impact).
 
-1. **Boundary guard** (planned) — Will fail if a PR touches any path under `apps/` other than `apps/reference-app` or its subdirectories. Ensures upstream PRs never modify fork-owned paths. Sibling-named directories such as `apps/reference-app-staging/` will be deliberately treated as offending. Bypass label: `allow-app-change` (for the rare legitimate case of renaming the reference app).
-2. **Changelog guard** (planned) — Will fail if a PR modifies starter-owned code without adding an entry to `CHANGELOG.md`. Starter-owned paths will be: anything under `packages/`, `apps/reference-app/`, `scripts/`, `docs/`, `drizzle/`, `e2e/`, `.github/`, `.claude/`, plus the root files `package.json`, `package-lock.json`, `nx.json`, `tsconfig.base.json`, `tsconfig.json`, `eslint.config.mjs`, `prettier.config.mjs`, `.stylelintrc.json`, `tailwind.config.css`, `drizzle.config.ts`, `migrations.json`, `vitest.config.ts`, `vitest.integration.config.ts`, `AGENTS.md`, `CLAUDE.md`, and `README.md`. (`CHANGELOG.md` itself will be intentionally excluded — it is the requirement, not the trigger.) Bypass label: `skip-changelog` (for trivial typo / comment-only PRs with no fork-visible impact).
+A PR template at `.github/pull_request_template.md` reminds contributors of both guards as a checklist before opening the PR. The template applies to all PRs in the repo where it lives, including fork-internal PRs — fork maintainers may delete or replace it with their own.
 
-A PR template at `.github/pull_request_template.md` will remind contributors of both guards as a checklist before opening the PR. The template will apply to all PRs in the repo where it lives, including fork-internal PRs — fork maintainers may delete or replace it with their own.
-
-These guards will not run on forks, so your fork's PRs will be unaffected. They exist solely to keep the upstream contract honest.
+These guards do not run on forks, so your fork's PRs are unaffected. They exist solely to keep the upstream contract honest.
 
 ---
 
