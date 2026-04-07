@@ -74,7 +74,7 @@ Note: The `npm install` command automatically runs database migrations and seed 
 
 #### 2. Environment Variables Configuration **[Required]**
 
-The project uses build-time environment configuration via Angular's `define` option in `project.json`. Each build configuration (`development`, `staging`, `production`) has its own `define` block that injects values into `src/app/environments/environment.ts` at build time.
+The project uses build-time environment configuration via Angular's `define` option in `apps/reference-app/project.json`. Each build configuration (`development`, `staging`, `production`) has its own `define` block that injects values into `apps/reference-app/src/app/environments/environment.ts` at build time.
 
 **Frontend Environment Variables** (configured in `project.json` → `build.configurations.<env>.define`):
 
@@ -85,7 +85,7 @@ The project uses build-time environment configuration via Angular's `define` opt
 
 **Backend Environment Variables** (configured in `.env` file, read at runtime by the server):
 
-See the `.env` file and `src/api/helpers/environment.ts` for all backend configuration.
+See the `.env` file and `packages/hono-core/src/lib/environment.ts` for all backend configuration. Backend connector templates (Drizzle MySQL/PostgreSQL, Sanity, Microsoft Clarity) live in the same `packages/hono-core/src/lib/` directory and are consumed via the `@resetshop/hono-core` package alias. Note: all `apps/...` paths in the rest of this guide are relative to the canonical example app at `apps/reference-app/`.
 
 #### 3. Authentication Configuration **[Required]**
 
@@ -182,11 +182,11 @@ The starter supports both MySQL and PostgreSQL via Drizzle ORM. Choose one based
    - Current implementation has hardcoded values that need to be made dynamic
 
 3. **Uncomment Database Connector:**
-   - For MySQL: Uncomment code in `src/api/helpers/drizzle-mysql-connector.ts:1-2`
-   - For PostgreSQL: Uncomment code in `src/api/helpers/drizzle-postgres-connector.ts:1-2`
+   - For MySQL: Uncomment code in `packages/hono-core/src/lib/drizzle-mysql-connector.ts:1-2`
+   - For PostgreSQL: Uncomment code in `apps/reference-app/src/api/helpers/drizzle-postgres-connector.ts:1-2`
 
 4. **Enable Database in Environment Config:**
-   - Uncomment database configuration in `src/api/helpers/environment.ts:17,45`
+   - Uncomment database configuration in `packages/hono-core/src/lib/environment.ts:17,45`
 
 5. **Set Connection String:**
    - Add your database connection string to environment variables
@@ -205,11 +205,11 @@ Integrate Sanity.io headless CMS for content management.
    ```
 
 2. **Uncomment Sanity Connector:**
-   - File: `src/api/helpers/sanity-connector.ts:1-2`
+   - File: `packages/hono-core/src/lib/sanity-connector.ts:1-2`
    - Uncomment the connector implementation
 
 3. **Enable Sanity in Environment Config:**
-   - Uncomment Sanity configuration in `src/api/helpers/environment.ts:4,32`
+   - Uncomment Sanity configuration in `packages/hono-core/src/lib/environment.ts:4,32`
 
 4. **Set Environment Variables:**
    - Add Sanity project ID and dataset to your environment variables
@@ -228,13 +228,13 @@ Enable analytics tracking with Microsoft Clarity.
    ```
 
 2. **Uncomment Clarity Connector:**
-   - File: `src/api/helpers/clarity-connector.ts:1-2`
+   - File: `packages/hono-core/src/lib/clarity-connector.ts:1-2`
 
 3. **Enable in Analytics Provider:**
-   - Uncomment Clarity setup in `src/app/providers/analytics/analytics.ts:22`
+   - Uncomment Clarity setup in `apps/reference-app/src/app/providers/analytics/analytics.ts:22`
 
 4. **Uncomment Environment Configuration:**
-   - Files: `src/api/helpers/environment.ts:11,39`
+   - Files: `packages/hono-core/src/lib/environment.ts:11,39`
 
 5. **Set Build-Time Variable:**
    - Set `__ENV_CLARITY_PROJECT_ID__` in the `production` define block of `project.json` with your Microsoft Clarity project ID
@@ -253,7 +253,7 @@ If you need to add static assets for Storybook:
 
 For adding custom dependency injection providers:
 
-- **File**: `src/app/app.config.ts:45`
+- **File**: `apps/reference-app/src/app/app.config.ts:45`
 - **Action**: Add your custom provider functions to the application configuration
 - **Use Case**: Custom services, HTTP interceptors, or third-party library providers
 
@@ -266,7 +266,7 @@ For adding custom dependency injection providers:
 After completing your setup:
 
 1. **Remove Setup Route:**
-   - File: `src/app/pages/dashboard/dashboard.routes.ts:15`
+   - File: `apps/reference-app/src/app/pages/dashboard/dashboard.routes.ts:15`
    - Remove the welcome/configuration route intended for initial setup only
 
 2. **Verify Application:**
