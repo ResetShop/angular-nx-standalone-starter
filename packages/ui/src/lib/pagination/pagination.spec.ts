@@ -1,5 +1,5 @@
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { fn } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import { Pagination } from './pagination'
@@ -17,6 +17,10 @@ const mockTranslation = {
 }
 
 describe('Pagination', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
 	describe('rendering', () => {
 		it('should render pagination navigation', async () => {
 			await render(Pagination, {

@@ -5,6 +5,16 @@ const meta: Meta<LoadingSpinnerComponent> = {
 	component: LoadingSpinnerComponent,
 	title: 'Components/Loading Spinner',
 	tags: ['autodocs'],
+	argTypes: {
+		message: {
+			control: 'text',
+			description: 'Loading text displayed under the spinner. Defaults to English; forks may pass a translated string.',
+			table: {
+				type: { summary: 'string' },
+				defaultValue: { summary: "'Loading...'" },
+			},
+		},
+	},
 	parameters: {
 		layout: 'fullscreen',
 		docs: {
@@ -15,7 +25,7 @@ A full-screen loading overlay that blocks user interaction while a global operat
 ## Features
 
 - **Fixed Overlay**: Covers the entire viewport with a dark backdrop (\`bg-black/95\`)
-- **Centered Card**: Displays a card with an animated ring spinner and "Cargando..." text
+- **Centered Card**: Displays a card with an animated ring spinner and "Loading..." text (overridable via the \`message\` input)
 - **Dialog Element**: Uses native \`<dialog>\` for proper stacking and focus trapping
 - **UIStore Integration**: Conditionally rendered in the Dashboard layout when \`UIStore.isGlobalLoading()\` is \`true\`
 

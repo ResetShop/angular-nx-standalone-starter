@@ -15,7 +15,7 @@ A full-screen loading overlay that blocks user interaction while a global operat
 ## Features
 
 - **Fixed Overlay**: Covers the entire viewport with a dark backdrop (\`bg-black/95\`)
-- **Centered Card**: Displays a card with an animated ring spinner and "Cargando..." text
+- **Centered Card**: Displays a card with an animated ring spinner and "Loading..." text (overridable via the \`message\` input)
 - **Dialog Element**: Uses native \`<dialog>\` for proper stacking and focus trapping
 - **UIStore Integration**: Conditionally rendered in the Dashboard layout when \`UIStore.isGlobalLoading()\` is \`true\`
 
