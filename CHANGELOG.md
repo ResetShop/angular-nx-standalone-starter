@@ -8,8 +8,23 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ### Planned for the next release
 
-- **Upstream CI guards** — `boundary-guard` and `changelog-guard` workflows + PR template (Epic 2 PR 2.4, #293)
 - **Holistic cross-cutting cleanup** (Epic 2 PR 2.5, #294)
+
+## [1.0.0-beta.2] — 2026-04-07
+
+Adds the upstream CI guard layer that protects the starter contract on incoming PRs.
+
+### Added
+
+- **`.github/workflows/upstream-guards.yml`** — single workflow with two jobs:
+  - **`boundary-guard`** — fails if a PR touches any path under `apps/` other than `apps/reference-app` or its subdirectories. Sibling-named directories (e.g. `apps/reference-app-staging/`) are deliberately treated as offending. Bypass label: `allow-app-change`.
+  - **`changelog-guard`** — fails if a PR modifies starter-owned code (anything under `packages/`, `apps/reference-app/`, `scripts/`, `docs/`, `drizzle/`, `e2e/`, `.github/`, `.claude/`, plus the root config files) without adding an entry to `CHANGELOG.md`. Bypass label: `skip-changelog`. `CHANGELOG.md` itself is intentionally excluded from the trigger to avoid a circular requirement.
+  - Both jobs are gated to `github.repository == 'ResetShop/angular-nx-standalone-starter'` so they never fire on forks. Both re-evaluate when bypass labels are added or removed via `pull_request: types: [opened, synchronize, reopened, labeled, unlabeled]`.
+- **`.github/pull_request_template.md`** — Fork-distribution checklist (CHANGELOG entry, no fork-owned paths touched, CI guards reviewed). Top comment notes the template applies to PRs against the upstream repo only; forks may delete or replace it.
+
+### Changed
+
+- **`docs/forking.md`** — §9 (CI guards) converted from planned to active tense; §5 (conflict resolution) forward reference to PR 2.4 resolved.
 
 ## [1.0.0-beta.1] — 2026-04-07
 
@@ -64,10 +79,12 @@ This is the first tagged version of the starter under the fork-distribution mode
 - **`apps/reference-app` e2e test coverage** — Playwright config exists but no specs. ([#261](https://github.com/ResetShop/angular-nx-standalone-starter/issues/261))
 
 <!--
-  Link references below resolve once the v1.0.0-beta.0 git tag is pushed
+  Link references below resolve once the corresponding git tags are pushed
   upstream. Until then they 404; do not click them blindly. They are kept
   here so the markdown anchor format is established for future versions.
 -->
 
-[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.0...HEAD
+[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.2...HEAD
+[1.0.0-beta.2]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.1...v1.0.0-beta.2
+[1.0.0-beta.1]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.0...v1.0.0-beta.1
 [1.0.0-beta.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0-beta.0
