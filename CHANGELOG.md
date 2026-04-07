@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`README.md` Project Setup Guide** — corrected 8 stale file references that still pointed at the pre-restructure single-app layout (`src/api/helpers/`, `src/app/`). Connector templates and environment config now correctly point at `packages/hono-core/src/lib/`; remaining app-specific paths now carry the `apps/reference-app/` prefix. A fork user following the optional integration instructions was previously hitting paths that no longer existed.
+
 ## [1.0.0-beta.3] — 2026-04-07
 
 Final Epic 2 cleanup. Closes the milestone (`Monorepo restructure + fork distribution`).
