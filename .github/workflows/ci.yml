@@ -41,8 +41,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
   tsx-smoke:
     needs: setup
@@ -53,8 +51,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -73,8 +69,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -93,8 +87,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -113,8 +105,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -133,8 +123,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -167,8 +155,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -190,8 +176,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -223,8 +207,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
@@ -246,8 +228,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
