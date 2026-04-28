@@ -14,7 +14,7 @@
 		"serve:ssr": "node dist/reference-app/server/server.mjs",
 		"prepare": "husky",
 		"ci": "npm run ci:tsx-smoke && nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
-		"ci:tsx-smoke": "tsx --tsconfig apps/reference-app/tsconfig.json apps/reference-app/src/db/schema/user.ts",
+		"ci:tsx-smoke": "tsx --tsconfig apps/reference-app/tsconfig.json scripts/tsx-alias-smoke.ts",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app",
 		"storybook": "nx run reference-app:storybook",
