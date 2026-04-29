@@ -1087,13 +1087,9 @@ This is a mandatory step in the workflow:
 
 **CRITICAL:** Before considering any implementation work complete, `npm run ci` MUST pass with exit code 0.
 
-The `npm run ci` command runs three serial stages: a tsx alias smoke step, then two parallel batches via `nx run-many`.
+The `npm run ci` command runs CI checks in two parallel batches via `nx run-many`:
 
-**Stage 0 (tsx alias smoke, serial — runs first):**
-
-- `ci:tsx-smoke` — invokes tsx with `apps/reference-app/tsconfig.json` to verify the app-scoped path aliases (e.g., `@contracts/*`, `@schema/*`) resolve under tsx. Guards `npm run drizzle:seed` and `npm run sync:permissions` (and the `postinstall` hook) against alias-resolution regressions before the heavier batches run.
-
-**Batch 1 (fast checks, parallel — runs only if Stage 0 passes):**
+**Batch 1 (fast checks, parallel):**
 
 - `stylelint` — CSS/style linting
 - `lint` — TypeScript/ESLint linting
@@ -1106,7 +1102,7 @@ The `npm run ci` command runs three serial stages: a tsx alias smoke step, then 
 - `build` — Production build
 - `build-storybook` — Storybook build (`npm run storybook:build`)
 
-If any stage fails, the next stage does not run. Within a batch, Nx reports an error after all parallel tasks complete.
+If any task in a batch fails, Nx reports an error after all parallel tasks in the batch complete. Batch 2 does not run if Batch 1 exits with an error.
 
 ### When to Trigger
 
