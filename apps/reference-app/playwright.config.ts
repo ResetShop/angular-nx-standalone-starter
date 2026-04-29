@@ -22,7 +22,7 @@ export default defineConfig({
 	},
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: 'nx run app:serve --port=3000',
+		command: 'nx run reference-app:serve --port=3000',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: workspaceRoot,

@@ -14,7 +14,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Get Node.js version
         id: node-version
@@ -41,8 +41,6 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
   test:
     needs: setup
@@ -53,16 +51,32 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run Tests
-        run: npx nx test --skip-nx-cache
+        run: npx nx run-many -t test --skip-nx-cache
+
+  typecheck:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore repository
+        uses: actions/cache@v4.2.3
+        with:
+          path: .
+          key: repo-${{ github.sha }}
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: '22.20'
+
+      - name: Run typecheck
+        run: npx nx run-many -t typecheck --skip-nx-cache
 
   lint:
     needs: setup
@@ -73,16 +87,14 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run Linter
-        run: npx nx lint --skip-nx-cache
+        run: npx nx run-many -t lint --skip-nx-cache
 
   stylelint:
     needs: setup
@@ -93,13 +105,11 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run stylelint
         run: npx nx stylelint reference-app --skip-nx-cache
@@ -127,19 +137,22 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run integration tests
         run: npm run test:integration
         env:
-          PG_TEST_CONNECTION_STRING: ${{ secrets.PG_TEST_CONNECTION_STRING }}
-          INTEGRATION_TEST_ADMIN_PASSWORD: ${{ secrets.INTEGRATION_TEST_ADMIN_PASSWORD }}
+          # Sourced from GitHub Actions repo Variables (not Secrets) — these
+          # point at the in-job postgres:17 service container above and the
+          # admin-user password is a CI-only literal, neither is sensitive.
+          # See CHANGELOG / docs for the values to set in repo Settings →
+          # Secrets and variables → Actions → Variables.
+          PG_TEST_CONNECTION_STRING: ${{ vars.PG_TEST_CONNECTION_STRING }}
+          INTEGRATION_TEST_ADMIN_PASSWORD: ${{ vars.INTEGRATION_TEST_ADMIN_PASSWORD }}
 
   e2e:
     needs: setup
@@ -150,13 +163,11 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -183,13 +194,11 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Generate PASETO key for CI
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
@@ -206,13 +215,11 @@ jobs:
         with:
           path: .
           key: repo-${{ github.sha }}
-          restore-keys: |
-            repo-${{ github.sha }}
 
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run Storybook build
         run: npx nx run reference-app:build-storybook --skip-nx-cache
