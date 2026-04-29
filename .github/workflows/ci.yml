@@ -14,7 +14,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Get Node.js version
         id: node-version
@@ -55,7 +55,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run Tests
         run: npx nx run-many -t test --skip-nx-cache
@@ -73,7 +73,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run typecheck
         run: npx nx run-many -t typecheck --skip-nx-cache
@@ -91,7 +91,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run Linter
         run: npx nx run-many -t lint --skip-nx-cache
@@ -109,7 +109,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run stylelint
         run: npx nx stylelint reference-app --skip-nx-cache
@@ -141,7 +141,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run integration tests
         run: npm run test:integration
@@ -162,7 +162,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -193,7 +193,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Generate PASETO key for CI
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
@@ -214,7 +214,7 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: 22.20
+          node-version: '22.20'
 
       - name: Run Storybook build
         run: npx nx run reference-app:build-storybook --skip-nx-cache
