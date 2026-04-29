@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Changed
+
+- **`.github/workflows/ci.yml` `test-integration` job** — switched `PG_TEST_CONNECTION_STRING` and `INTEGRATION_TEST_ADMIN_PASSWORD` from `secrets.*` to `vars.*` (GitHub Actions repository Variables, not Secrets). Neither value is sensitive — the workflow already declares an ephemeral `postgres:17` service container in the same job, so the connection string just points at `localhost:5432` and the admin password is a CI-only literal that exists only inside the ephemeral container. **Migration:** in repo Settings → Secrets and variables → Actions → **Variables** tab, add `PG_TEST_CONNECTION_STRING = postgresql://postgres:postgres@localhost:5432/test_db` and `INTEGRATION_TEST_ADMIN_PASSWORD = <any test-only password>`. The old `secrets.*` entries with the same names can be deleted afterwards. ([#319](https://github.com/ResetShop/angular-nx-standalone-starter/issues/319))
+
 ### Fixed
 
 - **`package.json` `drizzle:seed` / `sync:permissions` scripts** — added `--tsconfig apps/reference-app/tsconfig.json` so tsx resolves the app-scoped `@contracts/*` / `@schema/*` path aliases. Running `npm run drizzle:seed` from the workspace root was failing with `ERR_MODULE_NOT_FOUND: Cannot find package '@contracts/user'` because tsx was resolving against `tsconfig.base.json`, where the app-scoped aliases are not declared.

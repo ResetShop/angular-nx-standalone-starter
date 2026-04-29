@@ -146,8 +146,13 @@ jobs:
       - name: Run integration tests
         run: npm run test:integration
         env:
-          PG_TEST_CONNECTION_STRING: ${{ secrets.PG_TEST_CONNECTION_STRING }}
-          INTEGRATION_TEST_ADMIN_PASSWORD: ${{ secrets.INTEGRATION_TEST_ADMIN_PASSWORD }}
+          # Sourced from GitHub Actions repo Variables (not Secrets) — these
+          # point at the in-job postgres:17 service container above and the
+          # admin-user password is a CI-only literal, neither is sensitive.
+          # See CHANGELOG / docs for the values to set in repo Settings →
+          # Secrets and variables → Actions → Variables.
+          PG_TEST_CONNECTION_STRING: ${{ vars.PG_TEST_CONNECTION_STRING }}
+          INTEGRATION_TEST_ADMIN_PASSWORD: ${{ vars.INTEGRATION_TEST_ADMIN_PASSWORD }}
 
   e2e:
     needs: setup
