@@ -2,6 +2,8 @@
 
 > **Purpose:** This document provides coding standards, architectural principles, and tooling guidelines for this project. Claude Code should follow these guidelines when generating, reviewing, or modifying code.
 
+> **Coding agent collaboration policies:** All AI coding agents operating on this repo MUST also follow [`.claude/references/coding-agent-policies.md`](.claude/references/coding-agent-policies.md), and **must load that file at the start of every session, before generating any recommendations**. The policies are a hard constraint at the same level as the constraints in this CLAUDE.md file. Banned recommendation patterns are review-blocking. See in particular Section 1 (no-solo-maintainer rule) and Section 2 (other shortcut anti-patterns).
+
 ---
 
 ## Table of Contents
@@ -81,17 +83,39 @@ This is a hard constraint. Violations break the workflow and require user interv
 1. **Never prefix git commands with `cd`** — the working directory is already at the project root. Using `cd <root> && git ...` changes the command signature and breaks auto-approve permission patterns.
 2. **Use simple `git commit -m "message"`** — never use `$(cat <<'EOF'...)` HEREDOC substitution for commit messages. It changes the command signature and requires manual permission approval.
 
+### Canonical App Creation Workflow
+
+`apps/reference-app` is the **canonical template** and is upstream-owned. It must never be modified by forks and never renamed. It is the only source from which new apps are generated.
+
+To create a new app, always use the schematic:
+
+```
+npm run generate:app -- --name="My App"
+```
+
+The schematic clones `apps/reference-app` into `apps/<slug>` (where `<slug>` is the kebab-case slug derived from the human-readable name) and rewrites every `reference-app` reference inside the copied files to the new slug. The `<title>` in `index.html` is set to the human-readable display name.
+
+**Never** create a new app by hand-copying `apps/reference-app`, scaffolding from `nx g @nx/angular:application`, or modifying `apps/reference-app` directly. The fork-based distribution model depends on this contract. See [`docs/forking.md`](docs/forking.md) for the full workflow documentation.
+
 ### Folder Structure Conventions
 
 ```
 apps/
-  └── <app-name>/
-libs/
-  ├── feature/          # Smart components, route containers
-  ├── ui/               # Presentational/dumb components
-  ├── data-access/      # Services, state management, API calls
-  └── util/             # Pure functions, helpers, types
+  └── reference-app/    # Canonical example app (and source for the schematic)
+       └── src/
+            ├── api/         # Hono backend (modules, middleware, services, helpers)
+            ├── app/         # Angular frontend (pages, components, store, providers)
+            ├── contracts/   # Shared Zod schemas + TypeScript types
+            └── db/schema/   # Drizzle table schemas
+packages/
+  ├── util/             # Pure functions, helpers, types — framework-free
+  ├── ui/               # Presentational Angular components + Storybook stories
+  ├── angular-core/     # Shared Angular providers (i18n, theme, navigation, logger)
+  ├── hono-core/        # Hono backend infrastructure (createOpenAPIApp, isServerless)
+  └── generators/       # Nx generators (store, api-provider, backend-module, page, crud, drizzle-schema, app)
 ```
+
+All `packages/*` are exposed via `@resetshop/*` path aliases in `tsconfig.base.json`. App-scoped aliases live in `apps/reference-app/tsconfig.json` and currently include `@components/*`, `@configs/*`, `@contracts/*`, `@directives/*`, `@domain/*`, `@guards/*`, `@pages/*`, `@providers/*`, `@schema/*`, and `@store/*`. Refer to that file for the authoritative list.
 
 ### Naming Conventions
 
@@ -117,25 +141,26 @@ libs/
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint                   | Limit                                                                                                                      | Rationale                     |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| Function length              | ≤ 50 lines                                                                                                                 | Readability, SRP              |
-| File length                  | ≤ 500 lines (spec files exempt)                                                                                            | Maintainability               |
-| Cyclomatic complexity        | ≤ 10                                                                                                                       | Testability                   |
-| Nesting depth                | ≤ 3 levels                                                                                                                 | Readability                   |
-| Barrel imports/exports       | Not allowed in any part of the project                                                                                     | Maintainability, Performance  |
-| `any` type                   | Forbidden without `// REASON:` comment                                                                                     | Type safety                   |
-| `// @ts-ignore`              | Forbidden without linked issue                                                                                             | Technical debt tracking       |
-| `console.log`                | Remove before commit                                                                                                       | Clean code                    |
-| TypeScript enums             | Forbidden - use `Object.freeze()` instead                                                                                  | Consistency, type safety      |
-| Type-only imports            | Use `type` keyword for types/interfaces when only used in the context of type annotations                                  | Bundle size, clarity          |
-| Raw time literals            | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()` | Readability, consistency      |
-| `vi.fn()`/`vi.mock()`        | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                 | Framework independence        |
-| `firstValueFrom`/`toPromise` | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                      | Signals-first, no promises    |
-| `TestBed.flushEffects()`     | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                 | API deprecation               |
-| Storybook stories            | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                         | Visual testing, documentation |
-| External repo issues         | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves       | Ownership, etiquette          |
-| Permission string literals   | Every file using permission identifier strings must have a test validating them against `PERMISSION_DEFINITIONS`           | Catches typos, stale refs     |
+| Constraint                          | Limit                                                                                                                                                                                                                                                           | Rationale                             |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Function length                     | ≤ 50 lines                                                                                                                                                                                                                                                      | Readability, SRP                      |
+| File length                         | ≤ 500 lines (spec files exempt)                                                                                                                                                                                                                                 | Maintainability                       |
+| Cyclomatic complexity               | ≤ 10                                                                                                                                                                                                                                                            | Testability                           |
+| Nesting depth                       | ≤ 3 levels                                                                                                                                                                                                                                                      | Readability                           |
+| Barrel imports/exports              | Not allowed in any part of the project                                                                                                                                                                                                                          | Maintainability, Performance          |
+| `any` type                          | Forbidden without `// REASON:` comment                                                                                                                                                                                                                          | Type safety                           |
+| `// @ts-ignore`                     | Forbidden without linked issue                                                                                                                                                                                                                                  | Technical debt tracking               |
+| `console.log`                       | Remove before commit                                                                                                                                                                                                                                            | Clean code                            |
+| TypeScript enums                    | Forbidden - use `Object.freeze()` instead                                                                                                                                                                                                                       | Consistency, type safety              |
+| Type-only imports                   | Use `type` keyword for types/interfaces when only used in the context of type annotations                                                                                                                                                                       | Bundle size, clarity                  |
+| Raw time literals                   | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()`                                                                                                                                      | Readability, consistency              |
+| `vi.fn()`/`vi.mock()`               | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                                                                                                                                                      | Framework independence                |
+| `firstValueFrom`/`toPromise`        | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                                                                                                                                                           | Signals-first, no promises            |
+| `TestBed.flushEffects()`            | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                                                                                                                                                      | API deprecation                       |
+| Storybook stories                   | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                                                                                                                                                              | Visual testing, documentation         |
+| External repo issues                | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves                                                                                                                                            | Ownership, etiquette                  |
+| Permission string literals          | Every file using permission identifier strings must have a test validating them against `PERMISSION_DEFINITIONS`                                                                                                                                                | Catches typos, stale refs             |
+| Coding agent recommendation framing | All AI agents must follow [`.claude/references/coding-agent-policies.md`](.claude/references/coding-agent-policies.md). No solo-maintainer shortcut framings, no "skip the test for this small change", no deferring code review past PR open. Review-blocking. | Multi-collaborator showcase precedent |
 
 ### Object.freeze() Instead of Enums
 
@@ -506,18 +531,24 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 
 **Project Tags** (for `@nx/enforce-module-boundaries`):
 
-- `type:app`, `type:feature`, `type:ui`, `type:data-access`, `type:util`
-- `scope:shared`, `scope:feature-*`
+- `type:*` — `type:app`, `type:ui`, `type:angular-core`, `type:hono-core`, `type:util` (and `type:data-access`, `type:backend`, `type:contracts` if reintroduced)
+- `scope:starter` — all upstream-owned projects (`packages/*` and `apps/reference-app`). May only depend on other `scope:starter` projects, enforced by `@nx/enforce-module-boundaries`.
+- `scope:app` — all fork-generated apps (created by `@resetshop/generators:app`). May depend on both `scope:starter` and `scope:app`. The schematic emits this tag automatically when cloning `apps/reference-app`.
 
 **Generators:**
 
 ```bash
-# Prefer standalone components
-nx g @nx/angular:component --standalone
-
-# New library
-nx g @nx/angular:library --directory=libs/<scope>/<name> --standalone
+# Create a new app via the schematic (the only supported path; see Canonical
+# App Creation Workflow above for details)
+npm run generate:app -- --name="My App"
 ```
+
+Other generators (`store`, `api-provider`, `backend-module`, `drizzle-schema`,
+`page`, `crud`) live in `packages/generators/src/generators/` and should be
+invoked via `nx g @resetshop/generators:<name>` or wrapped in `npm run` scripts
+as they get adopted. **Do not** call `nx g @nx/angular:library --directory=libs/...`
+— this repository uses the `packages/*` + `apps/reference-app` layout, not the
+Nx libs convention.
 
 <!-- nx configuration end-->
 

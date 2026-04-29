@@ -1,0 +1,37 @@
+import type { ErrorResponse } from '@contracts/common/error.types'
+import type { PaginatedResponse } from '@contracts/common/pagination.types'
+import { container } from '../../../container/container'
+import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
+import { get<%= className %>Route, list<%= className %>sRoute } from './<%= fileName %>.routes'
+
+const app = createOpenAPIApp()
+
+/**
+ * GET /
+ * List all <%= propertyName %>s with pagination and optional search
+ */
+registerRoute(app, list<%= className %>sRoute, async (c) => {
+	const { <%= propertyName %>Service } = container.cradle
+	const { offset, limit, search } = c.req.valid('query')
+	const result = await <%= propertyName %>Service.getAll<%= className %>s({ offset, limit, search })
+	return c.json<PaginatedResponse<unknown>>(result)
+})
+
+/**
+ * GET /{id}
+ * Get a single <%= propertyName %> by ID
+ */
+registerRoute(app, get<%= className %>Route, async (c) => {
+	const { <%= propertyName %>Service } = container.cradle
+	const id = Number(c.req.param('id'))
+
+	const result = await <%= propertyName %>Service.get<%= className %>(id)
+
+	if (!result) {
+		return c.json<ErrorResponse>({ error: '<%= className %> not found' }, 404)
+	}
+
+	return c.json(result)
+})
+
+export default app

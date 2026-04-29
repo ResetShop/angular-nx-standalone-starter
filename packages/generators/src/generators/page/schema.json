@@ -1,0 +1,18 @@
+{
+	"$schema": "https://json-schema.org/schema",
+	"id": "page",
+	"title": "Generate Page Component",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "Page name (e.g. 'products')",
+			"$default": { "$source": "argv", "index": 0 }
+		},
+		"route": { "type": "string", "description": "Route path segment" },
+		"withStore": { "type": "boolean", "description": "Also generate a Signal Store", "default": false },
+		"withApiProvider": { "type": "boolean", "description": "Also generate an API provider", "default": false },
+		"directory": { "type": "string", "description": "Target directory", "default": "src/app/pages/dashboard" }
+	},
+	"required": ["name"]
+}

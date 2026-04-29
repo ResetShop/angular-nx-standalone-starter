@@ -1,0 +1,53 @@
+import { createRoute } from '@hono/zod-openapi'
+import { errorResponseSchema } from '@contracts/common/error.schemas'
+import { paginatedResponseSchema, searchPaginationSchema } from '@contracts/common/pagination.schemas'
+import { commonResponses, idParamSchema } from '../../../openapi-config'
+
+// TODO: Replace with actual response schema
+import { z } from 'zod'
+
+const <%= propertyName %>DataSchema = z.object({
+	id: z.number(),
+})
+
+export const list<%= className %>sRoute = createRoute({
+	method: 'get',
+	path: '/',
+	tags: ['<%= className %>s'],
+	summary: 'List all <%= propertyName %>s',
+	description: 'List all <%= propertyName %>s with pagination and optional search.',
+	request: {
+		query: searchPaginationSchema,
+	},
+	responses: {
+		200: {
+			description: 'Paginated list of <%= propertyName %>s',
+			content: { 'application/json': { schema: paginatedResponseSchema(<%= propertyName %>DataSchema) } },
+		},
+		...commonResponses,
+	},
+})
+
+export const get<%= className %>Route = createRoute({
+	method: 'get',
+	path: '/{id}',
+	tags: ['<%= className %>s'],
+	summary: 'Get <%= propertyName %> by ID',
+	description: 'Get a single <%= propertyName %> by its ID.',
+	request: { params: idParamSchema },
+	responses: {
+		200: {
+			description: '<%= className %> details',
+			content: { 'application/json': { schema: <%= propertyName %>DataSchema } },
+		},
+		400: {
+			description: 'Invalid <%= propertyName %> ID',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: '<%= className %> not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonResponses,
+	},
+})

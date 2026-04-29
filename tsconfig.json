@@ -1,50 +1,8 @@
 {
-	"compilerOptions": {
-		"moduleResolution": "bundler",
-		"emitDecoratorMetadata": false,
-		"target": "es2022",
-		"module": "preserve",
-		"lib": ["dom", "es2022"],
-		"paths": {
-			"@contracts/*": ["src/contracts/*"],
-			"@components/*": ["src/app/components/*"],
-			"@configs/*": ["src/app/configs/*"],
-			"@directives/*": ["src/app/directives/*"],
-			"@domain/*": ["src/app/domain/*"],
-			"@guards/*": ["src/app/guards/*"],
-			"@interfaces/*": ["src/app/interfaces/*"],
-			"@mocks/*": ["src/app/mocks/*"],
-			"@pages/*": ["src/app/pages/*"],
-			"@providers/*": ["src/app/providers/*"],
-			"@store/*": ["src/app/store/*"],
-			"@schema/*": ["src/db/schema/*"],
-			"@test-utils": ["src/test-utils"],
-			"@utils/*": ["src/utils/*"]
-		},
-		"baseUrl": ".",
-		"isolatedModules": true,
-		"skipLibCheck": true
-	},
-	"angularCompilerOptions": {
-		"enableI18nLegacyMessageIdFormat": false,
-		"strictInjectionParameters": true,
-		"strictInputAccessModifiers": true,
-		"typeCheckHostBindings": true,
-		"strictTemplates": true
-	},
+	"extends": "./tsconfig.base.json",
 	"files": [],
 	"include": [],
-	"references": [
-		{
-			"path": "./tsconfig.app.json"
-		},
-		{
-			"path": "./tsconfig.spec.json"
-		},
-		{
-			"path": "./.storybook/tsconfig.json"
-		}
-	],
+	"references": [],
 	"compileOnSave": false,
 	"exclude": ["node_modules", "tmp"],
 	"ts-node": {

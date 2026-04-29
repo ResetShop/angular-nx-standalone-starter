@@ -1,0 +1,30 @@
+{
+	"name": "angular-core",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/angular-core/src",
+	"projectType": "library",
+	"tags": ["type:angular-core", "scope:starter"],
+	"targets": {
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/packages/angular-core"],
+			"options": {
+				"config": "packages/angular-core/vitest.config.ts"
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p packages/angular-core/tsconfig.spec.json"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["packages/angular-core/src/**/*.ts"]
+			}
+		}
+	}
+}

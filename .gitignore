@@ -51,3 +51,4 @@ Thumbs.db
 /workspace
 .claude/worktrees
 .claude/settings.local.json
+.claude/skills/

@@ -1,0 +1,39 @@
+{
+	"name": "util",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/util/src",
+	"projectType": "library",
+	"tags": ["type:util", "scope:starter"],
+	"targets": {
+		"build": {
+			"executor": "@nx/js:tsc",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/util",
+				"main": "packages/util/src/index.ts",
+				"tsConfig": "packages/util/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/packages/util"],
+			"options": {
+				"config": "packages/util/vitest.config.ts"
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p packages/util/tsconfig.spec.json"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["packages/util/src/**/*.ts"]
+			}
+		}
+	}
+}

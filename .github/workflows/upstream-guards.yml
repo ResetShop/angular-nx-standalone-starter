@@ -1,0 +1,163 @@
+name: Upstream Guards
+
+# Enforces the fork-distribution model on the upstream repository:
+#
+#   1. boundary-guard — upstream PRs must not modify apps/<non-reference-app>/ paths.
+#      Bypass label: `allow-app-change`.
+#
+#   2. changelog-guard — upstream PRs that touch starter-owned code must add
+#      an entry to CHANGELOG.md under `## [Unreleased]`.
+#      Bypass label: `skip-changelog`.
+#
+# Both guards do NOT run on forks (gated by the `if:` expression in each job).
+#
+# Note: the two jobs share boilerplate (checkout, label check). Any fix in one
+# job should generally be mirrored in the other.
+
+on:
+  pull_request:
+    branches: [main]
+    # Re-evaluate when bypass labels are added or removed so a contributor can
+    # apply `allow-app-change` / `skip-changelog` and have the guard re-run
+    # without having to push a new commit.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  boundary-guard:
+    name: Forbid PRs touching apps/<non-reference-app>
+    runs-on: ubuntu-latest
+    # Full owner/repo comparison: the owner prefix is what makes this safe on
+    # forks — even a brand-new fork that retains the upstream repo *name*
+    # carries a different owner, so this check disables the guard for them.
+    if: github.repository == 'ResetShop/angular-nx-standalone-starter'
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+        with:
+          # Full history is needed because force-pushed PRs may have a base
+          # SHA that is no longer reachable from a shallow clone of the merge
+          # ref, which would make the `git diff "$BASE_SHA..$HEAD_SHA"` below
+          # fail with "unknown revision."
+          fetch-depth: 0
+
+      - name: Check for `allow-app-change` bypass label
+        id: bypass
+        env:
+          LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          if printf '%s' "$LABELS_JSON" | jq -e 'any(. == "allow-app-change")' > /dev/null; then
+            echo "bypass=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Boundary guard bypassed by allow-app-change label."
+          else
+            echo "bypass=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Diff against base and find offending paths
+        if: steps.bypass.outputs.bypass != 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          # Two-dot operator: gives the direct delta between BASE and HEAD,
+          # which is the correct semantics for "files changed in this PR"
+          # (three-dot would diff merge-base..HEAD instead).
+          changed_files=$(git diff --name-only "$BASE_SHA..$HEAD_SHA")
+
+          # Match anything under apps/ that is NOT exactly apps/reference-app
+          # or one of its subpaths. The `(/|$)` anchor ensures sibling
+          # directories like `apps/reference-app-staging/` are correctly
+          # treated as offending — never "fix" this regex without preserving
+          # that distinction.
+          offending=$(printf '%s\n' "$changed_files" \
+            | grep -E '^apps/' \
+            | grep -Ev '^apps/reference-app(/|$)' || true)
+
+          if [ -n "$offending" ]; then
+            echo "::error::Upstream PRs must not modify apps/<non-reference-app>/ paths."
+            echo ""
+            echo "Offending files:"
+            echo "$offending" | sed 's/^/  - /'
+            echo ""
+            echo "Fork-owned app code lives in fork repositories, not upstream."
+            echo "If you genuinely need to modify a non-reference app path here"
+            echo "(e.g. renaming the reference app), apply the 'allow-app-change'"
+            echo "label to this PR and re-run the workflow."
+            exit 1
+          fi
+
+          echo "OK: no app-boundary violations found."
+
+  changelog-guard:
+    name: Require CHANGELOG entry for starter-code changes
+    runs-on: ubuntu-latest
+    if: github.repository == 'ResetShop/angular-nx-standalone-starter'
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for `skip-changelog` bypass label
+        id: bypass
+        env:
+          LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          if printf '%s' "$LABELS_JSON" | jq -e 'any(. == "skip-changelog")' > /dev/null; then
+            echo "bypass=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Changelog guard bypassed by skip-changelog label."
+          else
+            echo "bypass=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify CHANGELOG entry when starter-owned code is touched
+        if: steps.bypass.outputs.bypass != 'true'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          changed_files=$(git diff --name-only "$BASE_SHA..$HEAD_SHA")
+
+          # Anything matching one of these prefixes / files is considered
+          # starter-owned for the purposes of the changelog contract. Keep
+          # this list in sync with the ownership boundary table in
+          # docs/forking.md §2.
+          #
+          # CHANGELOG.md is intentionally NOT in this list — it IS the
+          # requirement, not the trigger. Adding it here would create a
+          # circular check (touching CHANGELOG.md would demand touching
+          # CHANGELOG.md).
+          starter_touched=$(printf '%s\n' "$changed_files" \
+            | grep -E '^(packages/|apps/reference-app/|scripts/|docs/|drizzle/|e2e/|\.github/|\.claude/|package\.json$|package-lock\.json$|nx\.json$|tsconfig\.base\.json$|tsconfig\.json$|eslint\.config\.mjs$|prettier\.config\.mjs$|\.stylelintrc\.json$|tailwind\.config\.css$|drizzle\.config\.ts$|migrations\.json$|vitest\.config\.ts$|vitest\.integration\.config\.ts$|AGENTS\.md$|CLAUDE\.md$|README\.md$)' \
+            || true)
+
+          if [ -z "$starter_touched" ]; then
+            echo "OK: no starter-owned files touched; CHANGELOG entry not required."
+            exit 0
+          fi
+
+          # -x matches the whole line, preventing false positives from paths
+          # like 'old/CHANGELOG.md' or 'docs/CHANGELOG.md'.
+          if printf '%s\n' "$changed_files" | grep -qx 'CHANGELOG.md'; then
+            echo "OK: CHANGELOG.md updated alongside starter-owned changes."
+            exit 0
+          fi
+
+          echo "::error::This PR modifies starter-owned code but does not update CHANGELOG.md."
+          echo ""
+          echo "Starter-owned files touched by this PR:"
+          printf '%s\n' "$starter_touched" | sed 's/^/  - /'
+          echo ""
+          echo "Add an entry under '## [Unreleased]' in CHANGELOG.md describing"
+          echo "the change. Categorise it under one of: Added, Changed, Removed,"
+          echo "Fixed, Deprecated, or Security (Keep a Changelog 1.1.0)."
+          echo ""
+          echo "If this PR genuinely has no fork-visible impact (typo fix,"
+          echo "comment-only change, internal-only refactor with no contract"
+          echo "change), apply the 'skip-changelog' label to bypass this guard."
+          exit 1

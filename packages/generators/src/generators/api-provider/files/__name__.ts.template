@@ -1,0 +1,9 @@
+import { HttpClient } from '@angular/common/http'
+import { inject, Injectable } from '@angular/core'
+import type { <%= className %>Api } from './<%= fileName %>.interface'
+
+// TODO: Implement methods for Http<%= className %>Api
+@Injectable({ providedIn: 'root' })
+export class Http<%= className %>Api implements <%= className %>Api {
+	private readonly http = inject(HttpClient)
+}

@@ -1,0 +1,20 @@
+import { makeEnvironmentProviders } from '@angular/core'
+import type { <%= className %>Api } from './<%= fileName %>.interface'
+import { <%= className %>Api as <%= className %>ApiToken } from './<%= fileName %>.interface'
+
+// TODO: Implement methods for InMemory<%= className %>Api
+export class InMemory<%= className %>Api implements <%= className %>Api {
+	private errors = new Map<string, Error>()
+
+	public setError(method: keyof <%= className %>Api, error: Error): void {
+		this.errors.set(method, error)
+	}
+
+	public clearErrors(): void {
+		this.errors.clear()
+	}
+}
+
+export function provide<%= className %>Mock(api: InMemory<%= className %>Api = new InMemory<%= className %>Api()) {
+	return makeEnvironmentProviders([{ provide: <%= className %>ApiToken, useValue: api }])
+}

@@ -1,0 +1,19 @@
+{
+	"$schema": "https://json-schema.org/schema",
+	"id": "api-provider",
+	"title": "Generate API Provider",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "Entity name (e.g. 'products')",
+			"$default": { "$source": "argv", "index": 0 }
+		},
+		"directory": {
+			"type": "string",
+			"description": "Target directory relative to app src",
+			"default": "src/app/providers"
+		}
+	},
+	"required": ["name"]
+}

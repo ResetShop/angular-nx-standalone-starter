@@ -1,0 +1,16 @@
+{
+	"$schema": "https://json-schema.org/schema",
+	"id": "backend-module",
+	"title": "Generate Backend Module",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "Entity name (e.g. 'product')",
+			"$default": { "$source": "argv", "index": 0 }
+		},
+		"module": { "type": "string", "description": "Parent module path (e.g. 'admin')", "default": "" },
+		"directory": { "type": "string", "description": "Target directory", "default": "src/api/modules" }
+	},
+	"required": ["name"]
+}
