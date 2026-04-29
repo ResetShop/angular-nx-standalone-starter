@@ -58,7 +58,7 @@ jobs:
           node-version: 22.20
 
       - name: Run Tests
-        run: npm run test
+        run: npx nx run-many -t test --skip-nx-cache
 
   typecheck:
     needs: setup
@@ -76,7 +76,7 @@ jobs:
           node-version: 22.20
 
       - name: Run typecheck
-        run: npm run typecheck
+        run: npx nx run-many -t typecheck --skip-nx-cache
 
   lint:
     needs: setup
@@ -94,7 +94,7 @@ jobs:
           node-version: 22.20
 
       - name: Run Linter
-        run: npm run lint
+        run: npx nx run-many -t lint --skip-nx-cache
 
   stylelint:
     needs: setup
@@ -112,7 +112,7 @@ jobs:
           node-version: 22.20
 
       - name: Run stylelint
-        run: npm run stylelint
+        run: npx nx stylelint reference-app --skip-nx-cache
 
   test-integration:
     needs: setup
@@ -171,7 +171,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: npm run test:e2e
+        run: npx nx run reference-app:e2e --skip-nx-cache
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
@@ -199,7 +199,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run build
-        run: npm run build
+        run: npx nx run reference-app:build:production --skip-nx-cache
 
   storybook:
     needs: setup
@@ -217,4 +217,4 @@ jobs:
           node-version: 22.20
 
       - name: Run Storybook build
-        run: npm run storybook:build
+        run: npx nx run reference-app:build-storybook --skip-nx-cache
