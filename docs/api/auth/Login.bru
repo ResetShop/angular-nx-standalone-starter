@@ -21,6 +21,7 @@ assert {
   res.status: eq 200
   res.body.user: isDefined
   res.body.user.email: isDefined
+  res.body.user.roles: isArray
   res.body.mustChangePassword: isDefined
 }
 
@@ -35,6 +36,10 @@ tests {
 
   test("should return user email", function() {
     expect(res.body.user.email).to.be.a("string");
+  });
+
+  test("should return user roles array", function() {
+    expect(res.body.user.roles).to.be.an("array");
   });
 
   test("should return mustChangePassword flag", function() {
@@ -86,10 +91,12 @@ docs {
   | user.email | string | User email |
   | user.firstName | string | User's first name |
   | user.lastName | string | User's last name |
+  | user.roles | RoleWithPermissions[] | User's roles, each with its full permission list (same shape `/api/auth/me` returns) |
   | mustChangePassword | boolean | Whether the user must change their password before proceeding |
 
   ## Notes
 
   - Both access token and refresh token are set as HttpOnly cookies
   - No tokens are returned in the response body
+  - The roles + permissions payload lets the frontend populate `currentUser` fully from a single login round-trip; no follow-up `/api/auth/me` is required for the frontend to know what the user is allowed to do
 }
