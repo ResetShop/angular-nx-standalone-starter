@@ -4,7 +4,7 @@ import { logger, parseDurationToMs } from '@resetshop/util'
 import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
 import { type PasetoService } from '../../services/paseto/interfaces'
-import { type UserData, type UserRepository } from '../user/interfaces'
+import { type UserData, type UserRepository, type UserRoleService } from '../user/interfaces'
 import type { AuthConfig } from './auth.config'
 import {
 	type AuthCredentials,
@@ -22,6 +22,7 @@ interface AuthServiceDeps {
 	userRepository: UserRepository
 	authRepository: AuthenticationRepository
 	refreshTokenRepository: RefreshTokenRepository
+	userRoleService: UserRoleService
 	pasetoService: PasetoService
 	authConfig: AuthConfig
 }
@@ -35,13 +36,22 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 	private readonly userRepository: UserRepository
 	private readonly authRepository: AuthenticationRepository
 	private readonly refreshTokenRepository: RefreshTokenRepository
+	private readonly userRoleService: UserRoleService
 	private readonly pasetoService: PasetoService
 	private readonly authConfig: AuthConfig
 
-	constructor({ userRepository, authRepository, refreshTokenRepository, pasetoService, authConfig }: AuthServiceDeps) {
+	constructor({
+		userRepository,
+		authRepository,
+		refreshTokenRepository,
+		userRoleService,
+		pasetoService,
+		authConfig,
+	}: AuthServiceDeps) {
 		this.userRepository = userRepository
 		this.authRepository = authRepository
 		this.refreshTokenRepository = refreshTokenRepository
+		this.userRoleService = userRoleService
 		this.pasetoService = pasetoService
 		this.authConfig = authConfig
 	}
@@ -65,6 +75,11 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		await this.handleSuccessfulLogin(validated.user, validated.authRecord)
 
 		const tokens = await this.generateTokenPair(validated.user)
+		// Roles + permissions are returned in the login payload so the frontend
+		// can populate `currentUser` fully from one round-trip — without this,
+		// permission-guarded UI flickers in the empty-roles window between login
+		// and the first `/api/auth/me` call.
+		const roles = await this.userRoleService.getUserRolesWithPermissions(validated.user.id)
 
 		return {
 			...tokens,
@@ -73,6 +88,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 				email: validated.user.email,
 				firstName: validated.user.firstName,
 				lastName: validated.user.lastName,
+				roles,
 			},
 			mustChangePassword: validated.authRecord.mustChangePassword,
 		}

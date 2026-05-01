@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { QUERY_DEFAULTS } from '../common/query.constants'
-import { roleWithPermissionsSchema } from '../role/role.schemas'
 import { authUserSchema } from '../user/user.schemas'
 
 // ============================================================================
@@ -36,13 +35,11 @@ export const loginResponseSchema = z.object({
 
 export const refreshResponseSchema = z.object({})
 
-export const meResponseSchema = z.object({
-	id: z.number(),
-	email: z.string(),
-	firstName: z.string(),
-	lastName: z.string(),
-	roles: z.array(roleWithPermissionsSchema),
-})
+/**
+ * `/api/auth/me` returns the same shape `authUserSchema` describes — the authenticated
+ * user with full roles + permissions. Aliasing keeps the two endpoints' payloads in sync.
+ */
+export const meResponseSchema = authUserSchema
 
 export const logoutResponseSchema = z.object({
 	message: z.string(),

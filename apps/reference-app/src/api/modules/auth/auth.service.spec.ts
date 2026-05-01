@@ -11,6 +11,8 @@ import {
 	DEFAULT_REFRESH_TOKEN_EXPIRY,
 } from '../../constants/auth.constants'
 import { InMemoryPasetoService } from '../../services/paseto/paseto.service.mock'
+import type { RoleWithPermissions } from '../access/role/interfaces'
+import type { UserRoleService } from '../user/interfaces'
 import { InMemoryUserRepository } from '../user/user.repository.mock'
 import type { AuthConfig } from './auth.config'
 import { AuthService } from './auth.service'
@@ -23,6 +25,8 @@ describe('AuthService', () => {
 	let mockAuthRepo: InMemoryAuthenticationRepository
 	let mockRefreshTokenRepo: InMemoryRefreshTokenRepository
 	let mockPasetoService: InMemoryPasetoService
+	let mockGetUserRolesWithPermissions: ReturnType<typeof fn<[number], Promise<RoleWithPermissions[]>>>
+	let mockUserRoleService: Pick<UserRoleService, 'getUserRolesWithPermissions'>
 
 	const testAuthConfig: AuthConfig = {
 		cookieSecure: true,
@@ -49,6 +53,7 @@ describe('AuthService', () => {
 		email: testUser.email,
 		firstName: testUser.firstName,
 		lastName: testUser.lastName,
+		roles: [],
 	}
 
 	beforeAll(async () => {
@@ -61,11 +66,15 @@ describe('AuthService', () => {
 		mockAuthRepo = new InMemoryAuthenticationRepository()
 		mockRefreshTokenRepo = new InMemoryRefreshTokenRepository()
 		mockPasetoService = new InMemoryPasetoService()
+		mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>()
+		mockGetUserRolesWithPermissions.mockResolvedValue([])
+		mockUserRoleService = { getUserRolesWithPermissions: mockGetUserRolesWithPermissions }
 
 		authService = new AuthService({
 			userRepository: mockUserRepo,
 			authRepository: mockAuthRepo,
 			refreshTokenRepository: mockRefreshTokenRepo,
+			userRoleService: mockUserRoleService as UserRoleService,
 			pasetoService: mockPasetoService,
 			authConfig: testAuthConfig,
 		})
@@ -330,6 +339,7 @@ describe('AuthService', () => {
 				userRepository: mockUserRepo,
 				authRepository: customAuthRepo,
 				refreshTokenRepository: mockRefreshTokenRepo,
+				userRoleService: mockUserRoleService as UserRoleService,
 				pasetoService: mockPasetoService,
 				authConfig: customAuthConfig,
 			})

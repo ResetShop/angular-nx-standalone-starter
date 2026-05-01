@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { QUERY_DEFAULTS } from '../common/query.constants'
-import { roleDataSchema } from '../role/role.schemas'
+import { roleDataSchema, roleWithPermissionsSchema } from '../role/role.schemas'
 import { UserStatus } from './user.constants'
 
 export const userStatusSchema = z.enum([UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED])
@@ -21,7 +21,8 @@ export const userDataSchema = z.object({
 })
 
 /**
- * Auth user schema (subset of user data for authentication responses).
+ * Auth user schema — the authenticated user with their full roles + permissions.
+ * Returned from `POST /api/auth/login` (wrapped) and `GET /api/auth/me` (directly).
  * Excludes `status` and audit fields which belong to the management layer only.
  */
 export const authUserSchema = z.object({
@@ -29,6 +30,7 @@ export const authUserSchema = z.object({
 	email: z.email(),
 	firstName: z.string(),
 	lastName: z.string(),
+	roles: z.array(roleWithPermissionsSchema),
 })
 
 // ============================================================================
