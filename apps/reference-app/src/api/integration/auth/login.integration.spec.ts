@@ -32,6 +32,31 @@ describe('POST /api/auth/login', () => {
 			expect(cookies.accessToken).toBeTruthy()
 			expect(cookies.refreshToken).toBeTruthy()
 		})
+
+		it('returns the admin user with non-empty roles + permissions populated', async () => {
+			// Guards against regressions of the empty-roles window — frontend
+			// `mapLoginResponseToUser` relies on this payload being complete.
+			const { response } = await loginAs(app, 'admin@sistema.com', adminPassword)
+
+			expect(response.status).toBe(200)
+			const body = await response.json()
+
+			expect(Array.isArray(body.user.roles)).toBe(true)
+			expect(body.user.roles.length).toBeGreaterThan(0)
+
+			const adminRole = body.user.roles[0]
+			expect(adminRole.code).toBeTruthy()
+			expect(adminRole.name).toBeTruthy()
+			expect(Array.isArray(adminRole.permissions)).toBe(true)
+			expect(adminRole.permissions.length).toBeGreaterThan(0)
+
+			const firstPermission = adminRole.permissions[0]
+			expect(firstPermission).toMatchObject({
+				module: expect.any(String),
+				resource: expect.any(String),
+				action: expect.any(String),
+			})
+		})
 	})
 
 	describe('authentication errors', () => {

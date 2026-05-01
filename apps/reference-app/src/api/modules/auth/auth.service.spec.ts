@@ -105,6 +105,37 @@ describe('AuthService', () => {
 			expect(result.refreshToken).toBe('mock-refresh-token-1')
 		})
 
+		it('should populate user.roles from userRoleService', async () => {
+			const adminRole: RoleWithPermissions = {
+				id: 10,
+				code: 'admin',
+				name: 'Administrator',
+				description: 'Full access',
+				removable: true,
+				createdAt: new Date('2026-01-01T00:00:00.000Z'),
+				updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+				permissions: [
+					{
+						id: 100,
+						name: 'Read users',
+						description: 'View users',
+						module: 'admin',
+						resource: 'users',
+						action: 'read',
+					},
+				],
+			}
+			mockGetUserRolesWithPermissions.mockResolvedValue([adminRole])
+
+			const result = await authService.authenticate({
+				email: testUser.email,
+				password: testPassword,
+			})
+
+			expect(mockGetUserRolesWithPermissions.calls).toEqual([[testUser.id]])
+			expect(result.user.roles).toEqual([adminRole])
+		})
+
 		it('should generate access token with correct payload', async () => {
 			await authService.authenticate({
 				email: testUser.email,
