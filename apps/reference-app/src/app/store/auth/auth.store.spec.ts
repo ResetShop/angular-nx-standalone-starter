@@ -76,6 +76,53 @@ describe('AuthStore', () => {
 			expect(store.mustChangePassword()).toBe(false)
 		})
 
+		it('should populate roles + permissions on currentUser when login response carries them', () => {
+			// Guards against the empty-roles window: post-login, currentUser must already
+			// be permission-aware so navigation and guards see the right state without
+			// waiting for validateSession to run.
+			authApiMock.login.mockReturnValue(
+				of(
+					createMockLoginResponse({
+						user: {
+							id: 7,
+							email: 'admin@example.com',
+							firstName: 'Admin',
+							lastName: 'User',
+							roles: [
+								{
+									id: 1,
+									code: 'admin',
+									name: 'Administrator',
+									description: 'Full access',
+									removable: true,
+									createdAt: new Date('2026-01-01T00:00:00.000Z'),
+									updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+									permissions: [
+										{
+											id: 1,
+											name: 'Read users',
+											description: 'View users',
+											module: 'admin',
+											resource: 'users',
+											action: 'read',
+										},
+									],
+								},
+							],
+						},
+					}),
+				),
+			)
+
+			store.login({ email: 'admin@example.com', password: 'password' })
+
+			expect(store.currentUser()?.roles).toHaveLength(1)
+			expect(store.currentUser()?.roles[0].code).toBe('admin')
+			expect(store.currentUser()?.permissions).toHaveLength(1)
+			expect(store.currentUser()?.hasPermission('admin:users:read')).toBe(true)
+			expect(store.userPermissions()).toHaveLength(1)
+		})
+
 		it('should set mustChangePassword when login response requires password change', () => {
 			authApiMock.login.mockReturnValue(of({ ...mockLoginResponse, mustChangePassword: true }))
 

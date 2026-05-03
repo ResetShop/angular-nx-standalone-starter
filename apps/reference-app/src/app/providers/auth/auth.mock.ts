@@ -12,6 +12,7 @@ export function createMockLoginResponse(overrides: Partial<LoginResponse> = {}):
 			email: 'test@example.com',
 			firstName: 'Test',
 			lastName: 'User',
+			roles: [],
 		},
 		mustChangePassword: false,
 		...overrides,
