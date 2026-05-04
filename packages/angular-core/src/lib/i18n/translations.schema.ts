@@ -182,6 +182,8 @@ export interface TranslationSchema {
 		}
 		HOME: {
 			NAV: string
+			NO_ACCESS_TITLE: string
+			NO_ACCESS_MESSAGE: string
 			DESCRIPTIONS: {
 				WELCOME: string
 				SETTINGS: string

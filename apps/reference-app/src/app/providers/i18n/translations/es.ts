@@ -182,6 +182,9 @@ const es: TranslationSchema = {
 		},
 		HOME: {
 			NAV: 'Configuración Inicial',
+			NO_ACCESS_TITLE: 'Sin acceso a módulos',
+			NO_ACCESS_MESSAGE:
+				'Tu cuenta aún no tiene acceso a ningún módulo. Contacta a tu administrador para solicitar los permisos que necesitas.',
 			DESCRIPTIONS: {
 				WELCOME: 'Guía de configuración inicial para preparar tu aplicación.',
 				SETTINGS: 'Configura las preferencias de tu aplicación e idioma.',
