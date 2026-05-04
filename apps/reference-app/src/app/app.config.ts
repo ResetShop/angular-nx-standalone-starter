@@ -16,15 +16,13 @@ import {
 } from '@angular/router'
 import { projectConfig } from '@configs/project.config'
 import { Analytics } from '@providers/analytics/analytics'
-import { provideAuth } from '@providers/auth/auth.provider'
+import { provideAuth, withNavigationPermissionCheck } from '@providers/auth/auth.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
 import type { Language } from '@resetshop/angular-core/i18n/translation'
 import { initializeTranslation } from '@resetshop/angular-core/i18n/translation.initializer'
 import { provideTranslation } from '@resetshop/angular-core/i18n/translation.provider'
-import { NAVIGATION_PERMISSION_CHECK } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationTitleStrategy } from '@resetshop/angular-core/navigation/navigation-title.strategy'
 import { provideTheme } from '@resetshop/angular-core/theme/theme'
-import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
@@ -73,15 +71,6 @@ export const appConfig: ApplicationConfig = {
 			},
 		}),
 
-		// Navigation permission check — wired to AuthStore
-		{
-			provide: NAVIGATION_PERMISSION_CHECK,
-			useFactory: () => {
-				const store = inject(AuthStore)
-				return (permission: string) => store.currentUser()?.hasPermission(permission) ?? false
-			},
-		},
-
 		// Custom providers
 		Analytics,
 		UIStore,
@@ -89,7 +78,8 @@ export const appConfig: ApplicationConfig = {
 		provideProjectConfig(projectConfig),
 		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },
 
-		// API providers
-		provideAuth(),
+		// API providers — `withNavigationPermissionCheck()` opts the app into routing
+		// `NAVIGATION_PERMISSION_CHECK` through `AuthStore.currentUser`.
+		provideAuth(withNavigationPermissionCheck()),
 	],
 }
