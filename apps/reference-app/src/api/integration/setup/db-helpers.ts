@@ -1,31 +1,12 @@
 import { PERMISSIONS_SEED_DATA } from '@contracts/permission/permission.constants'
-import { authentication, authenticationRelations } from '@schema/authentication'
-import { permission, permissionRelations } from '@schema/permission'
-import { permissionRoute, permissionRouteRelations } from '@schema/permission-route'
-import { refreshToken } from '@schema/refresh-token'
-import { role, rolePermission, rolePermissionRelations, roleRelations } from '@schema/role'
-import { user, userRelations, userRole, userRoleRelations } from '@schema/user'
+import { schema } from '@schema/all'
+import { authentication } from '@schema/authentication'
+import { permission } from '@schema/permission'
+import { role, rolePermission } from '@schema/role'
+import { user, userRole } from '@schema/user'
 import { hash } from 'bcryptjs'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
-
-const schema = {
-	authentication,
-	authenticationRelations,
-	permission,
-	permissionRelations,
-	permissionRoute,
-	permissionRouteRelations,
-	refreshToken,
-	role,
-	rolePermission,
-	roleRelations,
-	rolePermissionRelations,
-	user,
-	userRole,
-	userRelations,
-	userRoleRelations,
-}
 
 type TestDb = ReturnType<typeof drizzle<typeof schema>>
 

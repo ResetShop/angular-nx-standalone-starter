@@ -15,19 +15,7 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 	const { drizzle } = await import('drizzle-orm/node-postgres')
 	const { sql } = await import('drizzle-orm')
 
-	const allSchemaImports: Record<string, unknown> = {
-		...(await import('../../../db/schema/user')),
-		...(await import('../../../db/schema/role')),
-		...(await import('../../../db/schema/permission')),
-		...(await import('../../../db/schema/authentication')),
-		...(await import('../../../db/schema/refresh-token')),
-		...(await import('../../../db/schema/permission-route')),
-		...(await import('../../../db/schema/role-history')),
-		...(await import('../../../db/schema/role-permission-history')),
-		...(await import('../../../db/schema/user-profile-history')),
-		...(await import('../../../db/schema/user-role-history')),
-		...(await import('../../../db/schema/user-status-history')),
-	}
+	const { schema } = await import('../../../db/schema/all')
 
 	const db = drizzle(connectionString)
 
@@ -54,7 +42,7 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 		END $$;
 	`)
 
-	const pushResult = await pushSchema(allSchemaImports, db)
+	const pushResult = await pushSchema(schema, db)
 
 	if (pushResult.warnings.length > 0) {
 		console.log('[Integration] Schema push warnings:', pushResult.warnings)
