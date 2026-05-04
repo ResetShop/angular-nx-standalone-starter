@@ -145,6 +145,9 @@ const en: TranslationSchema = {
 				DESCRIPTION: 'Description',
 			},
 		},
+		ERRORS: {
+			ACCESS_DENIED: "You don't have permission to access that page.",
+		},
 	},
 	SETTINGS: {
 		NAV: 'Settings',

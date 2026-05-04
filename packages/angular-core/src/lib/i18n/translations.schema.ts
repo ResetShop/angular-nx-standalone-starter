@@ -146,6 +146,9 @@ export interface TranslationSchema {
 				DESCRIPTION: string
 			}
 		}
+		ERRORS: {
+			ACCESS_DENIED: string
+		}
 	}
 	SETTINGS: {
 		NAV: string
