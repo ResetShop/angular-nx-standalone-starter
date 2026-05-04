@@ -145,6 +145,9 @@ const en: TranslationSchema = {
 				DESCRIPTION: 'Description',
 			},
 		},
+		ERRORS: {
+			ACCESS_DENIED: "You don't have permission to access that page.",
+		},
 	},
 	SETTINGS: {
 		NAV: 'Settings',
@@ -178,6 +181,9 @@ const en: TranslationSchema = {
 		},
 		HOME: {
 			NAV: 'Initial Setup',
+			NO_ACCESS_TITLE: 'No module access',
+			NO_ACCESS_MESSAGE:
+				"Your account doesn't have access to any modules yet. Contact your administrator to request the permissions you need.",
 			DESCRIPTIONS: {
 				WELCOME: 'Initial setup guide to prepare your application.',
 				SETTINGS: 'Configure your application preferences and language.',
