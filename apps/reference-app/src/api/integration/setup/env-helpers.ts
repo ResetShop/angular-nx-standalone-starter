@@ -1,6 +1,10 @@
 /**
- * Shared environment helpers for integration test setup files.
- * Used by both global-setup.ts (separate process) and integration-setup.ts (test process).
+ * Shared environment helpers for integration test setup.
+ *
+ * Connection-string plumbing was removed in #321 — `drizzle-postgres-connector.ts`
+ * now handles the driver/connection decision at module-load via the
+ * `INTEGRATION_TEST_PGLITE` flag set by `integration-setup.ts`. These helpers
+ * only deal with `.env` loading and PASETO/bcrypt/email defaults.
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -29,21 +33,22 @@ export function loadEnvFile(): void {
 	}
 }
 
-export function getTestConnectionString(): string {
+/**
+ * Sets test-only defaults for PASETO, bcrypt, email — these are read at
+ * module-load by various services. Idempotent: existing values from `.env`
+ * or the shell environment win.
+ *
+ * Note: `PG_CONNECTION_STRING` mirrors `PG_TEST_CONNECTION_STRING` for the
+ * node-postgres path so any module reading the production env var (e.g.
+ * `@resetshop/hono-core`'s environment.database.pg.connectionString) gets
+ * the test DB. Skipped in PGlite mode — there's no connection string.
+ */
+export function configureEnvVars(): void {
 	const testConnectionString = process.env['PG_TEST_CONNECTION_STRING']
-	if (!testConnectionString) {
-		throw new Error(
-			'PG_TEST_CONNECTION_STRING environment variable is required for integration tests. ' +
-				'Set it in .env or export it before running tests.',
-		)
+	if (testConnectionString) {
+		process.env['PG_CONNECTION_STRING'] = testConnectionString
 	}
-	return testConnectionString
-}
 
-export function configureEnvVars(testConnectionString: string): void {
-	process.env['PG_CONNECTION_STRING'] = testConnectionString
-
-	// Test-only predictable key — PASETO_SECRET_KEY should always be set in .env for non-ephemeral environments
 	if (!process.env['PASETO_SECRET_KEY']) {
 		process.env['PASETO_SECRET_KEY'] = 'a'.repeat(64)
 	}

@@ -1,16 +1,13 @@
 import { PERMISSIONS_SEED_DATA } from '@contracts/permission/permission.constants'
-import { schema } from '@schema/all'
 import { authentication } from '@schema/authentication'
 import { permission } from '@schema/permission'
 import { role, rolePermission } from '@schema/role'
 import { user, userRole } from '@schema/user'
 import { hash } from 'bcryptjs'
 import { eq, inArray, sql } from 'drizzle-orm'
-import { drizzle } from 'drizzle-orm/node-postgres'
+import { drizzlePgConnector, type DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector'
 
-type TestDb = ReturnType<typeof drizzle<typeof schema>>
-
-let testDb: TestDb | null = null
+type TestDb = DrizzlePgConnector
 
 function getAdminPassword(): string {
 	const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD']
@@ -25,29 +22,15 @@ async function getAdminPasswordHash(): Promise<string> {
 }
 
 /**
- * Returns a Drizzle instance connected to the test database.
- * Reuses the same instance across calls within a test run.
+ * Returns the same drizzle handle the production code uses (shared via the
+ * Awilix container's `db` registration). In #321 this collapsed from a
+ * separate parallel pg-pool to the unified connector — required for the
+ * PGlite path (in-process WASM Postgres has only one instance per process)
+ * and a non-issue for the node-postgres path (route handlers and test infra
+ * sharing one pool is fine for an integration suite).
  */
 export function getTestDb(): TestDb {
-	if (!testDb) {
-		const connectionString = process.env['PG_TEST_CONNECTION_STRING']
-		if (!connectionString) {
-			throw new Error('PG_TEST_CONNECTION_STRING environment variable is required.')
-		}
-		testDb = drizzle(connectionString, { schema })
-	}
-	return testDb
-}
-
-/**
- * Closes the test database connection pool.
- * Call this in a global afterAll to allow the process to exit cleanly.
- */
-export async function closeTestDb(): Promise<void> {
-	if (testDb) {
-		await testDb.$client.end()
-		testDb = null
-	}
+	return drizzlePgConnector
 }
 
 /**

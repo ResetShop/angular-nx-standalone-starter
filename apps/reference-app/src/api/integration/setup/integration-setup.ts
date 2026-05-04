@@ -1,30 +1,76 @@
 /**
- * Vitest setupFile — runs before each test file (in the test process).
- * Loads .env, sets env vars, and extends Zod with OpenAPI support.
+ * Vitest setupFile — vitest 4 re-evaluates this for each test file even with
+ * `isolate: false` + `maxWorkers: 1` + `fileParallelism: false` (verified by
+ * incrementing PID-keyed counters). We work with that constraint by gating
+ * the heavy work (schema push + seed) behind a `globalThis` flag, so it runs
+ * exactly once per test process regardless of how many times this module is
+ * evaluated.
  *
- * Note: DB schema push and seeding happen in global-setup.ts (globalSetup).
+ * Driver decision (set BEFORE any import that touches
+ * `drizzle-postgres-connector.ts`): if `PG_TEST_CONNECTION_STRING` is set we
+ * run against real Postgres via `drizzle-orm/node-postgres` (CI's in-job
+ * postgres:17 service container; or a developer's long-lived local
+ * container). If unset we use in-process PGlite via `drizzle-orm/pglite`
+ * (zero-Docker local dev path, #321). The `INTEGRATION_TEST_PGLITE` flag set
+ * here is read by the connector at module-load.
  */
 import { extendZodWithOpenApi } from '@hono/zod-openapi'
-import { afterAll } from 'vitest'
 import { z } from 'zod'
-import { configureEnvVars, getTestConnectionString, loadEnvFile } from './env-helpers'
+import { configureEnvVars, loadEnvFile } from './env-helpers'
 
-// Load .env and configure test-specific env vars.
-// These must be set before any test file imports modules that read process.env
-// at load time (e.g. auth.constants.ts reads BCRYPT_COST).
+declare global {
+	// eslint-disable-next-line no-var -- globalThis augmentation requires `var`
+	var __integrationDbInitialized: boolean | undefined
+}
+
 loadEnvFile()
-configureEnvVars(getTestConnectionString())
 
-// Must run before any Zod schema is imported by test files.
-// Safe to call here because setupFiles execute completely before test file imports.
+if (!process.env['PG_TEST_CONNECTION_STRING']) {
+	process.env['INTEGRATION_TEST_PGLITE'] = 'true'
+}
+
+configureEnvVars()
 extendZodWithOpenApi(z)
 
-// Close test-helper DB pool after each test file so connections don't leak.
-// The app's drizzlePgConnector pool is NOT closed here — ending it mid-run
-// can cause subsequent queries to silently return empty results instead of
-// throwing, because node-postgres marks the Pool as ended. The process exit
-// handles final cleanup automatically.
-afterAll(async () => {
-	const { closeTestDb } = await import('./db-helpers')
-	await closeTestDb()
-})
+if (!globalThis.__integrationDbInitialized) {
+	globalThis.__integrationDbInitialized = true
+
+	const [{ drizzlePgConnector }, { pushSchema }, { sql }, { seedBaseData }] = await Promise.all([
+		import('../../helpers/drizzle-postgres-connector'),
+		import('drizzle-kit/api'),
+		import('drizzle-orm'),
+		import('./db-helpers'),
+	])
+	const { schema } = await import('@schema/all')
+
+	console.log('[Integration] Resetting test database (drop tables + enums)...')
+	// No-ops on a fresh PGlite; needed for re-runs against a long-lived real
+	// Postgres (CI service container, persistent local container, external DB).
+	await drizzlePgConnector.execute(sql`
+		DO $$ DECLARE r RECORD;
+		BEGIN
+			FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+				EXECUTE 'DROP TABLE IF EXISTS "' || r.tablename || '" CASCADE';
+			END LOOP;
+		END $$;
+	`)
+	await drizzlePgConnector.execute(sql`
+		DO $$ DECLARE r RECORD;
+		BEGIN
+			FOR r IN (SELECT typname FROM pg_type WHERE typnamespace = 'public'::regnamespace AND typtype = 'e') LOOP
+				EXECUTE 'DROP TYPE IF EXISTS "' || r.typname || '" CASCADE';
+			END LOOP;
+		END $$;
+	`)
+
+	console.log('[Integration] Pushing schema...')
+	const pushResult = await pushSchema(schema, drizzlePgConnector)
+	if (pushResult.warnings.length > 0) {
+		console.log('[Integration] Schema push warnings:', pushResult.warnings)
+	}
+	await pushResult.apply()
+
+	console.log('[Integration] Seeding base data...')
+	await seedBaseData(drizzlePgConnector)
+	console.log('[Integration] Setup complete.')
+}
