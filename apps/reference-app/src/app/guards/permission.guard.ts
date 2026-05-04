@@ -22,6 +22,8 @@ import { NotificationType } from '@store/ui/ui.types'
 export const permissionGuard: CanActivateFn = (route) => {
 	const authStore = inject(AuthStore)
 	const router = inject(Router)
+	const uiStore = inject(UIStore)
+	const translation = inject(Translation)
 	const requiredPermission = route.data['requiredPermission'] as string | undefined
 
 	if (!requiredPermission) {
@@ -33,9 +35,9 @@ export const permissionGuard: CanActivateFn = (route) => {
 		return true
 	}
 
-	inject(UIStore).showNotification({
+	uiStore.showNotification({
 		type: NotificationType.ERROR,
-		message: inject(Translation).instant('PERMISSIONS.ERRORS.ACCESS_DENIED'),
+		message: translation.instant('PERMISSIONS.ERRORS.ACCESS_DENIED'),
 	})
 
 	return router.createUrlTree(['/dashboard'])

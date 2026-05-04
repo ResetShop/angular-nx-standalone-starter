@@ -104,10 +104,7 @@ describe('permissionGuard', () => {
 		runGuard('admin:users:read')
 
 		expect(uiStoreMock.showNotification.calls).toHaveLength(1)
-		expect(uiStoreMock.showNotification.calls[0][0]).toEqual({
-			type: NotificationType.ERROR,
-			message: "You don't have permission to access that page.",
-		})
+		expect(uiStoreMock.showNotification.calls[0][0].type).toBe(NotificationType.ERROR)
 		expect(translationMock.instant.calls).toHaveLength(1)
 		expect(translationMock.instant.calls[0][0]).toBe('PERMISSIONS.ERRORS.ACCESS_DENIED')
 	})

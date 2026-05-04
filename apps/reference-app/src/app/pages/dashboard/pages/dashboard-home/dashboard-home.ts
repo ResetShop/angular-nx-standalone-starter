@@ -14,7 +14,9 @@ import { AuthStore } from '@store/auth/auth.store'
 	template: `
 		<div class="space-y-8">
 			@if (hasNoModuleAccess()) {
-				<div appAlert data-testid="no-module-access">
+				<!-- Default alert variant intentionally — binds role="status" (polite ARIA
+				     live region) which fits an advisory "no module access" message. -->
+				<div appAlert>
 					<h3 appAlertTitle>{{ 'DASHBOARD.HOME.NO_ACCESS_TITLE' | translate }}</h3>
 					<p appAlertDescription>{{ 'DASHBOARD.HOME.NO_ACCESS_MESSAGE' | translate }}</p>
 				</div>
