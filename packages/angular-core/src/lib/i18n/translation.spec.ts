@@ -104,6 +104,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				CAPTION: 'Permissions',
 				HEADER: { RESOURCE: 'Resource', ACTION: 'Action', IDENTIFIER: 'Id', DESCRIPTION: 'Desc' },
 			},
+			ERRORS: { ACCESS_DENIED: 'Denied' },
 		},
 		SETTINGS: {
 			NAV: 'Settings',
@@ -126,6 +127,8 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			SECTIONS: { SETTINGS: 'Settings', ADMIN: 'Admin' },
 			HOME: {
 				NAV: 'Home',
+				NO_ACCESS_TITLE: 'No access',
+				NO_ACCESS_MESSAGE: 'Contact admin',
 				DESCRIPTIONS: {
 					WELCOME: 'Welcome',
 					SETTINGS: 'Settings',
@@ -260,6 +263,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				CAPTION: 'Permisos',
 				HEADER: { RESOURCE: 'Recurso', ACTION: 'Acción', IDENTIFIER: 'Id', DESCRIPTION: 'Desc' },
 			},
+			ERRORS: { ACCESS_DENIED: 'Denegado' },
 		},
 		SETTINGS: {
 			NAV: 'Ajustes',
@@ -282,6 +286,8 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			SECTIONS: { SETTINGS: 'Ajustes', ADMIN: 'Admin' },
 			HOME: {
 				NAV: 'Inicio',
+				NO_ACCESS_TITLE: 'Sin acceso',
+				NO_ACCESS_MESSAGE: 'Contacta al admin',
 				DESCRIPTIONS: {
 					WELCOME: 'Bienvenido',
 					SETTINGS: 'Ajustes',
