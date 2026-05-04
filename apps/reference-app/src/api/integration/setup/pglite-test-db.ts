@@ -30,10 +30,8 @@ export function getPgliteTestDb(): NonNullable<typeof globalThis.__pgliteDb> {
 	return globalThis.__pgliteDb
 }
 
-export async function closePgliteTestDb(): Promise<void> {
-	if (globalThis.__pgliteInstance) {
-		await globalThis.__pgliteInstance.close()
-	}
-	globalThis.__pgliteInstance = undefined
-	globalThis.__pgliteDb = undefined
-}
+// No explicit teardown is exported on purpose. PGlite runs purely in memory
+// with no file I/O or external process to release; the WASM instance is
+// reclaimed when the Node test runner exits. Adding an `afterAll` close()
+// would only matter for a long-lived host process, which the test suite is
+// not.

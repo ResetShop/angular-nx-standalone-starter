@@ -24,6 +24,11 @@ type Connector = NodePgDatabase<typeof schema>
  * boundary instead.
  */
 async function createConnector(): Promise<Connector> {
+	// `INTEGRATION_TEST_PGLITE` is set automatically by `integration-setup.ts`
+	// when `PG_TEST_CONNECTION_STRING` is unset (the local zero-Docker path).
+	// It should NOT be set manually unless deliberately bypassing the
+	// detection logic — setting it alongside `PG_TEST_CONNECTION_STRING` will
+	// silently force the PGlite branch and ignore the real DB connection.
 	if (process.env['INTEGRATION_TEST_PGLITE'] === 'true') {
 		const { getPgliteTestDb } = await import('../integration/setup/pglite-test-db')
 		return getPgliteTestDb() as unknown as Connector

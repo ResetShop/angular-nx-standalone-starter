@@ -372,12 +372,12 @@ npm run test                # Unit tests only (integration tests excluded)
 ```
 src/api/integration/
   setup/
-    global-setup.ts         # Schema push + seed (runs once)
-    integration-setup.ts    # Env vars + Zod extension (per file)
+    integration-setup.ts    # Schema push + seed (once per process) + env vars + Zod extension (per file)
+    pglite-test-db.ts       # PGlite singleton (in-process Postgres for no-Docker local runs)
     test-app.ts             # createTestApp() factory
     db-helpers.ts           # DB utilities (getTestDb, seedBaseData, etc.)
     auth-helpers.ts         # Auth utilities (loginAsAdmin, etc.)
-    load-env.ts             # .env file parser
+    env-helpers.ts          # .env file parser
   health/
     health.integration.spec.ts
   auth/

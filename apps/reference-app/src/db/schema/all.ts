@@ -1,8 +1,7 @@
 /**
  * Curated `schema` value used by:
  *   - the production drizzle connector (`drizzle-postgres-connector.ts`)
- *   - the integration test infra (`db-helpers.ts`, `global-setup.ts` / future
- *     `pglite-test-db.ts` per #321)
+ *   - the integration test infra (`db-helpers.ts`, `pglite-test-db.ts`)
  *   - drizzle-kit/api's `pushSchema(schema, db)` calls in test setup
  *
  * Centralised so adding or renaming a schema only happens in one place

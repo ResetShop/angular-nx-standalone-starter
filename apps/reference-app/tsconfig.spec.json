@@ -25,6 +25,7 @@
 			"@schema/*": ["src/db/schema/*"],
 			"@store/*": ["src/app/store/*"]
 		},
+		// es2022 required for top-level await in drizzle-postgres-connector.ts (#321)
 		"target": "es2022",
 		"types": ["vitest/globals", "node", "@testing-library/jest-dom"],
 		"moduleResolution": "bundler"

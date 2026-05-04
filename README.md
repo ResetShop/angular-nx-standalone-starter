@@ -265,7 +265,7 @@ The repository ships three test surfaces: unit tests (`npm run test`), integrati
 
 #### Integration tests
 
-`npm run test:integration` works **out of the box with no setup** — no Docker daemon, no managed Postgres, no env config. Internally the test setup boots an in-process [PGlite](https://pglite.dev/) instance (real Postgres compiled to WebAssembly) at suite start, runs the full schema migration, seeds base data, and tears down with the process. First run after `npm install` adds ~5–10 seconds to compile the WASM bundle; subsequent runs are ~2–3 seconds startup.
+`npm run test:integration` works **out of the box with no setup** — no Docker daemon, no managed Postgres, no env config. Internally the test setup boots an in-process [PGlite](https://pglite.dev/) instance (real Postgres compiled to WebAssembly) at suite start, runs the full schema migration, seeds base data, and tears down with the process. Because PGlite runs purely in memory with no file I/O, no explicit teardown step is needed — the WASM instance is released when the Node process exits. First run after `npm install` adds ~5–10 seconds to compile the WASM bundle; subsequent runs are ~2–3 seconds startup.
 
 If you'd prefer to point the integration tests at a real Postgres for absolute fidelity (e.g., debugging an issue suspected to be PGlite-specific, or running against a long-lived persistent container), set `PG_TEST_CONNECTION_STRING` in your `.env` and the suite will skip PGlite and use that DB instead. CI runs against a `postgres:17` service container via the same env-set path.
 

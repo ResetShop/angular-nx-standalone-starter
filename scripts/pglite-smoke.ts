@@ -10,29 +10,26 @@
  * Run via:
  *   npm run smoke:pglite
  *
- * Imports a representative slice of the production schemas (user with
- * userStatusEnum, authentication with FK to user, role + rolePermission with
- * FK to permission, permission). Asserts the resulting Postgres-in-WASM
- * instance has the expected tables, enums, and accepts a basic insert+select.
+ * Imports the curated `schema` value used in production (`@schema/all`) so
+ * the smoke is exercising the same shape that the integration suite pushes.
+ * If a future commit drops a table or enum from `all.ts`, this script catches
+ * it before the suite does. Asserts the resulting Postgres-in-WASM instance
+ * has the expected tables, enums, and accepts a basic insert+select.
  */
 import { PGlite } from '@electric-sql/pglite'
 import { pushSchema } from 'drizzle-kit/api'
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/pglite'
-import * as authentication from '../apps/reference-app/src/db/schema/authentication'
-import * as permission from '../apps/reference-app/src/db/schema/permission'
-import * as role from '../apps/reference-app/src/db/schema/role'
+import { schema } from '../apps/reference-app/src/db/schema/all'
 import * as user from '../apps/reference-app/src/db/schema/user'
-
-const allSchemas = { ...user, ...authentication, ...permission, ...role }
 
 async function main(): Promise<void> {
 	console.log('[Smoke] Creating in-process PGlite instance...')
 	const pglite = new PGlite()
-	const db = drizzle(pglite, { schema: allSchemas })
+	const db = drizzle(pglite, { schema })
 
 	console.log('[Smoke] Running drizzle-kit/api pushSchema against PGlite...')
-	const pushResult = await pushSchema(allSchemas, db)
+	const pushResult = await pushSchema(schema, db)
 	if (pushResult.warnings.length > 0) {
 		console.log('[Smoke] pushSchema warnings:', pushResult.warnings)
 	}
