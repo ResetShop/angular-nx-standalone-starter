@@ -32,8 +32,7 @@
 		"drizzle:seed": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
 		"drizzle:seed:local": "tsx --env-file=.env --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
 		"sync:permissions": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts",
-		"sync:permissions:local": "tsx --env-file=.env --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts",
-		"smoke:pglite": "tsx --tsconfig apps/reference-app/tsconfig.json scripts/pglite-smoke.ts"
+		"sync:permissions:local": "tsx --env-file=.env --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts"
 	},
 	"private": true,
 	"dependencies": {
