@@ -79,6 +79,7 @@ describe('page generator', () => {
 		// segments away — the provider files land at `src/app/providers/product/`.
 		expect(tree.exists('src/app/providers/product/product.ts')).toBe(true)
 		expect(tree.exists('src/app/providers/product/product.interface.ts')).toBe(true)
+		expect(tree.exists('src/app/providers/product/product.mock.ts')).toBe(true)
 		expect(tree.exists('src/app/providers/product/product.provider.ts')).toBe(true)
 	})
 
