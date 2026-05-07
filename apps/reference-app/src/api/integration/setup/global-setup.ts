@@ -7,7 +7,10 @@
  * insert logic. Dynamic imports are used because this file runs in a separate
  * process where env vars must be configured before any module reads them.
  */
+import { startEmbeddedPostgres, stopEmbeddedPostgres } from './embedded-pg-test-db'
 import { configureEnvVars, getTestConnectionString, loadEnvFile } from './env-helpers'
+
+let usedEmbeddedPg = false
 
 async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 	console.log('[Integration] Pushing schema to test database...')
@@ -67,6 +70,15 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 
 export async function setup(): Promise<void> {
 	loadEnvFile()
+
+	// No-Docker local path: spawn a real Postgres 17 cluster on a free port
+	// when no connection string is provided. CI sets PG_TEST_CONNECTION_STRING
+	// to its postgres:17 service container, so this branch is skipped there.
+	if (!process.env['PG_TEST_CONNECTION_STRING']) {
+		process.env['PG_TEST_CONNECTION_STRING'] = await startEmbeddedPostgres()
+		usedEmbeddedPg = true
+	}
+
 	const connectionString = getTestConnectionString()
 	configureEnvVars(connectionString)
 	await pushSchemaToTestDb(connectionString)
@@ -88,4 +100,8 @@ export async function teardown(): Promise<void> {
 	await truncateAllTables(db)
 	await closeTestDb()
 	console.log('[Integration] Test database cleaned up.')
+
+	if (usedEmbeddedPg) {
+		await stopEmbeddedPostgres()
+	}
 }
