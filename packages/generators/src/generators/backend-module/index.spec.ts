@@ -56,6 +56,28 @@ describe('backend-module generator', () => {
 		expect(repoTs).not.toContain('<%=')
 	})
 
+	it('substitutes className, propertyName, and route metadata into the routes file', async () => {
+		await backendModuleGenerator(tree, { name: 'product', module: 'catalog', directory: 'src/api/modules' })
+
+		const routesTs = tree.read('src/api/modules/catalog/product/product.routes.ts')?.toString('utf-8') ?? ''
+		expect(routesTs).toContain('export const listProductsRoute = createRoute(')
+		expect(routesTs).toContain('export const getProductRoute = createRoute(')
+		expect(routesTs).toContain('const productDataSchema = z.object(')
+		expect(routesTs).toContain(`tags: ['Products']`)
+		expect(routesTs).not.toContain('<%=')
+	})
+
+	it('substitutes className and propertyName into the service class', async () => {
+		await backendModuleGenerator(tree, { name: 'product', module: 'catalog', directory: 'src/api/modules' })
+
+		const serviceTs = tree.read('src/api/modules/catalog/product/product.service.ts')?.toString('utf-8') ?? ''
+		expect(serviceTs).toContain('export class ProductService')
+		expect(serviceTs).toContain('productRepository: ProductRepository')
+		expect(serviceTs).toContain('public async getAllProducts(')
+		expect(serviceTs).toContain('public async getProduct(')
+		expect(serviceTs).not.toContain('<%=')
+	})
+
 	it('substitutes substitutions into interfaces.ts even though its filename has no __name__ placeholder', async () => {
 		// `interfaces.ts.template` is the only template in this generator without
 		// a `__name__` filename placeholder. generateFiles still strips `.template`
