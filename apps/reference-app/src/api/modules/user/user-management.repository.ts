@@ -7,7 +7,7 @@ import { userProfileHistory } from '@schema/user-profile-history'
 import { UserRoleHistoryAction, userRoleHistory } from '@schema/user-role-history'
 import { userStatusHistory } from '@schema/user-status-history'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
-import { BaseRepository } from '../../helpers/base.repository'
+import { BaseRepository, type DbExecutor } from '../../helpers/base.repository'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type {
@@ -221,7 +221,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 				await tx.insert(userRoleHistory).values(historyRows)
 			}
 
-			const [result] = await this.attachRolesToUsers([newUser])
+			const [result] = await this.attachRolesToUsers([newUser], tx)
 			return result
 		})
 	}
@@ -353,7 +353,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 				changedAt: now,
 			})
 
-			const [updatedWithRoles] = await this.attachRolesToUsers(result)
+			const [updatedWithRoles] = await this.attachRolesToUsers(result, tx)
 			return updatedWithRoles
 		})
 	}
@@ -361,15 +361,21 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	/**
 	 * Attaches roles to an array of user records.
 	 * Fetches all role assignments in a single query for efficiency.
+	 *
+	 * `db` accepts either `this.db` (the default, for callers outside a
+	 * transaction) or the `tx` handle from inside a `db.transaction(...)`
+	 * block. Callers inside a transaction MUST pass `tx`; routing through
+	 * `this.db` self-deadlocks under PGlite, which has only one in-process
+	 * connection.
 	 */
-	private async attachRolesToUsers(users: UserProjection[]): Promise<ManagedUserData[]> {
+	private async attachRolesToUsers(users: UserProjection[], db: DbExecutor = this.db): Promise<ManagedUserData[]> {
 		if (users.length === 0) {
 			return []
 		}
 
 		const userIds = users.map((u) => u.id)
 
-		const roleAssignments = await this.db
+		const roleAssignments = await db
 			.select({
 				userId: userRole.userId,
 				roleId: role.id,

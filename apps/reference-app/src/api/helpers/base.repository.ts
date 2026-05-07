@@ -10,6 +10,16 @@ export interface BaseRepositoryDeps {
 }
 
 /**
+ * Either the root drizzle handle or a transaction handle. Use this as the
+ * parameter type for repository helpers that may be invoked both from inside
+ * a `db.transaction(async (tx) => ...)` block and from outside one. Helpers
+ * called from inside a transaction must receive the `tx` so their queries
+ * run on the same connection — under PGlite (single in-memory connection)
+ * routing through `this.db` instead of `tx` self-deadlocks.
+ */
+export type DbExecutor = DrizzlePgConnector | Parameters<Parameters<DrizzlePgConnector['transaction']>[0]>[0]
+
+/**
  * Base repository class for all repositories.
  * Uses Awilix PROXY injection mode - dependencies are passed via destructured constructor params.
  */
