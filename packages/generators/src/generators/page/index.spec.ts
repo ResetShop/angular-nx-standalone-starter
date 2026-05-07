@@ -115,8 +115,8 @@ describe('page generator', () => {
 		//   templateVars `name` key, which `page/index.ts` sets to `n.propertyName`
 		//   (camelCase), unlike `store`/`api-provider` which set `name` to `n.fileName`.
 		// Net result: `<dir>/order-history/orderHistory-list/orderHistory-list.ts`.
-		// This is a real generator inconsistency, but refactoring the generators is
-		// out of scope per issue #317. The test asserts actual emitted output.
+		// The test asserts actual emitted output to lock the current behavior.
+		// Tracked as follow-up bug in #331.
 		await pageGenerator(tree, {
 			name: 'orderHistory',
 			directory: DEFAULT_DIR,

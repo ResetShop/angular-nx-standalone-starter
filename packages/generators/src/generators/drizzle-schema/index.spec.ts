@@ -35,10 +35,10 @@ describe('drizzle-schema generator', () => {
 		// drizzle-schema/index.ts passes `name: n.propertyName` to generateFiles,
 		// so the `__name__` filename placeholder AND the `<%= name %>` template
 		// substitution both resolve to camelCase. Files land at `orderLineItem.ts`,
-		// NOT `order-line-item.ts` — this differs from the store/api-provider/page
-		// generators (which use n.fileName as the templateVar `name`). Asserting
-		// the actual emitted output rather than the hyphenated form expected at
-		// first glance.
+		// NOT `order-line-item.ts` — this differs from the store/api-provider
+		// generators (which use n.fileName as the templateVar `name`). The test
+		// asserts actual emitted output to lock the current behavior. Tracked as
+		// follow-up bug in #330.
 		await drizzleSchemaGenerator(tree, { name: 'orderLineItem', directory: 'src/db/schema' })
 
 		expect(tree.exists('src/db/schema/orderLineItem.ts')).toBe(true)
