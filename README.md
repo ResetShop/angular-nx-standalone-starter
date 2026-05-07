@@ -259,6 +259,14 @@ For adding custom dependency injection providers:
 
 ---
 
+### Running Integration Tests
+
+`npm run test:integration` works **out of the box with no setup** — no Docker daemon, no managed Postgres, no env config. When `PG_TEST_CONNECTION_STRING` is unset, the suite spawns a real Postgres 17 cluster locally via [`embedded-postgres`](https://www.npmjs.com/package/embedded-postgres) (official EnterpriseDB binaries downloaded once at `npm install` time, ~70 MB cached in `node_modules`) on a free localhost port, runs the schema push and seed, and tears the cluster down at suite end.
+
+To use your own long-lived Postgres instead (persistent local container, shared dev DB, etc.), set `PG_TEST_CONNECTION_STRING` in `.env`. CI uses the same env-set path against its `postgres:17` service container.
+
+---
+
 ### Post-Setup Steps **[Required]**
 
 #### Remove Configuration Routes
