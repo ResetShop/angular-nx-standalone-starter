@@ -31,6 +31,16 @@ describe('store generator', () => {
 		expect(storeTs).not.toContain('<%=')
 	})
 
+	it('substitutes className and import path into the generated spec file', async () => {
+		await storeGenerator(tree, { name: 'product', directory: 'src/app/store' })
+
+		const specTs = tree.read('src/app/store/product/product.store.spec.ts')?.toString('utf-8') ?? ''
+		expect(specTs).toContain(`import { ProductStore } from './product.store'`)
+		expect(specTs).toContain(`describe('ProductStore'`)
+		expect(specTs).toContain('let store: InstanceType<typeof ProductStore>')
+		expect(specTs).not.toContain('<%=')
+	})
+
 	it('substitutes className and structures into the types file content', async () => {
 		await storeGenerator(tree, { name: 'product', directory: 'src/app/store' })
 
