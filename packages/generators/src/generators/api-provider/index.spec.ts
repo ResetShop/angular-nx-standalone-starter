@@ -54,6 +54,7 @@ describe('api-provider generator', () => {
 		const mockTs = tree.read('src/app/providers/order-history/order-history.mock.ts')?.toString('utf-8') ?? ''
 		expect(mockTs).toContain('export class InMemoryOrderHistoryApi implements OrderHistoryApi')
 		expect(mockTs).toContain(`from './order-history.interface'`)
+		expect(mockTs).not.toContain('<%=')
 	})
 
 	it('honours a non-default directory', async () => {
