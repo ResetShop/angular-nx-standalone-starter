@@ -265,11 +265,13 @@ The repository ships three test surfaces: unit tests (`npm run test`), integrati
 
 #### Integration tests
 
-`npm run test:integration` works **out of the box with no setup** — no Docker daemon, no managed Postgres, no env config. Internally the test setup boots an in-process [PGlite](https://pglite.dev/) instance (real Postgres compiled to WebAssembly) at suite start, runs the full schema migration, seeds base data, and tears down with the process. Because PGlite runs purely in memory with no file I/O, no explicit teardown step is needed — the WASM instance is released when the Node process exits. First run after `npm install` adds ~5–10 seconds to compile the WASM bundle; subsequent runs are ~2–3 seconds startup.
+`npm run test:integration` works **out of the box with no setup** — no Docker daemon, no managed Postgres, no env config. Internally the suite boots a real Postgres 17 cluster as a child process via [`embedded-postgres`](https://www.npmjs.com/package/embedded-postgres) (official EnterpriseDB binaries shipped by the npm package, ~70 MB downloaded once at `npm install` time), pushes the full schema, seeds base data, runs the suite, then shuts the cluster down and deletes the temporary data directory. First run is ~3-5 seconds of cluster startup overhead; subsequent runs are similar (each run starts on a fresh data dir for clean state).
 
-If you'd prefer to point the integration tests at a real Postgres for absolute fidelity (e.g., debugging an issue suspected to be PGlite-specific, or running against a long-lived persistent container), set `PG_TEST_CONNECTION_STRING` in your `.env` and the suite will skip PGlite and use that DB instead. CI runs against a `postgres:17` service container via the same env-set path.
+The cluster listens on a free localhost port chosen at runtime — no port collisions with whatever else you may have running. Same `drizzle-orm/node-postgres` driver, same `pg.Pool`, same isolation-level semantics as production. The same code path is exercised on CI, except CI's `PG_TEST_CONNECTION_STRING` env var points at the workflow's `postgres:17` service container instead, and the suite skips spawning embedded-pg.
 
-The integration setup lives at `apps/reference-app/src/api/integration/setup/integration-setup.ts` if you need to look under the hood.
+If you'd prefer to point the integration tests at your own long-lived Postgres (persistent local container, shared dev DB, etc.), set `PG_TEST_CONNECTION_STRING` in your `.env` and the suite will use that connection string instead.
+
+The integration lifecycle lives at `apps/reference-app/src/api/integration/setup/global-setup.ts` (vitest globalSetup — boots/teardowns the cluster, pushes schema, seeds) and `embedded-pg-test-db.ts` (the `EmbeddedPostgres` wrapper).
 
 ---
 

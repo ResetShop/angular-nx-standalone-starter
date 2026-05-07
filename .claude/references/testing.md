@@ -372,8 +372,9 @@ npm run test                # Unit tests only (integration tests excluded)
 ```
 src/api/integration/
   setup/
-    integration-setup.ts    # Schema push + seed (once per process) + env vars + Zod extension (per file)
-    pglite-test-db.ts       # PGlite singleton (in-process Postgres for no-Docker local runs)
+    global-setup.ts         # Vitest globalSetup — boots embedded Postgres, pushes schema, seeds (runs once before any worker)
+    embedded-pg-test-db.ts  # EmbeddedPostgres lifecycle (free port + initialise + start/stop) for the no-Docker local path
+    integration-setup.ts    # Per-file setupFile — installs Zod OpenAPI extension (heavy work lives in global-setup)
     test-app.ts             # createTestApp() factory
     db-helpers.ts           # DB utilities (getTestDb, seedBaseData, etc.)
     auth-helpers.ts         # Auth utilities (loginAsAdmin, etc.)

@@ -374,14 +374,15 @@ Every API endpoint **must** have integration tests that verify behavior against 
 
 ### Test Infrastructure
 
-| File                                             | Purpose                                                                                                                                            |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vitest.integration.config.ts`                   | Vitest config (`environment: 'node'`, `fileParallelism: false`, `maxWorkers: 1`, `isolate: false`, `testTimeout: 30_000`)                          |
-| `src/api/integration/setup/integration-setup.ts` | Schema push + seed (once per process, gated by `globalThis` flag) + env vars + Zod OpenAPI extension (re-evaluated per file)                       |
-| `src/api/integration/setup/pglite-test-db.ts`    | PGlite singleton owner — creates the in-process WASM Postgres handle on the no-Docker path (skipped when `PG_TEST_CONNECTION_STRING` is set on CI) |
-| `src/api/integration/setup/test-app.ts`          | `createTestApp()` — OpenAPIHono instance with all middleware and routes                                                                            |
-| `src/api/integration/setup/db-helpers.ts`        | `getTestDb()`, `truncateAllTables()`, `seedBaseData()`, `getSeededAdminIds()`                                                                      |
-| `src/api/integration/setup/auth-helpers.ts`      | `loginAsAdmin()`, `loginAsRestricted()`, `authenticatedRequest()`                                                                                  |
+| File                                               | Purpose                                                                                                                                                              |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vitest.integration.config.ts`                     | Vitest config (`environment: 'node'`, `globalSetup` wired to `global-setup.ts`, `fileParallelism: false`, `maxWorkers: 1`, `testTimeout: 30_000`)                    |
+| `src/api/integration/setup/global-setup.ts`        | Vitest globalSetup — boots embedded Postgres (or honors `PG_TEST_CONNECTION_STRING` on CI), pushes schema, seeds base data, tears the cluster down on suite teardown |
+| `src/api/integration/setup/embedded-pg-test-db.ts` | `EmbeddedPostgres` lifecycle wrapper — allocates a free localhost port, initialises a temp data dir, starts/stops the postmaster                                     |
+| `src/api/integration/setup/integration-setup.ts`   | Per-file setup (vitest setupFiles) — installs the Zod ↔ OpenAPI extension. Heavy work has moved to `global-setup.ts`                                                 |
+| `src/api/integration/setup/test-app.ts`            | `createTestApp()` — OpenAPIHono instance with all middleware and routes                                                                                              |
+| `src/api/integration/setup/db-helpers.ts`          | `getTestDb()`, `truncateAllTables()`, `seedBaseData()`, `getSeededAdminIds()`                                                                                        |
+| `src/api/integration/setup/auth-helpers.ts`        | `loginAsAdmin()`, `loginAsRestricted()`, `authenticatedRequest()`                                                                                                    |
 
 ### Required Coverage per Endpoint
 

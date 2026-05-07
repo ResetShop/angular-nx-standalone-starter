@@ -13,20 +13,16 @@ export default defineConfig({
 		globals: true,
 		environment: 'node',
 		reporters: ['verbose'],
+		globalSetup: ['apps/reference-app/src/api/integration/setup/global-setup.ts'],
 		setupFiles: ['apps/reference-app/src/api/integration/setup/integration-setup.ts'],
 		include: ['apps/reference-app/src/api/integration/**/*.integration.spec.ts'],
 		exclude: ['node_modules', 'dist', '.nx', 'coverage'],
 		testTimeout: 30_000,
-		// PGlite is in-process and cannot cross worker boundaries; pin to one
-		// worker so all integration tests share a single PGlite instance and
-		// one schema-push + seed cycle. `fileParallelism: false` ensures
-		// serial file execution; `maxWorkers: 1` ensures only one worker
-		// process exists for the run; `isolate: false` keeps the module cache
-		// shared across files. The legacy cross-process `globalSetup` model
-		// was removed in #321 — schema push and seed live in
-		// `integration-setup.ts` and run once at module load.
+		// Tests share state across files (seeded admin user, restricted user,
+		// admin role) and are not designed for parallel execution against a
+		// shared DB. Pin to a single worker — the win from real Postgres is
+		// pool semantics + CI fidelity, not parallel test execution.
 		fileParallelism: false,
 		maxWorkers: 1,
-		isolate: false,
 	},
 })

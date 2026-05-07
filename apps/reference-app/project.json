@@ -133,7 +133,7 @@
 			"executor": "nx:run-commands",
 			"cache": false,
 			"options": {
-				"command": "node scripts/skip-if-no-db.mjs && vitest run --config apps/reference-app/vitest.integration.config.ts"
+				"command": "vitest run --config apps/reference-app/vitest.integration.config.ts"
 			}
 		},
 		"stylelint": {
