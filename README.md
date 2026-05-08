@@ -267,6 +267,28 @@ To use your own long-lived Postgres instead (persistent local container, shared 
 
 ---
 
+### Generators
+
+The starter ships seven Nx generators under `@resetshop/generators` for the common file-creation tasks. Use these instead of hand-rolling boilerplate so generated files follow the project conventions automatically (file naming, store builder block ordering, repository projection types, OpenAPI registration, and so on).
+
+| Generator        | Use when                                                            | Invoke                                                                  |
+| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `app`            | Creating a new app from the canonical template                      | `npm run generate:app -- --name="My App"`                               |
+| `crud`           | Adding a full vertical slice (DB + API + frontend)                  | `nx g @resetshop/generators:crud product --module=catalog`              |
+| `drizzle-schema` | Just a Drizzle table schema                                         | `nx g @resetshop/generators:drizzle-schema product`                     |
+| `backend-module` | Just the backend layer (routes / controller / service / repository) | `nx g @resetshop/generators:backend-module product --module=catalog`    |
+| `api-provider`   | Frontend API token + http impl + mock + provider function           | `nx g @resetshop/generators:api-provider product`                       |
+| `store`          | NgRx Signal Store following project conventions                     | `nx g @resetshop/generators:store product`                              |
+| `page`           | Route page component (+ optional store and provider)                | `nx g @resetshop/generators:page product --withStore --withApiProvider` |
+
+**Choosing between `crud` and `backend-module`/`page`:** if the task is a brand-new entity that needs a DB table, an HTTP endpoint, a frontend service, and a list page, use `crud` — it stitches all five layers in one invocation. If you're adding to an existing layer (e.g. a new endpoint group on an existing module, or a page that wraps an API you've already built), pick the narrower generator. The `page` generator's `--withStore` and `--withApiProvider` flags also let you compose two-layer slices without going through `crud`.
+
+`names()` from `@nx/devkit` normalises the entity name. Pass `productCatalog` or `product_catalog` interchangeably — both produce the same kebab-case file paths (`product-catalog/...`) and camelCase JS identifiers (`productCatalog`).
+
+For deeper guidance — exact files produced by each generator, known limitations, when NOT to use a generator — see [`.claude/references/generators.md`](./.claude/references/generators.md).
+
+---
+
 ### Post-Setup Steps **[Required]**
 
 #### Remove Configuration Routes
