@@ -18,6 +18,7 @@ import {
 } from '@resetshop/util/test-utils'
 import { fireEvent, render, screen } from '@testing-library/angular'
 import { of, throwError } from 'rxjs'
+import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../../dashboard.constants'
 import { EditUserDrawer } from './edit-user-drawer'
 
 const MOCK_USER = createMockManagedUser()
@@ -204,7 +205,7 @@ describe('EditUserDrawer', () => {
 		TestBed.tick()
 		fixture.detectChanges()
 
-		await advanceTimersByTimeAsync(parseDurationToMs('1s'))
+		await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_CLOSE_AFTER_SUCCESS_DELAY))
 		fixture.detectChanges()
 
 		expect(firstNameInput).toHaveValue('')

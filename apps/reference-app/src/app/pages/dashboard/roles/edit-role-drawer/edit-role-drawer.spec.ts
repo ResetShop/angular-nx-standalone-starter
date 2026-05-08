@@ -17,6 +17,7 @@ import {
 } from '@resetshop/util/test-utils'
 import { fireEvent, render, screen } from '@testing-library/angular'
 import { of, throwError } from 'rxjs'
+import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../../dashboard.constants'
 import { EditRoleDrawer } from './edit-role-drawer'
 
 describe('EditRoleDrawer', () => {
@@ -256,7 +257,7 @@ describe('EditRoleDrawer', () => {
 		TestBed.tick()
 		fixture.detectChanges()
 
-		await advanceTimersByTimeAsync(parseDurationToMs('1s'))
+		await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_CLOSE_AFTER_SUCCESS_DELAY))
 		fixture.detectChanges()
 
 		expect(nameInput).toHaveValue('')
