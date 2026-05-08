@@ -39,6 +39,7 @@ Before doing any analysis, read these files in full:
 - `.claude/references/cross-reference.md`
 - `.claude/references/auth.md`
 - `.claude/references/backend-api.md`
+- `.claude/references/generators.md`
 - `CLAUDE.md`
 
 ## Planning Process
