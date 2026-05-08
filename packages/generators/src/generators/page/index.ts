@@ -16,7 +16,7 @@ export default async function pageGenerator(tree: Tree, schema: PageGeneratorSch
 	const targetDir = joinPathFragments(schema.directory, n.fileName)
 
 	generateFiles(tree, joinPathFragments(__dirname, 'files'), targetDir, {
-		name: n.propertyName,
+		name: n.fileName,
 		className: n.className,
 		fileName: n.fileName,
 	})
