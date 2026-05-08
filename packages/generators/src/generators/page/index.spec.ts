@@ -108,15 +108,15 @@ describe('page generator', () => {
 		expect(tree.exists('src/app/store/product/product.store.ts')).toBe(true)
 	})
 
-	it('uses kebab-case for the outer page dir but camelCase for the inner __name__-list/ template dir', async () => {
-		// Surfaced inconsistency between the outer and inner directory placeholders:
-		// - The outer dir is `joinPathFragments(directory, n.fileName)` → kebab-case.
-		// - The inner `__name__-list/` template-dir placeholder resolves via the
-		//   templateVars `name` key, which `page/index.ts` sets to `n.propertyName`
-		//   (camelCase), unlike `store`/`api-provider` which set `name` to `n.fileName`.
-		// Net result: `<dir>/order-history/orderHistory-list/orderHistory-list.ts`.
-		// The test asserts actual emitted output to lock the current behavior.
-		// Tracked as follow-up bug in #331.
+	it('uses kebab-case for both the outer page directory and the inner __name__-list/ template dir', async () => {
+		// Compound names yield kebab-case for the entire generated path, matching
+		// the rest of the workspace's file naming conventions:
+		// - Outer dir: `joinPathFragments(directory, n.fileName)` → kebab-case.
+		// - Inner `__name__-list/` template-dir placeholder: also kebab-case via
+		//   `name: n.fileName` in `page/index.ts`. (Pre-#331 this was camelCase
+		//   because `name` was set to `n.propertyName`.)
+		// Inside the template, `<%= className %>` and `<%= fileName %>` continue
+		// to resolve correctly because they're independent of the `name` key.
 		await pageGenerator(tree, {
 			name: 'orderHistory',
 			directory: DEFAULT_DIR,
@@ -124,17 +124,16 @@ describe('page generator', () => {
 			withStore: false,
 		})
 
-		expect(tree.exists(`${DEFAULT_DIR}/order-history/orderHistory-list/orderHistory-list.ts`)).toBe(true)
-		expect(tree.exists(`${DEFAULT_DIR}/order-history/orderHistory-list/orderHistory-list.spec.ts`)).toBe(true)
+		expect(tree.exists(`${DEFAULT_DIR}/order-history/order-history-list/order-history-list.ts`)).toBe(true)
+		expect(tree.exists(`${DEFAULT_DIR}/order-history/order-history-list/order-history-list.spec.ts`)).toBe(true)
+		expect(tree.exists(`${DEFAULT_DIR}/order-history/orderHistory-list/orderHistory-list.ts`)).toBe(false)
 
 		const pageTs =
-			tree.read(`${DEFAULT_DIR}/order-history/orderHistory-list/orderHistory-list.ts`)?.toString('utf-8') ?? ''
-		// Inside the template: `<%= fileName %>` resolves to kebab-case (`order-history`)
-		// and `<%= className %>` to `OrderHistory` — those are independent of the
-		// camelCase directory placeholder above, so the selector is correctly kebab.
+			tree.read(`${DEFAULT_DIR}/order-history/order-history-list/order-history-list.ts`)?.toString('utf-8') ?? ''
 		expect(pageTs).toContain(`selector: 'app-order-history-list'`)
 		expect(pageTs).toContain(`[title]="'OrderHistory'"`)
 		expect(pageTs).toContain('export default class OrderHistoryList')
+		expect(pageTs).not.toContain('<%=')
 	})
 
 	it('honours a non-default directory and resolves the provider/store siblings via fixed `../../` segments', async () => {
