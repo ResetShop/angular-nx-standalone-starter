@@ -10,6 +10,7 @@ import { Logger } from '@resetshop/angular-core/logger/logger.token'
 import { extractErrorMessage } from '@resetshop/angular-core/store/extract-error-message'
 import { parseDurationToMs } from '@resetshop/util'
 import { catchError, debounceTime, EMPTY, pipe, switchMap, tap } from 'rxjs'
+import { SEARCH_DEBOUNCE_DELAY } from '../store.constants'
 import type { UsersMutationError, UsersReadError } from './users.types'
 import { initialUsersState } from './users.types'
 
@@ -106,7 +107,7 @@ export const UsersStore = signalStore(
 
 			setSearchQuery: rxMethod<string>(
 				pipe(
-					debounceTime(parseDurationToMs('300ms')),
+					debounceTime(parseDurationToMs(SEARCH_DEBOUNCE_DELAY)),
 					tap((query: string) => patchState(store, { searchQuery: query, currentPage: 1 })),
 				),
 			),
