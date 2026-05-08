@@ -63,8 +63,9 @@ function startTokenCleanupJob(): void {
 			)
 		}
 
+		const intervalSource = isValidInterval ? (envValue ?? defaultInterval) : defaultInterval
 		const intervalMs = isValidInterval ? parsedEnvIntervalMs : parseDurationToMs(defaultInterval)
-		console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`)
+		console.log(`[CronJobs] Token cleanup scheduled every ${intervalSource}`)
 
 		// Run immediately, then at interval
 		tokenMaintenanceService.cleanupExpiredTokens().catch(console.error)
