@@ -10,8 +10,9 @@ export default async function drizzleSchemaGenerator(tree: Tree, schema: Drizzle
 	const targetDir = schema.directory
 
 	generateFiles(tree, joinPathFragments(__dirname, 'files'), targetDir, {
-		name: n.propertyName,
+		name: n.fileName,
 		className: n.className,
+		propertyName: n.propertyName,
 		fileName: n.fileName,
 	})
 }

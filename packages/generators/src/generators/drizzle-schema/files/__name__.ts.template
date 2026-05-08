@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm'
 import { boolean, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core'
 
-export const <%= name %> = pgTable('<%= name %>', {
+export const <%= propertyName %> = pgTable('<%= propertyName %>', {
 	id: serial('id').primaryKey(),
 	name: varchar('name', { length: 255 }).notNull(),
 	enabled: boolean('enabled').default(true).notNull(),
@@ -9,10 +9,10 @@ export const <%= name %> = pgTable('<%= name %>', {
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
-export const <%= name %>Relations = relations(<%= name %>, ({ many }) => ({
+export const <%= propertyName %>Relations = relations(<%= propertyName %>, ({ many }) => ({
 	// TODO: Define relations
 }))
 
 // Inferred types
-export type <%= className %> = typeof <%= name %>.$inferSelect
-export type New<%= className %> = typeof <%= name %>.$inferInsert
+export type <%= className %> = typeof <%= propertyName %>.$inferSelect
+export type New<%= className %> = typeof <%= propertyName %>.$inferInsert

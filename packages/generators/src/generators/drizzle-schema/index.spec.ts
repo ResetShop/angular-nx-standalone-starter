@@ -31,22 +31,22 @@ describe('drizzle-schema generator', () => {
 		expect(schemaTs).not.toContain('<%=')
 	})
 
-	it('uses the camelCase propertyName for both the filename and the pgTable identifier', async () => {
-		// drizzle-schema/index.ts passes `name: n.propertyName` to generateFiles,
-		// so the `__name__` filename placeholder AND the `<%= name %>` template
-		// substitution both resolve to camelCase. Files land at `orderLineItem.ts`,
-		// NOT `order-line-item.ts` — this differs from the store/api-provider
-		// generators (which use n.fileName as the templateVar `name`). The test
-		// asserts actual emitted output to lock the current behavior. Tracked as
-		// follow-up bug in #330.
+	it('uses kebab-case for the filename and camelCase for the pgTable identifier and exports', async () => {
+		// Compound names must yield kebab-case file paths to match the rest of the
+		// repository's file naming conventions (see other generators and the
+		// existing schemas in `apps/reference-app/src/db/schema/`). Inside the
+		// generated file, JS identifiers and the table-name string stay camelCase
+		// because Drizzle ORM's standard convention is camelCase JS variables.
 		await drizzleSchemaGenerator(tree, { name: 'orderLineItem', directory: 'src/db/schema' })
 
-		expect(tree.exists('src/db/schema/orderLineItem.ts')).toBe(true)
+		expect(tree.exists('src/db/schema/order-line-item.ts')).toBe(true)
+		expect(tree.exists('src/db/schema/orderLineItem.ts')).toBe(false)
 
-		const schemaTs = tree.read('src/db/schema/orderLineItem.ts')?.toString('utf-8') ?? ''
+		const schemaTs = tree.read('src/db/schema/order-line-item.ts')?.toString('utf-8') ?? ''
 		expect(schemaTs).toContain(`export const orderLineItem = pgTable('orderLineItem', {`)
 		expect(schemaTs).toContain('export const orderLineItemRelations = relations(orderLineItem')
 		expect(schemaTs).toContain('export type OrderLineItem = typeof orderLineItem.$inferSelect')
+		expect(schemaTs).not.toContain('<%=')
 	})
 
 	it('honours a non-default directory', async () => {
