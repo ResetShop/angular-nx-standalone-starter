@@ -537,18 +537,33 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 
 **Generators:**
 
+The starter ships seven Nx generators under `@resetshop/generators` that emit
+boilerplate following project conventions. Prefer them over hand-rolling the
+equivalent files.
+
 ```bash
 # Create a new app via the schematic (the only supported path; see Canonical
 # App Creation Workflow above for details)
 npm run generate:app -- --name="My App"
+
+# Add a full vertical slice (DB + API + provider + store + page) for an entity
+nx g @resetshop/generators:crud product --module=catalog
+
+# Or invoke any single-layer generator directly:
+nx g @resetshop/generators:drizzle-schema product
+nx g @resetshop/generators:backend-module product --module=catalog
+nx g @resetshop/generators:api-provider product
+nx g @resetshop/generators:store product
+nx g @resetshop/generators:page product --withStore --withApiProvider
 ```
 
-Other generators (`store`, `api-provider`, `backend-module`, `drizzle-schema`,
-`page`, `crud`) live in `packages/generators/src/generators/` and should be
-invoked via `nx g @resetshop/generators:<name>` or wrapped in `npm run` scripts
-as they get adopted. **Do not** call `nx g @nx/angular:library --directory=libs/...`
-— this repository uses the `packages/*` + `apps/reference-app` layout, not the
-Nx libs convention.
+For the decision tree (when to use which generator), per-generator file lists,
+known limitations, and the executable specs, see [`.claude/references/generators.md`](.claude/references/generators.md).
+The README also has a shorter human-facing summary under "Generators".
+
+**Do not** call `nx g @nx/angular:library --directory=libs/...` — this
+repository uses the `packages/*` + `apps/reference-app` layout, not the Nx
+libs convention.
 
 <!-- nx configuration end-->
 
@@ -986,17 +1001,17 @@ Agent definitions live in `.claude/agents/` (YAML frontmatter defines `name`, `d
 
 Which `.claude/references/` files each agent loads in Step 0:
 
-| Agent                    | References Loaded                                                                        |
-| ------------------------ | ---------------------------------------------------------------------------------------- |
-| `code-reviewer`          | All 9 references                                                                         |
-| `plan-writer`            | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api |
-| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api |
-| `refactoring-specialist` | solid, cupid, guiding-principles                                                         |
-| `domain-model-advisor`   | domain-model                                                                             |
-| `test-generator`         | testing                                                                                  |
-| `security-auditor`       | auth, backend-api                                                                        |
-| `documentation-writer`   | —                                                                                        |
-| `migration-planner`      | —                                                                                        |
+| Agent                    | References Loaded                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `code-reviewer`          | All 10 references                                                                                    |
+| `plan-writer`            | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators |
+| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators |
+| `refactoring-specialist` | solid, cupid, guiding-principles                                                                     |
+| `domain-model-advisor`   | domain-model                                                                                         |
+| `test-generator`         | testing                                                                                              |
+| `security-auditor`       | auth, backend-api                                                                                    |
+| `documentation-writer`   | —                                                                                                    |
+| `migration-planner`      | —                                                                                                    |
 
 ### Documentation Impact Scan
 

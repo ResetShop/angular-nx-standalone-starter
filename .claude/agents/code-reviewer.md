@@ -39,6 +39,7 @@ Before reviewing, read ALL reference files to have full project context:
 7. Read `.claude/references/domain-model.md`
 8. Read `.claude/references/auth.md`
 9. Read `.claude/references/backend-api.md`
+10. Read `.claude/references/generators.md`
 
 ## Review Process
 
