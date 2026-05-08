@@ -6,6 +6,28 @@ import { container } from './container/container'
 let cleanupInterval: NodeJS.Timeout | null = null
 
 /**
+ * Parses the TOKEN_CLEANUP_INTERVAL env value to milliseconds, returning
+ * `null` when the env is unset, malformed, or out of the [minInterval,
+ * maxInterval] range. Exported only for unit testing.
+ */
+export function tryParseEnvIntervalMs(
+	envValue: string | undefined,
+	minInterval: string,
+	maxInterval: string,
+): number | null {
+	if (!envValue) return null
+	let parsedMs: number
+	try {
+		parsedMs = parseDurationToMs(envValue)
+	} catch {
+		return null
+	}
+	if (parsedMs < parseDurationToMs(minInterval)) return null
+	if (parsedMs > parseDurationToMs(maxInterval)) return null
+	return parsedMs
+}
+
+/**
  * Validate CRON_SECRET at startup and log warning if too short.
  * Only logs once to avoid spam.
  */
@@ -28,20 +50,10 @@ function startTokenCleanupJob(): void {
 		const defaultInterval = '24h'
 
 		const envValue = process.env['TOKEN_CLEANUP_INTERVAL']
-		const parsedEnvIntervalMs = (() => {
-			if (!envValue) return null
-			try {
-				return parseDurationToMs(envValue)
-			} catch {
-				return null
-			}
-		})()
+		const parsedEnvIntervalMs = tryParseEnvIntervalMs(envValue, minInterval, maxInterval)
 
 		const { tokenMaintenanceService } = container.cradle
-		const isValidInterval =
-			parsedEnvIntervalMs !== null &&
-			parsedEnvIntervalMs >= parseDurationToMs(minInterval) &&
-			parsedEnvIntervalMs <= parseDurationToMs(maxInterval)
+		const isValidInterval = parsedEnvIntervalMs !== null
 
 		if (envValue && !isValidInterval) {
 			console.warn(
