@@ -27,24 +27,31 @@ function startTokenCleanupJob(): void {
 		const maxInterval = '7d'
 		const defaultInterval = '24h'
 
-		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS']
-		const parsedEnvInterval = parseInt(envValue ?? '', 10)
+		const envValue = process.env['TOKEN_CLEANUP_INTERVAL']
+		const parsedEnvIntervalMs = (() => {
+			if (!envValue) return null
+			try {
+				return parseDurationToMs(envValue)
+			} catch {
+				return null
+			}
+		})()
 
 		const { tokenMaintenanceService } = container.cradle
 		const isValidInterval =
-			Number.isFinite(parsedEnvInterval) &&
-			parsedEnvInterval >= parseDurationToMs(minInterval) &&
-			parsedEnvInterval <= parseDurationToMs(maxInterval)
+			parsedEnvIntervalMs !== null &&
+			parsedEnvIntervalMs >= parseDurationToMs(minInterval) &&
+			parsedEnvIntervalMs <= parseDurationToMs(maxInterval)
 
 		if (envValue && !isValidInterval) {
 			console.warn(
-				`[CronJobs] WARNING: TOKEN_CLEANUP_INTERVAL_MS="${envValue}" is invalid. ` +
-					`Must be a number between ${parseDurationToMs(minInterval)} and ${parseDurationToMs(maxInterval)}. ` +
-					`Using default: ${parseDurationToMs(defaultInterval)}ms`,
+				`[CronJobs] WARNING: TOKEN_CLEANUP_INTERVAL="${envValue}" is invalid. ` +
+					`Expected a duration string between ${minInterval} and ${maxInterval} (inclusive), e.g. "${defaultInterval}". ` +
+					`Using default: ${defaultInterval}.`,
 			)
 		}
 
-		const intervalMs = isValidInterval ? parsedEnvInterval : parseDurationToMs(defaultInterval)
+		const intervalMs = isValidInterval ? parsedEnvIntervalMs : parseDurationToMs(defaultInterval)
 		console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`)
 
 		// Run immediately, then at interval
