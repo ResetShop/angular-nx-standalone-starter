@@ -22,6 +22,7 @@ import { parseDurationToMs, toSnakeCode } from '@resetshop/util'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
+import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../../dashboard.constants'
 import { PermissionSelector } from '../permission-selector/permission-selector'
 
 interface CreateRoleFormModel {
@@ -160,7 +161,7 @@ export class CreateRoleDrawer {
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
 					this.drawer().close()
-				}, parseDurationToMs('1s'))
+				}, parseDurationToMs(DRAWER_CLOSE_AFTER_SUCCESS_DELAY))
 			}
 		})
 	}

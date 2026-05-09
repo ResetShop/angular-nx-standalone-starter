@@ -6,6 +6,28 @@ import { container } from './container/container'
 let cleanupInterval: NodeJS.Timeout | null = null
 
 /**
+ * Parses the TOKEN_CLEANUP_INTERVAL env value to milliseconds, returning
+ * `null` when the env is unset, malformed, or out of the [minInterval,
+ * maxInterval] range. Exported only for unit testing.
+ */
+export function tryParseEnvIntervalMs(
+	envValue: string | undefined,
+	minInterval: string,
+	maxInterval: string,
+): number | null {
+	if (!envValue) return null
+	let parsedMs: number
+	try {
+		parsedMs = parseDurationToMs(envValue)
+	} catch {
+		return null
+	}
+	if (parsedMs < parseDurationToMs(minInterval)) return null
+	if (parsedMs > parseDurationToMs(maxInterval)) return null
+	return parsedMs
+}
+
+/**
  * Validate CRON_SECRET at startup and log warning if too short.
  * Only logs once to avoid spam.
  */
@@ -23,29 +45,27 @@ function validateCronSecret(): void {
  */
 function startTokenCleanupJob(): void {
 	try {
-		const MIN_INTERVAL_MS = parseDurationToMs('1m')
-		const MAX_INTERVAL_MS = parseDurationToMs('7d')
-		const DEFAULT_INTERVAL_MS = parseDurationToMs('24h')
+		const minInterval = '1m'
+		const maxInterval = '7d'
+		const defaultInterval = '24h'
 
-		const envValue = process.env['TOKEN_CLEANUP_INTERVAL_MS']
-		const PARSED_ENV_INTERVAL_MS = parseInt(envValue ?? '', 10)
+		const envValue = process.env['TOKEN_CLEANUP_INTERVAL']
+		const parsedEnvIntervalMs = tryParseEnvIntervalMs(envValue, minInterval, maxInterval)
 
 		const { tokenMaintenanceService } = container.cradle
-		const isValidInterval =
-			Number.isFinite(PARSED_ENV_INTERVAL_MS) &&
-			PARSED_ENV_INTERVAL_MS >= MIN_INTERVAL_MS &&
-			PARSED_ENV_INTERVAL_MS <= MAX_INTERVAL_MS
+		const isValidInterval = parsedEnvIntervalMs !== null
 
 		if (envValue && !isValidInterval) {
 			console.warn(
-				`[CronJobs] WARNING: TOKEN_CLEANUP_INTERVAL_MS="${envValue}" is invalid. ` +
-					`Must be a number between ${MIN_INTERVAL_MS} and ${MAX_INTERVAL_MS}. ` +
-					`Using default: ${DEFAULT_INTERVAL_MS}ms`,
+				`[CronJobs] WARNING: TOKEN_CLEANUP_INTERVAL="${envValue}" is invalid. ` +
+					`Expected a duration string between ${minInterval} and ${maxInterval} (inclusive), e.g. "${defaultInterval}". ` +
+					`Using default: ${defaultInterval}.`,
 			)
 		}
 
-		const intervalMs = isValidInterval ? PARSED_ENV_INTERVAL_MS : DEFAULT_INTERVAL_MS
-		console.log(`[CronJobs] Token cleanup scheduled every ${intervalMs / 1000}s`)
+		const intervalSource = isValidInterval ? (envValue ?? defaultInterval) : defaultInterval
+		const intervalMs = isValidInterval ? parsedEnvIntervalMs : parseDurationToMs(defaultInterval)
+		console.log(`[CronJobs] Token cleanup scheduled every ${intervalSource}`)
 
 		// Run immediately, then at interval
 		tokenMaintenanceService.cleanupExpiredTokens().catch(console.error)

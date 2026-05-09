@@ -29,6 +29,7 @@ import { parseDurationToMs } from '@resetshop/util'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
+import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../../dashboard.constants'
 import { RoleSelector } from '../role-selector/role-selector'
 
 interface CreateUserFormModel {
@@ -168,7 +169,7 @@ export class CreateUserDrawer {
 				setTimeout(() => {
 					this.closingAfterSuccess.set(false)
 					this.drawer().close()
-				}, parseDurationToMs('1s'))
+				}, parseDurationToMs(DRAWER_CLOSE_AFTER_SUCCESS_DELAY))
 			}
 		})
 	}
