@@ -29,5 +29,6 @@
 
 [data-touch-target]::before {
 	content: '';
+
 	@apply absolute -inset-3;
 }
