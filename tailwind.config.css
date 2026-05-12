@@ -1,4 +1,5 @@
 @import 'tailwindcss' source(none);
+@import './packages/ui/src/theme/accessibility.css';
 
 @source 'apps';
 @source 'packages';

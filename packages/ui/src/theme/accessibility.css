@@ -1,0 +1,33 @@
+@reference "tailwindcss";
+
+/*
+ * Accessibility utilities — global CSS rules motivated by accessibility
+ * standards rather than visual design. Loaded once from tailwind.config.css
+ * so they're available on any element across the app and packages/ui.
+ */
+
+/*
+ * data-touch-target — extends an element's hit area to at least 44px
+ * (WCAG 2.5.5 Target Size minimum / Apple HIG) via an invisible ::before
+ * overlay, without changing the visual size of the element.
+ *
+ * Usage:
+ *   <button appButton size="sm" data-touch-target>...</button>
+ *   <label data-touch-target>...checkbox row...</label>
+ *
+ * The 12px extension (via the Tailwind -inset-3 utility, which resolves to
+ * calc(var(--spacing) * -3) → 0.75rem with the default --spacing) covers
+ * the typical 32px small-button and ~20px selector-label sizes used in
+ * this project, taking both above the 44px minimum (56px and 44px
+ * respectively). For elements that sit close to siblings (e.g. adjacent
+ * pagination number buttons with gap-1), consumers should apply
+ * data-touch-target selectively to avoid hit-area overlap.
+ */
+[data-touch-target] {
+	@apply relative;
+}
+
+[data-touch-target]::before {
+	content: '';
+	@apply absolute -inset-3;
+}
