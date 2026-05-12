@@ -16,7 +16,10 @@ export interface PermissionGroup {
 		<div [class]="containerClasses()">
 			@for (group of groups(); track group.resource) {
 				<div class="mb-4">
-					<div class="mb-2 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
+					<label
+						class="mb-2 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-700"
+						data-touch-target
+					>
 						<input
 							(change)="toggleResource(group)"
 							[checked]="isResourceFullySelected(group)"
@@ -25,20 +28,25 @@ export interface PermissionGroup {
 							class="border-input text-default focus:ring-ring h-4 w-4 rounded"
 						/>
 						<span class="text-sm font-semibold text-gray-900 dark:text-white">{{ group.resource }}</span>
-					</div>
+					</label>
 					<div class="ml-6 space-y-1">
 						@for (permission of group.permissions; track permission.id) {
-							<label class="flex items-center gap-2">
+							<label class="flex items-center gap-2" data-touch-target>
 								<input
 									(change)="togglePermission(permission.id)"
 									[checked]="selectedSet().has(permission.id)"
 									type="checkbox"
 									class="border-input text-default focus:ring-ring h-4 w-4 rounded"
 								/>
-								<span class="text-sm text-gray-700 dark:text-gray-300">{{ permission.name }}</span>
-								@if (permission.description) {
-									<span class="text-xs text-gray-500 dark:text-gray-400">— {{ permission.description }}</span>
-								}
+								<div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+									<span class="text-sm text-gray-700 dark:text-gray-300">{{ permission.name }}</span>
+									@if (permission.description) {
+										<span class="text-xs text-gray-500 dark:text-gray-400">
+											<span class="hidden sm:inline">—</span>
+											{{ permission.description }}
+										</span>
+									}
+								</div>
 							</label>
 						}
 					</div>

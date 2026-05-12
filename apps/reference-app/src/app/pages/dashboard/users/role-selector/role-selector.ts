@@ -10,17 +10,22 @@ import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-cust
 	template: `
 		<div [class]="containerClasses()">
 			@for (role of roles(); track role.id) {
-				<label class="flex items-center gap-2">
+				<label class="flex items-center gap-2" data-touch-target>
 					<input
 						(change)="toggleRole(role.id)"
 						[checked]="selectedSet().has(role.id)"
 						type="checkbox"
 						class="border-input text-default focus:ring-ring h-4 w-4 rounded"
 					/>
-					<span class="text-sm text-gray-700 dark:text-gray-300">{{ role.name }}</span>
-					@if (role.description) {
-						<span class="text-xs text-gray-500 dark:text-gray-400">— {{ role.description }}</span>
-					}
+					<div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+						<span class="text-sm text-gray-700 dark:text-gray-300">{{ role.name }}</span>
+						@if (role.description) {
+							<span class="text-xs text-gray-500 dark:text-gray-400">
+								<span class="hidden sm:inline">—</span>
+								{{ role.description }}
+							</span>
+						}
+					</div>
 				</label>
 			}
 		</div>
