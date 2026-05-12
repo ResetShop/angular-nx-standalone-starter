@@ -60,7 +60,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 					(input)="onSearchInput($event)"
 					[placeholder]="'ROLES.PAGE.SEARCH' | translate"
 					type="search"
-					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-sm focus:ring-1 focus:outline-none"
+					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-base focus:ring-1 focus:outline-none sm:text-sm"
 				/>
 				<button (click)="createDrawer.open()" *hasPermission="'admin:roles:create'" appButton>
 					{{ 'ROLES.PAGE.CREATE_BUTTON' | translate }}
