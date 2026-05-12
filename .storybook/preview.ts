@@ -15,6 +15,13 @@ const preview: Preview = {
 				dark: { name: 'dark', value: '#0a0a0a' },
 			},
 		},
+		viewport: {
+			options: {
+				mobile: { name: 'Mobile (375px)', styles: { width: '375px', height: '667px' } },
+				tablet: { name: 'Tablet (768px)', styles: { width: '768px', height: '1024px' } },
+				desktop: { name: 'Desktop (1280px)', styles: { width: '1280px', height: '800px' } },
+			},
+		},
 	},
 
 	initialGlobals: {
