@@ -41,8 +41,9 @@ export interface PermissionGroup {
 								<div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
 									<span class="text-sm text-gray-700 dark:text-gray-300">{{ permission.name }}</span>
 									@if (permission.description) {
-										<span class="text-xs text-gray-500 dark:text-gray-400">
-											<span class="hidden sm:inline">—</span>
+										<span
+											class="text-xs text-gray-500 before:hidden before:content-['—_'] sm:before:inline dark:text-gray-400"
+										>
 											{{ permission.description }}
 										</span>
 									}

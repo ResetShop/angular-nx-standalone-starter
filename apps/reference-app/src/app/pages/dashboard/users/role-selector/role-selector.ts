@@ -20,8 +20,9 @@ import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-cust
 					<div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
 						<span class="text-sm text-gray-700 dark:text-gray-300">{{ role.name }}</span>
 						@if (role.description) {
-							<span class="text-xs text-gray-500 dark:text-gray-400">
-								<span class="hidden sm:inline">—</span>
+							<span
+								class="text-xs text-gray-500 before:hidden before:content-['—_'] sm:before:inline dark:text-gray-400"
+							>
 								{{ role.description }}
 							</span>
 						}
