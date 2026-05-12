@@ -19,9 +19,26 @@
  * calc(var(--spacing) * -3) → 0.75rem with the default --spacing) covers
  * the typical 32px small-button and ~20px selector-label sizes used in
  * this project, taking both above the 44px minimum (56px and 44px
- * respectively). For elements that sit close to siblings (e.g. adjacent
- * pagination number buttons with gap-1), consumers should apply
- * data-touch-target selectively to avoid hit-area overlap.
+ * respectively).
+ *
+ * Known limitations:
+ *   - Sibling overlap: for elements that sit close to siblings (e.g. adjacent
+ *     pagination number buttons with gap-1), apply data-touch-target
+ *     selectively (e.g. only prev/next, not the numbered buttons) so the
+ *     extension regions don't overlap and steal each other's clicks.
+ *   - Overflow clipping: an ancestor with overflow: hidden | auto | scroll
+ *     will clip the ::before overlay where it escapes the ancestor's box.
+ *     The element's base hit area is unaffected; only the 12px extension
+ *     beyond the ancestor edge is lost. In practice this affects the
+ *     topmost and bottommost rows inside scroll containers (e.g. the
+ *     selectors here, which use overflow-y-auto). Acceptable: rows still
+ *     have a comfortable hit area inside the scroll viewport.
+ *
+ * pointer-events: none on ::before is defensive — current consumers are
+ * interactive parents (labels, buttons) where bubbling makes this moot,
+ * but explicit pointer-events: none prevents the overlay from intercepting
+ * clicks if a future consumer applies the attribute to a container whose
+ * extension overlaps an adjacent interactive element.
  */
 [data-touch-target] {
 	@apply relative;
@@ -29,6 +46,7 @@
 
 [data-touch-target]::before {
 	content: '';
+	pointer-events: none;
 
 	@apply absolute -inset-3;
 }
