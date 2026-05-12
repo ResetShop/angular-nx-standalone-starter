@@ -71,7 +71,8 @@ import { FormFieldCustomControl } from './form-field-custom-control'
 		:host ::ng-deep input:not([type='checkbox']),
 		:host ::ng-deep select,
 		:host ::ng-deep textarea {
-			@apply text-foreground border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:ring-1 focus:outline-none;
+			/* text-base on mobile (≥16px) prevents iOS Safari zoom-on-focus; text-sm from sm: up restores the desktop look. */
+			@apply text-foreground border-input bg-background placeholder:text-muted-foreground focus:border-ring focus:ring-ring block w-full rounded-lg border px-3 py-2 text-base shadow-sm focus:ring-1 focus:outline-none sm:text-sm;
 		}
 
 		:host ::ng-deep input[type='checkbox'] {

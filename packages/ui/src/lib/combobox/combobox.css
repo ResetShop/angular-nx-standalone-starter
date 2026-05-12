@@ -21,7 +21,8 @@
 }
 
 [ngpComboboxInput] {
-	@apply text-foreground placeholder:text-muted-foreground flex-1 rounded-none bg-transparent px-3 py-2 text-sm outline-none;
+	/* text-base on mobile (≥16px) prevents iOS Safari zoom-on-focus; text-sm from sm: up restores the desktop look. */
+	@apply text-foreground placeholder:text-muted-foreground flex-1 rounded-none bg-transparent px-3 py-2 text-base outline-none sm:text-sm;
 
 	border: none !important;
 	box-shadow: none !important;
