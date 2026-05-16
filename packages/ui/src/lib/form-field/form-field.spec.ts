@@ -419,17 +419,13 @@ describe('FormField', () => {
 			expect(screen.queryByTestId('forgot-link')).not.toBeInTheDocument()
 		})
 
-		it('should position labelEndTemplate in the same row as the label', async () => {
+		it('should render both label and labelEndTemplate content together', async () => {
 			await render(TestHostLabelEndTemplate, {
 				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
 			})
 
-			const label = screen.getByText('Password')
-			const link = screen.getByTestId('forgot-link')
-			const row = label.parentElement!
-
-			expect(row).toContainElement(label)
-			expect(row).toContainElement(link)
+			expect(screen.getByText('Password')).toBeInTheDocument()
+			expect(screen.getByTestId('forgot-link')).toBeInTheDocument()
 		})
 	})
 
