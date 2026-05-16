@@ -15,11 +15,7 @@ interface ResetPasswordForm {
 	selector: 'app-reset-password-page',
 	imports: [ImmersivePanel, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField, TranslatePipe],
 	template: `
-		<form
-			(ngSubmit)="onSubmit()"
-			aria-labelledby="reset-password-heading"
-			class="h-svh w-svw sm:h-[420px] sm:w-[420px]"
-		>
+		<form (ngSubmit)="onSubmit()" aria-labelledby="reset-password-heading" class="w-full px-8 sm:w-[420px]">
 			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 			<ng-template #cardTitle>
 				<div class="mt-4 flex flex-col gap-4">
@@ -57,7 +53,7 @@ interface ResetPasswordForm {
 	styles: `
 		@reference "#tailwind-theme";
 		:host {
-			@apply bg-card sm:bg-muted flex h-svh w-svw items-center justify-center;
+			@apply bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95;
 		}
 	`,
 })
@@ -75,7 +71,11 @@ export default class ResetPassword {
 		}),
 	)
 
-	protected readonly isFormValid = computed(() => this.resetPasswordForm().errors().length === 0)
+	protected readonly isFormValid = computed(() => {
+		const { email } = this.model()
+		if (!email) return false
+		return this.resetPasswordForm.email().errors().length === 0
+	})
 
 	protected onSubmit() {
 		if (!this.isFormValid()) {

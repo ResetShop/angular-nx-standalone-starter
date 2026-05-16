@@ -10,6 +10,7 @@ import {
 	inject,
 	input,
 	signal,
+	TemplateRef,
 	viewChild,
 } from '@angular/core'
 import type { ValidationError } from '@angular/forms/signals'
@@ -44,12 +45,17 @@ import { FormFieldCustomControl } from './form-field-custom-control'
 				</label>
 			</div>
 		} @else {
-			<label [for]="resolvedId()" class="text-foreground block text-sm/6 font-medium">
-				{{ label() }}
-				@if (isRequired()) {
-					<span aria-hidden="true" class="ml-0.5">*</span>
+			<div class="flex items-baseline justify-between">
+				<label [for]="resolvedId()" class="text-foreground block text-sm/6 font-medium">
+					{{ label() }}
+					@if (isRequired()) {
+						<span aria-hidden="true" class="ml-0.5">*</span>
+					}
+				</label>
+				@if (labelEndTemplate()) {
+					<ng-container *ngTemplateOutlet="labelEndTemplate()!" />
 				}
-			</label>
+			</div>
 			<div class="mt-2" #contentWrapper>
 				<ng-container *ngTemplateOutlet="projectedContent" />
 			</div>
@@ -110,6 +116,7 @@ export class FormField {
 	public readonly label = input.required<string>()
 	public readonly hint = input<string>()
 	public readonly showRequired = input<boolean>()
+	public readonly labelEndTemplate = input<TemplateRef<void>>()
 
 	protected readonly resolvedId = signal('')
 	protected readonly isCheckbox = signal(false)

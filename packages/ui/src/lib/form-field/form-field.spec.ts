@@ -330,6 +330,44 @@ class TestHostCheckbox {
 	)
 }
 
+@Component({
+	selector: 'app-test-host-label-end-template',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Password'" [labelEndTemplate]="labelEnd">
+			<input [formField]="passwordField" type="password" />
+		</app-form-field>
+		<ng-template #labelEnd>
+			<a href="/forgot" data-testid="forgot-link">Forgot password?</a>
+		</ng-template>
+	`,
+})
+class TestHostLabelEndTemplate {
+	private readonly model = signal('')
+	public readonly passwordField: FieldTree<string> = form(
+		this.model,
+		schema<string>((path) => {
+			required(path)
+		}),
+	)
+}
+
+@Component({
+	selector: 'app-test-host-no-label-end-template',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		<app-form-field [label]="'Username'">
+			<input [formField]="field" type="text" />
+		</app-form-field>
+	`,
+})
+class TestHostNoLabelEndTemplate {
+	private readonly model = signal('')
+	public readonly field: FieldTree<string> = form(this.model)
+}
+
 describe('FormField', () => {
 	beforeEach(() => {
 		clearAllMocks()
@@ -360,6 +398,38 @@ describe('FormField', () => {
 			await renderTestHost()
 
 			expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+		})
+	})
+
+	describe('labelEndTemplate', () => {
+		it('should render labelEndTemplate content next to the label', async () => {
+			await render(TestHostLabelEndTemplate, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			})
+
+			expect(screen.getByTestId('forgot-link')).toBeInTheDocument()
+			expect(screen.getByText('Forgot password?')).toBeInTheDocument()
+		})
+
+		it('should not render labelEndTemplate area when not provided', async () => {
+			await render(TestHostNoLabelEndTemplate, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			})
+
+			expect(screen.queryByTestId('forgot-link')).not.toBeInTheDocument()
+		})
+
+		it('should position labelEndTemplate in the same row as the label', async () => {
+			await render(TestHostLabelEndTemplate, {
+				providers: [{ provide: Translation, useValue: mockTranslation }, ...provideSignalFormsConfig({})],
+			})
+
+			const label = screen.getByText('Password')
+			const link = screen.getByTestId('forgot-link')
+			const row = label.parentElement!
+
+			expect(row).toContainElement(link)
+			expect(row).toHaveClass('flex', 'items-baseline', 'justify-between')
 		})
 	})
 

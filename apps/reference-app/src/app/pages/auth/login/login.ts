@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import {
 	email as emailValidator,
 	form,
-	minLength,
 	required,
 	schema,
 	FormField as SignalFormField,
@@ -33,7 +32,7 @@ import type { LoginForm } from '../../../interfaces/auth'
 		TranslatePipe,
 	],
 	template: `
-		<form (submit)="onSubmit($event)" aria-labelledby="login-heading" class="h-svh w-svw sm:h-[420px] sm:w-[420px]">
+		<form (submit)="onSubmit($event)" aria-labelledby="login-heading" class="w-full px-8 sm:w-[420px]">
 			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 			<ng-template #cardTitle>
 				<!-- TODO: Replace the image for your system/company logo -->
@@ -46,21 +45,23 @@ import type { LoginForm } from '../../../interfaces/auth'
 			</ng-template>
 
 			<ng-template #cardContent>
-				<div class="flex w-full max-w-96 flex-col gap-6">
+				<div class="flex w-full max-w-96 flex-col gap-4 sm:gap-6">
 					<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
 						<input [formField]="loginForm.email" type="email" autocomplete="email" autofocus />
 					</app-form-field>
 
-					<div>
-						<app-form-field [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate" [showRequired]="false">
-							<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
-						</app-form-field>
-						<div class="mt-1 text-right text-sm">
-							<a [routerLink]="resetPassword" class="text-default hover:text-default/90 font-semibold hover:underline">
-								{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
-							</a>
-						</div>
-					</div>
+					<app-form-field
+						[label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate"
+						[showRequired]="false"
+						[labelEndTemplate]="forgotPassword"
+					>
+						<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
+					</app-form-field>
+					<ng-template #forgotPassword>
+						<a [routerLink]="resetPassword" class="hover:text-default/90 text-default text-sm hover:underline">
+							{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
+						</a>
+					</ng-template>
 				</div>
 
 				@if (errorMessage()) {
@@ -102,11 +103,15 @@ export default class Login {
 			required(login.email)
 			emailValidator(login.email)
 			required(login.password)
-			minLength(login.password, 8)
+			// minLength(login.password, 8)
 		}),
 	)
 
-	protected readonly isFormValid = computed(() => this.loginForm().errors().length === 0)
+	protected readonly isFormValid = computed(() => {
+		const { email, password } = this.model()
+		if (!email || !password) return false
+		return this.loginForm.email().errors().length === 0 && this.loginForm.password().errors().length === 0
+	})
 
 	private readonly loginEffect = effect(() => {
 		const user = this.authStore.currentUser()

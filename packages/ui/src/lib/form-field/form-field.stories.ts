@@ -170,6 +170,46 @@ class StoryPlayground {
 	})
 }
 
+@Component({
+	selector: 'app-story-label-end-template',
+	standalone: true,
+	imports: [FormField, SignalFormField],
+	template: `
+		@if (isReady()) {
+			<app-form-field [label]="'Password'" [labelEndTemplate]="forgotPassword" [showRequired]="false">
+				<input [formField]="passwordField" type="password" placeholder="Enter your password" />
+			</app-form-field>
+			<ng-template #forgotPassword>
+				<a href="/forgot" class="text-sm text-gray-500 hover:underline">Forgot password?</a>
+			</ng-template>
+		}
+	`,
+})
+class StoryLabelEndTemplate {
+	private readonly errorHandler = inject(ErrorHandler)
+	private readonly translation = inject(Translation)
+
+	public readonly language = input<Language>('en')
+	protected readonly isReady = signal(false)
+
+	private readonly model = signal('')
+	protected readonly passwordField: FieldTree<string> = form(
+		this.model,
+		schema<string>((path) => {
+			required(path)
+		}),
+	)
+
+	private readonly syncLanguageEffect = effect(() => {
+		const lang = this.language()
+		this.isReady.set(false)
+		this.translation
+			.setLanguage(lang)
+			.then(() => this.isReady.set(true))
+			.catch((error: unknown) => this.errorHandler.handleError(error))
+	})
+}
+
 // --- Meta ---
 
 const meta: Meta<StoryPlayground> = {
@@ -245,4 +285,13 @@ export const Playground: StoryObj<StoryPlayground> = {
 		},
 	},
 	render: (args) => ({ props: args }),
+}
+
+export const LabelEndTemplate: StoryObj<StoryLabelEndTemplate> = {
+	args: { language: 'en' },
+	render: (args) => ({
+		props: args,
+		moduleMetadata: { imports: [StoryLabelEndTemplate] },
+		template: `<app-story-label-end-template [language]="language" />`,
+	}),
 }
