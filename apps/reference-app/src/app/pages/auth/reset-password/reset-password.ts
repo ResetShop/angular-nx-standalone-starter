@@ -15,43 +15,43 @@ interface ResetPasswordForm {
 	selector: 'app-reset-password-page',
 	imports: [ImmersivePanel, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField, TranslatePipe],
 	template: `
-		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" class="z-10 h-svh w-svw sm:h-[420px] sm:w-[420px]">
-				<app-immersive-panel
-					[titleTemplate]="cardTitle"
-					[contentTemplate]="cardContent"
-					[footerTemplate]="cardFooter"
-				/>
-				<ng-template #cardTitle>
-					<div class="mt-4 flex flex-col gap-4">
-						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-						<div class="mb-8 text-center">{{ 'AUTH.RESET_PASSWORD.TITLE' | translate }}</div>
+		<form
+			(ngSubmit)="onSubmit()"
+			aria-labelledby="reset-password-heading"
+			class="h-svh w-svw sm:h-[420px] sm:w-[420px]"
+		>
+			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
+			<ng-template #cardTitle>
+				<div class="mt-4 flex flex-col gap-4">
+					<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
+					<div id="reset-password-heading" class="mb-8 text-center">
+						{{ 'AUTH.RESET_PASSWORD.TITLE' | translate }}
 					</div>
-				</ng-template>
+				</div>
+			</ng-template>
 
-				<ng-template #cardContent>
-					<div class="flex w-full max-w-96 flex-col gap-6">
-						<app-form-field [label]="'AUTH.RESET_PASSWORD.EMAIL_LABEL' | translate">
-							<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" />
-						</app-form-field>
+			<ng-template #cardContent>
+				<div class="flex w-full max-w-96 flex-col gap-6">
+					<app-form-field [label]="'AUTH.RESET_PASSWORD.EMAIL_LABEL' | translate">
+						<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" autofocus />
+					</app-form-field>
+				</div>
+			</ng-template>
+
+			<ng-template #cardFooter>
+				<div class="flex flex-col gap-4 font-semibold">
+					<button [fullWidth]="true" [disabled]="!isFormValid()" appButton variant="default" size="md" type="submit">
+						{{ 'AUTH.RESET_PASSWORD.SUBMIT' | translate }}
+					</button>
+
+					<div class="text-muted-foreground text-center text-sm">
+						<a [routerLink]="loginUrl" appButton variant="link">
+							{{ 'AUTH.RESET_PASSWORD.BACK_TO_LOGIN' | translate }}
+						</a>
 					</div>
-				</ng-template>
-
-				<ng-template #cardFooter>
-					<div class="flex flex-col gap-4 font-semibold">
-						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton variant="default" size="md" type="submit">
-							{{ 'AUTH.RESET_PASSWORD.SUBMIT' | translate }}
-						</button>
-
-						<div class="text-muted-foreground text-center text-sm">
-							<a [routerLink]="loginUrl" appButton variant="link">
-								{{ 'AUTH.RESET_PASSWORD.BACK_TO_LOGIN' | translate }}
-							</a>
-						</div>
-					</div>
-				</ng-template>
-			</form>
-		</dialog>
+				</div>
+			</ng-template>
+		</form>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	styles: `

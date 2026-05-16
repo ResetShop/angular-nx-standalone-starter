@@ -33,58 +33,51 @@ import type { LoginForm } from '../../../interfaces/auth'
 		TranslatePipe,
 	],
 	template: `
-		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (submit)="onSubmit($event)" class="z-10 h-svh w-svw sm:h-[420px] sm:w-[420px]">
-				<app-immersive-panel
-					[titleTemplate]="cardTitle"
-					[contentTemplate]="cardContent"
-					[footerTemplate]="cardFooter"
-				/>
-				<ng-template #cardTitle>
-					<!-- TODO: Replace the image for your system/company logo -->
-					<div class="mt-4 flex flex-col gap-4">
-						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-						<div class="text-foreground mb-8 text-center">{{ 'AUTH.LOGIN.TITLE' | translate }}</div>
+		<form (submit)="onSubmit($event)" aria-labelledby="login-heading" class="h-svh w-svw sm:h-[420px] sm:w-[420px]">
+			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
+			<ng-template #cardTitle>
+				<!-- TODO: Replace the image for your system/company logo -->
+				<div class="mt-4 flex flex-col gap-4">
+					<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
+					<div id="login-heading" class="text-foreground mb-8 text-center">
+						{{ 'AUTH.LOGIN.TITLE' | translate }}
 					</div>
-				</ng-template>
+				</div>
+			</ng-template>
 
-				<ng-template #cardContent>
-					<div class="flex w-full max-w-96 flex-col gap-6">
-						<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
-							<input [formField]="loginForm.email" type="email" autocomplete="email" />
+			<ng-template #cardContent>
+				<div class="flex w-full max-w-96 flex-col gap-6">
+					<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
+						<input [formField]="loginForm.email" type="email" autocomplete="email" autofocus />
+					</app-form-field>
+
+					<div>
+						<app-form-field [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate" [showRequired]="false">
+							<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
 						</app-form-field>
-
-						<div>
-							<app-form-field [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate" [showRequired]="false">
-								<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
-							</app-form-field>
-							<div class="mt-1 text-right text-sm">
-								<a
-									[routerLink]="resetPassword"
-									class="text-default hover:text-default/90 font-semibold hover:underline"
-								>
-									{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
-								</a>
-							</div>
+						<div class="mt-1 text-right text-sm">
+							<a [routerLink]="resetPassword" class="text-default hover:text-default/90 font-semibold hover:underline">
+								{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
+							</a>
 						</div>
 					</div>
+				</div>
 
-					@if (errorMessage()) {
-						<div appAlert variant="destructive" class="mt-4">
-							<p appAlertDescription>{{ errorMessage() }}</p>
-						</div>
-					}
-				</ng-template>
-
-				<ng-template #cardFooter>
-					<div class="flex justify-center font-semibold">
-						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton size="md" type="submit">
-							{{ 'AUTH.LOGIN.SUBMIT' | translate }}
-						</button>
+				@if (errorMessage()) {
+					<div appAlert variant="destructive" class="mt-4">
+						<p appAlertDescription>{{ errorMessage() }}</p>
 					</div>
-				</ng-template>
-			</form>
-		</dialog>
+				}
+			</ng-template>
+
+			<ng-template #cardFooter>
+				<div class="flex justify-center font-semibold">
+					<button [fullWidth]="true" [disabled]="!isFormValid()" appButton size="md" type="submit">
+						{{ 'AUTH.LOGIN.SUBMIT' | translate }}
+					</button>
+				</div>
+			</ng-template>
+		</form>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	styles: `
