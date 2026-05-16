@@ -58,7 +58,7 @@ import type { LoginForm } from '../../../interfaces/auth'
 						<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
 					</app-form-field>
 					<ng-template #forgotPassword>
-						<a [routerLink]="resetPassword" class="hover:text-default/90 text-default text-sm hover:underline">
+						<a [routerLink]="resetPassword" class="text-interactive hover:text-interactive/80 text-sm hover:underline">
 							{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
 						</a>
 					</ng-template>
