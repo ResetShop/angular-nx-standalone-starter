@@ -40,6 +40,7 @@ Before reviewing, read ALL reference files to have full project context:
 8. Read `.claude/references/auth.md`
 9. Read `.claude/references/backend-api.md`
 10. Read `.claude/references/generators.md`
+11. Read `.claude/references/accessibility.md`
 
 ## Review Process
 

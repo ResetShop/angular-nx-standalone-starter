@@ -71,3 +71,22 @@ h6 {
 	isolation: isolate;
 }
 /* stylelint-enable selector-id-pattern */
+
+/* 11. Reset the user-agent <dialog> top-layer constraints
+   The user-agent applies max-width/max-height: calc(100% - 2em - 6px) to
+   dialogs in the top layer (the :-internal-dialog-in-top-layer pseudo).
+   Author CSS — Tailwind utilities like sm:max-w-3/4 and component CSS —
+   sizes dialogs directly, so the UA cap fights every drawer/modal in the
+   app. Reset to none so author styles compete only with each other.
+
+   Wrapped in @layer base so Tailwind utilities (which live in @layer
+   utilities, later in the layer order than base) can override these
+   defaults. An unlayered rule would beat every Tailwind utility
+   regardless of specificity, which would silently prevent capping
+   widths or heights when customization is required. */
+@layer base {
+	dialog {
+		max-width: none;
+		max-height: none;
+	}
+}

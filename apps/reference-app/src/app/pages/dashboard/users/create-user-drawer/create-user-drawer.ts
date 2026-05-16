@@ -71,7 +71,7 @@ const EMPTY_MODEL: CreateUserFormModel = {
 			(afterClosed)="toast.flushPending()"
 			[closeOnBackdrop]="false"
 			[title]="'USERS.CREATE_DRAWER.TITLE' | translate"
-			class="w-lg"
+			class="lg:w-lg"
 			#drawer
 		>
 			<form (submit)="onSubmit($event)" id="create-user-form" class="flex h-full flex-col gap-4">

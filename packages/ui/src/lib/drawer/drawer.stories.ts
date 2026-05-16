@@ -23,7 +23,7 @@ A slide-out drawer component using the native \`<dialog>\` element.
 ## Features
 
 - **4 Directions**: Left, Right, Top, Bottom
-- **Content-driven sizing**: Adjusts to fit its content
+- **Responsive sizing**: Full-viewport width/height on mobile, capped at 75% of the relevant axis from \`sm:\` up; consumer class overrides (e.g. \`class="lg:w-lg"\`) narrow the panel further at specific breakpoints while leaving the base cap in effect for unprefixed breakpoints.
 - **Native Dialog**: Uses \`<dialog>\` with \`showModal()\` for proper modal behavior
 - **Accessibility**: \`aria-labelledby\` and \`aria-describedby\` linked to title/description
 - **Backdrop**: Semi-transparent backdrop with optional click-outside handling

@@ -1,0 +1,18 @@
+@reference "tailwindcss";
+
+/*
+ * Accessibility utilities. See .claude/references/accessibility.md for usage,
+ * the sizing rationale, and known limitations. Loaded once from
+ * tailwind.config.css so utilities are global across the app and packages/ui.
+ */
+
+[data-touch-target] {
+	@apply relative;
+}
+
+[data-touch-target]::before {
+	content: '';
+	pointer-events: none;
+
+	@apply absolute -inset-3;
+}

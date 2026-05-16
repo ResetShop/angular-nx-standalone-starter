@@ -36,6 +36,7 @@ Before providing architecture advice, read these reference files:
 5. Read `.claude/references/cross-reference.md` — How principles relate to each other
 6. Read `.claude/references/backend-api.md` — Backend API patterns (OpenAPI, routes, controllers)
 7. Read `.claude/references/generators.md` — Nx generators that emit project-convention boilerplate; prefer them when planning new entities, modules, or pages
+8. Read `.claude/references/accessibility.md` — Accessibility utilities (`data-touch-target`), WCAG 2.5.5 hit-area rationale, known limitations, and review checklist
 
 ## Advisory Process
 

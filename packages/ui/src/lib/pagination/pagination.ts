@@ -35,7 +35,7 @@ const PAGINATION_KEYS = Object.freeze({
 					(change)="onPageSizeChange($event)"
 					[id]="selectId"
 					[value]="pageSize()"
-					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-8 rounded-md border px-2 text-sm focus:ring-1 focus:outline-none"
+					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-8 rounded-md border px-2 text-base focus:ring-1 focus:outline-none sm:text-sm"
 				>
 					@for (option of pageSizeOptions(); track option) {
 						<option [value]="option" [selected]="option === pageSize()">{{ option }}</option>

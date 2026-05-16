@@ -5,7 +5,8 @@
 }
 
 [ngpSelect] {
-	@apply text-foreground border-input bg-background flex w-full cursor-pointer items-center rounded-lg border px-3 py-2 text-sm shadow-sm;
+	/* text-base on mobile prevents iOS Safari zoom-on-focus; text-sm from sm: up restores the desktop look. */
+	@apply text-foreground border-input bg-background flex w-full cursor-pointer items-center rounded-lg border px-3 py-2 text-base shadow-sm sm:text-sm;
 }
 
 [ngpSelect][data-focus] {
