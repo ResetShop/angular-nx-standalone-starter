@@ -16,9 +16,9 @@ export class DrawerPanel {
 	private readonly layoutClasses = computed(() => {
 		const dir = this.direction()
 		if (dir === 'left' || dir === 'right') {
-			return 'h-full max-w-3/4'
+			return 'h-full w-full sm:max-w-3/4'
 		}
-		return 'w-screen max-h-3/4'
+		return 'w-screen h-full sm:max-h-3/4'
 	})
 
 	private readonly positionClasses = computed(() => {
