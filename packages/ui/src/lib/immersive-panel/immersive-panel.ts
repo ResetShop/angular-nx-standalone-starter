@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular
 	imports: [NgTemplateOutlet],
 	template: `
 		<div
-			class="bg-card text-card-foreground sm:border-border flex h-full flex-col items-center justify-center gap-4 p-4 sm:rounded-xl sm:border sm:shadow-2xs md:p-5"
+			class="bg-card text-card-foreground sm:border-border flex h-full flex-col sm:gap-4 sm:rounded-xl sm:border sm:p-4 sm:shadow-2xs md:p-5"
 		>
 			@if (titleTemplate() || subtitleTemplate()) {
 				<div>
