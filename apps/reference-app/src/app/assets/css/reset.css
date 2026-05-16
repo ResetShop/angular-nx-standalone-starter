@@ -82,8 +82,8 @@ h6 {
    Wrapped in @layer base so Tailwind utilities (which live in @layer
    utilities, later in the layer order than base) can override these
    defaults. An unlayered rule would beat every Tailwind utility
-   regardless of specificity, which would silently prevent the
-   sm:max-w-3/4 cap on drawers from ever applying. */
+   regardless of specificity, which would silently prevent capping
+   widths or heights when customization is required. */
 @layer base {
 	dialog {
 		max-width: none;
