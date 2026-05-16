@@ -3,7 +3,14 @@ import type { DrawerDirection } from './drawer'
 
 /**
  * Computes the CSS panel classes for the Drawer component based on
- * direction and any host `class` overrides (e.g. `class="w-lg"`).
+ * direction and any host `class` overrides (e.g. `class="lg:w-lg"`).
+ *
+ * Consumer overrides should use breakpoint-prefixed utilities so they
+ * layer on top of the base `sm:max-w-3/4` cap rather than replacing
+ * it at every viewport — for example `lg:w-lg` narrows the panel to
+ * 32rem from the `lg:` breakpoint up while leaving the 75% cap in
+ * effect from `sm:` to `lg:` and the full-viewport behaviour below
+ * `sm:` untouched.
  *
  * Applied as a hostDirective on Drawer with `direction` input forwarded.
  */

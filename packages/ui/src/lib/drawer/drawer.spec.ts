@@ -236,5 +236,33 @@ describe('Drawer', () => {
 			const dialog = screen.getByRole('dialog')
 			expect(dialog).toHaveClass('drawer-bottom')
 		})
+
+		it('should apply responsive layout classes for right direction', async () => {
+			await renderAndOpenDrawer({ title: 'Test', direction: 'right' })
+
+			const dialog = screen.getByRole('dialog')
+			expect(dialog).toHaveClass('h-full', 'w-screen', 'sm:max-w-3/4')
+		})
+
+		it('should apply responsive layout classes for left direction', async () => {
+			await renderAndOpenDrawer({ title: 'Test', direction: 'left' })
+
+			const dialog = screen.getByRole('dialog')
+			expect(dialog).toHaveClass('h-full', 'w-screen', 'sm:max-w-3/4')
+		})
+
+		it('should apply responsive layout classes for top direction', async () => {
+			await renderAndOpenDrawer({ title: 'Test', direction: 'top' })
+
+			const dialog = screen.getByRole('dialog')
+			expect(dialog).toHaveClass('w-screen', 'h-full', 'sm:max-h-3/4')
+		})
+
+		it('should apply responsive layout classes for bottom direction', async () => {
+			await renderAndOpenDrawer({ title: 'Test', direction: 'bottom' })
+
+			const dialog = screen.getByRole('dialog')
+			expect(dialog).toHaveClass('w-screen', 'h-full', 'sm:max-h-3/4')
+		})
 	})
 })
