@@ -1001,17 +1001,17 @@ Agent definitions live in `.claude/agents/` (YAML frontmatter defines `name`, `d
 
 Which `.claude/references/` files each agent loads in Step 0:
 
-| Agent                    | References Loaded                                                                                    |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `code-reviewer`          | All 10 references                                                                                    |
-| `plan-writer`            | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators |
-| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators |
-| `refactoring-specialist` | solid, cupid, guiding-principles                                                                     |
-| `domain-model-advisor`   | domain-model                                                                                         |
-| `test-generator`         | testing                                                                                              |
-| `security-auditor`       | auth, backend-api                                                                                    |
-| `documentation-writer`   | —                                                                                                    |
-| `migration-planner`      | —                                                                                                    |
+| Agent                    | References Loaded                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `code-reviewer`          | All 11 references                                                                                                   |
+| `plan-writer`            | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators, accessibility |
+| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators, accessibility |
+| `refactoring-specialist` | solid, cupid, guiding-principles                                                                                    |
+| `domain-model-advisor`   | domain-model                                                                                                        |
+| `test-generator`         | testing                                                                                                             |
+| `security-auditor`       | auth, backend-api                                                                                                   |
+| `documentation-writer`   | —                                                                                                                   |
+| `migration-planner`      | —                                                                                                                   |
 
 ### Documentation Impact Scan
 

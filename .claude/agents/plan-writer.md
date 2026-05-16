@@ -40,6 +40,7 @@ Before doing any analysis, read these files in full:
 - `.claude/references/auth.md`
 - `.claude/references/backend-api.md`
 - `.claude/references/generators.md`
+- `.claude/references/accessibility.md`
 - `CLAUDE.md`
 
 ## Planning Process
