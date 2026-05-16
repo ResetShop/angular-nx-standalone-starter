@@ -18,18 +18,18 @@ interface ResetPasswordForm {
 		<form (ngSubmit)="onSubmit()" aria-labelledby="reset-password-heading" class="w-full px-8 sm:w-[420px]">
 			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 			<ng-template #cardTitle>
-				<div class="mt-4 flex flex-col gap-4">
+				<span class="mt-4 flex flex-col gap-4">
 					<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-					<div id="reset-password-heading" class="mb-8 text-center">
+					<span id="reset-password-heading" class="mb-8 block text-center">
 						{{ 'AUTH.RESET_PASSWORD.TITLE' | translate }}
-					</div>
-				</div>
+					</span>
+				</span>
 			</ng-template>
 
 			<ng-template #cardContent>
 				<div class="flex w-full max-w-96 flex-col gap-6">
 					<app-form-field [label]="'AUTH.RESET_PASSWORD.EMAIL_LABEL' | translate">
-						<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" autofocus />
+						<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" />
 					</app-form-field>
 				</div>
 			</ng-template>

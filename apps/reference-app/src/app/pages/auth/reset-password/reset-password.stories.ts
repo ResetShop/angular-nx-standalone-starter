@@ -40,7 +40,7 @@ const meta: Meta<ResetPasswordStoryComponent> = {
 				component: `
 Password reset request page. Email-only form with validation and a back-to-login link.
 
-Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<app-immersive-panel>\`) with no card chrome and no surrounding backdrop. From \`sm:\` up the form sits as a 420 × 420 card centred on a muted backdrop.
+Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<app-immersive-panel>\`) with no card chrome and no surrounding backdrop. From \`sm:\` up the form sits as a 420 × 420 card centred on a dark backdrop.
 
 ## Language Support
 

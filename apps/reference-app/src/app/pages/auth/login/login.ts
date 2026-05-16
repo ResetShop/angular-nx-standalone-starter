@@ -36,18 +36,18 @@ import type { LoginForm } from '../../../interfaces/auth'
 			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 			<ng-template #cardTitle>
 				<!-- TODO: Replace the image for your system/company logo -->
-				<div class="mt-4 flex flex-col gap-4">
+				<span class="mt-4 flex flex-col gap-4">
 					<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-					<div id="login-heading" class="text-foreground mb-8 text-center">
+					<span id="login-heading" class="text-foreground mb-8 block text-center">
 						{{ 'AUTH.LOGIN.TITLE' | translate }}
-					</div>
-				</div>
+					</span>
+				</span>
 			</ng-template>
 
 			<ng-template #cardContent>
 				<div class="flex w-full max-w-96 flex-col gap-4 sm:gap-6">
 					<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
-						<input [formField]="loginForm.email" type="email" autocomplete="email" autofocus />
+						<input [formField]="loginForm.email" type="email" autocomplete="email" />
 					</app-form-field>
 
 					<app-form-field
@@ -103,7 +103,6 @@ export default class Login {
 			required(login.email)
 			emailValidator(login.email)
 			required(login.password)
-			// minLength(login.password, 8)
 		}),
 	)
 
