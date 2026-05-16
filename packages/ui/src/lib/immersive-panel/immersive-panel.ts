@@ -35,7 +35,7 @@ import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular
 		</div>
 	`,
 	styles: `
-		@reference "tailwindcss";
+		@reference "#tailwind-theme";
 		:host {
 			@apply block h-full;
 		}

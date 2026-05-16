@@ -1,4 +1,4 @@
-import { Component, effect, inject, input } from '@angular/core'
+import { Component, effect, ErrorHandler, inject, input, signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { Translation, type Language } from '@resetshop/angular-core/i18n/translation'
@@ -11,15 +11,24 @@ import ResetPassword from './reset-password'
 	standalone: true,
 	imports: [ResetPassword],
 	template: `
-		<app-reset-password-page />
+		@if (isReady()) {
+			<app-reset-password-page />
+		}
 	`,
 })
 class ResetPasswordStoryComponent {
+	private readonly errorHandler = inject(ErrorHandler)
 	private readonly translation = inject(Translation)
 	public readonly language = input<Language>('es')
+	protected readonly isReady = signal(false)
 
 	private readonly syncLanguageEffect = effect(() => {
-		this.translation.setLanguage(this.language())
+		const lang = this.language()
+		this.isReady.set(false)
+		this.translation
+			.setLanguage(lang)
+			.then(() => this.isReady.set(true))
+			.catch((error: unknown) => this.errorHandler.handleError(error))
 	})
 }
 

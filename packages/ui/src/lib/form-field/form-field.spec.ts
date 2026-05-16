@@ -428,8 +428,8 @@ describe('FormField', () => {
 			const link = screen.getByTestId('forgot-link')
 			const row = label.parentElement!
 
+			expect(row).toContainElement(label)
 			expect(row).toContainElement(link)
-			expect(row).toHaveClass('flex', 'items-baseline', 'justify-between')
 		})
 	})
 

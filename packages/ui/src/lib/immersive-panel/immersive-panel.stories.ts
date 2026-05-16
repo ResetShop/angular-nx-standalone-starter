@@ -49,6 +49,28 @@ const meta: Meta<ImmersivePanelStoryHostComponent> = {
 	title: 'UI / Immersive Panel',
 	component: ImmersivePanelStoryHostComponent,
 	tags: ['autodocs'],
+	argTypes: {
+		titleTemplate: {
+			control: { disable: true },
+			description: 'Template for the panel heading (rendered inside `<h2>`)',
+			table: { type: { summary: 'TemplateRef<void>' } },
+		},
+		subtitleTemplate: {
+			control: { disable: true },
+			description: 'Template for the subtitle below the heading',
+			table: { type: { summary: 'TemplateRef<void>' } },
+		},
+		contentTemplate: {
+			control: { disable: true },
+			description: 'Template for the main body content',
+			table: { type: { summary: 'TemplateRef<void>' } },
+		},
+		footerTemplate: {
+			control: { disable: true },
+			description: 'Template for the footer section',
+			table: { type: { summary: 'TemplateRef<void>' } },
+		},
+	},
 	parameters: {
 		layout: 'fullscreen',
 		viewport: { defaultViewport: 'mobile' },

@@ -1,8 +1,10 @@
 import { Component } from '@angular/core'
+import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import ImmersivePanel from './immersive-panel'
 
 describe('ImmersivePanel', () => {
+	beforeEach(() => clearAllMocks())
 	it('should render title template when provided', async () => {
 		@Component({
 			template: `

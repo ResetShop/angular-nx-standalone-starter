@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
-import { Component, effect, inject, input, signal } from '@angular/core'
+import { Component, effect, ErrorHandler, inject, input, signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { LoginErrorCode } from '@contracts/auth/auth.errors'
@@ -35,6 +35,7 @@ const storyLoginError = signal<{ code: string } | null>(null)
 	`,
 })
 class LoginStoryComponent {
+	private readonly errorHandler = inject(ErrorHandler)
 	private readonly translation = inject(Translation)
 
 	public readonly errorCode = input<ErrorCodeOption>(null)
@@ -54,7 +55,10 @@ class LoginStoryComponent {
 	private readonly syncLanguageEffect = effect(() => {
 		const lang = this.language()
 		this.isReady.set(false)
-		this.translation.setLanguage(lang).then(() => this.isReady.set(true))
+		this.translation
+			.setLanguage(lang)
+			.then(() => this.isReady.set(true))
+			.catch((error: unknown) => this.errorHandler.handleError(error))
 	})
 }
 
