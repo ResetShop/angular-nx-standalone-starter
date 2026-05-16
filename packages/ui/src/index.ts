@@ -13,6 +13,7 @@ export { DataTableCellDef, type DataTableCellDefContext } from './lib/data-table
 export { Drawer } from './lib/drawer/drawer'
 export { FormField } from './lib/form-field/form-field'
 export { FormFieldCustomControl } from './lib/form-field/form-field-custom-control'
+export { default as ImmersivePanel } from './lib/immersive-panel/immersive-panel'
 export { LoadingSpinnerComponent } from './lib/loading-spinner/loading-spinner.component'
 export { default as NavigationCard } from './lib/navigation-card/navigation-card'
 export { Pagination } from './lib/pagination/pagination'

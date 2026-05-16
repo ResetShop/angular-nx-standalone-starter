@@ -53,6 +53,7 @@ const meta: Meta<ImmersivePanelStoryHostComponent> = {
 		layout: 'fullscreen',
 		viewport: { defaultViewport: 'mobile' },
 		docs: {
+			canvas: { sourceState: 'shown' },
 			description: {
 				component:
 					'`ImmersivePanel` is a layout container with the same template-input API as `Card` ' +
