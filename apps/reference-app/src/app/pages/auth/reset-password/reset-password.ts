@@ -4,8 +4,8 @@ import { email, form, required, schema, FormField as SignalFormField, type Field
 import { Router, RouterLink } from '@angular/router'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Button } from '@resetshop/ui/button/button'
-import Card from '@resetshop/ui/card/card'
 import { FormField } from '@resetshop/ui/form-field/form-field'
+import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
 
 interface ResetPasswordForm {
 	email: string
@@ -13,11 +13,15 @@ interface ResetPasswordForm {
 
 @Component({
 	selector: 'app-reset-password-page',
-	imports: [Card, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField, TranslatePipe],
+	imports: [ImmersivePanel, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField, TranslatePipe],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (ngSubmit)="onSubmit()" class="z-10">
-				<app-card [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
+			<form (ngSubmit)="onSubmit()" class="z-10 h-svh w-svw sm:h-[420px] sm:w-[420px]">
+				<app-immersive-panel
+					[titleTemplate]="cardTitle"
+					[contentTemplate]="cardContent"
+					[footerTemplate]="cardFooter"
+				/>
 				<ng-template #cardTitle>
 					<div class="mt-4 flex flex-col gap-4">
 						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
@@ -26,7 +30,7 @@ interface ResetPasswordForm {
 				</ng-template>
 
 				<ng-template #cardContent>
-					<div class="flex w-96 flex-col gap-6">
+					<div class="flex w-full max-w-96 flex-col gap-6">
 						<app-form-field [label]="'AUTH.RESET_PASSWORD.EMAIL_LABEL' | translate">
 							<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" />
 						</app-form-field>
@@ -53,7 +57,7 @@ interface ResetPasswordForm {
 	styles: `
 		@reference "#tailwind-theme";
 		:host {
-			@apply bg-muted flex h-svh w-svw items-center justify-center;
+			@apply bg-card sm:bg-muted flex h-svh w-svw items-center justify-center;
 		}
 	`,
 })

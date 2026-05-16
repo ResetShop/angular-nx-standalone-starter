@@ -84,10 +84,13 @@ const meta: Meta<LoginStoryComponent> = {
 	],
 	parameters: {
 		layout: 'fullscreen',
+		viewport: { defaultViewport: 'mobile' },
 		docs: {
 			description: {
 				component: `
 Login page component with error message handling for various authentication states.
+
+Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<app-immersive-panel>\`) with no card chrome and no surrounding backdrop. From \`sm:\` up the form sits as a 420 × 420 card centred on a dark backdrop.
 
 ## Features
 

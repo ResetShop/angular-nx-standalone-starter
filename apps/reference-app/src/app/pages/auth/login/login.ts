@@ -14,8 +14,8 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Alert, AlertDescription } from '@resetshop/ui/alert/alert'
 import { Button } from '@resetshop/ui/button/button'
-import Card from '@resetshop/ui/card/card'
 import { FormField } from '@resetshop/ui/form-field/form-field'
+import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
 import { AuthStore } from '@store/auth/auth.store'
 import type { LoginForm } from '../../../interfaces/auth'
 
@@ -24,7 +24,7 @@ import type { LoginForm } from '../../../interfaces/auth'
 	imports: [
 		Alert,
 		AlertDescription,
-		Card,
+		ImmersivePanel,
 		Button,
 		NgOptimizedImage,
 		RouterLink,
@@ -34,12 +34,11 @@ import type { LoginForm } from '../../../interfaces/auth'
 	],
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (submit)="onSubmit($event)" class="z-10 sm:h-[420px] sm:w-[420px]">
-				<app-card
+			<form (submit)="onSubmit($event)" class="z-10 h-svh w-svw sm:h-[420px] sm:w-[420px]">
+				<app-immersive-panel
 					[titleTemplate]="cardTitle"
 					[contentTemplate]="cardContent"
 					[footerTemplate]="cardFooter"
-					class="h-svh w-svw"
 				/>
 				<ng-template #cardTitle>
 					<!-- TODO: Replace the image for your system/company logo -->
@@ -50,7 +49,7 @@ import type { LoginForm } from '../../../interfaces/auth'
 				</ng-template>
 
 				<ng-template #cardContent>
-					<div class="flex w-96 flex-col gap-6">
+					<div class="flex w-full max-w-96 flex-col gap-6">
 						<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
 							<input [formField]="loginForm.email" type="email" autocomplete="email" />
 						</app-form-field>
@@ -89,9 +88,9 @@ import type { LoginForm } from '../../../interfaces/auth'
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	styles: `
-		@reference "tailwindcss";
+		@reference "#tailwind-theme";
 		:host {
-			@apply flex h-svh w-svw items-center justify-center bg-black/95;
+			@apply bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95;
 		}
 	`,
 })
