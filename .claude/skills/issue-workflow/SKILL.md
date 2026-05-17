@@ -1,0 +1,154 @@
+---
+name: issue-workflow
+description: Orchestrates the full 6-phase issue resolution lifecycle — Setup, Plan, Implement, Review, Fix, Ship — for a GitHub issue URL. Invoke with /issue-workflow <issue-url>.
+---
+
+# Issue Workflow
+
+Orchestrates the complete lifecycle for resolving a GitHub issue in this project. Each invocation overwrites `workspace/PLAN.md` and `workspace/CODE_REVIEW.md` — save any prior session artifacts before starting a new invocation.
+
+## Usage
+
+```
+/issue-workflow <issue-url>
+```
+
+Example: `/issue-workflow https://github.com/ResetShop/angular-nx-standalone-starter/issues/349`
+
+---
+
+## Phase 1 — Setup
+
+**Purpose:** Create a clean feature branch from the latest `main`.
+
+1. Run `gh issue view <issue-url> --json number,title` to extract the issue number and title.
+2. Derive the branch name:
+   - Format: `<number>-<kebab-case-title>`
+   - Transformation: lowercase the title, replace spaces and non-alphanumeric characters with hyphens, collapse consecutive hyphens, trim leading/trailing hyphens, truncate to 60 characters.
+   - Example: issue #349 "Add /issue-workflow skill to standardize the issue resolution lifecycle" → `349-add-issue-workflow-skill-to-standardize-the-issue-resolution-lifecycle` (truncated at a word boundary if needed).
+3. Run `git checkout main && git pull` to ensure the base is current.
+4. Run `git checkout -b <branch-name>` to create the feature branch.
+5. Report to the user: issue number, title, and branch name created.
+
+---
+
+## Phase 2 — Plan
+
+**Purpose:** Produce a detailed implementation plan for user approval.
+
+1. Delegate to the `plan-writer` agent. Pass the issue URL, issue description, and branch name as context.
+2. The plan-writer produces `workspace/PLAN.md`.
+3. Present a brief summary of the plan to the user (goal, approach, affected files, key decisions).
+
+**⏸ PAUSE — User approval required.**
+
+Present this message:
+
+> Plan is ready at `workspace/PLAN.md`. Review it, then reply **approve** to begin implementation or provide feedback to revise.
+
+Do not proceed to Phase 3 until the user explicitly approves.
+
+---
+
+## Phase 3 — Implement
+
+**Purpose:** Execute the plan with atomic commits.
+
+1. Execute the plan steps from `workspace/PLAN.md` in order.
+2. Create one atomic git commit per logical unit of work.
+3. Before writing new components, services, or files: check whether a matching generator exists in `packages/generators/src/generators/`. If one exists, use it. If none exists, inform the user and proceed only after acknowledgment.
+
+### Commit rules
+
+- Message format: `[#<issue>] - <description of what changed and why>`
+- One commit per distinct logical change (e.g., new component + spec is one commit; new story is a separate commit if it's a separate concern).
+- Each commit must leave the codebase buildable (`npm run ci` would pass if run).
+- Never use "WIP", "fix review", "update", or other non-descriptive messages.
+- Never amend commits; create new commits after pre-commit hook failures.
+- Use simple `git commit -m "message"` — never HEREDOC substitution.
+
+### Do not:
+
+- Push during this phase.
+- Skip tests for any runtime behavior change.
+- Create barrel imports/exports.
+- Introduce commented-out code.
+
+---
+
+## Phase 4 — Review
+
+**Purpose:** Verify CI passes and run the code-reviewer agent.
+
+1. Run `npm run ci`. If it exits non-zero:
+   - Report which batch/step failed.
+   - Diagnose and fix the issue.
+   - Commit the fix following Phase 3 commit rules.
+   - Re-run `npm run ci` until it passes.
+2. Delegate to the `code-reviewer` agent to review all changes on the branch vs. `main`.
+3. The code-reviewer writes findings to `workspace/CODE_REVIEW.md`.
+4. Present the findings table to the user (Critical Issues, Warnings, Suggestions).
+
+**⏸ PAUSE — User decision required.**
+
+Present this message:
+
+> Review complete. See `workspace/CODE_REVIEW.md`. Reply **proceed** to address findings, or **ship** if there are no blocking issues to fix.
+
+---
+
+## Phase 5 — Fix
+
+**Purpose:** Address review findings with atomic commits.
+
+1. Address each **Critical Issue** and **Warning** from `workspace/CODE_REVIEW.md` in priority order (Critical first, then Warnings).
+2. After each fix, immediately update the **Addressed** column in `workspace/CODE_REVIEW.md` (values: Fixed, Discarded, Deferred, Won't Fix).
+3. For each fix, create one atomic commit. The commit message describes the actual change — never references the review finding number.
+   - ✅ `[#349] - Scope constant to function body — was incorrectly at module level`
+   - ❌ `[#349] - Fix review finding #2`
+4. If an issue is **Deferred**, create a GitHub issue for it (`gh issue create`) and add the URL to the Addressed column.
+5. After all Critical Issues and Warnings are addressed, run `npm run ci` again. Fix any regressions before continuing.
+6. **Suggestions** are optional. Present them to the user and let the user decide which (if any) to address.
+
+---
+
+## Phase 6 — Ship
+
+**Purpose:** Push, create the PR, and update the original issue.
+
+1. Run `git push -u origin <branch-name>`.
+2. Create the PR using `gh pr create` with:
+   - Title: `[#<issue>] - <issue-title>`
+   - Body format:
+
+     ```
+     ## Summary
+     <1-3 bullet points>
+
+     ## Test plan
+     [Bulleted checklist of testing done]
+
+     🤖 Generated with [Claude Code](https://claude.com/claude-code)
+     ```
+
+3. Present the PR URL to the user.
+4. Scan the session for items that went **out of scope** (fixes, discoveries, enhancements beyond the original issue). If any exist:
+   - Update the original issue's description (via `gh issue edit`) with an "Out of scope (addressed in this PR)" section listing what was done beyond the original scope.
+   - Prompt the user: "The following out-of-scope items were addressed. Would you like me to create separate GitHub issues for any future follow-ups?" Wait for confirmation before creating issues.
+5. Present a final summary: branch name, PR URL, number of commits, findings addressed.
+
+---
+
+## Constraints (apply to all phases)
+
+These are hard constraints active throughout the entire workflow:
+
+- Never use direct `nx` commands — always `npm run <task>`.
+- Never prefix git commands with `cd` — the working directory is already at project root.
+- Never open the PR before `npm run ci` passes and the `code-reviewer` agent has run.
+- Never skip the Plan phase — even trivial changes benefit from a brief plan documenting scope and rationale.
+- Never use HEREDOC (`$(cat <<'EOF'...)`) substitution in commit messages.
+- All `.claude/references/coding-agent-policies.md` rules apply throughout:
+  - No solo-maintainer shortcut framings.
+  - No "skip the test for this small change" (unless documentation-only).
+  - No deferring code review past PR open.

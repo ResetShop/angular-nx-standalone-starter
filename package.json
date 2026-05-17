@@ -10,7 +10,7 @@
 		"node": "^20.19.0 || ^22.19.0"
 	},
 	"scripts": {
-		"postinstall": "npm run drizzle:push-migrations && npm run drizzle:seed",
+		"postinstall": "node scripts/setup-skills.mjs && npm run drizzle:push-migrations && npm run drizzle:seed",
 		"serve:ssr": "node dist/reference-app/server/server.mjs",
 		"prepare": "husky",
 		"ci": "nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",

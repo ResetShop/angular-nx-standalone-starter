@@ -496,11 +496,6 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 
 ---
 
-## Nx Guidelines
-
-<!-- nx configuration start-->
-<!-- Leave the start & end comments to automatically receive updates. -->
-
 ### General Rules
 
 - **CRITICAL: Always use `npm run <task>` for all task execution** (build, lint, test, e2e, dev)
@@ -564,8 +559,6 @@ The README also has a shorter human-facing summary under "Generators".
 **Do not** call `nx g @nx/angular:library --directory=libs/...` — this
 repository uses the `packages/*` + `apps/reference-app` layout, not the Nx
 libs convention.
-
-<!-- nx configuration end-->
 
 ---
 
@@ -996,6 +989,10 @@ Use the architecture-advisor agent to review the proposed component structure
 | `domain-model-advisor`   | Review domain models for DDD patterns and immutability     |
 
 Agent definitions live in `.claude/agents/` (YAML frontmatter defines `name`, `description`, `tools`, and `model`). Reference files they load at runtime are in `.claude/references/`.
+
+### Issue Workflow Skill
+
+The `/issue-workflow <issue-url>` skill (`.claude/skills/issue-workflow/SKILL.md`) orchestrates the full 6-phase lifecycle — Setup, Plan, Implement, Review, Fix, Ship — as a single repeatable command. Use it as the default entry point for any new issue. The skill pauses for user approval after the Plan phase and after the Review phase. See the skill file for phase-by-phase details.
 
 ### Agent Reference Loading
 
