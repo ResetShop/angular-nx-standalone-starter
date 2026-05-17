@@ -1,5 +1,15 @@
 {
 	"permissions": {
+		"deny": [
+			"Read(./.env)",
+			"Read(./.env.*)",
+			"Write(./.env)",
+			"Write(./.env.*)",
+			"Edit(./.env)",
+			"Edit(./.env.*)",
+			"Bash(cat:./.env)",
+			"Bash(cat:./.env.*)"
+		],
 		"allow": [
 			"Bash create files",
 			"Bash(cat:*)",
