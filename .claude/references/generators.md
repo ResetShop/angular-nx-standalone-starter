@@ -2,7 +2,7 @@
 
 # Generators Reference
 
-This file briefs agents on the seven Nx generators shipped under `@resetshop/generators`. **Always prefer a generator over hand-rolling boilerplate** when the task fits one of the shapes below. Generators emit files that follow this project's conventions automatically — file naming, path structure, type imports, store builder block ordering, repository projection types, OpenAPI registration, etc. Hand-written equivalents drift on every dimension.
+This file briefs agents on the eight Nx generators shipped under `@resetshop/generators`. **Always prefer a generator over hand-rolling boilerplate** when the task fits one of the shapes below. Generators emit files that follow this project's conventions automatically — file naming, path structure, type imports, store builder block ordering, repository projection types, OpenAPI registration, etc. Hand-written equivalents drift on every dimension.
 
 When in doubt, scan the executable specs (`packages/generators/src/generators/<name>/index.spec.ts`) — they enumerate the exact paths and content each generator produces.
 
@@ -20,6 +20,7 @@ When in doubt, scan the executable specs (`packages/generators/src/generators/<n
 | Add a NgRx Signal Store for an existing API                          | `store`                                     | 3 files: store, types (`State`/`ReadError`/`MutationError`), test spec               |
 | Add a list page that uses an existing API + store                    | `page`                                      | Pass `--withStore=false --withApiProvider=false` to skip sub-generators              |
 | Add a list page **and** wire its store + provider in one go          | `page` with `--withStore --withApiProvider` | Sub-generators run alongside the page                                                |
+| Add a shared UI library component (component + spec + stories)       | `ui-component`                              | Appends a named export to `packages/ui/src/index.ts` by default                      |
 
 If the task spans more than one row above, prefer `crud` (it stitches the slice and emits all five layers in one invocation).
 
@@ -138,12 +139,26 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 - **Don't forget:** the route registration is logged as guidance, not auto-wired. Add the suggested `{ path: '<route>', loadComponent: ... }` entry to `dashboard.routes.ts` by hand after running.
 - **Spec:** `packages/generators/src/generators/page/index.spec.ts`.
 
+### `ui-component`
+
+> Generate a shared UI library component with spec and Storybook story.
+
+- **Invocation:** `nx g @resetshop/generators:ui-component tooltip`.
+- **Inputs:** `name` (required), `directory` (default `packages/ui/src/lib`), `exportFromIndex` (boolean, default `true`).
+- **Output:** three files at `<directory>/<kebab-case>/`:
+  - `<kebab-case>.ts` — `@Component` standalone scaffold with `ChangeDetectionStrategy.OnPush`, `app-` element selector, `styles` block starting with `@reference "#tailwind-theme"` (the canonical Tailwind v4 import).
+  - `<kebab-case>.spec.ts` — Angular Testing Library `render` scaffold with `clearAllMocks()` from `@resetshop/util/test-utils` in `beforeEach`.
+  - `<kebab-case>.stories.ts` — Storybook meta with `tags: ['autodocs']` and `parameters.docs.canvas.sourceState: 'shown'` (enforced project-wide by the `custom-storybook/storybook-source-state` ESLint rule).
+- **Side effect:** when `exportFromIndex` is `true` (default), appends `export { <Class> } from './lib/<kebab>/<kebab>'` to `packages/ui/src/index.ts`. Duplicate appends are guarded — re-running the generator with the same name is idempotent for the index.
+- **Don't forget:** fill in the empty template/styles, replace the stub spec assertion with a semantic query, document each public `input()` in `argTypes`, and adjust the story `title` if the component belongs under a non-`Components/` namespace (e.g., `UI / Card`).
+- **Spec:** `packages/generators/src/generators/ui-component/index.spec.ts`.
+
 ---
 
 ## Cross-references
 
 - `packages/generators/generators.json` — authoritative one-line description for each generator, used by `nx g --help`.
-- `packages/generators/src/generators/<name>/index.spec.ts` — executable specs (60 tests across all 7).
+- `packages/generators/src/generators/<name>/index.spec.ts` — executable specs (~69 tests across all 8).
 - `packages/generators/src/generators/<name>/schema.json` — JSON schema for each generator's CLI options, including defaults.
 - `README.md` "Generators" section — human-facing version of the decision tree (shorter than this file).
 - `CLAUDE.md` "Canonical App Creation Workflow" — the `app` generator's rationale.
