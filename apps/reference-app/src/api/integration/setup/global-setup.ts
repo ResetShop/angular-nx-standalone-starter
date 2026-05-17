@@ -8,7 +8,7 @@
  * process where env vars must be configured before any module reads them.
  */
 import { startEmbeddedPostgres, stopEmbeddedPostgres } from './embedded-pg-test-db'
-import { configureEnvVars, getTestConnectionString, loadEnvFile } from './env-helpers'
+import { configureEnvVars, getTestConnectionString } from './env-helpers'
 
 let usedEmbeddedPg = false
 
@@ -69,8 +69,6 @@ async function pushSchemaToTestDb(connectionString: string): Promise<void> {
 }
 
 export async function setup(): Promise<void> {
-	loadEnvFile()
-
 	// No-Docker local path: spawn a real Postgres 17 cluster on a free port
 	// when no connection string is provided. CI sets PG_TEST_CONNECTION_STRING
 	// to its postgres:17 service container, so this branch is skipped there.

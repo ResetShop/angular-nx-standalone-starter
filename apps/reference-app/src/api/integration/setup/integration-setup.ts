@@ -1,18 +1,20 @@
 /**
  * Vitest setupFile — runs before each test file (in the test process).
- * Loads .env, sets env vars, and extends Zod with OpenAPI support.
+ * Sets env vars and extends Zod with OpenAPI support.
+ *
+ * Env vars must be delivered via one of the supported mechanisms documented
+ * in docs/environment-variables.md (shell export, --env-file, IDE config,
+ * direnv); this file never reads .env from the working tree.
  *
  * Note: DB schema push and seeding happen in global-setup.ts (globalSetup).
  */
 import { extendZodWithOpenApi } from '@hono/zod-openapi'
 import { afterAll } from 'vitest'
 import { z } from 'zod'
-import { configureEnvVars, getTestConnectionString, loadEnvFile } from './env-helpers'
+import { configureEnvVars, getTestConnectionString } from './env-helpers'
 
-// Load .env and configure test-specific env vars.
-// These must be set before any test file imports modules that read process.env
-// at load time (e.g. auth.constants.ts reads BCRYPT_COST).
-loadEnvFile()
+// Configure test-specific env vars. These must be set before any test file
+// imports modules that read process.env at load time.
 configureEnvVars(getTestConnectionString())
 
 // Must run before any Zod schema is imported by test files.
