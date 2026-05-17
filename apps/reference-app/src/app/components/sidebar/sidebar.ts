@@ -1,15 +1,16 @@
+import { BreakpointObserver } from '@angular/cdk/layout'
 import { isPlatformBrowser } from '@angular/common'
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	DestroyRef,
 	effect,
 	inject,
 	PLATFORM_ID,
 	signal,
 	type Signal,
 } from '@angular/core'
+import { toSignal } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 import { Brand } from '@components/brand/brand'
 import NavSection from '@components/nav-section/nav-section'
@@ -21,6 +22,7 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 import { Button } from '@resetshop/ui/button/button'
 import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
+import { map } from 'rxjs'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
@@ -126,7 +128,6 @@ export class Sidebar {
 	private readonly navigation = inject(Navigation)
 	private readonly router = inject(Router)
 	private readonly platformId = inject(PLATFORM_ID)
-	private readonly destroyRef = inject(DestroyRef)
 	protected readonly uiStore = inject(UIStore)
 	protected readonly sections = computed(() => this.navigation.sections())
 
@@ -164,11 +165,12 @@ export class Sidebar {
 
 	private createLgViewportSignal(): Signal<boolean> {
 		if (!isPlatformBrowser(this.platformId)) return signal(false).asReadonly()
-		const mql = window.matchMedia('(min-width: 1024px)')
-		const s = signal(mql.matches)
-		const listener = (e: MediaQueryListEvent) => s.set(e.matches)
-		mql.addEventListener('change', listener)
-		this.destroyRef.onDestroy(() => mql.removeEventListener('change', listener))
-		return s.asReadonly()
+		const lg = getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-lg').trim()
+		return toSignal(
+			inject(BreakpointObserver)
+				.observe(`(min-width: ${lg})`)
+				.pipe(map((s) => s.matches)),
+			{ initialValue: false },
+		)
 	}
 }
