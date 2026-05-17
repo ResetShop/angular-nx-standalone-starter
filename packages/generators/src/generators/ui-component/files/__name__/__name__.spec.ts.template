@@ -1,0 +1,16 @@
+import { clearAllMocks } from '@resetshop/util/test-utils'
+import { render, screen } from '@testing-library/angular'
+import { <%= className %> } from './<%= fileName %>'
+
+describe('<%= className %>', () => {
+	beforeEach(() => clearAllMocks())
+
+	it('renders', async () => {
+		await render(`<app-<%= fileName %>></app-<%= fileName %>>`, {
+			imports: [<%= className %>],
+		})
+
+		// TODO: Replace with a semantic query — getByRole, getByLabelText, getByText, etc.
+		expect(screen.queryByText(/<%= fileName %>/i)).toBeDefined()
+	})
+})

@@ -35,6 +35,11 @@
 			"factory": "./src/generators/app/index",
 			"schema": "./src/generators/app/schema.json",
 			"description": "Generate a new Angular app pre-wired to @resetshop/* packages"
+		},
+		"ui-component": {
+			"factory": "./src/generators/ui-component/index",
+			"schema": "./src/generators/ui-component/schema.json",
+			"description": "Generate a shared UI library component with spec and Storybook story"
 		}
 	}
 }

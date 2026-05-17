@@ -1,0 +1,24 @@
+{
+	"$schema": "https://json-schema.org/schema",
+	"id": "ui-component",
+	"title": "Generate UI Library Component",
+	"type": "object",
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "Component name (e.g. 'tooltip')",
+			"$default": { "$source": "argv", "index": 0 }
+		},
+		"directory": {
+			"type": "string",
+			"description": "Target directory for the component folder",
+			"default": "packages/ui/src/lib"
+		},
+		"exportFromIndex": {
+			"type": "boolean",
+			"description": "Whether to append an export to packages/ui/src/index.ts",
+			"default": true
+		}
+	},
+	"required": ["name"]
+}
