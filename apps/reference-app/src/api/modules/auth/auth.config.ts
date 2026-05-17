@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { env, type Env } from '@config/env'
 
 export interface AuthConfig {
 	/** Whether cookies require HTTPS. Defaults to true; set COOKIE_SECURE=false only for local dev. */
@@ -28,14 +28,18 @@ export function buildBaseCookieOptions(authConfig: AuthConfig) {
  * Builds the frozen auth config object from the validated env contract.
  * All defaults and tolerant parsing live in `@config/env`; this function is a
  * thin re-shape that exposes auth-specific field names to consumers.
+ *
+ * The `source` parameter defaults to the singleton `env` so production callers
+ * have zero-arg ergonomics. Tests pass a custom `Env` (built via `parseEnv`) to
+ * verify the key-to-field mapping without mutating `process.env`.
  */
-export function createAuthConfig(): AuthConfig {
+export function createAuthConfig(source: Env = env): AuthConfig {
 	return Object.freeze({
-		cookieSecure: env.COOKIE_SECURE,
-		accessTokenExpiry: env.PASETO_ACCESS_TOKEN_EXPIRY,
-		refreshTokenExpiry: env.PASETO_REFRESH_TOKEN_EXPIRY,
-		maxFailedAttempts: env.AUTH_MAX_FAILED_ATTEMPTS,
-		lockoutDuration: env.AUTH_LOCKOUT_DURATION,
-		cronSecret: env.CRON_SECRET,
+		cookieSecure: source.COOKIE_SECURE,
+		accessTokenExpiry: source.PASETO_ACCESS_TOKEN_EXPIRY,
+		refreshTokenExpiry: source.PASETO_REFRESH_TOKEN_EXPIRY,
+		maxFailedAttempts: source.AUTH_MAX_FAILED_ATTEMPTS,
+		lockoutDuration: source.AUTH_LOCKOUT_DURATION,
+		cronSecret: source.CRON_SECRET,
 	})
 }
