@@ -384,8 +384,11 @@ export default [
 		// Direct `process.env[...]` access is forbidden in production code so that
 		// the Zod schema in `@config/env` is the single source of truth.
 		// Allow-listed paths: the env module itself, vitest setup files,
-		// integration-test bootstraps, and the test-utils files (which carry the
-		// loosened vi.* exemption — re-listed here so this block doesn't undo it).
+		// integration-test bootstraps, the test-utils files (which carry the
+		// loosened vi.* exemption — re-listed here so this block doesn't undo it),
+		// and the db/seed.ts + db/sync-permissions.ts scripts (entry-point tools
+		// that only need PG_CONNECTION_STRING and run in CI postinstall contexts
+		// where the full env contract isn't populated).
 		name: 'no-process-env',
 		files: ['apps/**/src/**/*.ts', 'packages/**/src/**/*.ts'],
 		ignores: [
@@ -393,6 +396,8 @@ export default [
 			'apps/**/src/test-setup.ts',
 			'apps/**/src/api/integration/setup/**/*.ts',
 			'apps/**/src/test-utils.ts',
+			'apps/**/src/db/seed.ts',
+			'apps/**/src/db/sync-permissions.ts',
 			'packages/util/src/lib/test-utils.ts',
 		],
 		rules: {
