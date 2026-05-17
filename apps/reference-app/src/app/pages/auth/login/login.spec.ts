@@ -79,15 +79,15 @@ describe('Login', () => {
 		expect(screen.getByText(/this field is required/i)).toBeInTheDocument()
 	})
 
-	it('should show minlength error when password is too short', async () => {
+	it('should keep submit button disabled when password is empty', async () => {
 		const user = userEvent.setup()
 		await renderLogin()
 
-		const passwordInput = screen.getByLabelText(/Password/i)
-		await user.type(passwordInput, '1234567')
-		await user.tab()
+		const emailInput = screen.getByLabelText(/Email address/i)
+		await user.type(emailInput, 'test@example.com')
 
-		expect(screen.getByText(/must be at least/i)).toBeInTheDocument()
+		const submitButton = screen.getByRole('button', { name: /Sign in/i })
+		expect(submitButton).toBeDisabled()
 	})
 
 	it('should enable submit button when form is valid', async () => {

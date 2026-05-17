@@ -8,7 +8,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: 'button[appButton], a[appButton]',
 	standalone: true,
-	hostDirectives: [NgpButton],
+	hostDirectives: [{ directive: NgpButton, inputs: ['disabled'] }],
 	template: `
 		<ng-content select="[data-icon='start']" />
 		<span [class]="labelClasses()"><ng-content /></span>

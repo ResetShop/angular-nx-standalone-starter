@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import {
 	email as emailValidator,
 	form,
-	minLength,
 	required,
 	schema,
 	FormField as SignalFormField,
@@ -14,8 +13,8 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Alert, AlertDescription } from '@resetshop/ui/alert/alert'
 import { Button } from '@resetshop/ui/button/button'
-import Card from '@resetshop/ui/card/card'
 import { FormField } from '@resetshop/ui/form-field/form-field'
+import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
 import { AuthStore } from '@store/auth/auth.store'
 import type { LoginForm } from '../../../interfaces/auth'
 
@@ -24,7 +23,7 @@ import type { LoginForm } from '../../../interfaces/auth'
 	imports: [
 		Alert,
 		AlertDescription,
-		Card,
+		ImmersivePanel,
 		Button,
 		NgOptimizedImage,
 		RouterLink,
@@ -33,65 +32,59 @@ import type { LoginForm } from '../../../interfaces/auth'
 		TranslatePipe,
 	],
 	template: `
-		<dialog open class="align-self-center flex justify-self-center bg-transparent">
-			<form (submit)="onSubmit($event)" class="z-10 sm:h-[420px] sm:w-[420px]">
-				<app-card
-					[titleTemplate]="cardTitle"
-					[contentTemplate]="cardContent"
-					[footerTemplate]="cardFooter"
-					class="h-svh w-svw"
-				/>
-				<ng-template #cardTitle>
-					<!-- TODO: Replace the image for your system/company logo -->
-					<div class="mt-4 flex flex-col gap-4">
-						<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
-						<div class="text-foreground mb-8 text-center">{{ 'AUTH.LOGIN.TITLE' | translate }}</div>
+		<form (submit)="onSubmit($event)" aria-labelledby="login-heading" class="w-full px-8 sm:w-[420px]">
+			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
+			<ng-template #cardTitle>
+				<!-- TODO: Replace the image for your system/company logo -->
+				<span class="mt-4 flex flex-col gap-4">
+					<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
+					<span id="login-heading" class="text-foreground mb-8 block text-center">
+						{{ 'AUTH.LOGIN.TITLE' | translate }}
+					</span>
+				</span>
+			</ng-template>
+
+			<ng-template #cardContent>
+				<div class="flex w-full max-w-96 flex-col gap-4 sm:gap-6">
+					<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
+						<input [formField]="loginForm.email" type="email" autocomplete="email" />
+					</app-form-field>
+
+					<app-form-field
+						[label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate"
+						[showRequired]="false"
+						[labelEndTemplate]="forgotPassword"
+					>
+						<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
+					</app-form-field>
+					<ng-template #forgotPassword>
+						<a [routerLink]="resetPassword" class="text-interactive hover:text-interactive/80 text-sm hover:underline">
+							{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
+						</a>
+					</ng-template>
+				</div>
+
+				@if (errorMessage()) {
+					<div appAlert variant="destructive" class="mt-4">
+						<p appAlertDescription>{{ errorMessage() }}</p>
 					</div>
-				</ng-template>
+				}
+			</ng-template>
 
-				<ng-template #cardContent>
-					<div class="flex w-96 flex-col gap-6">
-						<app-form-field [label]="'AUTH.LOGIN.EMAIL_LABEL' | translate" [showRequired]="false">
-							<input [formField]="loginForm.email" type="email" autocomplete="email" />
-						</app-form-field>
-
-						<div>
-							<app-form-field [label]="'AUTH.LOGIN.PASSWORD_LABEL' | translate" [showRequired]="false">
-								<input [formField]="loginForm.password" type="password" autocomplete="current-password" />
-							</app-form-field>
-							<div class="mt-1 text-right text-sm">
-								<a
-									[routerLink]="resetPassword"
-									class="text-default hover:text-default/90 font-semibold hover:underline"
-								>
-									{{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
-								</a>
-							</div>
-						</div>
-					</div>
-
-					@if (errorMessage()) {
-						<div appAlert variant="destructive" class="mt-4">
-							<p appAlertDescription>{{ errorMessage() }}</p>
-						</div>
-					}
-				</ng-template>
-
-				<ng-template #cardFooter>
-					<div class="flex justify-center font-semibold">
-						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton size="md" type="submit">
-							{{ 'AUTH.LOGIN.SUBMIT' | translate }}
-						</button>
-					</div>
-				</ng-template>
-			</form>
-		</dialog>
+			<ng-template #cardFooter>
+				<div class="flex justify-center font-semibold">
+					<button [fullWidth]="true" [disabled]="!isFormValid()" appButton size="md" type="submit">
+						{{ 'AUTH.LOGIN.SUBMIT' | translate }}
+					</button>
+				</div>
+			</ng-template>
+		</form>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	styles: `
-		@reference "tailwindcss";
+		@reference "#tailwind-theme";
 		:host {
-			@apply flex h-svh w-svw items-center justify-center bg-black/95;
+			@apply bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95;
 		}
 	`,
 })
@@ -110,11 +103,14 @@ export default class Login {
 			required(login.email)
 			emailValidator(login.email)
 			required(login.password)
-			minLength(login.password, 8)
 		}),
 	)
 
-	protected readonly isFormValid = computed(() => this.loginForm().errors().length === 0)
+	protected readonly isFormValid = computed(() => {
+		const { email, password } = this.model()
+		if (!email || !password) return false
+		return this.loginForm.email().errors().length === 0 && this.loginForm.password().errors().length === 0
+	})
 
 	private readonly loginEffect = effect(() => {
 		const user = this.authStore.currentUser()

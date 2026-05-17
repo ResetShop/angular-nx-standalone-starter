@@ -164,6 +164,14 @@ describe('Button', () => {
 		expect(button).toHaveClass('disabled:opacity-50')
 	})
 
+	it('should be disabled when disabled input is true', async () => {
+		await render(`<button appButton [disabled]="true">Btn</button>`, {
+			imports: [Button],
+		})
+
+		expect(screen.getByRole('button')).toBeDisabled()
+	})
+
 	it('should work with anchor elements', async () => {
 		await render(`<a appButton href="#">Link Button</a>`, {
 			imports: [Button],

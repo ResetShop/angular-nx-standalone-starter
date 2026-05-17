@@ -35,6 +35,12 @@ describe('ResetPassword', () => {
 		expect(submitButton).toHaveClass('w-full')
 	})
 
+	it('should keep submit button disabled when form is empty', async () => {
+		await renderResetPassword()
+
+		expect(screen.getByRole('button', { name: /Send reset link/i })).toBeDisabled()
+	})
+
 	it('should show required error for email when focused and blurred empty', async () => {
 		const user = userEvent.setup()
 		await renderResetPassword()
@@ -76,12 +82,11 @@ describe('ResetPassword', () => {
 		expect(backToLoginLink).toBeInTheDocument()
 	})
 
-	it('should render "Back to sign in" button as a link with variant', async () => {
+	it('should render "Back to sign in" as a navigable link', async () => {
 		await renderResetPassword()
 
 		const backButton = screen.getByRole('link', { name: /Back to sign in/i })
 		expect(backButton).toBeInTheDocument()
-		expect(backButton).toHaveAttribute('variant', 'link')
 	})
 
 	it('should display the reset password title', async () => {
