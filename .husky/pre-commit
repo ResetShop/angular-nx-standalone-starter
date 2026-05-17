@@ -1,4 +1,6 @@
 #!/bin/sh
+node scripts/check-no-env-files.mjs || exit 1
+
 echo "--- Formatting Code ---"
 echo ""
 npx pretty-quick --staged
