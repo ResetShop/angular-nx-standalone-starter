@@ -143,9 +143,13 @@ function formatZodError(error: z.ZodError): string {
 	return error.issues.map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`).join('\n')
 }
 
+let cachedEnv: Readonly<Env> | null = null
+
 function initializeEnv(): Readonly<Env> {
+	if (cachedEnv !== null) return cachedEnv
 	try {
-		return Object.freeze(parseEnv(process.env))
+		cachedEnv = Object.freeze(parseEnv(process.env))
+		return cachedEnv
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			console.error('FATAL: Environment validation failed:')
@@ -157,8 +161,30 @@ function initializeEnv(): Readonly<Env> {
 	}
 }
 
-/** Singleton, frozen `Env` populated from `process.env` at module load. */
-export const env: Readonly<Env> = initializeEnv()
+/**
+ * Frozen `Env` populated from `process.env` on first property access.
+ *
+ * Initialization is deferred until first read so that bundlers and build
+ * tools that import this module (e.g. the Angular SSR prerender worker)
+ * can load it without env vars being set — they typically don't read any
+ * env fields and so never trigger validation. Production runtime code
+ * reads `env.X` at startup, which triggers validation and fails fast on
+ * misconfiguration.
+ */
+export const env: Readonly<Env> = new Proxy({} as Env, {
+	get(_target, prop) {
+		return initializeEnv()[prop as keyof Env]
+	},
+	has(_target, prop) {
+		return prop in initializeEnv()
+	},
+	ownKeys() {
+		return Reflect.ownKeys(initializeEnv())
+	},
+	getOwnPropertyDescriptor(_target, prop) {
+		return Reflect.getOwnPropertyDescriptor(initializeEnv(), prop)
+	},
+})
 
 /**
  * True when the app is running in a connection-pooled serverless environment.

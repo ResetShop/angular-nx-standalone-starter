@@ -1,7 +1,7 @@
 import { env } from '@config/env'
 import { logger } from '@resetshop/util'
 import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
-import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector'
+import { createDrizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import { DrizzlePermissionRepository } from '../modules/access/permission/permission.repository'
 import { PermissionService } from '../modules/access/permission/permission.service'
 import { DrizzleRoleRepository } from '../modules/access/role/role.repository'
@@ -29,7 +29,7 @@ import type { Cradle } from './container.types'
 
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
-		db: asValue(drizzlePgConnector),
+		db: asFunction(createDrizzlePgConnector).singleton(),
 		authConfig: asValue(createAuthConfig()),
 		pasetoConfig: asValue(createPasetoConfig()),
 		logger: asValue(logger),

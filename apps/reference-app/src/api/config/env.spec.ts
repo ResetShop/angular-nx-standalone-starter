@@ -347,11 +347,15 @@ describe('parseEnv', () => {
 })
 
 describe('env singleton + isServerless', () => {
-	it('exposes a frozen env populated from process.env (set by test-setup.ts)', async () => {
+	it('exposes env values populated from process.env (set by test-setup.ts) and isServerless()', async () => {
 		const { env, isServerless } = await import('./env')
-		expect(Object.isFrozen(env)).toBe(true)
+		// `env` is a lazy-init Proxy that defers parsing until first property
+		// access (so the Angular SSR prerender worker can import this module
+		// without env vars set). The values it returns come from a frozen
+		// internal cache.
 		expect(env.PASETO_SECRET_KEY).toBeDefined()
 		expect(env.PG_CONNECTION_STRING).toBeDefined()
+		expect(env.PASETO_ISSUER).toBeDefined()
 		expect(typeof isServerless()).toBe('boolean')
 		expect(isServerless()).toBe(env.IS_SERVERLESS)
 	})

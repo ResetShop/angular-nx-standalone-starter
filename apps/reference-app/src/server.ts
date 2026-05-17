@@ -35,16 +35,21 @@ import { startCronJobs, stopCronJobs } from './api/cron-jobs'
 export const app = new OpenAPIHono({ strict: false })
 
 app.use(requestId())
-app.use(
-	'*',
-	cors({
+
+// Defer env reads (and the cors() factory call) to first request so the
+// Angular SSR prerender worker — which imports this module without env vars
+// set — can load it without triggering env validation.
+let corsMiddleware: ReturnType<typeof cors> | null = null
+app.use('*', (c, next) => {
+	corsMiddleware ??= cors({
 		origin: env.CORS_ORIGIN,
 		credentials: true,
 		allowHeaders: ['Content-Type', 'Authorization'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		maxAge: env.CORS_MAX_AGE, // Cache preflight requests
-	}),
-)
+	})
+	return corsMiddleware(c, next)
+})
 app.use(secureHeaders())
 
 /**
