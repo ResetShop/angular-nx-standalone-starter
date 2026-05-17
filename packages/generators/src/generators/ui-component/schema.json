@@ -18,6 +18,16 @@
 			"type": "boolean",
 			"description": "Whether to append an export to packages/ui/src/index.ts",
 			"default": true
+		},
+		"inlineTemplate": {
+			"type": "boolean",
+			"description": "Inline the template in @Component (true) or emit a sibling <name>.html and use templateUrl (false)",
+			"default": true
+		},
+		"inlineStyle": {
+			"type": "boolean",
+			"description": "Inline the styles in @Component (true) or emit a sibling <name>.css and use styleUrl (false)",
+			"default": true
 		}
 	},
 	"required": ["name"]

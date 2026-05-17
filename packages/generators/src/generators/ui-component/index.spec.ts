@@ -112,4 +112,91 @@ describe('ui-component generator', () => {
 		expect(tree.exists('libs/widgets/tooltip/tooltip.ts')).toBe(true)
 		expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.ts`)).toBe(false)
 	})
+
+	describe('inline vs external template/style flags', () => {
+		it('defaults to inline template and inline styles when flags are omitted', async () => {
+			await uiComponentGenerator(tree, { name: 'tooltip', directory: DEFAULT_DIR, exportFromIndex: false })
+
+			const componentTs = tree.read(`${DEFAULT_DIR}/tooltip/tooltip.ts`)?.toString('utf-8') ?? ''
+			expect(componentTs).toContain('template: `')
+			expect(componentTs).toContain('styles: `')
+			expect(componentTs).not.toContain('templateUrl:')
+			expect(componentTs).not.toContain('styleUrl:')
+			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.html`)).toBe(false)
+			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.css`)).toBe(false)
+		})
+
+		it('emits a sibling .html file and uses templateUrl when inlineTemplate is false', async () => {
+			await uiComponentGenerator(tree, {
+				name: 'tooltip',
+				directory: DEFAULT_DIR,
+				exportFromIndex: false,
+				inlineTemplate: false,
+				inlineStyle: true,
+			})
+
+			const componentTs = tree.read(`${DEFAULT_DIR}/tooltip/tooltip.ts`)?.toString('utf-8') ?? ''
+			expect(componentTs).toContain(`templateUrl: './tooltip.html'`)
+			expect(componentTs).not.toContain('template: `')
+			expect(componentTs).toContain('styles: `')
+
+			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.html`)).toBe(true)
+			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.css`)).toBe(false)
+		})
+
+		it('emits a sibling .css file and uses styleUrl when inlineStyle is false', async () => {
+			await uiComponentGenerator(tree, {
+				name: 'tooltip',
+				directory: DEFAULT_DIR,
+				exportFromIndex: false,
+				inlineTemplate: true,
+				inlineStyle: false,
+			})
+
+			const componentTs = tree.read(`${DEFAULT_DIR}/tooltip/tooltip.ts`)?.toString('utf-8') ?? ''
+			expect(componentTs).toContain('template: `')
+			expect(componentTs).toContain(`styleUrl: './tooltip.css'`)
+			expect(componentTs).not.toContain('styles: `')
+
+			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.css`)).toBe(true)
+			const cssBody = tree.read(`${DEFAULT_DIR}/tooltip/tooltip.css`)?.toString('utf-8') ?? ''
+			expect(cssBody).toContain('@reference "#tailwind-theme"')
+		})
+
+		it('emits both sidecar files when both flags are false', async () => {
+			await uiComponentGenerator(tree, {
+				name: 'tooltip',
+				directory: DEFAULT_DIR,
+				exportFromIndex: false,
+				inlineTemplate: false,
+				inlineStyle: false,
+			})
+
+			const componentTs = tree.read(`${DEFAULT_DIR}/tooltip/tooltip.ts`)?.toString('utf-8') ?? ''
+			expect(componentTs).toContain(`templateUrl: './tooltip.html'`)
+			expect(componentTs).toContain(`styleUrl: './tooltip.css'`)
+			expect(componentTs).not.toContain('template: `')
+			expect(componentTs).not.toContain('styles: `')
+
+			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.html`)).toBe(true)
+			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.css`)).toBe(true)
+		})
+
+		it('kebab-cases sidecar filenames for compound names', async () => {
+			await uiComponentGenerator(tree, {
+				name: 'iconButton',
+				directory: DEFAULT_DIR,
+				exportFromIndex: false,
+				inlineTemplate: false,
+				inlineStyle: false,
+			})
+
+			expect(tree.exists(`${DEFAULT_DIR}/icon-button/icon-button.html`)).toBe(true)
+			expect(tree.exists(`${DEFAULT_DIR}/icon-button/icon-button.css`)).toBe(true)
+
+			const componentTs = tree.read(`${DEFAULT_DIR}/icon-button/icon-button.ts`)?.toString('utf-8') ?? ''
+			expect(componentTs).toContain(`templateUrl: './icon-button.html'`)
+			expect(componentTs).toContain(`styleUrl: './icon-button.css'`)
+		})
+	})
 })

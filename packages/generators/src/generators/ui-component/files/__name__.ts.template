@@ -4,14 +4,22 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 	selector: 'app-<%= fileName %>',
 	standalone: true,
 	imports: [],
+<% if (inlineTemplate) { -%>
 	template: `
 		<!-- TODO: Replace with the component template -->
 	`,
+<% } else { -%>
+	templateUrl: './<%= fileName %>.html',
+<% } -%>
+<% if (inlineStyle) { -%>
 	styles: `
 		@reference "#tailwind-theme";
 
 		/* TODO: Add component styles */
 	`,
+<% } else { -%>
+	styleUrl: './<%= fileName %>.css',
+<% } -%>
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class <%= className %> {}

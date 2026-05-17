@@ -144,11 +144,15 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 > Generate a shared UI library component with spec and Storybook story.
 
 - **Invocation:** `nx g @resetshop/generators:ui-component tooltip`.
-- **Inputs:** `name` (required), `directory` (default `packages/ui/src/lib`), `exportFromIndex` (boolean, default `true`).
-- **Output:** three files at `<directory>/<kebab-case>/`:
-  - `<kebab-case>.ts` — `@Component` standalone scaffold with `ChangeDetectionStrategy.OnPush`, `app-` element selector, `styles` block starting with `@reference "#tailwind-theme"` (the canonical Tailwind v4 import).
+- **Inputs:** `name` (required), `directory` (default `packages/ui/src/lib`), `exportFromIndex` (boolean, default `true`), `inlineTemplate` (boolean, default `true`), `inlineStyle` (boolean, default `true`).
+- **Output:** three files at `<directory>/<kebab-case>/` (plus optional sidecars — see below):
+  - `<kebab-case>.ts` — `@Component` standalone scaffold with `ChangeDetectionStrategy.OnPush` and an `app-` element selector. Uses an inline `template:` and inline `styles:` block by default; when either of the flags below is `false`, the corresponding sidecar file is emitted and the decorator points at `templateUrl`/`styleUrl` instead.
   - `<kebab-case>.spec.ts` — Angular Testing Library `render` scaffold with `clearAllMocks()` from `@resetshop/util/test-utils` in `beforeEach`.
   - `<kebab-case>.stories.ts` — Storybook meta with `tags: ['autodocs']` and `parameters.docs.canvas.sourceState: 'shown'` (enforced project-wide by the `custom-storybook/storybook-source-state` ESLint rule).
+- **Template/style sidecars:**
+  - Pass `--inlineTemplate=false` to emit a sibling `<kebab-case>.html` and switch the decorator to `templateUrl: './<kebab-case>.html'`. Use this for components with non-trivial markup (e.g. existing `drawer`, `data-table`, `confirm-dialog`).
+  - Pass `--inlineStyle=false` to emit a sibling `<kebab-case>.css` (pre-seeded with `@reference "#tailwind-theme"`) and switch the decorator to `styleUrl: './<kebab-case>.css'`. Use this for components with non-trivial styling (e.g. existing `combobox`, `select`, `drawer`).
+  - Inline mode keeps the component a single file, which is the project's prevailing pattern for small components (`button`, `badge`, `alert`, `spinner`); external mode matches the convention for the larger interactive components listed above.
 - **Side effect:** when `exportFromIndex` is `true` (default), appends `export { <Class> } from './lib/<kebab>/<kebab>'` to `packages/ui/src/index.ts`. Duplicate appends are guarded — re-running the generator with the same name is idempotent for the index.
 - **Don't forget:** fill in the empty template/styles, replace the stub spec assertion with a semantic query, document each public `input()` in `argTypes`, and adjust the story `title` if the component belongs under a non-`Components/` namespace (e.g., `UI / Card`).
 - **Spec:** `packages/generators/src/generators/ui-component/index.spec.ts`.
@@ -158,7 +162,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 ## Cross-references
 
 - `packages/generators/generators.json` — authoritative one-line description for each generator, used by `nx g --help`.
-- `packages/generators/src/generators/<name>/index.spec.ts` — executable specs (~69 tests across all 8).
+- `packages/generators/src/generators/<name>/index.spec.ts` — executable specs (~74 tests across all 8).
 - `packages/generators/src/generators/<name>/schema.json` — JSON schema for each generator's CLI options, including defaults.
 - `README.md` "Generators" section — human-facing version of the decision tree (shorter than this file).
 - `CLAUDE.md` "Canonical App Creation Workflow" — the `app` generator's rationale.
