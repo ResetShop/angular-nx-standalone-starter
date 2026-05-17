@@ -3,10 +3,15 @@ import { featherActivity, featherHome, featherRefreshCw, featherSettings } from 
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { NavigationSection } from '@resetshop/angular-core/interfaces/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
+import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import NavSection from './nav-section'
 
 describe('NavSection', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
 	const mockSection: NavigationSection = {
 		id: 'test-section',
 		name: 'Test Section',
@@ -279,5 +284,54 @@ describe('NavSection', () => {
 		expect(screen.getAllByRole('link')).toHaveLength(2)
 		expect(screen.getByText('Alpha')).toBeInTheDocument()
 		expect(screen.getByText('Beta')).toBeInTheDocument()
+	})
+
+	describe('collapsed input', () => {
+		it('should show section title when collapsed is false', async () => {
+			await render(NavSection, {
+				inputs: { section: mockSection, collapsed: false },
+				providers: defaultProviders(),
+			})
+
+			expect(screen.getByText('Test Section')).toBeInTheDocument()
+		})
+
+		it('should hide section title when collapsed is true', async () => {
+			await render(NavSection, {
+				inputs: { section: mockSection, collapsed: true },
+				providers: defaultProviders(),
+			})
+
+			expect(screen.queryByText('Test Section')).not.toBeInTheDocument()
+		})
+
+		it('should show route names when collapsed is false', async () => {
+			await render(NavSection, {
+				inputs: { section: mockSection, collapsed: false },
+				providers: defaultProviders(),
+			})
+
+			expect(screen.getByText('Route 1')).toBeInTheDocument()
+			expect(screen.getByText('Route 2')).toBeInTheDocument()
+		})
+
+		it('should hide route names when collapsed is true', async () => {
+			await render(NavSection, {
+				inputs: { section: mockSection, collapsed: true },
+				providers: defaultProviders(),
+			})
+
+			expect(screen.queryByText('Route 1')).not.toBeInTheDocument()
+			expect(screen.queryByText('Route 2')).not.toBeInTheDocument()
+		})
+
+		it('should still render navigation links when collapsed', async () => {
+			await render(NavSection, {
+				inputs: { section: mockSection, collapsed: true },
+				providers: defaultProviders(),
+			})
+
+			expect(screen.getAllByRole('link')).toHaveLength(2)
+		})
 	})
 })

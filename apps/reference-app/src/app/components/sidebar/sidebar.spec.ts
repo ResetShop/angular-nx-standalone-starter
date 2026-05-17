@@ -230,14 +230,14 @@ describe('Sidebar', () => {
 			mockMatchMedia(false)
 			const user = userEvent.setup()
 
-			await render(Sidebar, {
+			const { fixture } = await render(Sidebar, {
 				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 			})
 
 			await user.keyboard('{Control>}b{/Control}')
 
-			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /reset starter repo/i })).toBeInTheDocument()
+			const uiStore = fixture.debugElement.injector.get(UIStore)
+			expect(uiStore.isSidebarCollapsed()).toBe(false)
 		})
 
 		it('sidebar does not visually collapse when store is collapsed but viewport is below lg', async () => {
