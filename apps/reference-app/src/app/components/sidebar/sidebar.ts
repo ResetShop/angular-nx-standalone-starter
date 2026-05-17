@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inject } from '@angular/core'
+import { isPlatformBrowser } from '@angular/common'
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	DestroyRef,
+	effect,
+	HostListener,
+	inject,
+	PLATFORM_ID,
+	signal,
+} from '@angular/core'
 import { Router } from '@angular/router'
 import { Brand } from '@components/brand/brand'
 import NavSection from '@components/nav-section/nav-section'
@@ -38,26 +49,28 @@ import { UIStore } from '@store/ui/ui.store'
 			@if (!isCollapsed()) {
 				<button (click)="logout()" appButton variant="link">{{ 'COMMON.LOGOUT' | translate }}</button>
 			}
-			<button
-				(click)="toggleCollapse()"
-				[attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-				class="me-2"
-				appButton
-				variant="ghost"
-				size="icon"
-			>
-				<ng-icon
-					[name]="isCollapsed() ? 'featherChevronsRight' : 'featherChevronsLeft'"
-					[size]="isCollapsed() ? '24' : '20'"
-				/>
-			</button>
+			@if (isLgViewport()) {
+				<button
+					(click)="toggleCollapse()"
+					[attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+					class="me-2"
+					appButton
+					variant="ghost"
+					size="icon"
+				>
+					<ng-icon
+						[name]="isCollapsed() ? 'featherChevronsRight' : 'featherChevronsLeft'"
+						[size]="isCollapsed() ? '24' : '20'"
+					/>
+				</button>
+			}
 		</div>
 	`,
 	styles: `
 		@reference "#tailwind-theme";
 
 		:host {
-			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_64px] overflow-hidden whitespace-nowrap transition-[width] duration-200;
+			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_64px] overflow-hidden transition-[width] duration-200;
 
 			.brand-container {
 				@apply p-2;
@@ -92,7 +105,7 @@ import { UIStore } from '@store/ui/ui.store'
 				left: 0;
 				top: 0;
 				bottom: 0;
-				width: var(--sidebar-width-mobile, 280px);
+				width: var(--sidebar-width-mobile, min(280px, 80vw));
 				z-index: 50;
 				transform: translateX(-100%);
 				transition: transform 200ms ease;
@@ -109,9 +122,15 @@ export class Sidebar {
 	private readonly authStore = inject(AuthStore)
 	private readonly navigation = inject(Navigation)
 	private readonly router = inject(Router)
+	private readonly platformId = inject(PLATFORM_ID)
+	private readonly destroyRef = inject(DestroyRef)
 	protected readonly uiStore = inject(UIStore)
 	protected readonly sections = computed(() => this.navigation.sections())
-	protected readonly isCollapsed = this.uiStore.isSidebarCollapsed
+
+	private readonly _isLgViewport = signal(this.getInitialIsLg())
+	protected readonly isLgViewport = this._isLgViewport.asReadonly()
+	private readonly _lgViewportListenerHandle = this.setupLgViewportListener()
+	protected readonly isCollapsed = computed(() => this.isLgViewport() && this.uiStore.isSidebarCollapsed())
 
 	// React to logout: navigate when user becomes null and logout is complete
 	private readonly logoutNavigationEffect = effect(() => {
@@ -128,6 +147,7 @@ export class Sidebar {
 	@HostListener('document:keydown.meta.b', ['$event'])
 	protected onCollapseShortcut(event: Event): void {
 		event.preventDefault()
+		if (!this.isLgViewport()) return
 		this.toggleCollapse()
 	}
 
@@ -139,10 +159,23 @@ export class Sidebar {
 	}
 
 	protected toggleCollapse(): void {
-		this.uiStore.setSidebarCollapsed(!this.isCollapsed())
+		if (!this.isLgViewport()) return
+		this.uiStore.setSidebarCollapsed(!this.uiStore.isSidebarCollapsed())
 	}
 
 	protected logout(): void {
 		this.authStore.logout()
+	}
+
+	private getInitialIsLg(): boolean {
+		return isPlatformBrowser(this.platformId) && window.matchMedia('(min-width: 1024px)').matches
+	}
+
+	private setupLgViewportListener(): void {
+		if (!isPlatformBrowser(this.platformId)) return
+		const mql = window.matchMedia('(min-width: 1024px)')
+		const listener = (e: MediaQueryListEvent) => this._isLgViewport.set(e.matches)
+		mql.addEventListener('change', listener)
+		this.destroyRef.onDestroy(() => mql.removeEventListener('change', listener))
 	}
 }

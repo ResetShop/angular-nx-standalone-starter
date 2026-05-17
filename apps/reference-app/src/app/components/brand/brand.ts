@@ -20,7 +20,7 @@ import { UIStore } from '@store/ui/ui.store'
 		>
 			<ng-icon name="featherRefreshCw" data-icon="start" />
 			@if (!collapsed()) {
-				Reset Starter Repo
+				<span class="min-w-0 truncate">Reset Starter Repo</span>
 			}
 		</a>
 	`,

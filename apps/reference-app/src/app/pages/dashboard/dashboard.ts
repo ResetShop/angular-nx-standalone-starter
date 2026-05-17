@@ -38,7 +38,7 @@ import { UIStore } from '@store/ui/ui.store'
 			@reference "tailwindcss";
 			--sidebar-width: 240px;
 			--sidebar-width-collapsed: 64px;
-			--sidebar-width-mobile: 280px;
+			--sidebar-width-mobile: min(280px, 80vw);
 			@apply grid h-svh;
 			grid-template-columns: var(--sidebar-col-width) 1fr;
 			grid-template-rows: 64px 1fr;
