@@ -10,19 +10,8 @@ describe('buildWelcomeEmail', () => {
 		mustChangePassword: true,
 	}
 
-	const originalAppLanguage = process.env['APP_LANGUAGE']
-
 	beforeEach(() => {
 		clearAllMocks()
-		delete process.env['APP_LANGUAGE']
-	})
-
-	afterEach(() => {
-		if (originalAppLanguage !== undefined) {
-			process.env['APP_LANGUAGE'] = originalAppLanguage
-		} else {
-			delete process.env['APP_LANGUAGE']
-		}
 	})
 
 	describe('Return structure', () => {

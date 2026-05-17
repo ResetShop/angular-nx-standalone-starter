@@ -381,6 +381,35 @@ export default [
 		},
 	},
 	{
+		// Direct `process.env[...]` access is forbidden in production code so that
+		// the Zod schema in `@config/env` is the single source of truth.
+		// Allow-listed paths: the env module itself, vitest setup files,
+		// integration-test bootstraps, and the test-utils files (which carry the
+		// loosened vi.* exemption — re-listed here so this block doesn't undo it).
+		name: 'no-process-env',
+		files: ['apps/**/src/**/*.ts', 'packages/**/src/**/*.ts'],
+		ignores: [
+			'apps/**/src/api/config/env.ts',
+			'apps/**/src/test-setup.ts',
+			'apps/**/src/api/integration/setup/**/*.ts',
+			'apps/**/src/test-utils.ts',
+			'packages/util/src/lib/test-utils.ts',
+		],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				...commonRestrictedSyntax,
+				...viRestrictedSyntax,
+				{
+					selector: 'MemberExpression[object.name="process"][property.name="env"]',
+					message:
+						'Direct process.env access is forbidden. Import the validated values from @config/env instead. ' +
+						'The only allowed consumer of process.env is apps/**/src/api/config/env.ts (and integration test setup files).',
+				},
+			],
+		},
+	},
+	{
 		files: ['**/*.ts', '**/*.js'],
 		// Override or add rules here
 		rules: {},
