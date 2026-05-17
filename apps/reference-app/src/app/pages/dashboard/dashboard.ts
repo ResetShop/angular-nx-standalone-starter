@@ -16,6 +16,7 @@ import { UIStore } from '@store/ui/ui.store'
 				class="fixed inset-0 z-40 bg-black/50 lg:hidden"
 				aria-hidden="true"
 				tabindex="-1"
+				data-testid="sidebar-backdrop"
 			></div>
 		}
 		<header class="border-b-1 border-gray-200 p-4 dark:border-white/10 dark:bg-black/95" appHeader></header>

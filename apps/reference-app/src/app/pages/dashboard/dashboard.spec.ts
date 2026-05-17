@@ -193,7 +193,7 @@ describe('Dashboard', () => {
 				],
 			})
 
-			expect(screen.queryByRole('presentation')).not.toBeInTheDocument()
+			expect(screen.queryByTestId('sidebar-backdrop')).not.toBeInTheDocument()
 		})
 
 		it('should render backdrop when sidebar is open on mobile', async () => {
@@ -207,8 +207,7 @@ describe('Dashboard', () => {
 			})
 			fixture.detectChanges()
 
-			const backdrop = document.querySelector('[aria-hidden="true"][tabindex="-1"]')
-			expect(backdrop).toBeInTheDocument()
+			expect(screen.getByTestId('sidebar-backdrop')).toBeInTheDocument()
 		})
 
 		it('should close sidebar when backdrop is clicked', async () => {
@@ -223,8 +222,7 @@ describe('Dashboard', () => {
 			})
 			fixture.detectChanges()
 
-			const backdrop = document.querySelector('[aria-hidden="true"][tabindex="-1"]') as HTMLElement
-			await user.click(backdrop)
+			await user.click(screen.getByTestId('sidebar-backdrop'))
 
 			expect(mockSidebarOpen()).toBe(false)
 		})
@@ -240,12 +238,12 @@ describe('Dashboard', () => {
 			})
 			fixture.detectChanges()
 
-			expect(document.querySelector('[aria-hidden="true"][tabindex="-1"]')).toBeInTheDocument()
+			expect(screen.getByTestId('sidebar-backdrop')).toBeInTheDocument()
 
 			mockSidebarOpen.set(false)
 			fixture.detectChanges()
 
-			expect(document.querySelector('[aria-hidden="true"][tabindex="-1"]')).not.toBeInTheDocument()
+			expect(screen.queryByTestId('sidebar-backdrop')).not.toBeInTheDocument()
 		})
 	})
 
