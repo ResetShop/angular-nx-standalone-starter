@@ -14,6 +14,7 @@ import { render, screen } from '@testing-library/angular'
 import { userEvent } from '@testing-library/user-event'
 import { Sidebar } from './sidebar'
 
+// Captures initial viewport state only — addEventListener is a no-op so reactive changes are not supported.
 function mockMatchMedia(matches: boolean) {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	const noop = () => {}
@@ -35,7 +36,8 @@ function mockMatchMedia(matches: boolean) {
 	return mql
 }
 
-// happy-dom does not implement window.matchMedia — set the default before component init
+// happy-dom does not implement window.matchMedia. BreakpointObserver reads it during
+// class field init (before beforeEach runs), so the mock must be installed at module scope.
 mockMatchMedia(true)
 
 describe('Sidebar', () => {
@@ -230,14 +232,14 @@ describe('Sidebar', () => {
 			mockMatchMedia(false)
 			const user = userEvent.setup()
 
-			const { fixture } = await render(Sidebar, {
+			await render(Sidebar, {
 				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 			})
 
 			await user.keyboard('{Control>}b{/Control}')
 
-			const uiStore = fixture.debugElement.injector.get(UIStore)
-			expect(uiStore.isSidebarCollapsed()).toBe(false)
+			expect(screen.getByText('COMMON.LOGOUT')).toBeInTheDocument()
+			expect(screen.getByRole('link', { name: /reset starter/i })).toBeInTheDocument()
 		})
 
 		it('sidebar does not visually collapse when store is collapsed but viewport is below lg', async () => {
