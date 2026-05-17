@@ -6,7 +6,7 @@
  * everywhere except this file. See `docs/environment-variables.md` for the
  * variable reference and the four supported delivery options.
  */
-import { parseDurationToMs } from '@resetshop/util'
+import { parseDurationToMs, parseDurationToSeconds } from '@resetshop/util'
 import { z } from 'zod'
 import {
 	DEFAULT_ACCESS_TOKEN_EXPIRY,
@@ -22,7 +22,7 @@ const DEFAULT_BCRYPT_COST = 12
 const DEFAULT_SMTP_PORT = 587
 const DEFAULT_SMTP_FROM = 'noreply@example.com'
 const DEFAULT_CORS_ORIGIN = 'http://localhost:4200'
-const DEFAULT_CORS_MAX_AGE = 86400 // 24 hours in seconds
+const DEFAULT_CORS_MAX_AGE = parseDurationToSeconds('24h')
 const DEFAULT_PORT = 4000
 const DEFAULT_APP_LANGUAGE = 'en'
 
