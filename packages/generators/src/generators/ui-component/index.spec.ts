@@ -228,6 +228,9 @@ describe('ui-component generator', () => {
 			)
 
 			const [first, ...rest] = outputs
+			// Guard the reference value — if `first` is empty, the equality assertions below
+			// would trivially pass on the other empty strings. Empty strings in `rest` are
+			// caught by `expect(other.spec).toBe(first.spec)` when `first` is non-empty.
 			expect(first.spec).not.toBe('')
 			expect(first.stories).not.toBe('')
 			for (const other of rest) {
