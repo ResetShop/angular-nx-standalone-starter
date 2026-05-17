@@ -17,8 +17,9 @@
 7. [Backend API Naming Conventions](#backend-api-naming-conventions)
 8. [Error Handling Guidelines](#error-handling-guidelines)
 9. [Domain Model Guidelines](#domain-model-guidelines)
-10. [Development Workflow](#development-workflow)
-11. [Automated Code Review](#automated-code-review)
+10. [Environment Variables](#environment-variables)
+11. [Development Workflow](#development-workflow)
+12. [Automated Code Review](#automated-code-review)
 
 ---
 
@@ -919,6 +920,23 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 ## Domain Model Guidelines
 
 > Full domain model guidelines: See `.claude/references/domain-model.md`
+
+---
+
+## Environment Variables
+
+**The repo's contract:** every backend env variable is declared in the Zod schema at `apps/reference-app/src/api/config/env.ts` and consumed exclusively as `env.VAR_NAME` via the `@config/*` path alias. Direct `process.env[...]` access is **ESLint-forbidden** in production code (the only allowed consumers are `@config/env` itself and the test setup files under `apps/**/src/test-setup.ts` and `apps/**/src/api/integration/setup/**`).
+
+**The repo's non-contract:** how each developer delivers values to `process.env` before `node` starts is left to them. The four supported delivery mechanisms — out-of-tree env file + Node `--env-file`, IDE run configuration, shell session export, and `direnv` — are documented in [`docs/environment-variables.md`](docs/environment-variables.md). **No `.env` file may exist in the working tree;** CI fails the build if one appears. This is the structural defense against agents opportunistically reading `.env*` files.
+
+**Adding or changing a variable:**
+
+1. Add the field to `EnvSchema` in `apps/reference-app/src/api/config/env.ts` with the appropriate Zod validation, default, and tolerance behavior.
+2. Add the row to the variables table in `docs/environment-variables.md`.
+3. Consume the value via `env.NEW_VAR` — never `process.env['NEW_VAR']`.
+4. Do **not** create or commit a `.env*` file.
+
+For values that need to be mockable in tests (e.g. CRON_SECRET in the cleanup-tokens endpoint), follow the `AuthConfig`/`PasetoConfig` pattern: extract a typed config interface, register it as a frozen value in the Awilix container, and inject it into the consuming service. The env singleton is read once at boot; tests that need different values per case must consume them via DI, not via `process.env` mutation.
 
 ---
 

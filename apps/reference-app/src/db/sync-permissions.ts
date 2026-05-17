@@ -1,4 +1,4 @@
-import { environment } from '@resetshop/hono-core'
+import { env } from '@config/env'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
@@ -13,8 +13,8 @@ import { permission } from './schema/permission'
  * Does NOT modify role-permission assignments — that's a separate admin action.
  *
  * Usage:
- *   npm run sync:permissions        (uses environment config)
- *   npm run sync:permissions:local  (uses .env file)
+ *   npm run sync:permissions   (reads PG_CONNECTION_STRING from env;
+ *                               see docs/environment-variables.md for delivery options)
  */
 
 function computeMissing(existingNames: Set<string>) {
@@ -27,7 +27,7 @@ function computeOrphaned(existingNames: Set<string>) {
 }
 
 async function syncPermissions(): Promise<void> {
-	const pool = new Pool({ connectionString: environment.database.pg.connectionString })
+	const pool = new Pool({ connectionString: env.PG_CONNECTION_STRING })
 	const db = drizzle(pool)
 
 	try {

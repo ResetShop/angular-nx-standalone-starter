@@ -83,9 +83,9 @@ The project uses build-time environment configuration via Angular's `define` opt
 - **`__ENV_CLARITY_PROJECT_ID__`**: Microsoft Clarity analytics project ID (default: `''` — disabled)
 - **`__ENV_DEFAULT_LANGUAGE__`**: Default UI language (default: `'en'`)
 
-**Backend Environment Variables** (configured in `.env` file, read at runtime by the server):
+**Backend Environment Variables** (validated at runtime by the Zod schema in `apps/reference-app/src/api/config/env.ts`):
 
-See the `.env` file and `packages/hono-core/src/lib/environment.ts` for all backend configuration. Backend connector templates (Drizzle MySQL/PostgreSQL, Sanity, Microsoft Clarity) live in the same `packages/hono-core/src/lib/` directory and are consumed via the `@resetshop/hono-core` package alias. Note: all `apps/...` paths in the rest of this guide are relative to the canonical example app at `apps/reference-app/`.
+The repo never commits a `.env` file. The schema defines the contract; you choose how to deliver values (out-of-tree env file, IDE run config, shell export, `direnv`, etc.) — see [`docs/environment-variables.md`](docs/environment-variables.md) for the variable reference and four supported delivery options. Backend connector templates (Drizzle MySQL/PostgreSQL, Sanity, Microsoft Clarity) live under `packages/hono-core/src/lib/` and are consumed via the `@resetshop/hono-core` package alias. Note: all `apps/...` paths in the rest of this guide are relative to the canonical example app at `apps/reference-app/`.
 
 #### 3. Authentication Configuration **[Required]**
 
@@ -104,11 +104,8 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
     node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
     ```
 
-  - **Set in development:** Add to your `.env` file:
-    ```bash
-    PASETO_SECRET_KEY=your_generated_key_here
-    ```
-  - **Set in production:** Configure in your deployment platform's environment variables
+  - **Set the variable** using one of the delivery options documented in [`docs/environment-variables.md`](docs/environment-variables.md) (out-of-tree env file, IDE run config, shell export, or `direnv`).
+  - **In production:** configure via your deployment platform's environment-variable interface.
 
 **Required Environment Variables:**
 
@@ -185,8 +182,8 @@ The starter supports both MySQL and PostgreSQL via Drizzle ORM. Choose one based
    - For MySQL: Uncomment code in `packages/hono-core/src/lib/drizzle-mysql-connector.ts:1-2`
    - For PostgreSQL: Uncomment code in `apps/reference-app/src/api/helpers/drizzle-postgres-connector.ts:1-2`
 
-4. **Enable Database in Environment Config:**
-   - Uncomment database configuration in `packages/hono-core/src/lib/environment.ts:17,45`
+4. **Add the Database Variable to the Env Schema:**
+   - Add the connection-string field to the Zod schema in `apps/reference-app/src/api/config/env.ts` and read it from there (e.g. `env.MYSQL_CONNECTION_STRING`).
 
 5. **Set Connection String:**
    - Add your database connection string to environment variables
@@ -208,8 +205,8 @@ Integrate Sanity.io headless CMS for content management.
    - File: `packages/hono-core/src/lib/sanity-connector.ts:1-2`
    - Uncomment the connector implementation
 
-3. **Enable Sanity in Environment Config:**
-   - Uncomment Sanity configuration in `packages/hono-core/src/lib/environment.ts:4,32`
+3. **Add Sanity Variables to the Env Schema:**
+   - Add `SANITY_PROJECT_ID`, `SANITY_DATASET`, and `SANITY_TOKEN` fields to the Zod schema in `apps/reference-app/src/api/config/env.ts` and read them via `env.SANITY_*`.
 
 4. **Set Environment Variables:**
    - Add Sanity project ID and dataset to your environment variables
@@ -233,8 +230,8 @@ Enable analytics tracking with Microsoft Clarity.
 3. **Enable in Analytics Provider:**
    - Uncomment Clarity setup in `apps/reference-app/src/app/providers/analytics/analytics.ts:22`
 
-4. **Uncomment Environment Configuration:**
-   - Files: `packages/hono-core/src/lib/environment.ts:11,39`
+4. **Add Clarity Variables to the Env Schema (if reading server-side):**
+   - Add Clarity-related fields to the Zod schema in `apps/reference-app/src/api/config/env.ts` if the integration needs them at runtime. (The frontend uses build-time `__ENV_CLARITY_PROJECT_ID__` — see step 5.)
 
 5. **Set Build-Time Variable:**
    - Set `__ENV_CLARITY_PROJECT_ID__` in the `production` define block of `project.json` with your Microsoft Clarity project ID
@@ -263,7 +260,7 @@ For adding custom dependency injection providers:
 
 `npm run test:integration` works **out of the box with no setup** — no Docker daemon, no managed Postgres, no env config. When `PG_TEST_CONNECTION_STRING` is unset, the suite spawns a real Postgres 17 cluster locally via [`embedded-postgres`](https://www.npmjs.com/package/embedded-postgres) (official EnterpriseDB binaries downloaded once at `npm install` time, ~70 MB cached in `node_modules`) on a free localhost port, runs the schema push and seed, and tears the cluster down at suite end.
 
-To use your own long-lived Postgres instead (persistent local container, shared dev DB, etc.), set `PG_TEST_CONNECTION_STRING` in `.env`. CI uses the same env-set path against its `postgres:17` service container.
+To use your own long-lived Postgres instead (persistent local container, shared dev DB, etc.), set `PG_TEST_CONNECTION_STRING` via any of the [supported delivery options](docs/environment-variables.md). CI uses the same env-set path against its `postgres:17` service container.
 
 ---
 

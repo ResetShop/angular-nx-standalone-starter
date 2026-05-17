@@ -1,4 +1,4 @@
-import { environment } from '@resetshop/hono-core'
+import { env } from '@config/env'
 import { eq, inArray } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
@@ -9,7 +9,7 @@ import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 
 const pool = new Pool({
-	connectionString: environment.database.pg.connectionString,
+	connectionString: env.PG_CONNECTION_STRING,
 })
 
 const db = drizzle(pool)
