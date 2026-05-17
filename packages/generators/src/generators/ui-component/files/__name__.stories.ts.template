@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/angular'
 import { <%= className %> } from './<%= fileName %>'
 
+// TODO: Add an `argTypes` block once the component declares public `input()` properties.
 const meta: Meta<<%= className %>> = {
 	component: <%= className %>,
 	title: 'Components/<%= className %>',
@@ -14,9 +15,6 @@ const meta: Meta<<%= className %>> = {
 				sourceState: 'shown',
 			},
 		},
-	},
-	argTypes: {
-		// TODO: Document each public input() — control type, description, table summary.
 	},
 }
 

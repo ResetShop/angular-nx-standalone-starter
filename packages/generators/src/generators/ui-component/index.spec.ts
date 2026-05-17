@@ -12,9 +12,8 @@ describe('ui-component generator', () => {
 
 	beforeEach(() => {
 		tree = createTreeWithEmptyWorkspace()
-		// Seed the index file the same way the real workspace ships it — the generator
-		// appends to whatever already exists; without a seed the duplicate-export guard
-		// would only be exercised against an empty file.
+		// Seed with an existing export so the duplicate-export guard has something to compare
+		// against, and so we can verify the generator preserves pre-existing content on append.
 		tree.write(INDEX_PATH, "export { Button } from './lib/button/button'\n")
 	})
 

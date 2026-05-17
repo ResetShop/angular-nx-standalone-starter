@@ -38,6 +38,9 @@ export default {
 			if (!node) return undefined
 			if (node.type === 'ObjectExpression') return node
 			if (node.type === 'Identifier' && scope) {
+				// Cross-module imports (e.g. `import meta from './meta.config'; export default meta`) are
+				// not resolved — the ImportBinding has no `init` value in the local file, so this returns
+				// undefined and the rule silently skips. Skipping is safer than false-positives.
 				const variable = scope.references.find((ref) => ref.identifier === node)?.resolved
 				const definition = variable?.defs?.[0]
 				const init = definition?.node?.init
@@ -46,6 +49,10 @@ export default {
 			return undefined
 		}
 
+		// Each nested value below is checked for `type === 'ObjectExpression'` before recursing.
+		// A non-ObjectExpression value (e.g. a spread, a function call, a variable reference) is
+		// skipped silently to avoid false-positives on dynamically-built parameters. The trade-off
+		// is that those constructions also escape enforcement; see PLAN.md Risk #2.
 		function checkMeta(meta, reportNode) {
 			const parameters = findProperty(meta, 'parameters')
 			if (!parameters) {
