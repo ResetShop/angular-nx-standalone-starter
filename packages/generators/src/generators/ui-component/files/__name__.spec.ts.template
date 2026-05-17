@@ -1,5 +1,5 @@
 import { clearAllMocks } from '@resetshop/util/test-utils'
-import { render, screen } from '@testing-library/angular'
+import { render } from '@testing-library/angular'
 import { <%= className %> } from './<%= fileName %>'
 
 describe('<%= className %>', () => {
@@ -10,7 +10,7 @@ describe('<%= className %>', () => {
 			imports: [<%= className %>],
 		})
 
-		// TODO: Replace with a semantic query — getByRole, getByLabelText, getByText, etc.
-		expect(screen.queryByText(/<%= fileName %>/i)).toBeDefined()
+		// Baseline assertion — replace with semantic queries (getByRole, getByLabelText, etc.) as the component grows.
+		expect(document.querySelector('app-<%= fileName %>')).toBeInTheDocument()
 	})
 })
