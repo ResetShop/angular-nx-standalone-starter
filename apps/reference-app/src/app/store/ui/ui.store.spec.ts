@@ -28,7 +28,6 @@ describe('UIStore', () => {
 		it('should have correct initial state', () => {
 			expect(store.isSidebarOpen()).toBe(false)
 			expect(store.isSidebarCollapsed()).toBe(false)
-			expect(store.isLgViewport()).toBe(false)
 			expect(store.activeDrawer()).toBeNull()
 			expect(store.notifications()).toEqual([])
 			expect(store.isGlobalLoading()).toBe(false)
@@ -37,7 +36,6 @@ describe('UIStore', () => {
 		it('should have correct computed signals', () => {
 			expect(store.hasNotifications()).toBe(false)
 			expect(store.latestNotification()).toBeNull()
-			expect(store.isSidebarEffectivelyCollapsed()).toBe(false)
 		})
 	})
 
@@ -199,39 +197,6 @@ describe('UIStore', () => {
 			store.setSidebarCollapsed(true)
 			store.setSidebarCollapsed(false)
 			expect(store.isSidebarCollapsed()).toBe(false)
-		})
-	})
-
-	describe('setLgViewport', () => {
-		it('should set isLgViewport to true', () => {
-			store.setLgViewport(true)
-			expect(store.isLgViewport()).toBe(true)
-		})
-
-		it('should set isLgViewport to false', () => {
-			store.setLgViewport(true)
-			store.setLgViewport(false)
-			expect(store.isLgViewport()).toBe(false)
-		})
-	})
-
-	describe('isSidebarEffectivelyCollapsed', () => {
-		it('should be false when viewport is below lg regardless of collapsed state', () => {
-			store.setLgViewport(false)
-			store.setSidebarCollapsed(true)
-			expect(store.isSidebarEffectivelyCollapsed()).toBe(false)
-		})
-
-		it('should be true only when viewport is lg and sidebar is collapsed', () => {
-			store.setLgViewport(true)
-			store.setSidebarCollapsed(true)
-			expect(store.isSidebarEffectivelyCollapsed()).toBe(true)
-		})
-
-		it('should be false when viewport is lg but sidebar is not collapsed', () => {
-			store.setLgViewport(true)
-			store.setSidebarCollapsed(false)
-			expect(store.isSidebarEffectivelyCollapsed()).toBe(false)
 		})
 	})
 

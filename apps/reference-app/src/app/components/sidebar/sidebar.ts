@@ -35,14 +35,14 @@ import { UIStore } from '@store/ui/ui.store'
 	viewProviders: [provideIcons({ featherChevronsLeft, featherChevronsRight })],
 	template: `
 		<div class="brand-container">
-			<app-brand />
+			<app-brand [collapsed]="isCollapsed()" />
 		</div>
 		<div class="nav-container">
 			@for (section of sections(); track section.id; let first = $first) {
 				@if (isCollapsed() && !first) {
 					<hr class="border-border" />
 				}
-				<app-nav-section [section]="section" [class.px-2]="!isCollapsed()" />
+				<app-nav-section [section]="section" [collapsed]="isCollapsed()" [class.px-2]="!isCollapsed()" />
 			}
 		</div>
 		<div class="footer">
@@ -130,7 +130,7 @@ export class Sidebar {
 	private readonly _isLgViewport = signal(this.getInitialIsLg())
 	protected readonly isLgViewport = this._isLgViewport.asReadonly()
 	private readonly _lgViewportSetup = this.setupLgViewportListener()
-	protected readonly isCollapsed = this.uiStore.isSidebarEffectivelyCollapsed
+	protected readonly isCollapsed = computed(() => this.isLgViewport() && this.uiStore.isSidebarCollapsed())
 
 	// React to logout: navigate when user becomes null and logout is complete
 	private readonly logoutNavigationEffect = effect(() => {
@@ -168,18 +168,13 @@ export class Sidebar {
 	}
 
 	private getInitialIsLg(): boolean {
-		const isLg = isPlatformBrowser(this.platformId) && window.matchMedia('(min-width: 1024px)').matches
-		this.uiStore.setLgViewport(isLg)
-		return isLg
+		return isPlatformBrowser(this.platformId) && window.matchMedia('(min-width: 1024px)').matches
 	}
 
 	private setupLgViewportListener(): void {
 		if (!isPlatformBrowser(this.platformId)) return
 		const mql = window.matchMedia('(min-width: 1024px)')
-		const listener = (e: MediaQueryListEvent) => {
-			this._isLgViewport.set(e.matches)
-			this.uiStore.setLgViewport(e.matches)
-		}
+		const listener = (e: MediaQueryListEvent) => this._isLgViewport.set(e.matches)
 		mql.addEventListener('change', listener)
 		this.destroyRef.onDestroy(() => mql.removeEventListener('change', listener))
 	}

@@ -20,7 +20,6 @@ export interface UINotification {
 export interface UIState {
 	readonly isSidebarOpen: boolean
 	readonly isSidebarCollapsed: boolean
-	readonly isLgViewport: boolean
 	readonly activeDrawer: string | null
 	readonly notifications: UINotification[]
 	readonly isGlobalLoading: boolean
@@ -29,7 +28,6 @@ export interface UIState {
 export const initialUIState: UIState = {
 	isSidebarOpen: false,
 	isSidebarCollapsed: false,
-	isLgViewport: false,
 	activeDrawer: null,
 	notifications: [],
 	isGlobalLoading: false,

@@ -16,7 +16,6 @@ export const UIStore = signalStore(
 	withComputed((store) => ({
 		hasNotifications: computed(() => store.notifications().length > 0),
 		latestNotification: computed(() => store.notifications().at(-1) ?? null),
-		isSidebarEffectivelyCollapsed: computed(() => store.isLgViewport() && store.isSidebarCollapsed()),
 	})),
 	withMethods((store) => {
 		const destroyRef = inject(DestroyRef)
@@ -57,10 +56,6 @@ export const UIStore = signalStore(
 
 			setSidebarCollapsed(collapsed: boolean): void {
 				patchState(store, { isSidebarCollapsed: collapsed })
-			},
-
-			setLgViewport(isLg: boolean): void {
-				patchState(store, { isLgViewport: isLg })
 			},
 
 			openDrawer(drawer: string): void {

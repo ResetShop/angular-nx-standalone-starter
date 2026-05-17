@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherRefreshCw } from '@ng-icons/feather-icons'
 import { Button } from '@resetshop/ui/button/button'
-import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	selector: 'app-brand',
@@ -34,5 +33,5 @@ import { UIStore } from '@store/ui/ui.store'
 	viewProviders: [provideIcons({ featherRefreshCw })],
 })
 export class Brand {
-	protected readonly collapsed = inject(UIStore).isSidebarEffectivelyCollapsed
+	public readonly collapsed = input(false)
 }
