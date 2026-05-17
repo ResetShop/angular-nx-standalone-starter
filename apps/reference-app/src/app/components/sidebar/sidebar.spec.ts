@@ -238,7 +238,7 @@ describe('Sidebar', () => {
 
 			await user.keyboard('{Control>}b{/Control}')
 
-			expect(screen.getByText('COMMON.LOGOUT')).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /reset starter/i })).toBeInTheDocument()
 		})
 
