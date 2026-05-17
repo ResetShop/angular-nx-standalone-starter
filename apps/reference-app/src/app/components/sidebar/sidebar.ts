@@ -129,8 +129,8 @@ export class Sidebar {
 
 	private readonly _isLgViewport = signal(this.getInitialIsLg())
 	protected readonly isLgViewport = this._isLgViewport.asReadonly()
-	private readonly _lgViewportListenerHandle = this.setupLgViewportListener()
-	protected readonly isCollapsed = computed(() => this.isLgViewport() && this.uiStore.isSidebarCollapsed())
+	private readonly _lgViewportSetup = this.setupLgViewportListener()
+	protected readonly isCollapsed = this.uiStore.isSidebarEffectivelyCollapsed
 
 	// React to logout: navigate when user becomes null and logout is complete
 	private readonly logoutNavigationEffect = effect(() => {
@@ -168,13 +168,18 @@ export class Sidebar {
 	}
 
 	private getInitialIsLg(): boolean {
-		return isPlatformBrowser(this.platformId) && window.matchMedia('(min-width: 1024px)').matches
+		const isLg = isPlatformBrowser(this.platformId) && window.matchMedia('(min-width: 1024px)').matches
+		this.uiStore.setLgViewport(isLg)
+		return isLg
 	}
 
 	private setupLgViewportListener(): void {
 		if (!isPlatformBrowser(this.platformId)) return
 		const mql = window.matchMedia('(min-width: 1024px)')
-		const listener = (e: MediaQueryListEvent) => this._isLgViewport.set(e.matches)
+		const listener = (e: MediaQueryListEvent) => {
+			this._isLgViewport.set(e.matches)
+			this.uiStore.setLgViewport(e.matches)
+		}
 		mql.addEventListener('change', listener)
 		this.destroyRef.onDestroy(() => mql.removeEventListener('change', listener))
 	}

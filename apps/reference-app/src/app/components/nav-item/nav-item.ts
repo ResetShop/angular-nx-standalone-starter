@@ -113,7 +113,7 @@ import { UIStore } from '@store/ui/ui.store'
 })
 export default class NavItem {
 	public readonly item = input.required<NavigationRoute>()
-	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
+	protected readonly collapsed = inject(UIStore).isSidebarEffectivelyCollapsed
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.

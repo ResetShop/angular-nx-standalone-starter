@@ -27,7 +27,7 @@ import { UIStore } from '@store/ui/ui.store'
 	`,
 	host: {
 		'[style.--sidebar-col-width]':
-			'uiStore.isSidebarCollapsed() ? "var(--sidebar-width-collapsed)" : "var(--sidebar-width)"',
+			'uiStore.isSidebarEffectivelyCollapsed() ? "var(--sidebar-width-collapsed)" : "var(--sidebar-width)"',
 	},
 	styles: `
 		main {

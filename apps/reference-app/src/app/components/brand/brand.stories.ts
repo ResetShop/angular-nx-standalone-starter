@@ -8,14 +8,14 @@ import { applicationConfig } from '@storybook/angular'
 import { Brand } from './brand'
 
 /**
- * Mock UIStore for Storybook. Brand reads `isSidebarCollapsed()` from the
+ * Mock UIStore for Storybook. Brand reads `isSidebarEffectivelyCollapsed()` from the
  * UIStore to decide whether to render the brand text alongside the icon.
  */
 function createMockUIStore(collapsed: boolean) {
 	return {
 		provide: UIStore,
 		useValue: {
-			isSidebarCollapsed: signal(collapsed).asReadonly(),
+			isSidebarEffectivelyCollapsed: signal(collapsed).asReadonly(),
 			toggleSidebar: () => {
 				/* no-op for stories */
 			},
@@ -35,7 +35,7 @@ const meta: Meta<Brand> = {
 The Brand component renders the application's brand link in the sidebar header. It is a router link
 that navigates to the dashboard, with an icon and an optional brand label.
 
-The label is hidden when the sidebar is collapsed (read from \`UIStore.isSidebarCollapsed()\`).
+The label is hidden when the sidebar is effectively collapsed (read from \`UIStore.isSidebarEffectivelyCollapsed()\`).
 				`,
 			},
 		},

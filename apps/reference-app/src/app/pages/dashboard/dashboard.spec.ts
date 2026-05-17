@@ -31,7 +31,11 @@ describe('Dashboard', () => {
 		notifications: mockNotifications,
 		dismissNotification: fn(),
 		isSidebarCollapsed: mockSidebarCollapsed,
+		isSidebarEffectivelyCollapsed: mockSidebarCollapsed,
 		setSidebarCollapsed: (value: boolean) => mockSidebarCollapsed.set(value),
+		isLgViewport: signal(true),
+		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		setLgViewport: () => {},
 		isSidebarOpen: mockSidebarOpen,
 		setSidebarOpen: (value: boolean) => mockSidebarOpen.set(value),
 		toggleSidebar: () => mockSidebarOpen.update((v) => !v),

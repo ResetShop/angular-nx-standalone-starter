@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, inject, provideEnvironmentInitializer } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { Brand } from '@components/brand/brand'
 import NavItem from '@components/nav-item/nav-item'
@@ -20,6 +20,7 @@ import { NAVIGATION_CONFIG } from '@resetshop/angular-core/interfaces/navigation
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
 import { Button } from '@resetshop/ui/button/button'
+import { UIStore } from '@store/ui/ui.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig, moduleMetadata } from '@storybook/angular'
 import { Sidebar } from './sidebar'
@@ -337,10 +338,15 @@ export const Mobile: Story = {
 	parameters: {
 		viewport: { defaultViewport: 'mobile1' },
 	},
+	decorators: [
+		applicationConfig({
+			providers: [provideEnvironmentInitializer(() => inject(UIStore).setSidebarOpen(true))],
+		}),
+	],
 	render: () => ({
 		template: `
 			<div class="relative h-screen bg-gray-50 dark:bg-gray-900">
-				<aside appSidebar data-mobile-open></aside>
+				<aside appSidebar></aside>
 				<main class="p-4">
 					<h1 class="text-lg font-bold text-gray-900 dark:text-gray-100">
 						Mobile Viewport

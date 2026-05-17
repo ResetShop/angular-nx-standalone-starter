@@ -41,7 +41,7 @@ export default class NavSection {
 	protected readonly NavItem = NavItem
 	public readonly showTitle = input<boolean>(true)
 	public readonly section = input.required<NavigationSection>()
-	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
+	protected readonly collapsed = inject(UIStore).isSidebarEffectivelyCollapsed
 
 	private readonly injector = inject(EnvironmentInjector)
 

@@ -35,6 +35,7 @@ function mockMatchMedia(matches: boolean) {
 	return mql
 }
 
+// happy-dom does not implement window.matchMedia — set the default before component init
 mockMatchMedia(true)
 
 describe('Sidebar', () => {
@@ -229,17 +230,17 @@ describe('Sidebar', () => {
 			mockMatchMedia(false)
 			const user = userEvent.setup()
 
-			const { fixture } = await render(Sidebar, {
+			await render(Sidebar, {
 				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 			})
 
 			await user.keyboard('{Control>}b{/Control}')
 
-			const uiStore = fixture.debugElement.injector.get(UIStore)
-			expect(uiStore.isSidebarCollapsed()).toBe(false)
+			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+			expect(screen.getByRole('link', { name: /reset starter repo/i })).toBeInTheDocument()
 		})
 
-		it('sidebar host does not have collapsed class when store is collapsed but viewport is below lg', async () => {
+		it('sidebar does not visually collapse when store is collapsed but viewport is below lg', async () => {
 			mockMatchMedia(false)
 
 			const { fixture } = await render(Sidebar, {
@@ -250,8 +251,8 @@ describe('Sidebar', () => {
 			uiStore.setSidebarCollapsed(true)
 			fixture.detectChanges()
 
-			const host = fixture.nativeElement as HTMLElement
-			expect(host.classList.contains('collapsed')).toBe(false)
+			expect(screen.getByRole('link', { name: /reset starter repo/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
 		})
 
 		it('collapse toggle button is rendered and functional when viewport is at lg', async () => {

@@ -450,6 +450,7 @@ describe('NavItem - Collapsed Mode', () => {
 			],
 		})
 
+		TestBed.inject(UIStore).setLgViewport(true)
 		TestBed.inject(UIStore).setSidebarCollapsed(true)
 		detectChanges()
 
@@ -468,6 +469,7 @@ describe('NavItem - Collapsed Mode', () => {
 			],
 		})
 
+		TestBed.inject(UIStore).setLgViewport(true)
 		TestBed.inject(UIStore).setSidebarCollapsed(true)
 		detectChanges()
 
@@ -486,6 +488,7 @@ describe('NavItem - Collapsed Mode', () => {
 			],
 		})
 
+		TestBed.inject(UIStore).setLgViewport(true)
 		TestBed.inject(UIStore).setSidebarCollapsed(true)
 		detectChanges()
 

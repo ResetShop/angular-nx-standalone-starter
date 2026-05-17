@@ -34,5 +34,5 @@ import { UIStore } from '@store/ui/ui.store'
 	viewProviders: [provideIcons({ featherRefreshCw })],
 })
 export class Brand {
-	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
+	protected readonly collapsed = inject(UIStore).isSidebarEffectivelyCollapsed
 }
