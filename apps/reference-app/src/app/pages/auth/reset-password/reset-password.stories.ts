@@ -56,6 +56,9 @@ Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<
 Use the **language** control to switch between Spanish and English; validation messages localize via the Translation service.
 `,
 			},
+			canvas: {
+				sourceState: 'shown',
+			},
 		},
 	},
 	argTypes: {
