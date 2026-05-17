@@ -34,6 +34,7 @@ describe('AuthService', () => {
 		refreshTokenExpiry: DEFAULT_REFRESH_TOKEN_EXPIRY,
 		maxFailedAttempts: DEFAULT_MAX_FAILED_ATTEMPTS,
 		lockoutDuration: DEFAULT_LOCKOUT_DURATION,
+		cronSecret: undefined,
 	}
 
 	// Test data

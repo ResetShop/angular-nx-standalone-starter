@@ -1,3 +1,4 @@
+import { env } from '@config/env'
 import { logger } from '@resetshop/util'
 import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
 import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector'
@@ -25,7 +26,6 @@ import { PasetoService } from '../services/paseto/paseto.service'
 import { generatePassword } from '../utils/password'
 import type { Container } from './container.interface'
 import type { Cradle } from './container.types'
-import { validateEnvironment } from './validate-environment'
 
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
@@ -38,9 +38,8 @@ function registerValues(c: AwilixContainer<Cradle>): void {
 }
 
 function resolveEmailRepository() {
-	const provider = process.env['EMAIL_PROVIDER']
-	if (provider === EMAIL_PROVIDERS.NOOP) return asClass(NoopEmailRepository).singleton()
-	if (provider === EMAIL_PROVIDERS.ETHEREAL) return asClass(EtherealEmailRepository).singleton()
+	if (env.EMAIL_PROVIDER === EMAIL_PROVIDERS.NOOP) return asClass(NoopEmailRepository).singleton()
+	if (env.EMAIL_PROVIDER === EMAIL_PROVIDERS.ETHEREAL) return asClass(EtherealEmailRepository).singleton()
 	return asClass(NodemailerRepository).singleton()
 }
 
@@ -73,9 +72,9 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 
 /**
  * Creates and wires the Awilix DI container.
- * Environment validation and container wiring happen on first access,
- * not at module import time. This keeps the module pure and avoids
- * throwing in test files that only use the mock container.
+ *
+ * Environment validation happens at module load via `@config/env`'s singleton —
+ * by the time this function runs the env is already parsed and frozen.
  *
  * Using PROXY injection mode for:
  * - Works with minified code (production builds)
@@ -83,8 +82,6 @@ function registerServices(c: AwilixContainer<Cradle>): void {
  * - Destructured constructor parameters work correctly
  */
 function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
-	validateEnvironment()
-
 	const c = createContainer<Cradle>({
 		injectionMode: InjectionMode.PROXY,
 		strict: true,
