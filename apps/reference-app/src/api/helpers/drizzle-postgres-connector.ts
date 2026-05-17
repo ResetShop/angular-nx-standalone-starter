@@ -1,4 +1,4 @@
-import { environment } from '@resetshop/hono-core'
+import { env } from '@config/env'
 import { authentication, authenticationRelations } from '@schema/authentication'
 import { permission, permissionRelations } from '@schema/permission'
 import { permissionRoute, permissionRouteRelations } from '@schema/permission-route'
@@ -12,7 +12,7 @@ import { userRoleHistory } from '@schema/user-role-history'
 import { userStatusHistory } from '@schema/user-status-history'
 import { drizzle } from 'drizzle-orm/node-postgres'
 
-const { connectionString } = environment.database.pg
+const connectionString = env.PG_CONNECTION_STRING
 
 // Schema object for Drizzle's relational query API
 const schema = {

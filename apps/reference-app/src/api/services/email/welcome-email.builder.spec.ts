@@ -138,10 +138,8 @@ describe('buildWelcomeEmail', () => {
 			expect(result.html).toContain('</body>')
 		})
 
-		it('should set html lang attribute from APP_LANGUAGE', () => {
-			process.env['APP_LANGUAGE'] = 'es'
-
-			const result = buildWelcomeEmail(mockParams)
+		it('should set html lang attribute from the language parameter', () => {
+			const result = buildWelcomeEmail(mockParams, 'es')
 
 			expect(result.html).toContain('<html lang="es">')
 		})

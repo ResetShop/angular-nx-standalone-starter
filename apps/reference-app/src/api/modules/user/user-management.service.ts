@@ -1,8 +1,8 @@
+import { env } from '@config/env'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
 import { hash } from 'bcryptjs'
-import { getBcryptSaltRounds } from '../../constants/auth.constants'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
 import { buildWelcomeEmail } from '../../services/email/welcome-email.builder'
@@ -101,7 +101,7 @@ export class UserManagementService {
 		}
 
 		const plainPassword = await this.generatePassword()
-		const passwordHash = await hash(plainPassword, getBcryptSaltRounds())
+		const passwordHash = await hash(plainPassword, env.BCRYPT_COST)
 
 		const mustChangePassword = params.mustChangePassword ?? true
 

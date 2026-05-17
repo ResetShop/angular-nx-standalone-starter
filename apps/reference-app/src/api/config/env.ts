@@ -8,12 +8,16 @@
  */
 import { parseDurationToMs } from '@resetshop/util'
 import { z } from 'zod'
+import {
+	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_LOCKOUT_DURATION,
+	DEFAULT_MAX_FAILED_ATTEMPTS,
+	DEFAULT_REFRESH_TOKEN_EXPIRY,
+} from '../constants/auth.constants'
 
-const DEFAULT_ACCESS_TOKEN_EXPIRY = '15m'
-const DEFAULT_REFRESH_TOKEN_EXPIRY = '7d'
+// File-local defaults that aren't shared elsewhere — kept here so callers
+// always read the resolved value via `env`, not the default constant.
 const DEFAULT_CLOCK_TOLERANCE = '1m'
-const DEFAULT_LOCKOUT_DURATION = '15m'
-const DEFAULT_MAX_FAILED_ATTEMPTS = 5
 const DEFAULT_BCRYPT_COST = 12
 const DEFAULT_SMTP_PORT = 587
 const DEFAULT_SMTP_FROM = 'noreply@example.com'

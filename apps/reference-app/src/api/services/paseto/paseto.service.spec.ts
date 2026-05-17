@@ -1,10 +1,24 @@
 import { clearAllMocks } from '@resetshop/util/test-utils'
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { type PasetoConfig } from './paseto.config'
 import { PasetoService } from './paseto.service'
+
+const KEY_A = 'a'.repeat(64)
+const KEY_B = 'b'.repeat(64)
+
+function buildConfig(overrides: Partial<PasetoConfig> = {}): PasetoConfig {
+	return {
+		secretKey: Buffer.from(KEY_A, 'hex'),
+		issuer: 'Test Issuer',
+		accessTokenExpiry: '15m',
+		refreshTokenExpiry: '7d',
+		clockTolerance: '1m',
+		...overrides,
+	}
+}
 
 describe('PasetoService', () => {
 	let pasetoService: PasetoService
-	let originalEnv: NodeJS.ProcessEnv
 
 	const testPayload = {
 		sub: '1',
@@ -13,60 +27,14 @@ describe('PasetoService', () => {
 		lastName: 'User',
 	}
 
-	beforeAll(() => {
-		originalEnv = { ...process.env }
-	})
-
 	beforeEach(() => {
 		clearAllMocks()
-		const validKey = 'a'.repeat(64)
-		process.env['PASETO_SECRET_KEY'] = validKey
-		process.env['PASETO_ISSUER'] = 'Test Issuer'
-		delete process.env['PASETO_ACCESS_TOKEN_EXPIRY']
-		delete process.env['PASETO_REFRESH_TOKEN_EXPIRY']
-		delete process.env['PASETO_CLOCK_TOLERANCE']
-		pasetoService = new PasetoService()
-	})
-
-	afterEach(() => {
-		const keys = [
-			'PASETO_SECRET_KEY',
-			'PASETO_ISSUER',
-			'PASETO_ACCESS_TOKEN_EXPIRY',
-			'PASETO_REFRESH_TOKEN_EXPIRY',
-			'PASETO_CLOCK_TOLERANCE',
-		] as const
-
-		for (const key of keys) {
-			if (originalEnv[key] === undefined) {
-				delete process.env[key]
-			} else {
-				process.env[key] = originalEnv[key]
-			}
-		}
+		pasetoService = new PasetoService({ pasetoConfig: buildConfig() })
 	})
 
 	describe('constructor', () => {
-		it('should throw when PASETO_SECRET_KEY is not configured', () => {
-			delete process.env['PASETO_SECRET_KEY']
-
-			expect(() => new PasetoService()).toThrow('PASETO_SECRET_KEY not configured')
-		})
-
-		it('should throw when secret key is too short', () => {
-			process.env['PASETO_SECRET_KEY'] = 'a'.repeat(63)
-
-			expect(() => new PasetoService()).toThrow('PASETO_SECRET_KEY must be at least 32 bytes')
-		})
-
-		it('should throw when PASETO_ISSUER is not configured', () => {
-			delete process.env['PASETO_ISSUER']
-
-			expect(() => new PasetoService()).toThrow('PASETO_ISSUER not configured')
-		})
-
-		it('should accept valid configuration', () => {
-			expect(() => new PasetoService()).not.toThrow()
+		it('accepts a valid configuration', () => {
+			expect(() => new PasetoService({ pasetoConfig: buildConfig() })).not.toThrow()
 		})
 	})
 
@@ -139,20 +107,18 @@ describe('PasetoService', () => {
 
 		it('should reject a token generated with a different key', async () => {
 			const token = await pasetoService.generateAccessToken(testPayload)
-
-			process.env['PASETO_SECRET_KEY'] = 'b'.repeat(64)
-			const otherService = new PasetoService()
+			const otherService = new PasetoService({
+				pasetoConfig: buildConfig({ secretKey: Buffer.from(KEY_B, 'hex') }),
+			})
 
 			await expect(otherService.verifyAccessToken(token)).rejects.toThrow('Invalid or expired token')
 		})
 
 		it('should reject a token with wrong issuer', async () => {
-			process.env['PASETO_ISSUER'] = 'Issuer A'
-			const serviceA = new PasetoService()
+			const serviceA = new PasetoService({ pasetoConfig: buildConfig({ issuer: 'Issuer A' }) })
 			const token = await serviceA.generateAccessToken(testPayload)
 
-			process.env['PASETO_ISSUER'] = 'Issuer B'
-			const serviceB = new PasetoService()
+			const serviceB = new PasetoService({ pasetoConfig: buildConfig({ issuer: 'Issuer B' }) })
 
 			await expect(serviceB.verifyAccessToken(token)).rejects.toThrow('Invalid or expired token')
 		})
@@ -181,20 +147,18 @@ describe('PasetoService', () => {
 
 		it('should reject a refresh token generated with a different key', async () => {
 			const token = await pasetoService.generateRefreshToken('1')
-
-			process.env['PASETO_SECRET_KEY'] = 'b'.repeat(64)
-			const otherService = new PasetoService()
+			const otherService = new PasetoService({
+				pasetoConfig: buildConfig({ secretKey: Buffer.from(KEY_B, 'hex') }),
+			})
 
 			await expect(otherService.verifyRefreshToken(token)).rejects.toThrow('Invalid or expired refresh token')
 		})
 
 		it('should reject a refresh token with wrong issuer', async () => {
-			process.env['PASETO_ISSUER'] = 'Issuer A'
-			const serviceA = new PasetoService()
+			const serviceA = new PasetoService({ pasetoConfig: buildConfig({ issuer: 'Issuer A' }) })
 			const token = await serviceA.generateRefreshToken('1')
 
-			process.env['PASETO_ISSUER'] = 'Issuer B'
-			const serviceB = new PasetoService()
+			const serviceB = new PasetoService({ pasetoConfig: buildConfig({ issuer: 'Issuer B' }) })
 
 			await expect(serviceB.verifyRefreshToken(token)).rejects.toThrow('Invalid or expired refresh token')
 		})

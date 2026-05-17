@@ -1,3 +1,4 @@
+import { env } from '@config/env'
 import { logger } from '@resetshop/util'
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
@@ -22,25 +23,21 @@ export class NodemailerRepository implements EmailRepository {
 	private readonly fromAddress: string
 
 	constructor() {
-		const host = process.env['SMTP_HOST']
-		const user = process.env['SMTP_USER']
-		const pass = process.env['SMTP_PASS']
+		const { SMTP_HOST: host, SMTP_USER: user, SMTP_PASS: pass } = env
 
+		// Defense-in-depth: the env schema's superRefine guarantees these are set
+		// when EMAIL_PROVIDER=nodemailer, but we keep the runtime guard so the
+		// constructor fails clearly if it's somehow instantiated without them.
 		if (!host || !user || !pass) {
 			throw new Error('SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS')
 		}
 
-		const port = parseInt(process.env['SMTP_PORT'] || '587', 10)
-		if (isNaN(port) || port < 1 || port > 65535) {
-			throw new Error(`Invalid SMTP_PORT: "${process.env['SMTP_PORT']}". Must be a number between 1 and 65535`)
-		}
-		const secure = process.env['SMTP_SECURE'] === 'true'
-		this.fromAddress = process.env['SMTP_FROM'] || 'noreply@example.com'
+		this.fromAddress = env.SMTP_FROM
 
 		this.transporter = nodemailer.createTransport({
 			host,
-			port,
-			secure,
+			port: env.SMTP_PORT,
+			secure: env.SMTP_SECURE,
 			auth: {
 				user,
 				pass,

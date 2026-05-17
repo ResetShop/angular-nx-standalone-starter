@@ -19,6 +19,7 @@ import type {
 } from '../modules/user/interfaces'
 import type { EmailRepository, EmailService } from '../services/email/interfaces'
 import type { PasetoService } from '../services/paseto/interfaces'
+import type { PasetoConfig } from '../services/paseto/paseto.config'
 
 /**
  * Cradle interface defines all dependencies available in the container.
@@ -67,6 +68,7 @@ export interface Cradle {
 	// Values (registerValues)
 	db: DrizzlePgConnector
 	authConfig: AuthConfig
+	pasetoConfig: PasetoConfig
 	logger: Logger
 	generatePassword: () => Promise<string>
 

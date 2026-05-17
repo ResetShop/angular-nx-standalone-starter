@@ -6,6 +6,7 @@ extendZodWithOpenApi(z)
 
 import { AngularAppEngine, createRequestHandler } from '@angular/ssr'
 import { isMainModule } from '@angular/ssr/node'
+import { env } from '@config/env'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { OpenAPIHono } from '@hono/zod-openapi'
@@ -37,11 +38,11 @@ app.use(requestId())
 app.use(
 	'*',
 	cors({
-		origin: process.env['CORS_ORIGIN'] || 'http://localhost:4200',
+		origin: env.CORS_ORIGIN,
 		credentials: true,
 		allowHeaders: ['Content-Type', 'Authorization'],
 		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-		maxAge: Number(process.env['CORS_MAX_AGE']) || parseDurationToSeconds('24h'), // Cache preflight requests
+		maxAge: env.CORS_MAX_AGE, // Cache preflight requests
 	}),
 )
 app.use(secureHeaders())
@@ -173,7 +174,7 @@ if (isMainModule(import.meta.url)) {
 			process.exit(1)
 		}
 
-		const port = Number(process.env['PORT'] || 4000)
+		const port = env.PORT
 		const server = serve(
 			{
 				fetch: app.fetch,

@@ -1,4 +1,4 @@
-import { isServerless } from '@resetshop/hono-core'
+import { env, isServerless } from '@config/env'
 import { parseDurationToMs } from '@resetshop/util'
 import { MIN_CRON_SECRET_LENGTH } from './constants/auth.constants'
 import { container } from './container/container'
@@ -32,7 +32,7 @@ export function tryParseEnvIntervalMs(
  * Only logs once to avoid spam.
  */
 function validateCronSecret(): void {
-	const cronSecret = process.env['CRON_SECRET']
+	const cronSecret = env.CRON_SECRET
 	if (cronSecret && cronSecret.length < MIN_CRON_SECRET_LENGTH) {
 		console.warn(
 			`[CronJobs] WARNING: CRON_SECRET is too short (${cronSecret.length} chars). Minimum ${MIN_CRON_SECRET_LENGTH} characters required for secure authentication.`,
@@ -49,7 +49,7 @@ function startTokenCleanupJob(): void {
 		const maxInterval = '7d'
 		const defaultInterval = '24h'
 
-		const envValue = process.env['TOKEN_CLEANUP_INTERVAL']
+		const envValue = env.TOKEN_CLEANUP_INTERVAL
 		const parsedEnvIntervalMs = tryParseEnvIntervalMs(envValue, minInterval, maxInterval)
 
 		const { tokenMaintenanceService } = container.cradle

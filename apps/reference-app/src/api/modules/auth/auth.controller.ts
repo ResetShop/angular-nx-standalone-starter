@@ -187,7 +187,8 @@ registerRoute(app, logoutRoute, async (c) => {
 // Public endpoint but protected by CRON_SECRET for Vercel Cron Jobs
 // Also allows authenticated users to call it manually
 registerRoute(app, cleanupTokensRoute, async (c) => {
-	const cronSecret = process.env['CRON_SECRET']
+	const { authConfig } = container.cradle
+	const cronSecret = authConfig.cronSecret
 	const authHeader = c.req.header('Authorization')
 	const user = (c as AuthenticatedContext).user
 

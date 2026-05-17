@@ -3,21 +3,11 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { generatePassword } from './password'
 
 describe('generatePassword', () => {
-	const originalAppLanguage = process.env['APP_LANGUAGE']
 	let consoleWarnSpy: MockFn
 
 	beforeEach(() => {
 		clearAllMocks()
-		delete process.env['APP_LANGUAGE']
 		consoleWarnSpy = spyOn(console, 'warn')
-	})
-
-	afterEach(() => {
-		if (originalAppLanguage !== undefined) {
-			process.env['APP_LANGUAGE'] = originalAppLanguage
-		} else {
-			delete process.env['APP_LANGUAGE']
-		}
 	})
 
 	describe('format', () => {
@@ -85,10 +75,8 @@ describe('generatePassword', () => {
 			}
 		})
 
-		it('should produce Spanish words when APP_LANGUAGE is es', async () => {
-			process.env['APP_LANGUAGE'] = 'es'
-
-			const passwords = await Promise.all(Array.from({ length: 20 }, () => generatePassword()))
+		it('should produce Spanish words when language is "es"', async () => {
+			const passwords = await Promise.all(Array.from({ length: 20 }, () => generatePassword(3, 'es')))
 			const words = passwords.flatMap((p) => p.split('.'))
 			const hasAccentedWord = words.some((word) => /[^a-z]/.test(word))
 
@@ -96,9 +84,7 @@ describe('generatePassword', () => {
 		})
 
 		it('should throw when word list file does not exist for language', async () => {
-			process.env['APP_LANGUAGE'] = 'xx'
-
-			await expect(generatePassword()).rejects.toThrow()
+			await expect(generatePassword(3, 'xx')).rejects.toThrow()
 		})
 	})
 })

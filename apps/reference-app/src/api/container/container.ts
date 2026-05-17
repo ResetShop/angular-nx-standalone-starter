@@ -20,6 +20,7 @@ import { EtherealEmailRepository } from '../services/email/ethereal-email.reposi
 import { EMAIL_PROVIDERS } from '../services/email/interfaces'
 import { NodemailerRepository } from '../services/email/nodemailer.repository'
 import { NoopEmailRepository } from '../services/email/noop-email.repository'
+import { createPasetoConfig } from '../services/paseto/paseto.config'
 import { PasetoService } from '../services/paseto/paseto.service'
 import { generatePassword } from '../utils/password'
 import type { Container } from './container.interface'
@@ -30,6 +31,7 @@ function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
 		db: asValue(drizzlePgConnector),
 		authConfig: asValue(createAuthConfig()),
+		pasetoConfig: asValue(createPasetoConfig()),
 		logger: asValue(logger),
 		generatePassword: asValue(generatePassword),
 	})

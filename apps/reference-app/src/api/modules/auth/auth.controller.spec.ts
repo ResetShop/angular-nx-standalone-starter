@@ -116,25 +116,23 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 	// Create mock function
 	const mockCleanupExpiredTokens = fn<[], Promise<{ deletedCount: number; incomplete: boolean } | null>>()
 
-	const originalEnv = process.env
-
-	beforeEach(() => {
-		clearAllMocks()
-		// Reset env vars
-		process.env = { ...originalEnv }
-		delete process.env['CRON_SECRET']
-
+	function useContainerWithCronSecret(cronSecret: string | undefined): void {
 		container.use(
 			new InMemoryContainer({
 				tokenMaintenanceService: {
 					cleanupExpiredTokens: mockCleanupExpiredTokens,
 				},
+				authConfig: { cronSecret },
 			}),
 		)
+	}
+
+	beforeEach(() => {
+		clearAllMocks()
+		useContainerWithCronSecret(undefined)
 	})
 
 	afterEach(() => {
-		process.env = originalEnv
 		container.restore()
 	})
 
@@ -148,7 +146,7 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 		})
 
 		it('should return 401 when CRON_SECRET is too short', async () => {
-			process.env['CRON_SECRET'] = 'short' // Less than 32 chars
+			useContainerWithCronSecret('short') // Less than 32 chars
 
 			const res = await app.request('/auth/cleanup-tokens', {
 				headers: {
@@ -163,7 +161,7 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 
 		it('should return 401 when CRON_SECRET does not match', async () => {
 			const validSecret = 'a'.repeat(32) // 32 chars minimum
-			process.env['CRON_SECRET'] = validSecret
+			useContainerWithCronSecret(validSecret)
 
 			const res = await app.request('/auth/cleanup-tokens', {
 				headers: {
@@ -178,7 +176,7 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 
 		it('should return 401 when Authorization header format is wrong', async () => {
 			const validSecret = 'a'.repeat(32)
-			process.env['CRON_SECRET'] = validSecret
+			useContainerWithCronSecret(validSecret)
 
 			// Missing "Bearer " prefix
 			const res = await app.request('/auth/cleanup-tokens', {
@@ -194,7 +192,7 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 
 		it('should succeed with valid CRON_SECRET', async () => {
 			const validSecret = 'a'.repeat(32)
-			process.env['CRON_SECRET'] = validSecret
+			useContainerWithCronSecret(validSecret)
 			mockCleanupExpiredTokens.mockResolvedValue({ deletedCount: 5, incomplete: false })
 
 			const res = await app.request('/auth/cleanup-tokens', {
@@ -215,7 +213,7 @@ describe('Auth Controller - cleanup-tokens endpoint', () => {
 		const validSecret = 'b'.repeat(32)
 
 		beforeEach(() => {
-			process.env['CRON_SECRET'] = validSecret
+			useContainerWithCronSecret(validSecret)
 		})
 
 		it('should return cleanup completed message with count', async () => {
