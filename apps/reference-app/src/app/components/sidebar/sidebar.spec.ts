@@ -15,14 +15,16 @@ import { userEvent } from '@testing-library/user-event'
 import { Sidebar } from './sidebar'
 
 function mockMatchMedia(matches: boolean) {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	const noop = () => {}
 	const mql = {
 		matches,
 		media: '(min-width: 1024px)',
 		onchange: null,
-		addEventListener: () => {},
-		removeEventListener: () => {},
-		addListener: () => {},
-		removeListener: () => {},
+		addEventListener: noop,
+		removeEventListener: noop,
+		addListener: noop,
+		removeListener: noop,
 		dispatchEvent: () => false,
 	}
 	Object.defineProperty(window, 'matchMedia', {
