@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherRefreshCw } from '@ng-icons/feather-icons'
 import { Button } from '@resetshop/ui/button/button'
-import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	selector: 'app-brand',
@@ -20,7 +19,7 @@ import { UIStore } from '@store/ui/ui.store'
 		>
 			<ng-icon name="featherRefreshCw" data-icon="start" />
 			@if (!collapsed()) {
-				Reset Starter Repo
+				<span class="min-w-0 truncate">Reset Starter Repo</span>
 			}
 		</a>
 	`,
@@ -34,5 +33,5 @@ import { UIStore } from '@store/ui/ui.store'
 	viewProviders: [provideIcons({ featherRefreshCw })],
 })
 export class Brand {
-	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
+	public readonly collapsed = input(false)
 }

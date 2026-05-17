@@ -16,6 +16,7 @@ import { UIStore } from '@store/ui/ui.store'
 				class="fixed inset-0 z-40 bg-black/50 lg:hidden"
 				aria-hidden="true"
 				tabindex="-1"
+				data-testid="sidebar-backdrop"
 			></div>
 		}
 		<header class="border-b-1 border-gray-200 p-4 dark:border-white/10 dark:bg-black/95" appHeader></header>
@@ -38,7 +39,7 @@ import { UIStore } from '@store/ui/ui.store'
 			@reference "tailwindcss";
 			--sidebar-width: 240px;
 			--sidebar-width-collapsed: 64px;
-			--sidebar-width-mobile: 280px;
+			--sidebar-width-mobile: min(280px, 80vw);
 			@apply grid h-svh;
 			grid-template-columns: var(--sidebar-col-width) 1fr;
 			grid-template-rows: 64px 1fr;

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, inject, provideEnvironmentInitializer } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { Brand } from '@components/brand/brand'
 import NavItem from '@components/nav-item/nav-item'
@@ -20,6 +20,7 @@ import { NAVIGATION_CONFIG } from '@resetshop/angular-core/interfaces/navigation
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
 import { Button } from '@resetshop/ui/button/button'
+import { UIStore } from '@store/ui/ui.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig, moduleMetadata } from '@storybook/angular'
 import { Sidebar } from './sidebar'
@@ -88,7 +89,7 @@ A complete sidebar navigation component for application layouts.
 - **Responsive**: Adapts to different screen sizes
 - **OnPush Change Detection**: Optimized performance
 - **Expandable Navigation**: Supports hierarchical routes with expand/collapse
-- **Collapsible (Icon Mode)**: Reduces to icon-only rail via toggle button or Ctrl+B
+- **Collapsible (Icon Mode)**: Reduces to icon-only rail via toggle button or Ctrl+B (lg breakpoint and above only)
 - **Responsive Mobile**: Slides in as overlay sheet on mobile viewports (< 1024px)
 
 ## Layout Structure
@@ -306,6 +307,7 @@ export const Playground: Story = {
 /**
  * Sidebar in collapsed (icon-only) mode.
  * Use the collapse toggle button at the bottom or press Ctrl+B to toggle.
+ * Only available at lg breakpoint (1024px) and above.
  */
 export const Collapsed: Story = {
 	render: () => ({
@@ -320,6 +322,41 @@ export const Collapsed: Story = {
 					</h1>
 					<p class="text-gray-600 dark:text-gray-400">
 						The sidebar is in icon-only mode. Click the expand button or press Ctrl+B to expand.
+					</p>
+				</main>
+			</div>
+		`,
+	}),
+}
+
+/**
+ * Sidebar at mobile viewport width.
+ * On viewports below 1024px the sidebar renders as a fixed overlay sheet
+ * with a capped width of min(280px, 80vw). The collapse toggle is hidden.
+ *
+ * This story only accurately represents the visual at < 1024px viewport widths,
+ * since collapse toggle visibility is driven by real matchMedia in the component.
+ */
+export const Mobile: Story = {
+	parameters: {
+		layout: 'fullscreen',
+		viewport: { defaultViewport: 'mobile1' },
+	},
+	decorators: [
+		applicationConfig({
+			providers: [provideEnvironmentInitializer(() => inject(UIStore).setSidebarOpen(true))],
+		}),
+	],
+	render: () => ({
+		template: `
+			<div class="relative h-screen bg-gray-50 dark:bg-gray-900">
+				<aside appSidebar></aside>
+				<main class="p-4">
+					<h1 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+						Mobile Viewport
+					</h1>
+					<p class="text-sm text-gray-600 dark:text-gray-400">
+						The sidebar slides in as an overlay. Collapse toggle is hidden below lg.
 					</p>
 				</main>
 			</div>

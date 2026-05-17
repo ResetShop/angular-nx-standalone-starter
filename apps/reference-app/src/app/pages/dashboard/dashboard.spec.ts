@@ -11,10 +11,11 @@ import type { BreadcrumbItem, NavigationSection } from '@resetshop/angular-core/
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
-import { fn } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { UIStore } from '@store/ui/ui.store'
 import type { UINotification } from '@store/ui/ui.types'
 import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
 import { NgpToastManager } from 'ng-primitives/toast'
 import Dashboard from './dashboard'
 
@@ -87,6 +88,7 @@ describe('Dashboard', () => {
 	const mockBreadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', path: '/dashboard', isActive: true }]
 
 	beforeEach(() => {
+		clearAllMocks()
 		mockGlobalLoading.set(false)
 		mockSidebarCollapsed.set(false)
 		mockSidebarOpen.set(false)
@@ -180,6 +182,69 @@ describe('Dashboard', () => {
 
 		const signOutButton = screen.getByRole('button', { name: /Logout/i })
 		expect(signOutButton).toBeInTheDocument()
+	})
+
+	describe('mobile backdrop overlay', () => {
+		it('should not render backdrop when sidebar is closed', async () => {
+			await render(Dashboard, {
+				providers: [
+					...defaultProviders(),
+					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
+				],
+			})
+
+			expect(screen.queryByTestId('sidebar-backdrop')).not.toBeInTheDocument()
+		})
+
+		it('should render backdrop when sidebar is open on mobile', async () => {
+			mockSidebarOpen.set(true)
+
+			const { fixture } = await render(Dashboard, {
+				providers: [
+					...defaultProviders(),
+					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
+				],
+			})
+			fixture.detectChanges()
+
+			expect(screen.getByTestId('sidebar-backdrop')).toBeInTheDocument()
+		})
+
+		it('should close sidebar when backdrop is clicked', async () => {
+			mockSidebarOpen.set(true)
+			const user = userEvent.setup()
+
+			const { fixture } = await render(Dashboard, {
+				providers: [
+					...defaultProviders(),
+					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
+				],
+			})
+			fixture.detectChanges()
+
+			await user.click(screen.getByTestId('sidebar-backdrop'))
+
+			expect(mockSidebarOpen()).toBe(false)
+		})
+
+		it('should remove backdrop after sidebar is closed', async () => {
+			mockSidebarOpen.set(true)
+
+			const { fixture } = await render(Dashboard, {
+				providers: [
+					...defaultProviders(),
+					createNavigationWithSectionsAndBreadcrumbs([mockSettingsSection], mockBreadcrumbs),
+				],
+			})
+			fixture.detectChanges()
+
+			expect(screen.getByTestId('sidebar-backdrop')).toBeInTheDocument()
+
+			mockSidebarOpen.set(false)
+			fixture.detectChanges()
+
+			expect(screen.queryByTestId('sidebar-backdrop')).not.toBeInTheDocument()
+		})
 	})
 
 	describe('global loading overlay', () => {
