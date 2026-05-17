@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 const SKILLS = [
@@ -9,19 +9,6 @@ const SKILLS = [
 		type: 'clone',
 		repo: 'https://github.com/angular/skills.git',
 		path: join(process.cwd(), '.claude', 'skills', 'angular'),
-		defaultSelected: true,
-	},
-	{
-		name: 'nx',
-		description: 'Official Nx workspace skill (Nrwl) — monorepo tooling, generators, and project graph',
-		type: 'command',
-		command: 'npx nx configure-ai-agents --agents claude --no-interactive',
-		check: () => {
-			const settingsPath = join(process.cwd(), '.claude', 'settings.json')
-			if (!existsSync(settingsPath)) return false
-			const settings = JSON.parse(readFileSync(settingsPath, 'utf8'))
-			return Object.keys(settings.enabledPlugins || {}).some((key) => key.startsWith('nx@'))
-		},
 		defaultSelected: true,
 	},
 ]
@@ -41,7 +28,6 @@ const isInteractive = !process.env.CI && process.stdin.isTTY
 async function multiSelect(items) {
 	const selected = items.map((item) => item.defaultSelected ?? true)
 	let cursor = 0
-	let rendered = false
 	const cols = process.stdout.columns || 80
 
 	process.stdin.setRawMode(true)
@@ -68,12 +54,12 @@ async function multiSelect(items) {
 	}
 
 	function render() {
-		const rowCount = items.length + 2
-		process.stdout.write('\x1B[?25l')
-		if (rendered) {
-			process.stdout.write(`\r\x1B[${rowCount}A\x1B[J`)
-		}
-		rendered = true
+		process.stdout.write('\x1B[?25l\x1B[H\x1B[J')
+
+		process.stdout.write('\n\x1B[1m┌─────────────────────────────────────────────┐\x1B[0m\n')
+		process.stdout.write('\x1B[1m│  Claude Code Skills Setup                   │\x1B[0m\n')
+		process.stdout.write('\x1B[1m└─────────────────────────────────────────────┘\x1B[0m\n')
+		process.stdout.write('\nSelect which Claude Code skills to install:\n\n')
 
 		for (let i = 0; i < items.length; i++) {
 			const icon = selected[i] ? '\x1B[36m◉\x1B[0m' : '○'
@@ -115,16 +101,15 @@ async function multiSelect(items) {
 	})
 }
 
-console.log('\n\x1B[1m┌─────────────────────────────────────────────┐\x1B[0m')
-console.log('\x1B[1m│  Claude Code Skills Setup                   │\x1B[0m')
-console.log('\x1B[1m└─────────────────────────────────────────────┘\x1B[0m')
-console.log('\nSelect which Claude Code skills to install:\n')
-
 let toInstall = pending
 
 if (isInteractive) {
 	toInstall = await multiSelect(pending)
 } else {
+	console.log('\n\x1B[1m┌─────────────────────────────────────────────┐\x1B[0m')
+	console.log('\x1B[1m│  Claude Code Skills Setup                   │\x1B[0m')
+	console.log('\x1B[1m└─────────────────────────────────────────────┘\x1B[0m')
+	console.log('\nSelect which Claude Code skills to install:\n')
 	for (const skill of pending) {
 		console.log(`  ◉ ${skill.name} — ${skill.description}`)
 	}
