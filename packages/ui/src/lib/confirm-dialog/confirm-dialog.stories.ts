@@ -45,6 +45,9 @@ A confirmation dialog component using the native \`<dialog>\` element with \`sho
 \`\`\`
 				`,
 			},
+			canvas: {
+				sourceState: 'shown',
+			},
 		},
 	},
 	argTypes: {

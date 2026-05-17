@@ -8,11 +8,44 @@ import { NavigationSection } from '@resetshop/angular-core/interfaces/navigation
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
+import { clearAllMocks } from '@resetshop/util/test-utils'
+import { UIStore } from '@store/ui/ui.store'
 import { render, screen } from '@testing-library/angular'
 import { userEvent } from '@testing-library/user-event'
 import { Sidebar } from './sidebar'
 
+// Captures initial viewport state only — addEventListener is a no-op so reactive changes are not supported.
+function mockMatchMedia(matches: boolean) {
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	const noop = () => {}
+	const mql = {
+		matches,
+		media: '(min-width: 1024px)',
+		onchange: null,
+		addEventListener: noop,
+		removeEventListener: noop,
+		addListener: noop,
+		removeListener: noop,
+		dispatchEvent: () => false,
+	}
+	Object.defineProperty(window, 'matchMedia', {
+		writable: true,
+		configurable: true,
+		value: () => mql,
+	})
+	return mql
+}
+
+// happy-dom does not implement window.matchMedia. BreakpointObserver reads it during
+// class field init (before beforeEach runs), so the mock must be installed at module scope.
+mockMatchMedia(true)
+
 describe('Sidebar', () => {
+	beforeEach(() => {
+		clearAllMocks()
+		mockMatchMedia(true)
+	})
+
 	const defaultProviders = () => [
 		provideRouter([
 			{ path: 'auth/login', component: Sidebar },
@@ -182,5 +215,63 @@ describe('Sidebar', () => {
 		expect(sectionTitles).toBeInTheDocument()
 		expect(adminTitle).toBeInTheDocument()
 		expect(signOutButton).toBeInTheDocument()
+	})
+
+	describe('mobile collapse guard', () => {
+		it('collapse toggle button is not rendered when viewport is below lg', async () => {
+			mockMatchMedia(false)
+
+			await render(Sidebar, {
+				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+			})
+
+			expect(screen.queryByRole('button', { name: /collapse sidebar|expand sidebar/i })).toBeNull()
+		})
+
+		it('Ctrl+B does not toggle collapse when viewport is below lg', async () => {
+			mockMatchMedia(false)
+			const user = userEvent.setup()
+
+			await render(Sidebar, {
+				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+			})
+
+			await user.keyboard('{Control>}b{/Control}')
+
+			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+			expect(screen.getByRole('link', { name: /reset starter/i })).toBeInTheDocument()
+		})
+
+		it('sidebar does not visually collapse when store is collapsed but viewport is below lg', async () => {
+			mockMatchMedia(false)
+
+			const { fixture } = await render(Sidebar, {
+				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+			})
+
+			const uiStore = fixture.debugElement.injector.get(UIStore)
+			uiStore.setSidebarCollapsed(true)
+			fixture.detectChanges()
+
+			expect(screen.getByRole('link', { name: /reset starter repo/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+		})
+
+		it('collapse toggle button is rendered and functional when viewport is at lg', async () => {
+			mockMatchMedia(true)
+			const user = userEvent.setup()
+
+			const { fixture } = await render(Sidebar, {
+				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+			})
+
+			const collapseButton = screen.getByRole('button', { name: /collapse sidebar/i })
+			expect(collapseButton).toBeInTheDocument()
+
+			await user.click(collapseButton)
+
+			const uiStore = fixture.debugElement.injector.get(UIStore)
+			expect(uiStore.isSidebarCollapsed()).toBe(true)
+		})
 	})
 })

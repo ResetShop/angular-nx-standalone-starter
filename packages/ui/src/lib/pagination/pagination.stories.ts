@@ -126,6 +126,9 @@ Use the **language** control to switch between:
 \`\`\`
 				`,
 			},
+			canvas: {
+				sourceState: 'shown',
+			},
 		},
 	},
 	argTypes: {

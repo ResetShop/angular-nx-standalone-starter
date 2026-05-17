@@ -221,6 +221,13 @@ const meta: Meta<StoryPlayground> = {
 			providers: [Translation, ...provideSignalFormsConfig({})],
 		}),
 	],
+	parameters: {
+		docs: {
+			canvas: {
+				sourceState: 'shown',
+			},
+		},
+	},
 	argTypes: {
 		language: {
 			control: 'select',

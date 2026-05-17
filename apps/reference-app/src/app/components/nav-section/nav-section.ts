@@ -13,7 +13,6 @@ import { provideIcons } from '@ng-icons/core'
 import { featherChevronRight } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { NavigationSection } from '@resetshop/angular-core/interfaces/navigation'
-import { UIStore } from '@store/ui/ui.store'
 
 @Component({
 	selector: 'app-nav-section',
@@ -29,7 +28,13 @@ import { UIStore } from '@store/ui/ui.store'
 		<ul>
 			@for (navItem of navItems(); track navItem.id) {
 				<li>
-					<ng-container *ngComponentOutlet="NavItem; inputs: { item: navItem.route }; injector: navItem.injector" />
+					<ng-container
+						*ngComponentOutlet="
+							NavItem;
+							inputs: { item: navItem.route, collapsed: collapsed() };
+							injector: navItem.injector
+						"
+					/>
 				</li>
 			}
 		</ul>
@@ -41,7 +46,7 @@ export default class NavSection {
 	protected readonly NavItem = NavItem
 	public readonly showTitle = input<boolean>(true)
 	public readonly section = input.required<NavigationSection>()
-	protected readonly collapsed = inject(UIStore).isSidebarCollapsed
+	public readonly collapsed = input(false)
 
 	private readonly injector = inject(EnvironmentInjector)
 

@@ -120,6 +120,9 @@ Use the **language** control to switch between:
 Error messages will automatically update to the selected language.
 				`,
 			},
+			canvas: {
+				sourceState: 'shown',
+			},
 		},
 	},
 	argTypes: {

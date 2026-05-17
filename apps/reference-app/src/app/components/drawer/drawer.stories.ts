@@ -48,6 +48,9 @@ A slide-out drawer component using the native \`<dialog>\` element.
 \`\`\`
 				`,
 			},
+			canvas: {
+				sourceState: 'shown',
+			},
 		},
 	},
 	argTypes: {
