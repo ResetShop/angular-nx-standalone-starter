@@ -496,11 +496,6 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 
 ---
 
-## Nx Guidelines
-
-<!-- nx configuration start-->
-<!-- Leave the start & end comments to automatically receive updates. -->
-
 ### General Rules
 
 - **CRITICAL: Always use `npm run <task>` for all task execution** (build, lint, test, e2e, dev)
@@ -564,8 +559,6 @@ The README also has a shorter human-facing summary under "Generators".
 **Do not** call `nx g @nx/angular:library --directory=libs/...` — this
 repository uses the `packages/*` + `apps/reference-app` layout, not the Nx
 libs convention.
-
-<!-- nx configuration end-->
 
 ---
 
