@@ -28,10 +28,15 @@ import type { Container } from './container.interface'
 import type { Cradle } from './container.types'
 
 function registerValues(c: AwilixContainer<Cradle>): void {
+	// Config factories are registered as singletons so the underlying env reads
+	// happen lazily — on first cradle resolution rather than at container
+	// construction time. This matches the lazy semantics of `@config/env` and
+	// keeps `db`, `authConfig`, and `pasetoConfig` consistent (all three call
+	// into `env` and would otherwise differ on when that read fires).
 	c.register({
 		db: asFunction(createDrizzlePgConnector).singleton(),
-		authConfig: asValue(createAuthConfig()),
-		pasetoConfig: asValue(createPasetoConfig()),
+		authConfig: asFunction(() => createAuthConfig()).singleton(),
+		pasetoConfig: asFunction(createPasetoConfig).singleton(),
 		logger: asValue(logger),
 		generatePassword: asValue(generatePassword),
 	})
