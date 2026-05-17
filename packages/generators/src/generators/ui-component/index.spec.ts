@@ -198,5 +198,42 @@ describe('ui-component generator', () => {
 			expect(componentTs).toContain(`templateUrl: './icon-button.html'`)
 			expect(componentTs).toContain(`styleUrl: './icon-button.css'`)
 		})
+
+		it('produces an identical spec and stories file regardless of the inlineTemplate/inlineStyle flags', async () => {
+			// The spec and stories templates depend only on className/fileName. Lock that in:
+			// any future template edit that introduces flag dependence (e.g. an extra import
+			// in the spec when external files are used) will break this test on purpose so
+			// the change is intentional, not accidental.
+			const combinations = [
+				{ inlineTemplate: true, inlineStyle: true },
+				{ inlineTemplate: true, inlineStyle: false },
+				{ inlineTemplate: false, inlineStyle: true },
+				{ inlineTemplate: false, inlineStyle: false },
+			]
+
+			const outputs = await Promise.all(
+				combinations.map(async (flags) => {
+					const localTree = createTreeWithEmptyWorkspace()
+					await uiComponentGenerator(localTree, {
+						name: 'tooltip',
+						directory: DEFAULT_DIR,
+						exportFromIndex: false,
+						...flags,
+					})
+					return {
+						spec: localTree.read(`${DEFAULT_DIR}/tooltip/tooltip.spec.ts`)?.toString('utf-8') ?? '',
+						stories: localTree.read(`${DEFAULT_DIR}/tooltip/tooltip.stories.ts`)?.toString('utf-8') ?? '',
+					}
+				}),
+			)
+
+			const [first, ...rest] = outputs
+			expect(first.spec).not.toBe('')
+			expect(first.stories).not.toBe('')
+			for (const other of rest) {
+				expect(other.spec).toBe(first.spec)
+				expect(other.stories).toBe(first.stories)
+			}
+		})
 	})
 })
