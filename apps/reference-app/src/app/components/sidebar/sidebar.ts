@@ -165,7 +165,7 @@ export class Sidebar {
 
 	private createLgViewportSignal(): Signal<boolean> {
 		if (!isPlatformBrowser(this.platformId)) return signal(false).asReadonly()
-		const lg = getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-lg').trim()
+		const lg = getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-lg').trim() || '64rem'
 		return toSignal(
 			inject(BreakpointObserver)
 				.observe(`(min-width: ${lg})`)
