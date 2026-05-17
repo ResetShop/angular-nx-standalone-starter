@@ -333,9 +333,13 @@ export const Collapsed: Story = {
  * Sidebar at mobile viewport width.
  * On viewports below 1024px the sidebar renders as a fixed overlay sheet
  * with a capped width of min(280px, 80vw). The collapse toggle is hidden.
+ *
+ * This story only accurately represents the visual at < 1024px viewport widths,
+ * since collapse toggle visibility is driven by real matchMedia in the component.
  */
 export const Mobile: Story = {
 	parameters: {
+		layout: 'fullscreen',
 		viewport: { defaultViewport: 'mobile1' },
 	},
 	decorators: [
