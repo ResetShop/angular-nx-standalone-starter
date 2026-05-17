@@ -997,6 +997,10 @@ Use the architecture-advisor agent to review the proposed component structure
 
 Agent definitions live in `.claude/agents/` (YAML frontmatter defines `name`, `description`, `tools`, and `model`). Reference files they load at runtime are in `.claude/references/`.
 
+### Issue Workflow Skill
+
+The `/issue-workflow <issue-url>` skill (`.claude/skills/issue-workflow/SKILL.md`) orchestrates the full 6-phase lifecycle — Setup, Plan, Implement, Review, Fix, Ship — as a single repeatable command. Use it as the default entry point for any new issue. The skill pauses for user approval after the Plan phase and after the Review phase. See the skill file for phase-by-phase details.
+
 ### Agent Reference Loading
 
 Which `.claude/references/` files each agent loads in Step 0:
