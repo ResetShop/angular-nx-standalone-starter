@@ -171,18 +171,18 @@ function initializeEnv(): Readonly<Env> {
  * reads `env.X` at startup, which triggers validation and fails fast on
  * misconfiguration.
  */
+// REASON: Proxy traps intercept all property access; the target is never read directly.
+// Only `get` and `has` traps are defined — `ownKeys` / `getOwnPropertyDescriptor` traps
+// would violate the Proxy invariant when reflecting the frozen cache's non-configurable
+// properties through an empty target (Node throws on `Object.keys(env)` etc.).
+// Callers must read specific named fields (e.g. `env.PG_CONNECTION_STRING`), never
+// enumerate the proxy.
 export const env: Readonly<Env> = new Proxy({} as Env, {
 	get(_target, prop) {
 		return initializeEnv()[prop as keyof Env]
 	},
 	has(_target, prop) {
 		return prop in initializeEnv()
-	},
-	ownKeys() {
-		return Reflect.ownKeys(initializeEnv())
-	},
-	getOwnPropertyDescriptor(_target, prop) {
-		return Reflect.getOwnPropertyDescriptor(initializeEnv(), prop)
 	},
 })
 
