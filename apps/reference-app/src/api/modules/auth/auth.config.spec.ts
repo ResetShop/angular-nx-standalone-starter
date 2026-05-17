@@ -6,6 +6,13 @@ import { createAuthConfig } from './auth.config'
 // the source of truth). This spec covers the re-shape from env keys to
 // AuthConfig field names — invoked via the `parseEnv`-driven overload so the
 // mapping is verified without `process.env` mutation.
+//
+// Explicitly NOT covered here (already in env.spec.ts):
+//   - schema-level validation of COOKIE_SECURE / PASETO_*_EXPIRY / etc.
+//   - tolerant fallback for AUTH_MAX_FAILED_ATTEMPTS and AUTH_LOCKOUT_DURATION
+//   - default values when env vars are unset
+// New tests added here should focus on the env-to-AuthConfig field mapping
+// (especially when new AuthConfig fields are added), not on schema behavior.
 describe('createAuthConfig', () => {
 	it('returns a frozen object', () => {
 		expect(Object.isFrozen(createAuthConfig())).toBe(true)
