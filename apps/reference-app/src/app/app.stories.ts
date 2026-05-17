@@ -5,6 +5,13 @@ import { App } from './app'
 const meta: Meta<App> = {
 	component: App,
 	title: 'App',
+	parameters: {
+		docs: {
+			canvas: {
+				sourceState: 'shown',
+			},
+		},
+	},
 }
 export default meta
 

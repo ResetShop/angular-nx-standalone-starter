@@ -7,6 +7,7 @@ import storybook from 'eslint-plugin-storybook'
 import testingLibrary from 'eslint-plugin-testing-library'
 import requireEnvironmentProviders from './packages/angular-core/eslint/require-environment-providers.js'
 import formFieldAllowedContent from './packages/ui/eslint/form-field-allowed-content.js'
+import storybookSourceState from './packages/ui/eslint/storybook-source-state.js'
 
 const commonRestrictedSyntax = [
 	{
@@ -364,6 +365,20 @@ export default [
 					],
 				},
 			],
+		},
+	},
+	{
+		name: 'storybook-source-state',
+		files: ['**/*.stories.ts'],
+		plugins: {
+			'custom-storybook': {
+				rules: {
+					'storybook-source-state': storybookSourceState,
+				},
+			},
+		},
+		rules: {
+			'custom-storybook/storybook-source-state': 'error',
 		},
 	},
 	{
