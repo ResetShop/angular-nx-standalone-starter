@@ -237,6 +237,9 @@ export class UserListComponent {
 \`\`\`
 				`,
 			},
+			canvas: {
+				sourceState: 'shown',
+			},
 		},
 	},
 	argTypes: {

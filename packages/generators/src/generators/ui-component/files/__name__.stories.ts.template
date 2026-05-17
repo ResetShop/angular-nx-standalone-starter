@@ -1,0 +1,29 @@
+import type { Meta, StoryObj } from '@storybook/angular'
+import { <%= className %> } from './<%= fileName %>'
+
+// TODO: Add an `argTypes` block once the component declares public `input()` properties.
+const meta: Meta<<%= className %>> = {
+	component: <%= className %>,
+	title: 'Components/<%= className %>',
+	tags: ['autodocs'],
+	parameters: {
+		docs: {
+			description: {
+				component: 'TODO: Add component description',
+			},
+			canvas: {
+				sourceState: 'shown',
+			},
+		},
+	},
+}
+
+export default meta
+
+type Story = StoryObj<<%= className %>>
+
+export const Default: Story = {
+	render: () => ({
+		template: `<app-<%= fileName %>></app-<%= fileName %>>`,
+	}),
+}

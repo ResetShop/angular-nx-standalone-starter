@@ -1,6 +1,12 @@
 import parser from '@angular-eslint/template-parser'
 import { RuleTester } from 'eslint'
-import rule from './form-field-allowed-content.eslint-rule.js'
+import { describe, it } from 'vitest'
+import rule from './form-field-allowed-content.js'
+
+// Bind Vitest's runner — RuleTester defaults to Mocha-style globals which Vitest does not provide.
+RuleTester.describe = describe
+RuleTester.it = it
+RuleTester.itOnly = it.only
 
 const ruleTester = new RuleTester({ languageOptions: { parser } })
 
