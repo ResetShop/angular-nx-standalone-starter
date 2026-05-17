@@ -5,10 +5,10 @@ import {
 	computed,
 	DestroyRef,
 	effect,
-	HostListener,
 	inject,
 	PLATFORM_ID,
 	signal,
+	type Signal,
 } from '@angular/core'
 import { Router } from '@angular/router'
 import { Brand } from '@components/brand/brand'
@@ -29,6 +29,9 @@ import { UIStore } from '@store/ui/ui.store'
 		'[class.collapsed]': 'isCollapsed()',
 		'[attr.data-collapsed]': 'isCollapsed() || null',
 		'[attr.data-mobile-open]': 'uiStore.isSidebarOpen() || null',
+		'(document:keydown.control.b)': 'onCollapseShortcut($event)',
+		'(document:keydown.meta.b)': 'onCollapseShortcut($event)',
+		'(document:keydown.escape)': 'onEscape()',
 	},
 	imports: [Button, NavSection, Brand, NgIcon, TranslatePipe],
 	providers: [NavigationState],
@@ -127,32 +130,24 @@ export class Sidebar {
 	protected readonly uiStore = inject(UIStore)
 	protected readonly sections = computed(() => this.navigation.sections())
 
-	private readonly LG_MEDIA_QUERY = '(min-width: 1024px)'
-	private readonly _isLgViewport = signal(this.getInitialIsLg())
-	protected readonly isLgViewport = this._isLgViewport.asReadonly()
-	private readonly _lgViewportListenerRegistered = this.setupLgViewportListener()
+	protected readonly isLgViewport = this.createLgViewportSignal()
 	protected readonly isCollapsed = computed(() => this.isLgViewport() && this.uiStore.isSidebarCollapsed())
 
-	// React to logout: navigate when user becomes null and logout is complete
 	private readonly logoutNavigationEffect = effect(() => {
 		const user = this.authStore.currentUser()
 		const isLoggingOut = this.authStore.isLoggingOut()
 
-		// Only navigate after logout completes (user is null and no longer logging out)
 		if (!user && !isLoggingOut) {
 			this.router.navigate(['/auth/login'])
 		}
 	})
 
-	@HostListener('document:keydown.control.b', ['$event'])
-	@HostListener('document:keydown.meta.b', ['$event'])
 	protected onCollapseShortcut(event: Event): void {
 		event.preventDefault()
 		if (!this.isLgViewport()) return
 		this.toggleCollapse()
 	}
 
-	@HostListener('document:keydown.escape')
 	protected onEscape(): void {
 		if (this.uiStore.isSidebarOpen()) {
 			this.uiStore.setSidebarOpen(false)
@@ -167,15 +162,13 @@ export class Sidebar {
 		this.authStore.logout()
 	}
 
-	private getInitialIsLg(): boolean {
-		return isPlatformBrowser(this.platformId) && window.matchMedia(this.LG_MEDIA_QUERY).matches
-	}
-
-	private setupLgViewportListener(): void {
-		if (!isPlatformBrowser(this.platformId)) return
-		const mql = window.matchMedia(this.LG_MEDIA_QUERY)
-		const listener = (e: MediaQueryListEvent) => this._isLgViewport.set(e.matches)
+	private createLgViewportSignal(): Signal<boolean> {
+		if (!isPlatformBrowser(this.platformId)) return signal(false).asReadonly()
+		const mql = window.matchMedia('(min-width: 1024px)')
+		const s = signal(mql.matches)
+		const listener = (e: MediaQueryListEvent) => s.set(e.matches)
 		mql.addEventListener('change', listener)
 		this.destroyRef.onDestroy(() => mql.removeEventListener('change', listener))
+		return s.asReadonly()
 	}
 }
