@@ -1,0 +1,16 @@
+import { clearAllMocks } from '@resetshop/util/test-utils'
+import { render } from '@testing-library/angular'
+import { <%= className %> } from './<%= fileName %>'
+
+describe('<%= className %>', () => {
+	beforeEach(() => clearAllMocks())
+
+	it('renders', async () => {
+		await render(`<app-<%= fileName %>></app-<%= fileName %>>`, {
+			imports: [<%= className %>],
+		})
+
+		// Baseline assertion — replace with semantic queries (getByRole, getByLabelText, etc.) as the component grows.
+		expect(document.querySelector('app-<%= fileName %>')).toBeInTheDocument()
+	})
+})

@@ -83,6 +83,13 @@ const meta: Meta<StoryCombobox> = {
 			providers: [Translation, ...provideSignalFormsConfig({})],
 		}),
 	],
+	parameters: {
+		docs: {
+			canvas: {
+				sourceState: 'shown',
+			},
+		},
+	},
 	argTypes: {
 		language: {
 			control: 'select',

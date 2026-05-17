@@ -9,7 +9,7 @@ export default defineConfig({
 		globals: true,
 		environment: 'happy-dom',
 		reporters: ['verbose'],
-		include: ['src/**/*.{test,spec}.ts'],
+		include: ['src/**/*.{test,spec}.ts', 'eslint/**/*.spec.{js,ts}'],
 		exclude: ['node_modules', 'dist'],
 		setupFiles: ['src/test-setup.ts'],
 	},
