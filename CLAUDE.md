@@ -925,18 +925,28 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
 ## Environment Variables
 
-**The repo's contract:** every backend env variable is declared in the Zod schema at `apps/reference-app/src/api/config/env.ts` and consumed exclusively as `env.VAR_NAME` via the `@config/*` path alias. Direct `process.env[...]` access is **ESLint-forbidden** in production code. The only allowed consumers are: `@config/env` itself; the test setup files under `apps/**/src/test-setup.ts` and `apps/**/src/api/integration/setup/**`; the entry-point DB scripts `apps/**/src/db/seed.ts` and `apps/**/src/db/sync-permissions.ts` (they only need `PG_CONNECTION_STRING` and run in CI postinstall contexts where the full env contract isn't populated); and the root-level `drizzle.config.ts` (loaded by drizzle-kit outside any app tsconfig, so the `@config/*` alias isn't visible).
+**The repo's contract:** every backend env variable is declared in a **domain-scoped Zod sub-schema** under `apps/reference-app/src/api/config/*.env.ts` (`db.env.ts`, `auth.env.ts`, `email.env.ts`, `http.env.ts`, `app.env.ts`, `cron.env.ts`) and consumed exclusively as `<domain>Env.VAR_NAME` via the `@config/*` path alias (e.g. `import { dbEnv } from '@config/db.env'`). Direct `process.env[...]` access is **ESLint-forbidden** in production code. The only allowed consumers are: the sub-schema modules themselves (matched by `apps/**/src/api/config/*.env.ts`); the integration-test bootstrap files under `apps/**/src/api/integration/setup/**` (which run in a separate Node worker process and must mutate `process.env` before any sub-schema loads in that process); and the `test-utils.ts` files in `apps/**/src/` and `packages/util/` (re-listed only to preserve their `vi.*` rule exemption — neither actually reads `process.env`).
 
 **The repo's non-contract:** how each developer delivers values to `process.env` before `node` starts is left to them. The four supported delivery mechanisms — out-of-tree env file + Node `--env-file`, IDE run configuration, shell session export, and `direnv` — are documented in [`docs/environment-variables.md`](docs/environment-variables.md). **No `.env` file may exist in the working tree;** CI fails the build if one appears. This is the structural defense against agents opportunistically reading `.env*` files.
 
+**Each sub-schema module exports the same five symbols** for consistency:
+
+- A Zod-inferred `XEnv` type (e.g. `DbEnv`, `AuthEnv`)
+- A `parseXEnv(rawEnv)` factory — synchronous, returns the parsed object, throws `ZodError` on failure
+- A lazy-init Proxy singleton `xEnv` populated from `process.env` on first property access
+- A `seedXEnv(overrides?)` test helper that writes a `{...test-defaults, ...overrides}` object directly into the cached singleton — bypasses `process.env` so unit tests can drive values without mutating global state
+- A `resetXEnv()` test helper that clears the cache so a subsequent `seedXEnv` call takes effect
+
 **Adding or changing a variable:**
 
-1. Add the field to `EnvSchema` in `apps/reference-app/src/api/config/env.ts` with the appropriate Zod validation, default, and tolerance behavior.
-2. Add the row to the variables table in `docs/environment-variables.md`.
-3. Consume the value via `env.NEW_VAR` — never `process.env['NEW_VAR']`.
-4. Do **not** create or commit a `.env*` file.
+1. Pick the appropriate domain sub-schema under `apps/reference-app/src/api/config/*.env.ts`. If the variable doesn't fit any existing domain, create a new sub-schema module following the shared pattern.
+2. Add the field to that sub-schema's `XEnvSchema` with the appropriate Zod validation, default, and tolerance behavior.
+3. If tests need to vary the field, add it to the sub-schema's `X_ENV_TEST_DEFAULTS` constant.
+4. Add the row to the variables table in `docs/environment-variables.md` under the matching domain section.
+5. Consume the value via `xEnv.NEW_VAR` — never `process.env['NEW_VAR']`.
+6. Do **not** create or commit a `.env*` file.
 
-For values that need to be mockable in tests (e.g. CRON_SECRET in the cleanup-tokens endpoint), follow the `AuthConfig`/`PasetoConfig` pattern: extract a typed config interface, register it as a frozen value in the Awilix container, and inject it into the consuming service. The env singleton is read once at boot; tests that need different values per case must consume them via DI, not via `process.env` mutation.
+For values that need to be mockable in tests (e.g. CRON_SECRET in the cleanup-tokens endpoint), follow the `AuthConfig`/`PasetoConfig` pattern: extract a typed config interface, register it as a frozen value in the Awilix container via `asFunction(...).singleton()`, and inject it into the consuming service. The sub-schema singletons are read once on first access; tests that need different values per case use `seedXEnv()` (for unit tests that vary raw env values) or the DI pattern (for services that need injectable config objects).
 
 ---
 

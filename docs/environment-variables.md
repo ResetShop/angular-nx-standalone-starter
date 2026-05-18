@@ -2,49 +2,76 @@
 
 This project follows a **contract / delivery split**:
 
-- **The repo enforces the contract.** [`apps/reference-app/src/api/config/env.ts`](../apps/reference-app/src/api/config/env.ts) defines a Zod schema, parses `process.env` once at module load, and exposes a frozen `env` object plus an `Env` type. Every backend file reads env values from `@config/env`. Direct `process.env[...]` access is ESLint-forbidden everywhere except the schema module itself and the test setup files.
-- **You choose the delivery.** No `.env` file lives in the working tree (CI fails the build if one appears). Pick whichever of the four mechanisms below fits your workflow. They all simply set OS-level env vars before `node` starts — the schema validates whatever is present.
+- **The repo enforces the contract.** Six domain-scoped sub-schemas under [`apps/reference-app/src/api/config/`](../apps/reference-app/src/api/config/) — `db.env.ts`, `auth.env.ts`, `email.env.ts`, `http.env.ts`, `app.env.ts`, `cron.env.ts` — each define a Zod schema for their domain, parse `process.env` lazily on first property access, and expose a frozen `xEnv` proxy plus an `XEnv` type. Every backend file reads env values from the appropriate `@config/<domain>.env` import (e.g. `import { dbEnv } from '@config/db.env'`). Direct `process.env[...]` access is ESLint-forbidden everywhere except the sub-schema modules themselves, the integration test bootstrap, and the `test-utils.ts` files.
+- **You choose the delivery.** No `.env` file lives in the working tree (CI fails the build if one appears). Pick whichever of the four mechanisms below fits your workflow. They all simply set OS-level env vars before `node` starts — the schemas validate whatever is present.
 
-If you change or add a variable, update both [`apps/reference-app/src/api/config/env.ts`](../apps/reference-app/src/api/config/env.ts) (the contract) and the table below (the human-readable reference).
+If you change or add a variable, update both the corresponding sub-schema module and the table below (the human-readable reference).
 
 ---
 
 ## Variables
 
-| Variable                          | Required?    | Default                 | Description                                                                                                       |
-| --------------------------------- | ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                        | optional     | `development`           | Runtime environment. One of `development`, `test`, `production`.                                                  |
-| `PG_CONNECTION_STRING`            | **required** | —                       | Postgres connection string used by the app.                                                                       |
-| `PG_TEST_CONNECTION_STRING`       | optional     | —                       | Postgres connection string used by integration tests. When unset, the suite spawns an embedded Postgres instance. |
-| `PASETO_SECRET_KEY`               | **required** | —                       | 32-byte (64+ hex chars) symmetric key for PASETO v3.local. Generate with `openssl rand -hex 32`.                  |
-| `PASETO_ISSUER`                   | **required** | —                       | Token issuer claim (e.g. `my-app`).                                                                               |
-| `PASETO_ACCESS_TOKEN_EXPIRY`      | optional     | `15m`                   | Duration string for access-token lifetime.                                                                        |
-| `PASETO_REFRESH_TOKEN_EXPIRY`     | optional     | `7d`                    | Duration string for refresh-token lifetime.                                                                       |
-| `PASETO_CLOCK_TOLERANCE`          | optional     | `1m`                    | Clock-drift tolerance during token verification.                                                                  |
-| `COOKIE_SECURE`                   | optional     | `true`                  | Set to `false` only when running locally without HTTPS. Any other value is treated as `true`.                     |
-| `EMAIL_PROVIDER`                  | optional     | `nodemailer`            | One of `nodemailer`, `ethereal`, `noop`. When `nodemailer`, `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` are required.     |
-| `SMTP_HOST`                       | conditional  | —                       | Required when `EMAIL_PROVIDER=nodemailer`.                                                                        |
-| `SMTP_USER`                       | conditional  | —                       | Required when `EMAIL_PROVIDER=nodemailer`.                                                                        |
-| `SMTP_PASS`                       | conditional  | —                       | Required when `EMAIL_PROVIDER=nodemailer`.                                                                        |
-| `SMTP_PORT`                       | optional     | `587`                   | SMTP port (1–65535).                                                                                              |
-| `SMTP_SECURE`                     | optional     | `false`                 | Set to `true` for TLS on port 465.                                                                                |
-| `SMTP_FROM`                       | optional     | `noreply@example.com`   | Default sender address.                                                                                           |
-| `BASE_HREF`                       | optional     | —                       | Base path for the Angular app when hosted under a sub-path.                                                       |
-| `IS_SERVERLESS`                   | optional     | `false`                 | Set to `true` in connection-pooled serverless deployments (e.g. Vercel).                                          |
-| `PORT`                            | optional     | `4000`                  | HTTP port the Hono server listens on (invalid values fall back to default).                                       |
-| `CORS_ORIGIN`                     | optional     | `http://localhost:4200` | Allowed CORS origin.                                                                                              |
-| `CORS_MAX_AGE`                    | optional     | `86400`                 | CORS preflight cache duration (seconds).                                                                          |
-| `BCRYPT_COST`                     | optional     | `12`                    | bcrypt work factor. Integration tests use `1` for speed.                                                          |
-| `APP_LANGUAGE`                    | optional     | `en`                    | Default UI language. Used for emails and password generation.                                                     |
-| `AUTH_MAX_FAILED_ATTEMPTS`        | optional     | `5`                     | Failed-login threshold before account lockout (invalid values fall back to default).                              |
-| `AUTH_LOCKOUT_DURATION`           | optional     | `15m`                   | Account-lockout duration string (invalid values fall back to default).                                            |
-| `CRON_SECRET`                     | optional     | —                       | Bearer token for cron-job-triggered endpoints. Must be ≥ 32 chars to be considered valid.                         |
-| `TOKEN_CLEANUP_INTERVAL`          | optional     | `24h`                   | How often the refresh-token cleanup job runs (clamped to `1m`–`7d`).                                              |
-| `TOKEN_CLEANUP_BATCH_SIZE`        | optional     | `1000`                  | Tokens per cleanup batch (clamped to `100`–`10000`).                                                              |
-| `TOKEN_CLEANUP_MAX_BATCH_COUNT`   | optional     | `100`                   | Maximum cleanup batches per run (clamped to `10`–`1000`).                                                         |
-| `INTEGRATION_TEST_ADMIN_PASSWORD` | optional     | —                       | Plain-text admin password used by integration tests.                                                              |
+### Database — [`db.env.ts`](../apps/reference-app/src/api/config/db.env.ts)
 
-The Zod schema in [`env.ts`](../apps/reference-app/src/api/config/env.ts) is the authoritative source for validation rules, defaults, and cross-field constraints (e.g. the `EMAIL_PROVIDER=nodemailer` SMTP requirement).
+| Variable                    | Required?    | Default | Description                                                                                                       |
+| --------------------------- | ------------ | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| `PG_CONNECTION_STRING`      | **required** | —       | Postgres connection string used by the app.                                                                       |
+| `PG_TEST_CONNECTION_STRING` | optional     | —       | Postgres connection string used by integration tests. When unset, the suite spawns an embedded Postgres instance. |
+
+### Authentication and Tokens — [`auth.env.ts`](../apps/reference-app/src/api/config/auth.env.ts)
+
+| Variable                      | Required?    | Default | Description                                                                                      |
+| ----------------------------- | ------------ | ------- | ------------------------------------------------------------------------------------------------ |
+| `PASETO_SECRET_KEY`           | **required** | —       | 32-byte (64+ hex chars) symmetric key for PASETO v3.local. Generate with `openssl rand -hex 32`. |
+| `PASETO_ISSUER`               | **required** | —       | Token issuer claim (e.g. `my-app`).                                                              |
+| `PASETO_ACCESS_TOKEN_EXPIRY`  | optional     | `15m`   | Duration string for access-token lifetime.                                                       |
+| `PASETO_REFRESH_TOKEN_EXPIRY` | optional     | `7d`    | Duration string for refresh-token lifetime.                                                      |
+| `PASETO_CLOCK_TOLERANCE`      | optional     | `1m`    | Clock-drift tolerance during token verification.                                                 |
+| `COOKIE_SECURE`               | optional     | `true`  | Set to `false` only when running locally without HTTPS. Any other value is treated as `true`.    |
+| `AUTH_MAX_FAILED_ATTEMPTS`    | optional     | `5`     | Failed-login threshold before account lockout (invalid values fall back to default).             |
+| `AUTH_LOCKOUT_DURATION`       | optional     | `15m`   | Account-lockout duration string (invalid values fall back to default).                           |
+| `BCRYPT_COST`                 | optional     | `12`    | bcrypt work factor. Integration tests use `1` for speed.                                         |
+| `CRON_SECRET`                 | optional     | —       | Bearer token for cron-job-triggered endpoints. Must be ≥ 32 chars to be considered valid.        |
+
+### Email — [`email.env.ts`](../apps/reference-app/src/api/config/email.env.ts)
+
+| Variable         | Required?   | Default               | Description                                                                                                   |
+| ---------------- | ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `EMAIL_PROVIDER` | optional    | `nodemailer`          | One of `nodemailer`, `ethereal`, `noop`. When `nodemailer`, `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` are required. |
+| `SMTP_HOST`      | conditional | —                     | Required when `EMAIL_PROVIDER=nodemailer`.                                                                    |
+| `SMTP_USER`      | conditional | —                     | Required when `EMAIL_PROVIDER=nodemailer`.                                                                    |
+| `SMTP_PASS`      | conditional | —                     | Required when `EMAIL_PROVIDER=nodemailer`.                                                                    |
+| `SMTP_PORT`      | optional    | `587`                 | SMTP port (1–65535).                                                                                          |
+| `SMTP_SECURE`    | optional    | `false`               | Set to `true` for TLS on port 465.                                                                            |
+| `SMTP_FROM`      | optional    | `noreply@example.com` | Default sender address.                                                                                       |
+
+### HTTP and Hosting — [`http.env.ts`](../apps/reference-app/src/api/config/http.env.ts)
+
+| Variable        | Required? | Default                 | Description                                                                 |
+| --------------- | --------- | ----------------------- | --------------------------------------------------------------------------- |
+| `PORT`          | optional  | `4000`                  | HTTP port the Hono server listens on (invalid values fall back to default). |
+| `CORS_ORIGIN`   | optional  | `http://localhost:4200` | Allowed CORS origin.                                                        |
+| `CORS_MAX_AGE`  | optional  | `86400`                 | CORS preflight cache duration (seconds).                                    |
+| `BASE_HREF`     | optional  | —                       | Base path for the Angular app when hosted under a sub-path.                 |
+| `IS_SERVERLESS` | optional  | `false`                 | Set to `true` in connection-pooled serverless deployments (e.g. Vercel).    |
+
+### Application — [`app.env.ts`](../apps/reference-app/src/api/config/app.env.ts)
+
+| Variable                          | Required? | Default       | Description                                                      |
+| --------------------------------- | --------- | ------------- | ---------------------------------------------------------------- |
+| `NODE_ENV`                        | optional  | `development` | Runtime environment. One of `development`, `test`, `production`. |
+| `APP_LANGUAGE`                    | optional  | `en`          | Default UI language. Used for emails and password generation.    |
+| `INTEGRATION_TEST_ADMIN_PASSWORD` | optional  | —             | Plain-text admin password used by integration tests.             |
+
+### Token Cleanup (Cron) — [`cron.env.ts`](../apps/reference-app/src/api/config/cron.env.ts)
+
+| Variable                        | Required? | Default | Description                                                          |
+| ------------------------------- | --------- | ------- | -------------------------------------------------------------------- |
+| `TOKEN_CLEANUP_INTERVAL`        | optional  | `24h`   | How often the refresh-token cleanup job runs (clamped to `1m`–`7d`). |
+| `TOKEN_CLEANUP_BATCH_SIZE`      | optional  | `1000`  | Tokens per cleanup batch (clamped to `100`–`10000`).                 |
+| `TOKEN_CLEANUP_MAX_BATCH_COUNT` | optional  | `100`   | Maximum cleanup batches per run (clamped to `10`–`1000`).            |
+
+The domain sub-schemas under [`apps/reference-app/src/api/config/`](../apps/reference-app/src/api/config/) are the authoritative sources for validation rules, defaults, and cross-field constraints (e.g. the `EMAIL_PROVIDER=nodemailer` SMTP requirement in `email.env.ts`).
 
 ---
 
