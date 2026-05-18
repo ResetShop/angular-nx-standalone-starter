@@ -408,6 +408,7 @@ export default [
 		files: ['apps/**/src/**/*.ts', 'packages/**/src/**/*.ts'],
 		ignores: [
 			'apps/**/src/api/config/env.ts',
+			'apps/**/src/api/config/*.env.ts',
 			'apps/**/src/test-setup.ts',
 			'apps/**/src/api/integration/setup/**/*.ts',
 			'apps/**/src/test-utils.ts',
