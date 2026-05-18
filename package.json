@@ -27,8 +27,8 @@
 		"test:ui": "nx run reference-app:test --configuration=ui -- --ui",
 		"test:e2e": "nx run reference-app:e2e",
 		"generate:app": "nx g @resetshop/generators:app",
-		"drizzle:create-migrations": "drizzle-kit generate",
-		"drizzle:push-migrations": "drizzle-kit push",
+		"drizzle:create-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs generate",
+		"drizzle:push-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push",
 		"drizzle:seed": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
 		"sync:permissions": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts"
 	},

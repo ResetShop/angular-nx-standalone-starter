@@ -1,3 +1,4 @@
+import { dbEnv } from '@config/db.env'
 import { eq, inArray } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
@@ -7,21 +8,11 @@ import { permission } from './schema/permission'
 import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 
-// Read PG_CONNECTION_STRING from process.env directly rather than via @config/env.
-// This script runs in two contexts (CI postinstall via `npm rebuild`; developer
-// bootstrap via `npm install`) where only the DB connection string is required —
-// importing the full env contract would fail validation on missing PASETO/SMTP
-// vars that this script never uses. See docs/environment-variables.md.
-const connectionString = process.env['PG_CONNECTION_STRING']
-if (!connectionString) {
-	throw new Error(
-		'PG_CONNECTION_STRING is required to run the seed script. ' +
-			'See docs/environment-variables.md for the supported delivery options.',
-	)
-}
-
+// Uses the db sub-schema (`@config/db.env`) so seed.ts gets fail-fast validation
+// for PG_CONNECTION_STRING without dragging in the PASETO/SMTP requirements of
+// the full env contract — the CI postinstall step only provides PG.
 const pool = new Pool({
-	connectionString,
+	connectionString: dbEnv.PG_CONNECTION_STRING,
 })
 
 const db = drizzle(pool)

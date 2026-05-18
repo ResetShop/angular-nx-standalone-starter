@@ -1,3 +1,4 @@
+import { dbEnv } from '@config/db.env'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
@@ -25,23 +26,11 @@ function computeOrphaned(existingNames: Set<string>) {
 	return [...existingNames].filter((name) => !codeNames.has(name))
 }
 
-// Read PG_CONNECTION_STRING from process.env directly rather than via @config/env.
-// This script is a one-off DB maintenance tool that only needs the DB connection
-// string — importing the full env contract would fail validation on missing
-// PASETO/SMTP vars that this script never uses. See docs/environment-variables.md.
-function getConnectionString(): string {
-	const connectionString = process.env['PG_CONNECTION_STRING']
-	if (!connectionString) {
-		throw new Error(
-			'PG_CONNECTION_STRING is required to run sync-permissions. ' +
-				'See docs/environment-variables.md for the supported delivery options.',
-		)
-	}
-	return connectionString
-}
-
 async function syncPermissions(): Promise<void> {
-	const pool = new Pool({ connectionString: getConnectionString() })
+	// Uses the db sub-schema (`@config/db.env`) so this script gets fail-fast
+	// validation for PG_CONNECTION_STRING without dragging in the PASETO/SMTP
+	// requirements of the full env contract.
+	const pool = new Pool({ connectionString: dbEnv.PG_CONNECTION_STRING })
 	const db = drizzle(pool)
 
 	try {
