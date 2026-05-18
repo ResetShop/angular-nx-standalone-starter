@@ -10,6 +10,7 @@
  * access is ESLint-forbidden everywhere except files matching `*.env.ts`.
  */
 import { z } from 'zod'
+import { formatZodError } from './env-utils'
 
 const DEFAULT_SMTP_PORT = 587
 const DEFAULT_SMTP_FROM = 'noreply@example.com'
@@ -46,10 +47,6 @@ export type EmailEnv = z.infer<typeof EmailEnvSchema>
 
 export function parseEmailEnv(rawEnv: NodeJS.ProcessEnv): EmailEnv {
 	return EmailEnvSchema.parse(rawEnv)
-}
-
-function formatZodError(error: z.ZodError): string {
-	return error.issues.map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`).join('\n')
 }
 
 let cachedEmailEnv: Readonly<EmailEnv> | null = null

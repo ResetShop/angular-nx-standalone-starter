@@ -20,6 +20,7 @@ import {
 	DEFAULT_MAX_FAILED_ATTEMPTS,
 	DEFAULT_REFRESH_TOKEN_EXPIRY,
 } from '../constants/auth.constants'
+import { formatZodError } from './env-utils'
 
 const DEFAULT_CLOCK_TOLERANCE = '1m'
 const DEFAULT_BCRYPT_COST = 12
@@ -69,10 +70,6 @@ export type AuthEnv = z.infer<typeof AuthEnvSchema>
 
 export function parseAuthEnv(rawEnv: NodeJS.ProcessEnv): AuthEnv {
 	return AuthEnvSchema.parse(rawEnv)
-}
-
-function formatZodError(error: z.ZodError): string {
-	return error.issues.map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`).join('\n')
 }
 
 let cachedAuthEnv: Readonly<AuthEnv> | null = null

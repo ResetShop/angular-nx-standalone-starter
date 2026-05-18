@@ -9,6 +9,7 @@
  * access is ESLint-forbidden everywhere except files matching `*.env.ts`.
  */
 import { z } from 'zod'
+import { formatZodError } from './env-utils'
 
 const DEFAULT_APP_LANGUAGE = 'en'
 
@@ -22,10 +23,6 @@ export type AppEnv = z.infer<typeof AppEnvSchema>
 
 export function parseAppEnv(rawEnv: NodeJS.ProcessEnv): AppEnv {
 	return AppEnvSchema.parse(rawEnv)
-}
-
-function formatZodError(error: z.ZodError): string {
-	return error.issues.map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`).join('\n')
 }
 
 let cachedAppEnv: Readonly<AppEnv> | null = null
@@ -58,6 +55,9 @@ export const appEnv: Readonly<AppEnv> = new Proxy({} as AppEnv, {
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
+// Empty — every field has a schema-level default or is optional, so
+// `parseAppEnv({})` succeeds. Kept for structural symmetry with the other
+// sub-schemas; tests that need overrides pass them to `seedAppEnv()`.
 const APP_ENV_TEST_DEFAULTS: NodeJS.ProcessEnv = {}
 
 export function seedAppEnv(overrides: Partial<Record<keyof AppEnv, string>> = {}): void {

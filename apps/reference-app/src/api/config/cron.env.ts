@@ -11,6 +11,7 @@
  * access is ESLint-forbidden everywhere except files matching `*.env.ts`.
  */
 import { z } from 'zod'
+import { formatZodError } from './env-utils'
 
 const CronEnvSchema = z.object({
 	TOKEN_CLEANUP_INTERVAL: z.string().optional(),
@@ -22,10 +23,6 @@ export type CronEnv = z.infer<typeof CronEnvSchema>
 
 export function parseCronEnv(rawEnv: NodeJS.ProcessEnv): CronEnv {
 	return CronEnvSchema.parse(rawEnv)
-}
-
-function formatZodError(error: z.ZodError): string {
-	return error.issues.map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`).join('\n')
 }
 
 let cachedCronEnv: Readonly<CronEnv> | null = null
@@ -58,6 +55,9 @@ export const cronEnv: Readonly<CronEnv> = new Proxy({} as CronEnv, {
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
+// Empty — all three fields are `z.string().optional()`, so `parseCronEnv({})`
+// succeeds with everything undefined. Kept for structural symmetry with the
+// other sub-schemas; tests that need overrides pass them to `seedCronEnv()`.
 const CRON_ENV_TEST_DEFAULTS: NodeJS.ProcessEnv = {}
 
 export function seedCronEnv(overrides: Partial<Record<keyof CronEnv, string>> = {}): void {

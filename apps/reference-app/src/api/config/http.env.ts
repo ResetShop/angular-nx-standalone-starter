@@ -11,6 +11,7 @@
  */
 import { parseDurationToSeconds } from '@resetshop/util'
 import { z } from 'zod'
+import { formatZodError } from './env-utils'
 
 const DEFAULT_PORT = 4000
 const DEFAULT_CORS_ORIGIN = 'http://localhost:4200'
@@ -31,10 +32,6 @@ export type HttpEnv = z.infer<typeof HttpEnvSchema>
 
 export function parseHttpEnv(rawEnv: NodeJS.ProcessEnv): HttpEnv {
 	return HttpEnvSchema.parse(rawEnv)
-}
-
-function formatZodError(error: z.ZodError): string {
-	return error.issues.map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`).join('\n')
 }
 
 let cachedHttpEnv: Readonly<HttpEnv> | null = null
@@ -75,6 +72,9 @@ export function isServerless(): boolean {
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
+// Empty — every field has a schema-level default, so `parseHttpEnv({})` succeeds
+// with the Zod-defined defaults. The const is kept for structural symmetry with
+// the other sub-schemas; tests that need overrides pass them to `seedHttpEnv()`.
 const HTTP_ENV_TEST_DEFAULTS: NodeJS.ProcessEnv = {}
 
 export function seedHttpEnv(overrides: Partial<Record<keyof HttpEnv, string>> = {}): void {

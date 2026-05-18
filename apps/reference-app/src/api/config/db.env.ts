@@ -12,6 +12,7 @@
  * is ESLint-forbidden everywhere except files matching `*.env.ts`.
  */
 import { z } from 'zod'
+import { formatZodError } from './env-utils'
 
 const DbEnvSchema = z.object({
 	PG_CONNECTION_STRING: z.string().min(1),
@@ -27,10 +28,6 @@ export type DbEnv = z.infer<typeof DbEnvSchema>
  */
 export function parseDbEnv(rawEnv: NodeJS.ProcessEnv): DbEnv {
 	return DbEnvSchema.parse(rawEnv)
-}
-
-function formatZodError(error: z.ZodError): string {
-	return error.issues.map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`).join('\n')
 }
 
 let cachedDbEnv: Readonly<DbEnv> | null = null
