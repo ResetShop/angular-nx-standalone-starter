@@ -177,6 +177,18 @@ jobs:
 
       - name: Run Tests
         run: npx nx run reference-app:e2e --skip-nx-cache
+        env:
+          # The Hono server's env contract (apps/reference-app/src/api/config/env.ts)
+          # validates all required fields on first property access. Playwright starts
+          # the dev server via webServer config, and the server's boot path
+          # (verifyHealth → container resolution → cron-jobs init) reads enough env
+          # to trigger full validation. We supply placeholders here because the e2e
+          # smoke test currently has no test files (./e2e/ doesn't exist) and doesn't
+          # exercise DB or auth endpoints — when real e2e tests land, swap these for
+          # a service container + meaningful values per docs/environment-variables.md.
+          PG_CONNECTION_STRING: postgresql://test:test@localhost:5432/test
+          PASETO_ISSUER: e2e-ci
+          EMAIL_PROVIDER: noop
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
