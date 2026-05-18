@@ -529,18 +529,18 @@ The authentication system uses HttpOnly cookies for refresh tokens, which requir
 CORS middleware is configured in `server.ts` with the following settings:
 
 ```typescript
-import { env } from '@config/env'
+import { httpEnv } from '@config/http.env'
 
 cors({
-	origin: env.CORS_ORIGIN,
+	origin: httpEnv.CORS_ORIGIN,
 	credentials: true,
 	allowHeaders: ['Content-Type', 'Authorization'],
 	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-	maxAge: env.CORS_MAX_AGE, // Default: 86400 (24 hours)
+	maxAge: httpEnv.CORS_MAX_AGE, // Default: 86400 (24 hours)
 })
 ```
 
-Both values come from the validated env contract — defaults are encoded in the Zod schema in `apps/reference-app/src/api/config/env.ts`.
+Both values come from the validated HTTP env sub-schema — defaults are encoded in the Zod schema in `apps/reference-app/src/api/config/http.env.ts`.
 
 ### Key Points
 
