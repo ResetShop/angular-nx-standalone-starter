@@ -16,17 +16,6 @@ seedDbEnv()
 seedAuthEnv()
 seedEmailEnv()
 
-// The legacy monolithic `@config/env` singleton still exists at this point
-// in the PR series and is still imported by ~12 production files. Until that
-// module is deleted (in the env.ts-removal commit later in this PR), it needs
-// these `process.env` values to satisfy its own validation on first access.
-// These writes become redundant — and the no-process-env exemption for this
-// file is removed — once `env.ts` is gone.
-process.env['PASETO_SECRET_KEY'] = '0123456789abcdef'.repeat(4)
-process.env['PASETO_ISSUER'] = 'test-issuer'
-process.env['EMAIL_PROVIDER'] = 'ethereal'
-process.env['PG_CONNECTION_STRING'] ??= 'postgresql://test:test@localhost:5432/test'
-
 // Extend Vitest's expect with Testing Library matchers
 expect.extend(matchers)
 

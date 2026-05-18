@@ -397,23 +397,21 @@ export default [
 	},
 	{
 		// Direct `process.env[...]` access is forbidden in production code so that
-		// the Zod schema in `@config/env` is the single source of truth.
-		// Allow-listed paths: the env module itself, vitest setup files,
-		// integration-test bootstraps, the test-utils files (which carry the
-		// loosened vi.* exemption — re-listed here so this block doesn't undo it),
-		// and the db/seed.ts + db/sync-permissions.ts scripts (entry-point tools
-		// that only need PG_CONNECTION_STRING and run in CI postinstall contexts
-		// where the full env contract isn't populated).
+		// the domain-scoped sub-schemas under `apps/**/src/api/config/*.env.ts`
+		// are the single source of truth. Allow-listed paths:
+		//   - The sub-schema modules themselves (matched by the `*.env.ts` glob)
+		//   - Integration-test bootstraps under `apps/**/src/api/integration/setup`,
+		//     which run in a separate Node worker process and must mutate
+		//     `process.env` before any sub-schema module loads in that process
+		//   - The `test-utils.ts` files in `apps/**/src/` and `packages/util/`,
+		//     which carry the loosened `vi.*` exemption — re-listed here so this
+		//     block doesn't undo it (neither actually reads `process.env`)
 		name: 'no-process-env',
 		files: ['apps/**/src/**/*.ts', 'packages/**/src/**/*.ts'],
 		ignores: [
-			'apps/**/src/api/config/env.ts',
 			'apps/**/src/api/config/*.env.ts',
-			'apps/**/src/test-setup.ts',
 			'apps/**/src/api/integration/setup/**/*.ts',
 			'apps/**/src/test-utils.ts',
-			'apps/**/src/db/seed.ts',
-			'apps/**/src/db/sync-permissions.ts',
 			'packages/util/src/lib/test-utils.ts',
 		],
 		rules: {
