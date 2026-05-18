@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { authEnv } from '@config/auth.env'
 
 /**
  * Frozen config consumed by `PasetoService`. All values flow from the validated
@@ -20,10 +20,10 @@ export interface PasetoConfig {
 
 export function createPasetoConfig(): PasetoConfig {
 	return Object.freeze({
-		secretKey: Buffer.from(env.PASETO_SECRET_KEY, 'hex'),
-		issuer: env.PASETO_ISSUER,
-		accessTokenExpiry: env.PASETO_ACCESS_TOKEN_EXPIRY,
-		refreshTokenExpiry: env.PASETO_REFRESH_TOKEN_EXPIRY,
-		clockTolerance: env.PASETO_CLOCK_TOLERANCE,
+		secretKey: Buffer.from(authEnv.PASETO_SECRET_KEY, 'hex'),
+		issuer: authEnv.PASETO_ISSUER,
+		accessTokenExpiry: authEnv.PASETO_ACCESS_TOKEN_EXPIRY,
+		refreshTokenExpiry: authEnv.PASETO_REFRESH_TOKEN_EXPIRY,
+		clockTolerance: authEnv.PASETO_CLOCK_TOLERANCE,
 	})
 }

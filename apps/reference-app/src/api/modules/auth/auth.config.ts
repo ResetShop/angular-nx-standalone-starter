@@ -1,4 +1,4 @@
-import { env, type Env } from '@config/env'
+import { authEnv, type AuthEnv } from '@config/auth.env'
 
 export interface AuthConfig {
 	/** Whether cookies require HTTPS. Defaults to true; set COOKIE_SECURE=false only for local dev. */
@@ -25,15 +25,16 @@ export function buildBaseCookieOptions(authConfig: AuthConfig) {
 }
 
 /**
- * Builds the frozen auth config object from the validated env contract.
- * All defaults and tolerant parsing live in `@config/env`; this function is a
- * thin re-shape that exposes auth-specific field names to consumers.
+ * Builds the frozen auth config object from the validated auth env contract.
+ * All defaults and tolerant parsing live in `@config/auth.env`; this function is
+ * a thin re-shape that exposes auth-specific field names to consumers.
  *
- * The `source` parameter defaults to the singleton `env` so production callers
- * have zero-arg ergonomics. Tests pass a custom `Env` (built via `parseEnv`) to
- * verify the key-to-field mapping without mutating `process.env`.
+ * The `source` parameter defaults to the singleton `authEnv` so production
+ * callers have zero-arg ergonomics. Tests pass a custom `AuthEnv` (built via
+ * `parseAuthEnv`) to verify the key-to-field mapping without mutating
+ * `process.env`.
  */
-export function createAuthConfig(source: Env = env): AuthConfig {
+export function createAuthConfig(source: AuthEnv = authEnv): AuthConfig {
 	return Object.freeze({
 		cookieSecure: source.COOKIE_SECURE,
 		accessTokenExpiry: source.PASETO_ACCESS_TOKEN_EXPIRY,

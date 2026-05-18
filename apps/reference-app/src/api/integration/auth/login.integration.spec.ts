@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { appEnv } from '@config/app.env'
 import type { OpenAPIHono } from '@hono/zod-openapi'
 import { loginAs } from '../setup/auth-helpers'
 import { getTestDb, resetAdminLockout } from '../setup/db-helpers'
@@ -9,7 +9,7 @@ describe('POST /api/auth/login', () => {
 	let adminPassword: string
 
 	beforeAll(() => {
-		const password = env.INTEGRATION_TEST_ADMIN_PASSWORD
+		const password = appEnv.INTEGRATION_TEST_ADMIN_PASSWORD
 		if (!password) {
 			throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD environment variable is required.')
 		}

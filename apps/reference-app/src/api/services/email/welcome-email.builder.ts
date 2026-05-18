@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { appEnv } from '@config/app.env'
 
 export interface WelcomeEmailParams {
 	firstName: string
@@ -59,7 +59,7 @@ function resolveEmailLanguage(lang: string | undefined): EmailLanguage {
  * @returns Email content with subject, HTML, and text versions
  */
 export function buildWelcomeEmail(params: WelcomeEmailParams, lang?: string): EmailContent {
-	const resolvedLang = resolveEmailLanguage(lang ?? env.APP_LANGUAGE)
+	const resolvedLang = resolveEmailLanguage(lang ?? appEnv.APP_LANGUAGE)
 	const t = EMAIL_TRANSLATIONS[resolvedLang]
 
 	const text = buildTextContent(params, t)

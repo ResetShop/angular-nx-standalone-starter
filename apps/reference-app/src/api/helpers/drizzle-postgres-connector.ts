@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { dbEnv } from '@config/db.env'
 import { authentication, authenticationRelations } from '@schema/authentication'
 import { permission, permissionRelations } from '@schema/permission'
 import { permissionRoute, permissionRouteRelations } from '@schema/permission-route'
@@ -40,14 +40,14 @@ const schema = {
  * Constructs the Drizzle PG connector. Wrapped in a factory so that the env
  * value `PG_CONNECTION_STRING` is read lazily — the Angular SSR prerender
  * worker imports the server bundle without env vars set, and a top-level
- * `drizzle(env.PG_CONNECTION_STRING, ...)` call here would trigger eager
+ * `drizzle(dbEnv.PG_CONNECTION_STRING, ...)` call here would trigger eager
  * validation and crash the worker.
  *
  * The DI container registers this as `asFunction(...).singleton()` so it's
  * called once on first cradle access in production.
  */
 export function createDrizzlePgConnector() {
-	return drizzle(env.PG_CONNECTION_STRING, { schema })
+	return drizzle(dbEnv.PG_CONNECTION_STRING, { schema })
 }
 
 // Type export for DI container

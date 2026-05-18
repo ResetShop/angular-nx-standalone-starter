@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { emailEnv } from '@config/email.env'
 import { logger } from '@resetshop/util'
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
@@ -23,21 +23,21 @@ export class NodemailerRepository implements EmailRepository {
 	private readonly fromAddress: string
 
 	constructor() {
-		const { SMTP_HOST: host, SMTP_USER: user, SMTP_PASS: pass } = env
+		const { SMTP_HOST: host, SMTP_USER: user, SMTP_PASS: pass } = emailEnv
 
-		// Defense-in-depth: the env schema's superRefine guarantees these are set
-		// when EMAIL_PROVIDER=nodemailer, but we keep the runtime guard so the
-		// constructor fails clearly if it's somehow instantiated without them.
+		// Defense-in-depth: the email env schema's superRefine guarantees these
+		// are set when EMAIL_PROVIDER=nodemailer, but we keep the runtime guard so
+		// the constructor fails clearly if it's somehow instantiated without them.
 		if (!host || !user || !pass) {
 			throw new Error('SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS')
 		}
 
-		this.fromAddress = env.SMTP_FROM
+		this.fromAddress = emailEnv.SMTP_FROM
 
 		this.transporter = nodemailer.createTransport({
 			host,
-			port: env.SMTP_PORT,
-			secure: env.SMTP_SECURE,
+			port: emailEnv.SMTP_PORT,
+			secure: emailEnv.SMTP_SECURE,
 			auth: {
 				user,
 				pass,

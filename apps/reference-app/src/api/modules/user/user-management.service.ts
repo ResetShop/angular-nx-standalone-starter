@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { authEnv } from '@config/auth.env'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
@@ -101,7 +101,7 @@ export class UserManagementService {
 		}
 
 		const plainPassword = await this.generatePassword()
-		const passwordHash = await hash(plainPassword, env.BCRYPT_COST)
+		const passwordHash = await hash(plainPassword, authEnv.BCRYPT_COST)
 
 		const mustChangePassword = params.mustChangePassword ?? true
 

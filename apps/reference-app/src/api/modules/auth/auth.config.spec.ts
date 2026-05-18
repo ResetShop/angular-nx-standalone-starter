@@ -1,13 +1,13 @@
-import { env, parseEnv } from '@config/env'
+import { authEnv, parseAuthEnv } from '@config/auth.env'
 import { describe, expect, it } from 'vitest'
 import { createAuthConfig } from './auth.config'
 
-// Per-field validation and default behavior live in env.spec.ts (the schema is
-// the source of truth). This spec covers the re-shape from env keys to
-// AuthConfig field names — invoked via the `parseEnv`-driven overload so the
-// mapping is verified without `process.env` mutation.
+// Per-field validation and default behavior live in auth.env.spec.ts (the
+// auth sub-schema is the source of truth). This spec covers the re-shape from
+// auth env keys to AuthConfig field names — invoked via the `parseAuthEnv`-driven
+// overload so the mapping is verified without `process.env` mutation.
 //
-// Explicitly NOT covered here (already in env.spec.ts):
+// Explicitly NOT covered here (already in auth.env.spec.ts):
 //   - schema-level validation of COOKIE_SECURE / PASETO_*_EXPIRY / etc.
 //   - tolerant fallback for AUTH_MAX_FAILED_ATTEMPTS and AUTH_LOCKOUT_DURATION
 //   - default values when env vars are unset
@@ -18,21 +18,19 @@ describe('createAuthConfig', () => {
 		expect(Object.isFrozen(createAuthConfig())).toBe(true)
 	})
 
-	it('mirrors the singleton env values onto AuthConfig field names', () => {
+	it('mirrors the singleton authEnv values onto AuthConfig field names', () => {
 		const config = createAuthConfig()
-		expect(config.cookieSecure).toBe(env.COOKIE_SECURE)
-		expect(config.accessTokenExpiry).toBe(env.PASETO_ACCESS_TOKEN_EXPIRY)
-		expect(config.refreshTokenExpiry).toBe(env.PASETO_REFRESH_TOKEN_EXPIRY)
-		expect(config.maxFailedAttempts).toBe(env.AUTH_MAX_FAILED_ATTEMPTS)
-		expect(config.lockoutDuration).toBe(env.AUTH_LOCKOUT_DURATION)
+		expect(config.cookieSecure).toBe(authEnv.COOKIE_SECURE)
+		expect(config.accessTokenExpiry).toBe(authEnv.PASETO_ACCESS_TOKEN_EXPIRY)
+		expect(config.refreshTokenExpiry).toBe(authEnv.PASETO_REFRESH_TOKEN_EXPIRY)
+		expect(config.maxFailedAttempts).toBe(authEnv.AUTH_MAX_FAILED_ATTEMPTS)
+		expect(config.lockoutDuration).toBe(authEnv.AUTH_LOCKOUT_DURATION)
 	})
 
-	it('maps each env field to the correct AuthConfig field via the explicit-env overload', () => {
-		const customEnv = parseEnv({
-			PG_CONNECTION_STRING: 'postgresql://test:test@localhost:5432/test',
+	it('maps each authEnv field to the correct AuthConfig field via the explicit-env overload', () => {
+		const customEnv = parseAuthEnv({
 			PASETO_SECRET_KEY: 'a'.repeat(64),
 			PASETO_ISSUER: 'mapping-test',
-			EMAIL_PROVIDER: 'ethereal',
 			COOKIE_SECURE: 'false',
 			PASETO_ACCESS_TOKEN_EXPIRY: '20m',
 			PASETO_REFRESH_TOKEN_EXPIRY: '14d',
@@ -52,11 +50,9 @@ describe('createAuthConfig', () => {
 	})
 
 	it('leaves cronSecret undefined when CRON_SECRET is unset', () => {
-		const customEnv = parseEnv({
-			PG_CONNECTION_STRING: 'postgresql://test:test@localhost:5432/test',
+		const customEnv = parseAuthEnv({
 			PASETO_SECRET_KEY: 'a'.repeat(64),
 			PASETO_ISSUER: 'mapping-test',
-			EMAIL_PROVIDER: 'ethereal',
 		})
 
 		expect(createAuthConfig(customEnv).cronSecret).toBeUndefined()

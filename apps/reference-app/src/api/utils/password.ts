@@ -1,4 +1,4 @@
-import { env } from '@config/env'
+import { appEnv } from '@config/app.env'
 import { logger } from '@resetshop/util'
 import { randomInt } from 'crypto'
 import { readFile } from 'fs/promises'
@@ -68,7 +68,7 @@ async function getWordList(language: string): Promise<readonly string[]> {
  * @param language - Word list language. Defaults to env.APP_LANGUAGE (`'en'` if unset).
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
-export async function generatePassword(wordCount = 3, language: string = env.APP_LANGUAGE): Promise<string> {
+export async function generatePassword(wordCount = 3, language: string = appEnv.APP_LANGUAGE): Promise<string> {
 	const parsed = wordCountSchema.safeParse(wordCount)
 	if (!parsed.success) {
 		logger.warn('generatePassword', `Invalid wordCount (${wordCount}), using default: ${parsed.error.message}`)
