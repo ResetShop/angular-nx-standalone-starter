@@ -1,4 +1,4 @@
-import { isPlatformBrowser, NgTemplateOutlet } from '@angular/common'
+import { NgTemplateOutlet } from '@angular/common'
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -11,7 +11,6 @@ import {
 	isDevMode,
 	linkedSignal,
 	output,
-	PLATFORM_ID,
 	signal,
 	type Signal,
 } from '@angular/core'
@@ -62,7 +61,6 @@ export type DataTableDisplayMode = 'table' | 'cards'
 })
 export class DataTable<T> {
 	private readonly translation = inject(Translation)
-	private readonly platformId = inject(PLATFORM_ID)
 
 	/** TanStack column definitions */
 	public readonly columns = input<ColumnDef<T, unknown>[]>([])
@@ -96,8 +94,10 @@ export class DataTable<T> {
 	 * switching.
 	 *
 	 * Only effective when an `appDataTableCardDef` template is projected.
-	 * Read at construction time — changing this input after construction has
-	 * no effect on the active observer.
+	 * Switching between breakpoints (e.g. `'sm'` → `'lg'`) at runtime works
+	 * correctly — each breakpoint has a pre-wired observer and `cardsBelowMatches`
+	 * routes reactively. What is resolved once at construction is the CSS custom
+	 * property read used to build each media query string.
 	 */
 	public readonly cardsBelow = input<BreakpointName | null>(null)
 
@@ -152,21 +152,15 @@ export class DataTable<T> {
 	})
 
 	/**
-	 * Per-breakpoint signals — subscribed lazily through `computed` below.
-	 * We observe all three Tailwind breakpoints up front (negligible cost: three
-	 * MediaQueryList listeners) so the component can react to a dynamic `cardsBelow`
-	 * binding without re-wiring its observers. On non-browser platforms we return
-	 * constant `false` signals to keep SSR safe.
+	 * Per-breakpoint signals — subscribed eagerly so the component can react to a
+	 * dynamic `cardsBelow` binding without re-wiring its observers. Negligible cost
+	 * (three MediaQueryList listeners). SSR safety is handled inside
+	 * `createBreakpointSignal`, which short-circuits to a constant `false` signal on
+	 * non-browser platforms.
 	 */
-	private readonly smMatches: Signal<boolean> = isPlatformBrowser(this.platformId)
-		? createBreakpointSignal('sm')
-		: signal(false).asReadonly()
-	private readonly mdMatches: Signal<boolean> = isPlatformBrowser(this.platformId)
-		? createBreakpointSignal('md')
-		: signal(false).asReadonly()
-	private readonly lgMatches: Signal<boolean> = isPlatformBrowser(this.platformId)
-		? createBreakpointSignal('lg')
-		: signal(false).asReadonly()
+	private readonly smMatches: Signal<boolean> = createBreakpointSignal('sm')
+	private readonly mdMatches: Signal<boolean> = createBreakpointSignal('md')
+	private readonly lgMatches: Signal<boolean> = createBreakpointSignal('lg')
 
 	/** Resolves the active breakpoint signal based on the current `cardsBelow` input. */
 	private readonly cardsBelowMatches = computed<boolean>(() => {
@@ -184,6 +178,16 @@ export class DataTable<T> {
 	 * so a user's explicit toggle action wins over the responsive default.
 	 */
 	protected readonly activeDisplayMode = linkedSignal<DataTableDisplayMode>(() => this.displayMode())
+
+	/**
+	 * Tracks whether the user has explicitly chosen a mode via the toggle.
+	 * Re-seeded from `displayMode()` so a parent re-assignment clears the flag and
+	 * the responsive `cardsBelow` rule takes over again.
+	 */
+	private readonly userOverrideActive = linkedSignal<DataTableDisplayMode, boolean>({
+		source: this.displayMode,
+		computation: () => false,
+	})
 
 	/** TanStack table instance */
 	protected readonly table = createAngularTable(() => {
@@ -238,6 +242,7 @@ export class DataTable<T> {
 		const active = this.activeDisplayMode()
 		const hasCard = this.cardDef() != null
 		if (!hasCard) return 'table'
+		if (this.userOverrideActive()) return active
 		if (active === 'cards') return 'cards'
 		if (this.cardsBelow() != null && this.cardsBelowMatches()) return 'cards'
 		return 'table'
@@ -311,6 +316,7 @@ export class DataTable<T> {
 	}
 
 	protected handleToggle(mode: DataTableDisplayMode): void {
+		this.userOverrideActive.set(true)
 		this.activeDisplayMode.set(mode)
 		this.displayModeChange.emit(mode)
 	}

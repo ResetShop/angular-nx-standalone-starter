@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing'
+import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { ManagedUser } from '@contracts/user/user.types'
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
@@ -10,7 +11,8 @@ import { createMockManagedUser } from '@providers/users/users.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
-import { fireEvent, render, screen } from '@testing-library/angular'
+import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
 import { UserCard } from './user-card'
 
 function buildUser(overrides: Partial<ManagedUser> = {}) {
@@ -85,17 +87,19 @@ describe('UserCard', () => {
 	})
 
 	it('emits edit when the edit button is clicked', async () => {
+		const user = userEvent.setup()
 		const { editSpy } = await renderCard()
 
-		fireEvent.click(screen.getByRole('button', { name: /edit/i }))
+		await user.click(screen.getByRole('button', { name: /edit/i }))
 
 		expect(editSpy.calls).toHaveLength(1)
 	})
 
 	it('emits delete when the delete button is clicked', async () => {
+		const user = userEvent.setup()
 		const { deleteSpy } = await renderCard()
 
-		fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+		await user.click(screen.getByRole('button', { name: /delete/i }))
 
 		expect(deleteSpy.calls).toHaveLength(1)
 	})
@@ -116,5 +120,14 @@ describe('UserCard', () => {
 
 		expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
 		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+	})
+})
+
+describe('permission identifiers', () => {
+	const validIdentifiers = new Set(PERMISSION_DEFINITIONS.map((p) => p.identifier))
+
+	it('should use valid permission identifiers', () => {
+		expect(validIdentifiers.has('admin:users:update')).toBe(true)
+		expect(validIdentifiers.has('admin:users:delete')).toBe(true)
 	})
 })

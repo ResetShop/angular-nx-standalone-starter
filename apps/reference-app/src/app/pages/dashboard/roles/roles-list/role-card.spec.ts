@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing'
+import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import type { RoleData } from '@contracts/role/role.types'
 import { mapRoleFromData } from '@domain/access/role.mapper'
 import { createMockUser } from '@mocks/user.mock'
@@ -9,7 +10,8 @@ import { createMockRoleData } from '@providers/roles/roles.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
-import { fireEvent, render, screen } from '@testing-library/angular'
+import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
 import { RoleCard } from './role-card'
 
 function buildRole(overrides: Partial<RoleData> = {}) {
@@ -71,18 +73,29 @@ describe('RoleCard', () => {
 	})
 
 	it('emits edit when the edit button is clicked', async () => {
+		const user = userEvent.setup()
 		const { editSpy } = await renderCard()
 
-		fireEvent.click(screen.getByRole('button', { name: /edit/i }))
+		await user.click(screen.getByRole('button', { name: /edit/i }))
 
 		expect(editSpy.calls).toHaveLength(1)
 	})
 
 	it('emits delete when the delete button is clicked', async () => {
+		const user = userEvent.setup()
 		const { deleteSpy } = await renderCard({ removable: true })
 
-		fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+		await user.click(screen.getByRole('button', { name: /delete/i }))
 
 		expect(deleteSpy.calls).toHaveLength(1)
+	})
+})
+
+describe('permission identifiers', () => {
+	const validIdentifiers = new Set(PERMISSION_DEFINITIONS.map((p) => p.identifier))
+
+	it('should use valid permission identifiers', () => {
+		expect(validIdentifiers.has('admin:roles:update')).toBe(true)
+		expect(validIdentifiers.has('admin:roles:delete')).toBe(true)
 	})
 })

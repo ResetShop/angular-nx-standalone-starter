@@ -634,11 +634,12 @@ describe('DataTable', () => {
 				},
 			)
 
-			expect(screen.getByRole('group', { name: 'Admin' })).toBeInTheDocument()
-			expect(screen.getByRole('group', { name: 'Editor' })).toBeInTheDocument()
-			expect(screen.getByText('Card: Alice')).toBeInTheDocument()
+			const adminGroup = screen.getByRole('group', { name: /admin/i })
+			expect(adminGroup).toBeInTheDocument()
+			expect(screen.getByRole('group', { name: /editor/i })).toBeInTheDocument()
+			expect(within(adminGroup).getByText('Card: Alice')).toBeInTheDocument()
+			expect(within(adminGroup).getByText('Card: Carol')).toBeInTheDocument()
 			expect(screen.getByText('Card: Bob')).toBeInTheDocument()
-			expect(screen.getByText('Card: Carol')).toBeInTheDocument()
 		})
 
 		it('does not render a collapse button in card mode for grouped rows', async () => {
@@ -845,6 +846,32 @@ describe('DataTable', () => {
 
 			expect(screen.queryByRole('table')).not.toBeInTheDocument()
 			expect(screen.getByRole('list')).toBeInTheDocument()
+		})
+
+		it('lets the user explicitly switch to table mode even when the cardsBelow breakpoint matches', async () => {
+			const user = userEvent.setup()
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" cardsBelow="sm" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: createBreakpointObserverMock(true) },
+					],
+				},
+			)
+
+			// Initial render: breakpoint matches, so card list shows.
+			expect(screen.getByRole('list')).toBeInTheDocument()
+
+			await user.click(screen.getByRole('button', { name: /table view/i }))
+
+			// Explicit user toggle wins over breakpoint.
+			expect(screen.getByRole('table')).toBeInTheDocument()
+			expect(screen.queryByRole('list')).not.toBeInTheDocument()
 		})
 	})
 })
