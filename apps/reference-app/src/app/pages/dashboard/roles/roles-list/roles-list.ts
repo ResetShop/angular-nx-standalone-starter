@@ -11,12 +11,15 @@ import {
 import { PageShell } from '@components/page-shell/page-shell'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherEdit3, featherTrash2 } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
+import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
 import { AuthStore } from '@store/auth/auth.store'
@@ -25,6 +28,7 @@ import { createMutationToast } from '@store/ui/mutation-toast'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer'
 import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
+import { RoleCard } from './role-card'
 
 @Component({
 	selector: 'app-roles-list',
@@ -35,13 +39,17 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		ConfirmDialog,
 		CreateRoleDrawer,
 		DataTable,
+		DataTableCardDef,
 		DataTableCellDef,
 		EditRoleDrawer,
 		HasPermissionDirective,
+		NgIcon,
 		PageShell,
 		Pagination,
+		RoleCard,
 		TranslatePipe,
 	],
+	viewProviders: [provideIcons({ featherEdit3, featherTrash2 })],
 	template: `
 		<app-page-shell
 			[loading]="store.isLoadingList()"
@@ -72,30 +80,48 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 				[data]="store.roles()"
 				[loading]="store.isMutating()"
 				[caption]="'ROLES.TABLE.CAPTION' | translate"
+				[displayModes]="displayModes"
+				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="code" let-value>
 					<span appBadge variant="secondary">{{ value }}</span>
 				</ng-template>
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
-					<div class="flex gap-2">
+					<!-- gap-4 (16px) > data-touch-target -inset-3 (12px) — prevents sibling hit-area overlap. -->
+					<div class="flex gap-4">
 						<button
 							(click)="editDrawer.open(row.id)"
 							*hasPermission="'admin:roles:update'"
 							appButton
 							variant="ghost"
 							size="sm"
+							data-touch-target
 						>
-							{{ 'COMMON.EDIT' | translate }}
+							<ng-icon data-icon="start" name="featherEdit3" />
+							<span class="sr-only sm:not-sr-only">{{ 'COMMON.EDIT' | translate }}</span>
 						</button>
 						<ng-container *hasPermission="'admin:roles:delete'">
 							@if (row.removable) {
-								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-									{{ 'COMMON.DELETE' | translate }}
+								<button
+									(click)="confirmDelete(row)"
+									appButton
+									variant="ghost"
+									size="sm"
+									class="text-destructive"
+									data-touch-target
+								>
+									<ng-icon data-icon="start" name="featherTrash2" />
+									<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
 								</button>
 							}
 						</ng-container>
 					</div>
+				</ng-template>
+
+				<ng-template appDataTableCardDef let-row>
+					<app-role-card (edit)="editDrawer.open(row.id)" (delete)="confirmDelete(row)" [role]="row" />
 				</ng-template>
 			</app-data-table>
 
@@ -126,6 +152,7 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore)
+	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)

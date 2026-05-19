@@ -213,6 +213,11 @@ const en: TranslationSchema = {
 	DATA_TABLE: {
 		EMPTY: 'No data available',
 		LOADING: 'Loading...',
+		TOGGLE: {
+			TABLE: 'Table view',
+			CARDS: 'Card view',
+			GROUP_LABEL: 'Display mode',
+		},
 	},
 	PAGINATION: {
 		LABEL: 'Pagination',

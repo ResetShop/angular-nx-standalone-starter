@@ -5,14 +5,16 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
+import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { PermissionsStore } from '@store/permissions/permissions.store'
 import type { ColumnDef } from '@tanstack/angular-table'
+import { PermissionCard } from './permission-card'
 
 @Component({
 	selector: 'app-permissions-list',
 	standalone: true,
-	imports: [Badge, DataTable, DataTableCellDef, PageShell, TranslatePipe],
+	imports: [Badge, DataTable, DataTableCardDef, DataTableCellDef, PageShell, PermissionCard, TranslatePipe],
 	template: `
 		<app-page-shell
 			[loading]="store.isLoading()"
@@ -31,9 +33,16 @@ import type { ColumnDef } from '@tanstack/angular-table'
 				[loading]="store.isLoading()"
 				[grouping]="grouping"
 				[caption]="'PERMISSIONS.TABLE.CAPTION' | translate"
+				[displayModes]="displayModes"
+				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="identifier" let-value>
 					<span appBadge variant="secondary">{{ value }}</span>
+				</ng-template>
+
+				<ng-template appDataTableCardDef let-row>
+					<app-permission-card [permission]="row" />
 				</ng-template>
 			</app-data-table>
 		</app-page-shell>
@@ -42,6 +51,8 @@ import type { ColumnDef } from '@tanstack/angular-table'
 })
 export default class PermissionsList {
 	protected readonly store = inject(PermissionsStore)
+	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
+
 	private readonly translation = inject(Translation)
 
 	protected readonly columns: ColumnDef<IPermission, unknown>[] = [

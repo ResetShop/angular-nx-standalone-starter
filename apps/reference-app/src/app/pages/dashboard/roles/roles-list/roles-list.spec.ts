@@ -1,3 +1,4 @@
+import { BreakpointObserver } from '@angular/cdk/layout'
 import { TestBed } from '@angular/core/testing'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
@@ -26,6 +27,7 @@ import RolesList from './roles-list'
 describe('RolesList', () => {
 	let rolesApiMock: Record<keyof RolesApi, MockFn>
 	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
+	let breakpointObserverMock: { observe: MockFn }
 
 	beforeEach(() => {
 		clearAllMocks()
@@ -44,6 +46,10 @@ describe('RolesList', () => {
 
 		permissionsApiMock = {
 			getAllUnpaginated: fn(),
+		}
+
+		breakpointObserverMock = {
+			observe: fn().mockReturnValue(of({ matches: false, breakpoints: {} })),
 		}
 
 		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
@@ -66,6 +72,7 @@ describe('RolesList', () => {
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
 		})
 		setUserWithAllPermissions()
@@ -84,6 +91,7 @@ describe('RolesList', () => {
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
 		})
 		setUserWithAllPermissions()
@@ -247,6 +255,7 @@ describe('RolesList', () => {
 					{ provide: PermissionsApi, useValue: permissionsApiMock },
 					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 				],
 			})
 

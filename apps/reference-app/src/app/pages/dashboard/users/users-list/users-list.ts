@@ -12,12 +12,15 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { NgIcon, provideIcons } from '@ng-icons/core'
+import { featherEdit3, featherTrash2 } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
+import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
 import { AuthStore } from '@store/auth/auth.store'
@@ -26,6 +29,7 @@ import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
 import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
+import { UserCard } from './user-card'
 
 @Component({
 	selector: 'app-users-list',
@@ -36,13 +40,17 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		ConfirmDialog,
 		CreateUserDrawer,
 		DataTable,
+		DataTableCardDef,
 		DataTableCellDef,
 		EditUserDrawer,
 		HasPermissionDirective,
+		NgIcon,
 		PageShell,
 		Pagination,
 		TranslatePipe,
+		UserCard,
 	],
+	viewProviders: [provideIcons({ featherEdit3, featherTrash2 })],
 	template: `
 		<app-page-shell
 			[loading]="store.isLoadingList()"
@@ -73,6 +81,9 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 				[data]="store.users()"
 				[loading]="store.isMutating()"
 				[caption]="'USERS.TABLE.CAPTION' | translate"
+				[displayModes]="displayModes"
+				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="status" let-value>
 					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
@@ -81,15 +92,18 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 				</ng-template>
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
-					<div class="flex gap-2">
+					<!-- gap-4 (16px) > data-touch-target -inset-3 (12px) — prevents sibling hit-area overlap. -->
+					<div class="flex gap-4">
 						<button
 							(click)="editDrawer.open(row.id)"
 							*hasPermission="'admin:users:update'"
 							appButton
 							variant="ghost"
 							size="sm"
+							data-touch-target
 						>
-							{{ 'COMMON.EDIT' | translate }}
+							<ng-icon data-icon="start" name="featherEdit3" />
+							<span class="sr-only sm:not-sr-only">{{ 'COMMON.EDIT' | translate }}</span>
 						</button>
 						<button
 							(click)="confirmDelete(row)"
@@ -98,10 +112,16 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 							variant="ghost"
 							size="sm"
 							class="text-destructive"
+							data-touch-target
 						>
-							{{ 'COMMON.DELETE' | translate }}
+							<ng-icon data-icon="start" name="featherTrash2" />
+							<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
 						</button>
 					</div>
+				</ng-template>
+
+				<ng-template appDataTableCardDef let-row>
+					<app-user-card (edit)="editDrawer.open(row.id)" (delete)="confirmDelete(row)" [user]="row" />
 				</ng-template>
 			</app-data-table>
 
@@ -133,6 +153,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
 	protected readonly UserStatus = UserStatus
+	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
@@ -160,7 +181,7 @@ export default class UsersList {
 			{
 				id: 'roles',
 				header: this.translation.instant('USERS.TABLE.HEADER.ROLES'),
-				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
+				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '—'),
 			},
 		]
 		const user = this.authStore.currentUser()
