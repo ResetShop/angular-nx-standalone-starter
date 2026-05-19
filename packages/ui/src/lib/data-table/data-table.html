@@ -126,22 +126,34 @@
 			{{ loadingMessage }}
 		</div>
 	</li>
-	} @else { @for (row of table.getRowModel().rows; track row.id) { @if (row.getIsGrouped()) {
-	<!-- Non-interactive section header — card mode flattens collapse/expand. -->
-	<li
-		[attr.aria-label]="resolveGroupLabel(row)"
-		role="group"
-		class="border-b border-gray-200 pt-3 pb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:border-gray-700 dark:text-gray-400"
-	>
-		{{ resolveGroupLabel(row) }}
-		<span class="ml-1 font-normal normal-case">({{ row.subRows.length }})</span>
+	} @else { @for (row of table.getRowModel().rows; track row.id) { @if (row.depth === 0) { @if (row.getIsGrouped()) {
+	<!-- Group container — section header `<h3>` is a DOM child of the group, so screen readers associate the nested cards via `aria-labelledby`. -->
+	<li [attr.aria-labelledby]="'group-' + row.id" role="group">
+		<h3
+			[id]="'group-' + row.id"
+			class="border-b border-gray-200 pt-3 pb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:border-gray-700 dark:text-gray-400"
+		>
+			{{ resolveGroupLabel(row) }}
+			<span class="ml-1 font-normal normal-case">({{ row.subRows.length }})</span>
+		</h3>
+		<ul role="list" class="mt-2 flex flex-col gap-4">
+			@for (subRow of row.subRows; track subRow.id) {
+			<li>
+				<!-- cardDefTemplate() is non-null here: resolvedDisplayMode === 'cards' guards cardDef presence. -->
+				<ng-container
+					[ngTemplateOutlet]="cardDefTemplate()!"
+					[ngTemplateOutletContext]="{ $implicit: subRow.original }"
+				/>
+			</li>
+			}
+		</ul>
 	</li>
 	} @else {
 	<li>
 		<!-- cardDefTemplate() is non-null here: resolvedDisplayMode === 'cards' guards cardDef presence. -->
 		<ng-container [ngTemplateOutlet]="cardDefTemplate()!" [ngTemplateOutletContext]="{ $implicit: row.original }" />
 	</li>
-	} } @empty {
+	} } } @empty {
 	<li class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" role="status" aria-live="polite">
 		{{ emptyMessage() }}
 	</li>
