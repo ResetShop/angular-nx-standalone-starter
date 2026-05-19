@@ -128,27 +128,4 @@ describe('PermissionsList', () => {
 		expect(screen.getByText('admin:users:read')).toBeInTheDocument()
 		expect(screen.getByText('Can read user records')).toBeInTheDocument()
 	})
-
-	describe('responsive display mode', () => {
-		it('should render the table on desktop viewports', async () => {
-			const permissions = [createMockPermissionData()]
-			permissionsApiMock.getAllUnpaginated.mockReturnValue(of(permissions))
-
-			await renderComponent()
-
-			expect(screen.getByRole('table')).toBeInTheDocument()
-			expect(screen.queryByRole('list')).not.toBeInTheDocument()
-		})
-
-		it('should render the card list on mobile viewports', async () => {
-			breakpointObserverMock.observe.mockReturnValue(of({ matches: true, breakpoints: {} }))
-			const permissions = [createMockPermissionData()]
-			permissionsApiMock.getAllUnpaginated.mockReturnValue(of(permissions))
-
-			await renderComponent()
-
-			expect(screen.queryByRole('table')).not.toBeInTheDocument()
-			expect(screen.getByRole('list')).toBeInTheDocument()
-		})
-	})
 })

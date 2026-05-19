@@ -1,8 +1,10 @@
+import { BreakpointObserver } from '@angular/cdk/layout'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { fn, spyOn } from '@resetshop/util/test-utils'
+import { fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { type ColumnDef } from '@tanstack/angular-table'
-import { type RenderResult, render, screen, within } from '@testing-library/angular'
+import { render, type RenderResult, screen, within } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
+import { of } from 'rxjs'
 import { DataTable } from './data-table'
 import { DataTableCardDef } from './data-table-card-def'
 import { DataTableCellDef } from './data-table-cell-def'
@@ -33,10 +35,17 @@ const testData: TestData[] = [
 const TRANSLATIONS: Record<string, string> = {
 	'DATA_TABLE.EMPTY': 'No data available',
 	'DATA_TABLE.LOADING': 'Loading...',
+	'DATA_TABLE.TOGGLE.TABLE': 'Table view',
+	'DATA_TABLE.TOGGLE.CARDS': 'Card view',
+	'DATA_TABLE.TOGGLE.GROUP_LABEL': 'Display mode',
 }
 
 const mockTranslation = {
 	instant: (key: string) => TRANSLATIONS[key] ?? key,
+}
+
+function createBreakpointObserverMock(matches: boolean): { observe: MockFn } {
+	return { observe: fn().mockReturnValue(of({ matches, breakpoints: {} })) }
 }
 
 describe('DataTable', () => {
@@ -600,6 +609,242 @@ describe('DataTable', () => {
 			const cards = screen.getAllByText(/Card:/)
 			expect(cards[0]).toHaveTextContent('Card: John Doe')
 			expect(cards[1]).toHaveTextContent('Card: Jane Smith')
+		})
+
+		it('renders inline section headers for grouped rows in card mode', async () => {
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+				{ accessorKey: 'email', header: 'Email', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [
+				{ name: 'Alice', role: 'Admin', email: 'alice@example.com' },
+				{ name: 'Bob', role: 'Editor', email: 'bob@example.com' },
+				{ name: 'Carol', role: 'Admin', email: 'carol@example.com' },
+			]
+
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [grouping]="grouping" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: groupableColumns, data: groupedData, grouping: ['role'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByRole('group', { name: 'Admin' })).toBeInTheDocument()
+			expect(screen.getByRole('group', { name: 'Editor' })).toBeInTheDocument()
+			expect(screen.getByText('Card: Alice')).toBeInTheDocument()
+			expect(screen.getByText('Card: Bob')).toBeInTheDocument()
+			expect(screen.getByText('Card: Carol')).toBeInTheDocument()
+		})
+
+		it('does not render a collapse button in card mode for grouped rows', async () => {
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [{ name: 'Alice', role: 'Admin', email: '' }]
+
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [grouping]="grouping" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: groupableColumns, data: groupedData, grouping: ['role'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.queryByRole('button', { name: /admin/i })).not.toBeInTheDocument()
+		})
+	})
+
+	describe('Display-mode toggle', () => {
+		it('renders the toggle group when displayModes has both table and cards and a card def is projected', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByRole('group', { name: /display mode/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /table view/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /card view/i })).toBeInTheDocument()
+		})
+
+		it('does not render the toggle when displayModes has a single entry', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.queryByRole('group', { name: /display mode/i })).not.toBeInTheDocument()
+		})
+
+		it('does not render the toggle when no card def is projected even with multiple modes', async () => {
+			await render(DataTable<TestData>, {
+				inputs: { columns: testColumns, data: testData, displayModes: ['table', 'cards'] },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.queryByRole('group', { name: /display mode/i })).not.toBeInTheDocument()
+		})
+
+		it('switches to card mode when the cards button is clicked', async () => {
+			const user = userEvent.setup()
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByRole('table')).toBeInTheDocument()
+
+			await user.click(screen.getByRole('button', { name: /card view/i }))
+
+			expect(screen.queryByRole('table')).not.toBeInTheDocument()
+			expect(screen.getByText('Card: John Doe')).toBeInTheDocument()
+		})
+
+		it('reflects active mode via aria-pressed on each toggle button', async () => {
+			const user = userEvent.setup()
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByRole('button', { name: /table view/i })).toHaveAttribute('aria-pressed', 'true')
+			expect(screen.getByRole('button', { name: /card view/i })).toHaveAttribute('aria-pressed', 'false')
+
+			await user.click(screen.getByRole('button', { name: /card view/i }))
+
+			expect(screen.getByRole('button', { name: /table view/i })).toHaveAttribute('aria-pressed', 'false')
+			expect(screen.getByRole('button', { name: /card view/i })).toHaveAttribute('aria-pressed', 'true')
+		})
+
+		it('emits displayModeChange when the toggle is clicked', async () => {
+			const user = userEvent.setup()
+			const changeSpy = fn<[string], void>()
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes" (displayModeChange)="onChange($event)">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: {
+						columns: testColumns,
+						data: testData,
+						modes: ['table', 'cards'],
+						onChange: changeSpy,
+					},
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			await user.click(screen.getByRole('button', { name: /card view/i }))
+
+			expect(changeSpy.calls).toContainEqual(['cards'])
+		})
+
+		it('applies data-touch-target to toggle buttons', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByRole('button', { name: /table view/i })).toHaveAttribute('data-touch-target')
+			expect(screen.getByRole('button', { name: /card view/i })).toHaveAttribute('data-touch-target')
+		})
+	})
+
+	describe('cardsBelow responsive input', () => {
+		it('renders the card list when the breakpoint matches', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" cardsBelow="sm">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: createBreakpointObserverMock(true) },
+					],
+				},
+			)
+
+			expect(screen.queryByRole('table')).not.toBeInTheDocument()
+			expect(screen.getByRole('list')).toBeInTheDocument()
+		})
+
+		it('renders the table when the breakpoint does not match', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" cardsBelow="sm">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: createBreakpointObserverMock(false) },
+					],
+				},
+			)
+
+			expect(screen.getByRole('table')).toBeInTheDocument()
+			expect(screen.queryByRole('list')).not.toBeInTheDocument()
+		})
+
+		it('respects an explicit displayMode=cards even when the breakpoint does not match', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" cardsBelow="sm" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: createBreakpointObserverMock(false) },
+					],
+				},
+			)
+
+			expect(screen.queryByRole('table')).not.toBeInTheDocument()
+			expect(screen.getByRole('list')).toBeInTheDocument()
 		})
 	})
 })

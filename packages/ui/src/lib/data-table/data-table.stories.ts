@@ -65,6 +65,7 @@ const sampleData: User[] = [
 				[grouping]="resolvedGrouping()"
 				[expandedByDefault]="expandedByDefault()"
 				[displayMode]="displayMode()"
+				[displayModes]="displayModes()"
 			>
 				<ng-template appDataTableCardDef let-row>
 					<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
@@ -100,6 +101,7 @@ class DataTableStoryComponent {
 	public readonly expandedByDefault = input(true)
 	public readonly showData = input(true)
 	public readonly displayMode = input<'table' | 'cards'>('table')
+	public readonly displayModes = input<Array<'table' | 'cards'>>(['table'])
 
 	/**
 	 * Grouping column selector. Maps a user-friendly label to the actual column ID.
@@ -319,6 +321,16 @@ export class UserListComponent {
 				defaultValue: { summary: 'table' },
 			},
 		},
+		displayModes: {
+			control: 'inline-check',
+			options: ['table', 'cards'],
+			description:
+				'Modes available in the toggle group. When this contains more than one entry and a card template is projected, the toggle renders.',
+			table: {
+				type: { summary: "Array<'table' | 'cards'>" },
+				defaultValue: { summary: "['table']" },
+			},
+		},
 		language: {
 			control: 'select',
 			options: ['en', 'es'],
@@ -371,6 +383,45 @@ export const PlaygroundWithCardToggle: Story = {
 		loading: false,
 		caption: 'Users table',
 		groupBy: 'none',
+		expandedByDefault: true,
+		pageSize: 0,
+		language: 'en',
+		displayMode: 'cards',
+	},
+}
+
+/**
+ * Renders the DataTable with the table/cards toggle visible in the top-right corner.
+ * Click the icons to switch modes. Initial state is `table`.
+ */
+export const WithToggleControl: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
+		loading: false,
+		caption: 'Users table',
+		groupBy: 'none',
+		expandedByDefault: true,
+		pageSize: 0,
+		language: 'en',
+		displayMode: 'table',
+		displayModes: ['table', 'cards'],
+	},
+}
+
+/**
+ * Card mode with TanStack grouping by `role` — non-interactive section headers
+ * render inline above the cards in each group. No collapse toggle in card mode.
+ */
+export const GroupedCards: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
+		loading: false,
+		caption: 'Users table',
+		groupBy: 'role',
 		expandedByDefault: true,
 		pageSize: 0,
 		language: 'en',
