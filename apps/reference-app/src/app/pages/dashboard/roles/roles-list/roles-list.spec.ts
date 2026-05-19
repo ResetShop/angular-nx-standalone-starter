@@ -1,3 +1,4 @@
+import { BreakpointObserver } from '@angular/cdk/layout'
 import { TestBed } from '@angular/core/testing'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
@@ -26,6 +27,7 @@ import RolesList from './roles-list'
 describe('RolesList', () => {
 	let rolesApiMock: Record<keyof RolesApi, MockFn>
 	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
+	let breakpointObserverMock: { observe: MockFn }
 
 	beforeEach(() => {
 		clearAllMocks()
@@ -44,6 +46,10 @@ describe('RolesList', () => {
 
 		permissionsApiMock = {
 			getAllUnpaginated: fn(),
+		}
+
+		breakpointObserverMock = {
+			observe: fn().mockReturnValue(of({ matches: false, breakpoints: {} })),
 		}
 
 		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
@@ -66,6 +72,7 @@ describe('RolesList', () => {
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
 		})
 		setUserWithAllPermissions()
@@ -84,6 +91,7 @@ describe('RolesList', () => {
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
 		})
 		setUserWithAllPermissions()
@@ -283,6 +291,29 @@ describe('RolesList', () => {
 			await renderWithPermissions(['admin:roles:read', 'admin:roles:create'])
 
 			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
+		})
+	})
+
+	describe('responsive display mode', () => {
+		it('should render the table on desktop viewports', async () => {
+			const roles = [createMockRoleData()]
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
+
+			await renderComponent()
+
+			expect(screen.getByRole('table')).toBeInTheDocument()
+			expect(screen.queryByRole('list')).not.toBeInTheDocument()
+		})
+
+		it('should render the card list on mobile viewports', async () => {
+			breakpointObserverMock.observe.mockReturnValue(of({ matches: true, breakpoints: {} }))
+			const roles = [createMockRoleData()]
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
+
+			await renderComponent()
+
+			expect(screen.queryByRole('table')).not.toBeInTheDocument()
+			expect(screen.getByRole('list')).toBeInTheDocument()
 		})
 	})
 })

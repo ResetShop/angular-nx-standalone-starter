@@ -1,3 +1,4 @@
+import { BreakpointObserver } from '@angular/cdk/layout'
 import { TestBed } from '@angular/core/testing'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { PermissionsApi } from '@providers/permissions/permissions.interface'
@@ -18,6 +19,7 @@ import PermissionsList from './permissions-list'
 
 describe('PermissionsList', () => {
 	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
+	let breakpointObserverMock: { observe: MockFn }
 
 	beforeEach(() => {
 		clearAllMocks()
@@ -26,6 +28,10 @@ describe('PermissionsList', () => {
 
 		permissionsApiMock = {
 			getAllUnpaginated: fn(),
+		}
+
+		breakpointObserverMock = {
+			observe: fn().mockReturnValue(of({ matches: false, breakpoints: {} })),
 		}
 
 		permissionsApiMock.getAllUnpaginated.mockReturnValue(of([]))
@@ -40,6 +46,7 @@ describe('PermissionsList', () => {
 			providers: [
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
 				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
 		})
 		TestBed.tick()
