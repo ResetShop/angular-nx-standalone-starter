@@ -4,6 +4,7 @@ import { type ColumnDef } from '@tanstack/angular-table'
 import { type RenderResult, render, screen, within } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import { DataTable } from './data-table'
+import { DataTableCardDef } from './data-table-card-def'
 import { DataTableCellDef } from './data-table-cell-def'
 
 interface TestData {
@@ -501,6 +502,104 @@ describe('DataTable', () => {
 				expect(screen.getByRole('button', { name: /alice/i })).toBeInTheDocument()
 				expect(screen.getByRole('button', { name: /carol/i })).toBeInTheDocument()
 			})
+		})
+	})
+
+	describe('Card mode', () => {
+		it('should render the card template when displayMode is "cards" and a card def is projected', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByRole('list')).toBeInTheDocument()
+			expect(screen.queryByRole('table')).not.toBeInTheDocument()
+			expect(screen.getByText('Card: John Doe')).toBeInTheDocument()
+			expect(screen.getByText('Card: Jane Smith')).toBeInTheDocument()
+		})
+
+		it('should fall back to table mode when displayMode is "cards" but no card def is projected', async () => {
+			await render(DataTable<TestData>, {
+				inputs: { columns: testColumns, data: testData, displayMode: 'cards' },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByRole('table')).toBeInTheDocument()
+			expect(screen.queryByRole('list')).not.toBeInTheDocument()
+		})
+
+		it('should show loading state in card mode', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [loading]="true" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByText('Loading...')).toBeInTheDocument()
+			expect(screen.getByRole('list')).toHaveAttribute('aria-busy', 'true')
+		})
+
+		it('should show the empty message in card mode when there is no data', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: [] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByText('No data available')).toBeInTheDocument()
+		})
+
+		it('should preserve sort order in card mode', async () => {
+			const user = userEvent.setup()
+			const sortableColumns: ColumnDef<TestData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: true },
+				{ accessorKey: 'email', header: 'Email', enableSorting: false },
+			]
+			const { rerender } = await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayMode]="displayMode">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: {
+						columns: sortableColumns,
+						data: testData,
+						displayMode: 'table' as 'table' | 'cards',
+					},
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			await user.click(screen.getByRole('columnheader', { name: /name/i }))
+			await user.click(screen.getByRole('columnheader', { name: /name/i }))
+
+			await rerender({
+				componentProperties: {
+					columns: sortableColumns,
+					data: testData,
+					displayMode: 'cards' as 'table' | 'cards',
+				},
+			})
+
+			const cards = screen.getAllByText(/Card:/)
+			expect(cards[0]).toHaveTextContent('Card: John Doe')
+			expect(cards[1]).toHaveTextContent('Card: Jane Smith')
 		})
 	})
 })

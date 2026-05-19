@@ -5,6 +5,7 @@ import { applicationConfig } from '@storybook/angular'
 import { type ColumnDef } from '@tanstack/angular-table'
 import { Pagination } from '../pagination/pagination'
 import { DataTable } from './data-table'
+import { DataTableCardDef } from './data-table-card-def'
 import { DataTableCellDef } from './data-table-cell-def'
 
 interface User {
@@ -52,7 +53,7 @@ const sampleData: User[] = [
 @Component({
 	selector: 'app-data-table-story',
 	standalone: true,
-	imports: [DataTable, Pagination],
+	imports: [DataTable, DataTableCardDef, Pagination],
 	template: `
 		@if (isReady()) {
 			<app-data-table
@@ -63,7 +64,16 @@ const sampleData: User[] = [
 				[emptyMessage]="resolvedEmptyMessage()"
 				[grouping]="resolvedGrouping()"
 				[expandedByDefault]="expandedByDefault()"
-			/>
+				[displayMode]="displayMode()"
+			>
+				<ng-template appDataTableCardDef let-row>
+					<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+						<p class="font-medium text-gray-900 dark:text-gray-100">{{ row.name }}</p>
+						<p class="text-sm text-gray-500 dark:text-gray-400">{{ row.email }}</p>
+						<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ row.role }} · {{ row.location }}</p>
+					</div>
+				</ng-template>
+			</app-data-table>
 			@if (pageSize() > 0) {
 				<div class="mt-4">
 					<app-pagination
@@ -89,6 +99,7 @@ class DataTableStoryComponent {
 	public readonly language = input<Language>('en')
 	public readonly expandedByDefault = input(true)
 	public readonly showData = input(true)
+	public readonly displayMode = input<'table' | 'cards'>('table')
 
 	/**
 	 * Grouping column selector. Maps a user-friendly label to the actual column ID.
@@ -292,6 +303,15 @@ export class UserListComponent {
 				defaultValue: { summary: '0' },
 			},
 		},
+		displayMode: {
+			control: 'select',
+			options: ['table', 'cards'],
+			description: 'Visual display mode — `table` renders columns, `cards` renders a vertical stack',
+			table: {
+				type: { summary: "'table' | 'cards'" },
+				defaultValue: { summary: 'table' },
+			},
+		},
 		language: {
 			control: 'select',
 			options: ['en', 'es'],
@@ -327,6 +347,27 @@ export const Playground: Story = {
 		expandedByDefault: true,
 		pageSize: 0,
 		language: 'en',
+		displayMode: 'table',
+	},
+}
+
+/**
+ * Same playground with the `displayMode` control exposed.
+ * Toggle between `table` and `cards` to see the layout change.
+ * In `cards` mode the wrapper's projected `appDataTableCardDef` template renders.
+ */
+export const PlaygroundWithCardToggle: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
+		loading: false,
+		caption: 'Users table',
+		groupBy: 'none',
+		expandedByDefault: true,
+		pageSize: 0,
+		language: 'en',
+		displayMode: 'cards',
 	},
 }
 
@@ -407,5 +448,70 @@ export const CustomCellTemplates: StoryObj<DataTableCustomCellsStoryComponent> =
 	args: {
 		columns: sampleColumns,
 		data: sampleData,
+	},
+}
+
+/**
+ * Wrapper component demonstrating card display mode with a two-column responsive grid layout.
+ * The DataTable applies its own vertical flex layout; the consumer wraps it for the grid.
+ */
+@Component({
+	selector: 'app-data-table-card-view-story',
+	standalone: true,
+	imports: [DataTable, DataTableCardDef],
+	template: `
+		<app-data-table [columns]="columns()" [data]="data()" displayMode="cards">
+			<ng-template appDataTableCardDef let-row>
+				<div class="grid gap-1 rounded-lg border border-gray-200 p-4 shadow-sm dark:border-gray-700">
+					<div class="flex items-center justify-between gap-2">
+						<p class="font-medium text-gray-900 dark:text-gray-100">{{ row.name }}</p>
+						<span
+							class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+						>
+							{{ row.role }}
+						</span>
+					</div>
+					<a class="text-sm text-blue-600 underline dark:text-blue-400">{{ row.email }}</a>
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ row.location }}</p>
+				</div>
+			</ng-template>
+		</app-data-table>
+	`,
+})
+class DataTableCardViewStoryComponent {
+	public readonly columns = input<ColumnDef<User, unknown>[]>([])
+	public readonly data = input<User[]>([])
+}
+
+/**
+ * Card display mode with the consumer providing the card template.
+ * The DataTable lays cards out vertically; the consumer styles each card.
+ */
+export const CardView: StoryObj<DataTableCardViewStoryComponent> = {
+	render: (args) => ({
+		props: args,
+		component: DataTableCardViewStoryComponent,
+	}),
+	args: {
+		columns: sampleColumns,
+		data: sampleData.slice(0, 6),
+	},
+}
+
+/**
+ * Card display mode rendered at a mobile viewport — single-column stacked layout.
+ * Demonstrates the intended target shape: narrow viewports below `sm:`.
+ */
+export const CardViewCompact: StoryObj<DataTableCardViewStoryComponent> = {
+	render: (args) => ({
+		props: args,
+		component: DataTableCardViewStoryComponent,
+	}),
+	args: {
+		columns: sampleColumns,
+		data: sampleData.slice(0, 4),
+	},
+	parameters: {
+		viewport: { defaultViewport: 'mobile1' },
 	},
 }

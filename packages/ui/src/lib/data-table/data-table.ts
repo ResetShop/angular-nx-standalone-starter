@@ -3,6 +3,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	contentChild,
 	contentChildren,
 	effect,
 	inject,
@@ -27,6 +28,7 @@ import {
 
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Spinner } from '../spinner/spinner'
+import { DataTableCardDef } from './data-table-card-def'
 import { DataTableCellDef } from './data-table-cell-def'
 
 export interface DataTableSortEvent {
@@ -38,6 +40,9 @@ export interface DataTableSortEvent {
 	selector: 'app-data-table',
 	standalone: true,
 	imports: [NgTemplateOutlet, Spinner],
+	host: {
+		'[class.display-cards]': "resolvedDisplayMode() === 'cards'",
+	},
 	templateUrl: './data-table.html',
 	styles: `
 		:host {
@@ -57,6 +62,16 @@ export class DataTable<T> {
 
 	/** Whether data is loading */
 	public readonly loading = input<boolean>(false)
+
+	/**
+	 * Visual display mode.
+	 *
+	 * - `'table'` (default): renders a standard `<table>` with rows and columns.
+	 * - `'cards'`: renders a vertical list of cards using the projected
+	 *   `appDataTableCardDef` template. Falls back to `'table'` when no card
+	 *   template is projected — see `resolvedDisplayMode`.
+	 */
+	public readonly displayMode = input<'table' | 'cards'>('table')
 
 	/**
 	 * Message shown when data is empty.
@@ -128,6 +143,23 @@ export class DataTable<T> {
 
 	/** Column count for colspan in empty/loading states */
 	protected readonly columnCount = computed(() => this.columns().length)
+
+	/** Custom card template definition projected as content (single, optional) */
+	private readonly cardDef = contentChild(DataTableCardDef)
+
+	/**
+	 * Resolved display mode.
+	 *
+	 * Returns `'cards'` only when `displayMode === 'cards'` AND a card template
+	 * has been projected. This invariant lets the template safely dereference
+	 * `cardDef()` in the card branch.
+	 */
+	protected readonly resolvedDisplayMode = computed<'table' | 'cards'>(() =>
+		this.displayMode() === 'cards' && this.cardDef() != null ? 'cards' : 'table',
+	)
+
+	/** Template reference for the projected card definition (read by the template) */
+	protected readonly cardDefTemplate = computed(() => this.cardDef()?.template ?? null)
 
 	/** Custom cell template definitions projected as content */
 	private readonly cellDefs = contentChildren(DataTableCellDef)

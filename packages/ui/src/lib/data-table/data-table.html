@@ -1,3 +1,4 @@
+@if (resolvedDisplayMode() === 'table') {
 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
 	<table [attr.aria-busy]="loading()" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
 		@if (caption()) {
@@ -83,11 +84,38 @@
 		</tbody>
 	</table>
 </div>
+} @else {
+<!-- Card mode: cardDefTemplate() is non-null here — resolvedDisplayMode() guards both displayMode and cardDef presence. -->
+<ul [attr.aria-busy]="loading()" role="list" class="flex flex-col gap-4">
+	@if (loading()) {
+	<li>
+		<div
+			class="flex items-center justify-center gap-2 px-4 py-8 text-gray-500 dark:text-gray-400"
+			role="status"
+			aria-live="polite"
+		>
+			<app-spinner class="size-5" />
+			{{ loadingMessage }}
+		</div>
+	</li>
+	} @else { @for (row of table.getRowModel().rows; track row.id) {
+	<!-- Grouping is intentionally flattened in card mode — group headers render only in table mode. -->
+	@if (!row.getIsGrouped()) {
+	<li>
+		<ng-container [ngTemplateOutlet]="cardDefTemplate()!" [ngTemplateOutletContext]="{ $implicit: row.original }" />
+	</li>
+	} } @empty {
+	<li class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" role="status" aria-live="polite">
+		{{ emptyMessage() }}
+	</li>
+	} }
+</ul>
+}
 
 <ng-template #dataRow let-row>
 	<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
 		@for (cell of row.getVisibleCells(); track cell.id) {
-		<td class="px-4 py-3 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+		<td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
 			@if (cellDefMap().get(cell.column.id); as cellDef) {
 			<ng-container
 				[ngTemplateOutlet]="cellDef.template"
