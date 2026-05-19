@@ -41,6 +41,7 @@ export default defineConfig({
 		alias: {
 			'@contracts': '/src/contracts',
 			'@components': '/src/app/components',
+			'@config': '/src/api/config',
 			'@configs': '/src/app/configs',
 			'@directives': '/src/app/directives',
 			'@domain': '/src/app/domain',
