@@ -152,11 +152,30 @@ export class DataTable<T> {
 	})
 
 	/**
-	 * Breakpoint signal — created when `cardsBelow` is non-null at construction.
-	 * When `cardsBelow` is null we don't subscribe to `BreakpointObserver` at all,
-	 * so consumers that never opt-in pay no CDK cost.
+	 * Per-breakpoint signals — subscribed lazily through `computed` below.
+	 * We observe all three Tailwind breakpoints up front (negligible cost: three
+	 * MediaQueryList listeners) so the component can react to a dynamic `cardsBelow`
+	 * binding without re-wiring its observers. On non-browser platforms we return
+	 * constant `false` signals to keep SSR safe.
 	 */
-	private readonly cardsBelowMatches: Signal<boolean> = this.observeCardsBelow()
+	private readonly smMatches: Signal<boolean> = isPlatformBrowser(this.platformId)
+		? createBreakpointSignal('sm')
+		: signal(false).asReadonly()
+	private readonly mdMatches: Signal<boolean> = isPlatformBrowser(this.platformId)
+		? createBreakpointSignal('md')
+		: signal(false).asReadonly()
+	private readonly lgMatches: Signal<boolean> = isPlatformBrowser(this.platformId)
+		? createBreakpointSignal('lg')
+		: signal(false).asReadonly()
+
+	/** Resolves the active breakpoint signal based on the current `cardsBelow` input. */
+	private readonly cardsBelowMatches = computed<boolean>(() => {
+		const bp = this.cardsBelow()
+		if (bp === 'sm') return this.smMatches()
+		if (bp === 'md') return this.mdMatches()
+		if (bp === 'lg') return this.lgMatches()
+		return false
+	})
 
 	/**
 	 * Active display mode: starts from `displayMode()` (re-seeds when the parent
@@ -314,14 +333,6 @@ export class DataTable<T> {
 				}
 			})
 		: undefined
-
-	private observeCardsBelow(): Signal<boolean> {
-		const breakpoint = this.cardsBelow()
-		if (!isPlatformBrowser(this.platformId) || breakpoint == null) {
-			return signal(false).asReadonly()
-		}
-		return createBreakpointSignal(breakpoint)
-	}
 
 	private handleExpandedUpdate(updater: Updater<ExpandedState>): void {
 		const newExpanded = typeof updater === 'function' ? updater(this.expanded()) : updater
