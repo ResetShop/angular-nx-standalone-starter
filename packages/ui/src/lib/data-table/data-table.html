@@ -1,6 +1,19 @@
 @if (showToggle()) {
-<div class="mb-2 flex justify-end">
-	<div [attr.aria-label]="toggleGroupLabel" role="group" class="flex gap-4">
+<!--
+	"Tab attached to body" layout: a horizontal rule bleeds out 1 rem beyond the host's
+	content area on both sides (`-mx-4` cancels the parent layout's `p-4`) so the line
+	covers the horizontal gaps. The toggle sits as a rounded tab with three borders (top,
+	left, right) and no bottom — leaving a blank gap below the buttons before the table.
+	The right spacer's `w-4` matches the parent's right padding so the toggle stays in
+	its original horizontal position; the line then extends through the right gap to the edge.
+-->
+<div class="-mx-4 mb-4 flex items-end">
+	<div class="flex-1 border-b border-gray-200 dark:border-gray-700"></div>
+	<div
+		[attr.aria-label]="toggleGroupLabel"
+		role="group"
+		class="flex gap-4 rounded-t-lg border border-b-0 border-gray-200 px-2 pt-2 pb-1 dark:border-gray-700"
+	>
 		<button
 			(click)="handleToggle('table')"
 			[attr.aria-pressed]="resolvedDisplayMode() === 'table'"
@@ -26,6 +39,7 @@
 			<span class="sr-only">{{ toggleCardsLabel }}</span>
 		</button>
 	</div>
+	<div class="w-4 border-b border-gray-200 dark:border-gray-700"></div>
 </div>
 } @if (resolvedDisplayMode() === 'table') {
 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
