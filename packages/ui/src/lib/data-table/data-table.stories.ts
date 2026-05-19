@@ -213,28 +213,35 @@ A data table component powered by TanStack Table.
 - **Sorting**: Click column headers to sort (aria-sort, keyboard support)
 - **Row Grouping**: Group rows by one or more columns with nested expand/collapse toggles
 - **Pagination**: Optional page-based data slicing
+- **Card Mode**: Switch from \`<table>\` to a vertical card stack via \`displayMode="cards"\` + a projected \`appDataTableCardDef\` template (falls back to table when no template is projected)
 - **Loading & Empty States**: Built-in spinner and customizable empty message
 - **Custom Cell Templates**: Content projection via \`appDataTableCellDef\`
-- **Accessibility**: aria-busy, aria-sort, aria-expanded, keyboard navigation
+- **Accessibility**: aria-busy, aria-sort, aria-expanded, keyboard navigation, \`<ul role="list">\` semantics in card mode
 - **i18n**: Localized messages via the Translation service
 - **Dark Mode**: Full dark mode support
 
 ## Usage
 
 \`\`\`typescript
-import { DataTable } from './data-table';
+import { DataTable, DataTableCardDef } from '@resetshop/ui';
 import { type ColumnDef } from '@tanstack/angular-table';
 
 @Component({
-  imports: [DataTable],
+  imports: [DataTable, DataTableCardDef],
   template: \\\`
     <app-data-table
       [columns]="columns"
       [data]="users"
-      [grouping]="['role']"
-      [expandedByDefault]="true"
+      [displayMode]="isMobile() ? 'cards' : 'table'"
       caption="Team members"
-    />
+    >
+      <ng-template appDataTableCardDef let-row>
+        <div class="rounded-lg border p-4">
+          <p>{{ row.name }}</p>
+          <p>{{ row.email }}</p>
+        </div>
+      </ng-template>
+    </app-data-table>
   \\\`,
 })
 export class UserListComponent {
@@ -460,7 +467,7 @@ export const CustomCellTemplates: StoryObj<DataTableCustomCellsStoryComponent> =
 	standalone: true,
 	imports: [DataTable, DataTableCardDef],
 	template: `
-		<app-data-table [columns]="columns()" [data]="data()" displayMode="cards">
+		<app-data-table [columns]="columns()" [data]="data()" [displayMode]="'cards'">
 			<ng-template appDataTableCardDef let-row>
 				<div class="grid gap-1 rounded-lg border border-gray-200 p-4 shadow-sm dark:border-gray-700">
 					<div class="flex items-center justify-between gap-2">

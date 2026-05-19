@@ -85,7 +85,6 @@
 	</table>
 </div>
 } @else {
-<!-- Card mode: cardDefTemplate() is non-null here — resolvedDisplayMode() guards both displayMode and cardDef presence. -->
 <ul [attr.aria-busy]="loading()" role="list" class="flex flex-col gap-4">
 	@if (loading()) {
 	<li>
@@ -102,6 +101,7 @@
 	<!-- Grouping is intentionally flattened in card mode — group headers render only in table mode. -->
 	@if (!row.getIsGrouped()) {
 	<li>
+		<!-- cardDefTemplate() is non-null here: resolvedDisplayMode === 'cards' guards cardDef presence. -->
 		<ng-container [ngTemplateOutlet]="cardDefTemplate()!" [ngTemplateOutletContext]="{ $implicit: row.original }" />
 	</li>
 	} } @empty {
