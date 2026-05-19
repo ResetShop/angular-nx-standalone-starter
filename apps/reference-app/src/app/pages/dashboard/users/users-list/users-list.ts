@@ -94,7 +94,8 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 				</ng-template>
 
 				<ng-template appDataTableCellDef="actions" let-value let-row="row">
-					<div class="flex gap-2">
+					<!-- gap-4 (16px) > data-touch-target -inset-3 (12px) — prevents sibling hit-area overlap. -->
+					<div class="flex gap-4">
 						<button
 							(click)="editDrawer.open(row.id)"
 							*hasPermission="'admin:users:update'"
@@ -135,7 +136,8 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 						<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
 							{{ formatRoles(row) }}
 						</p>
-						<div class="mt-3 flex gap-2">
+						<!-- gap-4 (16px) > data-touch-target -inset-3 (12px) — prevents sibling hit-area overlap. -->
+						<div class="mt-3 flex gap-4">
 							<button
 								(click)="editDrawer.open(row.id)"
 								*hasPermission="'admin:users:update'"
