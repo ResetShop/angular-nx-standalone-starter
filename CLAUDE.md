@@ -17,8 +17,9 @@
 7. [Backend API Naming Conventions](#backend-api-naming-conventions)
 8. [Error Handling Guidelines](#error-handling-guidelines)
 9. [Domain Model Guidelines](#domain-model-guidelines)
-10. [Development Workflow](#development-workflow)
-11. [Automated Code Review](#automated-code-review)
+10. [Environment Variables](#environment-variables)
+11. [Development Workflow](#development-workflow)
+12. [Automated Code Review](#automated-code-review)
 
 ---
 
@@ -919,6 +920,28 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 ## Domain Model Guidelines
 
 > Full domain model guidelines: See `.claude/references/domain-model.md`
+
+---
+
+## Environment Variables
+
+**The repo's contract:** every backend env variable is declared in one of the six domain-scoped Zod sub-schemas under `apps/reference-app/src/api/config/*.env.ts` (`db`, `auth`, `email`, `http`, `app`, `cron`) and consumed exclusively as `<domain>Env.VAR_NAME` (e.g., `dbEnv.PG_CONNECTION_STRING`, `authEnv.PASETO_SECRET_KEY`) via the `@config/*` path alias. Direct `process.env[...]` access is **ESLint-forbidden** in production code (the only allowed consumers are the `@config/*.env` files themselves and the test setup files under `apps/**/src/test-setup.ts` and `apps/**/src/api/integration/setup/**`).
+
+**Why six modules instead of one:** the original monolithic `env.ts` mixed unrelated concerns (DB strings, PASETO keys, SMTP settings, cron schedules) in a single Zod object, which forced consumers to import a giant type even when they only needed `PORT`. The six-module split aligns the schema with the bounded contexts that consume it; the shared lazy-init / cache / seed / reset behavior lives once in `createEnvHandler` (see `env-utils.ts`) so each sub-schema is a ~30-line declaration of fields + a one-line factory call.
+
+**The repo's non-contract:** how each developer delivers values to `process.env` before `node` starts is left to them. The four supported delivery mechanisms — out-of-tree env file + Node `--env-file`, IDE run configuration, shell session export, and `direnv` — are documented in [`docs/environment-variables.md`](docs/environment-variables.md). **No `.env*` file may exist in the working tree;** `scripts/check-no-env-files.mjs` fails the pre-commit hook and the `npm run ci` script if one appears. This is the structural defense against agents opportunistically reading `.env*` files; the `.claude/settings.json` deny rules add a second layer that blocks AI agents from reading, writing, editing, or shell-creating `.env*` files.
+
+**Adding or changing a variable:**
+
+1. Open the appropriate sub-schema (`apps/reference-app/src/api/config/<domain>.env.ts`).
+2. Add the field to its Zod schema with the appropriate validation, default, and `.catch()` tolerance.
+3. If the field is required at boot but has a sane test stub, add it to the `testDefaults` argument of `createEnvHandler`.
+4. Add a row to the Variable Index table in [`docs/environment-variables.md`](docs/environment-variables.md).
+5. Consume the value via `<domain>Env.NEW_VAR` — never `process.env['NEW_VAR']`.
+6. Add a spec case to `<domain>.env.spec.ts` covering the new field's validation behavior.
+7. Do **not** create or commit a `.env*` file.
+
+For values that need to be mockable in tests (e.g. `CRON_SECRET` in the cleanup-tokens endpoint), follow the `AuthConfig` / `PasetoConfig` pattern: extract a typed config interface, register it as a frozen value in the Awilix container, and inject it into the consuming service. The env proxies are read once on first access; tests that need different values per case must consume them via DI, not via `process.env` mutation.
 
 ---
 

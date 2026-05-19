@@ -1,0 +1,189 @@
+# Environment Variables
+
+This document is the single source of truth for **what environment variables exist**, **what they mean**, and **how to deliver them to `process.env`** without committing a `.env` file.
+
+---
+
+## Contract
+
+| Concern               | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Declaration**       | Every backend env variable is declared in one of the six domain-scoped Zod sub-schemas under `apps/reference-app/src/api/config/*.env.ts` (`db`, `auth`, `email`, `http`, `app`, `cron`).                                                                                                                                                                                                                                           |
+| **Consumption**       | Production code reads values exclusively via `<domain>Env.VAR_NAME` (e.g., `dbEnv.PG_CONNECTION_STRING`, `authEnv.PASETO_SECRET_KEY`) imported from `@config/<domain>.env`. **Direct `process.env[...]` access is ESLint-forbidden** in production code; the only allowed consumers are the `@config/*.env` files themselves and the test setup files under `apps/**/src/test-setup.ts` and `apps/**/src/api/integration/setup/**`. |
+| **Validation timing** | Each sub-schema's proxy validates `process.env` on **first property access** and `process.exit(1)`s with a formatted FATAL message if validation fails. This lazy-init pattern lets bundlers and prerender workers import sub-schema modules without env vars being set, as long as nothing actually reads a property.                                                                                                              |
+| **Delivery**          | How env vars reach `process.env` is **left to the developer** — four supported mechanisms are listed below. No mechanism is privileged or required.                                                                                                                                                                                                                                                                                 |
+| **Working tree**      | **No `.env*` file may exist in the working tree.** `scripts/check-no-env-files.mjs` runs from the pre-commit hook and from `npm run ci` to enforce this. There is no `.env.example` — this document replaces it.                                                                                                                                                                                                                    |
+
+---
+
+## The Six Sub-Schemas
+
+Each domain owns a `<domain>.env.ts` file that exports four symbols via the `createEnvHandler` factory:
+
+```ts
+// apps/reference-app/src/api/config/db.env.ts (example shape)
+import { z } from 'zod'
+import { createEnvHandler } from './env-utils'
+
+const DbEnvSchema = z.object({
+	PG_CONNECTION_STRING: z.string().min(1),
+	PG_TEST_CONNECTION_STRING: z.string().min(1).optional(),
+})
+
+export type DbEnv = z.infer<typeof DbEnvSchema>
+
+const handler = createEnvHandler('db', DbEnvSchema, {
+	PG_CONNECTION_STRING: 'postgresql://test:test@localhost:5432/test',
+})
+
+export const parseDbEnv = handler.parse
+export const dbEnv = handler.proxy
+export const seedDbEnv = handler.seed
+export const resetDbEnv = handler.reset
+```
+
+| Symbol             | Type                       | Purpose                                                                                                                                                                                                                 |
+| ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `parse<Domain>Env` | `(raw) => T`               | Parse an arbitrary input. Used by tests and entry-point scripts that want explicit validation control.                                                                                                                  |
+| `<domain>Env`      | `Readonly<T>` (lazy Proxy) | The production consumption surface. First property access reads `process.env` and either caches the validated result or `process.exit(1)`s with a FATAL message.                                                        |
+| `seed<Domain>Env`  | `(overrides?) => void`     | Test helper. Writes `parse({...testDefaults, ...overrides})` directly into the cache, bypassing `process.env`. Used by integration tests and `*.spec.ts` files that need specific values without mutating global state. |
+| `reset<Domain>Env` | `() => void`               | Test helper. Clears the cache so the next `seed()` (or property access) re-runs from scratch. Use between cases in the same file when they need different seeds.                                                        |
+
+### Variable Index
+
+| Variable                          | Sub-schema | Required    | Default                 | Notes                                                                                                                            |
+| --------------------------------- | ---------- | ----------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `PG_CONNECTION_STRING`            | `db`       | ✓           | —                       | Production Postgres connection string. Validated as non-empty string.                                                            |
+| `PG_TEST_CONNECTION_STRING`       | `db`       | optional    | —                       | Connection string used by integration tests. Required only when running `npm run test:integration`.                              |
+| `PASETO_SECRET_KEY`               | `auth`     | ✓           | —                       | 32-byte hex string (64 chars). Generate with `openssl rand -hex 32`.                                                             |
+| `PASETO_ISSUER`                   | `auth`     | ✓           | —                       | Issuer claim embedded in tokens. Free-form string.                                                                               |
+| `PASETO_ACCESS_TOKEN_EXPIRY`      | `auth`     | optional    | `'15m'`                 | Duration string. See `src/utils/duration.ts` for the parser.                                                                     |
+| `PASETO_REFRESH_TOKEN_EXPIRY`     | `auth`     | optional    | `'7d'`                  | Duration string.                                                                                                                 |
+| `PASETO_CLOCK_TOLERANCE`          | `auth`     | optional    | `'1m'`                  | Duration string. Tolerance applied to `nbf`/`exp` claim validation.                                                              |
+| `COOKIE_SECURE`                   | `auth`     | optional    | `'false'`               | Set to `'true'` in any environment served over HTTPS.                                                                            |
+| `AUTH_MAX_FAILED_ATTEMPTS`        | `auth`     | optional    | `5`                     | Integer. Number of failed login attempts before lockout.                                                                         |
+| `AUTH_LOCKOUT_DURATION`           | `auth`     | optional    | `'15m'`                 | Duration string.                                                                                                                 |
+| `BCRYPT_COST`                     | `auth`     | optional    | `12`                    | Integer. Bcrypt cost factor for password hashing.                                                                                |
+| `CRON_SECRET`                     | `auth`     | optional    | —                       | Shared secret authorizing the `/api/cron/*` endpoints. Optional in dev; **required** in any deployment that exposes cron routes. |
+| `EMAIL_PROVIDER`                  | `email`    | optional    | `'ethereal'`            | One of `'nodemailer' \| 'ethereal' \| 'noop'`. Determines which transport the container wires up at boot.                        |
+| `SMTP_HOST`                       | `email`    | conditional | —                       | Required when `EMAIL_PROVIDER=nodemailer`. Cross-field-validated by `superRefine`.                                               |
+| `SMTP_USER`                       | `email`    | conditional | —                       | Required when `EMAIL_PROVIDER=nodemailer`.                                                                                       |
+| `SMTP_PASS`                       | `email`    | conditional | —                       | Required when `EMAIL_PROVIDER=nodemailer`.                                                                                       |
+| `SMTP_PORT`                       | `email`    | optional    | `587`                   | Integer.                                                                                                                         |
+| `SMTP_SECURE`                     | `email`    | optional    | `'false'`               | Set to `'true'` for implicit TLS (port 465).                                                                                     |
+| `SMTP_FROM`                       | `email`    | optional    | `'noreply@example.com'` | RFC 5322 address.                                                                                                                |
+| `BASE_HREF`                       | `http`     | optional    | `'/'`                   | Public base path of the deployed app.                                                                                            |
+| `IS_SERVERLESS`                   | `http`     | optional    | `'false'`               | Set to `'true'` only on serverless platforms (Vercel, Cloudflare Workers, etc.). Read via the `isServerless()` helper.           |
+| `PORT`                            | `http`     | optional    | `4000`                  | Integer. Ignored when `IS_SERVERLESS=true`.                                                                                      |
+| `CORS_ORIGIN`                     | `http`     | optional    | —                       | Comma-separated list. When unset, the CORS middleware is not registered.                                                         |
+| `CORS_MAX_AGE`                    | `http`     | optional    | `86400`                 | Integer (seconds). Default derived from `'24h'` via `parseDurationToSeconds`.                                                    |
+| `NODE_ENV`                        | `app`      | optional    | `'development'`         | One of `'development' \| 'test' \| 'production'`.                                                                                |
+| `APP_LANGUAGE`                    | `app`      | optional    | `'en'`                  | Default i18n language for the SSR-rendered shell.                                                                                |
+| `INTEGRATION_TEST_ADMIN_PASSWORD` | `app`      | conditional | —                       | Plain-text password for the seeded admin user. Required only when running `npm run test:integration`.                            |
+| `TOKEN_CLEANUP_INTERVAL`          | `cron`     | optional    | —                       | Duration string. When unset, the cleanup job uses its built-in default.                                                          |
+| `TOKEN_CLEANUP_BATCH_SIZE`        | `cron`     | optional    | —                       | Integer.                                                                                                                         |
+| `TOKEN_CLEANUP_MAX_BATCH_COUNT`   | `cron`     | optional    | —                       | Integer.                                                                                                                         |
+
+For exhaustive field definitions, defaults, refinements, and `.catch()` tolerance behavior, read the Zod schemas in `apps/reference-app/src/api/config/`. The schemas are the source of truth; this table is a navigational summary.
+
+---
+
+## Delivery Mechanisms
+
+You only need **one** of these. Pick whichever fits your workflow. None is privileged; the contract is "values must be in `process.env` by the time the proxy is touched."
+
+### 1. Out-of-tree env file + Node `--env-file`
+
+Best for: terminal-driven development, scripts.
+
+1. Create a file **outside** the working tree, e.g. `~/.env/angular-nx-starter` or `~/Projects/secrets/reference-app.env`.
+2. Populate it with `KEY=value` lines (one per variable).
+3. Pass it to Node via `--env-file`:
+
+   ```bash
+   node --env-file=$HOME/.env/angular-nx-starter ./dist/reference-app/server/server.mjs
+   ```
+
+4. For `npm` scripts that need the file, the repo provides `*:local` variants that take `--env-file=.env`. Since `.env` is forbidden in the working tree, you must point `--env-file` at the out-of-tree path yourself. Example:
+
+   ```bash
+   tsx --env-file=$HOME/.env/angular-nx-starter --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts
+   ```
+
+### 2. IDE run configuration
+
+Best for: WebStorm / VS Code / IntelliJ users who launch the app from a Run Configuration.
+
+- **WebStorm:** Edit Configurations → your Node/npm config → Environment variables → paste `KEY=value;KEY=value`.
+- **VS Code:** `.vscode/launch.json` → add an `env` object on the launch config.
+
+The IDE injects the variables before `node` starts, so the proxy sees them on first access.
+
+### 3. Shell session export
+
+Best for: ephemeral overrides, one-off `npm run` invocations.
+
+```bash
+export PG_CONNECTION_STRING="postgresql://..."
+export PASETO_SECRET_KEY="$(openssl rand -hex 32)"
+export PASETO_ISSUER="local-dev"
+npm run dev
+```
+
+The exports last for the shell session only.
+
+### 4. direnv
+
+Best for: per-directory automation. Requires [`direnv`](https://direnv.net/) installed.
+
+1. Create a `.envrc` file at the repo root (this name is NOT matched by the `.env*` guard — `.envrc` is fine).
+2. Populate it with `export KEY=value` lines.
+3. Run `direnv allow` once per `.envrc` change.
+
+direnv loads/unloads the variables automatically when you `cd` in and out of the directory.
+
+---
+
+## Test-Time Behavior
+
+Unit tests, component tests, and integration tests **never read `process.env` directly**. They consume the proxy via `seed<Domain>Env(overrides?)`:
+
+```ts
+import { seedAuthEnv, resetAuthEnv } from '@config/auth.env'
+
+describe('TokenService', () => {
+	beforeEach(() => {
+		resetAuthEnv()
+		seedAuthEnv({ PASETO_SECRET_KEY: '0'.repeat(64), PASETO_ISSUER: 'test' })
+	})
+	// ...
+})
+```
+
+Each sub-schema is instantiated with a `testDefaults` object that minimally satisfies its required fields. Calling `seed()` with no args writes `parse(testDefaults)` into the cache, so tests don't need to repeat the same baseline.
+
+The test-setup files (`apps/**/src/test-setup.ts` and `apps/**/src/api/integration/setup/**`) are the only non-`@config` files allowed to touch `process.env` directly — they bootstrap baseline values for tests that don't seed explicitly.
+
+---
+
+## Adding or Changing a Variable
+
+1. Open the appropriate sub-schema (`apps/reference-app/src/api/config/<domain>.env.ts`).
+2. Add the field to the Zod schema with the right validation, default, and `.catch()` tolerance.
+3. If the field is required at boot but has a sane test stub, add it to the `testDefaults` argument of `createEnvHandler`.
+4. Add a row to the Variable Index table above.
+5. Consume the value via `<domain>Env.NEW_VAR` — **never** `process.env['NEW_VAR']`.
+6. Add a spec case to `<domain>.env.spec.ts` covering the new field's validation behavior.
+7. Do **not** create or commit a `.env*` file. If your local dev needs the new variable, add it to whichever delivery mechanism you use.
+
+---
+
+## Enforcement Summary
+
+| Layer                            | What it checks                                                                                                                    |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Zod schemas                      | Field presence, type, range, cross-field refinements (e.g. SMTP_HOST required when EMAIL_PROVIDER=nodemailer). Fail-fast at boot. |
+| `scripts/check-no-env-files.mjs` | Runs from pre-commit AND `npm run ci`. Fails if any `.env*` file exists at repo root or under `apps/*`.                           |
+| `.gitignore`                     | Ignores `.env` and `.env.*` patterns as a second line of defense against accidental `git add -A`.                                 |
+| `.claude/settings.json`          | Deny rules block AI coding agents from reading, writing, editing, or shell-creating `.env*` files.                                |
+| ESLint                           | (Coming in a follow-up PR.) `no-process-env` rule with a tight allowlist for `@config/*` and test setup files.                    |
