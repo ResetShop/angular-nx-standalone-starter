@@ -1,7 +1,12 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # env variables
+# NOTE: .env* files are FORBIDDEN in the working tree. scripts/check-no-env-files.mjs
+# enforces this from the pre-commit hook and from `npm run ci`. The ignore patterns
+# below are a second layer of defense so that even an accidental `git add -A` cannot
+# stage one. See docs/environment-variables.md for the supported delivery mechanisms.
 .env
+.env.*
 # compiled output
 dist
 tmp
@@ -34,6 +39,7 @@ node_modules
 npm-debug.log
 yarn-error.log
 testem.log
+tailwindcss-*.log
 /typings
 
 # System Files
