@@ -18,6 +18,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'PAGINATION.GO_TO_PREVIOUS': 'Previous page',
 	'PAGINATION.GO_TO_NEXT': 'Next page',
 	'PAGINATION.GO_TO_PAGE': 'Go to page {page}',
+	'PAGINATION.PAGE_OF': 'Page {current} of {total}',
 	'VALIDATION.REQUIRED': 'This field is required',
 	'VALIDATION.EMAIL': 'Please enter a valid email address',
 	'VALIDATION.MIN_LENGTH': 'Must be at least {min} characters',

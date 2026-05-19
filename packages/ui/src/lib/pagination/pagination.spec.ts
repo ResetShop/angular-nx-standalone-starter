@@ -10,6 +10,7 @@ const TRANSLATIONS: Record<string, string> = {
 	'PAGINATION.GO_TO_PREVIOUS': 'Go to previous page',
 	'PAGINATION.GO_TO_NEXT': 'Go to next page',
 	'PAGINATION.GO_TO_PAGE': 'Go to page {page}',
+	'PAGINATION.PAGE_OF': 'Page {current} of {total}',
 }
 
 const mockTranslation = {
@@ -314,6 +315,80 @@ describe('Pagination', () => {
 			// But since 5 > 4, it will use the ellipsis logic
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+		})
+	})
+
+	describe('responsive layout', () => {
+		it('should apply mobile-stacking layout classes to the nav wrapper', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const nav = screen.getByRole('navigation', { name: /pagination/i })
+			expect(nav).toHaveClass('flex-col')
+			expect(nav).toHaveClass('sm:flex-row')
+			expect(nav).toHaveClass('sm:justify-between')
+		})
+
+		it('should apply hidden sm:inline-flex to page-number buttons', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const pageBtn = screen.getByRole('button', { name: /go to page 1/i })
+			expect(pageBtn).toHaveClass('hidden')
+			expect(pageBtn).toHaveClass('sm:inline-flex')
+		})
+
+		it('should render the mobile current-page label with correct text', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByText('Page 3 of 10')).toBeInTheDocument()
+		})
+
+		it('should apply aria-live polite and aria-atomic to the mobile current-page label', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Page 1 of 5')
+			expect(label).toHaveAttribute('aria-live', 'polite')
+			expect(label).toHaveAttribute('aria-atomic', 'true')
+		})
+
+		it('should apply data-touch-target to the previous button', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByRole('button', { name: /go to previous page/i })).toHaveAttribute('data-touch-target')
+		})
+
+		it('should apply data-touch-target to the next button', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByRole('button', { name: /go to next page/i })).toHaveAttribute('data-touch-target')
+		})
+
+		it('should apply text-base sm:text-sm to the rows-per-page select for iOS zoom-on-focus prevention', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const select = screen.getByLabelText(/rows per page/i)
+			expect(select).toHaveClass('text-base')
+			expect(select).toHaveClass('sm:text-sm')
 		})
 	})
 })

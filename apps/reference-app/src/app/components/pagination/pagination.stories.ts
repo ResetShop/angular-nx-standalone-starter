@@ -266,3 +266,22 @@ export const SpanishLanguage: Story = {
 		language: 'es',
 	},
 }
+
+/**
+ * Mobile viewport (375px) — stacked layout. Rows-per-page selector sits on top;
+ * the page-navigation row hides the numbered buttons and shows a "Page N of M"
+ * indicator between prev and next.
+ */
+export const Mobile: Story = {
+	args: {
+		totalPages: 10,
+		initialPage: 5,
+		initialPageSize: 25,
+		language: 'en',
+	},
+	parameters: {
+		viewport: {
+			defaultViewport: 'mobile',
+		},
+	},
+}
