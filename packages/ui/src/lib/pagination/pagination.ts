@@ -66,8 +66,9 @@ const PAGINATION_KEYS = Object.freeze({
 
 				<!-- Mobile-only current-page indicator (hidden from sm: up where page buttons take over) -->
 				<span
-					[attr.aria-live]="'polite'"
 					aria-atomic="true"
+					aria-live="polite"
+					role="status"
 					class="text-muted-foreground flex-1 text-center text-sm sm:hidden"
 				>
 					{{ pageOfLabel() }}
