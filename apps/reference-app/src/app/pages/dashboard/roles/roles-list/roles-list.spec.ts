@@ -255,6 +255,7 @@ describe('RolesList', () => {
 					{ provide: PermissionsApi, useValue: permissionsApiMock },
 					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 				],
 			})
 

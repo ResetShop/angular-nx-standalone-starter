@@ -292,6 +292,7 @@ describe('UsersList', () => {
 					{ provide: RolesApi, useValue: rolesApiMock },
 					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 				],
 			})
 
