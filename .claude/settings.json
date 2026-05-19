@@ -1,0 +1,24 @@
+{
+	"$schema": "https://json.schemastore.org/claude-code-settings.json",
+	"permissions": {
+		"deny": [
+			"Read(.env)",
+			"Read(.env.*)",
+			"Read(./apps/**/.env)",
+			"Read(./apps/**/.env.*)",
+			"Write(.env)",
+			"Write(.env.*)",
+			"Write(./apps/**/.env)",
+			"Write(./apps/**/.env.*)",
+			"Edit(.env)",
+			"Edit(.env.*)",
+			"Edit(./apps/**/.env)",
+			"Edit(./apps/**/.env.*)",
+			"Bash(*>*.env*)",
+			"Bash(*>>*.env*)",
+			"Bash(touch *.env*)",
+			"Bash(cp * .env*)",
+			"Bash(mv * .env*)"
+		]
+	}
+}
