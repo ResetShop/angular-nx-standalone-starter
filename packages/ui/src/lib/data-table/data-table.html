@@ -1,13 +1,14 @@
 @if (showToggle()) {
 <!--
-	"Tab attached to body" layout: a horizontal rule bleeds out 1 rem beyond the host's
-	content area on both sides (`-mx-4` cancels the parent layout's `p-4`) so the line
-	covers the horizontal gaps. The toggle sits as a rounded tab with three borders (top,
-	left, right) and no bottom — leaving a blank gap below the buttons before the table.
-	The right spacer's `w-4` matches the parent's right padding so the toggle stays in
-	its original horizontal position; the line then extends through the right gap to the edge.
+	"Tab attached to body" layout: a horizontal rule terminates at the toggle's bottom-left
+	corner; the toggle sits as a rounded tab (top + side borders, no bottom) so the table
+	body opens beneath it. When `tabBleed` is set, the rule bleeds out by that scale value
+	on each side (cancelling the parent layout's matching `p-{n}`), filling the horizontal
+	gaps. The right spacer's width also matches `tabBleed` so the toggle's horizontal
+	position is independent of the bleed amount. Default `tabBleed=null` keeps the rule
+	within the host's content area, making the component safe for any parent padding.
 -->
-<div class="-mx-4 mb-4 flex items-end">
+<div [class]="'mb-4 flex items-end ' + tabBleedWrapperClass()">
 	<div class="flex-1 border-b border-gray-200 dark:border-gray-700"></div>
 	<div
 		[attr.aria-label]="toggleGroupLabel"
@@ -39,7 +40,7 @@
 			<span class="sr-only">{{ toggleCardsLabel }}</span>
 		</button>
 	</div>
-	<div class="w-4 border-b border-gray-200 dark:border-gray-700"></div>
+	<div [class]="'border-b border-gray-200 dark:border-gray-700 ' + tabBleedSpacerClass()"></div>
 </div>
 } @if (resolvedDisplayMode() === 'table') {
 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
@@ -104,7 +105,6 @@
 						type="button"
 					>
 						<span aria-hidden="true">{{ row.getIsExpanded() ? '▼' : '▶' }}</span>
-						<span class="sr-only">{{ row.getIsExpanded() ? 'Collapse' : 'Expand' }}</span>
 						{{ resolveGroupLabel(row) }}
 						<span class="text-xs font-normal text-gray-500">({{ row.subRows.length }})</span>
 					</button>
@@ -149,9 +149,9 @@
 				[attr.aria-expanded]="row.getIsExpanded()"
 				class="flex w-full items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400"
 				type="button"
+				data-touch-target
 			>
 				<span aria-hidden="true">{{ row.getIsExpanded() ? '▼' : '▶' }}</span>
-				<span class="sr-only">{{ row.getIsExpanded() ? 'Collapse' : 'Expand' }}</span>
 				{{ resolveGroupLabel(row) }}
 				<span class="ml-1 font-normal normal-case">({{ row.subRows.length }})</span>
 			</button>

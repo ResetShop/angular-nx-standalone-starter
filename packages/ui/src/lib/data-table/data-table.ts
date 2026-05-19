@@ -43,6 +43,29 @@ export interface DataTableSortEvent {
 
 export type DataTableDisplayMode = 'table' | 'cards'
 
+/**
+ * Tailwind spacing scale values supported for the display-mode toggle "bleed-out" effect.
+ * Must match the parent layout's horizontal padding (e.g., `'4'` for a parent with `p-4`).
+ * Strings are intentional — they participate in static Tailwind class names below.
+ */
+export type DataTableTabBleed = '0' | '2' | '4' | '6' | '8'
+
+const TAB_BLEED_WRAPPER_CLASSES: Record<DataTableTabBleed, string> = Object.freeze({
+	'0': 'mx-0',
+	'2': '-mx-2',
+	'4': '-mx-4',
+	'6': '-mx-6',
+	'8': '-mx-8',
+} as const)
+
+const TAB_BLEED_SPACER_CLASSES: Record<DataTableTabBleed, string> = Object.freeze({
+	'0': 'w-0',
+	'2': 'w-2',
+	'4': 'w-4',
+	'6': 'w-6',
+	'8': 'w-8',
+} as const)
+
 @Component({
 	selector: 'app-data-table',
 	standalone: true,
@@ -108,6 +131,21 @@ export class DataTable<T> {
 	 * no toggle, table-only.
 	 */
 	public readonly displayModes = input<DataTableDisplayMode[]>(['table'])
+
+	/**
+	 * Opt-in horizontal "bleed-out" for the display-mode toggle row so the
+	 * underlying horizontal rule extends through the parent layout's padding gaps
+	 * (producing a tab-attached-to-body look).
+	 *
+	 * Set to the parent's horizontal padding scale value (e.g., `'4'` when the
+	 * parent uses `p-4`). The component applies `-mx-{n}` on the wrapper and
+	 * `w-{n}` on the right spacer so the rule terminates flush with the parent's
+	 * outer edge. Default `null` — no bleed; toggle renders with neutral spacing.
+	 *
+	 * Only effective when the toggle is visible (`displayModes` length > 1 and a
+	 * card template is projected).
+	 */
+	public readonly tabBleed = input<DataTableTabBleed | null>(null)
 
 	/**
 	 * Message shown when data is empty.
@@ -247,6 +285,18 @@ export class DataTable<T> {
 
 	/** Template reference for the projected card definition (read by the template) */
 	protected readonly cardDefTemplate = computed(() => this.cardDef()?.template ?? null)
+
+	/** Negative-margin class for the toggle wrapper, or empty string when `tabBleed` is `null`. */
+	protected readonly tabBleedWrapperClass = computed(() => {
+		const bleed = this.tabBleed()
+		return bleed == null ? '' : TAB_BLEED_WRAPPER_CLASSES[bleed]
+	})
+
+	/** Width class for the right spacer, or `'w-0'` when `tabBleed` is `null` (collapses the spacer). */
+	protected readonly tabBleedSpacerClass = computed(() => {
+		const bleed = this.tabBleed()
+		return bleed == null ? 'w-0' : TAB_BLEED_SPACER_CLASSES[bleed]
+	})
 
 	/**
 	 * Whether the display-mode toggle should be visible.

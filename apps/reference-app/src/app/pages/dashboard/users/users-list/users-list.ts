@@ -83,6 +83,7 @@ import { UserCard } from './user-card'
 				[caption]="'USERS.TABLE.CAPTION' | translate"
 				[displayModes]="displayModes"
 				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="status" let-value>
 					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>

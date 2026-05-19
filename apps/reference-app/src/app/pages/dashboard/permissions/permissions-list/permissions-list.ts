@@ -35,6 +35,7 @@ import { PermissionCard } from './permission-card'
 				[caption]="'PERMISSIONS.TABLE.CAPTION' | translate"
 				[displayModes]="displayModes"
 				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="identifier" let-value>
 					<span appBadge variant="secondary">{{ value }}</span>
