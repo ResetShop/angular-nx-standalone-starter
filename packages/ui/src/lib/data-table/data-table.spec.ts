@@ -1,6 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { type ColumnDef } from '@tanstack/angular-table'
 import { render, type RenderResult, screen, within } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
@@ -49,6 +49,10 @@ function createBreakpointObserverMock(matches: boolean): { observe: MockFn } {
 }
 
 describe('DataTable', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
 	it('should render table with headers', async () => {
 		await render(DataTable<TestData>, {
 			inputs: { columns: testColumns, data: testData },
@@ -798,6 +802,53 @@ describe('DataTable', () => {
 			await user.click(screen.getByRole('button', { name: /admin/i }))
 
 			expect(screen.getByText('Card: Alice')).toBeInTheDocument()
+		})
+
+		it('persists collapse state across display-mode switches (table → cards)', async () => {
+			const user = userEvent.setup()
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [
+				{ name: 'Alice', role: 'Admin', email: '' },
+				{ name: 'Bob', role: 'Editor', email: '' },
+			]
+
+			const { rerender } = await render(
+				`<app-data-table [columns]="columns" [data]="data" [grouping]="grouping" [displayMode]="displayMode">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: {
+						columns: groupableColumns,
+						data: groupedData,
+						grouping: ['role'],
+						displayMode: 'table' as 'table' | 'cards',
+					},
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			// Collapse Admin in table mode
+			await user.click(screen.getByRole('button', { name: /admin/i }))
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+
+			// Switch to card mode — the same Admin group must remain collapsed
+			await rerender({
+				componentProperties: {
+					columns: groupableColumns,
+					data: groupedData,
+					grouping: ['role'],
+					displayMode: 'cards' as 'table' | 'cards',
+				},
+			})
+
+			expect(screen.getByRole('button', { name: /admin/i })).toHaveAttribute('aria-expanded', 'false')
+			expect(screen.queryByText('Card: Alice')).not.toBeInTheDocument()
+			// Editor was not collapsed — its card is still rendered
+			expect(screen.getByText('Card: Bob')).toBeInTheDocument()
 		})
 	})
 
