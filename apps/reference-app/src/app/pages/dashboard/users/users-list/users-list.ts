@@ -1,18 +1,13 @@
-import { BreakpointObserver } from '@angular/cdk/layout'
-import { isPlatformBrowser } from '@angular/common'
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	effect,
 	inject,
-	PLATFORM_ID,
 	signal,
-	type Signal,
 	untracked,
 	viewChild,
 } from '@angular/core'
-import { toSignal } from '@angular/core/rxjs-interop'
 import { PageShell } from '@components/page-shell/page-shell'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
@@ -32,9 +27,9 @@ import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
-import { map } from 'rxjs'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
 import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
+import { UserCard } from './user-card'
 
 @Component({
 	selector: 'app-users-list',
@@ -53,6 +48,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		PageShell,
 		Pagination,
 		TranslatePipe,
+		UserCard,
 	],
 	viewProviders: [provideIcons({ featherEdit3, featherTrash2 })],
 	template: `
@@ -85,7 +81,9 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 				[data]="store.users()"
 				[loading]="store.isMutating()"
 				[caption]="'USERS.TABLE.CAPTION' | translate"
-				[displayMode]="isMobileViewport() ? 'cards' : 'table'"
+				[displayModes]="displayModes"
+				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="status" let-value>
 					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
@@ -123,46 +121,7 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 				</ng-template>
 
 				<ng-template appDataTableCardDef let-row>
-					<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-						<div class="flex items-start justify-between gap-2">
-							<div class="min-w-0">
-								<p class="truncate font-medium text-gray-900 dark:text-gray-100">{{ row.fullName }}</p>
-								<p class="truncate text-sm text-gray-500 dark:text-gray-400">{{ row.email }}</p>
-							</div>
-							<span [variant]="row.status === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
-								{{ row.status.charAt(0).toUpperCase() + row.status.slice(1) }}
-							</span>
-						</div>
-						<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-							{{ formatRoles(row) }}
-						</p>
-						<!-- gap-4 (16px) > data-touch-target -inset-3 (12px) — prevents sibling hit-area overlap. -->
-						<div class="mt-3 flex gap-4">
-							<button
-								(click)="editDrawer.open(row.id)"
-								*hasPermission="'admin:users:update'"
-								appButton
-								variant="ghost"
-								size="sm"
-								data-touch-target
-							>
-								<ng-icon data-icon="start" name="featherEdit3" />
-								{{ 'COMMON.EDIT' | translate }}
-							</button>
-							<button
-								(click)="confirmDelete(row)"
-								*hasPermission="'admin:users:delete'"
-								appButton
-								variant="ghost"
-								size="sm"
-								class="text-destructive"
-								data-touch-target
-							>
-								<ng-icon data-icon="start" name="featherTrash2" />
-								{{ 'COMMON.DELETE' | translate }}
-							</button>
-						</div>
-					</div>
+					<app-user-card (edit)="editDrawer.open(row.id)" (delete)="confirmDelete(row)" [user]="row" />
 				</ng-template>
 			</app-data-table>
 
@@ -194,12 +153,10 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
 	protected readonly UserStatus = UserStatus
+	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
-	private readonly platformId = inject(PLATFORM_ID)
-
-	protected readonly isMobileViewport = this.createSmViewportSignal()
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
@@ -251,20 +208,5 @@ export default class UsersList {
 			this.store.deleteUser(user.id)
 			this.userToDelete.set(null)
 		}
-	}
-
-	protected formatRoles(user: IManagedUser): string {
-		return user.roles.length ? user.roles.map((r) => r.name).join(', ') : '—'
-	}
-
-	private createSmViewportSignal(): Signal<boolean> {
-		if (!isPlatformBrowser(this.platformId)) return signal(false).asReadonly()
-		const sm = getComputedStyle(document.documentElement).getPropertyValue('--breakpoint-sm').trim() || '40rem'
-		return toSignal(
-			inject(BreakpointObserver)
-				.observe(`(max-width: calc(${sm} - 1px))`)
-				.pipe(map((s) => s.matches)),
-			{ initialValue: false },
-		)
 	}
 }

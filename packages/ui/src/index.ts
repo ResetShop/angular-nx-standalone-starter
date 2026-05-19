@@ -8,7 +8,12 @@ export { Button } from './lib/button/button'
 export { default as Card } from './lib/card/card'
 export { Combobox } from './lib/combobox/combobox'
 export { ConfirmDialog } from './lib/confirm-dialog/confirm-dialog'
-export { DataTable, type DataTableSortEvent } from './lib/data-table/data-table'
+export {
+	DataTable,
+	type DataTableDisplayMode,
+	type DataTableSortEvent,
+	type DataTableTabBleed,
+} from './lib/data-table/data-table'
 export { DataTableCardDef, type DataTableCardDefContext } from './lib/data-table/data-table-card-def'
 export { DataTableCellDef, type DataTableCellDefContext } from './lib/data-table/data-table-cell-def'
 export { Drawer } from './lib/drawer/drawer'

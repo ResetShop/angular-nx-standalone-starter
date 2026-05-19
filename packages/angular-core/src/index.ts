@@ -1,6 +1,9 @@
 // @resetshop/angular-core — Angular framework infrastructure
 // Consumers should prefer deep imports for tree-shaking: '@resetshop/angular-core/i18n/translation'
 
+// Breakpoint
+export { createBreakpointSignal, type BreakpointDirection, type BreakpointName } from './lib/breakpoint/breakpoint'
+
 // i18n
 export { TranslatePipe } from './lib/i18n/translate.pipe'
 export {

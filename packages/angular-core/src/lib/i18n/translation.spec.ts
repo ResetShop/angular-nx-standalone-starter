@@ -145,7 +145,11 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			},
 		},
 		HTTP: { ERRORS: { FORBIDDEN: 'Forbidden' } },
-		DATA_TABLE: { EMPTY: 'Empty', LOADING: 'Loading' },
+		DATA_TABLE: {
+			EMPTY: 'Empty',
+			LOADING: 'Loading',
+			TOGGLE: { TABLE: 'Table', CARDS: 'Cards', GROUP_LABEL: 'Display mode' },
+		},
 		PAGINATION: {
 			LABEL: 'Pagination',
 			ROWS_PER_PAGE: 'Rows',
@@ -304,7 +308,11 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			},
 		},
 		HTTP: { ERRORS: { FORBIDDEN: 'Prohibido' } },
-		DATA_TABLE: { EMPTY: 'Vacío', LOADING: 'Cargando' },
+		DATA_TABLE: {
+			EMPTY: 'Vacío',
+			LOADING: 'Cargando',
+			TOGGLE: { TABLE: 'Tabla', CARDS: 'Tarjetas', GROUP_LABEL: 'Modo' },
+		},
 		PAGINATION: {
 			LABEL: 'Paginación',
 			ROWS_PER_PAGE: 'Filas',

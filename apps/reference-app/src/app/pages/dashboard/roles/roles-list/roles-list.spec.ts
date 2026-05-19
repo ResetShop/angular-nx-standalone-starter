@@ -294,29 +294,6 @@ describe('RolesList', () => {
 			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
 		})
 	})
-
-	describe('responsive display mode', () => {
-		it('should render the table on desktop viewports', async () => {
-			const roles = [createMockRoleData()]
-			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
-
-			await renderComponent()
-
-			expect(screen.getByRole('table')).toBeInTheDocument()
-			expect(screen.queryByRole('list')).not.toBeInTheDocument()
-		})
-
-		it('should render the card list on mobile viewports', async () => {
-			breakpointObserverMock.observe.mockReturnValue(of({ matches: true, breakpoints: {} }))
-			const roles = [createMockRoleData()]
-			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
-
-			await renderComponent()
-
-			expect(screen.queryByRole('table')).not.toBeInTheDocument()
-			expect(screen.getByRole('list')).toBeInTheDocument()
-		})
-	})
 })
 
 describe('permission identifiers', () => {
