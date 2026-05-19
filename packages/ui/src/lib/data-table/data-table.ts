@@ -205,15 +205,12 @@ export class DataTable<T> {
 
 		if (!isGrouped) return baseOptions
 
-		// In card mode every group is forced open — collapse is a table-mode-only interaction.
-		const forceExpand = this.resolvedDisplayMode() === 'cards'
-
 		return {
 			...baseOptions,
 			state: {
 				...baseOptions.state,
 				grouping: groupingState,
-				expanded: forceExpand ? true : this.expanded(),
+				expanded: this.expanded(),
 			},
 			onExpandedChange: (updater: Updater<ExpandedState>) => this.handleExpandedUpdate(updater),
 			getGroupedRowModel: getGroupedRowModel(),

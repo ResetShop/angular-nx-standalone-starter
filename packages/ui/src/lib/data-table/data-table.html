@@ -127,15 +127,22 @@
 		</div>
 	</li>
 	} @else { @for (row of table.getRowModel().rows; track row.id) { @if (row.depth === 0) { @if (row.getIsGrouped()) {
-	<!-- Group container — section header `<h3>` is a DOM child of the group, so screen readers associate the nested cards via `aria-labelledby`. -->
+	<!-- Group container — heading-with-button follows the W3C Disclosure Pattern. `<h3>` keeps heading semantics; the inner `<button>` exposes the collapse affordance. -->
 	<li [attr.aria-labelledby]="'group-' + row.id" role="group">
-		<h3
-			[id]="'group-' + row.id"
-			class="border-b border-gray-200 pt-3 pb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:border-gray-700 dark:text-gray-400"
-		>
-			{{ resolveGroupLabel(row) }}
-			<span class="ml-1 font-normal normal-case">({{ row.subRows.length }})</span>
+		<h3 [id]="'group-' + row.id" class="border-b border-gray-200 pt-3 pb-1 dark:border-gray-700">
+			<button
+				(click)="row.getToggleExpandedHandler()()"
+				[attr.aria-expanded]="row.getIsExpanded()"
+				class="flex w-full items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400"
+				type="button"
+			>
+				<span aria-hidden="true">{{ row.getIsExpanded() ? '▼' : '▶' }}</span>
+				<span class="sr-only">{{ row.getIsExpanded() ? 'Collapse' : 'Expand' }}</span>
+				{{ resolveGroupLabel(row) }}
+				<span class="ml-1 font-normal normal-case">({{ row.subRows.length }})</span>
+			</button>
 		</h3>
+		@if (row.getIsExpanded()) {
 		<ul role="list" class="mt-2 flex flex-col gap-4">
 			@for (subRow of row.subRows; track subRow.id) {
 			<li>
@@ -147,6 +154,7 @@
 			</li>
 			}
 		</ul>
+		}
 	</li>
 	} @else {
 	<li>
