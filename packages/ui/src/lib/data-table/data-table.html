@@ -1,4 +1,33 @@
-@if (resolvedDisplayMode() === 'table') {
+@if (showToggle()) {
+<div class="mb-2 flex justify-end">
+	<div [attr.aria-label]="toggleGroupLabel" role="group" class="flex gap-4">
+		<button
+			(click)="handleToggle('table')"
+			[attr.aria-pressed]="resolvedDisplayMode() === 'table'"
+			appButton
+			variant="ghost"
+			size="icon"
+			type="button"
+			data-touch-target
+		>
+			<ng-icon name="featherTable" aria-hidden="true" />
+			<span class="sr-only">{{ toggleTableLabel }}</span>
+		</button>
+		<button
+			(click)="handleToggle('cards')"
+			[attr.aria-pressed]="resolvedDisplayMode() === 'cards'"
+			appButton
+			variant="ghost"
+			size="icon"
+			type="button"
+			data-touch-target
+		>
+			<ng-icon name="featherGrid" aria-hidden="true" />
+			<span class="sr-only">{{ toggleCardsLabel }}</span>
+		</button>
+	</div>
+</div>
+} @if (resolvedDisplayMode() === 'table') {
 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
 	<table [attr.aria-busy]="loading()" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
 		@if (caption()) {
@@ -97,9 +126,17 @@
 			{{ loadingMessage }}
 		</div>
 	</li>
-	} @else { @for (row of table.getRowModel().rows; track row.id) {
-	<!-- Grouping is intentionally flattened in card mode — group headers render only in table mode. -->
-	@if (!row.getIsGrouped()) {
+	} @else { @for (row of table.getRowModel().rows; track row.id) { @if (row.getIsGrouped()) {
+	<!-- Non-interactive section header — card mode flattens collapse/expand. -->
+	<li
+		[attr.aria-label]="resolveGroupLabel(row)"
+		role="group"
+		class="border-b border-gray-200 pt-3 pb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:border-gray-700 dark:text-gray-400"
+	>
+		{{ resolveGroupLabel(row) }}
+		<span class="ml-1 font-normal normal-case">({{ row.subRows.length }})</span>
+	</li>
+	} @else {
 	<li>
 		<!-- cardDefTemplate() is non-null here: resolvedDisplayMode === 'cards' guards cardDef presence. -->
 		<ng-container [ngTemplateOutlet]="cardDefTemplate()!" [ngTemplateOutletContext]="{ $implicit: row.original }" />

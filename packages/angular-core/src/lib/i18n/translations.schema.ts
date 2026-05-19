@@ -213,6 +213,11 @@ export interface TranslationSchema {
 	DATA_TABLE: {
 		EMPTY: string
 		LOADING: string
+		TOGGLE: {
+			TABLE: string
+			CARDS: string
+			GROUP_LABEL: string
+		}
 	}
 	PAGINATION: {
 		LABEL: string
