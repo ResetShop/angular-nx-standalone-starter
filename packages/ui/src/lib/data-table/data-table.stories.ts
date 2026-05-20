@@ -484,7 +484,8 @@ class DataTableCustomCellsStoryComponent {
 export const CustomCellTemplates: StoryObj<DataTableCustomCellsStoryComponent> = {
 	render: (args) => ({
 		props: args,
-		component: DataTableCustomCellsStoryComponent,
+		moduleMetadata: { imports: [DataTableCustomCellsStoryComponent] },
+		template: `<app-data-table-custom-cells-story [columns]="columns" [data]="data" />`,
 	}),
 	args: {
 		columns: sampleColumns,
@@ -531,7 +532,8 @@ class DataTableCardViewStoryComponent {
 export const CardView: StoryObj<DataTableCardViewStoryComponent> = {
 	render: (args) => ({
 		props: args,
-		component: DataTableCardViewStoryComponent,
+		moduleMetadata: { imports: [DataTableCardViewStoryComponent] },
+		template: `<app-data-table-card-view-story [columns]="columns" [data]="data" />`,
 	}),
 	args: {
 		columns: sampleColumns,
@@ -546,7 +548,8 @@ export const CardView: StoryObj<DataTableCardViewStoryComponent> = {
 export const CardViewCompact: StoryObj<DataTableCardViewStoryComponent> = {
 	render: (args) => ({
 		props: args,
-		component: DataTableCardViewStoryComponent,
+		moduleMetadata: { imports: [DataTableCardViewStoryComponent] },
+		template: `<app-data-table-card-view-story [columns]="columns" [data]="data" />`,
 	}),
 	args: {
 		columns: sampleColumns,
