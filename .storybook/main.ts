@@ -8,6 +8,8 @@ const config: StorybookConfig = {
 	stories: [
 		'../apps/reference-app/src/app/**/*.stories.mdx',
 		'../apps/reference-app/src/app/**/*.stories.@(js|jsx|ts|tsx)',
+		'../packages/ui/src/lib/**/*.stories.mdx',
+		'../packages/ui/src/lib/**/*.stories.@(js|jsx|ts|tsx)',
 	],
 	addons: [
 		getAbsolutePath('@storybook/addon-docs'),
