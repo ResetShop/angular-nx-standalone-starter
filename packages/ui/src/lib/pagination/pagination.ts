@@ -26,13 +26,10 @@ const PAGINATION_KEYS = Object.freeze({
 	imports: [Button, NgIcon],
 	viewProviders: [provideIcons({ featherChevronLeft, featherChevronRight })],
 	template: `
-		<nav
-			[attr.aria-label]="paginationLabel"
-			class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-		>
-			<!-- Rows per page selector (top on mobile, left on desktop) -->
+		<nav [attr.aria-label]="paginationLabel" class="flex items-center justify-between gap-3 sm:gap-4">
+			<!-- Rows per page selector (left) -->
 			<div class="flex items-center gap-2">
-				<label [attr.for]="selectId" class="text-muted-foreground text-sm">
+				<label [attr.for]="selectId" class="text-muted-foreground sr-only text-sm sm:not-sr-only">
 					{{ rowsPerPageLabel }}
 				</label>
 				<select
@@ -47,7 +44,7 @@ const PAGINATION_KEYS = Object.freeze({
 				</select>
 			</div>
 
-			<!-- Page navigation (bottom on mobile, right on desktop) -->
+			<!-- Page navigation (right) -->
 			<div class="flex items-center gap-1">
 				<!-- Previous button — data-touch-target extends hit area to 44px on mobile -->
 				<button
@@ -64,17 +61,12 @@ const PAGINATION_KEYS = Object.freeze({
 					<ng-icon name="featherChevronLeft" class="h-4 w-4" />
 				</button>
 
-				<!-- Mobile-only current-page indicator (hidden from sm: up where page buttons take over) -->
-				<span
-					aria-atomic="true"
-					aria-live="polite"
-					role="status"
-					class="text-muted-foreground flex-1 text-center text-sm sm:hidden"
-				>
+				<!-- Current-page indicator — sr-only at all viewports; announces page changes via aria-live -->
+				<span aria-atomic="true" aria-live="polite" role="status" class="sr-only">
 					{{ pageOfLabel() }}
 				</span>
 
-				<!-- Page number buttons — hidden below sm: where the label above stands in -->
+				<!-- Page number buttons — hidden below sm: so prev/next + select fit on a single mobile row -->
 				@for (item of pageItems(); track $index) {
 					@if (item.type === 'ellipsis') {
 						<span class="text-muted-foreground hidden h-8 w-8 items-center justify-center text-sm sm:flex">…</span>
@@ -168,12 +160,12 @@ export class Pagination {
 	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE)
 
 	/**
-	 * Translated template for the mobile current-page indicator, resolved once at construction.
+	 * Translated template for the sr-only current-page indicator, resolved once at construction.
 	 * Contains `{current}` and `{total}` placeholders interpolated reactively by `pageOfLabel`.
 	 */
 	private readonly pageOfTemplate = this.translation.instant(PAGINATION_KEYS.PAGE_OF)
 
-	/** Mobile current-page label (e.g. "Page 5 of 10"). Read by the `sm:hidden` `aria-live` span. */
+	/** Current-page label (e.g. "Page 5 of 10"). Read by the `sr-only` `aria-live` span — never visually shown. */
 	protected readonly pageOfLabel = computed(() =>
 		this.pageOfTemplate.replace('{current}', String(this.currentPage())).replace('{total}', String(this.totalPages())),
 	)

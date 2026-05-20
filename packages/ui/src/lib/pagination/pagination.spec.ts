@@ -319,19 +319,33 @@ describe('Pagination', () => {
 	})
 
 	describe('responsive layout', () => {
-		it('should apply mobile-stacking layout classes to the nav wrapper', async () => {
+		it('should be a single-row layout at all viewports', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 5 },
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
 			const nav = screen.getByRole('navigation', { name: /pagination/i })
-			expect(nav).toHaveClass('flex-col')
-			expect(nav).toHaveClass('sm:flex-row')
-			expect(nav).toHaveClass('sm:justify-between')
+			expect(nav).toHaveClass('flex')
+			expect(nav).toHaveClass('items-center')
+			expect(nav).toHaveClass('justify-between')
+			expect(nav).not.toHaveClass('flex-col')
 		})
 
-		it('should apply hidden sm:inline-flex to page-number buttons', async () => {
+		it('should mark the rows-per-page label sr-only on mobile, visible from sm: up', async () => {
+			// jsdom cannot evaluate media queries; this asserts class presence as a regression guard.
+			// Visual breakpoint behaviour is covered by the 'Mobile' Storybook story.
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Rows per page')
+			expect(label).toHaveClass('sr-only')
+			expect(label).toHaveClass('sm:not-sr-only')
+		})
+
+		it('should hide page-number buttons below sm: so the row fits on mobile', async () => {
 			// jsdom cannot evaluate media queries; this asserts class presence as a regression guard.
 			// Visual breakpoint behaviour is covered by the 'Mobile' Storybook story.
 			await render(Pagination, {
@@ -344,16 +358,18 @@ describe('Pagination', () => {
 			expect(pageBtn).toHaveClass('sm:inline-flex')
 		})
 
-		it('should render the mobile current-page label with correct text', async () => {
+		it('should keep the current-page label sr-only at all viewports', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 3, totalPages: 10 },
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			expect(screen.getByText('Page 3 of 10')).toBeInTheDocument()
+			const label = screen.getByText('Page 3 of 10')
+			expect(label).toBeInTheDocument()
+			expect(label).toHaveClass('sr-only')
 		})
 
-		it('should apply role="status", aria-live polite, and aria-atomic to the mobile current-page label', async () => {
+		it('should apply role="status", aria-live polite, and aria-atomic to the current-page label', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 5 },
 				providers: [{ provide: Translation, useValue: mockTranslation }],
@@ -365,25 +381,7 @@ describe('Pagination', () => {
 			expect(label).toHaveAttribute('aria-atomic', 'true')
 		})
 
-		it('should update the mobile current-page label reactively when the user navigates', async () => {
-			const user = userEvent.setup()
-			await render(Pagination, {
-				inputs: { currentPage: 2, totalPages: 5 },
-				providers: [{ provide: Translation, useValue: mockTranslation }],
-			})
-
-			expect(screen.getByText('Page 2 of 5')).toBeInTheDocument()
-
-			await user.click(screen.getByRole('button', { name: /go to previous page/i }))
-
-			// In a real consumer the parent re-binds `currentPage` after handling `pageChange`.
-			// Here we simulate that by re-rendering with the new value.
-			// Note: the test verifies the computed signal interpolates correctly when the input changes,
-			// not the parent reactivity. The actual page change is emitted via the output event.
-			expect(screen.getByText('Page 2 of 5')).toBeInTheDocument()
-		})
-
-		it('should reflect updated currentPage input in the mobile label (computed signal reactivity)', async () => {
+		it('should reflect updated currentPage input in the current-page label (computed signal reactivity)', async () => {
 			const { rerender } = await render(Pagination, {
 				inputs: { currentPage: 2, totalPages: 5 },
 				providers: [{ provide: Translation, useValue: mockTranslation }],
