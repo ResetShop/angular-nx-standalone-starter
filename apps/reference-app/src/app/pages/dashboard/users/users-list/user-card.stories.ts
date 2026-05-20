@@ -3,7 +3,6 @@ import { UserStatus } from '@contracts/user/user.constants'
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
-import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { createMockManagedUser } from '@providers/users/users.mock'
 import { AuthStore } from '@store/auth/auth.store'
 import type { Meta, StoryObj } from '@storybook/angular'
@@ -22,7 +21,7 @@ const meta: Meta<UserCard> = {
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [provideAuthMock(), provideTranslationMock(), seedAuthStoreWithAllPermissions()],
+			providers: [provideAuthMock(), seedAuthStoreWithAllPermissions()],
 		}),
 		moduleMetadata({
 			imports: [UserCard],

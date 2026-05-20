@@ -2,7 +2,6 @@ import { inject, provideAppInitializer } from '@angular/core'
 import { mapRoleFromData } from '@domain/access/role.mapper'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
-import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { createMockRoleData } from '@providers/roles/roles.mock'
 import { AuthStore } from '@store/auth/auth.store'
 import type { Meta, StoryObj } from '@storybook/angular'
@@ -21,7 +20,7 @@ const meta: Meta<RoleCard> = {
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [provideAuthMock(), provideTranslationMock(), seedAuthStoreWithAllPermissions()],
+			providers: [provideAuthMock(), seedAuthStoreWithAllPermissions()],
 		}),
 		moduleMetadata({
 			imports: [RoleCard],

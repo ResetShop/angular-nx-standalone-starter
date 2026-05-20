@@ -1,10 +1,9 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
-import { Component, effect, ErrorHandler, inject, input, signal } from '@angular/core'
+import { Component, effect, input, signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { LoginErrorCode } from '@contracts/auth/auth.errors'
-import { Translation, type Language } from '@resetshop/angular-core/i18n/translation'
 import { AuthStore } from '@store/auth/auth.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
@@ -35,30 +34,11 @@ const storyLoginError = signal<{ code: string } | null>(null)
 	`,
 })
 class LoginStoryComponent {
-	private readonly errorHandler = inject(ErrorHandler)
-	private readonly translation = inject(Translation)
-
 	public readonly errorCode = input<ErrorCodeOption>(null)
-	public readonly language = input<Language>('es')
-
-	private readonly isReady = signal(false)
 
 	private readonly syncErrorEffect = effect(() => {
 		const code = this.errorCode()
-		if (!this.isReady()) {
-			storyLoginError.set(null)
-			return
-		}
 		storyLoginError.set(code ? { code } : null)
-	})
-
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation
-			.setLanguage(lang)
-			.then(() => this.isReady.set(true))
-			.catch((error: unknown) => this.errorHandler.handleError(error))
 	})
 }
 
@@ -69,7 +49,6 @@ const meta: Meta<LoginStoryComponent> = {
 	decorators: [
 		applicationConfig({
 			providers: [
-				Translation,
 				...provideSignalFormsConfig({}),
 				provideRouter([]),
 				provideHttpClient(),
@@ -102,7 +81,6 @@ Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<
 - Error message display for authentication failures
 - Account lockout message for security
 - Responsive design with dark mode support
-- **i18n Support**: Error messages are localized using the Translation service
 
 ## Error States
 
@@ -110,14 +88,6 @@ The login page handles several error conditions (using \`LoginErrorCode\`):
 - **INVALID_CREDENTIALS**: Displayed when email/password combination is incorrect
 - **ACCOUNT_LOCKED**: Displayed when too many failed login attempts occur
 - **GENERIC**: Displayed for unexpected server errors
-
-## Language Support
-
-Use the **language** control to switch between:
-- **es** (Spanish) - Default
-- **en** (English)
-
-Error messages will automatically update to the selected language.
 				`,
 			},
 			canvas: {
@@ -129,7 +99,7 @@ Error messages will automatically update to the selected language.
 		errorCode: {
 			control: 'select',
 			options: [null, LoginErrorCode.INVALID_CREDENTIALS, LoginErrorCode.ACCOUNT_LOCKED, LoginErrorCode.GENERIC],
-			description: 'Error code to display (uses Translation service for localized message)',
+			description: 'Error code to display',
 			table: {
 				type: { summary: 'LoginErrorCode | null' },
 				defaultValue: { summary: 'null' },
@@ -139,19 +109,6 @@ Error messages will automatically update to the selected language.
 				[LoginErrorCode.INVALID_CREDENTIALS]: 'Invalid Credentials',
 				[LoginErrorCode.ACCOUNT_LOCKED]: 'Account Locked',
 				[LoginErrorCode.GENERIC]: 'Generic Error',
-			},
-		},
-		language: {
-			control: 'select',
-			options: ['es', 'en'],
-			description: 'Language for error messages',
-			table: {
-				type: { summary: 'Language' },
-				defaultValue: { summary: 'es' },
-			},
-			labels: {
-				es: 'Español',
-				en: 'English',
 			},
 		},
 	},
@@ -167,6 +124,5 @@ type Story = StoryObj<LoginStoryComponent>
 export const Default: Story = {
 	args: {
 		errorCode: null,
-		language: 'es',
 	},
 }

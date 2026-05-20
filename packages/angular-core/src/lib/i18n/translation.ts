@@ -1,4 +1,4 @@
-import { inject, Injectable, InjectionToken, signal } from '@angular/core'
+import { inject, Injectable, InjectionToken, isDevMode, signal } from '@angular/core'
 import type { TranslationKey, TranslationSchema } from './translations.schema'
 
 /**
@@ -26,13 +26,23 @@ export type TranslationLoaderFn = (lang: Language) => Promise<TranslationSchema>
  * Injection token for the translation loader function.
  * Consumers provide this to define how translation files are loaded (e.g., dynamic imports).
  *
- * Default factory throws — consumers MUST provide a loader via `provideTranslation()`.
+ * Default factory returns an empty schema and logs a one-time dev-mode warning. Production
+ * code should always call `provideTranslation()` in the app config — this fallback exists
+ * so test harnesses and Storybook stories that don't wire translations still render
+ * (components see raw keys via `instant`'s key-as-fallback behaviour) instead of crashing.
  */
 export const TRANSLATION_LOADER = new InjectionToken<TranslationLoaderFn>('TranslationLoader', {
 	providedIn: 'root',
 	factory: () => {
+		let warned = false
 		return async () => {
-			throw new Error('No TRANSLATION_LOADER provided. Call provideTranslation() in your app config.')
+			if (isDevMode() && !warned) {
+				warned = true
+				console.warn(
+					'[Translation] No TRANSLATION_LOADER provided — using empty translations. Call provideTranslation() in your app config.',
+				)
+			}
+			return {} as TranslationSchema
 		}
 	},
 })
@@ -110,14 +120,15 @@ export class Translation {
 	 * Gets a translated string for the given key in the current language.
 	 *
 	 * @param key - Translation key in dot notation (e.g., 'AUTH.ERRORS.INVALID_CREDENTIALS')
-	 * @returns Translated string or the key if not found
-	 * @throws Error if translations for the current language are not loaded
+	 * @returns Translated string or the raw key if translations are not loaded or the key
+	 *   has no matching entry. Returning the key (rather than throwing) keeps components
+	 *   renderable in test/Storybook contexts that haven't initialised translations yet.
 	 */
 	public instant(key: TranslationKey): string {
 		const currentTranslations = this.translations[this.currentLang()]
 
 		if (currentTranslations === null) {
-			throw new Error(`Translations for language '${this.currentLang()}' are not loaded`)
+			return key
 		}
 
 		const keys = key.split('.')
