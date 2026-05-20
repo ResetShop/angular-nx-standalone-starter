@@ -1,4 +1,5 @@
-import type { Decorator, Preview } from '@storybook/angular'
+import { applicationConfig, type Decorator, type Preview } from '@storybook/angular'
+import { storyTranslationProviders } from './translation-mock'
 
 export const tags = ['autodocs']
 
@@ -58,6 +59,11 @@ export default preview
 
 // Defer class toggle until after Storybook renders the story frame
 export const decorators: Decorator[] = [
+	// Global Translation mock — replaces the `Translation` token with a stub instance for every
+	// story so components calling `translation.instant()` and `translation.setLanguage()` don't
+	// throw when no `TRANSLATION_LOADER` is provided. See `.storybook/translation-mock.ts` for
+	// the rationale.
+	applicationConfig({ providers: storyTranslationProviders }),
 	(story, context) => {
 		const selectedBackground = context.globals['backgrounds']?.value
 

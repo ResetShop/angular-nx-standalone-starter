@@ -69,7 +69,6 @@ const meta: Meta<LoginStoryComponent> = {
 	decorators: [
 		applicationConfig({
 			providers: [
-				Translation,
 				...provideSignalFormsConfig({}),
 				provideRouter([]),
 				provideHttpClient(),

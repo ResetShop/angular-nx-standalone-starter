@@ -80,7 +80,7 @@ const meta: Meta<StorySelect> = {
 	component: StorySelect,
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({})],
+			providers: [...provideSignalFormsConfig({})],
 		}),
 	],
 	parameters: {

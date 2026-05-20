@@ -80,7 +80,7 @@ const meta: Meta<StoryCombobox> = {
 	component: StoryCombobox,
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({})],
+			providers: [...provideSignalFormsConfig({})],
 		}),
 	],
 	parameters: {

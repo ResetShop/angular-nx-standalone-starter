@@ -1,4 +1,4 @@
-import { inject, Injectable, InjectionToken, signal } from '@angular/core'
+import { inject, Injectable, InjectionToken, isDevMode, signal } from '@angular/core'
 import type { TranslationKey, TranslationSchema } from './translations.schema'
 
 /**
@@ -26,13 +26,23 @@ export type TranslationLoaderFn = (lang: Language) => Promise<TranslationSchema>
  * Injection token for the translation loader function.
  * Consumers provide this to define how translation files are loaded (e.g., dynamic imports).
  *
- * Default factory throws — consumers MUST provide a loader via `provideTranslation()`.
+ * Default factory returns an empty schema and logs a dev-mode warning. Production code
+ * should always call `provideTranslation()` in the app config — but this fallback keeps
+ * Storybook stories and consumers that haven't wired translations yet from crashing
+ * with a hard `inject()` failure.
  */
 export const TRANSLATION_LOADER = new InjectionToken<TranslationLoaderFn>('TranslationLoader', {
 	providedIn: 'root',
 	factory: () => {
+		let warned = false
 		return async () => {
-			throw new Error('No TRANSLATION_LOADER provided. Call provideTranslation() in your app config.')
+			if (isDevMode() && !warned) {
+				warned = true
+				console.warn(
+					'[Translation] No TRANSLATION_LOADER provided — using empty translations. Call provideTranslation() in your app config.',
+				)
+			}
+			return {} as TranslationSchema
 		}
 	},
 })

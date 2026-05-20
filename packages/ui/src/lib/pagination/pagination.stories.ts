@@ -1,7 +1,6 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core'
 import { type Language, Translation } from '@resetshop/angular-core/i18n/translation'
 import type { Meta, StoryObj } from '@storybook/angular'
-import { applicationConfig } from '@storybook/angular'
 import { Pagination } from './pagination'
 
 /**
@@ -78,11 +77,6 @@ const meta: Meta<PaginationStoryComponent> = {
 	component: PaginationStoryComponent,
 	title: 'Components/Pagination',
 	tags: ['autodocs'],
-	decorators: [
-		applicationConfig({
-			providers: [Translation],
-		}),
-	],
 	parameters: {
 		docs: {
 			description: {

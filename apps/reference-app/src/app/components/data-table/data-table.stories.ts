@@ -4,7 +4,6 @@ import { DataTable } from '@resetshop/ui/data-table/data-table'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
 import type { Meta, StoryObj } from '@storybook/angular'
-import { applicationConfig } from '@storybook/angular'
 import { type ColumnDef } from '@tanstack/angular-table'
 
 interface User {
@@ -186,11 +185,6 @@ const meta: Meta<DataTableStoryComponent> = {
 	component: DataTableStoryComponent,
 	title: 'Components/DataTable',
 	tags: ['autodocs'],
-	decorators: [
-		applicationConfig({
-			providers: [Translation],
-		}),
-	],
 	parameters: {
 		docs: {
 			description: {

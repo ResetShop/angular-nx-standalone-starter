@@ -1,7 +1,6 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core'
 import { type Language, Translation } from '@resetshop/angular-core/i18n/translation'
 import type { Meta, StoryObj } from '@storybook/angular'
-import { applicationConfig } from '@storybook/angular'
 import { type ColumnDef } from '@tanstack/angular-table'
 import { Pagination } from '../pagination/pagination'
 import { DataTable } from './data-table'
@@ -199,11 +198,6 @@ const meta: Meta<DataTableStoryComponent> = {
 	component: DataTableStoryComponent,
 	title: 'Components/DataTable',
 	tags: ['autodocs'],
-	decorators: [
-		applicationConfig({
-			providers: [Translation],
-		}),
-	],
 	parameters: {
 		docs: {
 			description: {

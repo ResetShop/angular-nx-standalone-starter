@@ -218,7 +218,7 @@ const meta: Meta<StoryPlayground> = {
 	component: StoryPlayground,
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({})],
+			providers: [...provideSignalFormsConfig({})],
 		}),
 	],
 	parameters: {

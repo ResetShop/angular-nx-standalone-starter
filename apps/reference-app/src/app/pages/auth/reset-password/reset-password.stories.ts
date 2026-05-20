@@ -38,7 +38,7 @@ const meta: Meta<ResetPasswordStoryComponent> = {
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({}), provideRouter([])],
+			providers: [...provideSignalFormsConfig({}), provideRouter([])],
 		}),
 	],
 	parameters: {

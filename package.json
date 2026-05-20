@@ -18,6 +18,7 @@
 		"build": "nx build reference-app",
 		"storybook": "nx run reference-app:storybook",
 		"storybook:build": "nx run reference-app:build-storybook",
+		"storybook:check-translations": "node scripts/check-storybook-translations.mjs",
 		"lint": "nx run-many -t lint --skip-nx-cache",
 		"stylelint": "nx stylelint reference-app --skip-nx-cache",
 		"typecheck": "nx run-many -t typecheck --skip-nx-cache",
