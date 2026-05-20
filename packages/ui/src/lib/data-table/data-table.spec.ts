@@ -1,6 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { type ColumnDef } from '@tanstack/angular-table'
 import { render, type RenderResult, screen, within } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
@@ -49,6 +49,10 @@ function createBreakpointObserverMock(matches: boolean): { observe: MockFn } {
 }
 
 describe('DataTable', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
 	it('should render table with headers', async () => {
 		await render(DataTable<TestData>, {
 			inputs: { columns: testColumns, data: testData },
@@ -642,7 +646,72 @@ describe('DataTable', () => {
 			expect(screen.getByText('Card: Bob')).toBeInTheDocument()
 		})
 
-		it('does not render a collapse button in card mode for grouped rows', async () => {
+		it('renders a disclosure toggle button per group header in card mode', async () => {
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [
+				{ name: 'Alice', role: 'Admin', email: '' },
+				{ name: 'Bob', role: 'Editor', email: '' },
+			]
+
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [grouping]="grouping" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: groupableColumns, data: groupedData, grouping: ['role'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			const adminButton = screen.getByRole('button', { name: /admin/i })
+			expect(adminButton).toBeInTheDocument()
+			expect(adminButton).toHaveAttribute('aria-expanded', 'true')
+			expect(screen.getByRole('button', { name: /editor/i })).toHaveAttribute('aria-expanded', 'true')
+		})
+
+		it('collapses a group when its toggle button is clicked in card mode', async () => {
+			const user = userEvent.setup()
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [
+				{ name: 'Alice', role: 'Admin', email: '' },
+				{ name: 'Carol', role: 'Admin', email: '' },
+				{ name: 'Bob', role: 'Editor', email: '' },
+			]
+
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [grouping]="grouping" [displayMode]="'cards'">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: groupableColumns, data: groupedData, grouping: ['role'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			// Initial: Admin's cards visible
+			expect(screen.getByText('Card: Alice')).toBeInTheDocument()
+			expect(screen.getByText('Card: Carol')).toBeInTheDocument()
+			expect(screen.getByText('Card: Bob')).toBeInTheDocument()
+
+			await user.click(screen.getByRole('button', { name: /admin/i }))
+
+			// Admin's cards hidden, but Bob (under Editor) still rendered
+			expect(screen.queryByText('Card: Alice')).not.toBeInTheDocument()
+			expect(screen.queryByText('Card: Carol')).not.toBeInTheDocument()
+			expect(screen.getByText('Card: Bob')).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /admin/i })).toHaveAttribute('aria-expanded', 'false')
+		})
+
+		it('re-expands a collapsed group in card mode when its toggle button is clicked again', async () => {
+			const user = userEvent.setup()
 			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
 				{ accessorKey: 'name', header: 'Name', enableSorting: false },
 				{ accessorKey: 'role', header: 'Role', enableSorting: false },
@@ -660,7 +729,126 @@ describe('DataTable', () => {
 				},
 			)
 
-			expect(screen.queryByRole('button', { name: /admin/i })).not.toBeInTheDocument()
+			const adminButton = screen.getByRole('button', { name: /admin/i })
+
+			await user.click(adminButton)
+			expect(screen.queryByText('Card: Alice')).not.toBeInTheDocument()
+
+			await user.click(adminButton)
+			expect(screen.getByText('Card: Alice')).toBeInTheDocument()
+			expect(adminButton).toHaveAttribute('aria-expanded', 'true')
+		})
+
+		it('starts grouped card-mode sections collapsed when expandedByDefault is false', async () => {
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [
+				{ name: 'Alice', role: 'Admin', email: '' },
+				{ name: 'Bob', role: 'Editor', email: '' },
+			]
+
+			await render(
+				`<app-data-table
+					[columns]="columns"
+					[data]="data"
+					[grouping]="grouping"
+					[displayMode]="'cards'"
+					[expandedByDefault]="false"
+				>
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: groupableColumns, data: groupedData, grouping: ['role'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.getByRole('button', { name: /admin/i })).toHaveAttribute('aria-expanded', 'false')
+			expect(screen.getByRole('button', { name: /editor/i })).toHaveAttribute('aria-expanded', 'false')
+			expect(screen.queryByText('Card: Alice')).not.toBeInTheDocument()
+			expect(screen.queryByText('Card: Bob')).not.toBeInTheDocument()
+		})
+
+		it('reveals cards under a previously collapsed group when the user expands it', async () => {
+			const user = userEvent.setup()
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [{ name: 'Alice', role: 'Admin', email: '' }]
+
+			await render(
+				`<app-data-table
+					[columns]="columns"
+					[data]="data"
+					[grouping]="grouping"
+					[displayMode]="'cards'"
+					[expandedByDefault]="false"
+				>
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: groupableColumns, data: groupedData, grouping: ['role'] },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			expect(screen.queryByText('Card: Alice')).not.toBeInTheDocument()
+
+			await user.click(screen.getByRole('button', { name: /admin/i }))
+
+			expect(screen.getByText('Card: Alice')).toBeInTheDocument()
+		})
+
+		it('persists collapse state across display-mode switches (table → cards)', async () => {
+			const user = userEvent.setup()
+			const groupableColumns: ColumnDef<GroupableData, unknown>[] = [
+				{ accessorKey: 'name', header: 'Name', enableSorting: false },
+				{ accessorKey: 'role', header: 'Role', enableSorting: false },
+			]
+			const groupedData: GroupableData[] = [
+				{ name: 'Alice', role: 'Admin', email: '' },
+				{ name: 'Bob', role: 'Editor', email: '' },
+			]
+
+			const { rerender } = await render(
+				`<app-data-table [columns]="columns" [data]="data" [grouping]="grouping" [displayMode]="displayMode">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: {
+						columns: groupableColumns,
+						data: groupedData,
+						grouping: ['role'],
+						displayMode: 'table' as 'table' | 'cards',
+					},
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				},
+			)
+
+			// Collapse Admin in table mode
+			await user.click(screen.getByRole('button', { name: /admin/i }))
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+
+			// Switch to card mode — the same Admin group must remain collapsed
+			await rerender({
+				componentProperties: {
+					columns: groupableColumns,
+					data: groupedData,
+					grouping: ['role'],
+					displayMode: 'cards' as 'table' | 'cards',
+				},
+			})
+
+			expect(screen.getByRole('button', { name: /admin/i })).toHaveAttribute('aria-expanded', 'false')
+			expect(screen.queryByText('Card: Alice')).not.toBeInTheDocument()
+			// Editor was not collapsed — its card is still rendered
+			expect(screen.getByText('Card: Bob')).toBeInTheDocument()
 		})
 	})
 

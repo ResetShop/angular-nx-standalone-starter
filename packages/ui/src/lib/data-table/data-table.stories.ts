@@ -411,8 +411,10 @@ export const WithToggleControl: Story = {
 }
 
 /**
- * Card mode with TanStack grouping by `role` — non-interactive section headers
- * render inline above the cards in each group. No collapse toggle in card mode.
+ * Card mode with TanStack grouping by `role` — each group renders a heading-containing-button
+ * (WAI-ARIA Disclosure Pattern) that collapses/expands the cards below it. Click a group
+ * heading to toggle. `expanded` state is shared with table mode, so collapses persist when
+ * switching modes.
  */
 export const GroupedCards: Story = {
 	args: {

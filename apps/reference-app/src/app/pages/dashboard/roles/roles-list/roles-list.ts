@@ -82,6 +82,7 @@ import { RoleCard } from './role-card'
 				[caption]="'ROLES.TABLE.CAPTION' | translate"
 				[displayModes]="displayModes"
 				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="code" let-value>
 					<span appBadge variant="secondary">{{ value }}</span>
