@@ -34,6 +34,9 @@
 		"../apps/reference-app/src/**/*.stories.tsx",
 		"../apps/reference-app/src/**/*.stories.mdx",
 		"../apps/reference-app/src/app/mocks/**/*.ts",
+		"../packages/ui/src/lib/**/*.stories.ts",
+		"../packages/ui/src/lib/**/*.stories.tsx",
+		"../packages/ui/src/lib/**/*.stories.mdx",
 		"*.js",
 		"*.ts"
 	]
