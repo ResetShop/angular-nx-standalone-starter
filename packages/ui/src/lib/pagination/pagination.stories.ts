@@ -217,7 +217,6 @@ export const Mobile: Story = {
 		totalPages: 10,
 		initialPage: 5,
 		initialPageSize: 25,
-		language: 'en',
 	},
 	parameters: {
 		viewport: {
