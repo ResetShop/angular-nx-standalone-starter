@@ -446,12 +446,10 @@ describe('Translation Service', () => {
 	})
 
 	describe('Uninitialized service', () => {
-		it('should throw error when translations are not loaded', () => {
+		it('should return the raw key when translations are not loaded', () => {
 			const uninitService = TestBed.inject(Translation)
 
-			expect(() => {
-				uninitService.instant('AUTH.ERRORS.GENERIC')
-			}).toThrow(/not loaded/)
+			expect(uninitService.instant('AUTH.ERRORS.GENERIC')).toBe('AUTH.ERRORS.GENERIC')
 		})
 	})
 

@@ -1,7 +1,5 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core'
-import { type Language, Translation } from '@resetshop/angular-core/i18n/translation'
+import { Component, computed, effect, input, signal } from '@angular/core'
 import type { Meta, StoryObj } from '@storybook/angular'
-import { applicationConfig } from '@storybook/angular'
 import { type ColumnDef } from '@tanstack/angular-table'
 import { Pagination } from '../pagination/pagination'
 import { DataTable } from './data-table'
@@ -46,58 +44,52 @@ const sampleData: User[] = [
 ]
 
 /**
- * Wrapper component that manages language loading and pagination for DataTable stories.
- * Destroys and re-creates the DataTable when language changes so that
- * translated defaults (emptyMessage, loadingMessage) pick up the new locale.
+ * Wrapper component that manages pagination state for DataTable stories.
  */
 @Component({
 	selector: 'app-data-table-story',
 	standalone: true,
 	imports: [DataTable, DataTableCardDef, Pagination],
 	template: `
-		@if (isReady()) {
-			<app-data-table
-				[columns]="columns()"
-				[data]="displayData()"
-				[loading]="loading()"
-				[caption]="caption()"
-				[emptyMessage]="resolvedEmptyMessage()"
-				[grouping]="resolvedGrouping()"
-				[expandedByDefault]="expandedByDefault()"
-				[displayMode]="displayMode()"
-				[displayModes]="displayModes()"
-			>
-				<ng-template appDataTableCardDef let-row>
-					<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-						<p class="font-medium text-gray-900 dark:text-gray-100">{{ row.name }}</p>
-						<p class="text-sm text-gray-500 dark:text-gray-400">{{ row.email }}</p>
-						<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ row.role }} · {{ row.location }}</p>
-					</div>
-				</ng-template>
-			</app-data-table>
-			@if (pageSize() > 0) {
-				<div class="mt-4">
-					<app-pagination
-						(pageChange)="onPageChange($event)"
-						(pageSizeChange)="onPageSizeChange($event)"
-						[currentPage]="currentPage()"
-						[totalPages]="totalPages()"
-						[pageSize]="pageSize()"
-						[pageSizeOptions]="pageSizeOptions()"
-					/>
+		<app-data-table
+			[columns]="columns()"
+			[data]="displayData()"
+			[loading]="loading()"
+			[caption]="caption()"
+			[emptyMessage]="emptyMessage()"
+			[grouping]="resolvedGrouping()"
+			[expandedByDefault]="expandedByDefault()"
+			[displayMode]="displayMode()"
+			[displayModes]="displayModes()"
+		>
+			<ng-template appDataTableCardDef let-row>
+				<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+					<p class="font-medium text-gray-900 dark:text-gray-100">{{ row.name }}</p>
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ row.email }}</p>
+					<p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ row.role }} · {{ row.location }}</p>
 				</div>
-			}
+			</ng-template>
+		</app-data-table>
+		@if (pageSize() > 0) {
+			<div class="mt-4">
+				<app-pagination
+					(pageChange)="onPageChange($event)"
+					(pageSizeChange)="onPageSizeChange($event)"
+					[currentPage]="currentPage()"
+					[totalPages]="totalPages()"
+					[pageSize]="pageSize()"
+					[pageSizeOptions]="pageSizeOptions()"
+				/>
+			</div>
 		}
 	`,
 })
 class DataTableStoryComponent {
-	private readonly translation = inject(Translation)
-
 	public readonly columns = input<ColumnDef<User, unknown>[]>([])
 	public readonly data = input<User[]>([])
 	public readonly loading = input(false)
 	public readonly caption = input('')
-	public readonly language = input<Language>('en')
+	public readonly emptyMessage = input('No data available')
 	public readonly expandedByDefault = input(true)
 	public readonly showData = input(true)
 	public readonly displayMode = input<'table' | 'cards'>('table')
@@ -125,9 +117,6 @@ class DataTableStoryComponent {
 
 	/** Available page size options for the pagination selector */
 	public readonly pageSizeOptions = input<number[]>([25, 50, 100])
-
-	/** Per-language custom empty messages. When empty, the translated default is used. */
-	public readonly emptyMessages = input<Partial<Record<Language, string>>>({})
 
 	// --- Pagination state ---
 	protected readonly currentPage = signal(1)
@@ -158,30 +147,9 @@ class DataTableStoryComponent {
 	/** Data passed to the DataTable — empty when showData is false, paged otherwise. */
 	protected readonly displayData = computed(() => (this.showData() ? this.pagedData() : []))
 
-	/**
-	 * Resolves the empty message for the current language.
-	 * Uses the per-language custom message if provided, otherwise the translated default.
-	 */
-	protected readonly resolvedEmptyMessage = computed(() => {
-		if (!this.isReady()) return ''
-		const custom = this.emptyMessages()[this.language()]
-		return custom || this.translation.instant('DATA_TABLE.EMPTY')
-	})
-
-	/**
-	 * Tracks when translations are loaded and ready for use.
-	 * Toggling this signal forces the DataTable to re-mount with updated translations.
-	 */
-	protected readonly isReady = signal(false)
-
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
+	private readonly syncPageSizeEffect = effect(() => {
 		const initialPageSize = this.pageSize()
 		this.currentPageSize.set(initialPageSize)
-		this.isReady.set(false)
-		this.translation.setLanguage(lang).then(() => {
-			this.isReady.set(true)
-		})
 	})
 
 	// --- Pagination handlers ---
@@ -199,11 +167,6 @@ const meta: Meta<DataTableStoryComponent> = {
 	component: DataTableStoryComponent,
 	title: 'Components/DataTable',
 	tags: ['autodocs'],
-	decorators: [
-		applicationConfig({
-			providers: [Translation],
-		}),
-	],
 	parameters: {
 		docs: {
 			description: {
@@ -219,7 +182,6 @@ A data table component powered by TanStack Table.
 - **Loading & Empty States**: Built-in spinner and customizable empty message
 - **Custom Cell Templates**: Content projection via \`appDataTableCellDef\`
 - **Accessibility**: aria-busy, aria-sort, aria-expanded, keyboard navigation, \`<ul role="list">\` semantics in card mode
-- **i18n**: Localized messages via the Translation service
 - **Dark Mode**: Full dark mode support
 
 ## Usage
@@ -331,19 +293,6 @@ export class UserListComponent {
 				defaultValue: { summary: "['table']" },
 			},
 		},
-		language: {
-			control: 'select',
-			options: ['en', 'es'],
-			description: 'Language for translated messages',
-			table: {
-				type: { summary: 'Language' },
-				defaultValue: { summary: 'en' },
-			},
-			labels: {
-				en: 'English',
-				es: 'Espanol',
-			},
-		},
 	},
 }
 
@@ -353,7 +302,7 @@ type Story = StoryObj<DataTableStoryComponent>
 
 /**
  * Interactive data table with all configurable options.
- * Use the controls panel to toggle loading, grouping, pagination, and language.
+ * Use the controls panel to toggle loading, grouping, and pagination.
  */
 export const Playground: Story = {
 	args: {
@@ -365,7 +314,6 @@ export const Playground: Story = {
 		groupBy: 'none',
 		expandedByDefault: true,
 		pageSize: 0,
-		language: 'en',
 		displayMode: 'table',
 	},
 }
@@ -385,7 +333,6 @@ export const PlaygroundWithCardToggle: Story = {
 		groupBy: 'none',
 		expandedByDefault: true,
 		pageSize: 0,
-		language: 'en',
 		displayMode: 'cards',
 	},
 }
@@ -404,7 +351,6 @@ export const WithToggleControl: Story = {
 		groupBy: 'none',
 		expandedByDefault: true,
 		pageSize: 0,
-		language: 'en',
 		displayMode: 'table',
 		displayModes: ['table', 'cards'],
 	},
@@ -426,7 +372,6 @@ export const GroupedCards: Story = {
 		groupBy: 'role',
 		expandedByDefault: true,
 		pageSize: 0,
-		language: 'en',
 		displayMode: 'cards',
 	},
 }
@@ -445,7 +390,6 @@ export const GroupedByRole: Story = {
 		groupBy: 'role',
 		expandedByDefault: true,
 		pageSize: 0,
-		language: 'en',
 	},
 }
 
@@ -464,7 +408,6 @@ export const GroupedByRoleThenLocation: Story = {
 		groupBy: 'role+location',
 		expandedByDefault: true,
 		pageSize: 0,
-		language: 'en',
 	},
 }
 

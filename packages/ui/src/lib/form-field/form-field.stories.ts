@@ -1,4 +1,4 @@
-import { Component, computed, effect, ErrorHandler, inject, input, signal } from '@angular/core'
+import { Component, computed, input, signal } from '@angular/core'
 import {
 	email,
 	form,
@@ -8,7 +8,6 @@ import {
 	FormField as SignalFormField,
 	type FieldTree,
 } from '@angular/forms/signals'
-import { Translation, type Language } from '@resetshop/angular-core/i18n/translation'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import { Combobox } from '../combobox/combobox'
@@ -31,68 +30,57 @@ const COUNTRY_OPTIONS: SelectOption[] = [
 	standalone: true,
 	imports: [FormField, SignalFormField, Select, Combobox],
 	template: `
-		@if (isReady()) {
-			@switch (inputType()) {
-				@case ('email') {
-					<app-form-field [label]="'Email'" [hint]="resolvedHint()" [showRequired]="showRequired()">
-						<input
-							[formField]="hasRequired() ? emailField : optionalEmailField"
-							type="email"
-							placeholder="you@example.com"
-						/>
-					</app-form-field>
-				}
-				@case ('text') {
-					<app-form-field [label]="'Username'" [hint]="resolvedHint()" [showRequired]="showRequired()">
-						<input [formField]="hasRequired() ? textField : optionalTextField" type="text" placeholder="johndoe" />
-					</app-form-field>
-				}
-				@case ('select') {
-					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
-						<app-select
-							[formField]="hasRequired() ? selectField : optionalSelectField"
-							[options]="countryOptions"
-							[placeholder]="'Select a country'"
-						/>
-					</app-form-field>
-				}
-				@case ('checkbox') {
-					<app-form-field
-						[label]="'Accept terms and conditions'"
-						[hint]="resolvedHint()"
-						[showRequired]="showRequired()"
-					>
-						<input [formField]="hasRequired() ? checkboxField : optionalCheckboxField" type="checkbox" />
-					</app-form-field>
-				}
-				@case ('combobox') {
-					<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
-						<app-combobox
-							[formField]="hasRequired() ? selectField : optionalSelectField"
-							[options]="countryOptions"
-							[placeholder]="'Search a country'"
-						/>
-					</app-form-field>
-				}
-				@case ('date') {
-					<app-form-field [label]="'Birth date'" [hint]="resolvedHint()" [showRequired]="showRequired()">
-						<input [formField]="hasRequired() ? dateField : optionalDateField" [attr.lang]="language()" type="date" />
-					</app-form-field>
-				}
+		@switch (inputType()) {
+			@case ('email') {
+				<app-form-field [label]="'Email'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+					<input
+						[formField]="hasRequired() ? emailField : optionalEmailField"
+						type="email"
+						placeholder="you@example.com"
+					/>
+				</app-form-field>
+			}
+			@case ('text') {
+				<app-form-field [label]="'Username'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+					<input [formField]="hasRequired() ? textField : optionalTextField" type="text" placeholder="johndoe" />
+				</app-form-field>
+			}
+			@case ('select') {
+				<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+					<app-select
+						[formField]="hasRequired() ? selectField : optionalSelectField"
+						[options]="countryOptions"
+						[placeholder]="'Select a country'"
+					/>
+				</app-form-field>
+			}
+			@case ('checkbox') {
+				<app-form-field [label]="'Accept terms and conditions'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+					<input [formField]="hasRequired() ? checkboxField : optionalCheckboxField" type="checkbox" />
+				</app-form-field>
+			}
+			@case ('combobox') {
+				<app-form-field [label]="'Country'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+					<app-combobox
+						[formField]="hasRequired() ? selectField : optionalSelectField"
+						[options]="countryOptions"
+						[placeholder]="'Search a country'"
+					/>
+				</app-form-field>
+			}
+			@case ('date') {
+				<app-form-field [label]="'Birth date'" [hint]="resolvedHint()" [showRequired]="showRequired()">
+					<input [formField]="hasRequired() ? dateField : optionalDateField" type="date" />
+				</app-form-field>
 			}
 		}
 	`,
 })
 class StoryPlayground {
-	private readonly errorHandler = inject(ErrorHandler)
-	private readonly translation = inject(Translation)
-
 	public readonly inputType = input<InputType>('email')
 	public readonly showHint = input<boolean>(false)
 	public readonly hasRequired = input<boolean>(true)
 	public readonly showRequired = input<boolean | undefined>(undefined)
-	public readonly language = input<Language>('en')
-	protected readonly isReady = signal(false)
 
 	private readonly emailModel = signal('')
 	protected readonly emailField: FieldTree<string> = form(
@@ -159,15 +147,6 @@ class StoryPlayground {
 		}
 		return hints[this.inputType()]
 	})
-
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation
-			.setLanguage(lang)
-			.then(() => this.isReady.set(true))
-			.catch((error: unknown) => this.errorHandler.handleError(error))
-	})
 }
 
 @Component({
@@ -175,23 +154,15 @@ class StoryPlayground {
 	standalone: true,
 	imports: [FormField, SignalFormField],
 	template: `
-		@if (isReady()) {
-			<app-form-field [label]="'Password'" [labelEndTemplate]="forgotPassword" [showRequired]="false">
-				<input [formField]="passwordField" type="password" placeholder="Enter your password" />
-			</app-form-field>
-			<ng-template #forgotPassword>
-				<a href="/forgot" class="text-sm text-gray-500 hover:underline">Forgot password?</a>
-			</ng-template>
-		}
+		<app-form-field [label]="'Password'" [labelEndTemplate]="forgotPassword" [showRequired]="false">
+			<input [formField]="passwordField" type="password" placeholder="Enter your password" />
+		</app-form-field>
+		<ng-template #forgotPassword>
+			<a href="/forgot" class="text-sm text-gray-500 hover:underline">Forgot password?</a>
+		</ng-template>
 	`,
 })
 class StoryLabelEndTemplate {
-	private readonly errorHandler = inject(ErrorHandler)
-	private readonly translation = inject(Translation)
-
-	public readonly language = input<Language>('en')
-	protected readonly isReady = signal(false)
-
 	private readonly model = signal('')
 	protected readonly passwordField: FieldTree<string> = form(
 		this.model,
@@ -199,15 +170,6 @@ class StoryLabelEndTemplate {
 			required(path)
 		}),
 	)
-
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation
-			.setLanguage(lang)
-			.then(() => this.isReady.set(true))
-			.catch((error: unknown) => this.errorHandler.handleError(error))
-	})
 }
 
 // --- Meta ---
@@ -218,7 +180,7 @@ const meta: Meta<StoryPlayground> = {
 	component: StoryPlayground,
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({})],
+			providers: [...provideSignalFormsConfig({})],
 		}),
 	],
 	parameters: {
@@ -228,24 +190,13 @@ const meta: Meta<StoryPlayground> = {
 			},
 		},
 	},
-	argTypes: {
-		language: {
-			control: 'select',
-			options: ['en', 'es'],
-			description: 'Language for translated validation messages',
-			table: {
-				type: { summary: 'Language' },
-				defaultValue: { summary: 'en' },
-			},
-		},
-	},
 }
 export default meta
 
 // --- Stories ---
 
 export const Playground: StoryObj<StoryPlayground> = {
-	args: { inputType: 'email', showHint: false, hasRequired: true, showRequired: undefined, language: 'en' },
+	args: { inputType: 'email', showHint: false, hasRequired: true, showRequired: undefined },
 	argTypes: {
 		inputType: {
 			control: 'select',
@@ -281,24 +232,13 @@ export const Playground: StoryObj<StoryPlayground> = {
 				defaultValue: { summary: 'undefined (auto-detect)' },
 			},
 		},
-		language: {
-			control: 'select',
-			options: ['en', 'es'],
-			description: 'Language for translated validation messages and date picker locale (date input only)',
-			table: {
-				type: { summary: 'Language' },
-				defaultValue: { summary: 'en' },
-			},
-		},
 	},
 	render: (args) => ({ props: args }),
 }
 
 export const LabelEndTemplate: StoryObj<StoryLabelEndTemplate> = {
-	args: { language: 'en' },
-	render: (args) => ({
-		props: args,
+	render: () => ({
 		moduleMetadata: { imports: [StoryLabelEndTemplate] },
-		template: `<app-story-label-end-template [language]="language" />`,
+		template: `<app-story-label-end-template />`,
 	}),
 }

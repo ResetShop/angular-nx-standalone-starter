@@ -1,4 +1,4 @@
-import { Component, effect, ErrorHandler, inject, input, signal } from '@angular/core'
+import { Component, input, signal } from '@angular/core'
 import {
 	form,
 	provideSignalFormsConfig,
@@ -7,7 +7,6 @@ import {
 	FormField as SignalFormField,
 	type FieldTree,
 } from '@angular/forms/signals'
-import { Translation, type Language } from '@resetshop/angular-core/i18n/translation'
 import { Combobox } from '@resetshop/ui/combobox/combobox'
 import { FormField } from '@resetshop/ui/form-field/form-field'
 import type { SelectOption } from '@resetshop/ui/select/select-option'
@@ -32,28 +31,21 @@ const MANY_OPTIONS: SelectOption[] = Array.from({ length: 50 }, (_, i) => ({
 	standalone: true,
 	imports: [FormField, SignalFormField, Combobox],
 	template: `
-		@if (isReady()) {
-			<app-form-field [label]="'Country'" [hint]="showHint() ? 'Search and select your country' : undefined">
-				<app-combobox
-					[formField]="hasRequired() ? requiredField : optionalField"
-					[options]="options()"
-					[placeholder]="'Search a country'"
-					[isDisabled]="isDisabled()"
-				/>
-			</app-form-field>
-		}
+		<app-form-field [label]="'Country'" [hint]="showHint() ? 'Search and select your country' : undefined">
+			<app-combobox
+				[formField]="hasRequired() ? requiredField : optionalField"
+				[options]="options()"
+				[placeholder]="'Search a country'"
+				[isDisabled]="isDisabled()"
+			/>
+		</app-form-field>
 	`,
 })
 class StoryCombobox {
-	private readonly errorHandler = inject(ErrorHandler)
-	private readonly translation = inject(Translation)
-
 	public readonly options = input<SelectOption[]>(COUNTRY_OPTIONS)
 	public readonly isDisabled = input<boolean>(false)
 	public readonly showHint = input<boolean>(false)
 	public readonly hasRequired = input<boolean>(true)
-	public readonly language = input<Language>('en')
-	protected readonly isReady = signal(false)
 
 	private readonly model = signal('')
 	protected readonly requiredField: FieldTree<string> = form(
@@ -63,15 +55,6 @@ class StoryCombobox {
 		}),
 	)
 	protected readonly optionalField: FieldTree<string> = form(this.model)
-
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation
-			.setLanguage(lang)
-			.then(() => this.isReady.set(true))
-			.catch((error: unknown) => this.errorHandler.handleError(error))
-	})
 }
 
 const meta: Meta<StoryCombobox> = {
@@ -80,7 +63,7 @@ const meta: Meta<StoryCombobox> = {
 	component: StoryCombobox,
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({})],
+			providers: [...provideSignalFormsConfig({})],
 		}),
 	],
 	parameters: {
@@ -90,19 +73,12 @@ const meta: Meta<StoryCombobox> = {
 			},
 		},
 	},
-	argTypes: {
-		language: {
-			control: 'select',
-			options: ['en', 'es'],
-			description: 'Language for translated validation messages',
-		},
-	},
 	render: (args) => ({ props: args }),
 }
 export default meta
 
 export const Playground: StoryObj<StoryCombobox> = {
-	args: { options: COUNTRY_OPTIONS, isDisabled: false, showHint: false, hasRequired: true, language: 'en' },
+	args: { options: COUNTRY_OPTIONS, isDisabled: false, showHint: false, hasRequired: true },
 	argTypes: {
 		isDisabled: { control: 'boolean', description: 'Disable the combobox' },
 		showHint: { control: 'boolean', description: 'Show hint text' },
@@ -111,13 +87,13 @@ export const Playground: StoryObj<StoryCombobox> = {
 }
 
 export const Disabled: StoryObj<StoryCombobox> = {
-	args: { options: COUNTRY_OPTIONS, isDisabled: true, hasRequired: false, language: 'en' },
+	args: { options: COUNTRY_OPTIONS, isDisabled: true, hasRequired: false },
 }
 
 export const WithValidation: StoryObj<StoryCombobox> = {
-	args: { options: COUNTRY_OPTIONS, hasRequired: true, language: 'en' },
+	args: { options: COUNTRY_OPTIONS, hasRequired: true },
 }
 
 export const ManyOptions: StoryObj<StoryCombobox> = {
-	args: { options: MANY_OPTIONS, hasRequired: false, language: 'en' },
+	args: { options: MANY_OPTIONS, hasRequired: false },
 }

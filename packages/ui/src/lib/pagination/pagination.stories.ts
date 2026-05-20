@@ -1,39 +1,30 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core'
-import { type Language, Translation } from '@resetshop/angular-core/i18n/translation'
+import { Component, effect, input, output, signal } from '@angular/core'
 import type { Meta, StoryObj } from '@storybook/angular'
-import { applicationConfig } from '@storybook/angular'
 import { Pagination } from './pagination'
 
 /**
- * Wrapper component that manages language loading and interactive state for Pagination stories.
- * Destroys and re-creates the Pagination when language changes so that
- * translated defaults pick up the new locale.
+ * Wrapper component that manages interactive state for Pagination stories.
  */
 @Component({
 	selector: 'app-pagination-story',
 	standalone: true,
 	imports: [Pagination],
 	template: `
-		@if (isReady()) {
-			<app-pagination
-				(pageChange)="onPageChange($event)"
-				(pageSizeChange)="onPageSizeChange($event)"
-				[currentPage]="currentPageState()"
-				[totalPages]="totalPages()"
-				[pageSize]="pageSizeState()"
-				[pageSizeOptions]="pageSizeOptions()"
-			/>
-		}
+		<app-pagination
+			(pageChange)="onPageChange($event)"
+			(pageSizeChange)="onPageSizeChange($event)"
+			[currentPage]="currentPageState()"
+			[totalPages]="totalPages()"
+			[pageSize]="pageSizeState()"
+			[pageSizeOptions]="pageSizeOptions()"
+		/>
 	`,
 })
 class PaginationStoryComponent {
-	private readonly translation = inject(Translation)
-
 	public readonly totalPages = input(10)
 	public readonly initialPage = input(1)
 	public readonly initialPageSize = input(25)
 	public readonly pageSizeOptions = input<number[]>([25, 50, 100])
-	public readonly language = input<Language>('en')
 	public readonly pageChange = output<number>()
 	public readonly pageSizeChange = output<number>()
 
@@ -43,22 +34,10 @@ class PaginationStoryComponent {
 	/** Internal state for page size (allows interactive changes in stories) */
 	protected readonly pageSizeState = signal(25)
 
-	/**
-	 * Tracks when translations are loaded and ready for use.
-	 * Toggling this signal forces the Pagination to re-mount with updated translations.
-	 */
-	protected readonly isReady = signal(false)
-
-	// Initialize state from inputs and handle language changes
-	private readonly syncLanguageEffect = effect(() => {
+	// Initialize state from inputs
+	private readonly syncInitialStateEffect = effect(() => {
 		this.currentPageState.set(this.initialPage())
 		this.pageSizeState.set(this.initialPageSize())
-
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation.setLanguage(lang).then(() => {
-			this.isReady.set(true)
-		})
 	})
 
 	protected onPageChange(page: number): void {
@@ -78,11 +57,6 @@ const meta: Meta<PaginationStoryComponent> = {
 	component: PaginationStoryComponent,
 	title: 'Components/Pagination',
 	tags: ['autodocs'],
-	decorators: [
-		applicationConfig({
-			providers: [Translation],
-		}),
-	],
 	parameters: {
 		docs: {
 			description: {
@@ -95,7 +69,6 @@ A pagination component following shadcn/ui patterns for navigating through paged
 - **Page Number Buttons**: Direct navigation to specific pages with intelligent ellipsis
 - **Previous/Next Navigation**: Ghost variant buttons for sequential navigation
 - **Accessible**: Proper ARIA labels, keyboard navigation, and screen reader support
-- **i18n Support**: All labels are localized using the Translation service
 
 ## Page Number Logic
 
@@ -105,12 +78,6 @@ The component intelligently displays page numbers:
 - **At start (page 1-3)**: Shows 1, 2, 3, ..., last
 - **In middle**: Shows 1, ..., prev, current, next, ..., last
 - **At end**: Shows 1, ..., last-2, last-1, last
-
-## Language Support
-
-Use the **language** control to switch between:
-- **en** (English) - Default
-- **es** (Spanish)
 
 ## Usage
 
@@ -132,15 +99,6 @@ Use the **language** control to switch between:
 		},
 	},
 	argTypes: {
-		language: {
-			control: 'select',
-			options: ['en', 'es'],
-			description: 'Language for translated messages',
-			table: {
-				type: { summary: 'Language' },
-				defaultValue: { summary: 'en' },
-			},
-		},
 		totalPages: {
 			control: { type: 'number', min: 1 },
 			description: 'Total number of pages',
@@ -172,7 +130,6 @@ export const Default: Story = {
 		totalPages: 10,
 		initialPage: 1,
 		initialPageSize: 25,
-		language: 'en',
 	},
 }
 
@@ -185,7 +142,6 @@ export const MiddlePage: Story = {
 		totalPages: 10,
 		initialPage: 5,
 		initialPageSize: 25,
-		language: 'en',
 	},
 }
 
@@ -198,7 +154,6 @@ export const LastPage: Story = {
 		totalPages: 10,
 		initialPage: 10,
 		initialPageSize: 25,
-		language: 'en',
 	},
 }
 
@@ -211,7 +166,6 @@ export const FewPages: Story = {
 		totalPages: 4,
 		initialPage: 2,
 		initialPageSize: 25,
-		language: 'en',
 	},
 }
 
@@ -223,7 +177,6 @@ export const SinglePage: Story = {
 		totalPages: 1,
 		initialPage: 1,
 		initialPageSize: 25,
-		language: 'en',
 	},
 }
 
@@ -236,7 +189,6 @@ export const ManyPages: Story = {
 		totalPages: 100,
 		initialPage: 50,
 		initialPageSize: 25,
-		language: 'en',
 	},
 }
 
@@ -250,19 +202,5 @@ export const CustomPageSizeOptions: Story = {
 		initialPage: 1,
 		initialPageSize: 10,
 		pageSizeOptions: [10, 20, 50, 100],
-		language: 'en',
-	},
-}
-
-/**
- * Spanish language variant.
- * All labels are translated to Spanish.
- */
-export const SpanishLanguage: Story = {
-	args: {
-		totalPages: 10,
-		initialPage: 5,
-		initialPageSize: 25,
-		language: 'es',
 	},
 }
