@@ -211,9 +211,12 @@ describe('Breadcrumb', () => {
 				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 			})
 
-			const ellipsis = screen.getByText('…')
-			expect(ellipsis).toBeInTheDocument()
-			expect(ellipsis.closest('li')).toHaveClass('sm:hidden')
+			expect(screen.getByText('…')).toBeInTheDocument()
+
+			// Entries for a 3-item chain: [Home, ›, …, ›, Admin, ›, Settings]. The ellipsis sits at
+			// list-item index 2 — mobile-only (visible at < sm:, hidden from sm: up).
+			const items = screen.getAllByRole('listitem')
+			expect(items[2]).toHaveClass('sm:hidden')
 		})
 
 		it('should mark intermediate items hidden sm:inline-flex when the trail has 4 items', async () => {
@@ -228,19 +231,21 @@ describe('Breadcrumb', () => {
 				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 			})
 
-			// Intermediate items (Admin and Users) sit inside an <li> marked hidden sm:inline-flex.
-			const adminLi = screen.getByRole('link', { name: /admin/i }).closest('li')
-			const usersLi = screen.getByRole('link', { name: /users/i }).closest('li')
-			expect(adminLi).toHaveClass('hidden')
-			expect(adminLi).toHaveClass('sm:inline-flex')
-			expect(usersLi).toHaveClass('hidden')
-			expect(usersLi).toHaveClass('sm:inline-flex')
+			// Entries for a 4-item chain: [Home, ›, …, ›, Admin, ›, Users, ›, User Details].
+			// Indices: 0 Home (all), 1 › (all), 2 … (mobile), 3 › (mobile),
+			//          4 Admin (desktop), 5 › (desktop), 6 Users (desktop), 7 › (desktop),
+			//          8 User Details (all).
+			const items = screen.getAllByRole('listitem')
 
-			// First and last entries stay visible at all viewports — no hidden class.
-			const homeLi = screen.getByRole('link', { name: /home/i }).closest('li')
-			const lastLi = screen.getByText('User Details').closest('li')
-			expect(homeLi).not.toHaveClass('hidden')
-			expect(lastLi).not.toHaveClass('hidden')
+			// Intermediate items (Admin, Users) are CSS-hidden on mobile.
+			expect(items[4]).toHaveClass('hidden')
+			expect(items[4]).toHaveClass('sm:inline-flex')
+			expect(items[6]).toHaveClass('hidden')
+			expect(items[6]).toHaveClass('sm:inline-flex')
+
+			// First and last entries stay visible at all viewports.
+			expect(items[0]).not.toHaveClass('hidden')
+			expect(items[8]).not.toHaveClass('hidden')
 		})
 	})
 })
