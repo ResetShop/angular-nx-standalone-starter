@@ -248,8 +248,9 @@ export const WithFormContent: Story = {
 
 /**
  * Mobile viewport (375 px) — verifies the drawer occupies the full viewport width on mobile
- * via the consumer override `class="w-full sm:w-lg"`. From `sm:` up the panel is pinned to 512 px
- * (capped by the base `DrawerPanel` directive's `sm:max-w-3/4`). Used by the four CRUD drawers.
+ * via the consumer override `class="w-full sm:w-lg"`. From `sm:` up the base `DrawerPanel` cap
+ * (`sm:max-w-3/4`) governs until the viewport is wide enough that 75 % exceeds 512 px — i.e. the
+ * `sm:` breakpoint + ~43 px — at which point `sm:w-lg` (512 px) wins. Used by the four CRUD drawers.
  */
 export const MobileViewport: Story = {
 	args: {

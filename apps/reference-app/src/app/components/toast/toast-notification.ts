@@ -53,8 +53,8 @@ export class ToastNotification {
 
 	protected readonly icon = computed(() => this.iconMap[this.notification.type])
 
-	protected readonly hostClasses = computed(
-		() => `w-[min(350px,calc(100vw-2rem))] ${this.styleMap[this.notification.type]}`,
+	protected readonly hostClasses = computed(() =>
+		`w-[min(350px,calc(100vw-2rem))] ${this.styleMap[this.notification.type]}`.trim(),
 	)
 
 	protected dismiss(): void {
