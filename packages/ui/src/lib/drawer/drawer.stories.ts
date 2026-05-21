@@ -23,7 +23,7 @@ A slide-out drawer component using the native \`<dialog>\` element.
 ## Features
 
 - **4 Directions**: Left, Right, Top, Bottom
-- **Responsive sizing**: Full-viewport width/height on mobile, capped at 75% of the relevant axis from \`sm:\` up; consumer class overrides (e.g. \`class="lg:w-lg"\`) narrow the panel further at specific breakpoints while leaving the base cap in effect for unprefixed breakpoints.
+- **Responsive sizing**: Full-viewport width/height on mobile, capped at 75% of the relevant axis from \`sm:\` up; consumer class overrides (e.g. \`class="w-full sm:w-lg"\`) narrow the panel further at specific breakpoints while leaving the base cap in effect for unprefixed breakpoints.
 - **Native Dialog**: Uses \`<dialog>\` with \`showModal()\` for proper modal behavior
 - **Accessibility**: \`aria-labelledby\` and \`aria-describedby\` linked to title/description
 - **Backdrop**: Semi-transparent backdrop with optional click-outside handling
@@ -244,4 +244,44 @@ export const WithFormContent: Story = {
 			</app-drawer>
 		`,
 	}),
+}
+
+/**
+ * Mobile viewport (375 px) — verifies the drawer occupies the full viewport width on mobile
+ * via the consumer override `class="w-full sm:w-lg"`. From `sm:` up the panel is pinned to 512 px
+ * (capped by the base `DrawerPanel` directive's `sm:max-w-3/4`). Used by the four CRUD drawers.
+ */
+export const MobileViewport: Story = {
+	args: {
+		direction: 'right',
+		title: 'Mobile Drawer',
+		description: 'Full-width on mobile.',
+	},
+	render: (args) => ({
+		props: args,
+		template: `
+			<button appButton (click)="drawer.show(); drawer.setContentReady()">Open Drawer</button>
+
+			<app-drawer #drawer
+				[direction]="direction"
+				[title]="title"
+				[description]="description"
+				class="w-full sm:w-lg"
+			>
+				<p class="text-gray-600 dark:text-gray-300">
+					Full-width on mobile via the consumer override pattern.
+				</p>
+
+				<ng-template appDrawerFooter>
+					<div class="flex justify-end">
+						<button appButton (click)="drawer.close()">Close</button>
+					</div>
+				</ng-template>
+			</app-drawer>
+		`,
+	}),
+	parameters: {
+		docs: { canvas: { sourceState: 'shown' } },
+		viewport: { defaultViewport: 'mobile' },
+	},
 }

@@ -56,7 +56,7 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 			(afterClosed)="toast.flushPending()"
 			[closeOnBackdrop]="false"
 			[title]="'ROLES.CREATE_DRAWER.TITLE' | translate"
-			class="lg:w-lg"
+			class="w-full sm:w-lg"
 			#drawer
 		>
 			<form (submit)="onSubmit($event)" id="create-role-form" class="flex h-full flex-col gap-4">
