@@ -10,6 +10,7 @@ const TRANSLATIONS: Record<string, string> = {
 	'PAGINATION.GO_TO_PREVIOUS': 'Go to previous page',
 	'PAGINATION.GO_TO_NEXT': 'Go to next page',
 	'PAGINATION.GO_TO_PAGE': 'Go to page {page}',
+	'PAGINATION.PAGE_OF': 'Page {current} of {total}',
 }
 
 const mockTranslation = {
@@ -314,6 +315,113 @@ describe('Pagination', () => {
 			// But since 5 > 4, it will use the ellipsis logic
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+		})
+	})
+
+	describe('responsive layout', () => {
+		it('should be a single-row layout at all viewports', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const nav = screen.getByRole('navigation', { name: /pagination/i })
+			expect(nav).toHaveClass('flex')
+			expect(nav).toHaveClass('items-center')
+			expect(nav).toHaveClass('justify-between')
+			expect(nav).not.toHaveClass('flex-col')
+		})
+
+		it('should mark the rows-per-page label sr-only on mobile, visible from sm: up', async () => {
+			// jsdom cannot evaluate media queries; this asserts class presence as a regression guard.
+			// Visual breakpoint behaviour is covered by the 'Mobile' Storybook story.
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Rows per page')
+			expect(label).toHaveClass('sr-only')
+			expect(label).toHaveClass('sm:not-sr-only')
+		})
+
+		it('should hide page-number buttons below sm: so the row fits on mobile', async () => {
+			// jsdom cannot evaluate media queries; this asserts class presence as a regression guard.
+			// Visual breakpoint behaviour is covered by the 'Mobile' Storybook story.
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const pageBtn = screen.getByRole('button', { name: /go to page 1/i })
+			expect(pageBtn).toHaveClass('hidden')
+			expect(pageBtn).toHaveClass('sm:inline-flex')
+		})
+
+		it('should keep the current-page label sr-only at all viewports', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Page 3 of 10')
+			expect(label).toBeInTheDocument()
+			expect(label).toHaveClass('sr-only')
+		})
+
+		it('should apply role="status", aria-live polite, and aria-atomic to the current-page label', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Page 1 of 5')
+			expect(label).toHaveAttribute('role', 'status')
+			expect(label).toHaveAttribute('aria-live', 'polite')
+			expect(label).toHaveAttribute('aria-atomic', 'true')
+		})
+
+		it('should reflect updated currentPage input in the current-page label (computed signal reactivity)', async () => {
+			const { rerender } = await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByText('Page 2 of 5')).toBeInTheDocument()
+
+			await rerender({ inputs: { currentPage: 4, totalPages: 5 } })
+
+			expect(screen.getByText('Page 4 of 5')).toBeInTheDocument()
+			expect(screen.queryByText('Page 2 of 5')).not.toBeInTheDocument()
+		})
+
+		it('should apply data-touch-target to the previous button', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByRole('button', { name: /go to previous page/i })).toHaveAttribute('data-touch-target')
+		})
+
+		it('should apply data-touch-target to the next button', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByRole('button', { name: /go to next page/i })).toHaveAttribute('data-touch-target')
+		})
+
+		it('should apply text-base sm:text-sm to the rows-per-page select for iOS zoom-on-focus prevention', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const select = screen.getByLabelText(/rows per page/i)
+			expect(select).toHaveClass('text-base')
+			expect(select).toHaveClass('sm:text-sm')
 		})
 	})
 })

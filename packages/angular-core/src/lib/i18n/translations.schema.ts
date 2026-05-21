@@ -225,6 +225,7 @@ export interface TranslationSchema {
 		GO_TO_PREVIOUS: string
 		GO_TO_NEXT: string
 		GO_TO_PAGE: string
+		PAGE_OF: string
 	}
 	VALIDATION: {
 		REQUIRED: string

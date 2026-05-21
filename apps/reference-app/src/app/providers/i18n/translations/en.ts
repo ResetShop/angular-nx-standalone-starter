@@ -225,6 +225,7 @@ const en: TranslationSchema = {
 		GO_TO_PREVIOUS: 'Go to previous page',
 		GO_TO_NEXT: 'Go to next page',
 		GO_TO_PAGE: 'Go to page {page}',
+		PAGE_OF: 'Page {current} of {total}',
 	},
 	VALIDATION: {
 		REQUIRED: 'This field is required',

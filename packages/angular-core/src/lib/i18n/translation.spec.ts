@@ -156,6 +156,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			GO_TO_PREVIOUS: 'Prev',
 			GO_TO_NEXT: 'Next',
 			GO_TO_PAGE: 'Page',
+			PAGE_OF: 'Page X of Y',
 		},
 		VALIDATION: {
 			REQUIRED: 'Required',
@@ -319,6 +320,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			GO_TO_PREVIOUS: 'Anterior',
 			GO_TO_NEXT: 'Siguiente',
 			GO_TO_PAGE: 'Página',
+			PAGE_OF: 'Página X de Y',
 		},
 		VALIDATION: {
 			REQUIRED: 'Requerido',

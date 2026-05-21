@@ -412,6 +412,44 @@ export const GroupedByRoleThenLocation: Story = {
 }
 
 /**
+ * Table mode with active pagination — 20 records sliced into 4 pages of 5 records each.
+ * Use the pagination control below the table to navigate between pages and change the page size.
+ */
+export const WithPagination: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
+		loading: false,
+		caption: 'Users table',
+		groupBy: 'none',
+		expandedByDefault: true,
+		pageSize: 5,
+		pageSizeOptions: [5, 10, 25],
+		displayMode: 'table',
+	},
+}
+
+/**
+ * Cards mode with active pagination — 20 records sliced into 4 pages of 5 cards each.
+ * The pagination control sits below the card stack and works the same as in table mode.
+ */
+export const WithPaginationCards: Story = {
+	args: {
+		columns: sampleColumns,
+		data: sampleData,
+		showData: true,
+		loading: false,
+		caption: 'Users table',
+		groupBy: 'none',
+		expandedByDefault: true,
+		pageSize: 5,
+		pageSizeOptions: [5, 10, 25],
+		displayMode: 'cards',
+	},
+}
+
+/**
  * Wrapper component demonstrating custom cell templates via content projection.
  * Renders the 'role' column with a colored badge and 'email' as a mailto link.
  */
@@ -446,7 +484,8 @@ class DataTableCustomCellsStoryComponent {
 export const CustomCellTemplates: StoryObj<DataTableCustomCellsStoryComponent> = {
 	render: (args) => ({
 		props: args,
-		component: DataTableCustomCellsStoryComponent,
+		moduleMetadata: { imports: [DataTableCustomCellsStoryComponent] },
+		template: `<app-data-table-custom-cells-story [columns]="columns" [data]="data" />`,
 	}),
 	args: {
 		columns: sampleColumns,
@@ -493,7 +532,8 @@ class DataTableCardViewStoryComponent {
 export const CardView: StoryObj<DataTableCardViewStoryComponent> = {
 	render: (args) => ({
 		props: args,
-		component: DataTableCardViewStoryComponent,
+		moduleMetadata: { imports: [DataTableCardViewStoryComponent] },
+		template: `<app-data-table-card-view-story [columns]="columns" [data]="data" />`,
 	}),
 	args: {
 		columns: sampleColumns,
@@ -508,7 +548,8 @@ export const CardView: StoryObj<DataTableCardViewStoryComponent> = {
 export const CardViewCompact: StoryObj<DataTableCardViewStoryComponent> = {
 	render: (args) => ({
 		props: args,
-		component: DataTableCardViewStoryComponent,
+		moduleMetadata: { imports: [DataTableCardViewStoryComponent] },
+		template: `<app-data-table-card-view-story [columns]="columns" [data]="data" />`,
 	}),
 	args: {
 		columns: sampleColumns,

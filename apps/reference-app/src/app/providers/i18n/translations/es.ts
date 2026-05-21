@@ -226,6 +226,7 @@ const es: TranslationSchema = {
 		GO_TO_PREVIOUS: 'Ir a la página anterior',
 		GO_TO_NEXT: 'Ir a la página siguiente',
 		GO_TO_PAGE: 'Ir a la página {page}',
+		PAGE_OF: 'Página {current} de {total}',
 	},
 	VALIDATION: {
 		REQUIRED: 'Este campo es requerido',

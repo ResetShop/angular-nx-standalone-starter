@@ -17,6 +17,7 @@ const PAGINATION_KEYS = Object.freeze({
 	GO_TO_PREVIOUS: 'PAGINATION.GO_TO_PREVIOUS',
 	GO_TO_NEXT: 'PAGINATION.GO_TO_NEXT',
 	GO_TO_PAGE: 'PAGINATION.GO_TO_PAGE',
+	PAGE_OF: 'PAGINATION.PAGE_OF',
 } as const)
 
 @Component({
@@ -25,10 +26,10 @@ const PAGINATION_KEYS = Object.freeze({
 	imports: [Button, NgIcon],
 	viewProviders: [provideIcons({ featherChevronLeft, featherChevronRight })],
 	template: `
-		<nav [attr.aria-label]="paginationLabel" class="flex items-center justify-between gap-4">
+		<nav [attr.aria-label]="paginationLabel" class="flex items-center justify-between gap-3 sm:gap-4">
 			<!-- Rows per page selector (left) -->
 			<div class="flex items-center gap-2">
-				<label [attr.for]="selectId" class="text-muted-foreground text-sm">
+				<label [attr.for]="selectId" class="text-muted-foreground sr-only text-sm sm:not-sr-only">
 					{{ rowsPerPageLabel }}
 				</label>
 				<select
@@ -45,7 +46,7 @@ const PAGINATION_KEYS = Object.freeze({
 
 			<!-- Page navigation (right) -->
 			<div class="flex items-center gap-1">
-				<!-- Previous button -->
+				<!-- Previous button — data-touch-target extends hit area to 44px on mobile -->
 				<button
 					(click)="onPrevious()"
 					[disabled]="isFirstPage()"
@@ -55,14 +56,20 @@ const PAGINATION_KEYS = Object.freeze({
 					variant="ghost"
 					size="sm"
 					class="h-8 w-8 p-0"
+					data-touch-target
 				>
 					<ng-icon name="featherChevronLeft" class="h-4 w-4" />
 				</button>
 
-				<!-- Page number buttons -->
+				<!-- Current-page indicator — sr-only at all viewports; announces page changes via aria-live -->
+				<span aria-atomic="true" aria-live="polite" role="status" class="sr-only">
+					{{ pageOfLabel() }}
+				</span>
+
+				<!-- Page number buttons — hidden below sm: so prev/next + select fit on a single mobile row -->
 				@for (item of pageItems(); track $index) {
 					@if (item.type === 'ellipsis') {
-						<span class="text-muted-foreground flex h-8 w-8 items-center justify-center text-sm">…</span>
+						<span class="text-muted-foreground hidden h-8 w-8 items-center justify-center text-sm sm:flex">…</span>
 					} @else {
 						<button
 							(click)="onPageClick(item.value)"
@@ -71,14 +78,14 @@ const PAGINATION_KEYS = Object.freeze({
 							[attr.aria-current]="item.value === currentPage() ? 'page' : null"
 							appButton
 							size="sm"
-							class="h-8 w-8 p-0"
+							class="hidden h-8 w-8 p-0 sm:inline-flex"
 						>
 							{{ item.value }}
 						</button>
 					}
 				}
 
-				<!-- Next button -->
+				<!-- Next button — data-touch-target extends hit area to 44px on mobile -->
 				<button
 					(click)="onNext()"
 					[disabled]="isLastPage()"
@@ -88,6 +95,7 @@ const PAGINATION_KEYS = Object.freeze({
 					variant="ghost"
 					size="sm"
 					class="h-8 w-8 p-0"
+					data-touch-target
 				>
 					<ng-icon name="featherChevronRight" class="h-4 w-4" />
 				</button>
@@ -150,6 +158,17 @@ export class Pagination {
 	 * Contains `{page}` placeholder interpolated by `getPageLabel`.
 	 */
 	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE)
+
+	/**
+	 * Translated template for the sr-only current-page indicator, resolved once at construction.
+	 * Contains `{current}` and `{total}` placeholders interpolated reactively by `pageOfLabel`.
+	 */
+	private readonly pageOfTemplate = this.translation.instant(PAGINATION_KEYS.PAGE_OF)
+
+	/** Current-page label (e.g. "Page 5 of 10"). Read by the `sr-only` `aria-live` span — never visually shown. */
+	protected readonly pageOfLabel = computed(() =>
+		this.pageOfTemplate.replace('{current}', String(this.currentPage())).replace('{total}', String(this.totalPages())),
+	)
 
 	/** Whether current page is the first page */
 	protected readonly isFirstPage = computed(() => this.currentPage() <= 1)

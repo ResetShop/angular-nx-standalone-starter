@@ -65,7 +65,9 @@ A pagination component following shadcn/ui patterns for navigating through paged
 
 ## Features
 
-- **Rows Per Page Selector**: Left-aligned dropdown to select 25, 50, or 100 rows per page
+- **Rows Per Page Selector**: Stacks on top on mobile, left-aligned alongside the page navigation from \`sm:\` up
+- **Responsive Layout**: Vertical stack below \`sm:\` with hidden page-number buttons; an \`aria-live\` "Page N of M" label sits between prev and next
+- **Touch Targets**: Prev/next buttons carry \`data-touch-target\` to extend the hit area to 44 px on mobile
 - **Page Number Buttons**: Direct navigation to specific pages with intelligent ellipsis
 - **Previous/Next Navigation**: Ghost variant buttons for sequential navigation
 - **Accessible**: Proper ARIA labels, keyboard navigation, and screen reader support
@@ -202,5 +204,23 @@ export const CustomPageSizeOptions: Story = {
 		initialPage: 1,
 		initialPageSize: 10,
 		pageSizeOptions: [10, 20, 50, 100],
+	},
+}
+
+/**
+ * Mobile viewport (375px) — stacked layout. Rows-per-page selector sits on top;
+ * the page-navigation row hides the numbered buttons and shows a "Page N of M"
+ * indicator between prev and next.
+ */
+export const Mobile: Story = {
+	args: {
+		totalPages: 10,
+		initialPage: 5,
+		initialPageSize: 25,
+	},
+	parameters: {
+		viewport: {
+			defaultViewport: 'mobile',
+		},
 	},
 }
