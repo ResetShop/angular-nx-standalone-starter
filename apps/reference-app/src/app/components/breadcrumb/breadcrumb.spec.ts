@@ -213,10 +213,20 @@ describe('Breadcrumb', () => {
 
 			expect(screen.getByText('…')).toBeInTheDocument()
 
-			// Entries for a 3-item chain: [Home, ›, …, ›, Admin, ›, Settings]. The ellipsis sits at
-			// list-item index 2 — mobile-only (visible at < sm:, hidden from sm: up).
+			// Entries for a 3-item chain: [Home, ›, …, ›, Admin, ›, Settings].
+			// Indices: 0 Home (all), 1 › (all), 2 … (mobile), 3 › (mobile),
+			//          4 Admin (desktop), 5 › (desktop), 6 Settings (all).
 			const items = screen.getAllByRole('listitem')
+
+			// Ellipsis and the chevron after it are mobile-only.
 			expect(items[2]).toHaveClass('sm:hidden')
+			expect(items[3]).toHaveClass('sm:hidden')
+
+			// The single intermediate item (Admin) and its trailing chevron are desktop-only.
+			expect(items[4]).toHaveClass('hidden')
+			expect(items[4]).toHaveClass('sm:inline-flex')
+			expect(items[5]).toHaveClass('hidden')
+			expect(items[5]).toHaveClass('sm:inline-flex')
 		})
 
 		it('should mark intermediate items hidden sm:inline-flex when the trail has 4 items', async () => {
@@ -237,7 +247,11 @@ describe('Breadcrumb', () => {
 			//          8 User Details (all).
 			const items = screen.getAllByRole('listitem')
 
-			// Intermediate items (Admin, Users) are CSS-hidden on mobile.
+			// Mobile-only entries: ellipsis and the chevron after it.
+			expect(items[2]).toHaveClass('sm:hidden')
+			expect(items[3]).toHaveClass('sm:hidden')
+
+			// Intermediate items (Admin, Users) and their trailing chevrons are CSS-hidden on mobile.
 			expect(items[4]).toHaveClass('hidden')
 			expect(items[4]).toHaveClass('sm:inline-flex')
 			expect(items[6]).toHaveClass('hidden')

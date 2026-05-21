@@ -9,11 +9,10 @@ import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 
 type BreadcrumbViewport = 'all' | 'mobile' | 'desktop'
 
-interface BreadcrumbEntry {
-	kind: 'item' | 'chevron' | 'ellipsis'
-	item?: BreadcrumbItem
-	viewport: BreadcrumbViewport
-}
+type BreadcrumbEntry =
+	| { kind: 'item'; item: BreadcrumbItem; viewport: BreadcrumbViewport }
+	| { kind: 'chevron'; viewport: BreadcrumbViewport }
+	| { kind: 'ellipsis'; viewport: BreadcrumbViewport }
 
 @Component({
 	selector: 'app-breadcrumb',
@@ -32,17 +31,17 @@ interface BreadcrumbEntry {
 						@switch (entry.kind) {
 							@case ('item') {
 								<div class="flex items-center gap-1">
-									@if (!entry.item!.isActive) {
+									@if (!entry.item.isActive) {
 										<a
-											[routerLink]="entry.item!.path"
+											[routerLink]="entry.item.path"
 											class="text-muted-foreground hover:text-foreground text-sm font-medium"
 										>
-											{{ entry.item!.title | translate }}
+											{{ entry.item.title | translate }}
 										</a>
 									}
-									@if (entry.item!.isActive) {
+									@if (entry.item.isActive) {
 										<span class="text-foreground text-sm font-medium" aria-current="page">
-											{{ entry.item!.title | translate }}
+											{{ entry.item.title | translate }}
 										</span>
 									}
 								</div>
