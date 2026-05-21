@@ -32,7 +32,7 @@ import { Breadcrumb } from '../breadcrumb/breadcrumb'
 	styles: `
 		:host {
 			@reference "tailwindcss";
-			@apply flex h-full items-center px-4 dark:text-gray-50;
+			@apply flex h-full items-center px-2 sm:px-4 dark:text-gray-50;
 		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,

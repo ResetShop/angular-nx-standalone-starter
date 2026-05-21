@@ -12,9 +12,9 @@ import { parseDurationToMs } from '@resetshop/util'
 	host: { '[attr.title]': 'null' },
 	providers: [provideIcons({ featherAlertCircle })],
 	template: `
-		<div class="space-y-6">
+		<div class="space-y-4 sm:space-y-6">
 			<div>
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title() }}</h1>
+				<h1 class="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">{{ title() }}</h1>
 				<p class="mt-1 text-sm text-gray-600 empty:hidden dark:text-gray-400">
 					<ng-content select="[pageDescription]" />
 				</p>
@@ -43,7 +43,7 @@ import { parseDurationToMs } from '@resetshop/util'
 					<p class="text-destructive/80">{{ error() }}</p>
 				</div>
 			} @else {
-				<div class="page-shell-fade-in space-y-6">
+				<div class="page-shell-fade-in space-y-4 sm:space-y-6">
 					<ng-content />
 				</div>
 			}
