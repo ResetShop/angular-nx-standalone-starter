@@ -171,4 +171,95 @@ describe('Breadcrumb', () => {
 		const listItems = screen.queryAllByRole('listitem')
 		expect(listItems).toHaveLength(0)
 	})
+
+	describe('intermediate-item hiding below sm:', () => {
+		// jsdom cannot evaluate media queries. These tests assert the class-presence regression guard
+		// for the sm: viewport-aware visibility rules. Visual behaviour is covered by the
+		// `MobileEllipsis` Storybook story at 375 px.
+
+		it('should not render an ellipsis when the trail has 1 item', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [{ title: 'Home', path: '/', isActive: true }]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			expect(screen.queryByText('…')).not.toBeInTheDocument()
+		})
+
+		it('should not render an ellipsis when the trail has 2 items', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			expect(screen.queryByText('…')).not.toBeInTheDocument()
+		})
+
+		it('should render an ellipsis marked sm:hidden when the trail has 3+ items', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Admin', path: '/admin', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			expect(screen.getByText('…')).toBeInTheDocument()
+
+			// Entries for a 3-item chain: [Home, ›, …, ›, Admin, ›, Settings].
+			// Indices: 0 Home (all), 1 › (all), 2 … (mobile), 3 › (mobile),
+			//          4 Admin (desktop), 5 › (desktop), 6 Settings (all).
+			const items = screen.getAllByRole('listitem')
+
+			// Ellipsis and the chevron after it are mobile-only.
+			expect(items[2]).toHaveClass('sm:hidden')
+			expect(items[3]).toHaveClass('sm:hidden')
+
+			// The single intermediate item (Admin) and its trailing chevron are desktop-only.
+			expect(items[4]).toHaveClass('hidden')
+			expect(items[4]).toHaveClass('sm:inline-flex')
+			expect(items[5]).toHaveClass('hidden')
+			expect(items[5]).toHaveClass('sm:inline-flex')
+		})
+
+		it('should mark intermediate items hidden sm:inline-flex when the trail has 4 items', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Admin', path: '/admin', isActive: false },
+				{ title: 'Users', path: '/admin/users', isActive: false },
+				{ title: 'User Details', path: '/admin/users/123', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			// Entries for a 4-item chain: [Home, ›, …, ›, Admin, ›, Users, ›, User Details].
+			// Indices: 0 Home (all), 1 › (all), 2 … (mobile), 3 › (mobile),
+			//          4 Admin (desktop), 5 › (desktop), 6 Users (desktop), 7 › (desktop),
+			//          8 User Details (all).
+			const items = screen.getAllByRole('listitem')
+
+			// Mobile-only entries: ellipsis and the chevron after it.
+			expect(items[2]).toHaveClass('sm:hidden')
+			expect(items[3]).toHaveClass('sm:hidden')
+
+			// Intermediate items (Admin, Users) and their trailing chevrons are CSS-hidden on mobile.
+			expect(items[4]).toHaveClass('hidden')
+			expect(items[4]).toHaveClass('sm:inline-flex')
+			expect(items[6]).toHaveClass('hidden')
+			expect(items[6]).toHaveClass('sm:inline-flex')
+
+			// First and last entries stay visible at all viewports.
+			expect(items[0]).not.toHaveClass('hidden')
+			expect(items[8]).not.toHaveClass('hidden')
+		})
+	})
 })

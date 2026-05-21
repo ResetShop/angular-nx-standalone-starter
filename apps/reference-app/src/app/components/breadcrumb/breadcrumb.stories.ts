@@ -269,8 +269,9 @@ export const InPageHeader: Story = {
 }
 
 /**
- * Breadcrumb with responsive behavior.
- * Demonstrates how breadcrumbs wrap on smaller screens.
+ * Demonstrates the intermediate-item truncation at a constrained container width. Below `sm:`, the
+ * chain collapses to `first › … › last` (the middle two items stay in the DOM but are CSS-hidden
+ * via `hidden sm:inline-flex`). Resize to a wider viewport to see the full chain return.
  */
 export const Responsive: Story = {
 	decorators: [
@@ -292,6 +293,35 @@ export const Responsive: Story = {
 				<app-breadcrumb />
 			</div>
 		`,
+	}),
+}
+
+/**
+ * Mobile-viewport demonstration of the intermediate-item truncation. A four-segment trail collapses
+ * to `first › … › last` below `sm:`; the two middle segments stay in the DOM marked `hidden
+ * sm:inline-flex`. Resize Storybook to a wider viewport (or pick a non-mobile preset) to see the
+ * full chain re-appear.
+ */
+export const MobileEllipsis: Story = {
+	decorators: [
+		applicationConfig({
+			providers: [
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Administration', path: '/dashboard/admin', isActive: false },
+					{ title: 'User Management', path: '/dashboard/admin/users', isActive: false },
+					{ title: 'Edit', path: '/dashboard/admin/users/edit', isActive: true },
+				]),
+			],
+		}),
+	],
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+	render: () => ({
+		template: '<app-breadcrumb />',
 	}),
 }
 

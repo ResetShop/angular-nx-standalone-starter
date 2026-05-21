@@ -59,19 +59,26 @@ import { UserCard } from './user-card'
 		>
 			<p pageDescription>{{ 'USERS.PAGE.DESCRIPTION' | translate }}</p>
 
-			<div pageActionsSkeleton class="flex items-center justify-between gap-4" data-testid="users-actions-skeleton">
+			<div
+				pageActionsSkeleton
+				class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+				data-testid="users-actions-skeleton"
+			>
 				<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
-				<div class="bg-muted h-9 w-24 animate-pulse rounded-md"></div>
+				<div class="bg-muted h-9 w-full animate-pulse rounded-md sm:w-24"></div>
 			</div>
 
-			<div pageActions class="flex items-center justify-between gap-4">
+			<div
+				pageActions
+				class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+			>
 				<input
 					(input)="onSearchInput($event)"
 					[placeholder]="'USERS.PAGE.SEARCH' | translate"
 					type="search"
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-base focus:ring-1 focus:outline-none sm:text-sm"
 				/>
-				<button (click)="createDrawer.open()" *hasPermission="'admin:users:create'" appButton>
+				<button (click)="createDrawer.open()" *hasPermission="'admin:users:create'" appButton class="w-full sm:w-auto">
 					{{ 'USERS.PAGE.CREATE_BUTTON' | translate }}
 				</button>
 			</div>
