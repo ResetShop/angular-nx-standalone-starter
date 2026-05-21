@@ -296,6 +296,35 @@ export const Responsive: Story = {
 }
 
 /**
+ * Mobile-viewport demonstration of the intermediate-item truncation. A four-segment trail collapses
+ * to `first › … › last` below `sm:`; the two middle segments stay in the DOM marked `hidden
+ * sm:inline-flex`. Resize Storybook to a wider viewport (or pick a non-mobile preset) to see the
+ * full chain re-appear.
+ */
+export const MobileEllipsis: Story = {
+	decorators: [
+		applicationConfig({
+			providers: [
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Administration', path: '/dashboard/admin', isActive: false },
+					{ title: 'User Management', path: '/dashboard/admin/users', isActive: false },
+					{ title: 'Edit', path: '/dashboard/admin/users/edit', isActive: true },
+				]),
+			],
+		}),
+	],
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+	render: () => ({
+		template: '<app-breadcrumb />',
+	}),
+}
+
+/**
  * Example showing all breadcrumb variations in one view.
  * Useful for design documentation and testing.
  */

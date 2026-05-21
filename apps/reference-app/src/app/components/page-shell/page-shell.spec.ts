@@ -70,6 +70,18 @@ describe('PageShell', () => {
 		expect(screen.getByRole('heading', { level: 1, name: 'Test Page' })).toBeInTheDocument()
 	})
 
+	it('should apply responsive text-xl sm:text-2xl classes to the title heading', async () => {
+		// jsdom cannot evaluate media queries; assert class-presence as a regression guard for the
+		// mobile-first sizing rule. Visual breakpoint behaviour is covered by the
+		// `MobileLayout` Storybook story.
+		await render(TestHost, { providers: [provideTranslationMock()] })
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+
+		const heading = screen.getByRole('heading', { level: 1, name: 'Test Page' })
+		expect(heading).toHaveClass('text-xl')
+		expect(heading).toHaveClass('sm:text-2xl')
+	})
+
 	it('should project description content', async () => {
 		await render(TestHost, { providers: [provideTranslationMock()] })
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))

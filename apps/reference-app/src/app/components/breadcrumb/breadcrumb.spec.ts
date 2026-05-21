@@ -171,4 +171,76 @@ describe('Breadcrumb', () => {
 		const listItems = screen.queryAllByRole('listitem')
 		expect(listItems).toHaveLength(0)
 	})
+
+	describe('intermediate-item hiding below sm:', () => {
+		// jsdom cannot evaluate media queries. These tests assert the class-presence regression guard
+		// for the sm: viewport-aware visibility rules. Visual behaviour is covered by the
+		// `MobileEllipsis` Storybook story at 375 px.
+
+		it('should not render an ellipsis when the trail has 1 item', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [{ title: 'Home', path: '/', isActive: true }]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			expect(screen.queryByText('…')).not.toBeInTheDocument()
+		})
+
+		it('should not render an ellipsis when the trail has 2 items', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			expect(screen.queryByText('…')).not.toBeInTheDocument()
+		})
+
+		it('should render an ellipsis marked sm:hidden when the trail has 3+ items', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Admin', path: '/admin', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const ellipsis = screen.getByText('…')
+			expect(ellipsis).toBeInTheDocument()
+			expect(ellipsis.closest('li')).toHaveClass('sm:hidden')
+		})
+
+		it('should mark intermediate items hidden sm:inline-flex when the trail has 4 items', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Admin', path: '/admin', isActive: false },
+				{ title: 'Users', path: '/admin/users', isActive: false },
+				{ title: 'User Details', path: '/admin/users/123', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			// Intermediate items (Admin and Users) sit inside an <li> marked hidden sm:inline-flex.
+			const adminLi = screen.getByRole('link', { name: /admin/i }).closest('li')
+			const usersLi = screen.getByRole('link', { name: /users/i }).closest('li')
+			expect(adminLi).toHaveClass('hidden')
+			expect(adminLi).toHaveClass('sm:inline-flex')
+			expect(usersLi).toHaveClass('hidden')
+			expect(usersLi).toHaveClass('sm:inline-flex')
+
+			// First and last entries stay visible at all viewports — no hidden class.
+			const homeLi = screen.getByRole('link', { name: /home/i }).closest('li')
+			const lastLi = screen.getByText('User Details').closest('li')
+			expect(homeLi).not.toHaveClass('hidden')
+			expect(lastLi).not.toHaveClass('hidden')
+		})
+	})
 })
