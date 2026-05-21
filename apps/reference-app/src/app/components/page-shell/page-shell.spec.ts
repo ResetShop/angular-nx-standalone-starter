@@ -82,6 +82,17 @@ describe('PageShell', () => {
 		expect(heading).toHaveClass('sm:text-2xl')
 	})
 
+	it('should apply responsive space-y-4 sm:space-y-6 classes to the outer wrapper', async () => {
+		// Regression guard for the mobile-first section spacing rule on the outer page-shell
+		// wrapper. Visual breakpoint behaviour is covered by the `MobileLayout` Storybook story.
+		await render(TestHost, { providers: [provideTranslationMock()] })
+		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))
+
+		const wrapper = screen.getByTestId('page-shell-wrapper')
+		expect(wrapper).toHaveClass('space-y-4')
+		expect(wrapper).toHaveClass('sm:space-y-6')
+	})
+
 	it('should project description content', async () => {
 		await render(TestHost, { providers: [provideTranslationMock()] })
 		await advanceTimersByTimeAsync(parseDurationToMs(PAGE_SHELL_MIN_DISPLAY))

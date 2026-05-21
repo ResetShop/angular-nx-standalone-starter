@@ -12,7 +12,7 @@ import { parseDurationToMs } from '@resetshop/util'
 	host: { '[attr.title]': 'null' },
 	providers: [provideIcons({ featherAlertCircle })],
 	template: `
-		<div class="space-y-4 sm:space-y-6">
+		<div class="space-y-4 sm:space-y-6" data-testid="page-shell-wrapper">
 			<div>
 				<h1 class="text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">{{ title() }}</h1>
 				<p class="mt-1 text-sm text-gray-600 empty:hidden dark:text-gray-400">
