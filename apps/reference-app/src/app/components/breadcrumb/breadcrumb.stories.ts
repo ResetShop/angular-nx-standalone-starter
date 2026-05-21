@@ -269,8 +269,9 @@ export const InPageHeader: Story = {
 }
 
 /**
- * Breadcrumb with responsive behavior.
- * Demonstrates how breadcrumbs wrap on smaller screens.
+ * Demonstrates the intermediate-item truncation at a constrained container width. Below `sm:`, the
+ * chain collapses to `first › … › last` (the middle two items stay in the DOM but are CSS-hidden
+ * via `hidden sm:inline-flex`). Resize to a wider viewport to see the full chain return.
  */
 export const Responsive: Story = {
 	decorators: [
