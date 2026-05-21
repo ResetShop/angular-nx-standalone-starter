@@ -107,6 +107,39 @@ describe('UsersList', () => {
 		expect(screen.queryByRole('button', { name: /create user/i })).not.toBeInTheDocument()
 	})
 
+	describe('responsive action bar classes', () => {
+		// jsdom cannot evaluate media queries; assert class-presence as a regression guard for the
+		// mobile-first stacking rule. Visual breakpoint behaviour is covered by Storybook stories.
+
+		it('should stack the loading skeleton vertically below sm: and side-by-side from sm: up', async () => {
+			usersApiMock.getAll.mockReturnValue(NEVER)
+
+			await render(UsersList, {
+				providers: [
+					{ provide: UsersApi, useValue: usersApiMock },
+					{ provide: RolesApi, useValue: rolesApiMock },
+					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: breakpointObserverMock },
+				],
+			})
+			setUserWithAllPermissions()
+			TestBed.tick()
+
+			const skeleton = screen.getByTestId('users-actions-skeleton')
+			expect(skeleton).toHaveClass('flex-col')
+			expect(skeleton).toHaveClass('sm:flex-row')
+		})
+
+		it('should mark the Create User button full-width on mobile and auto-width from sm: up', async () => {
+			await renderComponent()
+
+			const createButton = screen.getByRole('button', { name: /create user/i })
+			expect(createButton).toHaveClass('w-full')
+			expect(createButton).toHaveClass('sm:w-auto')
+		})
+	})
+
 	it('should show real actions after loading completes', async () => {
 		await renderComponent()
 
