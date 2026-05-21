@@ -98,3 +98,16 @@ export const WithValidation: StoryObj<StorySelect> = {
 export const ManyOptions: StoryObj<StorySelect> = {
 	args: { options: MANY_OPTIONS, hasRequired: false },
 }
+
+/**
+ * Mobile viewport (375 px) with 50 options — verifies the dropdown max-height is capped at
+ * `min(60vh, 240px)`. On a 375 × 667 mobile viewport, 60vh ≈ 400 px so the 240 px cap wins;
+ * on a shorter viewport (e.g. landscape phone at 375 px tall), the 60vh cap engages instead.
+ */
+export const MobileViewport: StoryObj<StorySelect> = {
+	args: { options: MANY_OPTIONS, hasRequired: false },
+	parameters: {
+		docs: { canvas: { sourceState: 'shown' } },
+		viewport: { defaultViewport: 'mobile' },
+	},
+}
