@@ -26,10 +26,13 @@ const WORDLISTS: Readonly<Record<string, readonly string[]>> = Object.freeze({
 })
 
 function getWordList(language: string): readonly string[] {
-	const words = WORDLISTS[language]
-	if (!words) {
+	// Allowlist check via Object.hasOwn — guards against inherited members (e.g. `language`
+	// set to '__proto__' or 'constructor') returning truthy non-array values that would
+	// pass a plain `if (!words)` check and crash later in randomInt(words.length).
+	if (!Object.hasOwn(WORDLISTS, language)) {
 		throw new Error(`Word list not found for language: ${language}`)
 	}
+	const words = WORDLISTS[language]
 	if (words.length === 0) {
 		throw new Error(`Word list is empty for language: ${language}`)
 	}
