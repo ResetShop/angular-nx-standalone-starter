@@ -73,6 +73,18 @@ describe('ConfirmDialog', () => {
 			expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
 		})
 
+		it('should apply responsive mx-4 sm:mx-0 and p-4 sm:p-6 classes to the content div', async () => {
+			// jsdom cannot evaluate media queries; class-presence asserts the responsive margin
+			// and padding rules. Visual behaviour is covered by the `MobileViewport` Storybook story.
+			await renderAndOpen({ title: 'Confirm' })
+
+			const contentDiv = screen.getByTestId('confirm-dialog-content')
+			expect(contentDiv).toHaveClass('mx-4')
+			expect(contentDiv).toHaveClass('sm:mx-0')
+			expect(contentDiv).toHaveClass('p-4')
+			expect(contentDiv).toHaveClass('sm:p-6')
+		})
+
 		it('should display custom button text', async () => {
 			await renderAndOpen({
 				title: 'Delete',
