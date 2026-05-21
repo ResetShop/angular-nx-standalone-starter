@@ -114,7 +114,7 @@ describe('RolesList', () => {
 			fireEvent.click(screen.getByRole('button', { name: /create role/i }))
 			TestBed.tick()
 
-			const dialog = screen.getByRole('dialog')
+			const dialog = screen.getByRole('dialog', { name: /create role/i })
 			expect(dialog).toHaveClass('w-full')
 			expect(dialog).toHaveClass('sm:w-lg')
 		})
@@ -129,7 +129,7 @@ describe('RolesList', () => {
 			fireEvent.click(screen.getByRole('button', { name: /^edit$/i }))
 			TestBed.tick()
 
-			const dialog = screen.getByRole('dialog')
+			const dialog = screen.getByRole('dialog', { name: /edit role/i })
 			expect(dialog).toHaveClass('w-full')
 			expect(dialog).toHaveClass('sm:w-lg')
 		})
