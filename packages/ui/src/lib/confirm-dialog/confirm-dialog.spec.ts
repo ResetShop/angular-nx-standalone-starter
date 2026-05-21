@@ -73,14 +73,17 @@ describe('ConfirmDialog', () => {
 			expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
 		})
 
-		it('should apply responsive mx-4 sm:mx-0 and p-4 sm:p-6 classes to the content div', async () => {
-			// jsdom cannot evaluate media queries; class-presence asserts the responsive margin
-			// and padding rules. Visual behaviour is covered by the `MobileViewport` Storybook story.
+		it('should apply responsive width and padding classes to the content div', async () => {
+			// jsdom cannot evaluate calc() or media queries; class-presence asserts the responsive
+			// width and padding rules. Visual behaviour is covered by the `MobileViewport`
+			// Storybook story. `w-[calc(100%-2rem)]` keeps the inner div (and therefore the
+			// content-sized <dialog>) 1 rem narrower than the viewport on each side; `sm:w-full`
+			// restores the desktop layout where `max-w-md` caps the width at 448 px.
 			await renderAndOpen({ title: 'Confirm' })
 
 			const contentDiv = screen.getByTestId('confirm-dialog-content')
-			expect(contentDiv).toHaveClass('mx-4')
-			expect(contentDiv).toHaveClass('sm:mx-0')
+			expect(contentDiv).toHaveClass('w-[calc(100%-2rem)]')
+			expect(contentDiv).toHaveClass('sm:w-full')
 			expect(contentDiv).toHaveClass('p-4')
 			expect(contentDiv).toHaveClass('sm:p-6')
 		})
