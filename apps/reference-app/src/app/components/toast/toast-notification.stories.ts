@@ -122,7 +122,8 @@ export const AllVariants: Story = {
  * This story is the canonical regression guard for the responsive width: `ToastNotification`
  * cannot be unit-tested in isolation because it injects the ng-primitives `NgpToastContext`
  * token (not exported), so its host class binding is only resolvable when rendered through
- * `NgpToastManager.show()`. Visual verification at the mobile viewport is the test.
+ * `NgpToastManager.show()`. Visual verification at the mobile viewport is the test. The gap is
+ * tracked separately in #369.
  */
 export const MobileViewport: Story = {
 	args: { placement: 'bottom-center' },
