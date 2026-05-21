@@ -2,7 +2,7 @@
 
 /* Base layout */
 :host {
-	@apply absolute inline-grid w-[350px] items-center gap-3 rounded-lg border px-4 py-3 opacity-0 shadow-lg;
+	@apply absolute inline-grid items-center gap-3 rounded-lg border px-4 py-3 opacity-0 shadow-lg;
 
 	grid-template-columns: auto 1fr auto;
 	touch-action: none;
