@@ -32,6 +32,7 @@ import {
 } from '@tanstack/angular-table'
 
 import { Button } from '../button/button'
+import { resolveOrDefault } from '../i18n/resolve-or-default'
 import { Spinner } from '../spinner/spinner'
 import { DataTableCardDef } from './data-table-card-def'
 import { DataTableCellDef } from './data-table-cell-def'
@@ -64,6 +65,18 @@ const TAB_BLEED_SPACER_CLASSES: Record<DataTableTabBleed, string> = Object.freez
 	'4': 'w-4',
 	'6': 'w-6',
 	'8': 'w-8',
+} as const)
+
+/**
+ * English fallbacks used when no Translation provider is wired (e.g. Storybook).
+ * Verbatim copies of the strings in `apps/reference-app/src/app/providers/i18n/translations/en.ts`.
+ */
+const DATA_TABLE_DEFAULTS = Object.freeze({
+	EMPTY: 'No data available',
+	LOADING: 'Loading...',
+	TOGGLE_TABLE: 'Table view',
+	TOGGLE_CARDS: 'Card view',
+	TOGGLE_GROUP_LABEL: 'Display mode',
 } as const)
 
 @Component({
@@ -154,7 +167,9 @@ export class DataTable<T> {
 	 * The translation is not reactive — if the application language changes at runtime,
 	 * the component must be re-created to pick up the new locale.
 	 */
-	public readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'))
+	public readonly emptyMessage = input<string>(
+		resolveOrDefault(this.translation.instant('DATA_TABLE.EMPTY'), 'DATA_TABLE.EMPTY', DATA_TABLE_DEFAULTS.EMPTY),
+	)
 
 	/** Accessible table caption */
 	public readonly caption = input<string>('')
@@ -171,11 +186,27 @@ export class DataTable<T> {
 	 * Uses the `DATA_TABLE.LOADING` translation key. Not reactive to language changes —
 	 * the component must be re-created to pick up a new locale.
 	 */
-	protected readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING')
+	protected readonly loadingMessage = resolveOrDefault(
+		this.translation.instant('DATA_TABLE.LOADING'),
+		'DATA_TABLE.LOADING',
+		DATA_TABLE_DEFAULTS.LOADING,
+	)
 
-	protected readonly toggleTableLabel = this.translation.instant('DATA_TABLE.TOGGLE.TABLE')
-	protected readonly toggleCardsLabel = this.translation.instant('DATA_TABLE.TOGGLE.CARDS')
-	protected readonly toggleGroupLabel = this.translation.instant('DATA_TABLE.TOGGLE.GROUP_LABEL')
+	protected readonly toggleTableLabel = resolveOrDefault(
+		this.translation.instant('DATA_TABLE.TOGGLE.TABLE'),
+		'DATA_TABLE.TOGGLE.TABLE',
+		DATA_TABLE_DEFAULTS.TOGGLE_TABLE,
+	)
+	protected readonly toggleCardsLabel = resolveOrDefault(
+		this.translation.instant('DATA_TABLE.TOGGLE.CARDS'),
+		'DATA_TABLE.TOGGLE.CARDS',
+		DATA_TABLE_DEFAULTS.TOGGLE_CARDS,
+	)
+	protected readonly toggleGroupLabel = resolveOrDefault(
+		this.translation.instant('DATA_TABLE.TOGGLE.GROUP_LABEL'),
+		'DATA_TABLE.TOGGLE.GROUP_LABEL',
+		DATA_TABLE_DEFAULTS.TOGGLE_GROUP_LABEL,
+	)
 
 	/** Emits when sort changes */
 	public readonly sortChange = output<DataTableSortEvent>()
