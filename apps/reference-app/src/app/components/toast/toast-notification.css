@@ -36,9 +36,9 @@
 	@apply left-0;
 }
 
+/* Width formula mirrors the `w-[min(350px,calc(100vw-2rem))]` class on the host element. */
 :host[data-position-x='center'] {
 	left: 50%;
-	/* Width formula mirrors the `w-[min(350px,calc(100vw-2rem))]` class on the host element. */
 	margin-left: calc(min(350px, 100vw - 2rem) / -2);
 }
 
