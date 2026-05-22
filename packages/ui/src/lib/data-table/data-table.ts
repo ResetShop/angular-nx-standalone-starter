@@ -32,7 +32,6 @@ import {
 } from '@tanstack/angular-table'
 
 import { Button } from '../button/button'
-import { resolveOrDefault } from '../i18n/resolve-or-default'
 import { Spinner } from '../spinner/spinner'
 import { DataTableCardDef } from './data-table-card-def'
 import { DataTableCellDef } from './data-table-cell-def'
@@ -155,9 +154,7 @@ export class DataTable<T> {
 	 * The translation is not reactive — if the application language changes at runtime,
 	 * the component must be re-created to pick up the new locale.
 	 */
-	public readonly emptyMessage = input<string>(
-		resolveOrDefault(this.translation.instant('DATA_TABLE.EMPTY'), 'DATA_TABLE.EMPTY', 'No data available'),
-	)
+	public readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY', 'No data available'))
 
 	/** Accessible table caption */
 	public readonly caption = input<string>('')
@@ -168,27 +165,10 @@ export class DataTable<T> {
 	/** Whether grouped rows start expanded (default: true) */
 	public readonly expandedByDefault = input<boolean>(true)
 
-	protected readonly loadingMessage = resolveOrDefault(
-		this.translation.instant('DATA_TABLE.LOADING'),
-		'DATA_TABLE.LOADING',
-		'Loading...',
-	)
-
-	protected readonly toggleTableLabel = resolveOrDefault(
-		this.translation.instant('DATA_TABLE.TOGGLE.TABLE'),
-		'DATA_TABLE.TOGGLE.TABLE',
-		'Table view',
-	)
-	protected readonly toggleCardsLabel = resolveOrDefault(
-		this.translation.instant('DATA_TABLE.TOGGLE.CARDS'),
-		'DATA_TABLE.TOGGLE.CARDS',
-		'Card view',
-	)
-	protected readonly toggleGroupLabel = resolveOrDefault(
-		this.translation.instant('DATA_TABLE.TOGGLE.GROUP_LABEL'),
-		'DATA_TABLE.TOGGLE.GROUP_LABEL',
-		'Display mode',
-	)
+	protected readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING', 'Loading...')
+	protected readonly toggleTableLabel = this.translation.instant('DATA_TABLE.TOGGLE.TABLE', 'Table view')
+	protected readonly toggleCardsLabel = this.translation.instant('DATA_TABLE.TOGGLE.CARDS', 'Card view')
+	protected readonly toggleGroupLabel = this.translation.instant('DATA_TABLE.TOGGLE.GROUP_LABEL', 'Display mode')
 
 	/** Emits when sort changes */
 	public readonly sortChange = output<DataTableSortEvent>()

@@ -1,4 +1,5 @@
 import { inject, Injectable, InjectionToken, isDevMode, signal } from '@angular/core'
+import { Logger } from '../logger/logger.token'
 import type { TranslationKey, TranslationSchema } from './translations.schema'
 
 /**
@@ -72,6 +73,14 @@ function isLanguage(value: string | null): value is Language {
 export class Translation {
 	private readonly defaultLanguage = inject(DEFAULT_LANGUAGE)
 	private readonly loader = inject(TRANSLATION_LOADER)
+	private readonly logger = inject(Logger)
+
+	/**
+	 * Per-`${language}:${key}` set tracking which missing-key warnings have already
+	 * been emitted in this session. Prevents the dev console from drowning when an
+	 * unloaded key is read many times (e.g. on every change-detection cycle).
+	 */
+	private readonly warnedKeys = new Set<string>()
 
 	/**
 	 * Current active language signal.
@@ -119,16 +128,26 @@ export class Translation {
 	/**
 	 * Gets a translated string for the given key in the current language.
 	 *
+	 * When the key cannot be resolved (translations not loaded, key absent from the
+	 * loaded schema, or the resolved value is not a string), this returns `fallback`
+	 * if provided, otherwise the raw key. Unresolved-key conditions emit a one-time
+	 * dev warning via the `Logger` token, deduplicated per `${language}:${key}` — the
+	 * warning fires regardless of whether a `fallback` was supplied, because a missing
+	 * translation is information the developer should always see.
+	 *
 	 * @param key - Translation key in dot notation (e.g., 'AUTH.ERRORS.INVALID_CREDENTIALS')
-	 * @returns Translated string or the raw key if translations are not loaded or the key
-	 *   has no matching entry. Returning the key (rather than throwing) keeps components
-	 *   renderable in test/Storybook contexts that haven't initialised translations yet.
+	 * @param fallback - Optional English string returned in place of the raw key when
+	 *   the translation is missing. Use this for library components rendered without a
+	 *   Translation provider (e.g. Storybook stories) so they show readable text.
+	 * @returns Resolved translation, or `fallback`, or the raw key, in that order.
 	 */
-	public instant(key: TranslationKey): string {
-		const currentTranslations = this.translations[this.currentLang()]
+	public instant(key: TranslationKey, fallback?: string): string {
+		const currentLang = this.currentLang()
+		const currentTranslations = this.translations[currentLang]
 
 		if (currentTranslations === null) {
-			return key
+			this.warnMissingKey(currentLang, key)
+			return fallback ?? key
 		}
 
 		const keys = key.split('.')
@@ -138,11 +157,24 @@ export class Translation {
 			if (typeof value === 'object' && value !== null && k in value) {
 				value = (value as Record<string, unknown>)[k]
 			} else {
-				return key
+				this.warnMissingKey(currentLang, key)
+				return fallback ?? key
 			}
 		}
 
-		return typeof value === 'string' ? value : key
+		if (typeof value !== 'string') {
+			this.warnMissingKey(currentLang, key)
+			return fallback ?? key
+		}
+		return value
+	}
+
+	private warnMissingKey(lang: Language, key: TranslationKey): void {
+		if (!isDevMode()) return
+		const dedupeKey = `${lang}:${key}`
+		if (this.warnedKeys.has(dedupeKey)) return
+		this.warnedKeys.add(dedupeKey)
+		this.logger.warn('Translation', `Missing translation for "${key}" in language "${lang}"`)
 	}
 
 	/**

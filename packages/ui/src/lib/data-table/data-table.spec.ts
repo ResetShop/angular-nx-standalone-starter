@@ -41,7 +41,7 @@ const TRANSLATIONS: Record<string, string> = {
 }
 
 const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
+	instant: (key: string, fallback?: string) => TRANSLATIONS[key] ?? fallback ?? key,
 }
 
 function createBreakpointObserverMock(matches: boolean): { observe: MockFn } {
@@ -1064,10 +1064,12 @@ describe('DataTable', () => {
 	})
 
 	describe('fallback strings (no Translation provider)', () => {
-		// Provide a Translation that mirrors the real service before loadDefaultLanguage() has
-		// been called — instant() returns the raw key, which the component detects and replaces
-		// with its English defaults via resolveOrDefault.
-		const fallbackProvider = { provide: Translation, useValue: { instant: (key: string) => key } }
+		// Provide a Translation stub that mirrors the real service's "no translations loaded"
+		// path: when a fallback is supplied, return it; otherwise return the raw key.
+		const fallbackProvider = {
+			provide: Translation,
+			useValue: { instant: (key: string, fallback?: string) => fallback ?? key },
+		}
 
 		it('should render "No data available" empty message when translations are not loaded (EMPTY)', async () => {
 			await render(DataTable<TestData>, {

@@ -17,7 +17,6 @@ import type { ValidationError } from '@angular/forms/signals'
 import { NgValidationError, REQUIRED, FormField as SignalFormField } from '@angular/forms/signals'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { NgpFormField } from 'ng-primitives/form-field'
-import { resolveOrDefault } from '../i18n/resolve-or-default'
 import { FormFieldCustomControl } from './form-field-custom-control'
 
 @Component({
@@ -243,43 +242,25 @@ export class FormField {
 
 		switch (error.kind) {
 			case 'required':
-				return resolveOrDefault(
-					this.translation.instant('VALIDATION.REQUIRED'),
-					'VALIDATION.REQUIRED',
-					'This field is required',
-				)
+				return this.translation.instant('VALIDATION.REQUIRED', 'This field is required')
 			case 'email':
-				return resolveOrDefault(
-					this.translation.instant('VALIDATION.EMAIL'),
-					'VALIDATION.EMAIL',
-					'Please enter a valid email address',
-				)
+				return this.translation.instant('VALIDATION.EMAIL', 'Please enter a valid email address')
 			case 'minLength':
-				return resolveOrDefault(
-					this.translation.instant('VALIDATION.MIN_LENGTH'),
-					'VALIDATION.MIN_LENGTH',
-					'Must be at least {min} characters',
-				).replace('{min}', String(error.minLength))
+				return this.translation
+					.instant('VALIDATION.MIN_LENGTH', 'Must be at least {min} characters')
+					.replace('{min}', String(error.minLength))
 			case 'maxLength':
-				return resolveOrDefault(
-					this.translation.instant('VALIDATION.MAX_LENGTH'),
-					'VALIDATION.MAX_LENGTH',
-					'Must be no more than {max} characters',
-				).replace('{max}', String(error.maxLength))
+				return this.translation
+					.instant('VALIDATION.MAX_LENGTH', 'Must be no more than {max} characters')
+					.replace('{max}', String(error.maxLength))
 			case 'min':
-				return resolveOrDefault(
-					this.translation.instant('VALIDATION.MIN'),
-					'VALIDATION.MIN',
-					'Must be at least {min}',
-				).replace('{min}', String(error.min))
+				return this.translation.instant('VALIDATION.MIN', 'Must be at least {min}').replace('{min}', String(error.min))
 			case 'max':
-				return resolveOrDefault(
-					this.translation.instant('VALIDATION.MAX'),
-					'VALIDATION.MAX',
-					'Must be no more than {max}',
-				).replace('{max}', String(error.max))
+				return this.translation
+					.instant('VALIDATION.MAX', 'Must be no more than {max}')
+					.replace('{max}', String(error.max))
 			case 'pattern':
-				return resolveOrDefault(this.translation.instant('VALIDATION.PATTERN'), 'VALIDATION.PATTERN', 'Invalid format')
+				return this.translation.instant('VALIDATION.PATTERN', 'Invalid format')
 			default:
 				return error.message ?? error.kind
 		}

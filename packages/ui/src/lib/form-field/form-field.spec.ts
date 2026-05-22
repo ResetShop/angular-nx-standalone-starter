@@ -34,7 +34,7 @@ const TRANSLATIONS: Record<string, string> = {
 }
 
 const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
+	instant: (key: string, fallback?: string) => TRANSLATIONS[key] ?? fallback ?? key,
 }
 
 @Component({
@@ -877,10 +877,12 @@ describe('FormField', () => {
 	})
 
 	describe('fallback strings (no Translation provider)', () => {
-		// Provide a Translation that mirrors the real service before loadDefaultLanguage() has
-		// been called — instant() returns the raw key, which mapErrorToMessage detects and
-		// replaces with the English defaults via resolveOrDefault.
-		const fallbackProvider = { provide: Translation, useValue: { instant: (key: string) => key } }
+		// Provide a Translation stub that mirrors the real service's "no translations loaded"
+		// path: when a fallback is supplied, return it; otherwise return the raw key.
+		const fallbackProvider = {
+			provide: Translation,
+			useValue: { instant: (key: string, fallback?: string) => fallback ?? key },
+		}
 
 		it('should show "This field is required" when translations are not loaded (REQUIRED)', async () => {
 			const { fixture } = await render(TestHostRequiredEmail, {

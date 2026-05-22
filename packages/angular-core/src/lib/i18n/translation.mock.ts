@@ -9,8 +9,8 @@ import type { TranslationKey } from './translations.schema'
  */
 @Injectable({ providedIn: 'root' })
 export class TranslationMock extends Translation {
-	public override instant(key: TranslationKey): string {
-		return key
+	public override instant(key: TranslationKey, fallback?: string): string {
+		return fallback ?? key
 	}
 
 	public override async loadDefaultLanguage(): Promise<void> {

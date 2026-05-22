@@ -3,7 +3,6 @@ import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '../button/button'
-import { resolveOrDefault } from '../i18n/resolve-or-default'
 import { PaginationTracker } from './pagination-tracker'
 
 /** Represents a page item in the pagination: a page number or an ellipsis */
@@ -121,41 +120,12 @@ export class Pagination {
 	/** Emits new page size when user changes the rows per page */
 	public readonly pageSizeChange = output<number>()
 
-	protected readonly paginationLabel = resolveOrDefault(
-		this.translation.instant('PAGINATION.LABEL'),
-		'PAGINATION.LABEL',
-		'Pagination',
-	)
-
-	protected readonly rowsPerPageLabel = resolveOrDefault(
-		this.translation.instant('PAGINATION.ROWS_PER_PAGE'),
-		'PAGINATION.ROWS_PER_PAGE',
-		'Rows per page',
-	)
-
-	protected readonly goToPreviousLabel = resolveOrDefault(
-		this.translation.instant('PAGINATION.GO_TO_PREVIOUS'),
-		'PAGINATION.GO_TO_PREVIOUS',
-		'Go to previous page',
-	)
-
-	protected readonly goToNextLabel = resolveOrDefault(
-		this.translation.instant('PAGINATION.GO_TO_NEXT'),
-		'PAGINATION.GO_TO_NEXT',
-		'Go to next page',
-	)
-
-	private readonly goToPageTemplate = resolveOrDefault(
-		this.translation.instant('PAGINATION.GO_TO_PAGE'),
-		'PAGINATION.GO_TO_PAGE',
-		'Go to page {page}',
-	)
-
-	private readonly pageOfTemplate = resolveOrDefault(
-		this.translation.instant('PAGINATION.PAGE_OF'),
-		'PAGINATION.PAGE_OF',
-		'Page {current} of {total}',
-	)
+	protected readonly paginationLabel = this.translation.instant('PAGINATION.LABEL', 'Pagination')
+	protected readonly rowsPerPageLabel = this.translation.instant('PAGINATION.ROWS_PER_PAGE', 'Rows per page')
+	protected readonly goToPreviousLabel = this.translation.instant('PAGINATION.GO_TO_PREVIOUS', 'Go to previous page')
+	protected readonly goToNextLabel = this.translation.instant('PAGINATION.GO_TO_NEXT', 'Go to next page')
+	private readonly goToPageTemplate = this.translation.instant('PAGINATION.GO_TO_PAGE', 'Go to page {page}')
+	private readonly pageOfTemplate = this.translation.instant('PAGINATION.PAGE_OF', 'Page {current} of {total}')
 
 	/** Current-page label (e.g. "Page 5 of 10"). Read by the `sr-only` `aria-live` span — never visually shown. */
 	protected readonly pageOfLabel = computed(() =>

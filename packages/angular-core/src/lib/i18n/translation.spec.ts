@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing'
-import { clearAllMocks } from '@resetshop/util/test-utils'
+import { type MockFn, clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { Logger } from '../logger/logger.token'
 import { Translation, TRANSLATION_LOADER } from './translation'
 import type { TranslationSchema } from './translations.schema'
 
@@ -341,11 +342,16 @@ function stubLoader(lang: string): Promise<TranslationSchema> {
 
 describe('Translation Service', () => {
 	let service: Translation
+	let loggerMock: { warn: MockFn; info: MockFn; error: MockFn; security: MockFn }
 
 	beforeEach(() => {
 		clearAllMocks()
+		loggerMock = { warn: fn(), info: fn(), error: fn(), security: fn() }
 		TestBed.configureTestingModule({
-			providers: [{ provide: TRANSLATION_LOADER, useValue: stubLoader }],
+			providers: [
+				{ provide: TRANSLATION_LOADER, useValue: stubLoader },
+				{ provide: Logger, useValue: loggerMock },
+			],
 		})
 		service = TestBed.inject(Translation)
 	})
@@ -407,6 +413,79 @@ describe('Translation Service', () => {
 		})
 	})
 
+	describe('instant() — fallback argument', () => {
+		beforeEach(async () => {
+			await service.loadDefaultLanguage()
+		})
+
+		it('should return the fallback when the key is missing from the loaded schema', () => {
+			const missingKey = 'AUTH.NONEXISTENT.KEY' as Parameters<typeof service.instant>[0]
+
+			expect(service.instant(missingKey, 'Default English')).toBe('Default English')
+		})
+
+		it('should ignore the fallback and return the resolved translation when the key exists', () => {
+			const result = service.instant('AUTH.ERRORS.INVALID_CREDENTIALS', 'Default English')
+
+			expect(result).not.toBe('Default English')
+			expect(result).not.toBe('AUTH.ERRORS.INVALID_CREDENTIALS')
+		})
+	})
+
+	describe('instant() — missing-key warnings', () => {
+		beforeEach(async () => {
+			await service.loadDefaultLanguage()
+			loggerMock.warn.mockClear()
+		})
+
+		it('should warn via the Logger when a key is missing from the loaded schema', () => {
+			const missingKey = 'AUTH.NONEXISTENT.KEY' as Parameters<typeof service.instant>[0]
+			service.instant(missingKey)
+
+			expect(loggerMock.warn.calls).toEqual([
+				['Translation', 'Missing translation for "AUTH.NONEXISTENT.KEY" in language "en"'],
+			])
+		})
+
+		it('should warn even when a fallback is supplied', () => {
+			const missingKey = 'AUTH.NONEXISTENT.KEY' as Parameters<typeof service.instant>[0]
+			service.instant(missingKey, 'Default English')
+
+			expect(loggerMock.warn.calls).toEqual([
+				['Translation', 'Missing translation for "AUTH.NONEXISTENT.KEY" in language "en"'],
+			])
+		})
+
+		it('should not warn for a resolved key', () => {
+			service.instant('AUTH.ERRORS.INVALID_CREDENTIALS')
+
+			expect(loggerMock.warn.calls).toHaveLength(0)
+		})
+
+		it('should deduplicate repeated misses for the same key in the same language', () => {
+			const missingKey = 'AUTH.NONEXISTENT.KEY' as Parameters<typeof service.instant>[0]
+			service.instant(missingKey)
+			service.instant(missingKey)
+			service.instant(missingKey)
+
+			expect(loggerMock.warn.calls).toHaveLength(1)
+		})
+
+		it('should warn again when the same missing key is read after switching language', async () => {
+			const missingKey = 'AUTH.NONEXISTENT.KEY' as Parameters<typeof service.instant>[0]
+			service.instant(missingKey)
+
+			await service.setLanguage('es')
+			service.instant(missingKey)
+
+			expect(loggerMock.warn.calls).toHaveLength(2)
+			expect(loggerMock.warn.calls[1]).toEqual([
+				'Translation',
+				'Missing translation for "AUTH.NONEXISTENT.KEY" in language "es"',
+			])
+		})
+	})
+
 	describe('setLanguage()', () => {
 		it('should change the current language', async () => {
 			await service.setLanguage('en')
@@ -452,6 +531,12 @@ describe('Translation Service', () => {
 			const uninitService = TestBed.inject(Translation)
 
 			expect(uninitService.instant('AUTH.ERRORS.GENERIC')).toBe('AUTH.ERRORS.GENERIC')
+		})
+
+		it('should return the fallback when translations are not loaded and a fallback is supplied', () => {
+			const uninitService = TestBed.inject(Translation)
+
+			expect(uninitService.instant('AUTH.ERRORS.GENERIC', 'Default English')).toBe('Default English')
 		})
 	})
 
