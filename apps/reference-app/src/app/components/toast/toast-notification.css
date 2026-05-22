@@ -23,13 +23,23 @@
 	color: inherit;
 }
 
-/* Horizontal positioning */
+/* Horizontal positioning. ng-primitives' NgpToastManager wraps each placement in a zero-width
+ * fixed container at the corresponding anchor (e.g. left:50% of viewport for *-center). The toast
+ * itself is position:absolute inside that container, so per-toast CSS owns the horizontal align.
+ * Without an explicit rule for data-position-x='center' the toast defaults to left:0 of the
+ * zero-width container and overflows the right edge of the viewport. */
 :host[data-position-x='end'] {
 	@apply right-0;
 }
 
 :host[data-position-x='start'] {
 	@apply left-0;
+}
+
+:host[data-position-x='center'] {
+	left: 50%;
+	/* Width formula mirrors the `w-[min(350px,calc(100vw-2rem))]` class on the host element. */
+	margin-left: calc(min(350px, 100vw - 2rem) / -2);
 }
 
 /* Vertical positioning */
