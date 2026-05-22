@@ -56,7 +56,7 @@ const EMPTY_MODEL: EditRoleFormModel = { name: '', code: '', description: '', pe
 			(afterClosed)="toast.flushPending()"
 			[closeOnBackdrop]="false"
 			[title]="'ROLES.EDIT_DRAWER.TITLE' | translate"
-			class="lg:w-lg"
+			class="w-full sm:w-lg"
 			#drawer
 		>
 			<form (submit)="onSubmit($event)" id="edit-role-form" class="flex h-full flex-col gap-4">

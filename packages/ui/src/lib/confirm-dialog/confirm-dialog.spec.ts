@@ -73,6 +73,24 @@ describe('ConfirmDialog', () => {
 			expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
 		})
 
+		it('should apply viewport-relative max-width to the dialog and responsive padding to the content', async () => {
+			// jsdom cannot evaluate calc()/min()/100vw or media queries; class-presence asserts the
+			// responsive rules. Visual behaviour is covered by the `MobileViewport` Storybook story.
+			// The dialog uses `w-full max-w-[min(calc(100vw-2rem),28rem)]` so it always leaves a
+			// 1 rem gutter on each side below 28 rem (448 px) and caps at 28 rem from then on.
+			// Sizing on the inner content div doesn't reach the dialog — `<dialog showModal()>`
+			// is `fit-content` by default and its width must be set on the dialog itself.
+			await renderAndOpen({ title: 'Confirm' })
+
+			const dialog = screen.getByRole('alertdialog')
+			expect(dialog).toHaveClass('w-full')
+			expect(dialog).toHaveClass('max-w-[min(calc(100vw-2rem),28rem)]')
+
+			const contentDiv = screen.getByTestId('confirm-dialog-content')
+			expect(contentDiv).toHaveClass('p-4')
+			expect(contentDiv).toHaveClass('sm:p-6')
+		})
+
 		it('should display custom button text', async () => {
 			await renderAndOpen({
 				title: 'Delete',

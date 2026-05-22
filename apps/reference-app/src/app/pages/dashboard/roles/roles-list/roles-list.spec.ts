@@ -102,6 +102,39 @@ describe('RolesList', () => {
 		expect(screen.queryByRole('button', { name: /create role/i })).not.toBeInTheDocument()
 	})
 
+	describe('drawer responsive width classes', () => {
+		// Regression guard for sub-issue #344 item 8. The CRUD drawer overrides went from
+		// `class="lg:w-lg"` (panel pins to 512 px from `lg:` up) to `class="w-full sm:w-lg"`
+		// (panel pins to 512 px from `sm:` up, full-width below `sm:`). The consumer class is
+		// merged into `<dialog>` via the DrawerPanel directive's `panelClasses` computed.
+
+		it('should apply w-full sm:w-lg to the Create Role drawer dialog', async () => {
+			await renderComponent()
+
+			fireEvent.click(screen.getByRole('button', { name: /create role/i }))
+			TestBed.tick()
+
+			const dialog = screen.getByRole('dialog', { name: /create role/i })
+			expect(dialog).toHaveClass('w-full')
+			expect(dialog).toHaveClass('sm:w-lg')
+		})
+
+		it('should apply w-full sm:w-lg to the Edit Role drawer dialog', async () => {
+			const roles = [createMockRoleData({ id: 1, name: 'Admin', code: 'admin' })]
+			rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
+			rolesApiMock.getByIdWithPermissions.mockReturnValue(of({ ...roles[0], permissions: [] }))
+
+			await renderComponent()
+
+			fireEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+			TestBed.tick()
+
+			const dialog = screen.getByRole('dialog', { name: /edit role/i })
+			expect(dialog).toHaveClass('w-full')
+			expect(dialog).toHaveClass('sm:w-lg')
+		})
+	})
+
 	describe('responsive action bar classes', () => {
 		// jsdom cannot evaluate media queries; assert class-presence as a regression guard for the
 		// mobile-first stacking rule. Visual breakpoint behaviour is covered by Storybook stories.

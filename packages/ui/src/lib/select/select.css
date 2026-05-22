@@ -22,7 +22,7 @@
 }
 
 [ngpSelectDropdown] {
-	@apply bg-background border-border absolute mt-1 max-h-60 overflow-y-auto rounded-lg border p-1 shadow-md outline-none;
+	@apply bg-background border-border absolute mt-1 overflow-y-auto rounded-lg border p-1 shadow-md outline-none;
 
 	width: var(--ngp-select-width);
 	transform-origin: var(--ngp-select-transform-origin);
