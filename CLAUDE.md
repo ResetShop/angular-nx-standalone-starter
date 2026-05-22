@@ -141,26 +141,27 @@ All `packages/*` are exposed via `@resetshop/*` path aliases in `tsconfig.base.j
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint                          | Limit                                                                                                                                                                                                                                                           | Rationale                             |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Function length                     | ≤ 50 lines                                                                                                                                                                                                                                                      | Readability, SRP                      |
-| File length                         | ≤ 500 lines (spec files exempt)                                                                                                                                                                                                                                 | Maintainability                       |
-| Cyclomatic complexity               | ≤ 10                                                                                                                                                                                                                                                            | Testability                           |
-| Nesting depth                       | ≤ 3 levels                                                                                                                                                                                                                                                      | Readability                           |
-| Barrel imports/exports              | Not allowed in any part of the project                                                                                                                                                                                                                          | Maintainability, Performance          |
-| `any` type                          | Forbidden without `// REASON:` comment                                                                                                                                                                                                                          | Type safety                           |
-| `// @ts-ignore`                     | Forbidden without linked issue                                                                                                                                                                                                                                  | Technical debt tracking               |
-| `console.log`                       | Remove before commit                                                                                                                                                                                                                                            | Clean code                            |
-| TypeScript enums                    | Forbidden - use `Object.freeze()` instead                                                                                                                                                                                                                       | Consistency, type safety              |
-| Type-only imports                   | Use `type` keyword for types/interfaces when only used in the context of type annotations                                                                                                                                                                       | Bundle size, clarity                  |
-| Raw time literals                   | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()`                                                                                                                                      | Readability, consistency              |
-| `vi.fn()`/`vi.mock()`               | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                                                                                                                                                      | Framework independence                |
-| `firstValueFrom`/`toPromise`        | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                                                                                                                                                           | Signals-first, no promises            |
-| `TestBed.flushEffects()`            | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                                                                                                                                                      | API deprecation                       |
-| Storybook stories                   | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                                                                                                                                                              | Visual testing, documentation         |
-| External repo issues                | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves                                                                                                                                            | Ownership, etiquette                  |
-| Permission string literals          | Every file using permission identifier strings must have a test validating them against `PERMISSION_DEFINITIONS`                                                                                                                                                | Catches typos, stale refs             |
-| Coding agent recommendation framing | All AI agents must follow [`.claude/references/coding-agent-policies.md`](.claude/references/coding-agent-policies.md). No solo-maintainer shortcut framings, no "skip the test for this small change", no deferring code review past PR open. Review-blocking. | Multi-collaborator showcase precedent |
+| Constraint                              | Limit                                                                                                                                                                                                                                                           | Rationale                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Function length                         | ≤ 50 lines                                                                                                                                                                                                                                                      | Readability, SRP                        |
+| File length                             | ≤ 500 lines (spec files exempt)                                                                                                                                                                                                                                 | Maintainability                         |
+| Cyclomatic complexity                   | ≤ 10                                                                                                                                                                                                                                                            | Testability                             |
+| Nesting depth                           | ≤ 3 levels                                                                                                                                                                                                                                                      | Readability                             |
+| Barrel imports/exports                  | Not allowed in any part of the project                                                                                                                                                                                                                          | Maintainability, Performance            |
+| `any` type                              | Forbidden without `// REASON:` comment                                                                                                                                                                                                                          | Type safety                             |
+| `// @ts-ignore`                         | Forbidden without linked issue                                                                                                                                                                                                                                  | Technical debt tracking                 |
+| `console.log`                           | Remove before commit                                                                                                                                                                                                                                            | Clean code                              |
+| TypeScript enums                        | Forbidden - use `Object.freeze()` instead                                                                                                                                                                                                                       | Consistency, type safety                |
+| Type-only imports                       | Use `type` keyword for types/interfaces when only used in the context of type annotations                                                                                                                                                                       | Bundle size, clarity                    |
+| Raw time literals                       | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()`                                                                                                                                      | Readability, consistency                |
+| `vi.fn()`/`vi.mock()`                   | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                                                                                                                                                      | Framework independence                  |
+| `firstValueFrom`/`toPromise`            | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                                                                                                                                                           | Signals-first, no promises              |
+| `Translation.instant` in `packages/ui/` | Must supply an English fallback as the 2nd arg (`instant(key, fallback)`). Verbatim from `en.ts`. Required for every call site in `packages/ui/src/lib/**/*.ts`; not required in `apps/*` or `packages/angular-core/`                                           | Storybook-renderable library components |
+| `TestBed.flushEffects()`                | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                                                                                                                                                      | API deprecation                         |
+| Storybook stories                       | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                                                                                                                                                              | Visual testing, documentation           |
+| External repo issues                    | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves                                                                                                                                            | Ownership, etiquette                    |
+| Permission string literals              | Every file using permission identifier strings must have a test validating them against `PERMISSION_DEFINITIONS`                                                                                                                                                | Catches typos, stale refs               |
+| Coding agent recommendation framing     | All AI agents must follow [`.claude/references/coding-agent-policies.md`](.claude/references/coding-agent-policies.md). No solo-maintainer shortcut framings, no "skip the test for this small change", no deferring code review past PR open. Review-blocking. | Multi-collaborator showcase precedent   |
 
 ### Object.freeze() Instead of Enums
 
@@ -274,6 +275,44 @@ export const HEALTH_CHECK_TIMEOUT_MS = 5000
 | `DEFAULT_REFRESH_TOKEN_EXPIRY` | `src/api/constants/auth.constants.ts`        | `'7d'`  |
 | `REFRESH_TOKEN_EXPIRY_BUFFER`  | `src/api/constants/auth.constants.ts`        | `'1h'`  |
 | `HEALTH_CHECK_TIMEOUT`         | `src/api/modules/health/health.constants.ts` | `'5s'`  |
+
+### Translation Fallbacks in Reusable UI Components
+
+Components in `packages/ui/src/lib/` are reusable across apps and Storybook stories. Storybook does **not** wire `provideTranslation()` — stories render with the empty default loader, and `Translation.instant(key)` returns the raw key. To keep stories (and any other consumer that doesn't wire translations) rendering meaningful text, every `instant(key)` call inside `packages/ui/src/lib/**/*.ts` MUST pass an English fallback as the second argument.
+
+The fallback is silently overridden whenever a translation is actually loaded — apps wired with `provideTranslation()` still receive localized strings. The fallback only takes effect when `Translation.instant()` cannot resolve the key.
+
+```typescript
+// ✅ Correct — fallback supplied
+protected readonly label = this.translation.instant('PAGINATION.LABEL', 'Pagination')
+
+protected readonly pageOfTemplate = this.translation.instant('PAGINATION.PAGE_OF', 'Page {current} of {total}')
+
+case 'minLength':
+	return this.translation
+		.instant('VALIDATION.MIN_LENGTH', 'Must be at least {min} characters')
+		.replace('{min}', String(error.minLength))
+
+// ❌ Incorrect — Storybook renders the literal string 'PAGINATION.LABEL'
+protected readonly label = this.translation.instant('PAGINATION.LABEL')
+```
+
+**Rules:**
+
+1. **Verbatim from `en.ts`.** Fallback strings must be exact copies of the English entries in `apps/reference-app/src/app/providers/i18n/translations/en.ts`. Any divergence means production users in English see one string while Storybook viewers see another.
+2. **Keep interpolation placeholders intact.** Interpolated keys retain their `{page}`, `{current}`, `{total}`, `{min}`, `{max}` tokens — existing `.replace(...)` calls work identically on the fallback path with no branching.
+3. **Inline, not abstracted.** Do not introduce intermediate `*_KEYS` / `*_DEFAULTS` frozen objects or per-component `resolved()` helpers — they add indirection for no DRY win and have been explicitly removed (see PR #372). The string literal lives once at the call site.
+4. **Fallback-path test per translated string.** Every translated string in a `packages/ui` component must have a dedicated test that replaces the `Translation` provider with `{ instant: (key, fallback) => fallback ?? key }` and asserts the rendered English fallback. See `packages/ui/src/lib/{pagination,data-table,form-field}/*.spec.ts` for the canonical pattern.
+5. **No `Translate.instant` wrappers.** The previous `resolveOrDefault` helper has been deleted. `Translation.instant(key, fallback)` is now the only sanctioned API for resolution-with-fallback.
+
+**Scope — where this rule does NOT apply:**
+
+- `apps/*/src/app/` — apps always wire `provideTranslation()`, so a fallback would be dead code. Existing call sites use the single-arg `instant(key)` form and should stay that way.
+- `packages/angular-core/` — internal helpers (`TranslatePipe`, `NavigationTitleStrategy`) are consumed inside apps and don't need fallbacks. Tests mock `Translation` directly.
+
+**Dev warnings:**
+
+`Translation.instant()` emits a deduplicated `logger.warn('Translation', 'Missing translation for "X" in language "Y"')` for every unresolved key in `isDevMode()`. The warning fires **even when a fallback is supplied** — a missing key is information the developer should always see. Repeated raw-key warnings during dev are a signal that either (a) a `packages/ui` call site is missing a fallback, or (b) a key is genuinely absent from `en.ts`/`es.ts` and needs to be added.
 
 ### Signals-First State Management (No Promises)
 
