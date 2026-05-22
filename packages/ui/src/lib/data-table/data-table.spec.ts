@@ -1072,7 +1072,7 @@ describe('DataTable', () => {
 		it('should render "No data available" empty message when translations are not loaded (EMPTY)', async () => {
 			await render(DataTable<TestData>, {
 				inputs: { columns: testColumns, data: [] },
-				providers: [fallbackProvider],
+				providers: [fallbackProvider, { provide: BreakpointObserver, useValue: createBreakpointObserverMock(false) }],
 			})
 
 			expect(screen.getByText('No data available')).toBeInTheDocument()
@@ -1081,7 +1081,7 @@ describe('DataTable', () => {
 		it('should render "Loading..." message when translations are not loaded (LOADING)', async () => {
 			await render(DataTable<TestData>, {
 				inputs: { columns: testColumns, data: [], loading: true },
-				providers: [fallbackProvider],
+				providers: [fallbackProvider, { provide: BreakpointObserver, useValue: createBreakpointObserverMock(false) }],
 			})
 
 			expect(screen.getByText('Loading...')).toBeInTheDocument()
