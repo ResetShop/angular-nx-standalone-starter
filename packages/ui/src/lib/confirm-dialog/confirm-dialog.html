@@ -4,9 +4,9 @@
 	[attr.aria-describedby]="message() ? messageId : null"
 	role="alertdialog"
 	#dialogRef
-	class="confirm-dialog m-auto rounded-lg bg-white p-0 shadow-xl dark:bg-gray-900"
+	class="confirm-dialog m-auto w-full max-w-[min(calc(100vw-2rem),28rem)] rounded-lg bg-white p-0 shadow-xl dark:bg-gray-900"
 >
-	<div data-testid="confirm-dialog-content" class="w-[calc(100%-2rem)] max-w-md p-4 sm:w-full sm:p-6">
+	<div data-testid="confirm-dialog-content" class="p-4 sm:p-6">
 		@if (title()) {
 		<h2 [id]="titleId" class="text-lg font-semibold text-gray-900 dark:text-white">{{ title() }}</h2>
 		} @if (message()) {
