@@ -875,4 +875,106 @@ describe('FormField', () => {
 			expect(screen.getByRole('alert')).toHaveTextContent('This field is required')
 		})
 	})
+
+	describe('fallback strings (no Translation provider)', () => {
+		// Provide a Translation that mirrors the real service before loadDefaultLanguage() has
+		// been called — instant() returns the raw key, which mapErrorToMessage detects and
+		// replaces with the English defaults via resolveOrDefault.
+		const fallbackProvider = { provide: Translation, useValue: { instant: (key: string) => key } }
+
+		it('should show "This field is required" when translations are not loaded (REQUIRED)', async () => {
+			const { fixture } = await render(TestHostRequiredEmail, {
+				providers: [fallbackProvider, ...provideSignalFormsConfig({})],
+			})
+
+			fixture.componentInstance.emailField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByRole('alert')).toHaveTextContent('This field is required')
+		})
+
+		it('should show "Please enter a valid email address" when translations are not loaded (EMAIL)', async () => {
+			const { fixture } = await render(TestHostRequiredEmail, {
+				providers: [fallbackProvider, ...provideSignalFormsConfig({})],
+			})
+
+			const input = screen.getByLabelText(/email/i)
+			const user = userEvent.setup()
+
+			await user.type(input, 'notanemail')
+			fixture.componentInstance.emailField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Please enter a valid email address')
+		})
+
+		it('should show interpolated "Must be at least 8 characters" when translations are not loaded (MIN_LENGTH)', async () => {
+			const { fixture } = await render(TestHostMinLength, {
+				providers: [fallbackProvider, ...provideSignalFormsConfig({})],
+			})
+
+			const input = screen.getByLabelText(/password/i)
+			const user = userEvent.setup()
+
+			await user.type(input, 'abc')
+			fixture.componentInstance.passwordField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Must be at least 8 characters')
+		})
+
+		it('should show interpolated "Must be no more than 20 characters" when translations are not loaded (MAX_LENGTH)', async () => {
+			const { fixture } = await render(TestHostMaxLength, {
+				providers: [fallbackProvider, ...provideSignalFormsConfig({})],
+			})
+
+			fixture.componentInstance.model.set('This text exceeds the twenty char limit')
+			fixture.componentInstance.bioField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Must be no more than 20 characters')
+		})
+
+		it('should show interpolated "Must be at least 18" when translations are not loaded (MIN)', async () => {
+			const { fixture } = await render(TestHostMinMax, {
+				providers: [fallbackProvider, ...provideSignalFormsConfig({})],
+			})
+
+			fixture.componentInstance.ageField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Must be at least 18')
+		})
+
+		it('should show interpolated "Must be no more than 120" when translations are not loaded (MAX)', async () => {
+			const { fixture } = await render(TestHostMinMax, {
+				providers: [fallbackProvider, ...provideSignalFormsConfig({})],
+			})
+
+			const input = screen.getByLabelText(/age/i)
+			const user = userEvent.setup()
+
+			await user.clear(input)
+			await user.type(input, '200')
+			fixture.componentInstance.ageField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Must be no more than 120')
+		})
+
+		it('should show "Invalid format" when translations are not loaded (PATTERN)', async () => {
+			const { fixture } = await render(TestHostPattern, {
+				providers: [fallbackProvider, ...provideSignalFormsConfig({})],
+			})
+
+			const input = screen.getByLabelText(/code/i)
+			const user = userEvent.setup()
+
+			await user.type(input, 'abc')
+			fixture.componentInstance.codeField().markAsTouched()
+			fixture.detectChanges()
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Invalid format')
+		})
+	})
 })

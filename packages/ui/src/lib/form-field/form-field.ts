@@ -17,7 +17,24 @@ import type { ValidationError } from '@angular/forms/signals'
 import { NgValidationError, REQUIRED, FormField as SignalFormField } from '@angular/forms/signals'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { NgpFormField } from 'ng-primitives/form-field'
+import { resolveOrDefault } from '../i18n/resolve-or-default'
 import { FormFieldCustomControl } from './form-field-custom-control'
+
+/**
+ * English fallbacks used when no Translation provider is wired (e.g. Storybook).
+ * Verbatim copies of the strings in `apps/reference-app/src/app/providers/i18n/translations/en.ts`.
+ * The four numeric/length validators retain `{min}` and `{max}` placeholders so the existing
+ * `.replace(...)` calls in `mapErrorToMessage` work identically on the fallback path.
+ */
+const VALIDATION_DEFAULTS = Object.freeze({
+	REQUIRED: 'This field is required',
+	EMAIL: 'Please enter a valid email address',
+	MIN_LENGTH: 'Must be at least {min} characters',
+	MAX_LENGTH: 'Must be no more than {max} characters',
+	MIN: 'Must be at least {min}',
+	MAX: 'Must be no more than {max}',
+	PATTERN: 'Invalid format',
+} as const)
 
 @Component({
 	selector: 'app-form-field',
@@ -242,21 +259,31 @@ export class FormField {
 
 		switch (error.kind) {
 			case 'required':
-				return this.translation.instant('VALIDATION.REQUIRED')
+				return this.resolved('VALIDATION.REQUIRED', VALIDATION_DEFAULTS.REQUIRED)
 			case 'email':
-				return this.translation.instant('VALIDATION.EMAIL')
+				return this.resolved('VALIDATION.EMAIL', VALIDATION_DEFAULTS.EMAIL)
 			case 'minLength':
-				return this.translation.instant('VALIDATION.MIN_LENGTH').replace('{min}', String(error.minLength))
+				return this.resolved('VALIDATION.MIN_LENGTH', VALIDATION_DEFAULTS.MIN_LENGTH).replace(
+					'{min}',
+					String(error.minLength),
+				)
 			case 'maxLength':
-				return this.translation.instant('VALIDATION.MAX_LENGTH').replace('{max}', String(error.maxLength))
+				return this.resolved('VALIDATION.MAX_LENGTH', VALIDATION_DEFAULTS.MAX_LENGTH).replace(
+					'{max}',
+					String(error.maxLength),
+				)
 			case 'min':
-				return this.translation.instant('VALIDATION.MIN').replace('{min}', String(error.min))
+				return this.resolved('VALIDATION.MIN', VALIDATION_DEFAULTS.MIN).replace('{min}', String(error.min))
 			case 'max':
-				return this.translation.instant('VALIDATION.MAX').replace('{max}', String(error.max))
+				return this.resolved('VALIDATION.MAX', VALIDATION_DEFAULTS.MAX).replace('{max}', String(error.max))
 			case 'pattern':
-				return this.translation.instant('VALIDATION.PATTERN')
+				return this.resolved('VALIDATION.PATTERN', VALIDATION_DEFAULTS.PATTERN)
 			default:
 				return error.message ?? error.kind
 		}
+	}
+
+	private resolved(key: string, fallback: string): string {
+		return resolveOrDefault(this.translation.instant(key), key, fallback)
 	}
 }
