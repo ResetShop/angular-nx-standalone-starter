@@ -446,7 +446,9 @@ describe('Pagination', () => {
 				providers: [fallbackProvider],
 			})
 
-			expect(screen.getByText('Rows per page')).toBeInTheDocument()
+			// getByLabelText verifies both the rendered text AND the `for`/`id` association
+			// between the <label> and its <select>, per the project's query priority rules.
+			expect(screen.getByLabelText('Rows per page')).toBeInTheDocument()
 		})
 
 		it('should render "Go to previous page" aria-label when translations are not loaded (GO_TO_PREVIOUS)', async () => {
