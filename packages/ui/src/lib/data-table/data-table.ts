@@ -67,18 +67,6 @@ const TAB_BLEED_SPACER_CLASSES: Record<DataTableTabBleed, string> = Object.freez
 	'8': 'w-8',
 } as const)
 
-/**
- * English fallbacks used when no Translation provider is wired (e.g. Storybook).
- * Verbatim copies of the strings in `apps/reference-app/src/app/providers/i18n/translations/en.ts`.
- */
-const DATA_TABLE_DEFAULTS = Object.freeze({
-	EMPTY: 'No data available',
-	LOADING: 'Loading...',
-	TOGGLE_TABLE: 'Table view',
-	TOGGLE_CARDS: 'Card view',
-	TOGGLE_GROUP_LABEL: 'Display mode',
-} as const)
-
 @Component({
 	selector: 'app-data-table',
 	standalone: true,
@@ -168,7 +156,7 @@ export class DataTable<T> {
 	 * the component must be re-created to pick up the new locale.
 	 */
 	public readonly emptyMessage = input<string>(
-		resolveOrDefault(this.translation.instant('DATA_TABLE.EMPTY'), 'DATA_TABLE.EMPTY', DATA_TABLE_DEFAULTS.EMPTY),
+		resolveOrDefault(this.translation.instant('DATA_TABLE.EMPTY'), 'DATA_TABLE.EMPTY', 'No data available'),
 	)
 
 	/** Accessible table caption */
@@ -180,32 +168,26 @@ export class DataTable<T> {
 	/** Whether grouped rows start expanded (default: true) */
 	public readonly expandedByDefault = input<boolean>(true)
 
-	/**
-	 * Translated loading message, resolved once at construction.
-	 *
-	 * Uses the `DATA_TABLE.LOADING` translation key. Not reactive to language changes —
-	 * the component must be re-created to pick up a new locale.
-	 */
 	protected readonly loadingMessage = resolveOrDefault(
 		this.translation.instant('DATA_TABLE.LOADING'),
 		'DATA_TABLE.LOADING',
-		DATA_TABLE_DEFAULTS.LOADING,
+		'Loading...',
 	)
 
 	protected readonly toggleTableLabel = resolveOrDefault(
 		this.translation.instant('DATA_TABLE.TOGGLE.TABLE'),
 		'DATA_TABLE.TOGGLE.TABLE',
-		DATA_TABLE_DEFAULTS.TOGGLE_TABLE,
+		'Table view',
 	)
 	protected readonly toggleCardsLabel = resolveOrDefault(
 		this.translation.instant('DATA_TABLE.TOGGLE.CARDS'),
 		'DATA_TABLE.TOGGLE.CARDS',
-		DATA_TABLE_DEFAULTS.TOGGLE_CARDS,
+		'Card view',
 	)
 	protected readonly toggleGroupLabel = resolveOrDefault(
 		this.translation.instant('DATA_TABLE.TOGGLE.GROUP_LABEL'),
 		'DATA_TABLE.TOGGLE.GROUP_LABEL',
-		DATA_TABLE_DEFAULTS.TOGGLE_GROUP_LABEL,
+		'Display mode',
 	)
 
 	/** Emits when sort changes */
