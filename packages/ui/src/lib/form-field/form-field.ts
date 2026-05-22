@@ -16,6 +16,7 @@ import {
 import type { ValidationError } from '@angular/forms/signals'
 import { NgValidationError, REQUIRED, FormField as SignalFormField } from '@angular/forms/signals'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
+import type { TranslationKey } from '@resetshop/angular-core/i18n/translations.schema'
 import { NgpFormField } from 'ng-primitives/form-field'
 import { resolveOrDefault } from '../i18n/resolve-or-default'
 import { FormFieldCustomControl } from './form-field-custom-control'
@@ -283,7 +284,7 @@ export class FormField {
 		}
 	}
 
-	private resolved(key: string, fallback: string): string {
+	private resolved(key: TranslationKey, fallback: string): string {
 		return resolveOrDefault(this.translation.instant(key), key, fallback)
 	}
 }
