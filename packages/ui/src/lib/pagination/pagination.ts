@@ -11,15 +11,6 @@ interface PageItem {
 	value: number
 }
 
-const PAGINATION_KEYS = Object.freeze({
-	LABEL: 'PAGINATION.LABEL',
-	ROWS_PER_PAGE: 'PAGINATION.ROWS_PER_PAGE',
-	GO_TO_PREVIOUS: 'PAGINATION.GO_TO_PREVIOUS',
-	GO_TO_NEXT: 'PAGINATION.GO_TO_NEXT',
-	GO_TO_PAGE: 'PAGINATION.GO_TO_PAGE',
-	PAGE_OF: 'PAGINATION.PAGE_OF',
-} as const)
-
 @Component({
 	selector: 'app-pagination',
 	standalone: true,
@@ -129,41 +120,12 @@ export class Pagination {
 	/** Emits new page size when user changes the rows per page */
 	public readonly pageSizeChange = output<number>()
 
-	/**
-	 * Translated nav aria-label, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL)
-
-	/**
-	 * Translated "Rows per page" label, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE)
-
-	/**
-	 * Translated aria-label for the previous button, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS)
-
-	/**
-	 * Translated aria-label for the next button, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT)
-
-	/**
-	 * Translated template for page button aria-label, resolved once at construction.
-	 * Contains `{page}` placeholder interpolated by `getPageLabel`.
-	 */
-	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE)
-
-	/**
-	 * Translated template for the sr-only current-page indicator, resolved once at construction.
-	 * Contains `{current}` and `{total}` placeholders interpolated reactively by `pageOfLabel`.
-	 */
-	private readonly pageOfTemplate = this.translation.instant(PAGINATION_KEYS.PAGE_OF)
+	protected readonly paginationLabel = this.translation.instant('PAGINATION.LABEL', 'Pagination')
+	protected readonly rowsPerPageLabel = this.translation.instant('PAGINATION.ROWS_PER_PAGE', 'Rows per page')
+	protected readonly goToPreviousLabel = this.translation.instant('PAGINATION.GO_TO_PREVIOUS', 'Go to previous page')
+	protected readonly goToNextLabel = this.translation.instant('PAGINATION.GO_TO_NEXT', 'Go to next page')
+	private readonly goToPageTemplate = this.translation.instant('PAGINATION.GO_TO_PAGE', 'Go to page {page}')
+	private readonly pageOfTemplate = this.translation.instant('PAGINATION.PAGE_OF', 'Page {current} of {total}')
 
 	/** Current-page label (e.g. "Page 5 of 10"). Read by the `sr-only` `aria-live` span — never visually shown. */
 	protected readonly pageOfLabel = computed(() =>

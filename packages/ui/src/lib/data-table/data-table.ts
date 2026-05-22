@@ -154,7 +154,7 @@ export class DataTable<T> {
 	 * The translation is not reactive — if the application language changes at runtime,
 	 * the component must be re-created to pick up the new locale.
 	 */
-	public readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY'))
+	public readonly emptyMessage = input<string>(this.translation.instant('DATA_TABLE.EMPTY', 'No data available'))
 
 	/** Accessible table caption */
 	public readonly caption = input<string>('')
@@ -165,17 +165,10 @@ export class DataTable<T> {
 	/** Whether grouped rows start expanded (default: true) */
 	public readonly expandedByDefault = input<boolean>(true)
 
-	/**
-	 * Translated loading message, resolved once at construction.
-	 *
-	 * Uses the `DATA_TABLE.LOADING` translation key. Not reactive to language changes —
-	 * the component must be re-created to pick up a new locale.
-	 */
-	protected readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING')
-
-	protected readonly toggleTableLabel = this.translation.instant('DATA_TABLE.TOGGLE.TABLE')
-	protected readonly toggleCardsLabel = this.translation.instant('DATA_TABLE.TOGGLE.CARDS')
-	protected readonly toggleGroupLabel = this.translation.instant('DATA_TABLE.TOGGLE.GROUP_LABEL')
+	protected readonly loadingMessage = this.translation.instant('DATA_TABLE.LOADING', 'Loading...')
+	protected readonly toggleTableLabel = this.translation.instant('DATA_TABLE.TOGGLE.TABLE', 'Table view')
+	protected readonly toggleCardsLabel = this.translation.instant('DATA_TABLE.TOGGLE.CARDS', 'Card view')
+	protected readonly toggleGroupLabel = this.translation.instant('DATA_TABLE.TOGGLE.GROUP_LABEL', 'Display mode')
 
 	/** Emits when sort changes */
 	public readonly sortChange = output<DataTableSortEvent>()

@@ -14,7 +14,7 @@ const TRANSLATIONS: Record<string, string> = {
 }
 
 const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
+	instant: (key: string, fallback?: string) => TRANSLATIONS[key] ?? fallback ?? key,
 }
 
 describe('Pagination', () => {
@@ -422,6 +422,71 @@ describe('Pagination', () => {
 			const select = screen.getByLabelText(/rows per page/i)
 			expect(select).toHaveClass('text-base')
 			expect(select).toHaveClass('sm:text-sm')
+		})
+	})
+
+	describe('fallback strings (no Translation provider)', () => {
+		// Provide a Translation stub that mirrors the real service's "no translations loaded"
+		// path: when a fallback is supplied, return it; otherwise return the raw key.
+		const fallbackProvider = {
+			provide: Translation,
+			useValue: { instant: (key: string, fallback?: string) => fallback ?? key },
+		}
+
+		it('should render "Pagination" nav aria-label when translations are not loaded (LABEL)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
+		})
+
+		it('should render "Rows per page" label when translations are not loaded (ROWS_PER_PAGE)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			// getByLabelText verifies both the rendered text AND the `for`/`id` association
+			// between the <label> and its <select>, per the project's query priority rules.
+			expect(screen.getByLabelText('Rows per page')).toBeInTheDocument()
+		})
+
+		it('should render "Go to previous page" aria-label when translations are not loaded (GO_TO_PREVIOUS)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to previous page' })).toBeInTheDocument()
+		})
+
+		it('should render "Go to next page" aria-label when translations are not loaded (GO_TO_NEXT)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to next page' })).toBeInTheDocument()
+		})
+
+		it('should render interpolated "Go to page N" aria-label when translations are not loaded (GO_TO_PAGE)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+		})
+
+		it('should render interpolated "Page N of M" sr-only label when translations are not loaded (PAGE_OF)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByText('Page 3 of 10')).toBeInTheDocument()
 		})
 	})
 })

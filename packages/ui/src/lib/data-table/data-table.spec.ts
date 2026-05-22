@@ -41,7 +41,7 @@ const TRANSLATIONS: Record<string, string> = {
 }
 
 const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
+	instant: (key: string, fallback?: string) => TRANSLATIONS[key] ?? fallback ?? key,
 }
 
 function createBreakpointObserverMock(matches: boolean): { observe: MockFn } {
@@ -1060,6 +1060,81 @@ describe('DataTable', () => {
 			// Explicit user toggle wins over breakpoint.
 			expect(screen.getByRole('table')).toBeInTheDocument()
 			expect(screen.queryByRole('list')).not.toBeInTheDocument()
+		})
+	})
+
+	describe('fallback strings (no Translation provider)', () => {
+		// Provide a Translation stub that mirrors the real service's "no translations loaded"
+		// path: when a fallback is supplied, return it; otherwise return the raw key.
+		const fallbackProvider = {
+			provide: Translation,
+			useValue: { instant: (key: string, fallback?: string) => fallback ?? key },
+		}
+
+		it('should render "No data available" empty message when translations are not loaded (EMPTY)', async () => {
+			await render(DataTable<TestData>, {
+				inputs: { columns: testColumns, data: [] },
+				providers: [fallbackProvider, { provide: BreakpointObserver, useValue: createBreakpointObserverMock(false) }],
+			})
+
+			expect(screen.getByText('No data available')).toBeInTheDocument()
+		})
+
+		it('should render "Loading..." message when translations are not loaded (LOADING)', async () => {
+			await render(DataTable<TestData>, {
+				inputs: { columns: testColumns, data: [], loading: true },
+				providers: [fallbackProvider, { provide: BreakpointObserver, useValue: createBreakpointObserverMock(false) }],
+			})
+
+			expect(screen.getByText('Loading...')).toBeInTheDocument()
+		})
+
+		// The display-mode toggle renders only when `displayModes` has both 'table' and 'cards'
+		// AND a card template is projected — mirrors the inline-template pattern used by the
+		// existing toggle-visibility tests above.
+		it('should render "Table view" toggle aria-label when translations are not loaded (TOGGLE.TABLE)', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [fallbackProvider],
+				},
+			)
+
+			expect(screen.getByRole('button', { name: 'Table view' })).toBeInTheDocument()
+		})
+
+		it('should render "Card view" toggle aria-label when translations are not loaded (TOGGLE.CARDS)', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [fallbackProvider],
+				},
+			)
+
+			expect(screen.getByRole('button', { name: 'Card view' })).toBeInTheDocument()
+		})
+
+		it('should render "Display mode" toggle group aria-label when translations are not loaded (TOGGLE.GROUP_LABEL)', async () => {
+			await render(
+				`<app-data-table [columns]="columns" [data]="data" [displayModes]="modes">
+					<ng-template appDataTableCardDef let-row>Card: {{ row.name }}</ng-template>
+				</app-data-table>`,
+				{
+					imports: [DataTable, DataTableCardDef],
+					componentProperties: { columns: testColumns, data: testData, modes: ['table', 'cards'] },
+					providers: [fallbackProvider],
+				},
+			)
+
+			expect(screen.getByRole('group', { name: 'Display mode' })).toBeInTheDocument()
 		})
 	})
 })

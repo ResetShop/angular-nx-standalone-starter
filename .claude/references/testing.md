@@ -564,6 +564,47 @@ class StoryWrapper {
 
 ---
 
+## Translation Fallback Testing in `packages/ui` Components
+
+Components in `packages/ui/src/lib/` that inject `Translation` MUST pass an English fallback as the second argument to every `instant(key, fallback)` call (see CLAUDE.md → "Translation Fallbacks in Reusable UI Components"). Tests for these components must include a dedicated fallback-path test for every translated string the component renders. The fallback path is what Storybook actually exercises — leaving it untested means Storybook regressions slip through.
+
+### Pattern
+
+```typescript
+describe('fallback strings (no Translation provider)', () => {
+	// Mirrors the real Translation.instant() contract: when a fallback is supplied,
+	// return it; otherwise return the raw key. Components rendered with this stub
+	// behave exactly as they would inside an unwired Storybook story.
+	const fallbackProvider = {
+		provide: Translation,
+		useValue: { instant: (key: string, fallback?: string) => fallback ?? key },
+	}
+
+	it('should render "Pagination" nav aria-label when translations are not loaded (LABEL)', async () => {
+		await render(Pagination, {
+			inputs: { currentPage: 1, totalPages: 5 },
+			providers: [fallbackProvider],
+		})
+
+		expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
+	})
+})
+```
+
+### Rules
+
+1. **One fallback-path test per translated string.** If a component uses six translation keys, add six fallback tests. The assertion verifies the exact English text from `en.ts`.
+2. **Use the documented stub shape exactly.** Do not assert against a `*_DEFAULTS` constant or a shared `fallbackStrings` helper — assert against the literal expected string. A test that imports the constant from the production file silently passes when the constant gets mangled.
+3. **Apply normal query priority.** The fallback-path test must use the same query priority (`getByRole`, `getByLabelText`, …) as the loaded-translation path. The fallback test is not a loophole for `getByTestId`.
+4. **Include any non-translation DI the component needs.** E.g. `DataTable` requires `BreakpointObserver` even in fallback tests because its CDK observers run unconditionally — see `data-table.spec.ts`.
+5. **Reference implementations.** See `packages/ui/src/lib/pagination/pagination.spec.ts`, `data-table/data-table.spec.ts`, and `form-field/form-field.spec.ts` — these collectively cover all 18 translation keys touched by `packages/ui`.
+
+### Scope
+
+This requirement applies to **`packages/ui/src/lib/**/_.spec.ts`** only. Component specs in `apps/_/src/app/`do not need fallback-path tests because apps always wire`provideTranslation()` — the fallback path is unreachable in production.
+
+---
+
 ## Permission String Literal Testing
 
 Every file that uses permission identifier string literals (e.g., `'admin:users:read'`) **must** have a corresponding test that validates each literal against `PERMISSION_DEFINITIONS`. This catches typos and stale references when permissions are renamed or removed.
