@@ -3,6 +3,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '../button/button'
+import { resolveOrDefault } from '../i18n/resolve-or-default'
 import { PaginationTracker } from './pagination-tracker'
 
 /** Represents a page item in the pagination: a page number or an ellipsis */
@@ -18,6 +19,21 @@ const PAGINATION_KEYS = Object.freeze({
 	GO_TO_NEXT: 'PAGINATION.GO_TO_NEXT',
 	GO_TO_PAGE: 'PAGINATION.GO_TO_PAGE',
 	PAGE_OF: 'PAGINATION.PAGE_OF',
+} as const)
+
+/**
+ * English fallbacks used when no Translation provider is wired (e.g. Storybook).
+ * Verbatim copies of the strings in `apps/reference-app/src/app/providers/i18n/translations/en.ts`.
+ * `GO_TO_PAGE` and `PAGE_OF` retain the `{page}`, `{current}`, `{total}` placeholders so the
+ * existing `.replace(...)` calls work identically on the fallback path.
+ */
+const PAGINATION_DEFAULTS = Object.freeze({
+	LABEL: 'Pagination',
+	ROWS_PER_PAGE: 'Rows per page',
+	GO_TO_PREVIOUS: 'Go to previous page',
+	GO_TO_NEXT: 'Go to next page',
+	GO_TO_PAGE: 'Go to page {page}',
+	PAGE_OF: 'Page {current} of {total}',
 } as const)
 
 @Component({
@@ -133,37 +149,61 @@ export class Pagination {
 	 * Translated nav aria-label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	protected readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL)
+	protected readonly paginationLabel = resolveOrDefault(
+		this.translation.instant(PAGINATION_KEYS.LABEL),
+		PAGINATION_KEYS.LABEL,
+		PAGINATION_DEFAULTS.LABEL,
+	)
 
 	/**
 	 * Translated "Rows per page" label, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	protected readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE)
+	protected readonly rowsPerPageLabel = resolveOrDefault(
+		this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE),
+		PAGINATION_KEYS.ROWS_PER_PAGE,
+		PAGINATION_DEFAULTS.ROWS_PER_PAGE,
+	)
 
 	/**
 	 * Translated aria-label for the previous button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	protected readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS)
+	protected readonly goToPreviousLabel = resolveOrDefault(
+		this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS),
+		PAGINATION_KEYS.GO_TO_PREVIOUS,
+		PAGINATION_DEFAULTS.GO_TO_PREVIOUS,
+	)
 
 	/**
 	 * Translated aria-label for the next button, resolved once at construction.
 	 * Not reactive to language changes — re-create the component to pick up a new locale.
 	 */
-	protected readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT)
+	protected readonly goToNextLabel = resolveOrDefault(
+		this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT),
+		PAGINATION_KEYS.GO_TO_NEXT,
+		PAGINATION_DEFAULTS.GO_TO_NEXT,
+	)
 
 	/**
 	 * Translated template for page button aria-label, resolved once at construction.
 	 * Contains `{page}` placeholder interpolated by `getPageLabel`.
 	 */
-	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE)
+	private readonly goToPageTemplate = resolveOrDefault(
+		this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE),
+		PAGINATION_KEYS.GO_TO_PAGE,
+		PAGINATION_DEFAULTS.GO_TO_PAGE,
+	)
 
 	/**
 	 * Translated template for the sr-only current-page indicator, resolved once at construction.
 	 * Contains `{current}` and `{total}` placeholders interpolated reactively by `pageOfLabel`.
 	 */
-	private readonly pageOfTemplate = this.translation.instant(PAGINATION_KEYS.PAGE_OF)
+	private readonly pageOfTemplate = resolveOrDefault(
+		this.translation.instant(PAGINATION_KEYS.PAGE_OF),
+		PAGINATION_KEYS.PAGE_OF,
+		PAGINATION_DEFAULTS.PAGE_OF,
+	)
 
 	/** Current-page label (e.g. "Page 5 of 10"). Read by the `sr-only` `aria-live` span — never visually shown. */
 	protected readonly pageOfLabel = computed(() =>

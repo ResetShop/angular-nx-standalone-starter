@@ -424,4 +424,65 @@ describe('Pagination', () => {
 			expect(select).toHaveClass('sm:text-sm')
 		})
 	})
+
+	describe('fallback strings (no Translation provider)', () => {
+		// Provide a Translation that mirrors the real service before loadDefaultLanguage() has
+		// been called — instant() returns the raw key, which the components detect and replace
+		// with their English defaults via resolveOrDefault.
+		const fallbackProvider = { provide: Translation, useValue: { instant: (key: string) => key } }
+
+		it('should render "Pagination" nav aria-label when translations are not loaded (LABEL)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
+		})
+
+		it('should render "Rows per page" label when translations are not loaded (ROWS_PER_PAGE)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByText('Rows per page')).toBeInTheDocument()
+		})
+
+		it('should render "Go to previous page" aria-label when translations are not loaded (GO_TO_PREVIOUS)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to previous page' })).toBeInTheDocument()
+		})
+
+		it('should render "Go to next page" aria-label when translations are not loaded (GO_TO_NEXT)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to next page' })).toBeInTheDocument()
+		})
+
+		it('should render interpolated "Go to page N" aria-label when translations are not loaded (GO_TO_PAGE)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+		})
+
+		it('should render interpolated "Page N of M" sr-only label when translations are not loaded (PAGE_OF)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByText('Page 3 of 10')).toBeInTheDocument()
+		})
+	})
 })
