@@ -371,7 +371,7 @@ describe('Breadcrumb', () => {
 				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 			})
 
-			const activeSpan = screen.getByText('Current Page')
+			const activeSpan = screen.getByText('Current Page', { selector: 'span[aria-current="page"]' })
 			expect(activeSpan).toHaveClass('truncate', 'max-w-[14rem]', 'sm:max-w-none')
 		})
 
@@ -385,7 +385,7 @@ describe('Breadcrumb', () => {
 				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
 			})
 
-			const activeSpan = screen.getByText('Current Page')
+			const activeSpan = screen.getByText('Current Page', { selector: 'span[aria-current="page"]' })
 			expect(activeSpan).toHaveAttribute('title', 'Current Page')
 		})
 	})
