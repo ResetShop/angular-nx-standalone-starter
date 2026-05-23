@@ -305,9 +305,10 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			await user.click(screen.getByRole('button', { name: /go to page 3/i }))
+			// At currentPage=1, totalPages=5: sequence is [1, 2, …, 5] — page 2 is a visible non-current page
+			await user.click(screen.getByRole('button', { name: /go to page 2/i }))
 
-			expect(pageChangeSpy.calls).toContainEqual([3])
+			expect(pageChangeSpy.calls).toContainEqual([2])
 		})
 
 		it('should not emit pageChange when clicking current page', async () => {
