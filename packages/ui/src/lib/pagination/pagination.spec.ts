@@ -120,6 +120,107 @@ describe('Pagination', () => {
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 		})
 
+		describe('ellipsis boundary cases (I.2 threshold fix)', () => {
+			it('should show no leading ellipsis at currentPage=3 (1 2 3 4 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 3, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
+
+			it('should show no leading ellipsis at currentPage=4 (1 2 3 4 5 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 4, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
+
+			it('should show ellipsis on both sides at currentPage=5 (1 … 4 5 6 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 5, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 2' })).not.toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 3' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 7' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getAllByText('…')).toHaveLength(2)
+			})
+
+			it('should show ellipsis on both sides at currentPage=6 (1 … 5 6 7 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 6, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 4' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 8' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getAllByText('…')).toHaveLength(2)
+			})
+
+			it('should show no trailing ellipsis at currentPage=7 (1 … 6 7 8 9 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 7, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
+
+			it('should show no trailing ellipsis at currentPage=8 (1 … 7 8 9 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 8, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
+		})
+
 		it('should mark current page with aria-current', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 3, totalPages: 5 },
