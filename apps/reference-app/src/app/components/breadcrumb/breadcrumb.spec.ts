@@ -262,4 +262,129 @@ describe('Breadcrumb', () => {
 			expect(items[8]).not.toHaveClass('hidden')
 		})
 	})
+
+	describe('mobile segment truncation', () => {
+		// jsdom cannot evaluate media queries. These tests assert the class-presence regression guard
+		// for the per-segment truncation rules that keep the breadcrumb within the 64px header on
+		// mobile. Visual behaviour is covered by the `MobileLongSegments` Storybook story at 375 px.
+
+		it('should apply min-w-0 to the nav element so it can shrink inside the header flex row', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const nav = screen.getByRole('navigation', { name: /breadcrumb/i })
+			expect(nav).toHaveClass('min-w-0')
+		})
+
+		it('should apply min-w-0 to the ol and remove flex-wrap so segments stay on one line', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const list = screen.getByRole('list')
+			expect(list).toHaveClass('min-w-0')
+			expect(list).not.toHaveClass('flex-wrap')
+		})
+
+		it('should apply min-w-0 to every li on a 2-item chain', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const items = screen.getAllByRole('listitem')
+			for (const item of items) {
+				expect(item).toHaveClass('min-w-0')
+			}
+		})
+
+		it('should apply min-w-0 to every li on a 4-item chain (ellipsis path)', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Admin', path: '/admin', isActive: false },
+				{ title: 'Users', path: '/admin/users', isActive: false },
+				{ title: 'User Details', path: '/admin/users/123', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const items = screen.getAllByRole('listitem')
+			for (const item of items) {
+				expect(item).toHaveClass('min-w-0')
+			}
+		})
+
+		it('should apply truncate and max-w-[8rem] sm:max-w-none to inactive links', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const homeLink = screen.getByRole('link', { name: /home/i })
+			expect(homeLink).toHaveClass('truncate', 'max-w-[8rem]', 'sm:max-w-none')
+		})
+
+		it('should expose the full label of inactive links via the title attribute', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Settings', path: '/settings', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const homeLink = screen.getByRole('link', { name: /home/i })
+			expect(homeLink).toHaveAttribute('title', 'Home')
+		})
+
+		it('should apply truncate and max-w-[14rem] sm:max-w-none to the active span', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Current Page', path: '/current', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const activeSpan = screen.getByText('Current Page')
+			expect(activeSpan).toHaveClass('truncate', 'max-w-[14rem]', 'sm:max-w-none')
+		})
+
+		it('should expose the full label of the active span via the title attribute', async () => {
+			const breadcrumbs: BreadcrumbItem[] = [
+				{ title: 'Home', path: '/', isActive: false },
+				{ title: 'Current Page', path: '/current', isActive: true },
+			]
+
+			await render(Breadcrumb, {
+				providers: [...defaultProviders(), createNavigationWithBreadcrumbs(breadcrumbs)],
+			})
+
+			const activeSpan = screen.getByText('Current Page')
+			expect(activeSpan).toHaveAttribute('title', 'Current Page')
+		})
+	})
 })
