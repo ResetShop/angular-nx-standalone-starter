@@ -116,6 +116,11 @@ The component intelligently displays page numbers:
 			description: 'Initial page size',
 			table: { defaultValue: { summary: '25' } },
 		},
+		pageSizeOptions: {
+			control: 'object',
+			description: 'Available page-size choices shown in the rows-per-page select',
+			table: { defaultValue: { summary: '[25, 50, 100]' } },
+		},
 	},
 }
 

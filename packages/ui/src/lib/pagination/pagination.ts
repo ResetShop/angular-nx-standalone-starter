@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, type Signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons'
 import { createBreakpointSignal } from '@resetshop/angular-core/breakpoint/breakpoint'
@@ -140,7 +140,7 @@ export class Pagination {
 	protected readonly isLastPage = computed(() => this.currentPage() >= this.totalPages())
 
 	/** True when the viewport is below the sm breakpoint (< 640 px). Drives the mobile item cap. */
-	private readonly isMobile: Signal<boolean> = createBreakpointSignal('sm')
+	private readonly isMobile = createBreakpointSignal('sm')
 
 	/**
 	 * Page items (numbers and ellipses) derived from current page and total pages.
