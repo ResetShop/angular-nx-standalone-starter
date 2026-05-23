@@ -85,10 +85,9 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// Should show: 1, 2, 3, ..., 10
+			// Should show: 1, 2, …, 10
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
 			expect(screen.getByText('…')).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 		})
@@ -114,10 +113,9 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// Should show: 1, ..., 8, 9, 10
+			// Should show: 1, …, 9, 10
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByText('…')).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 		})
@@ -311,8 +309,8 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// With 5 pages and current at 3, should show: 1, ..., 2, 3, 4, ..., 5
-			// But since 5 > 4, it will use the ellipsis logic
+			// With 5 pages and current at 3, shows all pages 1–5 (no ellipsis — thresholds not reached)
+			// current > 4 → false (no leading ellipsis); current < total - 3 = 2 → false (no trailing ellipsis)
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
 		})

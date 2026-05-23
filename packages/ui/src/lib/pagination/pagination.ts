@@ -160,27 +160,27 @@ export class Pagination {
 
 		const items: PageItem[] = []
 		items.push({ type: 'page', value: 1 })
-		if (current > 3) items.push({ type: 'ellipsis', value: -1 })
+		if (current > 4) items.push({ type: 'ellipsis', value: -1 })
 
 		const [start, end] = this.middlePageRange(current, total)
 		for (let i = start; i <= end; i++) {
 			if (i > 1 && i < total) items.push({ type: 'page', value: i })
 		}
 
-		if (current < total - 2) items.push({ type: 'ellipsis', value: -2 })
+		if (current < total - 3) items.push({ type: 'ellipsis', value: -2 })
 		items.push({ type: 'page', value: total })
 		return items
 	})
 
 	/**
 	 * Returns the start and end indices of the middle-page window to show,
-	 * excluding the always-visible first and last pages. The window is a
-	 * 2-page span when the current page is near either edge, and a 3-page
-	 * span centred on `current` when the current page is in the middle.
+	 * excluding the always-visible first and last pages. The window grows
+	 * to absorb the page that the ellipsis no longer occupies when the
+	 * current page is near either edge (≤ 4 from the left, ≤ 3 from the right).
 	 */
 	private middlePageRange(current: number, total: number): [number, number] {
-		if (current <= 3) return [2, 3]
-		if (current >= total - 2) return [total - 2, total - 1]
+		if (current <= 4) return [2, current + 1]
+		if (current >= total - 3) return [current - 1, total - 1]
 		return [current - 1, current + 1]
 	}
 
