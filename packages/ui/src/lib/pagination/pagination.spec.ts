@@ -1,7 +1,9 @@
+import { BreakpointObserver } from '@angular/cdk/layout'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
+import { of } from 'rxjs'
 import { Pagination } from './pagination'
 
 const TRANSLATIONS: Record<string, string> = {
@@ -444,8 +446,8 @@ describe('Pagination', () => {
 			expect(label).toHaveClass('sm:not-sr-only')
 		})
 
-		it('should hide page-number buttons below sm: so the row fits on mobile', async () => {
-			// jsdom cannot evaluate media queries; this asserts class presence as a regression guard.
+		it('should not carry hidden/sm:inline-flex classes on page-number buttons (data-level trim replaces CSS hide)', async () => {
+			// jsdom cannot evaluate media queries; class-presence assertions act as regression guards.
 			// Visual breakpoint behaviour is covered by the 'Mobile' Storybook story.
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 5 },
@@ -453,8 +455,18 @@ describe('Pagination', () => {
 			})
 
 			const pageBtn = screen.getByRole('button', { name: /go to page 1/i })
-			expect(pageBtn).toHaveClass('hidden')
-			expect(pageBtn).toHaveClass('sm:inline-flex')
+			expect(pageBtn).not.toHaveClass('hidden')
+			expect(pageBtn).not.toHaveClass('sm:inline-flex')
+		})
+
+		it('should render page-number buttons with inline-flex class', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const pageBtn = screen.getByRole('button', { name: /go to page 1/i })
+			expect(pageBtn).toHaveClass('inline-flex')
 		})
 
 		it('should keep the current-page label sr-only at all viewports', async () => {
@@ -521,6 +533,44 @@ describe('Pagination', () => {
 			const select = screen.getByLabelText(/rows per page/i)
 			expect(select).toHaveClass('text-base')
 			expect(select).toHaveClass('sm:text-sm')
+		})
+	})
+
+	describe('mobile page item cap (I.1)', () => {
+		const mobileObserver = { observe: () => of({ matches: true, breakpoints: {} }) }
+		const desktopObserver = { observe: () => of({ matches: false, breakpoints: {} }) }
+
+		it('should trim pageItems to at most 4 items on mobile viewports', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 5, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: mobileObserver },
+				],
+			})
+
+			// Full sequence at currentPage=5: [page1, …, page4, page5, page6, …, page10] (7 items)
+			// Sliced to 4: [page1, ellipsis, page4, page5]
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 10' })).not.toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(1)
+		})
+
+		it('should show all pageItems on desktop viewports (above sm breakpoint)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 5, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: desktopObserver },
+				],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(2)
 		})
 	})
 
