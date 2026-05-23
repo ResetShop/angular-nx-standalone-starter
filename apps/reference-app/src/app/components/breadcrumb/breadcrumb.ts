@@ -36,7 +36,6 @@ type BreadcrumbEntry =
 										<a
 											[routerLink]="entry.item.path"
 											class="text-muted-foreground hover:text-foreground max-w-[8rem] truncate text-sm font-medium sm:max-w-none"
-											[attr.title]="entry.item.title | translate"
 										>
 											{{ entry.item.title | translate }}
 										</a>

@@ -345,7 +345,9 @@ describe('Breadcrumb', () => {
 			expect(homeLink).toHaveClass('truncate', 'max-w-[8rem]', 'sm:max-w-none')
 		})
 
-		it('should expose the full label of inactive links via the title attribute', async () => {
+		it('should not duplicate the inactive link label via a title attribute', async () => {
+			// The full label remains the link's accessible name via its text content; adding `title`
+			// would cause some screen reader + browser combinations to announce the label twice.
 			const breadcrumbs: BreadcrumbItem[] = [
 				{ title: 'Home', path: '/', isActive: false },
 				{ title: 'Settings', path: '/settings', isActive: true },
@@ -356,7 +358,7 @@ describe('Breadcrumb', () => {
 			})
 
 			const homeLink = screen.getByRole('link', { name: /home/i })
-			expect(homeLink).toHaveAttribute('title', 'Home')
+			expect(homeLink).not.toHaveAttribute('title')
 		})
 
 		it('should apply truncate and max-w-[14rem] sm:max-w-none to the active span', async () => {
