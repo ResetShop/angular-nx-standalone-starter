@@ -326,6 +326,36 @@ export const MobileEllipsis: Story = {
 }
 
 /**
+ * Mobile-viewport demonstration of per-segment width truncation. The first and last segments are
+ * intentionally long: the first inactive link is capped at `max-w-[8rem]` and the active span at
+ * `max-w-[14rem]`, both with `truncate` to produce an ellipsis. Hover (or use assistive tech) to
+ * see the full label via the `title` attribute. Resize to a wider viewport to confirm the caps
+ * are lifted by `sm:max-w-none`.
+ */
+export const MobileLongSegments: Story = {
+	decorators: [
+		applicationConfig({
+			providers: [
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Administration & Configuration', path: '/admin', isActive: false },
+					{ title: 'Users', path: '/admin/users', isActive: false },
+					{ title: 'Manage', path: '/admin/users/manage', isActive: false },
+					{ title: 'Edit User: A Very Long Name Here', path: '/admin/users/manage/edit', isActive: true },
+				]),
+			],
+		}),
+	],
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+	render: () => ({
+		template: '<app-breadcrumb />',
+	}),
+}
+
+/**
  * Example showing all breadcrumb variations in one view.
  * Useful for design documentation and testing.
  */
