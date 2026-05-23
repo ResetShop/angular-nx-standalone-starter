@@ -11,6 +11,46 @@ import { UIStore } from '@store/ui/ui.store'
 import type { NotificationType, UINotification } from '@store/ui/ui.types'
 import { injectToastContext, NgpToast, NgpToastManager } from 'ng-primitives/toast'
 
+/**
+ * Toast notification rendered programmatically by ng-primitives' `NgpToastManager.show()`.
+ *
+ * ## Why this component has no unit test
+ *
+ * `ToastNotification` reads its payload (id/type/message) via `injectToastContext()`,
+ * which depends on the `NgpToastContext` injection token. That token is not exported
+ * from ng-primitives' public API — it is only provided when the component is rendered
+ * via `NgpToastManager.show()`. As a result, `TestBed` cannot wire the context without
+ * reaching into ng-primitives' compiled internals.
+ *
+ * The available workaround is an in-spec harness component that injects the real
+ * `NgpToastManager` and calls `show(ToastNotification, { context })`, then queries the
+ * portal-rendered host from `document.body`. That harness was evaluated and rejected
+ * for this component:
+ *
+ * - The responsive-width binding (`w-[min(350px,calc(100vw-2rem))]`) is a literal
+ *   string in the `hostClasses()` computed signal. A class-presence assertion would
+ *   re-state a constant, not validate dynamic logic.
+ * - The actual responsive behaviour (the CSS `min()` function) cannot be evaluated
+ *   in jsdom — only a real browser can. Class-presence alone does not catch a
+ *   broken visual outcome.
+ * - The harness adds portal queries, `document.body` lookups, flush timing, and
+ *   manual node cleanup — infrastructure cost out of proportion to the regression
+ *   signal it would provide.
+ *
+ * ## Where this component IS covered
+ *
+ * The `MobileViewport` story in `toast-notification.stories.ts` renders the toast at
+ * a 375 px viewport and visually verifies that the width is capped at
+ * `min(350px, 100vw - 2rem)`, leaving a 1 rem margin on each side. Storybook is the
+ * canonical regression guard for this CSS-only concern.
+ *
+ * ## When to revisit
+ *
+ * - If ng-primitives exports `provideToastContext` (or an equivalent public test
+ *   helper), wire it directly in a `TestBed` and add per-`NotificationType` specs.
+ * - If `hostClasses()` evolves to combine the width class with non-trivial dynamic
+ *   logic, the harness pattern becomes worth its cost and should be adopted then.
+ */
 @Component({
 	selector: 'app-toast-notification',
 	hostDirectives: [NgpToast],

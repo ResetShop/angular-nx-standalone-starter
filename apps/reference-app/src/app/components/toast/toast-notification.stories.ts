@@ -116,14 +116,12 @@ export const AllVariants: Story = {
 }
 
 /**
- * Mobile viewport (375 px) — verifies the toast width is capped at `min(350px, 100vw - 2rem)`,
- * leaving a 1 rem visual margin on each side instead of pinning to a fixed 350 px.
+ * Mobile viewport (375 px) — canonical visual regression for the responsive width of
+ * `ToastNotification`. The toast width is capped at `min(350px, 100vw - 2rem)`, leaving a
+ * 1 rem visual margin on each side at sub-350 px viewports.
  *
- * This story is the canonical regression guard for the responsive width: `ToastNotification`
- * cannot be unit-tested in isolation because it injects the ng-primitives `NgpToastContext`
- * token (not exported), so its host class binding is only resolvable when rendered through
- * `NgpToastManager.show()`. Visual verification at the mobile viewport is the test. The gap is
- * tracked separately in #369.
+ * This story is the regression guard for that behaviour because the component is not
+ * unit-tested in isolation — see the JSDoc on `ToastNotification` for the full rationale.
  */
 export const MobileViewport: Story = {
 	args: { placement: 'bottom-center' },
