@@ -34,7 +34,7 @@ A breadcrumb navigation component that displays the hierarchical path to the cur
 - **Native Angular Router**: Uses the Route \`title\` property to configure breadcrumb labels
 - **Navigable**: Click any breadcrumb item to navigate back to that route
 - **Accessible**: Full ARIA support with proper semantic HTML
-- **Responsive**: Wraps breadcrumb items on smaller screens
+- **Responsive**: Per-segment truncation on mobile (below \`sm:\`); full width restored on wider viewports via \`sm:max-w-none\`. Chains of 3+ items collapse intermediate segments into an ellipsis (\`first › … › last\`) on mobile.
 - **Dark Mode Support**: Automatic dark mode styling with Tailwind CSS
 - **Icon Separators**: Uses chevron icons as visual separators
 - **Current Page Indicator**: Highlights the active/current page
@@ -150,7 +150,9 @@ export const DeepNesting: Story = {
 }
 
 /**
- * Breadcrumb with long titles demonstrating text wrapping.
+ * Breadcrumb with long titles rendered inside a `max-w-2xl` container — wider than the `sm:`
+ * breakpoint, so the per-segment truncation caps are lifted by `sm:max-w-none` and both segments
+ * render in full. Use the `MobileLongSegments` story below to see the truncation in effect.
  */
 export const LongTitles: Story = {
 	decorators: [
