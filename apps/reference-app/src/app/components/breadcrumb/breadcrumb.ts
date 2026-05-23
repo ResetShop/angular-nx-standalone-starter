@@ -24,10 +24,10 @@ type BreadcrumbEntry =
 			<ol class="flex min-w-0 items-center gap-1">
 				@for (entry of entries(); track $index) {
 					<li
-						class="min-w-0"
 						[class.hidden]="entry.viewport === 'desktop'"
 						[class.sm:inline-flex]="entry.viewport === 'desktop'"
 						[class.sm:hidden]="entry.viewport === 'mobile'"
+						class="min-w-0"
 					>
 						@switch (entry.kind) {
 							@case ('item') {
@@ -42,9 +42,9 @@ type BreadcrumbEntry =
 									}
 									@if (entry.item.isActive) {
 										<span
+											[attr.title]="entry.item.title | translate"
 											class="text-foreground max-w-[14rem] truncate text-sm font-medium sm:max-w-none"
 											aria-current="page"
-											[attr.title]="entry.item.title | translate"
 										>
 											{{ entry.item.title | translate }}
 										</span>
