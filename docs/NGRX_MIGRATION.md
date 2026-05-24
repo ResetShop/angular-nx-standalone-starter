@@ -184,7 +184,7 @@ These are lightweight, UI-only concerns with no API dependencies. Converting the
    - Use `{ providedIn: 'root' }` for app-wide singletons
    - Use `rxMethod` for all API calls — never `firstValueFrom` or `async/await`
    - Add `patchReadError` / `patchMutationError` helper functions
-   - Log errors with `console.error('[StoreName] methodName failed:', err)`
+   - Log errors with `loggerService.error('StoreName', 'methodName failed', err)` via `inject(Logger)` from `@providers/logger/logger.token`
    - Add `withHooks({ onInit(store) { store.loadX(store.listParams); } })` as the last block to trigger reactive initial data loading
 
 4. **Write tests** — `<domain>.store.spec.ts`:
@@ -232,6 +232,7 @@ export const NotificationsStore = signalStore(
 	})),
 	withMethods((store) => {
 		const api = inject(NotificationsApiService)
+		const loggerService = inject(Logger)
 		return {
 			loadNotifications: rxMethod<void>(
 				pipe(
@@ -241,7 +242,7 @@ export const NotificationsStore = signalStore(
 							tap({
 								next: (items) => patchState(store, { items, isLoading: false }),
 								error: (err) => {
-									console.error('[NotificationsStore] loadNotifications failed:', err)
+									loggerService.error('NotificationsStore', 'loadNotifications failed', err)
 									patchState(store, {
 										isLoading: false,
 										readError: { list: 'Failed to load notifications' },
