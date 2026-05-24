@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons'
+import { createBreakpointSignal } from '@resetshop/angular-core/breakpoint/breakpoint'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '../button/button'
 import { PaginationTracker } from './pagination-tracker'
@@ -57,10 +58,10 @@ interface PageItem {
 					{{ pageOfLabel() }}
 				</span>
 
-				<!-- Page number buttons — hidden below sm: so prev/next + select fit on a single mobile row -->
-				@for (item of pageItems(); track $index) {
+				<!-- Page number buttons — trimmed to ≤ 4 items on mobile via visiblePageItems() -->
+				@for (item of visiblePageItems(); track $index) {
 					@if (item.type === 'ellipsis') {
-						<span class="text-muted-foreground hidden h-8 w-8 items-center justify-center text-sm sm:flex">…</span>
+						<span class="text-muted-foreground flex h-8 w-8 items-center justify-center text-sm">…</span>
 					} @else {
 						<button
 							(click)="onPageClick(item.value)"
@@ -69,7 +70,7 @@ interface PageItem {
 							[attr.aria-current]="item.value === currentPage() ? 'page' : null"
 							appButton
 							size="sm"
-							class="hidden h-8 w-8 p-0 sm:inline-flex"
+							class="inline-flex h-8 w-8 p-0"
 						>
 							{{ item.value }}
 						</button>
@@ -138,6 +139,9 @@ export class Pagination {
 	/** Whether current page is the last page */
 	protected readonly isLastPage = computed(() => this.currentPage() >= this.totalPages())
 
+	/** True when the viewport is below the sm breakpoint (< 640 px). Drives the mobile item cap. */
+	private readonly isMobile = createBreakpointSignal('sm')
+
 	/**
 	 * Page items (numbers and ellipses) derived from current page and total pages.
 	 *
@@ -150,7 +154,7 @@ export class Pagination {
 	 *   - Show ellipsis if gap exists before last
 	 *   - Always show last page
 	 */
-	protected readonly pageItems = computed<PageItem[]>(() => {
+	private readonly pageItems = computed<PageItem[]>(() => {
 		const total = this.totalPages()
 		const current = this.currentPage()
 
@@ -160,27 +164,36 @@ export class Pagination {
 
 		const items: PageItem[] = []
 		items.push({ type: 'page', value: 1 })
-		if (current > 3) items.push({ type: 'ellipsis', value: -1 })
+		if (current > 4) items.push({ type: 'ellipsis', value: -1 })
 
 		const [start, end] = this.middlePageRange(current, total)
 		for (let i = start; i <= end; i++) {
 			if (i > 1 && i < total) items.push({ type: 'page', value: i })
 		}
 
-		if (current < total - 2) items.push({ type: 'ellipsis', value: -2 })
+		if (current < total - 3) items.push({ type: 'ellipsis', value: -2 })
 		items.push({ type: 'page', value: total })
 		return items
 	})
 
 	/**
+	 * Page items trimmed for mobile viewports. Returns the first 4 items of pageItems()
+	 * when below the sm breakpoint, otherwise returns the full array.
+	 * The 4-item count includes both page buttons and ellipsis spans.
+	 */
+	protected readonly visiblePageItems = computed<PageItem[]>(() =>
+		this.isMobile() ? this.pageItems().slice(0, 4) : this.pageItems(),
+	)
+
+	/**
 	 * Returns the start and end indices of the middle-page window to show,
-	 * excluding the always-visible first and last pages. The window is a
-	 * 2-page span when the current page is near either edge, and a 3-page
-	 * span centred on `current` when the current page is in the middle.
+	 * excluding the always-visible first and last pages. The window grows
+	 * to absorb the page that the ellipsis no longer occupies when the
+	 * current page is near either edge (≤ 4 from the left, ≤ 3 from the right).
 	 */
 	private middlePageRange(current: number, total: number): [number, number] {
-		if (current <= 3) return [2, 3]
-		if (current >= total - 2) return [total - 2, total - 1]
+		if (current <= 4) return [2, current + 1]
+		if (current >= total - 3) return [current - 1, total - 1]
 		return [current - 1, current + 1]
 	}
 

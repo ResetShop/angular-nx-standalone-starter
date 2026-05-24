@@ -66,7 +66,7 @@ A pagination component following shadcn/ui patterns for navigating through paged
 ## Features
 
 - **Rows Per Page Selector**: Stacks on top on mobile, left-aligned alongside the page navigation from \`sm:\` up
-- **Responsive Layout**: Vertical stack below \`sm:\` with hidden page-number buttons; an \`aria-live\` "Page N of M" label sits between prev and next
+- **Responsive Layout**: Below the \`sm:\` breakpoint, page-number items are trimmed to at most 4 at the data level via \`createBreakpointSignal\`; the rows-per-page label becomes sr-only. An \`aria-live\` "Page N of M" label provides screen-reader context at all viewports.
 - **Touch Targets**: Prev/next buttons carry \`data-touch-target\` to extend the hit area to 44 px on mobile
 - **Page Number Buttons**: Direct navigation to specific pages with intelligent ellipsis
 - **Previous/Next Navigation**: Ghost variant buttons for sequential navigation
@@ -77,7 +77,7 @@ A pagination component following shadcn/ui patterns for navigating through paged
 The component intelligently displays page numbers:
 - **4 or fewer pages**: Shows all page numbers
 - **5+ pages**: Shows first page, ellipsis, middle pages around current, ellipsis, last page
-- **At start (page 1-3)**: Shows 1, 2, 3, ..., last
+- **At start (page 1-4)**: Shows pages up to \`current+1\`, then ellipsis, then last (e.g., page 4 → \`1 2 3 4 5 … last\`)
 - **In middle**: Shows 1, ..., prev, current, next, ..., last
 - **At end**: Shows 1, ..., last-2, last-1, last
 
@@ -115,6 +115,11 @@ The component intelligently displays page numbers:
 			control: { type: 'number', min: 1 },
 			description: 'Initial page size',
 			table: { defaultValue: { summary: '25' } },
+		},
+		pageSizeOptions: {
+			control: 'object',
+			description: 'Available page-size choices shown in the rows-per-page select',
+			table: { defaultValue: { summary: '[25, 50, 100]' } },
 		},
 	},
 }
@@ -208,9 +213,9 @@ export const CustomPageSizeOptions: Story = {
 }
 
 /**
- * Mobile viewport (375px) — stacked layout. Rows-per-page selector sits on top;
- * the page-navigation row hides the numbered buttons and shows a "Page N of M"
- * indicator between prev and next.
+ * Mobile viewport (375px) — single-row layout. Page-number items are trimmed to
+ * at most 4 at the data level (first 4 of the computed window). The rows-per-page
+ * label becomes sr-only. Prev/next carry `data-touch-target`.
  */
 export const Mobile: Story = {
 	args: {
