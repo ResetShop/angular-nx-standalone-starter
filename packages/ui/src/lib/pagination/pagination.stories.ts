@@ -66,7 +66,7 @@ A pagination component following shadcn/ui patterns for navigating through paged
 ## Features
 
 - **Rows Per Page Selector**: Stacks on top on mobile, left-aligned alongside the page navigation from \`sm:\` up
-- **Responsive Layout**: Below the \`sm:\` breakpoint, page-number items are trimmed to at most 4 at the data level via \`createBreakpointSignal\`; the rows-per-page label becomes sr-only. An \`aria-live\` "Page N of M" label provides screen-reader context at all viewports.
+- **Responsive Layout**: Below the \`sm:\` breakpoint, page-number items render a stable 5-slot window; from \`sm:\` up they render a stable 7-slot window. Slot count is selected at the data level via \`createBreakpointSignal\`. The rows-per-page label becomes sr-only below \`sm:\`. An \`aria-live\` "Page N of M" label provides screen-reader context at all viewports.
 - **Touch Targets**: Prev/next buttons carry \`data-touch-target\` to extend the hit area to 44 px on mobile
 - **Page Number Buttons**: Direct navigation to specific pages with intelligent ellipsis
 - **Previous/Next Navigation**: Ghost variant buttons for sequential navigation
@@ -74,12 +74,23 @@ A pagination component following shadcn/ui patterns for navigating through paged
 
 ## Page Number Logic
 
-The component intelligently displays page numbers:
-- **4 or fewer pages**: Shows all page numbers
-- **5+ pages**: Shows first page, ellipsis, middle pages around current, ellipsis, last page
-- **At start (page 1-4)**: Shows pages up to \`current+1\`, then ellipsis, then last (e.g., page 4 → \`1 2 3 4 5 … last\`)
-- **In middle**: Shows 1, ..., prev, current, next, ..., last
-- **At end**: Shows 1, ..., last-2, last-1, last
+The component renders a fixed-size window of page items (page buttons + ellipses) for layout
+stability across navigation. First and last pages are always visible whenever the window is
+applied.
+
+### Desktop (\`sm:\` and up) — 7-slot window
+
+- **totalPages ≤ 7**: all pages shown contiguously, no ellipsis
+- **Near start** (current ≤ 4): \`1 2 3 4 5 … last\`
+- **Middle** (4 < current < total − 3): \`1 … c-1 c c+1 … last\`
+- **Near end** (current ≥ total − 3): \`1 … last-4 last-3 last-2 last-1 last\`
+
+### Mobile (below \`sm:\`) — 5-slot window
+
+- **totalPages ≤ 5**: all pages shown contiguously, no ellipsis
+- **Near start** (current ≤ 3): \`1 2 3 … last\`
+- **Middle** (3 < current < total − 2): \`1 … current … last\`
+- **Near end** (current ≥ total − 2): \`1 … last-2 last-1 last\`
 
 ## Usage
 
@@ -130,7 +141,7 @@ type Story = StoryObj<PaginationStoryComponent>
 
 /**
  * Default pagination at page 1 with 10 total pages.
- * Shows: [1] [2] [3] ... [10]
+ * Shows (desktop): [1] [2] [3] [4] [5] ... [10]
  */
 export const Default: Story = {
 	args: {
@@ -154,7 +165,7 @@ export const MiddlePage: Story = {
 
 /**
  * Pagination at the last page.
- * Shows: [1] ... [8] [9] [10]
+ * Shows (desktop): [1] ... [6] [7] [8] [9] [10]
  */
 export const LastPage: Story = {
 	args: {
@@ -213,9 +224,10 @@ export const CustomPageSizeOptions: Story = {
 }
 
 /**
- * Mobile viewport (375px) — single-row layout. Page-number items are trimmed to
- * at most 4 at the data level (first 4 of the computed window). The rows-per-page
- * label becomes sr-only. Prev/next carry `data-touch-target`.
+ * Mobile viewport (375px) — single-row layout. Renders the 5-slot mobile window
+ * (first + last always visible, with one or two ellipses to fill the gap). The
+ * rows-per-page label becomes sr-only. Prev/next carry `data-touch-target`.
+ * Shows (currentPage=5, totalPages=10): [1] ... [5] ... [10]
  */
 export const Mobile: Story = {
 	args: {

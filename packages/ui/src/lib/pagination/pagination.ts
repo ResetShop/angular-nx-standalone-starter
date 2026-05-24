@@ -58,7 +58,7 @@ interface PageItem {
 					{{ pageOfLabel() }}
 				</span>
 
-				<!-- Page number buttons — trimmed to ≤ 4 items on mobile via visiblePageItems() -->
+				<!-- Page number buttons — 5 items below sm:, 7 from sm: up, via visiblePageItems() -->
 				@for (item of visiblePageItems(); track $index) {
 					@if (item.type === 'ellipsis') {
 						<span class="text-muted-foreground flex h-8 w-8 items-center justify-center text-sm">…</span>
@@ -143,59 +143,99 @@ export class Pagination {
 	private readonly isMobile = createBreakpointSignal('sm')
 
 	/**
-	 * Page items (numbers and ellipses) derived from current page and total pages.
+	 * Desktop page items — renders a stable count of 7 items when totalPages > 7,
+	 * keeping width constant across navigation. Applies from the sm breakpoint up
+	 * (mobile landscape, tablet, desktop).
 	 *
-	 * Logic:
-	 * - If totalPages <= 4: show all pages
-	 * - If totalPages > 4:
-	 *   - Always show first page
-	 *   - Show ellipsis if gap exists after first
-	 *   - Show pages around current
-	 *   - Show ellipsis if gap exists before last
-	 *   - Always show last page
+	 * Patterns (total > 7):
+	 *  - Near start (current ≤ 4): [1, 2, 3, 4, 5, …, total]
+	 *  - Middle (4 < current < total - 3): [1, …, c-1, c, c+1, …, total]
+	 *  - Near end (current ≥ total - 3): [1, …, total-4, total-3, total-2, total-1, total]
+	 * When totalPages ≤ 7, all pages are shown contiguously without ellipsis.
 	 */
-	private readonly pageItems = computed<PageItem[]>(() => {
+	private readonly desktopPageItems = computed<PageItem[]>(() => {
 		const total = this.totalPages()
 		const current = this.currentPage()
 
-		if (total <= 4) {
+		if (total <= 7) {
 			return this.range(1, total).map((n) => ({ type: 'page' as const, value: n }))
 		}
 
-		const items: PageItem[] = []
-		items.push({ type: 'page', value: 1 })
-		if (current > 4) items.push({ type: 'ellipsis', value: -1 })
-
-		const [start, end] = this.middlePageRange(current, total)
-		for (let i = start; i <= end; i++) {
-			if (i > 1 && i < total) items.push({ type: 'page', value: i })
+		if (current <= 4) {
+			return [
+				...this.range(1, 5).map((n) => ({ type: 'page' as const, value: n })),
+				{ type: 'ellipsis', value: -1 },
+				{ type: 'page', value: total },
+			]
 		}
 
-		if (current < total - 3) items.push({ type: 'ellipsis', value: -2 })
-		items.push({ type: 'page', value: total })
-		return items
+		if (current >= total - 3) {
+			return [
+				{ type: 'page', value: 1 },
+				{ type: 'ellipsis', value: -1 },
+				...this.range(total - 4, total).map((n) => ({ type: 'page' as const, value: n })),
+			]
+		}
+
+		return [
+			{ type: 'page', value: 1 },
+			{ type: 'ellipsis', value: -1 },
+			{ type: 'page', value: current - 1 },
+			{ type: 'page', value: current },
+			{ type: 'page', value: current + 1 },
+			{ type: 'ellipsis', value: -2 },
+			{ type: 'page', value: total },
+		]
 	})
 
 	/**
-	 * Page items trimmed for mobile viewports. Returns the first 4 items of pageItems()
-	 * when below the sm breakpoint, otherwise returns the full array.
-	 * The 4-item count includes both page buttons and ellipsis spans.
+	 * Mobile page items — renders a stable count of 5 items when totalPages > 5,
+	 * always keeping the first and last pages visible. Applies below the sm breakpoint
+	 * (portrait mobile, < 640 px).
+	 *
+	 * Patterns (total > 5):
+	 *  - Near start (current ≤ 3): [1, 2, 3, …, total]
+	 *  - Middle (3 < current < total - 2): [1, …, current, …, total]
+	 *  - Near end (current ≥ total - 2): [1, …, total-2, total-1, total]
+	 * When totalPages ≤ 5, all pages are shown contiguously without ellipsis.
 	 */
-	protected readonly visiblePageItems = computed<PageItem[]>(() =>
-		this.isMobile() ? this.pageItems().slice(0, 4) : this.pageItems(),
-	)
+	private readonly mobilePageItems = computed<PageItem[]>(() => {
+		const total = this.totalPages()
+		const current = this.currentPage()
 
-	/**
-	 * Returns the start and end indices of the middle-page window to show,
-	 * excluding the always-visible first and last pages. The window grows
-	 * to absorb the page that the ellipsis no longer occupies when the
-	 * current page is near either edge (≤ 4 from the left, ≤ 3 from the right).
-	 */
-	private middlePageRange(current: number, total: number): [number, number] {
-		if (current <= 4) return [2, current + 1]
-		if (current >= total - 3) return [current - 1, total - 1]
-		return [current - 1, current + 1]
-	}
+		if (total <= 5) {
+			return this.range(1, total).map((n) => ({ type: 'page' as const, value: n }))
+		}
+
+		if (current <= 3) {
+			return [
+				...this.range(1, 3).map((n) => ({ type: 'page' as const, value: n })),
+				{ type: 'ellipsis', value: -1 },
+				{ type: 'page', value: total },
+			]
+		}
+
+		if (current >= total - 2) {
+			return [
+				{ type: 'page', value: 1 },
+				{ type: 'ellipsis', value: -1 },
+				...this.range(total - 2, total).map((n) => ({ type: 'page' as const, value: n })),
+			]
+		}
+
+		return [
+			{ type: 'page', value: 1 },
+			{ type: 'ellipsis', value: -1 },
+			{ type: 'page', value: current },
+			{ type: 'ellipsis', value: -2 },
+			{ type: 'page', value: total },
+		]
+	})
+
+	/** Visible items: 5 below sm:, 7 from sm: up. */
+	protected readonly visiblePageItems = computed<PageItem[]>(() =>
+		this.isMobile() ? this.mobilePageItems() : this.desktopPageItems(),
+	)
 
 	/** Creates an array of numbers from start to end (inclusive) */
 	private range(start: number, end: number): number[] {

@@ -81,15 +81,19 @@ describe('Pagination', () => {
 			expect(screen.getByRole('button', { name: /go to page 4/i })).toBeInTheDocument()
 		})
 
-		it('should show ellipsis when totalPages > 4 and at start', async () => {
+		it('should show ellipsis when totalPages > 7 and at start', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 10 },
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// Should show: 1, 2, …, 10
+			// Should show: 1, 2, 3, 4, 5, …, 10 (7-item fixed desktop window)
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
 			expect(screen.getByText('…')).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 		})
@@ -115,15 +119,24 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// Should show: 1, …, 9, 10
+			// Should show: 1, …, 6, 7, 8, 9, 10 (7-item fixed desktop window)
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByText('…')).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 		})
 
-		describe('ellipsis boundary cases (I.2 threshold fix)', () => {
-			it('should show no leading ellipsis at currentPage=3 (1 2 3 4 … 10)', async () => {
+		describe('desktop 7-item windowing (totalPages=10)', () => {
+			// Desktop renders a stable 7-item window when totalPages > 7. Pattern per current page:
+			//   current ≤ 4              → [1, 2, 3, 4, 5, …, 10]   (near start)
+			//   4 < current < total - 3  → [1, …, c-1, c, c+1, …, 10] (middle)
+			//   current ≥ total - 3      → [1, …, 6, 7, 8, 9, 10]   (near end)
+
+			it('should show no leading ellipsis at currentPage=3 (1 2 3 4 5 … 10)', async () => {
 				await render(Pagination, {
 					inputs: { currentPage: 3, totalPages: 10 },
 					providers: [{ provide: Translation, useValue: mockTranslation }],
@@ -133,7 +146,8 @@ describe('Pagination', () => {
 				expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
 				expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
 				expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
-				expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
 				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 				expect(screen.getByText('…')).toBeInTheDocument()
 				expect(screen.queryAllByText('…')).toHaveLength(1)
@@ -206,14 +220,15 @@ describe('Pagination', () => {
 				expect(screen.queryAllByText('…')).toHaveLength(1)
 			})
 
-			it('should show no trailing ellipsis at currentPage=8 (1 … 7 8 9 10)', async () => {
+			it('should show no trailing ellipsis at currentPage=8 (1 … 6 7 8 9 10)', async () => {
 				await render(Pagination, {
 					inputs: { currentPage: 8, totalPages: 10 },
 					providers: [{ provide: Translation, useValue: mockTranslation }],
 				})
 
 				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
-				expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
 				expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
 				expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
 				expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
@@ -305,7 +320,7 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// At currentPage=1, totalPages=5: sequence is [1, 2, …, 5] — page 2 is a visible non-current page
+			// At currentPage=1, totalPages=5 (≤ 7 desktop threshold): all pages [1, 2, 3, 4, 5] are shown
 			await user.click(screen.getByRole('button', { name: /go to page 2/i }))
 
 			expect(pageChangeSpy.calls).toContainEqual([2])
@@ -413,10 +428,14 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// With 5 pages and current at 3, shows all pages 1–5 (no ellipsis — thresholds not reached)
-			// current > 4 → false (no leading ellipsis); current < total - 3 = 2 → false (no trailing ellipsis)
+			// Desktop: totalPages ≤ 7 → all pages shown contiguously, no ellipsis.
+			// Mobile (not asserted here) also shows all 5 pages since totalPages ≤ 5.
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+			expect(screen.queryByText('…')).not.toBeInTheDocument()
 		})
 	})
 
@@ -537,11 +556,11 @@ describe('Pagination', () => {
 		})
 	})
 
-	describe('mobile page item cap (I.1)', () => {
+	describe('viewport-aware windowing (mobile 5 / desktop 7)', () => {
 		const mobileObserver = { observe: () => of({ matches: true, breakpoints: {} }) }
 		const desktopObserver = { observe: () => of({ matches: false, breakpoints: {} }) }
 
-		it('should trim pageItems to at most 4 items on mobile viewports', async () => {
+		it('should render the middle 5-item mobile pattern at currentPage=5 (1 … 5 … 10)', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 5, totalPages: 10 },
 				providers: [
@@ -550,17 +569,68 @@ describe('Pagination', () => {
 				],
 			})
 
-			// Full sequence at currentPage=5: [page1, …, page4, page5, page6, …, page10] (7 items)
-			// Sliced to 4: [page1, ellipsis, page4, page5]
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 4' })).not.toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
 			expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
-			expect(screen.queryByRole('button', { name: 'Go to page 10' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(2)
+		})
+
+		it('should render the near-start 5-item mobile pattern at currentPage=3 (1 2 3 … 10)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: mobileObserver },
+				],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 4' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 			expect(screen.getAllByText('…')).toHaveLength(1)
 		})
 
-		it('should show all pageItems on desktop viewports (above sm breakpoint)', async () => {
+		it('should render the near-end 5-item mobile pattern at currentPage=9 (1 … 8 9 10)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 9, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: mobileObserver },
+				],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 7' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(1)
+		})
+
+		// Regression guard: previously the slice(0, 4) implementation hid the last page
+		// in the middle case (e.g., currentPage=3, totalPages=10 → [1, 2, 3, 4]).
+		it.each([1, 3, 5, 7, 9, 10])(
+			'should always include first and last page on mobile at currentPage=%i (totalPages=10)',
+			async (currentPage) => {
+				await render(Pagination, {
+					inputs: { currentPage, totalPages: 10 },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: mobileObserver },
+					],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText(new RegExp(`Page ${currentPage} of 10`))).toBeInTheDocument()
+			},
+		)
+
+		it('should render the desktop 7-item pattern at currentPage=5 (1 … 4 5 6 … 10)', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 5, totalPages: 10 },
 				providers: [
@@ -569,10 +639,31 @@ describe('Pagination', () => {
 				],
 			})
 
+			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 			expect(screen.getAllByText('…')).toHaveLength(2)
 		})
+
+		// Regression guard: previously the count drifted from 4 to 7 slots depending on currentPage.
+		// Each slot is either a page button or an ellipsis (6 buttons + 1 ellipsis near edges,
+		// 5 buttons + 2 ellipses in the middle).
+		it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])(
+			'should hold a stable 7-slot count on desktop at currentPage=%i (totalPages=10)',
+			async (currentPage) => {
+				await render(Pagination, {
+					inputs: { currentPage, totalPages: 10 },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: desktopObserver },
+					],
+				})
+
+				const pageButtons = screen.getAllByRole('button', { name: /^Go to page \d+$/ })
+				const ellipses = screen.queryAllByText('…')
+				expect(pageButtons.length + ellipses.length).toBe(7)
+			},
+		)
 	})
 
 	describe('fallback strings (no Translation provider)', () => {
