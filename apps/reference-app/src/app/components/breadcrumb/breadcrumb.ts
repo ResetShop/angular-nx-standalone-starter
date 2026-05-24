@@ -20,13 +20,14 @@ type BreadcrumbEntry =
 	imports: [NgIcon, RouterLink, TranslatePipe],
 	providers: [provideIcons({ featherChevronRight })],
 	template: `
-		<nav class="flex items-center gap-1" aria-label="Breadcrumb">
-			<ol class="flex flex-wrap items-center gap-1">
+		<nav class="flex min-w-0 items-center gap-1" aria-label="Breadcrumb">
+			<ol class="flex min-w-0 items-center gap-1">
 				@for (entry of entries(); track $index) {
 					<li
 						[class.hidden]="entry.viewport === 'desktop'"
 						[class.sm:inline-flex]="entry.viewport === 'desktop'"
 						[class.sm:hidden]="entry.viewport === 'mobile'"
+						class="min-w-0"
 					>
 						@switch (entry.kind) {
 							@case ('item') {
@@ -34,13 +35,17 @@ type BreadcrumbEntry =
 									@if (!entry.item.isActive) {
 										<a
 											[routerLink]="entry.item.path"
-											class="text-muted-foreground hover:text-foreground text-sm font-medium"
+											class="text-muted-foreground hover:text-foreground max-w-[8rem] truncate text-sm font-medium sm:max-w-none"
 										>
 											{{ entry.item.title | translate }}
 										</a>
 									}
 									@if (entry.item.isActive) {
-										<span class="text-foreground text-sm font-medium" aria-current="page">
+										<span
+											[attr.title]="entry.item.title | translate"
+											class="text-foreground max-w-[14rem] truncate text-sm font-medium sm:max-w-none"
+											aria-current="page"
+										>
 											{{ entry.item.title | translate }}
 										</span>
 									}
