@@ -149,7 +149,10 @@
 		"webpack": "^5.104.1"
 	},
 	"nx": {
-		"includedScripts": [],
+		"includedScripts": [
+			"format",
+			"format:check"
+		],
 		"targets": {
 			"lint": {
 				"command": "echo 'Workspace root has no source files; each package runs its own lint target.'"
