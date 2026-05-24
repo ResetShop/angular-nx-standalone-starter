@@ -73,9 +73,9 @@ src/contracts/            # Shared Zod schemas + TypeScript types
 All OpenAPIHono instances are created via the centralized factory in `src/api/openapi-app.ts`:
 
 ```typescript
-import { createOpenAPIApp, registerRoute } from '../../openapi-app';
+import { createOpenAPIApp, registerRoute } from '../../openapi-app'
 
-const app = createOpenAPIApp();
+const app = createOpenAPIApp()
 ```
 
 **Rules:**
@@ -91,7 +91,7 @@ const app = createOpenAPIApp();
 Routes live in `*.routes.ts` files and use `createRoute()` from `@hono/zod-openapi`:
 
 ```typescript
-import { createRoute } from '@hono/zod-openapi';
+import { createRoute } from '@hono/zod-openapi'
 
 export const healthCheckRoute = createRoute({
 	method: 'get',
@@ -110,7 +110,7 @@ export const healthCheckRoute = createRoute({
 			content: { 'application/json': { schema: healthCheckResponseSchema } },
 		},
 	},
-});
+})
 ```
 
 **Anatomy of a route definition:**
@@ -140,7 +140,7 @@ app.doc('/api/openapi.json', {
 	openapi: '3.0.0',
 	info: OPENAPI_INFO,
 	security: [{ [PASETO_COOKIE_SCHEME]: [] }], // Global default
-});
+})
 ```
 
 **Three security patterns:**
@@ -204,21 +204,21 @@ export const getRoleRoute = createRoute({
 Controllers live in `*.controller.ts` files. Each creates an `OpenAPIApp` and registers handlers:
 
 ```typescript
-import { container } from '../../container/container';
-import { createOpenAPIApp, registerRoute } from '../../openapi-app';
-import { healthCheckRoute } from './health.routes';
-import type { HealthCheckResponse } from './interfaces';
+import { container } from '../../container/container'
+import { createOpenAPIApp, registerRoute } from '../../openapi-app'
+import { healthCheckRoute } from './health.routes'
+import type { HealthCheckResponse } from './interfaces'
 
-const app = createOpenAPIApp();
+const app = createOpenAPIApp()
 
 registerRoute(app, healthCheckRoute, async (c) => {
-	const { healthService } = container.cradle;
-	const health = await healthService.checkHealth();
-	const statusCode = health.status === HealthStatus.HEALTHY ? 200 : 503;
-	return c.json<HealthCheckResponse>(health, statusCode);
-});
+	const { healthService } = container.cradle
+	const health = await healthService.checkHealth()
+	const statusCode = health.status === HealthStatus.HEALTHY ? 200 : 503
+	return c.json<HealthCheckResponse>(health, statusCode)
+})
 
-export default app;
+export default app
 ```
 
 **Handler patterns:**
@@ -237,9 +237,9 @@ export default app;
 Because contract schemas use plain `zod` (not the re-exported `z` from `@hono/zod-openapi`), `c.req.valid()` returns relaxed types. Always add an explicit type annotation:
 
 ```typescript
-const { email, password }: LoginRequest = c.req.valid('json');
-const { id }: { id: number } = c.req.valid('param');
-const { offset, limit, search }: SearchPaginationParams = c.req.valid('query');
+const { email, password }: LoginRequest = c.req.valid('json')
+const { id }: { id: number } = c.req.valid('param')
+const { offset, limit, search }: SearchPaginationParams = c.req.valid('query')
 ```
 
 ---
@@ -250,16 +250,16 @@ Module routers (in `index.ts`) compose multiple controllers into a single sub-ap
 
 ```typescript
 // src/api/modules/access/index.ts
-import { createOpenAPIApp } from '../../openapi-app';
-import permissionController from './permission/permission.controller';
-import roleController from './role/role.controller';
+import { createOpenAPIApp } from '../../openapi-app'
+import permissionController from './permission/permission.controller'
+import roleController from './role/role.controller'
 
-const app = createOpenAPIApp();
+const app = createOpenAPIApp()
 
-app.route('/permissions', permissionController);
-app.route('/roles', roleController);
+app.route('/permissions', permissionController)
+app.route('/roles', roleController)
 
-export default app;
+export default app
 ```
 
 **Server-level composition** in `src/server.ts` mounts module routers under `/api`:
@@ -271,11 +271,11 @@ export default [
 	{ path: '/auth', controller: authController },
 	{ path: '/access', controller: accessRoutes },
 	{ path: '/user', controller: userRoutes },
-];
+]
 
 // src/server.ts
 for (const route of routes) {
-	app.route(`/api${route.path}`, route.controller);
+	app.route(`/api${route.path}`, route.controller)
 }
 ```
 
@@ -321,16 +321,16 @@ Handlers use try/catch with typed error classes:
 ```typescript
 registerRoute(app, loginRoute, async (c) => {
 	try {
-		const { email, password }: LoginRequest = c.req.valid('json');
-		const response = await authService.authenticate({ email, password });
-		return c.json<LoginResponse>({ user: response.user }, 200);
+		const { email, password }: LoginRequest = c.req.valid('json')
+		const response = await authService.authenticate({ email, password })
+		return c.json<LoginResponse>({ user: response.user }, 200)
 	} catch (error) {
 		if (isAuthError(error)) {
-			return c.json<LoginErrorResponse>(toLoginErrorResponse(error), 401);
+			return c.json<LoginErrorResponse>(toLoginErrorResponse(error), 401)
 		}
-		return c.json<LoginErrorResponse>({ code: LoginErrorCode.GENERIC, message: 'Authentication failed' }, 401);
+		return c.json<LoginErrorResponse>({ code: LoginErrorCode.GENERIC, message: 'Authentication failed' }, 401)
 	}
-});
+})
 ```
 
 **Patterns:**
@@ -347,12 +347,12 @@ registerRoute(app, loginRoute, async (c) => {
 Protected endpoints use `requirePermission()` in the route's `middleware` array:
 
 ```typescript
-import { requirePermission } from '../../../middlewares/verify-permissions.middleware';
+import { requirePermission } from '../../../middlewares/verify-permissions.middleware'
 
 export const listRolesRoute = createRoute({
 	middleware: [requirePermission(ADMIN_ROLE_PERMISSIONS.READ)] as const,
 	// ...
-});
+})
 ```
 
 The `as const` assertion is required for TypeScript to correctly infer the middleware tuple.

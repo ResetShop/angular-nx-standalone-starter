@@ -41,16 +41,16 @@ Use factory functions to abstract instantiation. Return interfaces, not concrete
 ```typescript
 // user.mapper.ts
 interface CreateUserOptions {
-	id: number;
-	email: string;
-	firstName: string;
-	lastName: string;
-	roles: IRole[];
-	token: string;
+	id: number
+	email: string
+	firstName: string
+	lastName: string
+	roles: IRole[]
+	token: string
 }
 
 export function createUser(options: CreateUserOptions): IUser {
-	return new User(options.id, options.email, options.firstName, options.lastName, options.roles, options.token);
+	return new User(options.id, options.email, options.firstName, options.lastName, options.roles, options.token)
 }
 ```
 
@@ -66,9 +66,9 @@ Domain objects should be immutable after construction:
 
 ```typescript
 export class User implements IUser {
-	readonly id: number;
-	readonly email: string;
-	readonly roles: readonly IRole[];
+	readonly id: number
+	readonly email: string
+	readonly roles: readonly IRole[]
 	// ...
 }
 ```
@@ -102,21 +102,21 @@ export class User implements IUser {
 Use **Zod** for validating external data (localStorage, API responses):
 
 ```typescript
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const authStorageDataSchema = z.object({
 	id: z.number(),
 	email: z.string(),
 	token: z.string(),
 	roles: z.array(roleSchema),
-});
+})
 
-export type AuthStorageData = z.infer<typeof authStorageDataSchema>;
+export type AuthStorageData = z.infer<typeof authStorageDataSchema>
 
 // Usage
-const result = authStorageDataSchema.safeParse(JSON.parse(stored));
+const result = authStorageDataSchema.safeParse(JSON.parse(stored))
 if (result.success) {
-	const user = mapStorageDataToUser(result.data);
+	const user = mapStorageDataToUser(result.data)
 }
 ```
 

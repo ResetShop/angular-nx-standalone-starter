@@ -73,22 +73,22 @@ Before generating tests, read these reference files for project conventions:
 ### Mock Functions
 
 ```typescript
-import { clearAllMocks, fn } from '@test-utils';
+import { clearAllMocks, fn } from '@test-utils'
 
-const mockFetch = fn<[number], Promise<User>>();
+const mockFetch = fn<[number], Promise<User>>()
 
 beforeEach(() => {
-	clearAllMocks();
-});
+	clearAllMocks()
+})
 ```
 
 ### Timer Utilities
 
 ```typescript
-import { advanceTimersByTime, useFakeTimers, useRealTimers } from '@test-utils';
+import { advanceTimersByTime, useFakeTimers, useRealTimers } from '@test-utils'
 
-beforeEach(() => useFakeTimers());
-afterEach(() => useRealTimers());
+beforeEach(() => useFakeTimers())
+afterEach(() => useRealTimers())
 ```
 
 ## Backend Integration Tests
@@ -107,36 +107,36 @@ When generating tests for backend API endpoints, create integration test files i
 ### Integration Test Structure
 
 ```typescript
-import type { OpenAPIHono } from '@hono/zod-openapi';
-import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers';
-import { getSeededAdminIds, getTestDb } from '../setup/db-helpers';
-import { createTestApp } from '../setup/test-app';
+import type { OpenAPIHono } from '@hono/zod-openapi'
+import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers'
+import { getSeededAdminIds, getTestDb } from '../setup/db-helpers'
+import { createTestApp } from '../setup/test-app'
 
 describe('<Endpoint description>', () => {
-	let app: OpenAPIHono;
-	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>;
+	let app: OpenAPIHono
+	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>
 
 	beforeAll(async () => {
-		app = createTestApp();
-		adminCookies = await loginAsAdmin(app);
-	});
+		app = createTestApp()
+		adminCookies = await loginAsAdmin(app)
+	})
 
 	// Group by HTTP method + path
 	describe('GET /api/<path>', () => {
 		it('happy path', async () => {
 			/* ... */
-		});
+		})
 		it('returns 401 without authentication', async () => {
 			/* ... */
-		});
+		})
 		it('returns 403 without required permission', async () => {
 			/* ... */
-		});
+		})
 		it('returns 404 for non-existent resource', async () => {
 			/* ... */
-		});
-	});
-});
+		})
+	})
+})
 ```
 
 ### Required Coverage per Endpoint

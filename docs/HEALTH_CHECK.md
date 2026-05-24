@@ -165,22 +165,22 @@ The database health check performs a lightweight connectivity probe using a simp
 
 ```typescript
 // 1. Start timer
-const start = Date.now();
+const start = Date.now()
 
 // 2. Race query against timeout
 await Promise.race([
 	this.db.execute(sql`SELECT 1`),
 	new Promise((_, reject) => setTimeout(() => reject(new Error('Database health check timed out')), 5000)),
-]);
+])
 
 // 3. Calculate response time
-const responseTimeMs = Date.now() - start;
+const responseTimeMs = Date.now() - start
 
 // 4. Return structured result (never throws)
 return {
 	status: 'healthy',
 	responseTimeMs,
-};
+}
 ```
 
 ### Common Error Messages
@@ -225,17 +225,17 @@ Startup health check failed: Error: PostgreSQL: Connection refused
 ```typescript
 // server.ts startup sequence
 if (isMainModule(import.meta.url)) {
-	(async () => {
+	;(async () => {
 		try {
-			await verifyHealth();
+			await verifyHealth()
 		} catch (error) {
-			console.error('Startup health check failed:', error);
-			process.exit(1); // Fail-fast - do NOT start server
+			console.error('Startup health check failed:', error)
+			process.exit(1) // Fail-fast - do NOT start server
 		}
 
 		// Only reached if all health checks pass
-		const server = serve({ fetch: app.fetch, port });
-	})();
+		const server = serve({ fetch: app.fetch, port })
+	})()
 }
 ```
 
@@ -312,11 +312,11 @@ Error: Database health check timed out
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Health {
-	private http = inject(HttpClient);
+	private http = inject(HttpClient)
 
 	healthResource = rxResource({
 		stream: () => this.http.get<HealthApiResponse>('/api/health/v1'),
-	});
+	})
 }
 ```
 
@@ -486,18 +486,18 @@ The Bruno request includes automated assertions:
 
 ```javascript
 // Status code
-expect(res.status).to.equal(200);
+expect(res.status).to.equal(200)
 
 // Overall health
-expect(res.body.status).to.equal('healthy');
+expect(res.body.status).to.equal('healthy')
 
 // Database check
-expect(res.body.checks.database.status).to.equal('healthy');
-expect(res.body.checks.database.responseTimeMs).to.be.a('number');
+expect(res.body.checks.database.status).to.equal('healthy')
+expect(res.body.checks.database.responseTimeMs).to.be.a('number')
 
 // Timestamp validation
-const date = new Date(res.body.timestamp);
-expect(date.toString()).to.not.equal('Invalid Date');
+const date = new Date(res.body.timestamp)
+expect(date.toString()).to.not.equal('Invalid Date')
 ```
 
 ### Running Tests

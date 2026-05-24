@@ -45,6 +45,8 @@ Use `npm` for all package management and script execution:
 | `npm run ci`               | Run all CI checks locally (required before PR) |
 | `npm run build`            | Build the project                              |
 | `npm run dev`              | Start development server                       |
+| `npm run format`           | Format all files with Prettier                 |
+| `npm run format:check`     | Check formatting without writing               |
 | `npm run lint`             | Run linting                                    |
 | `npm run storybook`        | Run storybook dev server                       |
 | `npm run storybook:build`  | Build storybook                                |

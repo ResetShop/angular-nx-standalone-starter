@@ -13,7 +13,9 @@
 		"postinstall": "node scripts/setup-skills.mjs && npm run drizzle:push-migrations && npm run drizzle:seed",
 		"serve:ssr": "node dist/reference-app/server/server.mjs",
 		"prepare": "husky",
-		"ci": "nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
+		"format": "prettier --write --cache .",
+		"format:check": "prettier --check --cache .",
+		"ci": "prettier --check --cache . && nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app",
 		"storybook": "nx run reference-app:storybook",
@@ -147,6 +149,14 @@
 		"webpack": "^5.104.1"
 	},
 	"nx": {
-		"includedScripts": []
+		"includedScripts": [
+			"format",
+			"format:check"
+		],
+		"targets": {
+			"lint": {
+				"command": "echo 'No-op: Nx infers this target from the root eslint.config.mjs via @nx/eslint/plugin. Each project runs its own lint target. See issue #374.'"
+			}
+		}
 	}
 }
