@@ -27,9 +27,10 @@ describe('UserCard', () => {
 	async function renderCard(overrides: Partial<ManagedUser> = {}) {
 		const editSpy: MockFn = fn()
 		const deleteSpy: MockFn = fn()
+		const resetPasswordSpy: MockFn = fn()
 		const view = await render(UserCard, {
 			inputs: { user: buildUser(overrides) },
-			on: { edit: editSpy, delete: deleteSpy },
+			on: { edit: editSpy, delete: deleteSpy, resetPassword: resetPasswordSpy },
 			providers: [
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: Translation, useValue: mockTranslation },
@@ -37,7 +38,7 @@ describe('UserCard', () => {
 		})
 		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermission: () => true }))
 		view.fixture.detectChanges()
-		return { view, editSpy, deleteSpy }
+		return { view, editSpy, deleteSpy, resetPasswordSpy }
 	}
 
 	it('renders the full name and email', async () => {
@@ -104,6 +105,39 @@ describe('UserCard', () => {
 		expect(deleteSpy.calls).toHaveLength(1)
 	})
 
+	it('renders the reset password button when the user has admin:users:reset_password', async () => {
+		await renderCard()
+
+		expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument()
+	})
+
+	it('emits resetPassword when the reset password button is clicked', async () => {
+		const user = userEvent.setup()
+		const { resetPasswordSpy } = await renderCard()
+
+		await user.click(screen.getByRole('button', { name: /reset password/i }))
+
+		expect(resetPasswordSpy.calls).toHaveLength(1)
+	})
+
+	it('hides the reset password button when the current user lacks admin:users:reset_password', async () => {
+		const view = await render(UserCard, {
+			inputs: { user: buildUser() },
+			on: { edit: fn(), delete: fn(), resetPassword: fn() },
+			providers: [
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: Translation, useValue: mockTranslation },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({ hasPermission: (id) => id !== 'admin:users:reset_password' }),
+		)
+		view.fixture.detectChanges()
+
+		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+	})
+
 	it('hides the edit button when the current user lacks admin:users:update', async () => {
 		const editSpy: MockFn = fn()
 		const deleteSpy: MockFn = fn()
@@ -129,5 +163,6 @@ describe('permission identifiers', () => {
 	it('should use valid permission identifiers', () => {
 		expect(validIdentifiers.has('admin:users:update')).toBe(true)
 		expect(validIdentifiers.has('admin:users:delete')).toBe(true)
+		expect(validIdentifiers.has('admin:users:reset_password')).toBe(true)
 	})
 })
