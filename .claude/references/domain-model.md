@@ -152,3 +152,112 @@ Use mappers to transform between layers (API contracts ↔ domain models ↔ sto
 | `mapUserToStorageData()`   | domain model → localStorage |
 
 Mappers should use factory functions internally for consistency.
+
+---
+
+# Strategic Patterns
+
+The sections above cover **tactical** patterns — _how_ to build a single model well. The sections below cover **strategic** patterns — _when_ and _why_ to apply those tactics, and how models relate across the system. These are largely framework-agnostic DDD concepts adapted to this project's TypeScript domain.
+
+## Aggregate Design
+
+An **aggregate** is a cluster of domain objects treated as a single unit for data changes. One object is the **aggregate root** — the only entry point, responsible for enforcing every invariant inside the cluster. Callers may hold a reference to the root, never to its internals.
+
+**How to identify the root:** look for the entity that owns the most business invariants. That entity becomes the root because the invariants can only be guaranteed if all mutations flow through it.
+
+In this project, `User` is the aggregate root for session authorization. It owns `readonly IRole[]`, and each `IRole` owns `readonly IPermission[]`. The invariant — _a user's effective permission set is the deduplicated union of all permissions across all roles_ — is enforced in the constructor, so no caller can construct an inconsistent `User`:
+
+```typescript
+// user.model.ts — invariant enforced at construction time
+constructor(id: number, email: string, firstName: string, lastName: string, roles: IRole[]) {
+	this.roles = roles
+	const allPermissions = roles.flatMap((role) => role.permissions)
+	this._permissions = [...new Map(allPermissions.map((p) => [p.identifier, p])).values()]
+	this._permissionIdentifiers = new Set(this._permissions.map((p) => p.identifier))
+}
+```
+
+**Note:** The aggregate boundary is also the transaction boundary — see [Consistency Decisions](#consistency-decisions).
+
+## Domain Events
+
+A **domain event** is a past-tense fact about something that already happened: `UserDisabled`, `RoleAssigned`, `UserRoleRemoved`, `PermissionGranted`. Name them as facts, never as commands (`PlaceOnHold` is a command; `BookPlacedOnHold` is the event).
+
+Events let one bounded context react to another without a direct call — the producing context records the fact, and consuming contexts subscribe. This decouples contexts: neither needs to know the other's internals.
+
+**Note:** Domain events are **not yet implemented** in this project. Cross-context communication currently happens through mappers (see [Mappers](#mappers)) and direct service calls. This section documents the pattern for the point at which that direct coupling becomes a maintenance burden — for example, when disabling a user must fan out to multiple contexts (audit log, session revocation, notifications) that should not all be wired into one service. The event names above are illustrative — authoritative names will be agreed when events are actually introduced.
+
+## Type-State Pattern
+
+Model an entity's lifecycle states as **distinct types** rather than a single type with a status field, so the compiler rejects operations that are invalid in a given state.
+
+The current approach is a value union — appropriate for the present CRUD use case, where `IManagedUser` carries its state as a field:
+
+```typescript
+// src/contracts/user/user.constants.ts — current approach
+export const UserStatus = Object.freeze({
+	ACTIVE: 'active',
+	DISABLED: 'disabled',
+	DELETED: 'deleted',
+} as const)
+```
+
+**Future direction:** when business rules diverge enough between states that a method should only exist in one of them, promote the states to distinct types (`ActiveUser`, `DisabledUser`, `DeletedUser`). A method like `assignRole()` would then exist only on `ActiveUser`, making "assign a role to a deleted user" a _compile error_ rather than a runtime guard. This is forward-looking guidance, not a current requirement — `UserStatus` is the right tool until the rules justify the split.
+
+## Policies as Pure Functions
+
+A **policy** is a business rule extracted into a standalone pure function — no side effects, no injected services — with the shape `(entity, context) → decision`. Because it is pure, it is independently unit-testable, composable, and reusable across backend middleware and frontend guards without dragging a service dependency along.
+
+Existing examples in this project:
+
+- `permission(name: string): PermissionName` (`src/contracts/permission/permission.constants.ts`) — validates and brands an identifier; **throws** on invalid format and returns the branded `PermissionName` on success (a boundary guard, not a decision-returning predicate). Its companion `isPermissionName(name): name is PermissionName` is the pure-predicate form.
+- `user.hasPermission(identifier)` / `role.hasPermission(identifier)` — predicate policies on the aggregate.
+
+A new authorization rule follows the same shape:
+
+```typescript
+// A policy composes existing predicates — pure, no service dependency
+function canAssignRole(actor: IUser, role: IRole): boolean {
+	return actor.hasPermission('admin:user_roles:assign') && role.removable
+}
+```
+
+**Rules:**
+
+- Keep policies free of I/O — pass the data in, return a decision out
+- Compose small policies with `&&` / `||` rather than writing one large branching function
+- Return `boolean` for simple predicates; return a structured result type when the caller needs the _reason_ for a rejection
+
+## Bounded Context Principles
+
+A **bounded context** is a scope within which one ubiquitous language and one model apply consistently. The same real-world concept can — and should — be modelled differently in different contexts. This project already separates four:
+
+| Context           | Folder                            | Key types              | Perspective                            |
+| ----------------- | --------------------------------- | ---------------------- | -------------------------------------- |
+| `auth`            | `src/app/domain/auth/`            | _(mappers only)_       | Maps login/`me` responses → `IUser`    |
+| `user`            | `src/app/domain/user/`            | `IUser`, `User`        | Who is logged in — O(1) auth checks    |
+| `user-management` | `src/app/domain/user-management/` | `IManagedUser`         | Admin CRUD of accounts (status, audit) |
+| `access`          | `src/app/domain/access/`          | `IRole`, `IPermission` | Authorization rule definitions         |
+
+The key insight: `IUser` and `IManagedUser` both represent a "user", yet model different concerns. `IUser` is optimised for permission checks during a session and exposes behaviour (`hasPermission`, `hasRole`). `IManagedUser` carries `status`, `statusChangedAt`, `statusChangedBy`, `deletedAt` — fields irrelevant to session auth but essential to administrative views. The mappers (`user.mapper.ts`, `managed-user.mapper.ts`, `auth.mapper.ts`) are the explicit boundaries between these models.
+
+### Ubiquitous Language
+
+Each context owns the **definitions** of its terms, co-located with that context's interfaces. The same word may carry a different meaning per context — "user" in `auth` is a session identity, "user" in `user-management` is an administrable account record — and that divergence is expected, not a bug to reconcile.
+
+**Convention for new contexts:** when a new bounded context is introduced (e.g. `catalog`, `billing`, `subscriptions`), define its vocabulary alongside its interfaces and state, for each term, which existing terms it maps to or deliberately diverges from. This keeps the DDD strategy from being anchored to today's `User` / `Role` / `Permission` vocabulary as the domain grows.
+
+**Note:** A consolidated, per-context glossary (and generator tooling to scaffold a term stub whenever a new context is created) is planned as a separate effort. This section documents the convention; the glossary build-out is tracked independently.
+
+## Consistency Decisions
+
+Choose a consistency model per boundary, not per project:
+
+| Model        | When to apply                                          | Project example                                                                  |
+| ------------ | ------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| **Strong**   | Invariants that must hold immediately, within one unit | `User` aggregate — permissions deduplicated at construction, always consistent   |
+| **Eventual** | Best-effort state where brief lag is acceptable        | _Future:_ a `UserDisabled` event; active sessions lapse at next token validation |
+
+**Rule:** apply **strong** consistency _within_ an aggregate boundary (a single DB transaction guarantees the invariant), and **eventual** consistency _across_ aggregate or context boundaries (propagated by [domain events](#domain-events)). The decision pivot is the invariant: if it _must_ always be true, keep it inside one aggregate under strong consistency; if a short window of staleness is tolerable, let it converge.
+
+**Note:** The current implementation is strongly consistent throughout — every mutation is a synchronous DB call. Eventual consistency is documented here as guidance for future cross-service scenarios, in tandem with [domain events](#domain-events).
