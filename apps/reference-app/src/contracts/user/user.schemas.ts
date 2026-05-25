@@ -99,6 +99,16 @@ export const updateUserStatusRequestSchema = z.object({
 	status: z.enum([UserStatus.ACTIVE, UserStatus.DISABLED]),
 })
 
+/**
+ * Reset password response schema.
+ * Returned from the admin-initiated password reset endpoint. The generated
+ * password is intentionally omitted — it is emailed to the user, never returned.
+ */
+export const resetPasswordResponseSchema = z.object({
+	message: z.string(),
+	passwordEmailSent: z.boolean(),
+})
+
 // ============================================================================
 // User Role Request Schemas
 // ============================================================================
