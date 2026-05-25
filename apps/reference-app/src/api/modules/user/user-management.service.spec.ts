@@ -488,7 +488,7 @@ describe('UserManagementService', () => {
 			const result = await service.resetPassword(1)
 
 			expect(result.passwordEmailSent).toBe(false)
-			expect(consoleErrorSpy.calls.length).toBeGreaterThan(0)
+			expect(consoleErrorSpy.calls[0][0]).toContain('[UserManagementService]')
 		})
 	})
 })
