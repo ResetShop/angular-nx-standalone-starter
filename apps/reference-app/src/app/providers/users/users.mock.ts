@@ -5,6 +5,7 @@ import type {
 	CreateUserRequest,
 	CreateUserResponse,
 	ManagedUser,
+	ResetPasswordResponse,
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
@@ -325,6 +326,19 @@ export class InMemoryUsersApi implements UsersApi {
 		const updated = { ...user, status: body.status, statusChangedAt: new Date(), updatedAt: new Date() }
 		this.users.set(id, updated)
 		return of(updated)
+	}
+
+	public resetPassword(id: number): Observable<ResetPasswordResponse> {
+		const error = this.errors.get('resetPassword')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		const user = this.users.get(id)
+		if (!user) {
+			return throwError(() => new Error(`User ${id} not found`))
+		}
+		return of({ message: 'Password reset successfully', passwordEmailSent: true })
 	}
 }
 

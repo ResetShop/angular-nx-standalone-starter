@@ -10,6 +10,7 @@ export interface UsersMutationError {
 	update: string | null
 	updateStatus: string | null
 	delete: string | null
+	resetPassword: string | null
 }
 
 export interface UsersState {
@@ -24,6 +25,7 @@ export interface UsersState {
 	isCreating: boolean
 	isUpdating: boolean
 	isDeleting: boolean
+	isResettingPassword: boolean
 	readError: UsersReadError
 	mutationError: UsersMutationError
 }
@@ -40,6 +42,7 @@ export const initialUsersState: UsersState = {
 	isCreating: false,
 	isUpdating: false,
 	isDeleting: false,
+	isResettingPassword: false,
 	readError: { list: null, detail: null },
-	mutationError: { create: null, update: null, updateStatus: null, delete: null },
+	mutationError: { create: null, update: null, updateStatus: null, delete: null, resetPassword: null },
 }

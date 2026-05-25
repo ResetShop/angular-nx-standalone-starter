@@ -4,6 +4,7 @@ import type {
 	CreateUserRequest,
 	CreateUserResponse,
 	ManagedUser,
+	ResetPasswordResponse,
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
@@ -16,6 +17,7 @@ export interface UsersApi {
 	update(id: number, body: UpdateUserRequest): Observable<ManagedUser>
 	delete(id: number): Observable<void>
 	updateStatus(id: number, body: UpdateUserStatusRequest): Observable<ManagedUser>
+	resetPassword(id: number): Observable<ResetPasswordResponse>
 }
 
 export const UsersApi = new InjectionToken<UsersApi>('UsersApi')

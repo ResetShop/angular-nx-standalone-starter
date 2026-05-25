@@ -56,9 +56,15 @@ const en: TranslationSchema = {
 			DESCRIPTION: 'Manage system users, their roles, and account status.',
 			SEARCH: 'Search users...',
 			CREATE_BUTTON: 'Create User',
+			RESET_PASSWORD_BUTTON: 'Reset Password',
 			DELETE_DIALOG: {
 				TITLE: 'Delete User',
 				MESSAGE: "Are you sure you want to delete the user '{name}'? This action cannot be undone.",
+			},
+			RESET_PASSWORD_DIALOG: {
+				TITLE: 'Reset Password',
+				MESSAGE:
+					"Are you sure you want to reset the password for '{email}'? A new temporary password will be emailed to the user, who will be required to change it on next login.",
 			},
 		},
 		TABLE: {
@@ -88,6 +94,7 @@ const en: TranslationSchema = {
 			SUCCESS_TOAST: 'User updated successfully.',
 		},
 		DELETE_TOAST: 'User deleted successfully.',
+		RESET_PASSWORD_TOAST: 'Password reset email sent.',
 	},
 	ROLES: {
 		PAGE: {

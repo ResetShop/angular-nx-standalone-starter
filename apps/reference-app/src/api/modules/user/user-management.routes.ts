@@ -5,6 +5,7 @@ import {
 	createUserRequestSchema,
 	createUserResponseSchema,
 	managedUserSchema,
+	resetPasswordResponseSchema,
 	updateUserRequestSchema,
 	updateUserStatusRequestSchema,
 } from '@contracts/user/user.schemas'
@@ -166,6 +167,32 @@ export const deleteUserRoute = createRoute({
 		200: {
 			description: 'User deleted',
 			content: { 'application/json': { schema: successMessageSchema } },
+		},
+		400: {
+			description: 'Invalid user ID',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		404: {
+			description: 'User not found',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+export const resetPasswordRoute = createRoute({
+	method: 'post',
+	path: '/{id}/reset-password',
+	tags: ['Users'],
+	summary: 'Reset user password',
+	description:
+		'Admin-initiated password reset. Generates a new temporary password, sets mustChangePassword to true, and emails it to the user. The generated password is never returned to the admin.',
+	middleware: [requirePermission(permission('admin:users:reset_password'))] as const,
+	request: { params: idParamSchema },
+	responses: {
+		200: {
+			description: 'Password reset and email dispatched',
+			content: { 'application/json': { schema: resetPasswordResponseSchema } },
 		},
 		400: {
 			description: 'Invalid user ID',
