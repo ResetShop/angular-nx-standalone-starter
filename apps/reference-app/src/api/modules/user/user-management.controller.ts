@@ -4,6 +4,7 @@ import type {
 	CreateUserRequest,
 	CreateUserResponse,
 	ManagedUser,
+	ResetPasswordResponse,
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
@@ -16,6 +17,7 @@ import {
 	deleteUserRoute,
 	getUserRoute,
 	listUsersRoute,
+	resetPasswordRoute,
 	updateUserRoute,
 	updateUserStatusRoute,
 } from './user-management.routes'
@@ -167,6 +169,26 @@ registerRoute(app, deleteUserRoute, async (c) => {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
 			logger.security('self_lockout_blocked', { actorId, operation: 'user_deleted', reason: error.message })
 		}
+		const mapped = resolveErrorStatus(error)
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
+		throw error
+	}
+})
+
+/**
+ * POST /api/user/:id/reset-password
+ * Admin-initiated password reset — generates, hashes, persists, and emails a new temp password
+ */
+registerRoute(app, resetPasswordRoute, async (c) => {
+	const { userManagementService } = container.cradle
+	const { id }: { id: number } = c.req.valid('param')
+	const actorId = Number((c as AuthenticatedContext).user.sub)
+
+	try {
+		const result = await userManagementService.resetPassword(id)
+		logger.security('user_password_reset', { userId: id, actorId, passwordEmailSent: result.passwordEmailSent })
+		return c.json<ResetPasswordResponse>(result)
+	} catch (error) {
 		const mapped = resolveErrorStatus(error)
 		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
 		throw error

@@ -25,6 +25,7 @@ describe('User Management Controller', () => {
 	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>()
 	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>()
 	const mockDeleteUser = fn<[number, number], Promise<void>>()
+	const mockResetPassword = fn<[number], Promise<{ message: string; passwordEmailSent: boolean }>>()
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>()
 
 	let app: Hono
@@ -95,6 +96,14 @@ describe('User Management Controller', () => {
 			resource: 'users',
 			action: 'disable',
 		},
+		{
+			id: 6,
+			name: permission('admin:users:reset_password'),
+			description: 'Reset user passwords',
+			module: 'admin',
+			resource: 'users',
+			action: 'reset_password',
+		},
 	]
 
 	const ADMIN_USER_ID = 999
@@ -116,6 +125,7 @@ describe('User Management Controller', () => {
 					updateUser: mockUpdateUser,
 					updateUserStatus: mockUpdateUserStatus,
 					deleteUser: mockDeleteUser,
+					resetPassword: mockResetPassword,
 				},
 				userRoleService: {
 					getUserPermissions: mockGetUserPermissions,
@@ -532,6 +542,47 @@ describe('User Management Controller', () => {
 			const res = await app.request('/users/invalid', {
 				method: 'DELETE',
 			})
+
+			expect(res.status).toBe(400)
+		})
+	})
+
+	describe('POST /users/:id/reset-password', () => {
+		it('should reset the password and emit a security audit log', async () => {
+			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', passwordEmailSent: true })
+
+			const res = await app.request('/users/1/reset-password', { method: 'POST' })
+
+			expect(res.status).toBe(200)
+			const data = await res.json()
+			expect(data.message).toBe('Password reset successfully')
+			expect(data.passwordEmailSent).toBe(true)
+			expect(mockResetPassword.calls).toEqual([[1]])
+			expect(loggerSecuritySpy.calls[0][0]).toBe('user_password_reset')
+		})
+
+		it('should not expose a generated password in the response', async () => {
+			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', passwordEmailSent: true })
+
+			const res = await app.request('/users/1/reset-password', { method: 'POST' })
+			const data = await res.json()
+
+			expect(data).not.toHaveProperty('password')
+			expect(Object.keys(data).sort()).toEqual(['message', 'passwordEmailSent'])
+		})
+
+		it('should return 404 when user not found', async () => {
+			mockResetPassword.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND))
+
+			const res = await app.request('/users/999/reset-password', { method: 'POST' })
+
+			expect(res.status).toBe(404)
+			const data = await res.json()
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.NOT_FOUND)
+		})
+
+		it('should return 400 for invalid ID', async () => {
+			const res = await app.request('/users/invalid/reset-password', { method: 'POST' })
 
 			expect(res.status).toBe(400)
 		})
