@@ -10,8 +10,8 @@ import { IfNotCurrentUserDirective } from './if-not-current-user.directive'
 	standalone: true,
 	imports: [IfNotCurrentUserDirective],
 	template: `
-		<span *ifNotCurrentUser="entity()" data-testid="gated-content">Show me</span>
-		<span data-testid="always-visible">Always here</span>
+		<span *ifNotCurrentUser="entity()">Show me</span>
+		<span>Always here</span>
 	`,
 })
 class TestHost {
@@ -37,15 +37,15 @@ describe('IfNotCurrentUserDirective', () => {
 	it('renders the template when the entity id differs from the current user id', async () => {
 		await renderHost({ id: 1 })
 
-		expect(screen.getByTestId('gated-content')).toBeInTheDocument()
-		expect(screen.getByTestId('always-visible')).toBeInTheDocument()
+		expect(screen.getByText('Show me')).toBeInTheDocument()
+		expect(screen.getByText('Always here')).toBeInTheDocument()
 	})
 
 	it('hides the template when the entity id matches the current user id', async () => {
 		await renderHost({ id: 42 })
 
-		expect(screen.queryByTestId('gated-content')).not.toBeInTheDocument()
-		expect(screen.getByTestId('always-visible')).toBeInTheDocument()
+		expect(screen.queryByText('Show me')).not.toBeInTheDocument()
+		expect(screen.getByText('Always here')).toBeInTheDocument()
 	})
 
 	it('renders the template when the current user is null', async () => {
@@ -53,32 +53,32 @@ describe('IfNotCurrentUserDirective', () => {
 
 		await renderHost({ id: 42 })
 
-		expect(screen.getByTestId('gated-content')).toBeInTheDocument()
+		expect(screen.getByText('Show me')).toBeInTheDocument()
 	})
 
 	it('renders the template when the entity is null', async () => {
 		await renderHost(null)
 
-		expect(screen.getByTestId('gated-content')).toBeInTheDocument()
+		expect(screen.getByText('Show me')).toBeInTheDocument()
 	})
 
 	it('hides reactively when the entity input changes to match the current user', async () => {
 		const { fixture } = await renderHost({ id: 1 })
-		expect(screen.getByTestId('gated-content')).toBeInTheDocument()
+		expect(screen.getByText('Show me')).toBeInTheDocument()
 
 		fixture.componentRef.setInput('entity', { id: 42 })
 		TestBed.tick()
 
-		expect(screen.queryByTestId('gated-content')).not.toBeInTheDocument()
+		expect(screen.queryByText('Show me')).not.toBeInTheDocument()
 	})
 
 	it('hides reactively when the current user signal updates to match the entity', async () => {
 		await renderHost({ id: 7 })
-		expect(screen.getByTestId('gated-content')).toBeInTheDocument()
+		expect(screen.getByText('Show me')).toBeInTheDocument()
 
 		currentUser.set({ id: 7 })
 		TestBed.tick()
 
-		expect(screen.queryByTestId('gated-content')).not.toBeInTheDocument()
+		expect(screen.queryByText('Show me')).not.toBeInTheDocument()
 	})
 })
