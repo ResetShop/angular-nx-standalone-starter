@@ -1,5 +1,5 @@
 import type { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse } from '@contracts/user/user.types'
+import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
 
@@ -220,5 +220,5 @@ export interface UserManagementService {
 	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
 	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
 	deleteUser(id: number, currentUserId: number): Promise<void>
-	resetPassword(id: number): Promise<{ message: string; passwordEmailSent: boolean }>
+	resetPassword(id: number): Promise<ResetPasswordResponse>
 }

@@ -1,5 +1,5 @@
 import { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse } from '@contracts/user/user.types'
+import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
 import { hash } from 'bcryptjs'
 import { getBcryptSaltRounds } from '../../constants/auth.constants'
@@ -234,7 +234,7 @@ export class UserManagementService {
 	 * @returns A confirmation message and whether the reset email was sent
 	 * @throws Error if the user is not found
 	 */
-	public async resetPassword(id: number): Promise<{ message: string; passwordEmailSent: boolean }> {
+	public async resetPassword(id: number): Promise<ResetPasswordResponse> {
 		const userData = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!userData) {
 			throw userManagementErrors.notFound(id)
