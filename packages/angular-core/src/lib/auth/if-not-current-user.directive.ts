@@ -26,6 +26,12 @@ import { CURRENT_USER_SOURCE } from './current-user.token'
 	standalone: true,
 })
 export class IfNotCurrentUserDirective {
+	/**
+	 * The entity to compare against the current user. Accepts `null` or `undefined`
+	 * when the host entity is not yet resolved (e.g. a `signal<User | null>()` before
+	 * initialization, or an optional `?.` access in the template binding) — both
+	 * arms render the template, matching the "show on missing data" branch.
+	 */
 	public readonly entity = input.required<{ id: number } | null | undefined>({ alias: 'ifNotCurrentUser' })
 
 	private readonly templateRef = inject(TemplateRef<unknown>)
