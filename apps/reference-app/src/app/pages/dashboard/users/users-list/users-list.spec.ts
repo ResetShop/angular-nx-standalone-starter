@@ -41,6 +41,7 @@ describe('UsersList', () => {
 			update: fn(),
 			delete: fn(),
 			updateStatus: fn(),
+			resetPassword: fn(),
 		}
 
 		rolesApiMock = {

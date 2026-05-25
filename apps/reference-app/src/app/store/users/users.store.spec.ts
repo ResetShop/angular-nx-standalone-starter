@@ -43,6 +43,7 @@ describe('UsersStore', () => {
 			update: fn(),
 			delete: fn(),
 			updateStatus: fn(),
+			resetPassword: fn(),
 		}
 
 		// Default mock — prevents onInit from firing against an unmocked fn().
