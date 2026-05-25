@@ -72,6 +72,16 @@ describe('IfNotCurrentUserDirective', () => {
 		expect(screen.queryByText('Show me')).not.toBeInTheDocument()
 	})
 
+	it('re-shows reactively when the entity input changes from the current user id to a different id', async () => {
+		const { fixture } = await renderHost({ id: 42 })
+		expect(screen.queryByText('Show me')).not.toBeInTheDocument()
+
+		fixture.componentRef.setInput('entity', { id: 99 })
+		TestBed.tick()
+
+		expect(screen.getByText('Show me')).toBeInTheDocument()
+	})
+
 	it('hides reactively when the current user signal updates to match the entity', async () => {
 		await renderHost({ id: 7 })
 		expect(screen.getByText('Show me')).toBeInTheDocument()
