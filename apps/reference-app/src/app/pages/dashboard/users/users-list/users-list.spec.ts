@@ -9,6 +9,7 @@ import { mockTranslation } from '@providers/i18n/translation.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
 import { createMockManagedUser } from '@providers/users/users.mock'
+import { CURRENT_USER_SOURCE } from '@resetshop/angular-core/auth/current-user.token'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import {
 	advanceTimersByTimeAsync,
@@ -79,6 +80,7 @@ describe('UsersList', () => {
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
@@ -98,6 +100,7 @@ describe('UsersList', () => {
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
@@ -155,6 +158,7 @@ describe('UsersList', () => {
 					{ provide: UsersApi, useValue: usersApiMock },
 					{ provide: RolesApi, useValue: rolesApiMock },
 					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+					{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 					{ provide: Translation, useValue: mockTranslation },
 					{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 				],
@@ -397,6 +401,7 @@ describe('UsersList', () => {
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
@@ -422,6 +427,7 @@ describe('UsersList', () => {
 					{ provide: UsersApi, useValue: usersApiMock },
 					{ provide: RolesApi, useValue: rolesApiMock },
 					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+					{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 					{ provide: Translation, useValue: mockTranslation },
 					{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 				],
