@@ -57,7 +57,12 @@ export interface TranslationSchema {
 			DESCRIPTION: string
 			SEARCH: string
 			CREATE_BUTTON: string
+			RESET_PASSWORD_BUTTON: string
 			DELETE_DIALOG: {
+				TITLE: string
+				MESSAGE: string
+			}
+			RESET_PASSWORD_DIALOG: {
 				TITLE: string
 				MESSAGE: string
 			}
@@ -89,6 +94,7 @@ export interface TranslationSchema {
 			SUCCESS_TOAST: string
 		}
 		DELETE_TOAST: string
+		RESET_PASSWORD_TOAST: string
 	}
 	ROLES: {
 		PAGE: {

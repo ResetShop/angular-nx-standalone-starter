@@ -47,7 +47,9 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				DESCRIPTION: 'Manage',
 				SEARCH: 'Search',
 				CREATE_BUTTON: 'Create',
+				RESET_PASSWORD_BUTTON: 'Reset',
 				DELETE_DIALOG: { TITLE: 'Delete?', MESSAGE: 'Sure?' },
+				RESET_PASSWORD_DIALOG: { TITLE: 'Reset?', MESSAGE: 'Sure?' },
 			},
 			TABLE: { CAPTION: 'Users', HEADER: { NAME: 'Name', EMAIL: 'Email', STATUS: 'Status', ROLES: 'Roles' } },
 			CREATE_DRAWER: {
@@ -68,6 +70,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				SUCCESS_TOAST: 'Updated',
 			},
 			DELETE_TOAST: 'Deleted',
+			RESET_PASSWORD_TOAST: 'Reset sent',
 		},
 		ROLES: {
 			PAGE: {
@@ -211,7 +214,9 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				DESCRIPTION: 'Gestionar',
 				SEARCH: 'Buscar',
 				CREATE_BUTTON: 'Crear',
+				RESET_PASSWORD_BUTTON: 'Restablecer',
 				DELETE_DIALOG: { TITLE: '¿Eliminar?', MESSAGE: '¿Seguro?' },
+				RESET_PASSWORD_DIALOG: { TITLE: '¿Restablecer?', MESSAGE: '¿Seguro?' },
 			},
 			TABLE: { CAPTION: 'Usuarios', HEADER: { NAME: 'Nombre', EMAIL: 'Correo', STATUS: 'Estado', ROLES: 'Roles' } },
 			CREATE_DRAWER: {
@@ -232,6 +237,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				SUCCESS_TOAST: 'Actualizado',
 			},
 			DELETE_TOAST: 'Eliminado',
+			RESET_PASSWORD_TOAST: 'Restablecimiento enviado',
 		},
 		ROLES: {
 			PAGE: {

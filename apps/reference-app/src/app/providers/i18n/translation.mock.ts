@@ -61,9 +61,13 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'USERS.PAGE.DESCRIPTION': 'Manage system users, their roles, and account status.',
 	'USERS.PAGE.SEARCH': 'Search users...',
 	'USERS.PAGE.CREATE_BUTTON': 'Create User',
+	'USERS.PAGE.RESET_PASSWORD_BUTTON': 'Reset Password',
 	'USERS.PAGE.DELETE_DIALOG.TITLE': 'Delete User',
 	'USERS.PAGE.DELETE_DIALOG.MESSAGE':
 		"Are you sure you want to delete the user '{name}'? This action cannot be undone.",
+	'USERS.PAGE.RESET_PASSWORD_DIALOG.TITLE': 'Reset Password',
+	'USERS.PAGE.RESET_PASSWORD_DIALOG.MESSAGE':
+		"Are you sure you want to reset the password for '{email}'? A new temporary password will be emailed to the user, who will be required to change it on next login.",
 	'USERS.TABLE.CAPTION': 'Users list',
 	'USERS.TABLE.HEADER.NAME': 'Name',
 	'USERS.TABLE.HEADER.EMAIL': 'Email',
@@ -83,6 +87,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'USERS.EDIT_DRAWER.ROLES_LABEL': 'Roles',
 	'USERS.EDIT_DRAWER.SUCCESS_TOAST': 'User updated successfully.',
 	'USERS.DELETE_TOAST': 'User deleted successfully.',
+	'USERS.RESET_PASSWORD_TOAST': 'Password reset email sent.',
 
 	// Roles
 	'ROLES.PAGE.TITLE': 'Roles',

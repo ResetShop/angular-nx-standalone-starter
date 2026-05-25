@@ -56,9 +56,15 @@ const es: TranslationSchema = {
 			DESCRIPTION: 'Administrar usuarios del sistema, sus roles y estado de cuenta.',
 			SEARCH: 'Buscar usuarios...',
 			CREATE_BUTTON: 'Crear usuario',
+			RESET_PASSWORD_BUTTON: 'Restablecer contraseña',
 			DELETE_DIALOG: {
 				TITLE: 'Eliminar usuario',
 				MESSAGE: "¿Estás seguro de que deseas eliminar al usuario '{name}'? Esta acción no se puede deshacer.",
+			},
+			RESET_PASSWORD_DIALOG: {
+				TITLE: 'Restablecer contraseña',
+				MESSAGE:
+					"¿Estás seguro de que deseas restablecer la contraseña de '{email}'? Se enviará una nueva contraseña temporal al usuario por correo electrónico, quien deberá cambiarla en su próximo inicio de sesión.",
 			},
 		},
 		TABLE: {
@@ -88,6 +94,7 @@ const es: TranslationSchema = {
 			SUCCESS_TOAST: 'Usuario actualizado exitosamente.',
 		},
 		DELETE_TOAST: 'Usuario eliminado exitosamente.',
+		RESET_PASSWORD_TOAST: 'Correo de restablecimiento de contraseña enviado.',
 	},
 	ROLES: {
 		PAGE: {
