@@ -412,9 +412,33 @@ describe('UsersList', () => {
 		view.fixture.detectChanges()
 
 		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
-		// Other actions remain available — edit and delete are not gated on self-id here.
+		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+		// Edit remains available — users may update their own profile.
 		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+	})
+
+	it('should hide delete button on the row matching the current user', async () => {
+		const users = [createMockManagedUser({ id: 42, email: 'self@example.com' })]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+		const view = await render(UsersList, {
+			providers: [
+				{ provide: UsersApi, useValue: usersApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
+				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 42, hasPermission: () => true }))
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+		// Edit remains available — users may update their own profile.
+		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
 	})
 
 	describe('permission-conditional rendering', () => {

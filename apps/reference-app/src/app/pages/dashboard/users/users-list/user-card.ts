@@ -52,18 +52,20 @@ import { Button } from '@resetshop/ui/button/button'
 						{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}
 					</button>
 				}
-				<button
-					(click)="delete.emit()"
-					*hasPermission="'admin:users:delete'"
-					appButton
-					variant="ghost"
-					size="sm"
-					class="text-destructive"
-					data-touch-target
-				>
-					<ng-icon data-icon="start" name="featherTrash2" />
-					{{ 'COMMON.DELETE' | translate }}
-				</button>
+				@if (!isCurrentUser(user())) {
+					<button
+						(click)="delete.emit()"
+						*hasPermission="'admin:users:delete'"
+						appButton
+						variant="ghost"
+						size="sm"
+						class="text-destructive"
+						data-touch-target
+					>
+						<ng-icon data-icon="start" name="featherTrash2" />
+						{{ 'COMMON.DELETE' | translate }}
+					</button>
+				}
 			</div>
 		</div>
 	`,

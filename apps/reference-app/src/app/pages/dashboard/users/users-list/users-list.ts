@@ -126,18 +126,20 @@ import { UserCard } from './user-card'
 								<span class="sr-only sm:not-sr-only">{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}</span>
 							</button>
 						}
-						<button
-							(click)="confirmDelete(row)"
-							*hasPermission="'admin:users:delete'"
-							appButton
-							variant="ghost"
-							size="sm"
-							class="text-destructive"
-							data-touch-target
-						>
-							<ng-icon data-icon="start" name="featherTrash2" />
-							<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
-						</button>
+						@if (!isCurrentUser(row)) {
+							<button
+								(click)="confirmDelete(row)"
+								*hasPermission="'admin:users:delete'"
+								appButton
+								variant="ghost"
+								size="sm"
+								class="text-destructive"
+								data-touch-target
+							>
+								<ng-icon data-icon="start" name="featherTrash2" />
+								<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
+							</button>
+						}
 					</div>
 				</ng-template>
 
