@@ -1,4 +1,5 @@
-import type { EmailContent } from './welcome-email.builder'
+import type { EmailContent, EmailLanguage } from './email-builder.utils'
+import { escapeHtml, resolveEmailLanguage } from './email-builder.utils'
 
 export interface ResetPasswordEmailParams {
 	firstName: string
@@ -35,12 +36,6 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 		team: 'El Equipo',
 	},
 } as const)
-
-type EmailLanguage = keyof typeof EMAIL_TRANSLATIONS
-
-function resolveEmailLanguage(lang: string | undefined): EmailLanguage {
-	return lang === 'es' ? 'es' : 'en'
-}
 
 /**
  * Build password-reset email content for admin-initiated resets.
@@ -79,15 +74,6 @@ ${t.footer}
 
 ${t.signOff}
 ${t.team}`
-}
-
-function escapeHtml(value: string): string {
-	return value
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;')
 }
 
 function buildHtmlContent(
