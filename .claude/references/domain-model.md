@@ -185,7 +185,7 @@ A **domain event** is a past-tense fact about something that already happened: `
 
 Events let one bounded context react to another without a direct call — the producing context records the fact, and consuming contexts subscribe. This decouples contexts: neither needs to know the other's internals.
 
-**Note:** Domain events are **not yet implemented** in this project. Cross-context communication currently happens through mappers (see [Mappers](#mappers)) and direct service calls. This section documents the pattern for the point at which that direct coupling becomes a maintenance burden — for example, when disabling a user must fan out to multiple contexts (audit log, session revocation, notifications) that should not all be wired into one service.
+**Note:** Domain events are **not yet implemented** in this project. Cross-context communication currently happens through mappers (see [Mappers](#mappers)) and direct service calls. This section documents the pattern for the point at which that direct coupling becomes a maintenance burden — for example, when disabling a user must fan out to multiple contexts (audit log, session revocation, notifications) that should not all be wired into one service. The event names above are illustrative — authoritative names will be agreed when events are actually introduced.
 
 ## Type-State Pattern
 
@@ -210,7 +210,7 @@ A **policy** is a business rule extracted into a standalone pure function — no
 
 Existing examples in this project:
 
-- `permission(name: string): PermissionName` (`src/contracts/permission/permission.constants.ts`) — validates and brands an identifier; a pure policy guarding identifier format.
+- `permission(name: string): PermissionName` (`src/contracts/permission/permission.constants.ts`) — validates and brands an identifier; **throws** on invalid format and returns the branded `PermissionName` on success (a boundary guard, not a decision-returning predicate). Its companion `isPermissionName(name): name is PermissionName` is the pure-predicate form.
 - `user.hasPermission(identifier)` / `role.hasPermission(identifier)` — predicate policies on the aggregate.
 
 A new authorization rule follows the same shape:
@@ -232,12 +232,12 @@ function canAssignRole(actor: IUser, role: IRole): boolean {
 
 A **bounded context** is a scope within which one ubiquitous language and one model apply consistently. The same real-world concept can — and should — be modelled differently in different contexts. This project already separates four:
 
-| Context           | Folder                            | Key types                 | Perspective                            |
-| ----------------- | --------------------------------- | ------------------------- | -------------------------------------- |
-| `auth`            | `src/app/domain/auth/`            | maps login/`me` → `IUser` | Establishing session identity          |
-| `user`            | `src/app/domain/user/`            | `IUser`, `User`           | Who is logged in — O(1) auth checks    |
-| `user-management` | `src/app/domain/user-management/` | `IManagedUser`            | Admin CRUD of accounts (status, audit) |
-| `access`          | `src/app/domain/access/`          | `IRole`, `IPermission`    | Authorization rule definitions         |
+| Context           | Folder                            | Key types              | Perspective                            |
+| ----------------- | --------------------------------- | ---------------------- | -------------------------------------- |
+| `auth`            | `src/app/domain/auth/`            | _(mappers only)_       | Maps login/`me` responses → `IUser`    |
+| `user`            | `src/app/domain/user/`            | `IUser`, `User`        | Who is logged in — O(1) auth checks    |
+| `user-management` | `src/app/domain/user-management/` | `IManagedUser`         | Admin CRUD of accounts (status, audit) |
+| `access`          | `src/app/domain/access/`          | `IRole`, `IPermission` | Authorization rule definitions         |
 
 The key insight: `IUser` and `IManagedUser` both represent a "user", yet model different concerns. `IUser` is optimised for permission checks during a session and exposes behaviour (`hasPermission`, `hasRole`). `IManagedUser` carries `status`, `statusChangedAt`, `statusChangedBy`, `deletedAt` — fields irrelevant to session auth but essential to administrative views. The mappers (`user.mapper.ts`, `managed-user.mapper.ts`, `auth.mapper.ts`) are the explicit boundaries between these models.
 
