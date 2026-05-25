@@ -3,7 +3,7 @@ import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherEdit3, featherTrash2 } from '@ng-icons/feather-icons'
+import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
@@ -12,7 +12,7 @@ import { Button } from '@resetshop/ui/button/button'
 	selector: 'app-user-card',
 	standalone: true,
 	imports: [Badge, Button, HasPermissionDirective, NgIcon, TranslatePipe],
-	viewProviders: [provideIcons({ featherEdit3, featherTrash2 })],
+	viewProviders: [provideIcons({ featherEdit3, featherKey, featherTrash2 })],
 	template: `
 		<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
 			<div class="flex items-start justify-between gap-2">
@@ -39,6 +39,17 @@ import { Button } from '@resetshop/ui/button/button'
 					{{ 'COMMON.EDIT' | translate }}
 				</button>
 				<button
+					(click)="resetPassword.emit()"
+					*hasPermission="'admin:users:reset_password'"
+					appButton
+					variant="ghost"
+					size="sm"
+					data-touch-target
+				>
+					<ng-icon data-icon="start" name="featherKey" />
+					{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}
+				</button>
+				<button
 					(click)="delete.emit()"
 					*hasPermission="'admin:users:delete'"
 					appButton
@@ -59,6 +70,7 @@ export class UserCard {
 	public readonly user = input.required<IManagedUser>()
 	public readonly edit = output<void>()
 	public readonly delete = output<void>()
+	public readonly resetPassword = output<void>()
 
 	protected readonly UserStatus = UserStatus
 

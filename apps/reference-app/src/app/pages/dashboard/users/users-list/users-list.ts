@@ -13,7 +13,7 @@ import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherEdit3, featherTrash2 } from '@ng-icons/feather-icons'
+import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
@@ -50,7 +50,7 @@ import { UserCard } from './user-card'
 		TranslatePipe,
 		UserCard,
 	],
-	viewProviders: [provideIcons({ featherEdit3, featherTrash2 })],
+	viewProviders: [provideIcons({ featherEdit3, featherKey, featherTrash2 })],
 	template: `
 		<app-page-shell
 			[loading]="store.isLoadingList()"
@@ -113,6 +113,17 @@ import { UserCard } from './user-card'
 							<span class="sr-only sm:not-sr-only">{{ 'COMMON.EDIT' | translate }}</span>
 						</button>
 						<button
+							(click)="confirmResetPassword(row)"
+							*hasPermission="'admin:users:reset_password'"
+							appButton
+							variant="ghost"
+							size="sm"
+							data-touch-target
+						>
+							<ng-icon data-icon="start" name="featherKey" />
+							<span class="sr-only sm:not-sr-only">{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}</span>
+						</button>
+						<button
 							(click)="confirmDelete(row)"
 							*hasPermission="'admin:users:delete'"
 							appButton
@@ -128,7 +139,12 @@ import { UserCard } from './user-card'
 				</ng-template>
 
 				<ng-template appDataTableCardDef let-row>
-					<app-user-card (edit)="editDrawer.open(row.id)" (delete)="confirmDelete(row)" [user]="row" />
+					<app-user-card
+						(edit)="editDrawer.open(row.id)"
+						(delete)="confirmDelete(row)"
+						(resetPassword)="confirmResetPassword(row)"
+						[user]="row"
+					/>
 				</ng-template>
 			</app-data-table>
 
@@ -153,6 +169,14 @@ import { UserCard } from './user-card'
 			[confirmText]="'COMMON.DELETE' | translate"
 			#deleteDialog
 			confirmVariant="destructive"
+		/>
+
+		<app-confirm-dialog
+			(confirmed)="onResetPasswordConfirmed()"
+			[message]="resetPasswordMessage()"
+			[title]="'USERS.PAGE.RESET_PASSWORD_DIALOG.TITLE' | translate"
+			[confirmText]="'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate"
+			#resetPasswordDialog
 		/>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
@@ -180,6 +204,21 @@ export default class UsersList {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
+	private readonly resetPasswordDialog = viewChild.required<ConfirmDialog>('resetPasswordDialog')
+	private readonly resetPasswordToast = createMutationToast(this.translation.instant('USERS.RESET_PASSWORD_TOAST'))
+
+	protected readonly userToResetPassword = signal<IManagedUser | null>(null)
+	protected readonly resetPasswordMessage = computed(() => {
+		const email = this.userToResetPassword()?.email ?? ''
+		return this.translation.instant('USERS.PAGE.RESET_PASSWORD_DIALOG.MESSAGE').replace('{email}', email)
+	})
+
+	private readonly resetPasswordToastEffect = effect(() => {
+		const resetting = this.store.isResettingPassword()
+		const error = this.store.mutationError().resetPassword
+		untracked(() => this.resetPasswordToast.handleResult(resetting, error))
+	})
+
 	protected readonly columns = computed((): ColumnDef<IManagedUser, unknown>[] => {
 		const base: ColumnDef<IManagedUser, unknown>[] = [
 			{ accessorKey: 'fullName', header: this.translation.instant('USERS.TABLE.HEADER.NAME') },
@@ -192,7 +231,11 @@ export default class UsersList {
 			},
 		]
 		const user = this.authStore.currentUser()
-		if (user?.hasPermission('admin:users:update') || user?.hasPermission('admin:users:delete')) {
+		if (
+			user?.hasPermission('admin:users:update') ||
+			user?.hasPermission('admin:users:delete') ||
+			user?.hasPermission('admin:users:reset_password')
+		) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base
@@ -214,6 +257,20 @@ export default class UsersList {
 			this.deleteToast.markSubmitted()
 			this.store.deleteUser(user.id)
 			this.userToDelete.set(null)
+		}
+	}
+
+	protected confirmResetPassword(user: IManagedUser): void {
+		this.userToResetPassword.set(user)
+		this.resetPasswordDialog().show()
+	}
+
+	protected onResetPasswordConfirmed(): void {
+		const user = this.userToResetPassword()
+		if (user) {
+			this.resetPasswordToast.markSubmitted()
+			this.store.resetPassword(user.id)
+			this.userToResetPassword.set(null)
 		}
 	}
 }
