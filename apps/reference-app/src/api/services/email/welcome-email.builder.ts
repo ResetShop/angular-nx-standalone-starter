@@ -29,11 +29,11 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 	es: {
 		subject: 'Tu nueva cuenta ha sido creada',
 		greeting: 'Hola',
-		welcome: '¡Bienvenido! Tu cuenta ha sido creada exitosamente.',
+		welcome: '¡Te damos la bienvenida! Tu cuenta ha sido creada exitosamente.',
 		credentialsHeader: 'Tus credenciales de inicio de sesión:',
-		emailLabel: 'Correo Electrónico:',
+		emailLabel: 'Correo electrónico:',
 		passwordLabel: 'Contraseña',
-		tempPasswordLabel: 'Contraseña Temporal',
+		tempPasswordLabel: 'Contraseña temporal',
 		changeWarning:
 			'IMPORTANTE: Por favor, cambia tu contraseña inmediatamente después de tu primer inicio de sesión por razones de seguridad.',
 		footer: 'Este es un mensaje automatizado. Por favor, no respondas a este correo electrónico.',
