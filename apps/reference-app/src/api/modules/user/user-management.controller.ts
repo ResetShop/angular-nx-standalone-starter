@@ -185,10 +185,13 @@ registerRoute(app, resetPasswordRoute, async (c) => {
 	const actorId = Number((c as AuthenticatedContext).user.sub)
 
 	try {
-		const result = await userManagementService.resetPassword(id)
+		const result = await userManagementService.resetPassword(id, actorId)
 		logger.security('user_password_reset', { userId: id, actorId, passwordEmailSent: result.passwordEmailSent })
 		return c.json<ResetPasswordResponse>(result)
 	} catch (error) {
+		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
+			logger.security('self_lockout_blocked', { actorId, operation: 'user_password_reset', reason: error.message })
+		}
 		const mapped = resolveErrorStatus(error)
 		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
 		throw error

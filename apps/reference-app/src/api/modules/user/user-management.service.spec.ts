@@ -444,7 +444,7 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
 
-			const result = await service.resetPassword(1)
+			const result = await service.resetPassword(1, 999)
 
 			expect(result.message).toBe('Password reset successfully')
 			expect(result.passwordEmailSent).toBe(true)
@@ -457,7 +457,7 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
 
-			await service.resetPassword(1)
+			await service.resetPassword(1, 999)
 
 			const [, persistedHash] = mockUpdatePasswordAndMustChange.calls[0]
 			expect(persistedHash).not.toBe('indigo.rabbit.troop')
@@ -468,15 +468,22 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
 
-			await service.resetPassword(1)
+			await service.resetPassword(1, 999)
 
 			expect(mockUpdatePasswordAndMustChange.calls[0][2]).toBe(true)
+		})
+
+		it('should throw SELF_LOCKOUT when resetting own password', async () => {
+			await expect(service.resetPassword(1, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)
+			expect(mockFindByIdWithRoles.calls).toHaveLength(0)
+			expect(mockUpdatePasswordAndMustChange.calls).toHaveLength(0)
+			expect(mockSend.calls).toHaveLength(0)
 		})
 
 		it('should throw NOT_FOUND when the user does not exist', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(null)
 
-			await expect(service.resetPassword(999)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND)
+			await expect(service.resetPassword(999, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND)
 			expect(mockUpdatePasswordAndMustChange.calls).toHaveLength(0)
 		})
 
@@ -485,7 +492,7 @@ describe('UserManagementService', () => {
 			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
 			mockSend.mockRejectedValue(new Error('SMTP down'))
 
-			const result = await service.resetPassword(1)
+			const result = await service.resetPassword(1, 999)
 
 			expect(result.passwordEmailSent).toBe(false)
 			expect(consoleErrorSpy.calls[0][0]).toContain('[UserManagementService]')

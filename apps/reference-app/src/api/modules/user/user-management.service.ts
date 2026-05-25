@@ -231,10 +231,16 @@ export class UserManagementService {
 	 * The generated password is never returned to the caller.
 	 *
 	 * @param id - The target user's primary key
+	 * @param currentUserId - The ID of the admin performing the reset (for self-action prevention)
 	 * @returns A confirmation message and whether the reset email was sent
+	 * @throws Error if the admin targets their own account
 	 * @throws Error if the user is not found
 	 */
-	public async resetPassword(id: number): Promise<ResetPasswordResponse> {
+	public async resetPassword(id: number, currentUserId: number): Promise<ResetPasswordResponse> {
+		if (id === currentUserId) {
+			throw userManagementErrors.selfLockout()
+		}
+
 		const userData = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!userData) {
 			throw userManagementErrors.notFound(id)

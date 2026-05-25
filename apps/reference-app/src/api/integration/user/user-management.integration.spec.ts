@@ -414,5 +414,15 @@ describe('User management endpoints (/api/user)', () => {
 			})
 			expect(response.status).toBe(403)
 		})
+
+		it('returns 403 when an admin targets their own account', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/reset-password`, {
+				method: 'POST',
+				cookies: adminCookies,
+			})
+			expect(response.status).toBe(403)
+			const body = await response.json()
+			expect(body.error).toMatch(/cannot change status of your own account/i)
+		})
 	})
 })

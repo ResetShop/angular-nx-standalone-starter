@@ -112,17 +112,19 @@ import { UserCard } from './user-card'
 							<ng-icon data-icon="start" name="featherEdit3" />
 							<span class="sr-only sm:not-sr-only">{{ 'COMMON.EDIT' | translate }}</span>
 						</button>
-						<button
-							(click)="confirmResetPassword(row)"
-							*hasPermission="'admin:users:reset_password'"
-							appButton
-							variant="ghost"
-							size="sm"
-							data-touch-target
-						>
-							<ng-icon data-icon="start" name="featherKey" />
-							<span class="sr-only sm:not-sr-only">{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}</span>
-						</button>
+						@if (canResetPassword(row)) {
+							<button
+								(click)="confirmResetPassword(row)"
+								*hasPermission="'admin:users:reset_password'"
+								appButton
+								variant="ghost"
+								size="sm"
+								data-touch-target
+							>
+								<ng-icon data-icon="start" name="featherKey" />
+								<span class="sr-only sm:not-sr-only">{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}</span>
+							</button>
+						}
 						<button
 							(click)="confirmDelete(row)"
 							*hasPermission="'admin:users:delete'"
@@ -258,6 +260,10 @@ export default class UsersList {
 			this.store.deleteUser(user.id)
 			this.userToDelete.set(null)
 		}
+	}
+
+	protected canResetPassword(user: IManagedUser): boolean {
+		return this.authStore.currentUser()?.id !== user.id
 	}
 
 	protected confirmResetPassword(user: IManagedUser): void {

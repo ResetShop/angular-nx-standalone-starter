@@ -68,7 +68,9 @@ describe('UsersList', () => {
 	})
 
 	function setUserWithAllPermissions(): void {
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermission: () => true }))
+		// id=999 keeps the current user distinct from row mock ids (1–12) so the self-row
+		// hide-rule on the reset password action doesn't suppress assertions on row buttons.
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 999, hasPermission: () => true }))
 	}
 
 	async function renderComponent() {
@@ -384,6 +386,32 @@ describe('UsersList', () => {
 		expect(usersApiMock.resetPassword.calls[0][0]).toBe(42)
 	})
 
+	it('should hide reset password button on the row matching the current user', async () => {
+		// The current user shares the id of the only row, so reset-password must be hidden
+		// even though the user holds the admin:users:reset_password permission.
+		const users = [createMockManagedUser({ id: 42, email: 'self@example.com' })]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+		const view = await render(UsersList, {
+			providers: [
+				{ provide: UsersApi, useValue: usersApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 42, hasPermission: () => true }))
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+		// Other actions remain available — edit and delete are not gated on self-id here.
+		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+	})
+
 	describe('permission-conditional rendering', () => {
 		async function renderWithPermissions(allowedPermissions: string[]) {
 			const users = [createMockManagedUser()]
@@ -401,6 +429,7 @@ describe('UsersList', () => {
 
 			TestBed.inject(AuthStore).updateCurrentUser(
 				createMockUser({
+					id: 999,
 					hasPermission: (id: string) => allowedPermissions.includes(id),
 				}),
 			)

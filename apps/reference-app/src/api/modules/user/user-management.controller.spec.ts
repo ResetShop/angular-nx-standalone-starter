@@ -25,7 +25,7 @@ describe('User Management Controller', () => {
 	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>()
 	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>()
 	const mockDeleteUser = fn<[number, number], Promise<void>>()
-	const mockResetPassword = fn<[number], Promise<{ message: string; passwordEmailSent: boolean }>>()
+	const mockResetPassword = fn<[number, number], Promise<{ message: string; passwordEmailSent: boolean }>>()
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>()
 
 	let app: Hono
@@ -557,7 +557,7 @@ describe('User Management Controller', () => {
 			const data = await res.json()
 			expect(data.message).toBe('Password reset successfully')
 			expect(data.passwordEmailSent).toBe(true)
-			expect(mockResetPassword.calls).toEqual([[1]])
+			expect(mockResetPassword.calls).toEqual([[1, ADMIN_USER_ID]])
 			expect(loggerSecuritySpy.calls[0][0]).toBe('user_password_reset')
 		})
 
@@ -569,6 +569,17 @@ describe('User Management Controller', () => {
 
 			expect(data).not.toHaveProperty('password')
 			expect(Object.keys(data).sort()).toEqual(['message', 'passwordEmailSent'])
+		})
+
+		it('should return 403 when trying to reset own password', async () => {
+			mockResetPassword.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT))
+
+			const res = await app.request(`/users/${ADMIN_USER_ID}/reset-password`, { method: 'POST' })
+
+			expect(res.status).toBe(403)
+			const data = await res.json()
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)
+			expect(loggerSecuritySpy.calls.some(([event]) => event === 'self_lockout_blocked')).toBe(true)
 		})
 
 		it('should return 404 when user not found', async () => {

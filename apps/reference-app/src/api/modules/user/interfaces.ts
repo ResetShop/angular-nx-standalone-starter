@@ -220,5 +220,5 @@ export interface UserManagementService {
 	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
 	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
 	deleteUser(id: number, currentUserId: number): Promise<void>
-	resetPassword(id: number): Promise<ResetPasswordResponse>
+	resetPassword(id: number, currentUserId: number): Promise<ResetPasswordResponse>
 }

@@ -36,7 +36,9 @@ describe('UserCard', () => {
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermission: () => true }))
+		// id=999 keeps the current user distinct from the card's user (default id=1) so the
+		// self-row hide-rule on the reset password action doesn't suppress button assertions.
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 999, hasPermission: () => true }))
 		view.fixture.detectChanges()
 		return { view, editSpy, deleteSpy, resetPasswordSpy }
 	}
@@ -130,11 +132,28 @@ describe('UserCard', () => {
 			],
 		})
 		TestBed.inject(AuthStore).updateCurrentUser(
-			createMockUser({ hasPermission: (id) => id !== 'admin:users:reset_password' }),
+			createMockUser({ id: 999, hasPermission: (id) => id !== 'admin:users:reset_password' }),
 		)
 		view.fixture.detectChanges()
 
 		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+	})
+
+	it('hides the reset password button when the card user is the current user', async () => {
+		const view = await render(UserCard, {
+			inputs: { user: buildUser({ id: 42 }) },
+			on: { edit: fn(), delete: fn(), resetPassword: fn() },
+			providers: [
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: Translation, useValue: mockTranslation },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 42, hasPermission: () => true }))
+		view.fixture.detectChanges()
+
+		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
 		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
 	})
 
@@ -149,7 +168,9 @@ describe('UserCard', () => {
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermission: (id) => id !== 'admin:users:update' }))
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({ id: 999, hasPermission: (id) => id !== 'admin:users:update' }),
+		)
 		view.fixture.detectChanges()
 
 		expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()

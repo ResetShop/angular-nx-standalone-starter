@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
@@ -7,6 +7,7 @@ import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
+import { AuthStore } from '@store/auth/auth.store'
 
 @Component({
 	selector: 'app-user-card',
@@ -38,17 +39,19 @@ import { Button } from '@resetshop/ui/button/button'
 					<ng-icon data-icon="start" name="featherEdit3" />
 					{{ 'COMMON.EDIT' | translate }}
 				</button>
-				<button
-					(click)="resetPassword.emit()"
-					*hasPermission="'admin:users:reset_password'"
-					appButton
-					variant="ghost"
-					size="sm"
-					data-touch-target
-				>
-					<ng-icon data-icon="start" name="featherKey" />
-					{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}
-				</button>
+				@if (canResetPassword()) {
+					<button
+						(click)="resetPassword.emit()"
+						*hasPermission="'admin:users:reset_password'"
+						appButton
+						variant="ghost"
+						size="sm"
+						data-touch-target
+					>
+						<ng-icon data-icon="start" name="featherKey" />
+						{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}
+					</button>
+				}
 				<button
 					(click)="delete.emit()"
 					*hasPermission="'admin:users:delete'"
@@ -72,7 +75,10 @@ export class UserCard {
 	public readonly delete = output<void>()
 	public readonly resetPassword = output<void>()
 
+	private readonly authStore = inject(AuthStore)
+
 	protected readonly UserStatus = UserStatus
+	protected readonly canResetPassword = computed(() => this.authStore.currentUser()?.id !== this.user().id)
 
 	protected formatStatus(status: UserStatus): string {
 		return status.charAt(0).toUpperCase() + status.slice(1)
