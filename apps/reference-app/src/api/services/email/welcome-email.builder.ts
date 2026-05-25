@@ -31,7 +31,7 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 		greeting: 'Hola',
 		welcome: '¡Te damos la bienvenida! Tu cuenta ha sido creada exitosamente.',
 		credentialsHeader: 'Tus credenciales de inicio de sesión:',
-		emailLabel: 'Correo Electrónico:',
+		emailLabel: 'Correo electrónico:',
 		passwordLabel: 'Contraseña',
 		tempPasswordLabel: 'Contraseña temporal',
 		changeWarning:
