@@ -390,9 +390,9 @@ describe('UsersList', () => {
 		expect(usersApiMock.resetPassword.calls[0][0]).toBe(42)
 	})
 
-	it('should hide reset password button on the row matching the current user', async () => {
-		// The current user shares the id of the only row, so reset-password must be hidden
-		// even though the user holds the admin:users:reset_password permission.
+	it('should hide reset password and delete buttons on the row matching the current user', async () => {
+		// The current user shares the id of the only row, so destructive row actions must be hidden
+		// even though the user holds admin:users:reset_password and admin:users:delete permissions.
 		const users = [createMockManagedUser({ id: 42, email: 'self@example.com' })]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
 
@@ -412,30 +412,6 @@ describe('UsersList', () => {
 		view.fixture.detectChanges()
 
 		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
-		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
-		// Edit remains available — users may update their own profile.
-		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-	})
-
-	it('should hide delete button on the row matching the current user', async () => {
-		const users = [createMockManagedUser({ id: 42, email: 'self@example.com' })]
-		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
-
-		const view = await render(UsersList, {
-			providers: [
-				{ provide: UsersApi, useValue: usersApiMock },
-				{ provide: RolesApi, useValue: rolesApiMock },
-				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
-				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
-				{ provide: Translation, useValue: mockTranslation },
-				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
-			],
-		})
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 42, hasPermission: () => true }))
-		TestBed.tick()
-		await advanceTimersByTimeAsync(1000)
-		view.fixture.detectChanges()
-
 		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
 		// Edit remains available — users may update their own profile.
 		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()

@@ -143,7 +143,7 @@ describe('UserCard', () => {
 		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
 	})
 
-	it('hides the reset password button when the card user is the current user', async () => {
+	it('hides the reset password and delete buttons when the card user is the current user', async () => {
 		const view = await render(UserCard, {
 			inputs: { user: buildUser({ id: 42 }) },
 			on: { edit: fn(), delete: fn(), resetPassword: fn() },
@@ -159,23 +159,6 @@ describe('UserCard', () => {
 		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
 		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
 		// Edit remains visible — users may update their own profile.
-		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-	})
-
-	it('hides the delete button when the card user is the current user', async () => {
-		const view = await render(UserCard, {
-			inputs: { user: buildUser({ id: 42 }) },
-			on: { edit: fn(), delete: fn(), resetPassword: fn() },
-			providers: [
-				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
-				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
-				{ provide: Translation, useValue: mockTranslation },
-			],
-		})
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 42, hasPermission: () => true }))
-		view.fixture.detectChanges()
-
-		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
 		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
 	})
 
