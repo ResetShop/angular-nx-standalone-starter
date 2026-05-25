@@ -1,10 +1,11 @@
 import { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse } from '@contracts/user/user.types'
+import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
 import { hash } from 'bcryptjs'
 import { getBcryptSaltRounds } from '../../constants/auth.constants'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
+import { buildResetPasswordEmail } from '../../services/email/reset-password-email.builder'
 import { buildWelcomeEmail } from '../../services/email/welcome-email.builder'
 import type {
 	CreateUserParams,
@@ -221,6 +222,47 @@ export class UserManagementService {
 		const deleted = await this.userManagementRepository.softDelete(id, currentUserId)
 		if (!deleted) {
 			throw userManagementErrors.notFound(id)
+		}
+	}
+
+	/**
+	 * Admin-initiated password reset. Generates a new temporary password, hashes
+	 * and persists it with `mustChangePassword: true`, and emails it to the user.
+	 * The generated password is never returned to the caller.
+	 *
+	 * @param id - The target user's primary key
+	 * @param currentUserId - The ID of the admin performing the reset (for self-action prevention)
+	 * @returns A confirmation message and whether the reset email was sent
+	 * @throws Error if the admin targets their own account
+	 * @throws Error if the user is not found
+	 */
+	public async resetPassword(id: number, currentUserId: number): Promise<ResetPasswordResponse> {
+		if (id === currentUserId) {
+			throw userManagementErrors.selfLockout()
+		}
+
+		const userData = await this.userManagementRepository.findByIdWithRoles(id)
+		if (!userData) {
+			throw userManagementErrors.notFound(id)
+		}
+
+		const plainPassword = await this.generatePassword()
+		const passwordHash = await hash(plainPassword, getBcryptSaltRounds())
+		await this.userManagementRepository.updatePasswordAndMustChange(id, passwordHash, true)
+
+		const passwordEmailSent = await this.sendResetPasswordEmail(userData.email, userData.firstName, plainPassword)
+
+		return { message: 'Password reset successfully', passwordEmailSent }
+	}
+
+	private async sendResetPasswordEmail(email: string, firstName: string, password: string): Promise<boolean> {
+		try {
+			const emailContent = buildResetPasswordEmail({ firstName, email, password })
+			await this.emailService.send({ to: email, ...emailContent })
+			return true
+		} catch (error: unknown) {
+			logger.error('UserManagementService', 'Reset password email failed', error)
+			return false
 		}
 	}
 

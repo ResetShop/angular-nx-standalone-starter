@@ -367,4 +367,62 @@ describe('User management endpoints (/api/user)', () => {
 			expect(response.status).toBe(403)
 		})
 	})
+
+	// ── Reset Password ────────────────────────────────────────────
+	describe('POST /api/user/{id}/reset-password', () => {
+		it('resets the password for an existing user and returns 200', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'reset-target@test.com', firstName: 'Reset', lastName: 'Target' },
+			})
+			const createdUser = await createResponse.json()
+
+			const response = await authenticatedRequest(app, `/api/user/${createdUser.id}/reset-password`, {
+				method: 'POST',
+				cookies: adminCookies,
+			})
+
+			expect(response.status).toBe(200)
+			const body = await response.json()
+			expect(body.message).toBeDefined()
+			// NoopEmailRepository is used in tests, so the send fails and the flag is false —
+			// assert the type, not the value, to keep the test environment-agnostic.
+			expect(typeof body.passwordEmailSent).toBe('boolean')
+			// The generated password must never be exposed in the response.
+			expect(body).not.toHaveProperty('password')
+		})
+
+		it('returns 404 for a non-existent user', async () => {
+			const response = await authenticatedRequest(app, '/api/user/99999/reset-password', {
+				method: 'POST',
+				cookies: adminCookies,
+			})
+			expect(response.status).toBe(404)
+		})
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/user/${adminUserId}/reset-password`, { method: 'POST' })
+			expect(response.status).toBe(401)
+		})
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app)
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/reset-password`, {
+				method: 'POST',
+				cookies: restrictedCookies,
+			})
+			expect(response.status).toBe(403)
+		})
+
+		it('returns 403 when an admin targets their own account', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/reset-password`, {
+				method: 'POST',
+				cookies: adminCookies,
+			})
+			expect(response.status).toBe(403)
+			const body = await response.json()
+			expect(body.error).toMatch(/cannot change status of your own account/i)
+		})
+	})
 })

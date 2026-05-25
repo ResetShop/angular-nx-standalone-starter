@@ -47,11 +47,14 @@ export const UsersStore = signalStore(
 				store.isLoadingDetail() ||
 				store.isCreating() ||
 				store.isUpdating() ||
-				store.isDeleting(),
+				store.isDeleting() ||
+				store.isResettingPassword(),
 		),
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
-		isMutating: computed(() => store.isCreating() || store.isUpdating() || store.isDeleting()),
+		isMutating: computed(
+			() => store.isCreating() || store.isUpdating() || store.isDeleting() || store.isResettingPassword(),
+		),
 		/** Reactive params for list fetch — any change triggers loadUsers via rxMethod */
 		listParams: computed(() => ({
 			offset: (store.currentPage() - 1) * store.pageSize(),
@@ -153,7 +156,7 @@ export const UsersStore = signalStore(
 			clearErrors(): void {
 				patchState(store, {
 					readError: { list: null, detail: null },
-					mutationError: { create: null, update: null, updateStatus: null, delete: null },
+					mutationError: { create: null, update: null, updateStatus: null, delete: null, resetPassword: null },
 				})
 			},
 		}
@@ -257,6 +260,39 @@ export const UsersStore = signalStore(
 											store.mutationError(),
 											'updateStatus',
 											extractErrorMessage(err, 'Failed to update user status'),
+										),
+									})
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			resetPassword: rxMethod<number>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isResettingPassword: true,
+							mutationError: patchMutationError(store.mutationError(), 'resetPassword', null),
+						}),
+					),
+					switchMap((id) =>
+						usersApi.resetPassword(id).pipe(
+							tap({
+								next: () => {
+									patchState(store, { isResettingPassword: false })
+									store.loadUsers(store.listParams())
+								},
+								error: (err) => {
+									loggerService.error('UsersStore', 'resetPassword failed', err)
+									patchState(store, {
+										isResettingPassword: false,
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'resetPassword',
+											extractErrorMessage(err, 'Failed to reset password'),
 										),
 									})
 								},

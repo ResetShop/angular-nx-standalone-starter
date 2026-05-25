@@ -41,6 +41,7 @@ describe('UsersList', () => {
 			update: fn(),
 			delete: fn(),
 			updateStatus: fn(),
+			resetPassword: fn(),
 		}
 
 		rolesApiMock = {
@@ -67,7 +68,9 @@ describe('UsersList', () => {
 	})
 
 	function setUserWithAllPermissions(): void {
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ hasPermission: () => true }))
+		// id=999 keeps the current user distinct from row mock ids (1–12) so the self-row
+		// hide-rule on the reset password action doesn't suppress assertions on row buttons.
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 999, hasPermission: () => true }))
 	}
 
 	async function renderComponent() {
@@ -347,6 +350,68 @@ describe('UsersList', () => {
 		expect(usersApiMock.delete.calls[0][0]).toBe(42)
 	})
 
+	it('should render reset password button for each user', async () => {
+		const users = [createMockManagedUser()]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+		await renderComponent()
+
+		expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument()
+	})
+
+	it('should show confirm dialog when reset password button is clicked', async () => {
+		const users = [createMockManagedUser({ id: 1, email: 'john@example.com' })]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+		await renderComponent()
+
+		fireEvent.click(screen.getByRole('button', { name: /reset password/i }))
+
+		expect(screen.getByText(/reset the password for 'john@example.com'/i)).toBeInTheDocument()
+	})
+
+	it('should call resetPassword when reset is confirmed', async () => {
+		const users = [createMockManagedUser({ id: 42, email: 'jane@example.com' })]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+		usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully', passwordEmailSent: true }))
+
+		await renderComponent()
+
+		fireEvent.click(screen.getByRole('button', { name: /reset password/i }))
+
+		const dialog = screen.getByRole('alertdialog')
+		fireEvent.click(within(dialog).getByRole('button', { name: /reset password/i }))
+
+		expect(usersApiMock.resetPassword.calls).toHaveLength(1)
+		expect(usersApiMock.resetPassword.calls[0][0]).toBe(42)
+	})
+
+	it('should hide reset password button on the row matching the current user', async () => {
+		// The current user shares the id of the only row, so reset-password must be hidden
+		// even though the user holds the admin:users:reset_password permission.
+		const users = [createMockManagedUser({ id: 42, email: 'self@example.com' })]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+		const view = await render(UsersList, {
+			providers: [
+				{ provide: UsersApi, useValue: usersApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 42, hasPermission: () => true }))
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+		// Other actions remain available — edit and delete are not gated on self-id here.
+		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+	})
+
 	describe('permission-conditional rendering', () => {
 		async function renderWithPermissions(allowedPermissions: string[]) {
 			const users = [createMockManagedUser()]
@@ -364,6 +429,7 @@ describe('UsersList', () => {
 
 			TestBed.inject(AuthStore).updateCurrentUser(
 				createMockUser({
+					id: 999,
 					hasPermission: (id: string) => allowedPermissions.includes(id),
 				}),
 			)
@@ -391,7 +457,19 @@ describe('UsersList', () => {
 			expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
 		})
 
-		it('should not render actions column when user lacks both update and delete', async () => {
+		it('should hide reset password button when user lacks users:reset_password', async () => {
+			await renderWithPermissions(['admin:users:read', 'admin:users:update', 'admin:users:delete'])
+
+			expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+		})
+
+		it('should render the actions column when user has only reset_password', async () => {
+			await renderWithPermissions(['admin:users:read', 'admin:users:reset_password'])
+
+			expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument()
+		})
+
+		it('should not render actions column when user lacks update, delete, and reset_password', async () => {
 			await renderWithPermissions(['admin:users:read', 'admin:users:create'])
 
 			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
@@ -406,5 +484,6 @@ describe('permission identifiers', () => {
 		expect(validIdentifiers.has('admin:users:create')).toBe(true)
 		expect(validIdentifiers.has('admin:users:update')).toBe(true)
 		expect(validIdentifiers.has('admin:users:delete')).toBe(true)
+		expect(validIdentifiers.has('admin:users:reset_password')).toBe(true)
 	})
 })

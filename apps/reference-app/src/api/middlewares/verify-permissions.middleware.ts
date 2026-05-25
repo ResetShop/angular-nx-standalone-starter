@@ -1,4 +1,5 @@
 import { PermissionName } from '@contracts/permission/permission.constants'
+import { logger } from '@resetshop/util'
 import { Next } from 'hono'
 import { container } from '../container/container'
 import { AuthenticatedContext } from './verify-access-token.middleware'
@@ -71,7 +72,7 @@ export function requirePermission(permissionName: PermissionName) {
 		try {
 			permissions = await ensurePermissionsLoaded(c)
 		} catch (error) {
-			console.error('[Auth] Failed to fetch user permissions:', error)
+			logger.error('VerifyPermissionsMiddleware', 'Failed to fetch user permissions', error)
 			return c.json({ error: 'Internal server error' }, 500)
 		}
 
@@ -99,7 +100,7 @@ export function requireAnyPermission(permissionNames: PermissionName[]) {
 		try {
 			permissions = await ensurePermissionsLoaded(c)
 		} catch (error) {
-			console.error('[Auth] Failed to fetch user permissions:', error)
+			logger.error('VerifyPermissionsMiddleware', 'Failed to fetch user permissions', error)
 			return c.json({ error: 'Internal server error' }, 500)
 		}
 
@@ -128,7 +129,7 @@ export function requireAllPermissions(permissionNames: PermissionName[]) {
 		try {
 			permissions = await ensurePermissionsLoaded(c)
 		} catch (error) {
-			console.error('[Auth] Failed to fetch user permissions:', error)
+			logger.error('VerifyPermissionsMiddleware', 'Failed to fetch user permissions', error)
 			return c.json({ error: 'Internal server error' }, 500)
 		}
 
