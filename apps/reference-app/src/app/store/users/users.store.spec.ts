@@ -67,8 +67,15 @@ describe('UsersStore', () => {
 			expect(store.isCreating()).toBe(false)
 			expect(store.isUpdating()).toBe(false)
 			expect(store.isDeleting()).toBe(false)
+			expect(store.isResettingPassword()).toBe(false)
 			expect(store.readError()).toEqual({ list: null, detail: null })
-			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null })
+			expect(store.mutationError()).toEqual({
+				create: null,
+				update: null,
+				updateStatus: null,
+				delete: null,
+				resetPassword: null,
+			})
 		})
 
 		it('should have correct state after initial load completes', () => {
@@ -320,6 +327,37 @@ describe('UsersStore', () => {
 		})
 	})
 
+	describe('resetPassword', () => {
+		it('should reload the list from the server on success and clear the resetting flag', () => {
+			const users = [createMockManagedUser({ id: 1 }), createMockManagedUser({ id: 2 })]
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
+			setupStore()
+
+			usersApiMock.resetPassword.mockReturnValue(
+				of({ message: 'Password reset successfully', passwordEmailSent: true }),
+			)
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
+
+			store.resetPassword(1)
+
+			expect(store.isResettingPassword()).toBe(false)
+			expect(store.mutationError().resetPassword).toBeNull()
+			// loadUsers re-fired after success — getAll called again beyond the initial onInit load
+			expect(usersApiMock.getAll.calls.length).toBeGreaterThan(1)
+		})
+
+		it('should set mutationError.resetPassword on failure', () => {
+			setupStore()
+
+			usersApiMock.resetPassword.mockReturnValue(throwError(() => new Error('Forbidden')))
+
+			store.resetPassword(1)
+
+			expect(store.isResettingPassword()).toBe(false)
+			expect(store.mutationError().resetPassword).toBe('Failed to reset password')
+		})
+	})
+
 	describe('updateUserStatus', () => {
 		it('should reload the list from the server on success', () => {
 			const user = createMockManagedUser({ id: 3, status: UserStatus.ACTIVE })
@@ -472,7 +510,13 @@ describe('UsersStore', () => {
 			store.clearErrors()
 
 			expect(store.readError()).toEqual({ list: null, detail: null })
-			expect(store.mutationError()).toEqual({ create: null, update: null, updateStatus: null, delete: null })
+			expect(store.mutationError()).toEqual({
+				create: null,
+				update: null,
+				updateStatus: null,
+				delete: null,
+				resetPassword: null,
+			})
 		})
 	})
 
