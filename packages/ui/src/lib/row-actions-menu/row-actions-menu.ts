@@ -66,7 +66,7 @@ export interface RowAction {
 					role="menu"
 					class="z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
 				>
-					@for (action of actions(); track action.label) {
+					@for (action of actions(); track $index) {
 						<button
 							(click)="action.onSelect()"
 							[ngpMenuItemDisabled]="action.disabled ?? false"
