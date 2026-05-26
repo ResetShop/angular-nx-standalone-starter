@@ -1,3 +1,11 @@
+/**
+ * Shape of the per-app environment constant.
+ *
+ * Each app provides its own `environment.ts` (typically `apps/<slug>/src/api/environment.ts`)
+ * exporting a `const environment: EnvironmentConfig`. Backend consumers import the constant
+ * via a relative path; this package owns only the type so the contract stays uniform across
+ * apps without coupling the package to any app's concrete env-var names.
+ */
 export interface EnvironmentConfig {
 	production: boolean
 	basePath: string
