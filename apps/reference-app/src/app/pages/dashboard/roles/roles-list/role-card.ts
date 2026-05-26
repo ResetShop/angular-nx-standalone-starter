@@ -27,7 +27,7 @@ import { Button } from '@resetshop/ui/button/button'
 					(click)="edit.emit()"
 					*hasPermission="'admin:roles:update'"
 					appButton
-					variant="ghost"
+					variant="ghost-muted"
 					size="sm"
 					data-touch-target
 				>
@@ -36,14 +36,7 @@ import { Button } from '@resetshop/ui/button/button'
 				</button>
 				<ng-container *hasPermission="'admin:roles:delete'">
 					@if (role().removable) {
-						<button
-							(click)="delete.emit()"
-							appButton
-							variant="ghost"
-							size="sm"
-							class="text-destructive"
-							data-touch-target
-						>
+						<button (click)="delete.emit()" appButton variant="ghost-muted-destructive" size="sm" data-touch-target>
 							<ng-icon data-icon="start" name="featherTrash2" />
 							{{ 'COMMON.DELETE' | translate }}
 						</button>

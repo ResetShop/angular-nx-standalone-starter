@@ -92,6 +92,27 @@ describe('Button', () => {
 		expect(button).not.toHaveClass('text-foreground')
 	})
 
+	it('should apply ghost-muted-destructive variant classes', async () => {
+		await render(`<button appButton variant="ghost-muted-destructive">Ghost Muted Destructive</button>`, {
+			imports: [Button],
+		})
+
+		const button = screen.getByRole('button')
+		expect(button).toHaveClass('bg-transparent')
+		expect(button).toHaveClass('text-muted-foreground')
+		// Both hover triggers lift to text-destructive (no competing text-foreground rule, so the
+		// destructive treatment wins unconditionally — this is the whole reason the variant exists
+		// rather than composing ghost-muted + a destructive class override).
+		expect(button).toHaveClass('data-[hover]:bg-accent')
+		expect(button).toHaveClass('data-[hover]:text-destructive')
+		expect(button).toHaveClass('group-hover/row:text-destructive')
+		expect(button).toHaveClass('data-[focus-visible]:outline-ring')
+		// Sanity: the foreground hover utilities from the regular `ghost-muted` variant must be absent
+		// so they cannot compete with `text-destructive` in the cascade.
+		expect(button).not.toHaveClass('data-[hover]:text-foreground')
+		expect(button).not.toHaveClass('group-hover/row:text-foreground')
+	})
+
 	it('should apply link variant classes', async () => {
 		await render(`<button appButton variant="link">Link</button>`, {
 			imports: [Button],

@@ -111,16 +111,11 @@ import { RoleCard } from './role-card'
 						</button>
 						<ng-container *hasPermission="'admin:roles:delete'">
 							@if (row.removable) {
-								<!-- The text-destructive overrides on both hover triggers (button-hover, row-hover) override the
-								     ghost-muted variant's matching text-foreground utilities. They are equal-specificity, so this
-								     relies on Tailwind emitting text-destructive after text-foreground — i.e. --color-destructive
-								     declared after --color-foreground in tailwind.config.css. -->
 								<button
 									(click)="confirmDelete(row)"
 									appButton
-									variant="ghost-muted"
+									variant="ghost-muted-destructive"
 									size="sm"
-									class="data-[hover]:text-destructive group-hover/row:text-destructive"
 									data-touch-target
 								>
 									<ng-icon data-icon="start" name="featherTrash2" />

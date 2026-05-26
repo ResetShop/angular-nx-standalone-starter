@@ -1,7 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 import { NgpButton } from 'ng-primitives/button'
 
-export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'ghost-muted' | 'link'
+export type ButtonVariant =
+	| 'default'
+	| 'secondary'
+	| 'destructive'
+	| 'outline'
+	| 'ghost'
+	| 'ghost-muted'
+	| 'ghost-muted-destructive'
+	| 'link'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 
 @Component({
@@ -87,10 +95,16 @@ export class Button {
 	 * every `<tr>`). Consumers outside a `group/row` ancestor get the
 	 * button-hover lift only, which is correct for card-style hosts.
 	 *
-	 * Compose with a caller-supplied
-	 * `class="data-[hover]:text-destructive group-hover/row:text-destructive"`
-	 * for destructive row actions — both selectors are required so the
-	 * destructive treatment wins on either hover trigger.
+	 * For destructive row actions (Delete, etc.), use the sibling
+	 * `'ghost-muted-destructive'` variant rather than composing
+	 * `'ghost-muted'` with a destructive class override — the latter
+	 * collides with the variant's own `text-foreground` rule at
+	 * equal specificity and loses the cascade (Tailwind emits the
+	 * utilities in its own class-index order, not in token-declaration
+	 * order, so the destructive class is silently overridden).
+	 * `'ghost-muted-destructive'` mirrors the shape of `'ghost-muted'`
+	 * but uses `text-destructive` for both hover branches so there is
+	 * no competing rule.
 	 * @default 'default'
 	 */
 	public readonly variant = input<ButtonVariant>('default')
@@ -192,6 +206,14 @@ export class Button {
 				'group-hover/row:text-foreground',
 				'data-[hover]:bg-accent',
 				'data-[hover]:text-foreground',
+				'data-[focus-visible]:outline-ring',
+			],
+			'ghost-muted-destructive': [
+				'bg-transparent',
+				'text-muted-foreground',
+				'group-hover/row:text-destructive',
+				'data-[hover]:bg-accent',
+				'data-[hover]:text-destructive',
 				'data-[focus-visible]:outline-ring',
 			],
 			link: [

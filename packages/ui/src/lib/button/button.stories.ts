@@ -69,7 +69,16 @@ Try the controls below to customize the button appearance. Use the background se
 	argTypes: {
 		variant: {
 			control: 'select',
-			options: ['default', 'secondary', 'destructive', 'outline', 'ghost', 'ghost-muted', 'link'],
+			options: [
+				'default',
+				'secondary',
+				'destructive',
+				'outline',
+				'ghost',
+				'ghost-muted',
+				'ghost-muted-destructive',
+				'link',
+			],
 			description: 'Visual variant of the button',
 			table: {
 				type: { summary: 'ButtonVariant' },
@@ -174,11 +183,17 @@ export const GhostMuted: Story = {
 }
 
 /**
- * Ghost-muted composed with a caller-supplied `data-[hover]:text-destructive` —
- * the canonical delete row action pattern. At rest the label is muted; on hover
- * it lifts to the destructive foreground over the accent background, without a
- * dedicated `ghost-muted-destructive` variant. The second button has `data-hover`
- * set to simulate the hovered state.
+ * Ghost-muted-destructive — the canonical delete row action pattern. At rest the
+ * label is muted; on hover (either the button itself or any \`group/row\` ancestor)
+ * it lifts to the destructive foreground over the accent background. The second
+ * button has \`data-hover\` set to simulate the button-hover state in the static
+ * canvas.
+ *
+ * Previously composed via \`variant="ghost-muted" class="data-[hover]:text-destructive"\`,
+ * but that pattern collided with the variant's own \`data-[hover]:text-foreground\`
+ * rule at equal specificity; Tailwind emits utility classes in its own class-index
+ * order (not in token-declaration order), so the destructive rule was silently
+ * overridden. The dedicated variant eliminates the competing rule.
  */
 export const GhostMutedDestructive: Story = {
 	decorators: [
@@ -190,10 +205,10 @@ export const GhostMutedDestructive: Story = {
 	render: () => ({
 		template: `
 			<div class="flex gap-3 items-center">
-				<button appButton variant="ghost-muted" class="data-[hover]:text-destructive">
+				<button appButton variant="ghost-muted-destructive">
 					<ng-icon data-icon="start" name="featherTrash2" /> Delete (default)
 				</button>
-				<button appButton variant="ghost-muted" class="data-[hover]:text-destructive" data-hover>
+				<button appButton variant="ghost-muted-destructive" data-hover>
 					<ng-icon data-icon="start" name="featherTrash2" /> Delete (hover)
 				</button>
 			</div>
@@ -293,6 +308,7 @@ export const AllVariants: Story = {
 				<button appButton variant="secondary">Secondary</button>
 				<button appButton variant="ghost">Ghost</button>
 				<button appButton variant="ghost-muted">Ghost Muted</button>
+				<button appButton variant="ghost-muted-destructive">Ghost Muted Destructive</button>
 				<button appButton variant="destructive">Destructive</button>
 				<button appButton variant="link">Link</button>
 			</div>
@@ -380,6 +396,7 @@ export const IconVariants: Story = {
 				<button appButton variant="secondary"><ng-icon data-icon="start" name="featherPlus" /> Create</button>
 				<button appButton variant="ghost"><ng-icon data-icon="start" name="featherTrash2" /> Delete</button>
 				<button appButton variant="ghost-muted"><ng-icon data-icon="start" name="featherEdit3" /> Edit</button>
+				<button appButton variant="ghost-muted-destructive"><ng-icon data-icon="start" name="featherTrash2" /> Delete</button>
 				<button appButton variant="destructive"><ng-icon data-icon="start" name="featherTrash2" /> Delete</button>
 				<button appButton variant="link"><ng-icon data-icon="start" name="featherPlus" /> Add</button>
 			</div>
