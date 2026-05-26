@@ -25,6 +25,19 @@ import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import UsersList from './users-list'
 
+/**
+ * Opens the row-actions menu for the only row currently in the table. Returns nothing —
+ * subsequent `screen.getByRole('menuitem', ...)` queries find the popover-rendered items.
+ *
+ * The menu is rendered in a portal on `document.body`, outside the test fixture's view tree.
+ * The `afterEach` hook below cleans up any leftover portal nodes so tests stay isolated.
+ */
+async function openRowActionsMenu(): Promise<void> {
+	fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
+	TestBed.tick()
+	await advanceTimersByTimeAsync(50)
+}
+
 describe('UsersList', () => {
 	let usersApiMock: Record<keyof UsersApi, MockFn>
 	let rolesApiMock: Record<keyof RolesApi, MockFn>
@@ -66,11 +79,17 @@ describe('UsersList', () => {
 
 	afterEach(() => {
 		useRealTimers()
+		// The row-actions menu attaches its popover to a portal on `document.body`, outside the
+		// Angular test fixture's view tree. Testing Library's auto-cleanup destroys the fixture
+		// but does not reach the portal; leftover `<div ngpmenu>` nodes cause "Found multiple
+		// elements" errors in subsequent tests. Strip them explicitly.
+		// eslint-disable-next-line testing-library/no-node-access
+		document.querySelectorAll('[ngpmenu]').forEach((el) => el.remove())
 	})
 
 	function setUserWithAllPermissions(): void {
 		// id=999 keeps the current user distinct from row mock ids (1–12) so the self-row
-		// hide-rule on the reset password action doesn't suppress assertions on row buttons.
+		// hide-rule on the destructive actions doesn't suppress assertions on menu items.
 		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 999, hasPermission: () => true }))
 	}
 
@@ -136,8 +155,9 @@ describe('UsersList', () => {
 			usersApiMock.getById.mockReturnValue(of(users[0]))
 
 			await renderComponent()
+			await openRowActionsMenu()
 
-			fireEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
 			TestBed.tick()
 
 			const dialog = screen.getByRole('dialog', { name: /edit user/i })
@@ -281,25 +301,37 @@ describe('UsersList', () => {
 
 		await renderComponent()
 
-		expect(screen.getByText('\u2014')).toBeInTheDocument()
+		expect(screen.getByText('—')).toBeInTheDocument()
 	})
 
-	it('should render edit button for each user', async () => {
+	it('opens the row-actions menu and shows the Edit item', async () => {
 		const users = [createMockManagedUser()]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
 	})
 
-	it('should render delete button for each user', async () => {
+	it('opens the row-actions menu and shows the Delete item', async () => {
 		const users = [createMockManagedUser()]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument()
+	})
+
+	it('opens the row-actions menu and shows the Reset Password item', async () => {
+		const users = [createMockManagedUser()]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+		await renderComponent()
+		await openRowActionsMenu()
+
+		expect(screen.getByRole('menuitem', { name: /reset password/i })).toBeInTheDocument()
 	})
 
 	it('should render alert with error message when hasReadError is true', async () => {
@@ -327,13 +359,15 @@ describe('UsersList', () => {
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 	})
 
-	it('should show confirm dialog when delete button is clicked', async () => {
+	it('should show confirm dialog when Delete is selected from the row-actions menu', async () => {
 		const users = [createMockManagedUser({ id: 1, firstName: 'John', lastName: 'Doe' })]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }))
+		TestBed.tick()
 
 		expect(screen.getByText(/are you sure you want to delete the user 'John Doe'/i)).toBeInTheDocument()
 	})
@@ -344,8 +378,10 @@ describe('UsersList', () => {
 		usersApiMock.delete.mockReturnValue(of(undefined))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }))
+		TestBed.tick()
 
 		const dialog = screen.getByRole('alertdialog')
 		fireEvent.click(within(dialog).getByRole('button', { name: /delete/i }))
@@ -354,22 +390,15 @@ describe('UsersList', () => {
 		expect(usersApiMock.delete.calls[0][0]).toBe(42)
 	})
 
-	it('should render reset password button for each user', async () => {
-		const users = [createMockManagedUser()]
-		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
-
-		await renderComponent()
-
-		expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument()
-	})
-
-	it('should show confirm dialog when reset password button is clicked', async () => {
+	it('should show confirm dialog when Reset password is selected from the row-actions menu', async () => {
 		const users = [createMockManagedUser({ id: 1, email: 'john@example.com' })]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		fireEvent.click(screen.getByRole('button', { name: /reset password/i }))
+		fireEvent.click(screen.getByRole('menuitem', { name: /reset password/i }))
+		TestBed.tick()
 
 		expect(screen.getByText(/reset the password for 'john@example.com'/i)).toBeInTheDocument()
 	})
@@ -380,8 +409,10 @@ describe('UsersList', () => {
 		usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully', passwordEmailSent: true }))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		fireEvent.click(screen.getByRole('button', { name: /reset password/i }))
+		fireEvent.click(screen.getByRole('menuitem', { name: /reset password/i }))
+		TestBed.tick()
 
 		const dialog = screen.getByRole('alertdialog')
 		fireEvent.click(within(dialog).getByRole('button', { name: /reset password/i }))
@@ -390,8 +421,8 @@ describe('UsersList', () => {
 		expect(usersApiMock.resetPassword.calls[0][0]).toBe(42)
 	})
 
-	it('should hide reset password and delete buttons on the row matching the current user', async () => {
-		// The current user shares the id of the only row, so destructive row actions must be hidden
+	it('omits Reset password and Delete from the row-actions menu on the self-row', async () => {
+		// The current user shares the id of the only row, so destructive items must be hidden
 		// even though the user holds admin:users:reset_password and admin:users:delete permissions.
 		const users = [createMockManagedUser({ id: 42, email: 'self@example.com' })]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
@@ -410,11 +441,12 @@ describe('UsersList', () => {
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
 		view.fixture.detectChanges()
+		await openRowActionsMenu()
 
-		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
-		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: /reset password/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
 		// Edit remains available — users may update their own profile.
-		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
 	})
 
 	describe('permission-conditional rendering', () => {
@@ -451,34 +483,39 @@ describe('UsersList', () => {
 			expect(screen.queryByRole('button', { name: /create user/i })).not.toBeInTheDocument()
 		})
 
-		it('should hide edit button when user lacks users:update', async () => {
+		it('omits Edit from the row-actions menu when user lacks users:update', async () => {
 			await renderWithPermissions(['admin:users:read', 'admin:users:delete'])
+			await openRowActionsMenu()
 
-			expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+			expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument()
 		})
 
-		it('should hide delete button when user lacks users:delete', async () => {
+		it('omits Delete from the row-actions menu when user lacks users:delete', async () => {
 			await renderWithPermissions(['admin:users:read', 'admin:users:update'])
+			await openRowActionsMenu()
 
-			expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+			expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
 		})
 
-		it('should hide reset password button when user lacks users:reset_password', async () => {
+		it('omits Reset password from the row-actions menu when user lacks users:reset_password', async () => {
 			await renderWithPermissions(['admin:users:read', 'admin:users:update', 'admin:users:delete'])
+			await openRowActionsMenu()
 
-			expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+			expect(screen.queryByRole('menuitem', { name: /reset password/i })).not.toBeInTheDocument()
 		})
 
-		it('should render the actions column when user has only reset_password', async () => {
+		it('renders the row-actions trigger when user has only reset_password', async () => {
 			await renderWithPermissions(['admin:users:read', 'admin:users:reset_password'])
+			await openRowActionsMenu()
 
-			expect(screen.getByRole('button', { name: /reset password/i })).toBeInTheDocument()
+			expect(screen.getByRole('menuitem', { name: /reset password/i })).toBeInTheDocument()
 		})
 
-		it('should not render actions column when user lacks update, delete, and reset_password', async () => {
+		it('does not render the row-actions menu when user lacks update, delete, and reset_password', async () => {
 			await renderWithPermissions(['admin:users:read', 'admin:users:create'])
 
-			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
+			// Empty actions list → component renders nothing → no trigger button.
+			expect(screen.queryByRole('button', { name: 'Actions' })).not.toBeInTheDocument()
 		})
 	})
 })

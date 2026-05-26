@@ -12,8 +12,6 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
-import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons'
 import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
@@ -24,6 +22,7 @@ import { DataTable } from '@resetshop/ui/data-table/data-table'
 import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
+import { RowActionsMenu, type RowAction } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
@@ -45,13 +44,12 @@ import { UserCard } from './user-card'
 		DataTableCellDef,
 		EditUserDrawer,
 		HasPermissionDirective,
-		NgIcon,
 		PageShell,
 		Pagination,
+		RowActionsMenu,
 		TranslatePipe,
 		UserCard,
 	],
-	viewProviders: [provideIcons({ featherEdit3, featherKey, featherTrash2 })],
 	template: `
 		<app-page-shell
 			[loading]="store.isLoadingList()"
@@ -99,48 +97,11 @@ import { UserCard } from './user-card'
 					</span>
 				</ng-template>
 
-				<ng-template appDataTableCellDef="actions" let-value let-row="row">
-					<!-- gap-4 (16px) > data-touch-target -inset-3 (12px) — prevents sibling hit-area overlap. -->
-					<div class="flex gap-4">
-						<button
-							(click)="editDrawer.open(row.id)"
-							*hasPermission="'admin:users:update'"
-							appButton
-							variant="ghost"
-							size="sm"
-							data-touch-target
-						>
-							<ng-icon data-icon="start" name="featherEdit3" />
-							<span class="sr-only sm:not-sr-only">{{ 'COMMON.EDIT' | translate }}</span>
-						</button>
-						@if (!currentUser.is(row)) {
-							<button
-								(click)="confirmResetPassword(row)"
-								*hasPermission="'admin:users:reset_password'"
-								appButton
-								variant="ghost"
-								size="sm"
-								data-touch-target
-							>
-								<ng-icon data-icon="start" name="featherKey" />
-								<span class="sr-only sm:not-sr-only">{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}</span>
-							</button>
-						}
-						@if (!currentUser.is(row)) {
-							<button
-								(click)="confirmDelete(row)"
-								*hasPermission="'admin:users:delete'"
-								appButton
-								variant="ghost"
-								size="sm"
-								class="text-destructive"
-								data-touch-target
-							>
-								<ng-icon data-icon="start" name="featherTrash2" />
-								<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
-							</button>
-						}
-					</div>
+				<ng-template appDataTableCellDef="actions" let-row="row">
+					<app-row-actions-menu
+						[actions]="getRowActions(row)"
+						[triggerLabel]="'ROW_ACTIONS.TRIGGER_LABEL' | translate"
+					/>
 				</ng-template>
 
 				<ng-template appDataTableCardDef let-row>
@@ -195,6 +156,7 @@ export default class UsersList {
 	private readonly translation = inject(Translation)
 	protected readonly currentUser = inject(CurrentUser)
 
+	private readonly editDrawer = viewChild.required<EditUserDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
 
@@ -250,6 +212,47 @@ export default class UsersList {
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement
 		this.store.setSearchQuery(input.value)
+	}
+
+	/**
+	 * Builds the per-row action list for the `<app-row-actions-menu>` in the actions cell.
+	 *
+	 * Permission checks are imperative here rather than using `*hasPermission` in the template
+	 * because the action list is computed per-row — there are no individual permission-gated
+	 * buttons to attach structural directives to. The check reads `currentUser()` from the same
+	 * `AuthStore` signal that `*hasPermission` uses, so the behavior is identical.
+	 *
+	 * Reset Password and Delete are suppressed on the current user's own row (mirrors the prior
+	 * inline-button behavior and the backend's `SELF_LOCKOUT` rejection of those operations).
+	 */
+	protected getRowActions(row: IManagedUser): RowAction[] {
+		const user = this.authStore.currentUser()
+		const isSelf = this.currentUser.is(row)
+		const actions: RowAction[] = []
+
+		if (user?.hasPermission('admin:users:update')) {
+			actions.push({
+				label: this.translation.instant('COMMON.EDIT'),
+				onSelect: () => this.editDrawer().open(row.id),
+			})
+		}
+
+		if (!isSelf && user?.hasPermission('admin:users:reset_password')) {
+			actions.push({
+				label: this.translation.instant('USERS.PAGE.RESET_PASSWORD_BUTTON'),
+				onSelect: () => this.confirmResetPassword(row),
+			})
+		}
+
+		if (!isSelf && user?.hasPermission('admin:users:delete')) {
+			actions.push({
+				label: this.translation.instant('COMMON.DELETE'),
+				onSelect: () => this.confirmDelete(row),
+				variant: 'destructive',
+			})
+		}
+
+		return actions
 	}
 
 	protected confirmDelete(user: IManagedUser): void {
