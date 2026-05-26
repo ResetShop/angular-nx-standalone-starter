@@ -172,7 +172,7 @@ export default class RolesList {
 		this.store.setSearchQuery(input.value)
 	}
 
-	protected getRowActions(row: IRole): RowAction[][] {
+	protected getRowActions(row: IRole): readonly (readonly RowAction[])[] {
 		const user = this.authStore.currentUser()
 		const nonDestructive: RowAction[] = []
 

@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/angular'
 import { moduleMetadata } from '@storybook/angular'
 import { RowActionItem } from './row-action-item'
 
-const noop = (label: string) => () => console.log(`[RowActionItem] selected: ${label}`)
+const noop = () => () => undefined
 
 const meta: Meta<RowActionItem> = {
 	component: RowActionItem,
@@ -16,6 +16,16 @@ const meta: Meta<RowActionItem> = {
 			providers: [provideIcons({ featherEdit3, featherKey, featherTrash2 })],
 		}),
 	],
+	argTypes: {
+		action: {
+			control: 'object',
+			description:
+				'The `RowAction` to render. Fields: `label` (required), `onSelect` (required), `variant` (`"default" | "destructive"`), `icon` (ng-icons name), `disabled` (boolean).',
+			table: {
+				type: { summary: 'RowAction' },
+			},
+		},
+	},
 	parameters: {
 		docs: {
 			description: {
@@ -49,24 +59,24 @@ type Story = StoryObj<RowActionItem>
 
 export const Default: Story = {
 	args: {
-		action: { label: 'Edit', onSelect: noop('Edit') },
+		action: { label: 'Edit', onSelect: noop() },
 	},
 }
 
 export const WithIcon: Story = {
 	args: {
-		action: { label: 'Edit', onSelect: noop('Edit'), icon: 'featherEdit3' },
+		action: { label: 'Edit', onSelect: noop(), icon: 'featherEdit3' },
 	},
 }
 
 export const Destructive: Story = {
 	args: {
-		action: { label: 'Delete', onSelect: noop('Delete'), variant: 'destructive', icon: 'featherTrash2' },
+		action: { label: 'Delete', onSelect: noop(), variant: 'destructive', icon: 'featherTrash2' },
 	},
 }
 
 export const Disabled: Story = {
 	args: {
-		action: { label: 'Reset password', onSelect: noop('Reset password'), icon: 'featherKey', disabled: true },
+		action: { label: 'Reset password', onSelect: noop(), icon: 'featherKey', disabled: true },
 	},
 }

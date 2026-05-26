@@ -215,7 +215,7 @@ export default class UsersList {
 		this.store.setSearchQuery(input.value)
 	}
 
-	protected getRowActions(row: IManagedUser): RowAction[][] {
+	protected getRowActions(row: IManagedUser): readonly (readonly RowAction[])[] {
 		const user = this.authStore.currentUser()
 		const isSelf = this.currentUser.is(row)
 		const nonDestructive: RowAction[] = []
