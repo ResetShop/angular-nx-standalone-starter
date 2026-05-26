@@ -281,6 +281,43 @@ describe('RolesList', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
 	})
 
+	it('does not render the row-actions trigger on a non-removable row when user lacks update', async () => {
+		// User holds only admin:roles:delete. The removable row gets Delete; the non-removable
+		// row has both actions gated out (Edit by missing update permission, Delete by removable:false),
+		// so getRowActions returns []. Actions column header still renders because the other row has
+		// an action — but the non-removable row's cell shows no trigger button.
+		const roles = [
+			createMockRoleData({ id: 1, name: 'Removable', removable: true }),
+			createMockRoleData({ id: 2, name: 'Locked', removable: false }),
+		]
+		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
+
+		const view = await render(RolesList, {
+			providers: [
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({
+				hasPermission: (id: string) => ['admin:roles:read', 'admin:roles:delete'].includes(id),
+			}),
+		)
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		// Exactly one trigger across both rows (removable only).
+		expect(screen.getAllByRole('button', { name: 'Actions' })).toHaveLength(1)
+		const removableRow = screen.getByRole('row', { name: /removable/i })
+		const lockedRow = screen.getByRole('row', { name: /locked/i })
+		expect(within(removableRow).getByRole('button', { name: 'Actions' })).toBeInTheDocument()
+		expect(within(lockedRow).queryByRole('button', { name: 'Actions' })).not.toBeInTheDocument()
+	})
+
 	it('should render alert with error message when hasReadError is true', async () => {
 		rolesApiMock.getAll.mockReturnValue(throwError(() => new Error('Network error')))
 

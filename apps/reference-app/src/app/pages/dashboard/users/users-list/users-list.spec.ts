@@ -449,6 +449,46 @@ describe('UsersList', () => {
 		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
 	})
 
+	it('does not render the row-actions trigger on the self-row when every action is gated out for that row', async () => {
+		// Current user (id=42) holds only destructive permissions. On the self-row, both Reset
+		// password and Delete are blocked by the !isSelf guard; with no Edit permission either,
+		// getRowActions returns []. The other row (id=43) still gets a Delete action, so the
+		// actions column header renders — but the self-row's cell shows no trigger button.
+		const users = [
+			createMockManagedUser({ id: 42, email: 'self@example.com' }),
+			createMockManagedUser({ id: 43, email: 'other@example.com' }),
+		]
+		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+		const view = await render(UsersList, {
+			providers: [
+				{ provide: UsersApi, useValue: usersApiMock },
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
+				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({
+				id: 42,
+				hasPermission: (id: string) => ['admin:users:read', 'admin:users:delete'].includes(id),
+			}),
+		)
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		// Exactly one trigger across both rows (other-row only).
+		expect(screen.getAllByRole('button', { name: 'Actions' })).toHaveLength(1)
+		// The other-row's row containing 'other@example.com' has the trigger; the self-row does not.
+		const selfRow = screen.getByRole('row', { name: /self@example\.com/i })
+		const otherRow = screen.getByRole('row', { name: /other@example\.com/i })
+		expect(within(selfRow).queryByRole('button', { name: 'Actions' })).not.toBeInTheDocument()
+		expect(within(otherRow).getByRole('button', { name: 'Actions' })).toBeInTheDocument()
+	})
+
 	describe('permission-conditional rendering', () => {
 		async function renderWithPermissions(allowedPermissions: string[]) {
 			const users = [createMockManagedUser()]
