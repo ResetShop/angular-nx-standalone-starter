@@ -24,7 +24,7 @@ export class CurrentUser {
 	 * Returns `false` when either side is null/undefined — both arms render the
 	 * "this is not me" branch, matching the "show on missing data" semantics.
 	 */
-	is(entity: { id: number } | null | undefined): boolean {
+	public is(entity: { id: number } | null | undefined): boolean {
 		if (entity == null) return false
 		const current = this.source.currentUser()
 		return current != null && current.id === entity.id
