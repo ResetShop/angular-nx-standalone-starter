@@ -1,6 +1,6 @@
 // drizzle.config.ts
 import { defineConfig } from 'drizzle-kit'
-import { environment } from './packages/hono-core/src/lib/environment'
+import { environment } from './apps/reference-app/src/api/environment'
 export default defineConfig({
 	// TODO: Manage to define dialect programmatically via config when setting up the repo
 	// dialect: 'mysql',
