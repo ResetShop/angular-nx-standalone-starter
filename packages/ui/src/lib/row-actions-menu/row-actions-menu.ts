@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common'
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherMoreVertical } from '@ng-icons/feather-icons'
@@ -44,7 +45,7 @@ export interface RowAction {
 @Component({
 	selector: 'app-row-actions-menu',
 	standalone: true,
-	imports: [Button, NgIcon, NgpMenu, NgpMenuItem, NgpMenuTrigger],
+	imports: [Button, NgClass, NgIcon, NgpMenu, NgpMenuItem, NgpMenuTrigger],
 	viewProviders: [provideIcons({ featherMoreVertical })],
 	template: `
 		@if (hasActions()) {
@@ -75,15 +76,24 @@ export interface RowAction {
 					class="fixed z-50 flex w-max min-w-[8rem] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
 				>
 					@for (action of actions(); track $index) {
+						<!--
+							text-gray-900 / dark:text-gray-100 and text-destructive both target the color
+							CSS property at equal specificity. Tailwind v4 emits color utilities in its own
+							class-index order (NOT in @theme token-declaration order), so a static
+							text-gray-900 plus a conditional [class.text-destructive] would always cascade
+							to gray. The fix is to make the two color sets mutually exclusive via ngClass;
+							[class.dark:text-gray-100] is not a valid Angular binding (colons in the class
+							name break the parser), so ngClass is the right tool for the dark-variant pair.
+						-->
 						<button
 							(click)="action.onSelect()"
 							[ngpMenuItemDisabled]="action.disabled ?? false"
 							[disabled]="action.disabled ?? false"
-							[class.text-destructive]="action.variant === 'destructive'"
+							[ngClass]="action.variant === 'destructive' ? 'text-destructive' : 'text-gray-900 dark:text-gray-100'"
 							ngpMenuItem
 							role="menuitem"
 							type="button"
-							class="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm text-gray-900 transition-colors hover:bg-gray-100 focus:bg-gray-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:text-gray-100 dark:hover:bg-gray-800 dark:focus:bg-gray-800"
+							class="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-100 focus:bg-gray-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:hover:bg-gray-800 dark:focus:bg-gray-800"
 						>
 							@if (action.icon) {
 								<ng-icon [name]="action.icon" class="size-4 shrink-0" />
