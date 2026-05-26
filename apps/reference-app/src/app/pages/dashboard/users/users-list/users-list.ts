@@ -157,10 +157,6 @@ export default class UsersList {
 	private readonly translation = inject(Translation)
 	protected readonly currentUser = inject(CurrentUser)
 
-	// Class-side handle on the `#editDrawer` template ref so `getRowActions()` can open the drawer
-	// imperatively. Named `editDrawerRef` (not `editDrawer`) to avoid colliding with the template
-	// reference variable of the same name — the template variable wins lookup precedence, but the
-	// private field would silently shadow it if the names matched, masking refactor errors.
 	private readonly editDrawerRef = viewChild.required<EditUserDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))

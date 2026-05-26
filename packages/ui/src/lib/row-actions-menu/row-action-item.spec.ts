@@ -7,10 +7,8 @@ import userEvent from '@testing-library/user-event'
 import { NgpMenu, NgpMenuTrigger } from 'ng-primitives/menu'
 import { RowActionItem, type RowAction } from './row-action-item'
 
-// NgpMenuItem requires both the NgpRovingFocusGroup token (from NgpMenu) and the NgpOverlay
-// context that only NgpMenuTrigger provides. Rendering `<div ngpMenu>` standalone throws at
-// injection time, so each test mounts the item via a trigger and clicks the trigger open
-// before asserting on the menuitem. This mirrors the host setup the item runs in production.
+// NgpMenuItem requires injection tokens provided by NgpMenuTrigger + NgpMenu; rendering the
+// item standalone throws at injection time.
 async function renderItemOpen(action: RowAction): Promise<void> {
 	await render(
 		`<button [ngpMenuTrigger]="menu" type="button">Open</button>
@@ -28,10 +26,8 @@ async function renderItemOpen(action: RowAction): Promise<void> {
 	await userEvent.setup().click(screen.getByRole('button', { name: 'Open' }))
 }
 
-// Closes the open menu so its overlay portal is removed before the next test. Escape triggers
-// the library's close; TestBed.tick() flushes the signal-driven DOM update under zoneless +
-// happy-dom. Without this the portal node leaks into document.body (outside Testing Library's
-// cleanup scope) and the next test sees a stale `<div ngpmenu>`.
+// Closes the open menu so the library tears down its overlay portal before the next test;
+// TestBed.tick() flushes the signal-driven close under zoneless + happy-dom.
 async function closeMenu(): Promise<void> {
 	await userEvent.setup().keyboard('{Escape}')
 	TestBed.tick()

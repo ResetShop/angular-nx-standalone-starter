@@ -5,10 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { type RowAction } from './row-action-item'
 import { RowActionsMenu } from './row-actions-menu'
 
-// Closes any open ng-primitives menu so its overlay portal is removed before the next test.
-// Without this, the portal node leaks into document.body (outside Testing Library's cleanup
-// scope) and the next test sees a stale `<div ngpmenu>`. Escape triggers the library's close;
-// TestBed.tick() flushes the signal-driven DOM update under zoneless + happy-dom.
+// Closes the open menu so the library tears down its overlay portal before the next test;
+// TestBed.tick() flushes the signal-driven close under zoneless + happy-dom.
 async function closeMenu(user: ReturnType<typeof userEvent.setup>): Promise<void> {
 	await user.keyboard('{Escape}')
 	TestBed.tick()
