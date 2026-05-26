@@ -1,7 +1,7 @@
 // TODO: Uncomment if using Microsoft Clarity to handle analytics. To set the connector to work, you need to add the Clarity token to your environment variables.
 // TODO: Install @microsoft/clarity package to use this connector.
 
-// import { environment } from './environment';
+// import { environment } from '../environment';
 // import { ClarityApiResponse } from '../utils/clarity.utils';
 //
 // export const fetchClarityData = async (): Promise<ClarityApiResponse> => {

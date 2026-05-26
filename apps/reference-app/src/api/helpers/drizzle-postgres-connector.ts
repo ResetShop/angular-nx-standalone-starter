@@ -1,4 +1,3 @@
-import { environment } from '@resetshop/hono-core'
 import { authentication, authenticationRelations } from '@schema/authentication'
 import { permission, permissionRelations } from '@schema/permission'
 import { permissionRoute, permissionRouteRelations } from '@schema/permission-route'
@@ -11,6 +10,7 @@ import { userProfileHistory } from '@schema/user-profile-history'
 import { userRoleHistory } from '@schema/user-role-history'
 import { userStatusHistory } from '@schema/user-status-history'
 import { drizzle } from 'drizzle-orm/node-postgres'
+import { environment } from '../environment'
 
 const { connectionString } = environment.database.pg
 
