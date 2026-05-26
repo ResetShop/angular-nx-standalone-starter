@@ -511,11 +511,14 @@ describe('UsersList', () => {
 			expect(screen.getByRole('menuitem', { name: /reset password/i })).toBeInTheDocument()
 		})
 
-		it('does not render the row-actions menu when user lacks update, delete, and reset_password', async () => {
+		it('does not render the actions column or trigger when user lacks update, delete, and reset_password', async () => {
 			await renderWithPermissions(['admin:users:read', 'admin:users:create'])
 
 			// Empty actions list → component renders nothing → no trigger button.
 			expect(screen.queryByRole('button', { name: 'Actions' })).not.toBeInTheDocument()
+			// The `columns()` computed signal must also omit the actions column entirely — verified
+			// here by the column count (name, email, status, roles — no fifth "actions" column).
+			expect(screen.getAllByRole('columnheader')).toHaveLength(4)
 		})
 	})
 })
