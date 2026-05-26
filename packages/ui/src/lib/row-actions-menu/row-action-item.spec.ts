@@ -81,22 +81,15 @@ describe('RowActionItem', () => {
 		expect(selectSpy.calls).toHaveLength(0)
 	})
 
-	it('renders an ng-icon when icon is provided', async () => {
+	it('renders the action icon when icon is provided', async () => {
 		await renderItemOpen({ label: 'Edit', onSelect: fn(), icon: 'featherEdit3' })
 
-		// <ng-icon> has no implicit ARIA role; assert on the menuitem's DOM substructure. The
-		// rendered `name` attribute is a bound input not reflected back to the host element, so
-		// the presence-of-an-icon-child is the meaningful assertion for the @if branch.
-		const item = screen.getByRole('menuitem', { name: 'Edit' })
-		// eslint-disable-next-line testing-library/no-node-access
-		expect(item.querySelector('ng-icon')).not.toBeNull()
+		expect(screen.getByTestId('action-icon')).toBeInTheDocument()
 	})
 
-	it('does not render an ng-icon when icon is not provided', async () => {
+	it('does not render the action icon when icon is not provided', async () => {
 		await renderItemOpen({ label: 'Edit', onSelect: fn() })
 
-		const item = screen.getByRole('menuitem', { name: 'Edit' })
-		// eslint-disable-next-line testing-library/no-node-access
-		expect(item.querySelector('ng-icon')).toBeNull()
+		expect(screen.queryByTestId('action-icon')).toBeNull()
 	})
 })

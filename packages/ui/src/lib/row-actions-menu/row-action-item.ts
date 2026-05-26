@@ -61,7 +61,7 @@ export interface RowAction {
 			class="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[focus-visible]:bg-gray-100 dark:hover:bg-gray-800 dark:data-[focus-visible]:bg-gray-800"
 		>
 			@if (action().icon; as icon) {
-				<ng-icon [name]="icon" class="size-4 shrink-0" />
+				<ng-icon [name]="icon" data-testid="action-icon" class="size-4 shrink-0" />
 			}
 			{{ action().label }}
 		</button>
