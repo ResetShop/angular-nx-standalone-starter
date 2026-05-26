@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createPasswordHasher } from './password-hasher'
 
 describe('createPasswordHasher', () => {
+	// Captured before beforeEach mutates the env — afterEach restores it.
 	const originalBcryptCost = process.env['BCRYPT_COST']
 
 	beforeEach(() => {
@@ -57,6 +58,10 @@ describe('createPasswordHasher', () => {
 		delete process.env['BCRYPT_COST']
 		const hashPassword = createPasswordHasher()
 
+		// Deliberately hashes at the production cost (12) — the bcrypt output
+		// prefix is the only way to observe the default. This costs ~300ms and
+		// is the sole guard on the production default; every other test in this
+		// file runs at cost 1. Keep it: the slowdown is intentional, not a leak.
 		const hashed = await hashPassword('default-cost')
 
 		expect(hashed).toMatch(/^\$2[aby]\$12\$/)
