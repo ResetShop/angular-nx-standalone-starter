@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
 import { NgpButton } from 'ng-primitives/button'
 
-export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link'
+export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'ghost-muted' | 'link'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 
 @Component({
@@ -76,7 +76,14 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 })
 export class Button {
 	/**
-	 * Visual variant of the button
+	 * Visual variant of the button.
+	 *
+	 * Use `'ghost-muted'` for dense row actions (data-table action columns) where
+	 * rendering every action at full `text-foreground` strength creates visual
+	 * clutter. It shares `ghost`'s transparent background and no-border/shadow
+	 * treatment but renders at muted foreground by default, lifting to full
+	 * foreground on hover. Compose it with a caller-supplied
+	 * `class="data-[hover]:text-destructive"` for destructive row actions.
 	 * @default 'default'
 	 */
 	public readonly variant = input<ButtonVariant>('default')
@@ -170,6 +177,13 @@ export class Button {
 				'text-foreground',
 				'data-[hover]:bg-accent',
 				'data-[hover]:text-accent-foreground',
+				'data-[focus-visible]:outline-ring',
+			],
+			'ghost-muted': [
+				'bg-transparent',
+				'text-muted-foreground',
+				'data-[hover]:bg-accent',
+				'data-[hover]:text-foreground',
 				'data-[focus-visible]:outline-ring',
 			],
 			link: [
