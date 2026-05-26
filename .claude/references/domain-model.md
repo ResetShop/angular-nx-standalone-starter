@@ -46,11 +46,10 @@ interface CreateUserOptions {
 	firstName: string
 	lastName: string
 	roles: IRole[]
-	token: string
 }
 
 export function createUser(options: CreateUserOptions): IUser {
-	return new User(options.id, options.email, options.firstName, options.lastName, options.roles, options.token)
+	return new User(options.id, options.email, options.firstName, options.lastName, options.roles)
 }
 ```
 
@@ -91,8 +90,8 @@ export class User implements IUser {
 		);
 	}
 
-	hasPermission(resource: string, action: string): boolean {
-		return this._permissionIdentifiers.has(`${resource}:${action}`);
+	hasPermission(identifier: string): boolean {
+		return this._permissionIdentifiers.has(identifier);
 	}
 }
 ```
