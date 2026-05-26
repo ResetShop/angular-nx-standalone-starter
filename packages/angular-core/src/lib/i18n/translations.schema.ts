@@ -225,6 +225,9 @@ export interface TranslationSchema {
 			GROUP_LABEL: string
 		}
 	}
+	ROW_ACTIONS: {
+		TRIGGER_LABEL: string
+	}
 	PAGINATION: {
 		LABEL: string
 		ROWS_PER_PAGE: string

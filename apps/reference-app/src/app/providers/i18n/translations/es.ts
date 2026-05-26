@@ -227,6 +227,9 @@ const es: TranslationSchema = {
 			GROUP_LABEL: 'Modo de visualización',
 		},
 	},
+	ROW_ACTIONS: {
+		TRIGGER_LABEL: 'Acciones',
+	},
 	PAGINATION: {
 		LABEL: 'Paginación',
 		ROWS_PER_PAGE: 'Filas por página',
