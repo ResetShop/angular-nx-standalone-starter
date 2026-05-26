@@ -45,6 +45,9 @@ describe('UserManagementService', () => {
 	// Password generator mock
 	const mockGeneratePassword = fn<[], Promise<string>>()
 
+	// Password hasher mock — deterministic so tests need no real bcrypt / BCRYPT_COST
+	const mockHashPassword = fn<[string], Promise<string>>()
+
 	// Suppress console.error in tests that trigger non-blocking email failures
 	let consoleErrorSpy: MockFn
 
@@ -83,12 +86,14 @@ describe('UserManagementService', () => {
 		consoleErrorSpy = spyOn(console, 'error')
 
 		mockGeneratePassword.mockResolvedValue('indigo.rabbit.troop')
+		mockHashPassword.mockResolvedValue('hashed-password')
 		mockSend.mockResolvedValue(undefined)
 
 		service = new UserManagementService({
 			userManagementRepository: mockRepository,
 			emailService: mockEmailService,
 			generatePassword: mockGeneratePassword,
+			hashPassword: mockHashPassword,
 		})
 	})
 
@@ -211,9 +216,9 @@ describe('UserManagementService', () => {
 			)
 
 			expect(mockGeneratePassword.calls).toHaveLength(1)
+			expect(mockHashPassword.calls).toEqual([['indigo.rabbit.troop']])
 			const { passwordHash } = mockCreate.calls[0][0]
-			expect(passwordHash).toEqual(expect.any(String))
-			expect(passwordHash).not.toBe('indigo.rabbit.troop')
+			expect(passwordHash).toBe('hashed-password')
 		})
 
 		it('should default mustChangePassword to true when not provided', async () => {
@@ -459,9 +464,9 @@ describe('UserManagementService', () => {
 
 			await service.resetPassword(1, 999)
 
+			expect(mockHashPassword.calls).toEqual([['indigo.rabbit.troop']])
 			const [, persistedHash] = mockUpdatePasswordAndMustChange.calls[0]
-			expect(persistedHash).not.toBe('indigo.rabbit.troop')
-			expect(persistedHash.length).toBeGreaterThan(0)
+			expect(persistedHash).toBe('hashed-password')
 		})
 
 		it('should always set mustChangePassword to true', async () => {

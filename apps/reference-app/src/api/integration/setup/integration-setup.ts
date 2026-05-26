@@ -11,7 +11,7 @@ import { configureEnvVars, getTestConnectionString, loadEnvFile } from './env-he
 
 // Load .env and configure test-specific env vars.
 // These must be set before any test file imports modules that read process.env
-// at load time (e.g. auth.constants.ts reads BCRYPT_COST).
+// at load time (e.g. password-hasher.ts reads BCRYPT_COST).
 loadEnvFile()
 configureEnvVars(getTestConnectionString())
 

@@ -1,8 +1,6 @@
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
-import { hash } from 'bcryptjs'
-import { getBcryptSaltRounds } from '../../constants/auth.constants'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
 import { buildResetPasswordEmail } from '../../services/email/reset-password-email.builder'
@@ -38,6 +36,7 @@ interface UserManagementServiceDeps {
 	userManagementRepository: UserManagementRepository
 	emailService: EmailService
 	generatePassword: () => Promise<string>
+	hashPassword: (plain: string) => Promise<string>
 }
 
 /**
@@ -49,11 +48,13 @@ export class UserManagementService {
 	private userManagementRepository: UserManagementRepository
 	private emailService: EmailService
 	private generatePassword: () => Promise<string>
+	private hashPassword: (plain: string) => Promise<string>
 
-	constructor({ userManagementRepository, emailService, generatePassword }: UserManagementServiceDeps) {
+	constructor({ userManagementRepository, emailService, generatePassword, hashPassword }: UserManagementServiceDeps) {
 		this.userManagementRepository = userManagementRepository
 		this.emailService = emailService
 		this.generatePassword = generatePassword
+		this.hashPassword = hashPassword
 	}
 
 	/**
@@ -102,7 +103,7 @@ export class UserManagementService {
 		}
 
 		const plainPassword = await this.generatePassword()
-		const passwordHash = await hash(plainPassword, getBcryptSaltRounds())
+		const passwordHash = await this.hashPassword(plainPassword)
 
 		const mustChangePassword = params.mustChangePassword ?? true
 
@@ -247,7 +248,7 @@ export class UserManagementService {
 		}
 
 		const plainPassword = await this.generatePassword()
-		const passwordHash = await hash(plainPassword, getBcryptSaltRounds())
+		const passwordHash = await this.hashPassword(plainPassword)
 		await this.userManagementRepository.updatePasswordAndMustChange(id, passwordHash, true)
 
 		const passwordEmailSent = await this.sendResetPasswordEmail(userData.email, userData.firstName, plainPassword)

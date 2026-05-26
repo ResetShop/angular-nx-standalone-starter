@@ -54,7 +54,8 @@ import type { PasetoService } from '../services/paseto/interfaces'
  * UserManagementService
  *   ├── UserManagementRepository ► db
  *   ├── EmailService
- *   └── generatePassword (value)
+ *   ├── generatePassword (value)
+ *   └── hashPassword (value)
  *
  * EmailService
  *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
@@ -69,6 +70,7 @@ export interface Cradle {
 	authConfig: AuthConfig
 	logger: Logger
 	generatePassword: () => Promise<string>
+	hashPassword: (plain: string) => Promise<string>
 
 	// Repositories (registerRepositories)
 	emailRepository: EmailRepository
