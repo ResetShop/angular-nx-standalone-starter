@@ -5,12 +5,12 @@ import { RowActionsMenu } from './row-actions-menu'
 describe('RowActionsMenu', () => {
 	beforeEach(() => clearAllMocks())
 
-	it('renders without throwing', async () => {
-		await render(`<app-row-actions-menu></app-row-actions-menu>`, {
-			imports: [RowActionsMenu],
+	it('renders nothing when actions is empty', async () => {
+		await render(RowActionsMenu, {
+			inputs: { actions: [] },
 		})
 
-		// Scaffold renders no visible content yet — full assertions added in subsequent commits.
+		// Empty-actions guard: the trigger button is not rendered, the menu template never instantiates.
 		expect(screen.queryByRole('button')).toBeNull()
 	})
 })
