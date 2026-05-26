@@ -1,5 +1,5 @@
 import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherArrowRight, featherDownload, featherPlus, featherTrash2 } from '@ng-icons/feather-icons'
+import { featherArrowRight, featherDownload, featherEdit3, featherPlus, featherTrash2 } from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { moduleMetadata } from '@storybook/angular'
 import { Spinner } from '../spinner/spinner'
@@ -369,7 +369,7 @@ export const IconVariants: Story = {
 	decorators: [
 		moduleMetadata({
 			imports: [NgIcon],
-			providers: [provideIcons({ featherPlus, featherTrash2 })],
+			providers: [provideIcons({ featherEdit3, featherPlus, featherTrash2 })],
 		}),
 	],
 	render: () => ({
@@ -379,6 +379,7 @@ export const IconVariants: Story = {
 				<button appButton variant="outline"><ng-icon data-icon="start" name="featherPlus" /> Create</button>
 				<button appButton variant="secondary"><ng-icon data-icon="start" name="featherPlus" /> Create</button>
 				<button appButton variant="ghost"><ng-icon data-icon="start" name="featherTrash2" /> Delete</button>
+				<button appButton variant="ghost-muted"><ng-icon data-icon="start" name="featherEdit3" /> Edit</button>
 				<button appButton variant="destructive"><ng-icon data-icon="start" name="featherTrash2" /> Delete</button>
 				<button appButton variant="link"><ng-icon data-icon="start" name="featherPlus" /> Add</button>
 			</div>
