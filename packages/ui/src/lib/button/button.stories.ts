@@ -17,7 +17,7 @@ A versatile button component with multiple variants and sizes. Supports both but
 
 ## Features
 
-- **6 Variants**: Default, Secondary, Destructive, Outline, Ghost, Link
+- **7 Variants**: Default, Secondary, Destructive, Outline, Ghost, Ghost Muted, Link
 - **3 Sizes**: Small, Medium (default), Large
 - **Full Width Option**: Span the full container width
 - **Icon Support**: Project icons via \`data-icon="start"\` and \`data-icon="end"\` attributes
@@ -69,7 +69,7 @@ Try the controls below to customize the button appearance. Use the background se
 	argTypes: {
 		variant: {
 			control: 'select',
-			options: ['default', 'secondary', 'destructive', 'outline', 'ghost', 'link'],
+			options: ['default', 'secondary', 'destructive', 'outline', 'ghost', 'ghost-muted', 'link'],
 			description: 'Visual variant of the button',
 			table: {
 				type: { summary: 'ButtonVariant' },
@@ -153,6 +153,51 @@ export const Secondary: Story = {
 export const Ghost: Story = {
 	render: () => ({
 		template: `<button appButton variant="ghost">Ghost</button>`,
+	}),
+}
+
+/**
+ * Ghost-muted variant — transparent background, muted foreground at rest,
+ * accent background and full foreground on hover. Recommended for dense
+ * data-table row actions to reduce visual noise. The second button has
+ * `data-hover` set to simulate the hovered state in the static canvas.
+ */
+export const GhostMuted: Story = {
+	render: () => ({
+		template: `
+			<div class="flex gap-3 items-center">
+				<button appButton variant="ghost-muted">Default state</button>
+				<button appButton variant="ghost-muted" data-hover>Hover state</button>
+			</div>
+		`,
+	}),
+}
+
+/**
+ * Ghost-muted composed with a caller-supplied `data-[hover]:text-destructive` —
+ * the canonical delete row action pattern. At rest the label is muted; on hover
+ * it lifts to the destructive foreground over the accent background, without a
+ * dedicated `ghost-muted-destructive` variant. The second button has `data-hover`
+ * set to simulate the hovered state.
+ */
+export const GhostMutedDestructive: Story = {
+	decorators: [
+		moduleMetadata({
+			imports: [NgIcon],
+			providers: [provideIcons({ featherTrash2 })],
+		}),
+	],
+	render: () => ({
+		template: `
+			<div class="flex gap-3 items-center">
+				<button appButton variant="ghost-muted" class="data-[hover]:text-destructive">
+					<ng-icon data-icon="start" name="featherTrash2" /> Delete (default)
+				</button>
+				<button appButton variant="ghost-muted" class="data-[hover]:text-destructive" data-hover>
+					<ng-icon data-icon="start" name="featherTrash2" /> Delete (hover)
+				</button>
+			</div>
+		`,
 	}),
 }
 
@@ -247,6 +292,7 @@ export const AllVariants: Story = {
 				<button appButton variant="outline">Outline</button>
 				<button appButton variant="secondary">Secondary</button>
 				<button appButton variant="ghost">Ghost</button>
+				<button appButton variant="ghost-muted">Ghost Muted</button>
 				<button appButton variant="destructive">Destructive</button>
 				<button appButton variant="link">Link</button>
 			</div>
