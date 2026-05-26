@@ -58,7 +58,7 @@ export interface RowAction {
 			ngpMenuItem
 			role="menuitem"
 			type="button"
-			class="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-100 focus:bg-gray-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:hover:bg-gray-800 dark:focus:bg-gray-800"
+			class="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-100 focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[focus-visible]:bg-gray-100 dark:hover:bg-gray-800 dark:data-[focus-visible]:bg-gray-800"
 		>
 			@if (action().icon; as icon) {
 				<ng-icon [name]="icon" class="size-4 shrink-0" />
