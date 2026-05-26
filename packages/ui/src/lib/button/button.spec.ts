@@ -74,6 +74,19 @@ describe('Button', () => {
 		expect(button).toHaveClass('text-foreground')
 	})
 
+	it('should apply ghost-muted variant classes', async () => {
+		await render(`<button appButton variant="ghost-muted">Ghost Muted</button>`, {
+			imports: [Button],
+		})
+
+		const button = screen.getByRole('button')
+		expect(button).toHaveClass('bg-transparent')
+		expect(button).toHaveClass('text-muted-foreground')
+		expect(button).toHaveClass('data-[hover]:text-foreground')
+		expect(button).toHaveClass('data-[focus-visible]:outline-ring')
+		expect(button).not.toHaveClass('text-foreground')
+	})
+
 	it('should apply link variant classes', async () => {
 		await render(`<button appButton variant="link">Link</button>`, {
 			imports: [Button],
