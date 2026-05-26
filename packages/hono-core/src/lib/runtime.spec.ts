@@ -9,6 +9,7 @@ describe('isServerless', () => {
 	})
 
 	afterEach(() => {
+		// Restore the original reference to undo any property mutations made in the test.
 		process.env = originalEnv
 	})
 
