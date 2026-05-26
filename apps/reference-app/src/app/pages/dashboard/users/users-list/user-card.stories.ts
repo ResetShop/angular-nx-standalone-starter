@@ -41,8 +41,11 @@ export default meta
 type Story = StoryObj<UserCard>
 
 /**
- * Active user with all permissions granted — Edit and Delete buttons visible,
- * status badge shows the default variant.
+ * Active user with all permissions granted — Edit, Reset Password, and Delete
+ * actions visible, status badge shows the default variant. The row actions use
+ * the `ghost-muted` Button variant (muted at rest, full foreground on hover, with
+ * Delete lifting to destructive red), so this story doubles as the row-action
+ * density reference that every fork inherits from the reference app.
  */
 export const Default: Story = {
 	args: {
@@ -72,31 +75,6 @@ export const Disabled: Story = {
 				lastName: 'Smith',
 				email: 'sam.smith@example.com',
 				status: UserStatus.DISABLED,
-			}),
-		),
-	},
-	render: (args) => ({
-		props: args,
-		template: `<app-user-card [user]="user" />`,
-	}),
-}
-
-/**
- * Row-action density reference. The Edit, Reset Password, and Delete actions all
- * use the `ghost-muted` Button variant — muted at rest, full foreground on hover,
- * with Delete lifting to destructive red on hover. Hover the buttons to compare
- * the calmer baseline against the previous full-strength `ghost` treatment. Use
- * this story as a visual regression guard for the row-action grid that every fork
- * inherits from the reference app.
- */
-export const GhostMutedActions: Story = {
-	args: {
-		user: mapManagedUserResponse(
-			createMockManagedUser({
-				firstName: 'Alex',
-				lastName: 'Rivera',
-				email: 'alex.rivera@example.com',
-				status: UserStatus.ACTIVE,
 			}),
 		),
 	},
