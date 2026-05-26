@@ -1,22 +1,21 @@
+import { TestBed } from '@angular/core/testing'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import { type RowAction } from './row-action-item'
 import { RowActionsMenu } from './row-actions-menu'
 
+// Closes any open ng-primitives menu so its overlay portal is removed before the next test.
+// Without this, the portal node leaks into document.body (outside Testing Library's cleanup
+// scope) and the next test sees a stale `<div ngpmenu>`. Escape triggers the library's close;
+// TestBed.tick() flushes the signal-driven DOM update under zoneless + happy-dom.
+async function closeMenu(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+	await user.keyboard('{Escape}')
+	TestBed.tick()
+}
+
 describe('RowActionsMenu', () => {
 	beforeEach(() => clearAllMocks())
-
-	// The `ng-primitives` menu attaches its content to an overlay portal in `document.body`,
-	// outside the Angular test fixture's view tree. Testing Library's auto-cleanup destroys the
-	// fixture but does not reach the portal, so a test that ends with the menu open leaks a
-	// `<div ngpmenu>` into `document.body` and breaks subsequent tests with "Found multiple
-	// elements" errors. Removing those leftover portal nodes directly is the cleanest workaround
-	// — calling Escape via userEvent in afterEach is unreliable under the zoneless test config.
-	afterEach(() => {
-		// eslint-disable-next-line testing-library/no-node-access
-		document.querySelectorAll('[ngpmenu]').forEach((el) => el.remove())
-	})
 
 	it('renders nothing when actions is empty', async () => {
 		await render(RowActionsMenu, {
@@ -59,6 +58,8 @@ describe('RowActionsMenu', () => {
 		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
 		expect(screen.getByRole('menuitem', { name: 'Reset password' })).toBeInTheDocument()
 		expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument()
+
+		await closeMenu(user)
 	})
 
 	it('invokes the action onSelect callback when its menuitem is clicked', async () => {
@@ -79,15 +80,9 @@ describe('RowActionsMenu', () => {
 
 		expect(deleteSpy.calls).toHaveLength(1)
 		expect(editSpy.calls).toHaveLength(0)
-	})
 
-	// Note: close-on-select and close-on-Escape are guaranteed by `ng-primitives` and intentionally
-	// not re-tested here. The zoneless + happy-dom test environment does not propagate the overlay's
-	// signal-driven DOM updates from those events synchronously; flushing them would require either
-	// dropping zoneless (which would diverge from the rest of the suite) or asserting against fake
-	// timers (overkill for library-owned behavior). The afterEach hook above removes any leftover
-	// menu portal so test isolation is preserved. The `Open` and `WithIcons` Storybook stories
-	// provide manual browser-level verification of the close behavior.
+		await closeMenu(user)
+	})
 
 	it('applies text-destructive to items with variant="destructive"', async () => {
 		const user = userEvent.setup()
@@ -104,6 +99,8 @@ describe('RowActionsMenu', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveClass('text-destructive')
 		expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toHaveClass('text-destructive')
+
+		await closeMenu(user)
 	})
 
 	it('marks disabled items as disabled and does not invoke their callback on click', async () => {
@@ -121,6 +118,8 @@ describe('RowActionsMenu', () => {
 
 		await user.click(item)
 		expect(archivedSpy.calls).toHaveLength(0)
+
+		await closeMenu(user)
 	})
 
 	it('keeps the data-touch-target attribute on the trigger for mobile hit area', async () => {

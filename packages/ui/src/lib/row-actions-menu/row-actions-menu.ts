@@ -57,6 +57,7 @@ import { RowActionItem, type RowAction } from './row-action-item'
 				<div
 					ngpMenu
 					role="menu"
+					data-testid="row-actions-menu"
 					class="fixed z-50 flex w-max min-w-[8rem] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
 				>
 					@for (action of actions(); track $index) {

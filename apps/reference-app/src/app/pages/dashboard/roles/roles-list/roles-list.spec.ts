@@ -29,7 +29,8 @@ import RolesList from './roles-list'
  * subsequent `screen.getByRole('menuitem', ...)` queries find the popover-rendered items.
  *
  * The menu is rendered in a portal on `document.body`, outside the test fixture's view tree.
- * The `afterEach` hook below cleans up any leftover portal nodes so tests stay isolated.
+ * The `afterEach` hook below dispatches Escape to close the menu, letting the library remove
+ * its own portal so tests stay isolated.
  */
 async function openRowActionsMenu(): Promise<void> {
 	fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
@@ -74,10 +75,9 @@ describe('RolesList', () => {
 		useRealTimers()
 		// The row-actions menu attaches its popover to a portal on `document.body`, outside the
 		// Angular test fixture's view tree. Testing Library's auto-cleanup destroys the fixture
-		// but does not reach the portal; leftover `<div ngpmenu>` nodes cause "Found multiple
-		// elements" errors in subsequent tests. Strip them explicitly.
-		// eslint-disable-next-line testing-library/no-node-access
-		document.querySelectorAll('[ngpmenu]').forEach((el) => el.remove())
+		// but does not reach the portal; leftover menus cause "Found multiple elements" errors in
+		// subsequent tests. Remove them via the data-testid baked into RowActionsMenu's template.
+		screen.queryAllByTestId('row-actions-menu').forEach((el) => el.remove())
 	})
 
 	function setUserWithAllPermissions(): void {
