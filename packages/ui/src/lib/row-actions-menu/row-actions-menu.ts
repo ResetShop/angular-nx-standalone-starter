@@ -60,11 +60,19 @@ export interface RowAction {
 				<ng-icon data-icon="start" name="featherMoreVertical" />
 			</button>
 
+			<!--
+				The "fixed" class is required: NgpMenu binds style.left and style.top to the
+				computed overlay position via Floating UI, and those values are no-ops on a default
+				position:static element. Without it the menu still renders into the DOM (tests
+				pass), but lands at the document's static flow location instead of next to the
+				trigger. The ng-primitives schematic template uses position:fixed for the same
+				reason. "w-max" sizes to content; "min-w-[8rem]" enforces a floor for short labels.
+			-->
 			<ng-template #menu>
 				<div
 					ngpMenu
 					role="menu"
-					class="z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
+					class="fixed z-50 flex w-max min-w-[8rem] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
 				>
 					@for (action of actions(); track $index) {
 						<button
