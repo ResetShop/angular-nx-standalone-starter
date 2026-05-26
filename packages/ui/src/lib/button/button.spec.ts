@@ -82,6 +82,7 @@ describe('Button', () => {
 		const button = screen.getByRole('button')
 		expect(button).toHaveClass('bg-transparent')
 		expect(button).toHaveClass('text-muted-foreground')
+		expect(button).toHaveClass('data-[hover]:bg-accent')
 		expect(button).toHaveClass('data-[hover]:text-foreground')
 		expect(button).toHaveClass('data-[focus-visible]:outline-ring')
 		expect(button).not.toHaveClass('text-foreground')
