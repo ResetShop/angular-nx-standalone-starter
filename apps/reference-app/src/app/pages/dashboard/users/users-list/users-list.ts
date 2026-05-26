@@ -219,17 +219,6 @@ export default class UsersList {
 		this.store.setSearchQuery(input.value)
 	}
 
-	/**
-	 * Builds the per-row action list for the `<app-row-actions-menu>` in the actions cell.
-	 *
-	 * Permission checks are imperative here rather than using `*hasPermission` in the template
-	 * because the action list is computed per-row — there are no individual permission-gated
-	 * buttons to attach structural directives to. The check reads `currentUser()` from the same
-	 * `AuthStore` signal that `*hasPermission` uses, so the behavior is identical.
-	 *
-	 * Reset Password and Delete are suppressed on the current user's own row (mirrors the prior
-	 * inline-button behavior and the backend's `SELF_LOCKOUT` rejection of those operations).
-	 */
 	protected getRowActions(row: IManagedUser): RowAction[] {
 		const user = this.authStore.currentUser()
 		const isSelf = this.currentUser.is(row)

@@ -23,7 +23,6 @@ describe('RowActionsMenu', () => {
 			inputs: { actions: [] },
 		})
 
-		// Empty-actions guard: the trigger button is not rendered, the menu template never instantiates.
 		expect(screen.queryByRole('button')).toBeNull()
 	})
 

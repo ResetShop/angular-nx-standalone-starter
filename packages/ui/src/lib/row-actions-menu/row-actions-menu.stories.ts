@@ -7,13 +7,7 @@ import { RowActionsMenu } from './row-actions-menu'
 
 const noop = (label: string) => () => console.log(`[RowActionsMenu] selected: ${label}`)
 
-/**
- * Helper for the `Open` and `WithIcons` story `play` functions. Clicks the trigger button to
- * reveal the menu popover so the static canvas displays the open state. Uses plain DOM rather
- * than `@testing-library/*` because Storybook's lint rule forbids the testing-library packages
- * directly in story files (it expects the bundled `@storybook/test` re-export, which is not a
- * dependency of this project).
- */
+// Plain DOM (not `@testing-library/*`) because Storybook's lint rule forbids those imports in story files.
 function openMenu(canvasElement: HTMLElement): void {
 	// Depends on the default `triggerLabel` value ("Actions"). If a story overrides `triggerLabel`,
 	// this helper needs to know the override or the click silently no-ops.
@@ -36,9 +30,6 @@ const meta: Meta<RowActionsMenu> = {
 			description: {
 				component: `
 A vertical-ellipsis (⋮) trigger that opens a popover menu with row-scoped actions.
-
-Designed to replace inline action buttons in data-table rows: one icon-only trigger keeps
-the row visually quiet at rest, the menu reveals the full action set on demand.
 
 ## Inputs
 

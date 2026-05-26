@@ -8,12 +8,9 @@ import { RowActionItem, type RowAction } from './row-action-item'
 /**
  * Vertical-ellipsis (⋮) trigger that opens an `NgpMenu` popover listing the row's actions.
  *
- * Replaces inline action buttons in data-table rows. When `actions` is empty the component
- * renders nothing — consumers do not need to guard with `@if` themselves.
+ * Renders nothing when `actions` is empty — consumers do not need to guard with `@if`.
  *
- * Built on `ng-primitives` `NgpMenuTrigger` / `NgpMenu`, with each item rendered by the
- * sibling `RowActionItem` component (which owns the `ngpMenuItem` directive, color variant,
- * and disabled wiring). Behavior:
+ * Behavior:
  * - Click trigger opens the menu (`bottom-start` placement, auto-flip near viewport edges).
  * - Arrow keys navigate items; Enter / Space activates the focused item.
  * - Escape closes the menu; focus returns to the trigger when closed via keyboard.

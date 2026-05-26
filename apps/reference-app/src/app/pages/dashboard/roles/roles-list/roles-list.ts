@@ -176,16 +176,6 @@ export default class RolesList {
 		this.store.setSearchQuery(input.value)
 	}
 
-	/**
-	 * Builds the per-row action list for the `<app-row-actions-menu>` in the actions cell.
-	 *
-	 * Permission checks are imperative here rather than using `*hasPermission` in the template
-	 * because the action list is computed per-row — there are no individual permission-gated
-	 * buttons to attach structural directives to. The check reads `currentUser()` from the same
-	 * `AuthStore` signal that `*hasPermission` uses, so the behavior is identical.
-	 *
-	 * Delete is suppressed for non-removable roles (mirrors the prior inline-button guard).
-	 */
 	protected getRowActions(row: IRole): RowAction[] {
 		const user = this.authStore.currentUser()
 		const actions: RowAction[] = []

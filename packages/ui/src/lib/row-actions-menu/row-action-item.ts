@@ -4,11 +4,13 @@ import { NgIcon } from '@ng-icons/core'
 import { NgpMenuItem } from 'ng-primitives/menu'
 
 /**
- * A single action item exposed in the row-actions menu.
+ * A single action exposed in a row-actions menu.
  *
- * `variant: 'destructive'` styles the item with `text-destructive`. Each menu item lives in
- * an independent popover element, so destructive styling here is a simple per-item class —
- * none of the cascade-order problems that affect inline-button compositions apply.
+ * - `label`: text rendered inside the menu item button.
+ * - `onSelect`: callback invoked when the item is clicked or activated via keyboard.
+ * - `variant`: `'destructive'` renders the label in `text-destructive`; defaults to `'default'`.
+ * - `icon`: optional `@ng-icons` name; when set, the icon renders before the label.
+ * - `disabled`: when `true`, the item is non-interactive and visually dimmed.
  */
 export interface RowAction {
 	readonly label: string
@@ -21,13 +23,8 @@ export interface RowAction {
 /**
  * Renders a single `RowAction` as a menu item button.
  *
- * Designed to be projected into an `ngpMenu` host — relies on the `ngpMenuItem` directive
- * for keyboard navigation and selection handling provided by the parent menu. Outside of
- * a menu host the button still renders, but the menu-level keyboard semantics are inert.
- *
- * Lives as a separate component (rather than inlined in `RowActionsMenu`) so the per-item
- * template, color-variant logic, and disabled-state wiring can be tested and reused
- * independently of the menu wrapper.
+ * Must be projected into an `ngpMenu` host — relies on the `ngpMenuItem` directive for
+ * keyboard navigation and selection handling supplied by the parent menu.
  *
  * @example
  *   <div ngpMenu role="menu">
