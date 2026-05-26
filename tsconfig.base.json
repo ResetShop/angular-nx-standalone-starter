@@ -16,8 +16,7 @@
 			"@resetshop/angular-core": ["packages/angular-core/src/index.ts"],
 			"@resetshop/angular-core/*": ["packages/angular-core/src/lib/*"],
 			"@resetshop/hono-core": ["packages/hono-core/src/index.ts"],
-			"@resetshop/hono-core/*": ["packages/hono-core/src/lib/*"],
-			"@contracts/*": ["apps/reference-app/src/contracts/*"]
+			"@resetshop/hono-core/*": ["packages/hono-core/src/lib/*"]
 		}
 	},
 	"angularCompilerOptions": {

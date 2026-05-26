@@ -1,6 +1,6 @@
-import { UserStatus } from '@contracts/user/user.constants'
 import { relations } from 'drizzle-orm'
 import { foreignKey, index, integer, pgEnum, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core'
+import { UserStatus } from '../../contracts/user/user.constants'
 import { role } from './role'
 
 export const userStatusEnum = pgEnum('user_status', [UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.DELETED])
