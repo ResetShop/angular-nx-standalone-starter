@@ -18,16 +18,6 @@ export const DEFAULT_MAX_FAILED_ATTEMPTS = 5
 export const DEFAULT_LOCKOUT_DURATION = '15m'
 
 /**
- * Returns the number of salt rounds for bcrypt password hashing.
- * Reads BCRYPT_COST at call time (not module load time) so that
- * integration tests can set the env var before any hashing occurs.
- * Default: 12 (production). Override: BCRYPT_COST=1 (tests).
- */
-export function getBcryptSaltRounds(): number {
-	return Number(process.env['BCRYPT_COST']) || 12
-}
-
-/**
  * Expiry buffer for refresh token cleanup (duration string notation).
  * Tokens must be expired for at least this duration before deletion,
  * preventing race conditions during active refresh operations.
