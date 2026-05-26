@@ -2,7 +2,7 @@
 // TODO: Install @sanity/client package to use this connector.
 
 // import { createClient, SanityClient } from '@sanity/client';
-// import { environment } from './environment';
+// import { environment } from '../environment';
 //
 // export const client: SanityClient = createClient({
 // 	projectId: environment.sanity.projectId,
