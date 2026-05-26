@@ -127,16 +127,17 @@ import { UserCard } from './user-card'
 							</button>
 						}
 						@if (!currentUser.is(row)) {
-							<!-- data-[hover]:text-destructive overrides the ghost-muted variant's data-[hover]:text-foreground on hover.
-							     Both are equal-specificity, so this relies on Tailwind emitting text-destructive after text-foreground,
-							     i.e. --color-destructive declared after --color-foreground in tailwind.config.css. -->
+							<!-- The text-destructive overrides on both hover triggers (button-hover, row-hover) override the
+							     ghost-muted variant's matching text-foreground utilities. They are equal-specificity, so this
+							     relies on Tailwind emitting text-destructive after text-foreground — i.e. --color-destructive
+							     declared after --color-foreground in tailwind.config.css. -->
 							<button
 								(click)="confirmDelete(row)"
 								*hasPermission="'admin:users:delete'"
 								appButton
 								variant="ghost-muted"
 								size="sm"
-								class="data-[hover]:text-destructive"
+								class="data-[hover]:text-destructive group-hover/row:text-destructive"
 								data-touch-target
 							>
 								<ng-icon data-icon="start" name="featherTrash2" />
