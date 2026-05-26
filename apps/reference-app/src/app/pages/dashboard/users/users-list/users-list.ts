@@ -14,6 +14,7 @@ import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons'
+import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
@@ -112,7 +113,7 @@ import { UserCard } from './user-card'
 							<ng-icon data-icon="start" name="featherEdit3" />
 							<span class="sr-only sm:not-sr-only">{{ 'COMMON.EDIT' | translate }}</span>
 						</button>
-						@if (canResetPassword(row)) {
+						@if (!currentUser.is(row)) {
 							<button
 								(click)="confirmResetPassword(row)"
 								*hasPermission="'admin:users:reset_password'"
@@ -125,18 +126,20 @@ import { UserCard } from './user-card'
 								<span class="sr-only sm:not-sr-only">{{ 'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate }}</span>
 							</button>
 						}
-						<button
-							(click)="confirmDelete(row)"
-							*hasPermission="'admin:users:delete'"
-							appButton
-							variant="ghost"
-							size="sm"
-							class="text-destructive"
-							data-touch-target
-						>
-							<ng-icon data-icon="start" name="featherTrash2" />
-							<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
-						</button>
+						@if (!currentUser.is(row)) {
+							<button
+								(click)="confirmDelete(row)"
+								*hasPermission="'admin:users:delete'"
+								appButton
+								variant="ghost"
+								size="sm"
+								class="text-destructive"
+								data-touch-target
+							>
+								<ng-icon data-icon="start" name="featherTrash2" />
+								<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
+							</button>
+						}
 					</div>
 				</ng-template>
 
@@ -190,6 +193,7 @@ export default class UsersList {
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
+	protected readonly currentUser = inject(CurrentUser)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
@@ -260,10 +264,6 @@ export default class UsersList {
 			this.store.deleteUser(user.id)
 			this.userToDelete.set(null)
 		}
-	}
-
-	protected canResetPassword(user: IManagedUser): boolean {
-		return this.authStore.currentUser()?.id !== user.id
 	}
 
 	protected confirmResetPassword(user: IManagedUser): void {

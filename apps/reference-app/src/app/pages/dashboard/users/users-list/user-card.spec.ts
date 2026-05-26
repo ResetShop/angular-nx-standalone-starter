@@ -8,6 +8,7 @@ import { AuthApi } from '@providers/auth/auth.interface'
 import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { createMockManagedUser } from '@providers/users/users.mock'
+import { CURRENT_USER_SOURCE } from '@resetshop/angular-core/auth/current-user.token'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
@@ -33,6 +34,7 @@ describe('UserCard', () => {
 			on: { edit: editSpy, delete: deleteSpy, resetPassword: resetPasswordSpy },
 			providers: [
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
@@ -128,6 +130,7 @@ describe('UserCard', () => {
 			on: { edit: fn(), delete: fn(), resetPassword: fn() },
 			providers: [
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
@@ -140,12 +143,13 @@ describe('UserCard', () => {
 		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
 	})
 
-	it('hides the reset password button when the card user is the current user', async () => {
+	it('hides the reset password and delete buttons when the card user is the current user', async () => {
 		const view = await render(UserCard, {
 			inputs: { user: buildUser({ id: 42 }) },
 			on: { edit: fn(), delete: fn(), resetPassword: fn() },
 			providers: [
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
@@ -153,8 +157,9 @@ describe('UserCard', () => {
 		view.fixture.detectChanges()
 
 		expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+		// Edit remains visible — users may update their own profile.
 		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
 	})
 
 	it('hides the edit button when the current user lacks admin:users:update', async () => {
@@ -165,6 +170,7 @@ describe('UserCard', () => {
 			on: { edit: editSpy, delete: deleteSpy },
 			providers: [
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 			],
 		})
