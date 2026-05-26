@@ -82,8 +82,12 @@ describe('Button', () => {
 		const button = screen.getByRole('button')
 		expect(button).toHaveClass('bg-transparent')
 		expect(button).toHaveClass('text-muted-foreground')
+		// Button hover lift to full foreground (also applies bg-accent).
 		expect(button).toHaveClass('data-[hover]:bg-accent')
 		expect(button).toHaveClass('data-[hover]:text-foreground')
+		// Row hover lift to full foreground — opt-in via a `group/row` ancestor (set by `<app-data-table>`).
+		// Consumers outside such an ancestor get the button-hover lift only.
+		expect(button).toHaveClass('group-hover/row:text-foreground')
 		expect(button).toHaveClass('data-[focus-visible]:outline-ring')
 		expect(button).not.toHaveClass('text-foreground')
 	})

@@ -82,8 +82,15 @@ export class Button {
 	 * rendering every action at full `text-foreground` strength creates visual
 	 * clutter. It shares `ghost`'s transparent background and no-border/shadow
 	 * treatment but renders at muted foreground by default, lifting to full
-	 * foreground on hover. Compose it with a caller-supplied
-	 * `class="data-[hover]:text-destructive"` for destructive row actions.
+	 * foreground on **button hover OR row hover** (the latter targets the
+	 * Tailwind named group `group/row`, which `<app-data-table>` applies to
+	 * every `<tr>`). Consumers outside a `group/row` ancestor get the
+	 * button-hover lift only, which is correct for card-style hosts.
+	 *
+	 * Compose with a caller-supplied
+	 * `class="data-[hover]:text-destructive group-hover/row:text-destructive"`
+	 * for destructive row actions — both selectors are required so the
+	 * destructive treatment wins on either hover trigger.
 	 * @default 'default'
 	 */
 	public readonly variant = input<ButtonVariant>('default')
@@ -182,6 +189,7 @@ export class Button {
 			'ghost-muted': [
 				'bg-transparent',
 				'text-muted-foreground',
+				'group-hover/row:text-foreground',
 				'data-[hover]:bg-accent',
 				'data-[hover]:text-foreground',
 				'data-[focus-visible]:outline-ring',

@@ -184,7 +184,11 @@
 }
 
 <ng-template #dataRow let-row>
-	<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+	<!-- group/row enables descendant action buttons (e.g. variant="ghost-muted") to lift their
+	     foreground color on row hover via group-hover/row: utility classes. Named group rather
+	     than unnamed `group` so nested grouped components (e.g. inner ng-primitive groups) don't
+	     collide. -->
+	<tr class="group/row transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
 		@for (cell of row.getVisibleCells(); track cell.id) {
 		<td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
 			@if (cellDefMap().get(cell.column.id); as cellDef) {

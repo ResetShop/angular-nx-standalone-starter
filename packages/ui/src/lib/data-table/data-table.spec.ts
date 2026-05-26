@@ -74,6 +74,22 @@ describe('DataTable', () => {
 		expect(screen.getByText('jane@example.com')).toBeInTheDocument()
 	})
 
+	it('should apply the `group/row` named group to every data row so descendant action buttons can lift on row hover', async () => {
+		await render(DataTable<TestData>, {
+			inputs: { columns: testColumns, data: testData },
+			providers: [{ provide: Translation, useValue: mockTranslation }],
+		})
+
+		// The header row is the first <tr>; the data rows follow. `group/row` is opt-in styling for
+		// row-scoped descendant utilities (e.g. ghost-muted buttons that lift on row hover), and must
+		// apply to every data row, not the header.
+		const dataRows = screen.getAllByRole('row').slice(1)
+		expect(dataRows).toHaveLength(2)
+		for (const row of dataRows) {
+			expect(row).toHaveClass('group/row')
+		}
+	})
+
 	it('should show empty message when no data', async () => {
 		await render(DataTable<TestData>, {
 			inputs: { columns: testColumns, data: [] },
