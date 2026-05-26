@@ -1,7 +1,7 @@
-import { environment } from '@resetshop/hono-core'
 import { eq, inArray } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
+import { environment } from '../api/environment'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
 import { authentication } from './schema/authentication'
 import { permission } from './schema/permission'
