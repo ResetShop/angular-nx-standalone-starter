@@ -32,7 +32,7 @@ import { Button } from '@resetshop/ui/button/button'
 					(click)="edit.emit()"
 					*hasPermission="'admin:users:update'"
 					appButton
-					variant="ghost"
+					variant="ghost-muted"
 					size="sm"
 					data-touch-target
 				>
@@ -44,7 +44,7 @@ import { Button } from '@resetshop/ui/button/button'
 						(click)="resetPassword.emit()"
 						*hasPermission="'admin:users:reset_password'"
 						appButton
-						variant="ghost"
+						variant="ghost-muted"
 						size="sm"
 						data-touch-target
 					>
@@ -57,9 +57,9 @@ import { Button } from '@resetshop/ui/button/button'
 						(click)="delete.emit()"
 						*hasPermission="'admin:users:delete'"
 						appButton
-						variant="ghost"
+						variant="ghost-muted"
 						size="sm"
-						class="text-destructive"
+						class="data-[hover]:text-destructive"
 						data-touch-target
 					>
 						<ng-icon data-icon="start" name="featherTrash2" />

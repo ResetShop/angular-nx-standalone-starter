@@ -106,7 +106,7 @@ import { UserCard } from './user-card'
 							(click)="editDrawer.open(row.id)"
 							*hasPermission="'admin:users:update'"
 							appButton
-							variant="ghost"
+							variant="ghost-muted"
 							size="sm"
 							data-touch-target
 						>
@@ -118,7 +118,7 @@ import { UserCard } from './user-card'
 								(click)="confirmResetPassword(row)"
 								*hasPermission="'admin:users:reset_password'"
 								appButton
-								variant="ghost"
+								variant="ghost-muted"
 								size="sm"
 								data-touch-target
 							>
@@ -131,9 +131,9 @@ import { UserCard } from './user-card'
 								(click)="confirmDelete(row)"
 								*hasPermission="'admin:users:delete'"
 								appButton
-								variant="ghost"
+								variant="ghost-muted"
 								size="sm"
-								class="text-destructive"
+								class="data-[hover]:text-destructive"
 								data-touch-target
 							>
 								<ng-icon data-icon="start" name="featherTrash2" />

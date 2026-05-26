@@ -80,3 +80,28 @@ export const Disabled: Story = {
 		template: `<app-user-card [user]="user" />`,
 	}),
 }
+
+/**
+ * Row-action density reference. The Edit, Reset Password, and Delete actions all
+ * use the `ghost-muted` Button variant — muted at rest, full foreground on hover,
+ * with Delete lifting to destructive red on hover. Hover the buttons to compare
+ * the calmer baseline against the previous full-strength `ghost` treatment. Use
+ * this story as a visual regression guard for the row-action grid that every fork
+ * inherits from the reference app.
+ */
+export const GhostMutedActions: Story = {
+	args: {
+		user: mapManagedUserResponse(
+			createMockManagedUser({
+				firstName: 'Alex',
+				lastName: 'Rivera',
+				email: 'alex.rivera@example.com',
+				status: UserStatus.ACTIVE,
+			}),
+		),
+	},
+	render: (args) => ({
+		props: args,
+		template: `<app-user-card [user]="user" />`,
+	}),
+}
