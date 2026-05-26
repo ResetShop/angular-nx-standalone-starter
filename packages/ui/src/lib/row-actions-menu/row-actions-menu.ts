@@ -16,11 +16,6 @@ import { RowActionItem, type RowAction } from './row-action-item'
  */
 export type RowActionsInput = readonly RowAction[] | readonly (readonly RowAction[])[]
 
-// A `RowAction` is a plain object; only the matrix variant has an array as its first element.
-function isMatrix(value: RowActionsInput): value is readonly (readonly RowAction[])[] {
-	return value.length > 0 && Array.isArray(value[0])
-}
-
 /**
  * Vertical-ellipsis (⋮) trigger that opens an `NgpMenu` popover listing the row's actions.
  *
@@ -99,9 +94,14 @@ export class RowActionsMenu {
 	// consumers can build groups conditionally without producing dangling separators.
 	protected readonly nonEmptyGroups = computed(() => {
 		const value = this.actions()
-		const groups = isMatrix(value) ? value : [value]
+		const groups = this.isMatrix(value) ? value : [value]
 		return groups.filter((group) => group.length > 0)
 	})
 
 	protected readonly hasActions = computed(() => this.nonEmptyGroups().length > 0)
+
+	// A `RowAction` is a plain object; only the matrix variant has an array as its first element.
+	private isMatrix(value: RowActionsInput): value is readonly (readonly RowAction[])[] {
+		return value.length > 0 && Array.isArray(value[0])
+	}
 }
