@@ -85,8 +85,9 @@ describe('RowActionsMenu', () => {
 	// not re-tested here. The zoneless + happy-dom test environment does not propagate the overlay's
 	// signal-driven DOM updates from those events synchronously; flushing them would require either
 	// dropping zoneless (which would diverge from the rest of the suite) or asserting against fake
-	// timers (overkill for library-owned behavior). The afterEach hook below removes any leftover
-	// menu portal so test isolation is preserved.
+	// timers (overkill for library-owned behavior). The afterEach hook above removes any leftover
+	// menu portal so test isolation is preserved. The `Open` and `WithIcons` Storybook stories
+	// provide manual browser-level verification of the close behavior.
 
 	it('applies text-destructive to items with variant="destructive"', async () => {
 		const user = userEvent.setup()

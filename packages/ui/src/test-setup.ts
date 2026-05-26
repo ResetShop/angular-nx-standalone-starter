@@ -7,9 +7,10 @@ import { expect } from 'vitest'
 expect.extend(matchers)
 
 // Polyfill `Element.getAnimations()` — happy-dom omits the Web Animations API. `ng-primitives`
-// calls it when tearing down overlay portals (menus, dialogs) to wait for exit animations to
-// finish; without the polyfill the cleanup throws `TypeError: element.getAnimations is not a
-// function` and vitest reports an unhandled error even though every test assertion passes.
+// calls it when tearing down any overlay portal (menus, dialogs, tooltips, popovers, etc.) to
+// wait for exit animations to finish; without the polyfill the cleanup throws
+// `TypeError: element.getAnimations is not a function` and vitest reports an unhandled error
+// even though every test assertion passes.
 if (typeof Element !== 'undefined' && typeof Element.prototype.getAnimations !== 'function') {
 	Element.prototype.getAnimations = () => []
 }

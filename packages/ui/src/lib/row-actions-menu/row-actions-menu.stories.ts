@@ -14,6 +14,8 @@ const noop = (label: string) => () => console.log(`[RowActionsMenu] selected: ${
  * dependency of this project).
  */
 function openMenu(canvasElement: HTMLElement): void {
+	// Depends on the default `triggerLabel` value ("Actions"). If a story overrides `triggerLabel`,
+	// this helper needs to know the override or the click silently no-ops.
 	const trigger = canvasElement.querySelector<HTMLButtonElement>('button[aria-label="Actions"]')
 	trigger?.click()
 }
