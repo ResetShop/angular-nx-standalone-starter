@@ -2,11 +2,21 @@ import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { moduleMetadata } from '@storybook/angular'
-import { within } from '@testing-library/dom'
-import userEvent from '@testing-library/user-event'
 import { RowActionsMenu, type RowAction } from './row-actions-menu'
 
 const noop = (label: string) => () => console.log(`[RowActionsMenu] selected: ${label}`)
+
+/**
+ * Helper for the `Open` and `WithIcons` story `play` functions. Clicks the trigger button to
+ * reveal the menu popover so the static canvas displays the open state. Uses plain DOM rather
+ * than `@testing-library/*` because Storybook's lint rule forbids the testing-library packages
+ * directly in story files (it expects the bundled `@storybook/test` re-export, which is not a
+ * dependency of this project).
+ */
+function openMenu(canvasElement: HTMLElement): void {
+	const trigger = canvasElement.querySelector<HTMLButtonElement>('button[aria-label="Actions"]')
+	trigger?.click()
+}
 
 const meta: Meta<RowActionsMenu> = {
 	component: RowActionsMenu,
@@ -77,10 +87,7 @@ export const Open: Story = {
 	args: {
 		actions: sampleActions,
 	},
-	play: async ({ canvasElement }) => {
-		const canvas = within(canvasElement)
-		await userEvent.click(canvas.getByRole('button', { name: 'Actions' }))
-	},
+	play: ({ canvasElement }) => openMenu(canvasElement),
 }
 
 /**
@@ -94,10 +101,7 @@ export const WithIcons: Story = {
 			{ label: 'Delete', onSelect: noop('Delete'), variant: 'destructive', icon: 'featherTrash2' },
 		],
 	},
-	play: async ({ canvasElement }) => {
-		const canvas = within(canvasElement)
-		await userEvent.click(canvas.getByRole('button', { name: 'Actions' }))
-	},
+	play: ({ canvasElement }) => openMenu(canvasElement),
 }
 
 /**
