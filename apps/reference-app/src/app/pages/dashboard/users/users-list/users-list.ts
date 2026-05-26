@@ -127,6 +127,9 @@ import { UserCard } from './user-card'
 							</button>
 						}
 						@if (!currentUser.is(row)) {
+							<!-- data-[hover]:text-destructive overrides the ghost-muted variant's data-[hover]:text-foreground on hover.
+							     Both are equal-specificity, so this relies on Tailwind emitting text-destructive after text-foreground,
+							     i.e. --color-destructive declared after --color-foreground in tailwind.config.css. -->
 							<button
 								(click)="confirmDelete(row)"
 								*hasPermission="'admin:users:delete'"

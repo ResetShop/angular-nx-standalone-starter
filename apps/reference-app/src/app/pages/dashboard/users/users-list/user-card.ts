@@ -53,6 +53,9 @@ import { Button } from '@resetshop/ui/button/button'
 					</button>
 				}
 				@if (!currentUser.is(user())) {
+					<!-- data-[hover]:text-destructive overrides the ghost-muted variant's data-[hover]:text-foreground on hover.
+					     Both are equal-specificity, so this relies on Tailwind emitting text-destructive after text-foreground,
+					     i.e. --color-destructive declared after --color-foreground in tailwind.config.css. -->
 					<button
 						(click)="delete.emit()"
 						*hasPermission="'admin:users:delete'"
