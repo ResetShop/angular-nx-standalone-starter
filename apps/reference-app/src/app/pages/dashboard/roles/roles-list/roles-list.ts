@@ -172,26 +172,28 @@ export default class RolesList {
 		this.store.setSearchQuery(input.value)
 	}
 
-	protected getRowActions(row: IRole): RowAction[] {
+	protected getRowActions(row: IRole): RowAction[][] {
 		const user = this.authStore.currentUser()
-		const actions: RowAction[] = []
+		const nonDestructive: RowAction[] = []
 
 		if (user?.hasPermission('admin:roles:update')) {
-			actions.push({
+			nonDestructive.push({
 				label: this.translation.instant('COMMON.EDIT'),
 				onSelect: () => this.editDrawerRef().open(row.id),
 			})
 		}
 
+		const destructive: RowAction[] = []
+
 		if (row.removable && user?.hasPermission('admin:roles:delete')) {
-			actions.push({
+			destructive.push({
 				label: this.translation.instant('COMMON.DELETE'),
 				onSelect: () => this.confirmDelete(row),
 				variant: 'destructive',
 			})
 		}
 
-		return actions
+		return [nonDestructive, destructive]
 	}
 
 	protected confirmDelete(role: IRole): void {

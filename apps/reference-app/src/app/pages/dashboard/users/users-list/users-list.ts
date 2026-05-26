@@ -215,34 +215,36 @@ export default class UsersList {
 		this.store.setSearchQuery(input.value)
 	}
 
-	protected getRowActions(row: IManagedUser): RowAction[] {
+	protected getRowActions(row: IManagedUser): RowAction[][] {
 		const user = this.authStore.currentUser()
 		const isSelf = this.currentUser.is(row)
-		const actions: RowAction[] = []
+		const nonDestructive: RowAction[] = []
 
 		if (user?.hasPermission('admin:users:update')) {
-			actions.push({
+			nonDestructive.push({
 				label: this.translation.instant('COMMON.EDIT'),
 				onSelect: () => this.editDrawerRef().open(row.id),
 			})
 		}
 
 		if (!isSelf && user?.hasPermission('admin:users:reset_password')) {
-			actions.push({
+			nonDestructive.push({
 				label: this.translation.instant('USERS.PAGE.RESET_PASSWORD_BUTTON'),
 				onSelect: () => this.confirmResetPassword(row),
 			})
 		}
 
+		const destructive: RowAction[] = []
+
 		if (!isSelf && user?.hasPermission('admin:users:delete')) {
-			actions.push({
+			destructive.push({
 				label: this.translation.instant('COMMON.DELETE'),
 				onSelect: () => this.confirmDelete(row),
 				variant: 'destructive',
 			})
 		}
 
-		return actions
+		return [nonDestructive, destructive]
 	}
 
 	protected confirmDelete(user: IManagedUser): void {

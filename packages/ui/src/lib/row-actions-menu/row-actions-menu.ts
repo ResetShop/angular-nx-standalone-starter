@@ -2,13 +2,24 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherMoreVertical } from '@ng-icons/feather-icons'
 import { NgpMenu, NgpMenuTrigger } from 'ng-primitives/menu'
+import { NgpSeparator } from 'ng-primitives/separator'
 import { Button } from '../button/button'
 import { RowActionItem, type RowAction } from './row-action-item'
 
 /**
+ * Input shape for `RowActionsMenu.actions`. Accepts either:
+ * - A flat list of actions (no separators rendered).
+ * - A list of groups; a separator is rendered between every pair of non-empty groups.
+ *
+ * Empty groups are skipped so consumers can build groups conditionally without worrying
+ * about producing dangling separators.
+ */
+export type RowActionsInput = readonly RowAction[] | readonly (readonly RowAction[])[]
+
+/**
  * Vertical-ellipsis (⋮) trigger that opens an `NgpMenu` popover listing the row's actions.
  *
- * Renders nothing when `actions` is empty — consumers do not need to guard with `@if`.
+ * Renders nothing when no group contains actions — consumers do not need to guard with `@if`.
  *
  * Behavior:
  * - Click trigger opens the menu (`bottom-start` placement, auto-flip near viewport edges).
@@ -18,18 +29,19 @@ import { RowActionItem, type RowAction } from './row-action-item'
  *
  * `role="menu"` is applied explicitly because the underlying `NgpMenu` primitive manages
  * roving focus but does not set the ARIA role itself; `role="menuitem"` lives on the item
- * button in `RowActionItem`.
+ * button in `RowActionItem`; separators get `role="separator"` via `NgpSeparator`.
  *
  * @example
- *   <app-row-actions-menu
- *     [actions]="getRowActions(row)"
- *     [triggerLabel]="'ROW_ACTIONS.TRIGGER_LABEL' | translate"
- *   />
+ *   <!-- Flat list — single group, no separators -->
+ *   <app-row-actions-menu [actions]="[edit, resetPassword, delete]" />
+ *
+ *   <!-- Groups — separator between non-destructive and destructive -->
+ *   <app-row-actions-menu [actions]="[[edit, resetPassword], [delete]]" />
  */
 @Component({
 	selector: 'app-row-actions-menu',
 	standalone: true,
-	imports: [Button, NgIcon, NgpMenu, NgpMenuTrigger, RowActionItem],
+	imports: [Button, NgIcon, NgpMenu, NgpMenuTrigger, NgpSeparator, RowActionItem],
 	viewProviders: [provideIcons({ featherMoreVertical })],
 	template: `
 		@if (hasActions()) {
@@ -60,8 +72,13 @@ import { RowActionItem, type RowAction } from './row-action-item'
 					data-testid="row-actions-menu"
 					class="fixed z-50 flex w-max min-w-[8rem] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
 				>
-					@for (action of actions(); track $index) {
-						<app-row-action-item [action]="action" />
+					@for (group of nonEmptyGroups(); track $index; let last = $last) {
+						@for (action of group; track $index) {
+							<app-row-action-item [action]="action" />
+						}
+						@if (!last) {
+							<div ngpSeparator role="separator" class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+						}
 					}
 				</div>
 			</ng-template>
@@ -70,8 +87,19 @@ import { RowActionItem, type RowAction } from './row-action-item'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RowActionsMenu {
-	public readonly actions = input.required<readonly RowAction[]>()
+	public readonly actions = input.required<RowActionsInput>()
 	public readonly triggerLabel = input<string>('Actions')
 
-	protected readonly hasActions = computed(() => this.actions().length > 0)
+	// Normalize flat / matrix input into a single grouped form, then drop empty groups so
+	// consumers can build groups conditionally without producing dangling separators.
+	protected readonly nonEmptyGroups = computed<readonly (readonly RowAction[])[]>(() => {
+		const value = this.actions()
+		if (value.length === 0) return []
+		const groups: readonly (readonly RowAction[])[] = Array.isArray(value[0])
+			? (value as readonly (readonly RowAction[])[])
+			: [value as readonly RowAction[]]
+		return groups.filter((group) => group.length > 0)
+	})
+
+	protected readonly hasActions = computed(() => this.nonEmptyGroups().length > 0)
 }

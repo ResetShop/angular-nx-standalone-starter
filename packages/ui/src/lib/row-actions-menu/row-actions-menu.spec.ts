@@ -127,4 +127,62 @@ describe('RowActionsMenu', () => {
 
 		expect(screen.getByRole('button', { name: 'Actions' })).toHaveAttribute('data-touch-target')
 	})
+
+	describe('grouped actions (matrix input)', () => {
+		it('renders a separator between two non-empty groups', async () => {
+			const user = userEvent.setup()
+			const actions: RowAction[][] = [
+				[
+					{ label: 'Edit', onSelect: fn() },
+					{ label: 'Reset password', onSelect: fn() },
+				],
+				[{ label: 'Delete', onSelect: fn(), variant: 'destructive' }],
+			]
+			await render(RowActionsMenu, { inputs: { actions } })
+
+			await user.click(screen.getByRole('button', { name: 'Actions' }))
+
+			expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
+			expect(screen.getByRole('menuitem', { name: 'Reset password' })).toBeInTheDocument()
+			expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument()
+			expect(screen.getAllByRole('separator')).toHaveLength(1)
+
+			await closeMenu(user)
+		})
+
+		it('does not render a separator when one of the groups is empty', async () => {
+			const user = userEvent.setup()
+			const actions: RowAction[][] = [[{ label: 'Edit', onSelect: fn() }], []]
+			await render(RowActionsMenu, { inputs: { actions } })
+
+			await user.click(screen.getByRole('button', { name: 'Actions' }))
+
+			expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
+			expect(screen.queryByRole('separator')).toBeNull()
+
+			await closeMenu(user)
+		})
+
+		it('renders nothing when all groups are empty', async () => {
+			await render(RowActionsMenu, { inputs: { actions: [[], []] } })
+
+			expect(screen.queryByRole('button')).toBeNull()
+		})
+
+		it('renders multiple separators between three non-empty groups', async () => {
+			const user = userEvent.setup()
+			const actions: RowAction[][] = [
+				[{ label: 'View', onSelect: fn() }],
+				[{ label: 'Edit', onSelect: fn() }],
+				[{ label: 'Delete', onSelect: fn(), variant: 'destructive' }],
+			]
+			await render(RowActionsMenu, { inputs: { actions } })
+
+			await user.click(screen.getByRole('button', { name: 'Actions' }))
+
+			expect(screen.getAllByRole('separator')).toHaveLength(2)
+
+			await closeMenu(user)
+		})
+	})
 })

@@ -118,3 +118,21 @@ export const EmptyActions: Story = {
 		actions: [],
 	},
 }
+
+/**
+ * Grouped actions — pass `actions` as a matrix and the component renders a separator
+ * between non-empty groups. Visually splits non-destructive actions (Edit, Reset password)
+ * from destructive ones (Delete).
+ */
+export const Grouped: Story = {
+	args: {
+		actions: [
+			[
+				{ label: 'Edit', onSelect: noop('Edit'), icon: 'featherEdit3' },
+				{ label: 'Reset password', onSelect: noop('Reset password'), icon: 'featherKey' },
+			],
+			[{ label: 'Delete', onSelect: noop('Delete'), variant: 'destructive', icon: 'featherTrash2' }],
+		],
+	},
+	play: ({ canvasElement }) => openMenu(canvasElement),
+}
