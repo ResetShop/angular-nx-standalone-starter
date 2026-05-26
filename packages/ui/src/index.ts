@@ -27,5 +27,6 @@ export { Select } from './lib/select/select'
 export type { SelectOption } from './lib/select/select-option'
 export { Spinner } from './lib/spinner/spinner'
 // Toast components remain in the app — they depend on UIStore
+export { RowActionItem } from './lib/row-actions-menu/row-action-item'
+export type { RowAction } from './lib/row-actions-menu/row-action-item'
 export { RowActionsMenu } from './lib/row-actions-menu/row-actions-menu'
-export type { RowAction } from './lib/row-actions-menu/row-actions-menu'

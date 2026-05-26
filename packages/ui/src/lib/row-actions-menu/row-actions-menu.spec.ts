@@ -1,7 +1,8 @@
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
-import { RowActionsMenu, type RowAction } from './row-actions-menu'
+import { type RowAction } from './row-action-item'
+import { RowActionsMenu } from './row-actions-menu'
 
 describe('RowActionsMenu', () => {
 	beforeEach(() => clearAllMocks())

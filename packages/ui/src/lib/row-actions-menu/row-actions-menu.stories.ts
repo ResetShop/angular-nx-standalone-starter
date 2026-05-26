@@ -2,7 +2,8 @@ import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { moduleMetadata } from '@storybook/angular'
-import { RowActionsMenu, type RowAction } from './row-actions-menu'
+import { type RowAction } from './row-action-item'
+import { RowActionsMenu } from './row-actions-menu'
 
 const noop = (label: string) => () => console.log(`[RowActionsMenu] selected: ${label}`)
 
