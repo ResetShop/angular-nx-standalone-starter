@@ -1,4 +1,4 @@
-import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors'
+import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { logger, parseDurationToMs } from '@resetshop/util'
 import { createHash, randomUUID } from 'crypto'
@@ -7,6 +7,7 @@ import { type UserData, type UserRepository, type UserRoleService } from '../use
 import type { AuthConfig } from './auth.config'
 import {
 	type AuthCredentials,
+	type AuthPasswordService,
 	type AuthResult,
 	type AuthService as AuthServiceInterface,
 	type AuthenticationData,
@@ -22,7 +23,7 @@ interface AuthServiceDeps {
 	userRoleService: UserRoleService
 	pasetoService: PasetoService
 	authConfig: AuthConfig
-	verifyPassword: (plain: string, hash: string) => Promise<boolean>
+	authPasswordService: AuthPasswordService
 }
 
 /**
@@ -37,7 +38,7 @@ export class AuthService implements AuthServiceInterface {
 	private readonly userRoleService: UserRoleService
 	private readonly pasetoService: PasetoService
 	private readonly authConfig: AuthConfig
-	private readonly verifyPassword: (plain: string, hash: string) => Promise<boolean>
+	private readonly authPasswordService: AuthPasswordService
 
 	constructor({
 		userRepository,
@@ -46,7 +47,7 @@ export class AuthService implements AuthServiceInterface {
 		userRoleService,
 		pasetoService,
 		authConfig,
-		verifyPassword,
+		authPasswordService,
 	}: AuthServiceDeps) {
 		this.userRepository = userRepository
 		this.authRepository = authRepository
@@ -54,7 +55,7 @@ export class AuthService implements AuthServiceInterface {
 		this.userRoleService = userRoleService
 		this.pasetoService = pasetoService
 		this.authConfig = authConfig
-		this.verifyPassword = verifyPassword
+		this.authPasswordService = authPasswordService
 	}
 
 	/**
@@ -72,7 +73,7 @@ export class AuthService implements AuthServiceInterface {
 		const { user, authRecord } = await this.findUserAndAuth(credentials.email)
 		this.checkAccountLockout(authRecord, user?.id)
 
-		const validated = await this.validateCredentials(user, authRecord, credentials.password)
+		const validated = await this.authPasswordService.validateCredentials(user, authRecord, credentials.password)
 		await this.handleSuccessfulLogin(validated.user, validated.authRecord)
 
 		const tokens = await this.generateTokenPair(validated.user)
@@ -127,85 +128,6 @@ export class AuthService implements AuthServiceInterface {
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
 			logger.security('login_blocked_account_locked', { userId, lockedUntil: authRecord.lockedUntil.toISOString() })
 			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED)
-		}
-	}
-
-	/**
-	 * Validates user credentials with timing-safe comparison.
-	 *
-	 * SECURITY: Accepts nullable parameters to maintain timing-safety. Even when user
-	 * or authRecord is null (invalid email), we MUST perform the expensive bcrypt
-	 * password comparison using a dummy hash. Skipping bcrypt for invalid cases would
-	 * create a timing vulnerability: valid emails take ~200ms (DB + bcrypt), invalid
-	 * emails take ~50ms (DB only), allowing attackers to enumerate valid emails by
-	 * measuring response times. The cost is intentional and necessary for security.
-	 *
-	 * Handles failed login tracking before throwing.
-	 *
-	 * @param user - User object or null
-	 * @param authRecord - Authentication record or null
-	 * @param password - Password to verify
-	 * @returns Validated user and auth record
-	 * @throws AuthError with INVALID_CREDENTIALS code if validation fails
-	 */
-	private async validateCredentials(
-		user: UserData | null,
-		authRecord: AuthenticationData | null,
-		password: string,
-	): Promise<{ user: UserData; authRecord: AuthenticationData }> {
-		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy'
-		const passwordMatch = await this.verifyPassword(password, hashToCompare)
-
-		if (!user || !authRecord || !passwordMatch || user.status !== UserStatus.ACTIVE) {
-			await this.handleFailedLogin(user, authRecord)
-			throw new AuthError(InternalAuthErrorCode.INVALID_CREDENTIALS)
-		}
-
-		return { user, authRecord }
-	}
-
-	/**
-	 * Handles failed login attempt by tracking failures and locking account if threshold reached.
-	 *
-	 * @param user - User object or null
-	 * @param authRecord - Authentication record or null
-	 */
-	private async handleFailedLogin(user: UserData | null, authRecord: AuthenticationData | null): Promise<void> {
-		if (!user || !authRecord) {
-			this.logAuthFailure(user, authRecord)
-			return
-		}
-
-		const result = await this.authRepository.incrementAndLockIfNeeded(user.id)
-
-		if (result.wasLocked && result.lockedUntil) {
-			logger.security('account_locked', {
-				userId: user.id,
-				failedAttempts: result.failedAttempts,
-				lockedUntil: result.lockedUntil.toISOString(),
-			})
-		}
-
-		this.logAuthFailure(user, authRecord)
-	}
-
-	/**
-	 * Logs authentication failure reasons for debugging.
-	 *
-	 * @param user - User object or null
-	 * @param authRecord - Authentication record or null
-	 */
-	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
-		if (!user) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND))
-		} else if (!authRecord) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND))
-		} else if (user.status === UserStatus.DELETED) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED))
-		} else if (user.status === UserStatus.DISABLED) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED))
-		} else {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
 		}
 	}
 

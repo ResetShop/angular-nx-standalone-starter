@@ -4,6 +4,7 @@ import type { PermissionRepository, PermissionService } from '../modules/access/
 import type { RoleRepository, RoleService } from '../modules/access/role/interfaces'
 import type { AuthConfig } from '../modules/auth/auth.config'
 import type {
+	AuthPasswordService,
 	AuthService,
 	AuthenticationRepository,
 	RefreshTokenRepository,
@@ -37,6 +38,10 @@ import type { PasetoService } from '../services/paseto/interfaces'
  *   ├── PasetoService (no deps)
  *   ├── UserRoleService
  *   ├── authConfig
+ *   └── AuthPasswordService
+ *
+ * AuthPasswordService
+ *   ├── AuthRepository ──────► db, authConfig
  *   └── verifyPassword (value)
  *
  * TokenMaintenanceService
@@ -91,6 +96,7 @@ export interface Cradle {
 	healthService: HealthService
 	emailService: EmailService
 	pasetoService: PasetoService
+	authPasswordService: AuthPasswordService
 	authService: AuthService
 	tokenMaintenanceService: TokenMaintenanceService
 	roleService: RoleService

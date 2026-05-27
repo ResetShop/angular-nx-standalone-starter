@@ -14,6 +14,7 @@ import { createPasswordHasher, createPasswordVerifier } from '../../services/pas
 import type { RoleWithPermissions } from '../access/role/interfaces'
 import type { UserRoleService } from '../user/interfaces'
 import { InMemoryUserRepository } from '../user/user.repository.mock'
+import { AuthPasswordService } from './auth-password.service'
 import type { AuthConfig } from './auth.config'
 import { AuthService } from './auth.service'
 import { InMemoryAuthenticationRepository } from './authentication.repository.mock'
@@ -77,7 +78,10 @@ describe('AuthService', () => {
 			userRoleService: mockUserRoleService as UserRoleService,
 			pasetoService: mockPasetoService,
 			authConfig: testAuthConfig,
-			verifyPassword: createPasswordVerifier(),
+			authPasswordService: new AuthPasswordService({
+				authRepository: mockAuthRepo,
+				verifyPassword: createPasswordVerifier(),
+			}),
 		})
 	})
 
@@ -374,7 +378,10 @@ describe('AuthService', () => {
 				userRoleService: mockUserRoleService as UserRoleService,
 				pasetoService: mockPasetoService,
 				authConfig: customAuthConfig,
-				verifyPassword: createPasswordVerifier(),
+				authPasswordService: new AuthPasswordService({
+					authRepository: customAuthRepo,
+					verifyPassword: createPasswordVerifier(),
+				}),
 			})
 
 			// Set up user with 2 failed attempts

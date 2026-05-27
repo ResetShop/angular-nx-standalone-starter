@@ -5,6 +5,7 @@ import { DrizzlePermissionRepository } from '../modules/access/permission/permis
 import { PermissionService } from '../modules/access/permission/permission.service'
 import { DrizzleRoleRepository } from '../modules/access/role/role.repository'
 import { RoleService } from '../modules/access/role/role.service'
+import { AuthPasswordService } from '../modules/auth/auth-password.service'
 import { createAuthConfig } from '../modules/auth/auth.config'
 import { AuthService } from '../modules/auth/auth.service'
 import { DrizzleAuthenticationRepository } from '../modules/auth/authentication.repository'
@@ -64,6 +65,7 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 		emailService: asClass(EmailService).singleton(),
 		healthService: asClass(HealthService).singleton(),
 		pasetoService: asClass(PasetoService).singleton(),
+		authPasswordService: asClass(AuthPasswordService).singleton(),
 		authService: asClass(AuthService).singleton(),
 		tokenMaintenanceService: asClass(TokenMaintenanceService).singleton(),
 		roleService: asClass(RoleService).singleton(),

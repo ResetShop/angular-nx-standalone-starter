@@ -1,6 +1,7 @@
 import type { UserStatus } from '@contracts/user/user.constants'
 import type { AuthUser } from '@contracts/user/user.types'
 import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
+import type { UserData } from '../user/interfaces'
 
 export interface AuthenticationData {
 	id: number
@@ -158,6 +159,26 @@ export interface AuthService {
 	authenticate(credentials: AuthCredentials): Promise<AuthResult>
 	refreshToken(token: string): Promise<RefreshResult>
 	logout(userId: number): Promise<void>
+}
+
+/**
+ * Service interface for password-credential operations.
+ * Encapsulates timing-safe password verification and failed-login/lockout tracking —
+ * the password mechanism as a cohesive unit. Designed as an extension seam: future
+ * non-password auth mechanisms (OAuth, SSO, passkeys) become sibling collaborators
+ * without changing AuthService.
+ */
+export interface AuthPasswordService {
+	/**
+	 * Validates credentials with timing-safe comparison and tracks failed attempts.
+	 * Accepts nullable user/authRecord to preserve timing-safety (see implementation).
+	 * @throws AuthError INVALID_CREDENTIALS when validation fails
+	 */
+	validateCredentials(
+		user: UserData | null,
+		authRecord: AuthenticationData | null,
+		password: string,
+	): Promise<{ user: UserData; authRecord: AuthenticationData }>
 }
 
 /**
