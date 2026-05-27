@@ -108,14 +108,24 @@ export interface CleanupResult {
 
 export interface RefreshTokenRepository {
 	findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null>
-	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>
+	create(params: CreateRefreshTokenParams, tx?: DrizzleTransaction): Promise<RefreshTokenData>
 	revokeToken(tokenId: number): Promise<void>
 	revokeAllForUser(userId: number): Promise<void>
+	/**
+	 * Revokes all of a user's refresh tokens except the one matching `exceptTokenHash`.
+	 * Accepts an optional `tx` for composition with other writes in one transaction.
+	 */
+	revokeAllForUserExcept(userId: number, exceptTokenHash: string, tx?: DrizzleTransaction): Promise<void>
 	revokeTokenFamily(tokenFamily: string): Promise<void>
 	deleteExpiredTokensForUser(userId: number): Promise<number>
 	tryAcquireCleanupLock(): Promise<boolean>
 	releaseCleanupLock(): Promise<void>
 	deleteAllExpiredTokens(): Promise<CleanupResult>
+	/**
+	 * Runs a callback inside a transaction, exposing the handle so the auth service can
+	 * compose the password write + token revocation + token rotation atomically.
+	 */
+	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
 
 // ============================================================================
