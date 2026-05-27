@@ -1,9 +1,17 @@
+import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@resetshop/util'
 import { authentication } from '@schema/authentication'
-import { eq, sql } from 'drizzle-orm'
+import { user } from '@schema/user'
+import { and, eq, ne, sql } from 'drizzle-orm'
 import { BaseRepository, type BaseRepositoryDeps } from '../../helpers/base.repository'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { AuthConfig } from './auth.config'
-import { type AuthenticationData, type AuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
+import {
+	type AuthenticationData,
+	type AuthenticationRepository,
+	type CreateInitialPasswordParams,
+	type IncrementAttemptsResult,
+} from './interfaces'
 
 interface AuthenticationRepositoryDeps extends BaseRepositoryDeps {
 	authConfig: AuthConfig
@@ -153,5 +161,53 @@ export class DrizzleAuthenticationRepository extends BaseRepository implements A
 				wasLocked: false,
 			}
 		})
+	}
+
+	/**
+	 * Inserts the initial authentication row for a newly-created user.
+	 *
+	 * @param params - The user ID, password hash, and must-change-password flag
+	 * @param tx - Optional transaction handle for composing with the user insert
+	 */
+	public async createInitialPassword(params: CreateInitialPasswordParams, tx?: DrizzleTransaction): Promise<void> {
+		const executor = tx ?? this.db
+		await executor.insert(authentication).values({
+			userId: params.userId,
+			passwordHash: params.passwordHash,
+			mustChangePassword: params.mustChangePassword,
+		})
+	}
+
+	/**
+	 * Replaces a user's password hash and sets the must-change-password flag.
+	 * Skips deleted users via a joined check on the `user` table.
+	 *
+	 * @param userId - The user's primary key
+	 * @param passwordHash - The new bcrypt password hash
+	 * @param mustChangePassword - Whether the user must change the password on next login
+	 * @param tx - Optional transaction handle for composing with other writes
+	 * @returns true if updated, false if the user does not exist or is deleted
+	 */
+	public async setPassword(
+		userId: number,
+		passwordHash: string,
+		mustChangePassword: boolean,
+		tx?: DrizzleTransaction,
+	): Promise<boolean> {
+		const executor = tx ?? this.db
+		const exists = await executor
+			.select({ id: user.id })
+			.from(user)
+			.where(and(eq(user.id, userId), ne(user.status, UserStatus.DELETED)))
+			.limit(1)
+		if (exists.length === 0) return false
+
+		const now = new Date()
+		await executor
+			.update(authentication)
+			.set({ passwordHash, mustChangePassword, lastPasswordChangedAt: now, updatedAt: now })
+			.where(eq(authentication.userId, userId))
+
+		return true
 	}
 }
