@@ -27,11 +27,11 @@ This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## Step 0: Load Reference Files
 
-Before refactoring, read these reference files for project principles:
+Before refactoring, read these reference files for project principles. Load them in a **single parallel batch** — issue every `Read` call together in one message rather than one after another:
 
-1. Read `.claude/references/solid.md` — SOLID principles and relationships
-2. Read `.claude/references/cupid.md` — CUPID principles
-3. Read `.claude/references/guiding-principles.md` — YAGNI and KISS
+- `.claude/references/solid.md` — SOLID principles and relationships
+- `.claude/references/cupid.md` — CUPID principles
+- `.claude/references/guiding-principles.md` — YAGNI and KISS
 
 ## Refactoring Process
 

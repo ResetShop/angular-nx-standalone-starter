@@ -30,7 +30,7 @@ Delegate to this agent when:
 
 ## Step 0 — Load References
 
-Before doing any analysis, read these files in full:
+Before doing any analysis, read these files in full. Load them in a **single parallel batch** — issue every `Read` call together in one message rather than one after another:
 
 - `.claude/references/clean-architecture.md`
 - `.claude/references/solid.md`
