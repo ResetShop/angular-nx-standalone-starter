@@ -38,7 +38,7 @@ Open the connect-workspace guide (generated from the current `nxCloudId`):
 https://nx.app/setup/connect-workspace/guide?nxCloudId=68ee91eecec0875b0f57a8d2&vcsProvider=github
 ```
 
-Sign in with the GitHub account that owns `ResetShop/angular-nx-standalone-starter` and follow the prompts to connect the repository. If the workspace has fully expired, create a fresh one (`npx nx connect`) and replace the `nxCloudId` in `nx.json` with the new value.
+Sign in with the GitHub account that owns `ResetShop/angular-nx-standalone-starter` and follow the prompts to connect the repository. If the workspace has fully expired, create a fresh one with `npx nx connect` — Nx prints the new workspace ID at the end of that flow; copy it and update `nxCloudId` in `nx.json` **manually** (the connect flow does not reliably patch the file across Nx versions).
 
 ### 2. Provision an access token
 
@@ -51,10 +51,11 @@ In the Nx Cloud dashboard for the workspace, create a **CI access token** (read-
 
 Remote caching requires outbound HTTPS to Nx Cloud. Allow egress to:
 
-- `cloud.nx.app`
-- `*.nx.app`
+- `api.nx.app` — the cache read/write API endpoint (the host that actually matters for caching).
+- `cloud.nx.app` — the dashboard / browser claim flow (step 1).
+- _Conservative blanket alternative:_ if your egress policy is host-coarse, allowing `*.nx.app` covers both, but prefer the two specific hosts above.
 
-In sandboxed/web environments with a restrictive egress policy, this must be explicitly permitted or every cache read/write will time out and fall back to local.
+In sandboxed/web environments with a restrictive egress policy, these must be explicitly permitted or every cache read/write will time out and fall back to local.
 
 ### 4. Apply the CI workflow edits (after step 1–3)
 
@@ -63,14 +64,18 @@ Once the workspace is claimed and `NX_CLOUD_ACCESS_TOKEN` exists, update `.githu
 Add the token at the top level so every job inherits it:
 
 ```yaml
+# `env:` is a TOP-LEVEL key — same indentation as `on:` and `jobs:`, NOT nested under `on:`.
 on:
   pull_request:
 
 env:
   NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+
+jobs:
+  # …existing jobs unchanged…
 ```
 
-Then drop `--skip-nx-cache` from the **cacheable** jobs so they consult the cache (`test`, `typecheck`, `lint`, `stylelint`, `build`, `storybook`):
+Then drop `--skip-nx-cache` from **every cacheable job** so they consult the cache. There are **six**: `test` (line 61), `typecheck` (line 79), `lint` (line 97), `stylelint` (line 115), `build` (line 207), and `storybook` (line 225). The two diffs below are representative — apply the same `--skip-nx-cache` removal to all six:
 
 ```diff
 -        run: npx nx run-many -t test --skip-nx-cache
@@ -82,7 +87,7 @@ Then drop `--skip-nx-cache` from the **cacheable** jobs so they consult the cach
 +        run: npx nx run reference-app:build:production
 ```
 
-Leave `e2e` and `test-integration` cold (`--skip-nx-cache`) for now — they are the most environment-sensitive (browser install, Postgres service) and the lowest-value cache targets.
+Keep the `e2e` job (line 179) cold (`--skip-nx-cache`) for now — it is the most environment-sensitive (browser install) and the lowest-value cache target. The `test-integration` job runs via `npm run test:integration` (line 147) and carries **no** `--skip-nx-cache` flag to remove — it is already cache-neutral at the workflow level; leave it as-is.
 
 > The cold `npm run ci` script (the local authoritative final gate from #404) intentionally keeps `--skip-nx-cache` and is **not** changed by this — a cold run must always prove correctness independent of any cache.
 
