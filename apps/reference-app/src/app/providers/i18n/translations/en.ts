@@ -226,6 +226,9 @@ const en: TranslationSchema = {
 			GROUP_LABEL: 'Display mode',
 		},
 	},
+	ROW_ACTIONS: {
+		TRIGGER_LABEL: 'Actions',
+	},
 	PAGINATION: {
 		LABEL: 'Pagination',
 		ROWS_PER_PAGE: 'Rows per page',

@@ -24,6 +24,20 @@ import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import RolesList from './roles-list'
 
+/**
+ * Opens the row-actions menu for the only row currently in the table. Returns nothing —
+ * subsequent `screen.getByRole('menuitem', ...)` queries find the popover-rendered items.
+ *
+ * The menu is rendered in a portal on `document.body`, outside the test fixture's view tree.
+ * The `afterEach` hook below dispatches Escape to close the menu, letting the library remove
+ * its own portal so tests stay isolated.
+ */
+async function openRowActionsMenu(): Promise<void> {
+	fireEvent.click(screen.getByRole('button', { name: 'Actions' }))
+	TestBed.tick()
+	await advanceTimersByTimeAsync(50)
+}
+
 describe('RolesList', () => {
 	let rolesApiMock: Record<keyof RolesApi, MockFn>
 	let permissionsApiMock: Record<keyof PermissionsApi, MockFn>
@@ -59,6 +73,11 @@ describe('RolesList', () => {
 
 	afterEach(() => {
 		useRealTimers()
+		// The row-actions menu attaches its popover to a portal on `document.body`, outside the
+		// Angular test fixture's view tree. Testing Library's auto-cleanup destroys the fixture
+		// but does not reach the portal; leftover menus cause "Found multiple elements" errors in
+		// subsequent tests. Remove them via the data-testid baked into RowActionsMenu's template.
+		screen.queryAllByTestId('row-actions-menu').forEach((el) => el.remove())
 	})
 
 	function setUserWithAllPermissions(): void {
@@ -125,8 +144,9 @@ describe('RolesList', () => {
 			rolesApiMock.getByIdWithPermissions.mockReturnValue(of({ ...roles[0], permissions: [] }))
 
 			await renderComponent()
+			await openRowActionsMenu()
 
-			fireEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
 			TestBed.tick()
 
 			const dialog = screen.getByRole('dialog', { name: /edit role/i })
@@ -231,31 +251,71 @@ describe('RolesList', () => {
 		expect(screen.getByText('Administrator role')).toBeInTheDocument()
 	})
 
-	it('should render edit button for each role', async () => {
+	it('opens the row-actions menu and shows the Edit item', async () => {
 		const roles = [createMockRoleData()]
 		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
 	})
 
-	it('should render delete button for removable roles', async () => {
+	it('opens the row-actions menu and shows the Delete item for removable roles', async () => {
 		const roles = [createMockRoleData({ removable: true })]
 		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument()
 	})
 
-	it('should not render delete button for non-removable roles', async () => {
+	it('omits Delete from the row-actions menu for non-removable roles', async () => {
 		const roles = [createMockRoleData({ removable: false })]
 		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
+	})
+
+	it('does not render the row-actions trigger on a non-removable row when user lacks update', async () => {
+		// User holds only admin:roles:delete. The removable row gets Delete; the non-removable
+		// row has both actions gated out (Edit by missing update permission, Delete by removable:false),
+		// so getRowActions returns []. Actions column header still renders because the other row has
+		// an action — but the non-removable row's cell shows no trigger button.
+		const roles = [
+			createMockRoleData({ id: 1, name: 'Removable', removable: true }),
+			createMockRoleData({ id: 2, name: 'Locked', removable: false }),
+		]
+		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
+
+		const view = await render(RolesList, {
+			providers: [
+				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: PermissionsApi, useValue: permissionsApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: Translation, useValue: mockTranslation },
+				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
+			],
+		})
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({
+				hasPermission: (id: string) => ['admin:roles:read', 'admin:roles:delete'].includes(id),
+			}),
+		)
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		// Exactly one trigger across both rows (removable only).
+		expect(screen.getAllByRole('button', { name: 'Actions' })).toHaveLength(1)
+		const removableRow = screen.getByRole('row', { name: /removable/i })
+		const lockedRow = screen.getByRole('row', { name: /locked/i })
+		expect(within(removableRow).getByRole('button', { name: 'Actions' })).toBeInTheDocument()
+		expect(within(lockedRow).queryByRole('button', { name: 'Actions' })).not.toBeInTheDocument()
 	})
 
 	it('should render alert with error message when hasReadError is true', async () => {
@@ -283,13 +343,15 @@ describe('RolesList', () => {
 		expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 	})
 
-	it('should show confirm dialog when delete button is clicked', async () => {
+	it('should show confirm dialog when Delete is selected from the row-actions menu', async () => {
 		const roles = [createMockRoleData({ id: 1, name: 'TestRole', removable: true })]
 		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse(roles)))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }))
+		TestBed.tick()
 
 		expect(screen.getByText(/are you sure you want to delete the role 'TestRole'/i)).toBeInTheDocument()
 	})
@@ -300,8 +362,10 @@ describe('RolesList', () => {
 		rolesApiMock.delete.mockReturnValue(of(undefined))
 
 		await renderComponent()
+		await openRowActionsMenu()
 
-		fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }))
+		TestBed.tick()
 
 		const dialog = screen.getByRole('alertdialog')
 		fireEvent.click(within(dialog).getByRole('button', { name: /delete/i }))
@@ -342,22 +406,28 @@ describe('RolesList', () => {
 			expect(screen.queryByRole('button', { name: /create role/i })).not.toBeInTheDocument()
 		})
 
-		it('should hide edit button when user lacks roles:update', async () => {
+		it('omits Edit from the row-actions menu when user lacks roles:update', async () => {
 			await renderWithPermissions(['admin:roles:read', 'admin:roles:delete'])
+			await openRowActionsMenu()
 
-			expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+			expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument()
 		})
 
-		it('should hide delete button when user lacks roles:delete', async () => {
+		it('omits Delete from the row-actions menu when user lacks roles:delete', async () => {
 			await renderWithPermissions(['admin:roles:read', 'admin:roles:update'])
+			await openRowActionsMenu()
 
-			expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+			expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
 		})
 
-		it('should not render actions column when user lacks both update and delete', async () => {
+		it('does not render the actions column or trigger when user lacks both update and delete', async () => {
 			await renderWithPermissions(['admin:roles:read', 'admin:roles:create'])
 
-			expect(screen.queryByRole('columnheader', { name: /actions/i })).not.toBeInTheDocument()
+			// Empty actions list → component renders nothing → no trigger button.
+			expect(screen.queryByRole('button', { name: 'Actions' })).not.toBeInTheDocument()
+			// The `columns()` computed signal must also omit the actions column entirely — verified
+			// here by the column count (name, code, description — no fourth "actions" column).
+			expect(screen.getAllByRole('columnheader')).toHaveLength(3)
 		})
 	})
 })

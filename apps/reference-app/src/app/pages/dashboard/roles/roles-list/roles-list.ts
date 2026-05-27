@@ -11,8 +11,6 @@ import {
 import { PageShell } from '@components/page-shell/page-shell'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
-import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherEdit3, featherTrash2 } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
@@ -22,6 +20,8 @@ import { DataTable } from '@resetshop/ui/data-table/data-table'
 import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
+import { type RowAction } from '@resetshop/ui/row-actions-menu/row-action-item'
+import { RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { AuthStore } from '@store/auth/auth.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
@@ -43,13 +43,12 @@ import { RoleCard } from './role-card'
 		DataTableCellDef,
 		EditRoleDrawer,
 		HasPermissionDirective,
-		NgIcon,
 		PageShell,
 		Pagination,
 		RoleCard,
+		RowActionsMenu,
 		TranslatePipe,
 	],
-	viewProviders: [provideIcons({ featherEdit3, featherTrash2 })],
 	template: `
 		<app-page-shell
 			[loading]="store.isLoadingList()"
@@ -95,36 +94,11 @@ import { RoleCard } from './role-card'
 					<span appBadge variant="secondary">{{ value }}</span>
 				</ng-template>
 
-				<ng-template appDataTableCellDef="actions" let-value let-row="row">
-					<!-- gap-4 (16px) > data-touch-target -inset-3 (12px) — prevents sibling hit-area overlap. -->
-					<div class="flex gap-4">
-						<button
-							(click)="editDrawer.open(row.id)"
-							*hasPermission="'admin:roles:update'"
-							appButton
-							variant="ghost"
-							size="sm"
-							data-touch-target
-						>
-							<ng-icon data-icon="start" name="featherEdit3" />
-							<span class="sr-only sm:not-sr-only">{{ 'COMMON.EDIT' | translate }}</span>
-						</button>
-						<ng-container *hasPermission="'admin:roles:delete'">
-							@if (row.removable) {
-								<button
-									(click)="confirmDelete(row)"
-									appButton
-									variant="ghost"
-									size="sm"
-									class="text-destructive"
-									data-touch-target
-								>
-									<ng-icon data-icon="start" name="featherTrash2" />
-									<span class="sr-only sm:not-sr-only">{{ 'COMMON.DELETE' | translate }}</span>
-								</button>
-							}
-						</ng-container>
-					</div>
+				<ng-template appDataTableCellDef="actions" let-row="row">
+					<app-row-actions-menu
+						[actions]="getRowActions(row)"
+						[triggerLabel]="'ROW_ACTIONS.TRIGGER_LABEL' | translate"
+					/>
 				</ng-template>
 
 				<ng-template appDataTableCardDef let-row>
@@ -164,6 +138,7 @@ export default class RolesList {
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
 
+	private readonly editDrawerRef = viewChild.required<EditRoleDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('ROLES.DELETE_TOAST'))
 
@@ -195,6 +170,30 @@ export default class RolesList {
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement
 		this.store.setSearchQuery(input.value)
+	}
+
+	protected getRowActions(row: IRole): readonly (readonly RowAction[])[] {
+		const user = this.authStore.currentUser()
+		const nonDestructive: RowAction[] = []
+
+		if (user?.hasPermission('admin:roles:update')) {
+			nonDestructive.push({
+				label: this.translation.instant('COMMON.EDIT'),
+				onSelect: () => this.editDrawerRef().open(row.id),
+			})
+		}
+
+		const destructive: RowAction[] = []
+
+		if (row.removable && user?.hasPermission('admin:roles:delete')) {
+			destructive.push({
+				label: this.translation.instant('COMMON.DELETE'),
+				onSelect: () => this.confirmDelete(row),
+				variant: 'destructive',
+			})
+		}
+
+		return [nonDestructive, destructive]
 	}
 
 	protected confirmDelete(role: IRole): void {

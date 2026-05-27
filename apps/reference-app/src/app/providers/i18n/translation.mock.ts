@@ -13,6 +13,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'DATA_TABLE.TOGGLE.TABLE': 'Table view',
 	'DATA_TABLE.TOGGLE.CARDS': 'Card view',
 	'DATA_TABLE.TOGGLE.GROUP_LABEL': 'Display mode',
+	'ROW_ACTIONS.TRIGGER_LABEL': 'Actions',
 	'PAGINATION.LABEL': 'Pagination',
 	'PAGINATION.ROWS_PER_PAGE': 'Rows per page',
 	'PAGINATION.GO_TO_PREVIOUS': 'Previous page',

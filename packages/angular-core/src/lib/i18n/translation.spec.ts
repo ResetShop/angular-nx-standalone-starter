@@ -154,6 +154,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			LOADING: 'Loading',
 			TOGGLE: { TABLE: 'Table', CARDS: 'Cards', GROUP_LABEL: 'Display mode' },
 		},
+		ROW_ACTIONS: { TRIGGER_LABEL: 'Actions' },
 		PAGINATION: {
 			LABEL: 'Pagination',
 			ROWS_PER_PAGE: 'Rows',
@@ -321,6 +322,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			LOADING: 'Cargando',
 			TOGGLE: { TABLE: 'Tabla', CARDS: 'Tarjetas', GROUP_LABEL: 'Modo' },
 		},
+		ROW_ACTIONS: { TRIGGER_LABEL: 'Acciones' },
 		PAGINATION: {
 			LABEL: 'Paginación',
 			ROWS_PER_PAGE: 'Filas',
