@@ -1,11 +1,11 @@
 import { UserStatus } from '@contracts/user/user.constants'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { EmailService, SendEmailParams } from '../../services/email/interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type { AuthenticationRepository } from '../auth/interfaces'
 import type {
-	CreateUserWithHashedPasswordParams,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
@@ -22,7 +22,7 @@ describe('UserManagementService', () => {
 	>()
 	const mockFindByIdWithRoles = fn<[number], Promise<ManagedUserData | null>>()
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>()
-	const mockCreate = fn<[CreateUserWithHashedPasswordParams, number], Promise<ManagedUserData>>()
+	const mockCreate = fn<Parameters<UserManagementRepository['create']>, Promise<ManagedUserData>>()
 	const mockUpdate = fn<[number, UpdateUserParams, number], Promise<UserData | null>>()
 	const mockUpdateStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData | null>>()
 	const mockSoftDelete = fn<[number, number], Promise<boolean>>()
@@ -35,6 +35,9 @@ describe('UserManagementService', () => {
 		update: mockUpdate,
 		updateStatus: mockUpdateStatus,
 		softDelete: mockSoftDelete,
+		// Executes the callback inline with a stub tx — the mocked repo/auth writes ignore it.
+		runInTransaction: <T>(callback: (tx: DrizzleTransaction) => Promise<T>): Promise<T> =>
+			callback(undefined as unknown as DrizzleTransaction),
 	}
 
 	// Auth repository mock — user-management composes its password writes through this boundary
@@ -181,6 +184,9 @@ describe('UserManagementService', () => {
 			expect(mockFindByEmail.calls).toEqual([['test@example.com']])
 			expect(mockCreate.calls).toHaveLength(1)
 			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [1] })
+			// The auth row is written through the auth domain inside the same transaction
+			expect(mockCreateInitialPassword.calls).toHaveLength(1)
+			expect(mockCreateInitialPassword.calls[0][0]).toMatchObject({ userId: testManagedUser.id })
 		})
 
 		it('should create user without roles when roleIds is omitted', async () => {
@@ -231,8 +237,7 @@ describe('UserManagementService', () => {
 
 			expect(mockGeneratePassword.calls).toHaveLength(1)
 			expect(mockHashPassword.calls).toEqual([['indigo.rabbit.troop']])
-			const { passwordHash } = mockCreate.calls[0][0]
-			expect(passwordHash).toBe('hashed-password')
+			expect(mockCreateInitialPassword.calls[0][0].passwordHash).toBe('hashed-password')
 		})
 
 		it('should default mustChangePassword to true when not provided', async () => {
@@ -248,7 +253,7 @@ describe('UserManagementService', () => {
 				999,
 			)
 
-			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: true })
+			expect(mockCreateInitialPassword.calls[0][0]).toMatchObject({ mustChangePassword: true })
 		})
 
 		it('should pass mustChangePassword false when explicitly set', async () => {
@@ -265,7 +270,7 @@ describe('UserManagementService', () => {
 				999,
 			)
 
-			expect(mockCreate.calls[0][0]).toMatchObject({ mustChangePassword: false })
+			expect(mockCreateInitialPassword.calls[0][0]).toMatchObject({ mustChangePassword: false })
 		})
 
 		it('should pass mustChangePassword to welcome email builder', async () => {

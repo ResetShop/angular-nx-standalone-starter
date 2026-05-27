@@ -114,20 +114,18 @@ export class UserManagementService {
 
 		const plainPassword = await this.generatePassword()
 		const passwordHash = await this.hashPassword(plainPassword)
-
 		const mustChangePassword = params.mustChangePassword ?? true
+		const roleIds = [...new Set(params.roleIds ?? [])]
 
-		const user = await this.userManagementRepository.create(
-			{
-				email: params.email,
-				firstName: params.firstName,
-				lastName: params.lastName,
-				passwordHash,
-				mustChangePassword,
-				roleIds: [...new Set(params.roleIds ?? [])],
-			},
-			actorId,
-		)
+		const createdUser = await this.userManagementRepository.runInTransaction(async (tx) => {
+			const newUser = await this.userManagementRepository.create(
+				{ email: params.email, firstName: params.firstName, lastName: params.lastName, roleIds },
+				actorId,
+				tx,
+			)
+			await this.authRepository.createInitialPassword({ userId: newUser.id, passwordHash, mustChangePassword }, tx)
+			return newUser
+		})
 
 		const passwordEmailSent = await this.sendWelcomeEmail(
 			params.email,
@@ -136,7 +134,7 @@ export class UserManagementService {
 			mustChangePassword,
 		)
 
-		return { ...user, passwordEmailSent }
+		return { ...createdUser, passwordEmailSent }
 	}
 
 	private async sendWelcomeEmail(

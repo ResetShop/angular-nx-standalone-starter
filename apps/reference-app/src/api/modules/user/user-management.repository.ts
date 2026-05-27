@@ -1,6 +1,5 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import { UserStatus } from '@contracts/user/user.constants'
-import { authentication } from '@schema/authentication'
 import { role } from '@schema/role'
 import { user, userRole } from '@schema/user'
 import { userProfileHistory } from '@schema/user-profile-history'
@@ -8,16 +7,20 @@ import { UserRoleHistoryAction, userRoleHistory } from '@schema/user-role-histor
 import { userStatusHistory } from '@schema/user-status-history'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
 import { BaseRepository } from '../../helpers/base.repository'
+import type { DrizzlePgConnector, DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type {
-	CreateUserWithHashedPasswordParams,
+	CreateUserRepoParams,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
 	UserData,
 	UserManagementRepository,
 } from './interfaces'
+
+/** A query runner that may be the pooled connection or an open transaction. */
+type QueryExecutor = DrizzlePgConnector | DrizzleTransaction
 
 // Mirrors UserWithTimestamps but kept file-local per Repository Projection Types convention.
 // Drizzle .select() returns this shape; it may diverge from the domain interface over time.
@@ -104,7 +107,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 			this.db.select({ count: count() }).from(user).where(whereClause),
 		])
 
-		const usersWithRoles = await this.attachRolesToUsers(users)
+		const usersWithRoles = await this.attachRolesToUsers(users, this.db)
 
 		return {
 			data: usersWithRoles,
@@ -143,7 +146,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 			return null
 		}
 
-		const usersWithRoles = await this.attachRolesToUsers(result)
+		const usersWithRoles = await this.attachRolesToUsers(result, this.db)
 		return usersWithRoles[0]
 	}
 
@@ -170,60 +173,63 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	}
 
 	/**
-	 * Creates a new user with authentication and role assignments in a single transaction.
-	 * If any step fails (e.g. invalid roleId FK violation), the entire operation is rolled back.
+	 * Inserts a user identity row plus its role assignments.
+	 * Writes nothing to the `authentication` table — the initial credential is
+	 * created by the auth domain; the service composes both in one transaction
+	 * via `runInTransaction`. When a `tx` is supplied every write joins that
+	 * transaction so a later auth-row failure rolls back the user insert too.
 	 *
-	 * @param params - User creation parameters including password hash and role IDs
+	 * @param params - User identity parameters and role IDs
+	 * @param actorId - ID of the user performing the action (for role-history audit)
+	 * @param tx - Optional transaction handle; falls back to the pooled connection
 	 * @returns The newly created user with roles
 	 */
-	public async create(params: CreateUserWithHashedPasswordParams, actorId: number): Promise<ManagedUserData> {
-		return this.db.transaction(async (tx) => {
-			const userResult = await tx
-				.insert(user)
-				.values({
-					email: params.email,
-					firstName: params.firstName,
-					lastName: params.lastName,
-				})
-				.returning({
-					id: user.id,
-					email: user.email,
-					firstName: user.firstName,
-					lastName: user.lastName,
-					status: user.status,
-					statusChangedAt: user.statusChangedAt,
-					statusChangedBy: user.statusChangedBy,
-					deletedAt: user.deletedAt,
-					createdAt: user.createdAt,
-					updatedAt: user.updatedAt,
-				})
+	public async create(
+		params: CreateUserRepoParams,
+		actorId: number,
+		tx?: DrizzleTransaction,
+	): Promise<ManagedUserData> {
+		const executor: QueryExecutor = tx ?? this.db
 
-			const newUser = userResult[0]
-
-			await tx.insert(authentication).values({
-				userId: newUser.id,
-				passwordHash: params.passwordHash,
-				mustChangePassword: params.mustChangePassword,
+		const userResult = await executor
+			.insert(user)
+			.values({
+				email: params.email,
+				firstName: params.firstName,
+				lastName: params.lastName,
+			})
+			.returning({
+				id: user.id,
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				status: user.status,
+				statusChangedAt: user.statusChangedAt,
+				statusChangedBy: user.statusChangedBy,
+				deletedAt: user.deletedAt,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
 			})
 
-			if (params.roleIds.length > 0) {
-				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }))
-				await tx.insert(userRole).values(values)
+		const newUser = userResult[0]
 
-				const now = new Date()
-				const historyRows = params.roleIds.map((roleId) => ({
-					userId: newUser.id,
-					roleId,
-					action: UserRoleHistoryAction.ASSIGNED,
-					changedBy: actorId,
-					changedAt: now,
-				}))
-				await tx.insert(userRoleHistory).values(historyRows)
-			}
+		if (params.roleIds.length > 0) {
+			const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }))
+			await executor.insert(userRole).values(values)
 
-			const [result] = await this.attachRolesToUsers([newUser])
-			return result
-		})
+			const now = new Date()
+			const historyRows = params.roleIds.map((roleId) => ({
+				userId: newUser.id,
+				roleId,
+				action: UserRoleHistoryAction.ASSIGNED,
+				changedBy: actorId,
+				changedAt: now,
+			}))
+			await executor.insert(userRoleHistory).values(historyRows)
+		}
+
+		const [result] = await this.attachRolesToUsers([newUser], executor)
+		return result
 	}
 
 	/**
@@ -353,7 +359,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 				changedAt: now,
 			})
 
-			const [updatedWithRoles] = await this.attachRolesToUsers(result)
+			const [updatedWithRoles] = await this.attachRolesToUsers(result, this.db)
 			return updatedWithRoles
 		})
 	}
@@ -361,15 +367,17 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	/**
 	 * Attaches roles to an array of user records.
 	 * Fetches all role assignments in a single query for efficiency.
+	 * Runs on the supplied executor so it can read rows written earlier in the
+	 * same transaction (e.g. the role assignments inserted during `create`).
 	 */
-	private async attachRolesToUsers(users: UserProjection[]): Promise<ManagedUserData[]> {
+	private async attachRolesToUsers(users: UserProjection[], executor: QueryExecutor): Promise<ManagedUserData[]> {
 		if (users.length === 0) {
 			return []
 		}
 
 		const userIds = users.map((u) => u.id)
 
-		const roleAssignments = await this.db
+		const roleAssignments = await executor
 			.select({
 				userId: userRole.userId,
 				roleId: role.id,

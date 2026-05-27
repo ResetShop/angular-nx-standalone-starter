@@ -1,5 +1,6 @@
 import type { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
 
@@ -79,12 +80,15 @@ export interface UserRepository {
 	findById(id: number): Promise<UserData | null>
 }
 
-export interface CreateUserWithHashedPasswordParams {
+/**
+ * Identity-only parameters for inserting a user row.
+ * The initial credential is written separately via the auth domain
+ * (AuthenticationRepository.createInitialPassword), composed in one transaction.
+ */
+export interface CreateUserRepoParams {
 	email: string
 	firstName: string
 	lastName: string
-	passwordHash: string
-	mustChangePassword: boolean
 	roleIds: number[]
 }
 
@@ -95,10 +99,15 @@ export interface UserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>
 	findByEmail(email: string): Promise<UserData | null>
-	create(params: CreateUserWithHashedPasswordParams, actorId: number): Promise<ManagedUserData>
+	create(params: CreateUserRepoParams, actorId: number, tx?: DrizzleTransaction): Promise<ManagedUserData>
 	update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null>
 	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>
 	softDelete(id: number, changedBy: number): Promise<boolean>
+	/**
+	 * Runs a callback inside a transaction, exposing the transaction handle so the
+	 * service can compose the user insert and the auth-row insert atomically.
+	 */
+	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
 
 // ============================================================================
