@@ -11,10 +11,8 @@ import {
 	type AuthService as AuthServiceInterface,
 	type AuthenticationData,
 	type AuthenticationRepository,
-	type CleanupResult,
 	type RefreshResult,
 	type RefreshTokenRepository,
-	type TokenMaintenanceService,
 } from './interfaces'
 
 interface AuthServiceDeps {
@@ -29,10 +27,10 @@ interface AuthServiceDeps {
 
 /**
  * Service for user authentication and token management.
- * Handles login, logout, token refresh, and expired token cleanup.
+ * Handles login, logout, and token refresh.
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
-export class AuthService implements AuthServiceInterface, TokenMaintenanceService {
+export class AuthService implements AuthServiceInterface {
 	private readonly userRepository: UserRepository
 	private readonly authRepository: AuthenticationRepository
 	private readonly refreshTokenRepository: RefreshTokenRepository
@@ -355,54 +353,5 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 
 		// Delete all expired tokens for this user
 		await this.refreshTokenRepository.deleteExpiredTokensForUser(userId)
-	}
-
-	/**
-	 * Deletes all expired refresh tokens from the database.
-	 * Uses PostgreSQL advisory lock to prevent concurrent executions across multiple server instances.
-	 * Called by cron jobs and the manual cleanup endpoint.
-	 *
-	 * @returns CleanupResult with deleted count and incomplete flag, or null if skipped
-	 *          due to concurrent execution or lock acquisition failure
-	 */
-	public async cleanupExpiredTokens(): Promise<CleanupResult | null> {
-		// Try to acquire database-level lock (works across multiple server instances)
-		let lockAcquired = false
-		try {
-			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock()
-		} catch (error) {
-			logger.error('TokenCleanup', 'Failed to acquire advisory lock', error)
-			return null
-		}
-
-		if (!lockAcquired) {
-			logger.info('TokenCleanup', 'Skipped - cleanup already in progress (another instance holds the lock)')
-			return null
-		}
-
-		try {
-			const startTime = Date.now()
-			const result = await this.refreshTokenRepository.deleteAllExpiredTokens()
-			const durationMs = Date.now() - startTime
-
-			logger.security('token_cleanup', { deletedCount: result.deletedCount, durationMs, incomplete: result.incomplete })
-			logger.info('TokenCleanup', `Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`)
-			if (result.incomplete) {
-				logger.warn('TokenCleanup', 'Cleanup was incomplete - more expired tokens may remain')
-			}
-			return result
-		} finally {
-			try {
-				await this.refreshTokenRepository.releaseCleanupLock()
-			} catch (error) {
-				// PostgreSQL session advisory locks are automatically released when the
-				// database session/connection ends — the lock won't persist indefinitely.
-				logger.error(
-					'TokenCleanup',
-					'Failed to release advisory lock. Lock will auto-release when DB session ends',
-					error,
-				)
-			}
-		}
 	}
 }

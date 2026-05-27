@@ -30,14 +30,17 @@ import type { PasetoService } from '../services/paseto/interfaces'
  *
  * AuthConfig (value, no deps)
  *
- * AuthService (satisfies AuthService & TokenMaintenanceService interfaces)
+ * AuthService (satisfies AuthService interface)
  *   ├── UserRepository ──────► db
  *   ├── AuthRepository ──────► db, authConfig
  *   ├── RefreshTokenRepository ► db
  *   ├── PasetoService (no deps)
- *   └── authConfig
+ *   ├── UserRoleService
+ *   ├── authConfig
+ *   └── verifyPassword (value)
  *
- * TokenMaintenanceService ──► AuthService (same instance, narrower interface)
+ * TokenMaintenanceService
+ *   └── RefreshTokenRepository ► db
  *
  * RoleService
  *   ├── RoleRepository ──────► db
@@ -88,7 +91,7 @@ export interface Cradle {
 	healthService: HealthService
 	emailService: EmailService
 	pasetoService: PasetoService
-	authService: AuthService & TokenMaintenanceService
+	authService: AuthService
 	tokenMaintenanceService: TokenMaintenanceService
 	roleService: RoleService
 	permissionService: PermissionService

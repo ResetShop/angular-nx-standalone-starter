@@ -1,5 +1,5 @@
 import { logger } from '@resetshop/util'
-import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
+import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
 import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import { DrizzlePermissionRepository } from '../modules/access/permission/permission.repository'
 import { PermissionService } from '../modules/access/permission/permission.service'
@@ -9,6 +9,7 @@ import { createAuthConfig } from '../modules/auth/auth.config'
 import { AuthService } from '../modules/auth/auth.service'
 import { DrizzleAuthenticationRepository } from '../modules/auth/authentication.repository'
 import { DrizzleRefreshTokenRepository } from '../modules/auth/refresh-token.repository'
+import { TokenMaintenanceService } from '../modules/auth/token-maintenance.service'
 import { HealthService } from '../modules/health/health.service'
 import { DrizzleUserManagementRepository } from '../modules/user/user-management.repository'
 import { UserManagementService } from '../modules/user/user-management.service'
@@ -64,7 +65,7 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 		healthService: asClass(HealthService).singleton(),
 		pasetoService: asClass(PasetoService).singleton(),
 		authService: asClass(AuthService).singleton(),
-		tokenMaintenanceService: asFunction(({ authService }: Pick<Cradle, 'authService'>) => authService).singleton(),
+		tokenMaintenanceService: asClass(TokenMaintenanceService).singleton(),
 		roleService: asClass(RoleService).singleton(),
 		permissionService: asClass(PermissionService).singleton(),
 		userRoleService: asClass(UserRoleService).singleton(),
