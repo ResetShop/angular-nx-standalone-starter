@@ -995,26 +995,27 @@ Use the Task tool to delegate to specialized agents at each development phase:
 
 | Phase          | Trigger                              | Agents                                                                |
 | -------------- | ------------------------------------ | --------------------------------------------------------------------- |
-| Planning       | New feature/component/module/service | `architecture-advisor`, `domain-model-advisor`                        |
+| Planning       | New feature/component/module/service | `architecture-advisor` ∥ `domain-model-advisor` (parallel)            |
 | Implementation | Plan approved, code being written    | `test-generator`, `domain-model-advisor`                              |
-| Pre-review     | Implementation complete              | `security-auditor`                                                    |
+| Pre-review     | Implementation complete              | `test-generator` ∥ `security-auditor` (parallel)                      |
 | Review         | Pre-review passes                    | `code-reviewer` (reads ALL references)                                |
 | Maintenance    | On-demand                            | `refactoring-specialist`, `migration-planner`, `documentation-writer` |
 
-**Common Pipelines:**
+**Common Pipelines** (`∥` = run in parallel; `→` = sequential):
 
-| Scenario    | Agent Sequence                                                                                                        |
-| ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| New feature | `architecture-advisor` → `domain-model-advisor` → implement → `test-generator` → `security-auditor` → `code-reviewer` |
-| Bug fix     | implement → `test-generator` → `code-reviewer`                                                                        |
-| Refactoring | `refactoring-specialist` → `test-generator` → `code-reviewer`                                                         |
-| Upgrade     | `migration-planner` → implement → `test-generator` → `code-reviewer`                                                  |
+| Scenario    | Agent Sequence                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| New feature | (`architecture-advisor` ∥ `domain-model-advisor`) → implement → (`test-generator` ∥ `security-auditor`) → `code-reviewer` |
+| Bug fix     | implement → `test-generator` → `code-reviewer`                                                                            |
+| Refactoring | `refactoring-specialist` → `test-generator` → `code-reviewer`                                                             |
+| Upgrade     | `migration-planner` → implement → `test-generator` → `code-reviewer`                                                      |
 
-**Invocation:** Use the Task tool to delegate to `<agent-name>` agent. Example:
+**Parallel vs sequential:** Advisors that are independent — no data dependency on each other and **no shared write target** — run concurrently in a single message with multiple `Agent` calls. Two such groups exist: the planning advisors (`architecture-advisor` ∥ `domain-model-advisor`) and the pre-review advisors (`test-generator` ∥ `security-auditor`). Keep agents **sequential** when one consumes another's output or when they would write to the same file (e.g. both editing `workspace/PLAN.md`); the correctness rule is _no shared write target_. The `/issue-workflow` skill's own phase pauses (after Plan, after Review) remain sequential by design — parallelization applies only to the intra-phase advisor fan-out.
 
-```
-Use the architecture-advisor agent to review the proposed component structure
-```
+**Invocation:** Use the Task tool to delegate to `<agent-name>` agent.
+
+- Sequential (single agent): `Use the architecture-advisor agent to review the proposed component structure`
+- Parallel group (issue both `Agent` calls in **one** message): `Use the architecture-advisor and domain-model-advisor agents in parallel to review the planned module` — the two run concurrently because neither depends on the other and they share no write target.
 
 ### Available Agents
 
