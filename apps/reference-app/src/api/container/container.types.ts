@@ -53,6 +53,7 @@ import type { PasetoService } from '../services/paseto/interfaces'
  *
  * UserManagementService
  *   ├── UserManagementRepository ► db
+ *   ├── AuthRepository ──────────► db, authConfig
  *   ├── EmailService
  *   ├── generatePassword (value)
  *   └── hashPassword (value)

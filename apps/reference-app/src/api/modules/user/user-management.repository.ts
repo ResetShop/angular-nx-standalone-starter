@@ -309,38 +309,6 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	}
 
 	/**
-	 * Replaces a user's password hash and sets the must-change-password flag.
-	 * Skips deleted users. Updates the authentication row keyed by user_id.
-	 *
-	 * @param id - The user's primary key
-	 * @param passwordHash - The new bcrypt password hash
-	 * @param mustChangePassword - Whether the user must change the password on next login
-	 * @returns true if updated, false if the user does not exist or is deleted
-	 */
-	public async updatePasswordAndMustChange(
-		id: number,
-		passwordHash: string,
-		mustChangePassword: boolean,
-	): Promise<boolean> {
-		return this.db.transaction(async (tx) => {
-			const exists = await tx
-				.select({ id: user.id })
-				.from(user)
-				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-				.limit(1)
-			if (exists.length === 0) return false
-
-			const now = new Date()
-			await tx
-				.update(authentication)
-				.set({ passwordHash, mustChangePassword, lastPasswordChangedAt: now, updatedAt: now })
-				.where(eq(authentication.userId, id))
-
-			return true
-		})
-	}
-
-	/**
 	 * Updates a user's account status with audit trail.
 	 * Deleted users cannot be modified.
 	 *

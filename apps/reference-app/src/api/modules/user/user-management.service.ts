@@ -5,6 +5,7 @@ import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
 import { buildResetPasswordEmail } from '../../services/email/reset-password-email.builder'
 import { buildWelcomeEmail } from '../../services/email/welcome-email.builder'
+import type { AuthenticationRepository } from '../auth/interfaces'
 import type {
 	CreateUserParams,
 	ManagedUserData,
@@ -34,6 +35,7 @@ export const userManagementErrors = {
 
 interface UserManagementServiceDeps {
 	userManagementRepository: UserManagementRepository
+	authRepository: AuthenticationRepository
 	emailService: EmailService
 	generatePassword: () => Promise<string>
 	hashPassword: (plain: string) => Promise<string>
@@ -46,12 +48,20 @@ interface UserManagementServiceDeps {
  */
 export class UserManagementService {
 	private userManagementRepository: UserManagementRepository
+	private authRepository: AuthenticationRepository
 	private emailService: EmailService
 	private generatePassword: () => Promise<string>
 	private hashPassword: (plain: string) => Promise<string>
 
-	constructor({ userManagementRepository, emailService, generatePassword, hashPassword }: UserManagementServiceDeps) {
+	constructor({
+		userManagementRepository,
+		authRepository,
+		emailService,
+		generatePassword,
+		hashPassword,
+	}: UserManagementServiceDeps) {
 		this.userManagementRepository = userManagementRepository
+		this.authRepository = authRepository
 		this.emailService = emailService
 		this.generatePassword = generatePassword
 		this.hashPassword = hashPassword
@@ -249,7 +259,7 @@ export class UserManagementService {
 
 		const plainPassword = await this.generatePassword()
 		const passwordHash = await this.hashPassword(plainPassword)
-		await this.userManagementRepository.updatePasswordAndMustChange(id, passwordHash, true)
+		await this.authRepository.setPassword(id, passwordHash, true)
 
 		const passwordEmailSent = await this.sendResetPasswordEmail(userData.email, userData.firstName, plainPassword)
 

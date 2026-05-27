@@ -3,6 +3,7 @@ import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-util
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { EmailService, SendEmailParams } from '../../services/email/interfaces'
 import type { RoleData } from '../access/role/interfaces'
+import type { AuthenticationRepository } from '../auth/interfaces'
 import type {
 	CreateUserWithHashedPasswordParams,
 	ManagedUserData,
@@ -25,7 +26,6 @@ describe('UserManagementService', () => {
 	const mockUpdate = fn<[number, UpdateUserParams, number], Promise<UserData | null>>()
 	const mockUpdateStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData | null>>()
 	const mockSoftDelete = fn<[number, number], Promise<boolean>>()
-	const mockUpdatePasswordAndMustChange = fn<[number, string, boolean], Promise<boolean>>()
 
 	const mockRepository: UserManagementRepository = {
 		findAll: mockFindAll,
@@ -35,7 +35,20 @@ describe('UserManagementService', () => {
 		update: mockUpdate,
 		updateStatus: mockUpdateStatus,
 		softDelete: mockSoftDelete,
-		updatePasswordAndMustChange: mockUpdatePasswordAndMustChange,
+	}
+
+	// Auth repository mock — user-management composes its password writes through this boundary
+	const mockCreateInitialPassword = fn<Parameters<AuthenticationRepository['createInitialPassword']>, Promise<void>>()
+	const mockSetPassword = fn<Parameters<AuthenticationRepository['setPassword']>, Promise<boolean>>()
+
+	const mockAuthRepository: AuthenticationRepository = {
+		findByUserId: fn(),
+		incrementFailedAttempts: fn(),
+		lockAccount: fn(),
+		resetFailedAttempts: fn(),
+		incrementAndLockIfNeeded: fn(),
+		createInitialPassword: mockCreateInitialPassword,
+		setPassword: mockSetPassword,
 	}
 
 	// Email mock
@@ -91,6 +104,7 @@ describe('UserManagementService', () => {
 
 		service = new UserManagementService({
 			userManagementRepository: mockRepository,
+			authRepository: mockAuthRepository,
 			emailService: mockEmailService,
 			generatePassword: mockGeneratePassword,
 			hashPassword: mockHashPassword,
@@ -447,41 +461,41 @@ describe('UserManagementService', () => {
 	describe('resetPassword', () => {
 		it('should generate, hash, persist a new password and send the reset email', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
-			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
+			mockSetPassword.mockResolvedValue(true)
 
 			const result = await service.resetPassword(1, 999)
 
 			expect(result.message).toBe('Password reset successfully')
 			expect(result.passwordEmailSent).toBe(true)
 			expect(mockGeneratePassword.calls).toHaveLength(1)
-			expect(mockUpdatePasswordAndMustChange.calls).toHaveLength(1)
+			expect(mockSetPassword.calls).toHaveLength(1)
 			expect(mockSend.calls).toHaveLength(1)
 		})
 
 		it('should persist the hashed password, not the plaintext', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
-			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
+			mockSetPassword.mockResolvedValue(true)
 
 			await service.resetPassword(1, 999)
 
 			expect(mockHashPassword.calls).toEqual([['indigo.rabbit.troop']])
-			const [, persistedHash] = mockUpdatePasswordAndMustChange.calls[0]
+			const [, persistedHash] = mockSetPassword.calls[0]
 			expect(persistedHash).toBe('hashed-password')
 		})
 
 		it('should always set mustChangePassword to true', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
-			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
+			mockSetPassword.mockResolvedValue(true)
 
 			await service.resetPassword(1, 999)
 
-			expect(mockUpdatePasswordAndMustChange.calls[0][2]).toBe(true)
+			expect(mockSetPassword.calls[0][2]).toBe(true)
 		})
 
 		it('should throw SELF_LOCKOUT when resetting own password', async () => {
 			await expect(service.resetPassword(1, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)
 			expect(mockFindByIdWithRoles.calls).toHaveLength(0)
-			expect(mockUpdatePasswordAndMustChange.calls).toHaveLength(0)
+			expect(mockSetPassword.calls).toHaveLength(0)
 			expect(mockSend.calls).toHaveLength(0)
 		})
 
@@ -489,12 +503,12 @@ describe('UserManagementService', () => {
 			mockFindByIdWithRoles.mockResolvedValue(null)
 
 			await expect(service.resetPassword(999, 1)).rejects.toThrow(USER_MANAGEMENT_ERRORS.NOT_FOUND)
-			expect(mockUpdatePasswordAndMustChange.calls).toHaveLength(0)
+			expect(mockSetPassword.calls).toHaveLength(0)
 		})
 
 		it('should return passwordEmailSent false when the email send fails, without throwing', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
-			mockUpdatePasswordAndMustChange.mockResolvedValue(true)
+			mockSetPassword.mockResolvedValue(true)
 			mockSend.mockRejectedValue(new Error('SMTP down'))
 
 			const result = await service.resetPassword(1, 999)

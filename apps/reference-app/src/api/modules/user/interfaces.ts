@@ -99,11 +99,6 @@ export interface UserManagementRepository {
 	update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null>
 	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>
 	softDelete(id: number, changedBy: number): Promise<boolean>
-	/**
-	 * Replaces a user's password hash and sets the must-change-password flag.
-	 * @returns true if updated, false if the user does not exist or is deleted
-	 */
-	updatePasswordAndMustChange(id: number, passwordHash: string, mustChangePassword: boolean): Promise<boolean>
 }
 
 // ============================================================================
