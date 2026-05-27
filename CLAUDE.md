@@ -1041,7 +1041,7 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 | Agent                    | References Loaded                                                                |
 | ------------------------ | -------------------------------------------------------------------------------- |
-| `code-reviewer`          | **All 11 references — full-load, always** (never conditionally gated; see below) |
+| `code-reviewer`          | **All 12 references — full-load, always** (never conditionally gated; see below) |
 | `plan-writer`            | core + diff-relevant domain refs (conditional; see below) + `CLAUDE.md`          |
 | `architecture-advisor`   | core + diff-relevant domain refs (conditional; see below)                        |
 | `refactoring-specialist` | solid, cupid, guiding-principles                                                 |
@@ -1053,7 +1053,7 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 #### Conditional Reference Loading (planning agents)
 
-The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 11-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
+The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 12-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
 
 **Core — always loaded by the planning agents (never gated):**
 
@@ -1070,7 +1070,7 @@ The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **c
 | generator dirs / generated files, or a scaffolding task               | `generators`                            |
 | `src/app/components/**`, component templates, styles                  | `accessibility`                         |
 
-(Each planning agent gates only the domain refs in its own Step-0 set: `plan-writer` gates `auth`/`backend-api`/`generators`/`accessibility`; `architecture-advisor` gates `backend-api`/`generators`/`accessibility`.)
+Both planning agents share the **same** gated domain set — `auth`, `backend-api`, `domain-model`, `generators`, `accessibility` — so this map applies to each uniformly (no per-agent exceptions). `plan-writer` additionally always-loads `CLAUDE.md` as part of its core.
 
 **Fail open:** on an empty, mixed-layer, or ambiguous diff — or any uncertainty — the planning agent loads **all** of its domain references. Cross-cutting diffs are the norm (the `crud` generator emits DB + API + contracts + provider + store + page at once), so the default under doubt is to load everything.
 

@@ -44,10 +44,11 @@ Load references in two groups, issued together as a **single parallel batch** �
 
 ### Domain — load only the diff-relevant ones
 
-First determine the change set: run `git diff --name-only main...HEAD` (or, when there is no branch diff yet, use the files the task describes as in-scope). Then load the domain references whose trigger paths match, per the glob→ref map in CLAUDE.md:
+First determine the change set: run `git diff --name-only main...HEAD` (or, when there is no branch diff yet, use the files the task describes as in-scope). If neither yields a clear file set, treat the change as ambiguous and apply the fail-open rule below. Then load the domain references whose trigger paths match, per the glob→ref map in CLAUDE.md:
 
 - `.claude/references/auth.md` — diff touches guards (`*.guard.ts`), the auth store, `src/api/**/auth`, or `src/contracts/auth`
 - `.claude/references/backend-api.md` — diff touches `src/api/**`, `src/db/**`, or `src/contracts/**`
+- `.claude/references/domain-model.md` — diff touches `src/api/**`, `src/db/**`, or `src/contracts/**` (domain entities, aggregates, factory functions, Zod validation)
 - `.claude/references/generators.md` — diff touches generator dirs / generated files, or the task involves scaffolding a new entity/module/page
 - `.claude/references/accessibility.md` — diff touches `src/app/components/**`, component templates, or styles
 
