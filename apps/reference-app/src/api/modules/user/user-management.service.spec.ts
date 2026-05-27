@@ -35,7 +35,9 @@ describe('UserManagementService', () => {
 		update: mockUpdate,
 		updateStatus: mockUpdateStatus,
 		softDelete: mockSoftDelete,
-		// Executes the callback inline with a stub tx — the mocked repo/auth writes ignore it.
+		// Executes the callback inline so the composed repo/auth writes run during the test.
+		// REASON: the stub tx is only threaded into mocked methods that ignore it; a real
+		// DrizzleTransaction would require a live DB connection, which unit tests must not need.
 		runInTransaction: <T>(callback: (tx: DrizzleTransaction) => Promise<T>): Promise<T> =>
 			callback(undefined as unknown as DrizzleTransaction),
 	}
@@ -44,12 +46,30 @@ describe('UserManagementService', () => {
 	const mockCreateInitialPassword = fn<Parameters<AuthenticationRepository['createInitialPassword']>, Promise<void>>()
 	const mockSetPassword = fn<Parameters<AuthenticationRepository['setPassword']>, Promise<boolean>>()
 
+	// Annotated as the real interface so a new AuthenticationRepository method fails compilation
+	// here until it is mocked. The lockout/lookup stubs are unused by these tests but typed for
+	// parity; createInitialPassword/setPassword are the methods the service actually drives.
 	const mockAuthRepository: AuthenticationRepository = {
-		findByUserId: fn(),
-		incrementFailedAttempts: fn(),
-		lockAccount: fn(),
-		resetFailedAttempts: fn(),
-		incrementAndLockIfNeeded: fn(),
+		findByUserId: fn<
+			Parameters<AuthenticationRepository['findByUserId']>,
+			ReturnType<AuthenticationRepository['findByUserId']>
+		>(),
+		incrementFailedAttempts: fn<
+			Parameters<AuthenticationRepository['incrementFailedAttempts']>,
+			ReturnType<AuthenticationRepository['incrementFailedAttempts']>
+		>(),
+		lockAccount: fn<
+			Parameters<AuthenticationRepository['lockAccount']>,
+			ReturnType<AuthenticationRepository['lockAccount']>
+		>(),
+		resetFailedAttempts: fn<
+			Parameters<AuthenticationRepository['resetFailedAttempts']>,
+			ReturnType<AuthenticationRepository['resetFailedAttempts']>
+		>(),
+		incrementAndLockIfNeeded: fn<
+			Parameters<AuthenticationRepository['incrementAndLockIfNeeded']>,
+			ReturnType<AuthenticationRepository['incrementAndLockIfNeeded']>
+		>(),
 		createInitialPassword: mockCreateInitialPassword,
 		setPassword: mockSetPassword,
 	}
@@ -366,6 +386,19 @@ describe('UserManagementService', () => {
 			expect(mockCreate.calls).toHaveLength(1)
 			expect(user).toEqual(testManagedUser)
 			expect(passwordEmailSent).toBe(false)
+		})
+
+		it('should propagate an error when the initial-password write fails and skip the welcome email', async () => {
+			mockFindByEmail.mockResolvedValue(null)
+			mockCreate.mockResolvedValue(testManagedUser)
+			mockCreateInitialPassword.mockRejectedValue(new Error('auth insert failed'))
+
+			await expect(
+				service.createUser({ email: 'test@example.com', firstName: 'Test', lastName: 'User' }, 999),
+			).rejects.toThrow('auth insert failed')
+			// The welcome email is sent only after the transaction commits, so a failed
+			// auth-row write must abort createUser before any email is dispatched.
+			expect(mockSend.calls).toHaveLength(0)
 		})
 	})
 

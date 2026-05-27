@@ -7,6 +7,9 @@ import { UserRoleHistoryAction, userRoleHistory } from '@schema/user-role-histor
 import { userStatusHistory } from '@schema/user-status-history'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
 import { BaseRepository } from '../../helpers/base.repository'
+// REASON: `DrizzleTransaction` is an infrastructure type intentionally surfaced in the
+// repository layer so the service can compose user + auth writes in one transaction. The
+// repositories here are Drizzle-specific by definition, so abstracting it buys no decoupling.
 import type { DrizzlePgConnector, DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
@@ -359,7 +362,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 				changedAt: now,
 			})
 
-			const [updatedWithRoles] = await this.attachRolesToUsers(result, this.db)
+			const [updatedWithRoles] = await this.attachRolesToUsers(result, tx)
 			return updatedWithRoles
 		})
 	}
