@@ -16,6 +16,7 @@
 		"format": "prettier --write --cache .",
 		"format:check": "prettier --check --cache .",
 		"ci": "prettier --check --cache . && nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache",
+		"ci:verify": "prettier --check --cache . && nx run-many -t stylelint lint typecheck && nx run-many -t test test-integration build build-storybook",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app",
 		"storybook": "nx run reference-app:storybook",

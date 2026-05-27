@@ -39,25 +39,26 @@
 
 Use `npm` for all package management and script execution:
 
-| Command                    | Description                                    |
-| -------------------------- | ---------------------------------------------- |
-| `npm install`              | Install dependencies                           |
-| `npm run ci`               | Run all CI checks locally (required before PR) |
-| `npm run build`            | Build the project                              |
-| `npm run dev`              | Start development server                       |
-| `npm run format`           | Format all files with Prettier                 |
-| `npm run format:check`     | Check formatting without writing               |
-| `npm run lint`             | Run linting                                    |
-| `npm run storybook`        | Run storybook dev server                       |
-| `npm run storybook:build`  | Build storybook                                |
-| `npm run stylelint`        | Run stylelint                                  |
-| `npm run typecheck`        | Type-check spec files (tsc --noEmit)           |
-| `npm run test`             | Run all unit tests                             |
-| `npm run test:integration` | Run backend integration tests (requires DB)    |
-| `npm run test:e2e`         | Run all end-to-end tests                       |
-| `npm install <pkg>`        | Add a dependency                               |
-| `npm install -D <pkg>`     | Add a dev dependency                           |
-| `npm install -g <pkg>`     | Add a global dependency                        |
+| Command                    | Description                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm install`              | Install dependencies                                                                     |
+| `npm run ci`               | Run all CI checks **cold** (`--skip-nx-cache`) — authoritative final gate                |
+| `npm run ci:verify`        | Run all CI checks **cache-aware** (Nx local/remote cache) — intermediate/inner-loop runs |
+| `npm run build`            | Build the project                                                                        |
+| `npm run dev`              | Start development server                                                                 |
+| `npm run format`           | Format all files with Prettier                                                           |
+| `npm run format:check`     | Check formatting without writing                                                         |
+| `npm run lint`             | Run linting                                                                              |
+| `npm run storybook`        | Run storybook dev server                                                                 |
+| `npm run storybook:build`  | Build storybook                                                                          |
+| `npm run stylelint`        | Run stylelint                                                                            |
+| `npm run typecheck`        | Type-check spec files (tsc --noEmit)                                                     |
+| `npm run test`             | Run all unit tests                                                                       |
+| `npm run test:integration` | Run backend integration tests (requires DB)                                              |
+| `npm run test:e2e`         | Run all end-to-end tests                                                                 |
+| `npm install <pkg>`        | Add a dependency                                                                         |
+| `npm install -D <pkg>`     | Add a dev dependency                                                                     |
+| `npm install -g <pkg>`     | Add a global dependency                                                                  |
 
 #### CRITICAL: Command Execution Policy
 
@@ -1139,6 +1140,19 @@ This is a mandatory step in the workflow:
 ### Local CI Verification
 
 **CRITICAL:** Before considering any implementation work complete, `npm run ci` MUST pass with exit code 0.
+
+#### Two verification paths: cold `ci` vs cache-aware `ci:verify`
+
+There are two CI scripts. They run the **same** tasks (`stylelint`, `lint`, `typecheck`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
+
+| Script              | Cache                                                              | Use for                                                                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run ci`        | **Cold** — `--skip-nx-cache` on every task                         | The **authoritative final gate** (Phase 6 / before opening a PR). Guarantees correctness independent of cache state.                                                                                          |
+| `npm run ci:verify` | **Cache-aware** — rides the Nx local (and remote, see below) cache | Repeated **intermediate** runs in the agent inner loop, where the tree is largely unchanged between runs. On an unchanged tree this collapses to a near-instant cache restore instead of a full cold rebuild. |
+
+**Rule:** Use `npm run ci:verify` for the repeated intermediate checks inside a workflow (e.g. the `code-reviewer` agent's verification step, post-fix re-runs). Use the cold `npm run ci` as the **final** gate before the PR is opened — a cold run is the only run that proves correctness independent of cache state. Never substitute `ci:verify` for the final gate.
+
+> **Permission note:** `npm run ci:verify` is already authorized by the pre-existing `Bash(npm run ci:*)` allow-rule in `.claude/settings.local.json` (the rule matches any `npm run ci:`-prefixed script), so no new allow-rule is required.
 
 The `npm run ci` command runs CI checks in two parallel batches via `nx run-many`:
 
