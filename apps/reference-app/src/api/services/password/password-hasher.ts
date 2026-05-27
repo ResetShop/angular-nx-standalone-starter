@@ -1,4 +1,4 @@
-import { hash } from 'bcryptjs'
+import { compare, hash } from 'bcryptjs'
 
 /**
  * Returns the number of bcrypt salt rounds.
@@ -26,4 +26,17 @@ function getBcryptSaltRounds(): number {
  */
 export function createPasswordHasher(): (plain: string) => Promise<string> {
 	return (plain) => hash(plain, getBcryptSaltRounds())
+}
+
+/**
+ * Factory that produces a bcrypt-backed password verifier.
+ * Returns a function comparing a plaintext candidate against a stored hash.
+ * Encapsulates `bcryptjs.compare` so consumers (e.g. AuthPasswordService) never import
+ * bcrypt directly — this module is the single boundary for the hashing algorithm.
+ *
+ * Wire into the Awilix container with:
+ *   verifyPassword: asValue(createPasswordVerifier())
+ */
+export function createPasswordVerifier(): (plain: string, hash: string) => Promise<boolean> {
+	return (plain, hashed) => compare(plain, hashed)
 }

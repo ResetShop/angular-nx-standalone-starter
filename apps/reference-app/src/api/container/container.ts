@@ -21,7 +21,7 @@ import { EMAIL_PROVIDERS } from '../services/email/interfaces'
 import { NodemailerRepository } from '../services/email/nodemailer.repository'
 import { NoopEmailRepository } from '../services/email/noop-email.repository'
 import { PasetoService } from '../services/paseto/paseto.service'
-import { createPasswordHasher } from '../services/password/password-hasher'
+import { createPasswordHasher, createPasswordVerifier } from '../services/password/password-hasher'
 import { generatePassword } from '../utils/password'
 import type { Container } from './container.interface'
 import type { Cradle } from './container.types'
@@ -34,6 +34,7 @@ function registerValues(c: AwilixContainer<Cradle>): void {
 		logger: asValue(logger),
 		generatePassword: asValue(generatePassword),
 		hashPassword: asValue(createPasswordHasher()),
+		verifyPassword: asValue(createPasswordVerifier()),
 	})
 }
 

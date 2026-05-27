@@ -5,9 +5,9 @@ import { permissionRoute, permissionRouteRelations } from '@schema/permission-ro
 import { refreshToken } from '@schema/refresh-token'
 import { role, rolePermission, rolePermissionRelations, roleRelations } from '@schema/role'
 import { user, userRelations, userRole, userRoleRelations } from '@schema/user'
-import { hash } from 'bcryptjs'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
+import { createPasswordHasher } from '../../services/password/password-hasher'
 
 const schema = {
 	authentication,
@@ -40,7 +40,9 @@ function getAdminPassword(): string {
 }
 
 async function getAdminPasswordHash(): Promise<string> {
-	return hash(getAdminPassword(), 1)
+	// Routes through the production hasher (reads BCRYPT_COST=1 from the integration env)
+	// so this module no longer imports bcryptjs directly — password-hasher.ts is the sole boundary.
+	return createPasswordHasher()(getAdminPassword())
 }
 
 /**

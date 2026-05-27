@@ -72,6 +72,7 @@ export interface Cradle {
 	logger: Logger
 	generatePassword: () => Promise<string>
 	hashPassword: (plain: string) => Promise<string>
+	verifyPassword: (plain: string, hash: string) => Promise<boolean>
 
 	// Repositories (registerRepositories)
 	emailRepository: EmailRepository

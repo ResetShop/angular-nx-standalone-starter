@@ -1,7 +1,6 @@
 import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { logger, parseDurationToMs } from '@resetshop/util'
-import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
 import { type PasetoService } from '../../services/paseto/interfaces'
 import { type UserData, type UserRepository, type UserRoleService } from '../user/interfaces'
@@ -25,6 +24,7 @@ interface AuthServiceDeps {
 	userRoleService: UserRoleService
 	pasetoService: PasetoService
 	authConfig: AuthConfig
+	verifyPassword: (plain: string, hash: string) => Promise<boolean>
 }
 
 /**
@@ -39,6 +39,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 	private readonly userRoleService: UserRoleService
 	private readonly pasetoService: PasetoService
 	private readonly authConfig: AuthConfig
+	private readonly verifyPassword: (plain: string, hash: string) => Promise<boolean>
 
 	constructor({
 		userRepository,
@@ -47,6 +48,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		userRoleService,
 		pasetoService,
 		authConfig,
+		verifyPassword,
 	}: AuthServiceDeps) {
 		this.userRepository = userRepository
 		this.authRepository = authRepository
@@ -54,6 +56,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		this.userRoleService = userRoleService
 		this.pasetoService = pasetoService
 		this.authConfig = authConfig
+		this.verifyPassword = verifyPassword
 	}
 
 	/**
@@ -153,7 +156,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		password: string,
 	): Promise<{ user: UserData; authRecord: AuthenticationData }> {
 		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy'
-		const passwordMatch = await compare(password, hashToCompare)
+		const passwordMatch = await this.verifyPassword(password, hashToCompare)
 
 		if (!user || !authRecord || !passwordMatch || user.status !== UserStatus.ACTIVE) {
 			await this.handleFailedLogin(user, authRecord)

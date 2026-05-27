@@ -2,7 +2,6 @@ import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/
 import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@resetshop/util'
 import { fn } from '@resetshop/util/test-utils'
-import { hash } from 'bcryptjs'
 import { createHash } from 'crypto'
 import {
 	DEFAULT_ACCESS_TOKEN_EXPIRY,
@@ -11,6 +10,7 @@ import {
 	DEFAULT_REFRESH_TOKEN_EXPIRY,
 } from '../../constants/auth.constants'
 import { InMemoryPasetoService } from '../../services/paseto/paseto.service.mock'
+import { createPasswordHasher, createPasswordVerifier } from '../../services/password/password-hasher'
 import type { RoleWithPermissions } from '../access/role/interfaces'
 import type { UserRoleService } from '../user/interfaces'
 import { InMemoryUserRepository } from '../user/user.repository.mock'
@@ -57,8 +57,8 @@ describe('AuthService', () => {
 	}
 
 	beforeAll(async () => {
-		// Create a real bcrypt hash for testing
-		testPasswordHash = await hash(testPassword, 10)
+		// Create a real password hash for testing via the production hasher (no direct bcrypt import)
+		testPasswordHash = await createPasswordHasher()(testPassword)
 	})
 
 	beforeEach(() => {
@@ -77,6 +77,7 @@ describe('AuthService', () => {
 			userRoleService: mockUserRoleService as UserRoleService,
 			pasetoService: mockPasetoService,
 			authConfig: testAuthConfig,
+			verifyPassword: createPasswordVerifier(),
 		})
 	})
 
@@ -373,6 +374,7 @@ describe('AuthService', () => {
 				userRoleService: mockUserRoleService as UserRoleService,
 				pasetoService: mockPasetoService,
 				authConfig: customAuthConfig,
+				verifyPassword: createPasswordVerifier(),
 			})
 
 			// Set up user with 2 failed attempts
