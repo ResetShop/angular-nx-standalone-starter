@@ -1037,19 +1037,44 @@ The `/issue-workflow <issue-url>` skill (`.claude/skills/issue-workflow/SKILL.md
 
 ### Agent Reference Loading
 
-Which `.claude/references/` files each agent loads in Step 0:
+Which `.claude/references/` files each agent loads in Step 0. All multi-reference agents load their set in a **single parallel batch** (see each agent's Step 0).
 
-| Agent                    | References Loaded                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `code-reviewer`          | All 11 references                                                                                                   |
-| `plan-writer`            | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators, accessibility |
-| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators, accessibility |
-| `refactoring-specialist` | solid, cupid, guiding-principles                                                                                    |
-| `domain-model-advisor`   | domain-model                                                                                                        |
-| `test-generator`         | testing                                                                                                             |
-| `security-auditor`       | auth, backend-api                                                                                                   |
-| `documentation-writer`   | —                                                                                                                   |
-| `migration-planner`      | —                                                                                                                   |
+| Agent                    | References Loaded                                                                |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `code-reviewer`          | **All 11 references — full-load, always** (never conditionally gated; see below) |
+| `plan-writer`            | core + diff-relevant domain refs (conditional; see below) + `CLAUDE.md`          |
+| `architecture-advisor`   | core + diff-relevant domain refs (conditional; see below)                        |
+| `refactoring-specialist` | solid, cupid, guiding-principles                                                 |
+| `domain-model-advisor`   | domain-model                                                                     |
+| `test-generator`         | testing                                                                          |
+| `security-auditor`       | auth, backend-api                                                                |
+| `documentation-writer`   | —                                                                                |
+| `migration-planner`      | —                                                                                |
+
+#### Conditional Reference Loading (planning agents)
+
+The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 11-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
+
+**Core — always loaded by the planning agents (never gated):**
+
+`clean-architecture`, `solid`, `cupid`, `guiding-principles`, `cross-reference`, **`coding-agent-policies`** (hard-pinned, review-blocking), and `CLAUDE.md` (plan-writer only).
+
+> `coding-agent-policies.md` is **hard-pinned to always-load** for every agent that loads references — it is never gated, in keeping with the session-start requirement at the top of this file.
+
+**Domain — gated by the diff, per this glob→ref map:**
+
+| Diff touches…                                                         | Load reference(s)                       |
+| --------------------------------------------------------------------- | --------------------------------------- |
+| `src/api/**`, `src/db/**`, `src/contracts/**`                         | `backend-api` + `domain-model` + `auth` |
+| `*.guard.ts`, the auth store, `src/api/**/auth`, `src/contracts/auth` | `auth`                                  |
+| generator dirs / generated files, or a scaffolding task               | `generators`                            |
+| `src/app/components/**`, component templates, styles                  | `accessibility`                         |
+
+(Each planning agent gates only the domain refs in its own Step-0 set: `plan-writer` gates `auth`/`backend-api`/`generators`/`accessibility`; `architecture-advisor` gates `backend-api`/`generators`/`accessibility`.)
+
+**Fail open:** on an empty, mixed-layer, or ambiguous diff — or any uncertainty — the planning agent loads **all** of its domain references. Cross-cutting diffs are the norm (the `crud` generator emits DB + API + contracts + provider + store + page at once), so the default under doubt is to load everything.
+
+> **When adding a new reference file, update this map.** A reference added without a glob→ref entry will never be conditionally loaded. If unsure where it belongs, add it to the **core** (always-loaded) set rather than leaving it ungated.
 
 ### Documentation Impact Scan
 

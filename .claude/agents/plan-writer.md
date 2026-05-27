@@ -30,18 +30,28 @@ Delegate to this agent when:
 
 ## Step 0 — Load References
 
-Before doing any analysis, read these files in full. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another:
+Load references in two groups, issued together as a **single parallel batch** — every `Read` call in a single response turn (all in the same message), not one after another. The split (core vs. domain) and the full glob→ref map are documented in CLAUDE.md → **"Conditional Reference Loading (planning agents)"**.
+
+### Core — always load (never skip)
 
 - `.claude/references/clean-architecture.md`
 - `.claude/references/solid.md`
 - `.claude/references/cupid.md`
 - `.claude/references/guiding-principles.md`
 - `.claude/references/cross-reference.md`
-- `.claude/references/auth.md`
-- `.claude/references/backend-api.md`
-- `.claude/references/generators.md`
-- `.claude/references/accessibility.md`
-- `CLAUDE.md` — primary project guidelines (load alongside the references)
+- `.claude/references/coding-agent-policies.md` — **hard-pinned**; review-blocking policies, always loaded
+- `CLAUDE.md` — primary project guidelines
+
+### Domain — load only the diff-relevant ones
+
+First determine the change set: run `git diff --name-only main...HEAD` (or, when there is no branch diff yet, use the files the task describes as in-scope). Then load the domain references whose trigger paths match, per the glob→ref map in CLAUDE.md:
+
+- `.claude/references/auth.md` — diff touches guards (`*.guard.ts`), the auth store, `src/api/**/auth`, or `src/contracts/auth`
+- `.claude/references/backend-api.md` — diff touches `src/api/**`, `src/db/**`, or `src/contracts/**`
+- `.claude/references/generators.md` — diff touches generator dirs / generated files, or the task involves scaffolding a new entity/module/page
+- `.claude/references/accessibility.md` — diff touches `src/app/components/**`, component templates, or styles
+
+**Fail open — when in doubt, load everything.** If the diff is empty, spans multiple layers, is ambiguous, or you are unsure which domain refs apply, load **all** of the domain references above. Under-loading produces a confident but under-informed plan; over-loading only costs tokens. Cross-cutting diffs are the norm here (the `crud` generator emits DB + API + contracts + provider + store + page in one shot), so default to loading everything unless the diff is clearly scoped to a single layer.
 
 ## Planning Process
 

@@ -27,16 +27,26 @@ This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## Step 0: Load Reference Files
 
-Before providing architecture advice, read these reference files. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another:
+Load references in two groups, issued together as a **single parallel batch** — every `Read` call in a single response turn (all in the same message), not one after another. The split (core vs. domain) and the full glob→ref map are documented in CLAUDE.md → **"Conditional Reference Loading (planning agents)"**.
+
+### Core — always load (never skip)
 
 - `.claude/references/clean-architecture.md` — Clean Architecture principles, layers, component coupling
 - `.claude/references/solid.md` — SOLID principles and relationships
 - `.claude/references/cupid.md` — CUPID principles for joyful, maintainable code
 - `.claude/references/guiding-principles.md` — YAGNI and KISS
 - `.claude/references/cross-reference.md` — How principles relate to each other
-- `.claude/references/backend-api.md` — Backend API patterns (OpenAPI, routes, controllers)
-- `.claude/references/generators.md` — Nx generators that emit project-convention boilerplate; prefer them when planning new entities, modules, or pages
-- `.claude/references/accessibility.md` — Accessibility utilities (`data-touch-target`), WCAG 2.5.5 hit-area rationale, known limitations, and review checklist
+- `.claude/references/coding-agent-policies.md` — **hard-pinned**; review-blocking policies, always loaded
+
+### Domain — load only the diff-relevant ones
+
+First determine the change set: run `git diff --name-only main...HEAD` (or, when there is no branch diff yet, use the files the task describes as in-scope). Then load the domain references whose trigger paths match, per the glob→ref map in CLAUDE.md:
+
+- `.claude/references/backend-api.md` — diff touches `src/api/**`, `src/db/**`, or `src/contracts/**` (Backend API patterns: OpenAPI, routes, controllers)
+- `.claude/references/generators.md` — diff touches generator dirs / generated files, or the task involves scaffolding a new entity/module/page
+- `.claude/references/accessibility.md` — diff touches `src/app/components/**`, component templates, or styles (WCAG 2.5.5 hit-area rationale, `data-touch-target`, review checklist)
+
+**Fail open — when in doubt, load everything.** If the diff is empty, spans multiple layers, is ambiguous, or you are unsure which domain refs apply, load **all** of the domain references above. Under-loading produces a confident but under-informed architecture assessment; over-loading only costs tokens. Cross-cutting diffs are the norm here, so default to loading everything unless the diff is clearly scoped to a single layer.
 
 ## Advisory Process
 
