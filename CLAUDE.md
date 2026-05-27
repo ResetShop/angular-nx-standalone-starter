@@ -1128,7 +1128,7 @@ export class PermissionSelector extends FormFieldCustomControl implements FormVa
 This is a mandatory step in the workflow:
 
 1. Complete implementation (code changes, tests, commits)
-2. **Run `npm run ci`** — All CI checks must pass (exit code 0) before work is considered complete
+2. **Run `npm run ci:verify`** (cache-aware) — all CI checks must pass (exit code 0) before work is considered complete. This is an **intermediate** run; the cold `npm run ci` is reserved for the authoritative final gate before the PR is opened (see [Local CI Verification](#local-ci-verification)).
 3. **Automatically run code review** using the `code-reviewer` agent
 4. Provide a report to the user, with a prioritization of all the found issues, plus the recommendations and suggestions to address them. The report must be in form of a table, that will be used to track the pending work while addressing the issues, recommendations and suggestions.
 5. Save the Proactive Review results to the `workspace/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
@@ -1139,7 +1139,7 @@ This is a mandatory step in the workflow:
 
 ### Local CI Verification
 
-**CRITICAL:** Before considering any implementation work complete, `npm run ci` MUST pass with exit code 0.
+**CRITICAL:** Before considering any implementation work complete, CI MUST pass with exit code 0 — use the cache-aware `npm run ci:verify` for intermediate runs and the cold `npm run ci` as the authoritative final gate before the PR (see below).
 
 #### Two verification paths: cold `ci` vs cache-aware `ci:verify`
 
@@ -1152,7 +1152,7 @@ There are two CI scripts. They run the **same** tasks (`stylelint`, `lint`, `typ
 
 **Rule:** Use `npm run ci:verify` for the repeated intermediate checks inside a workflow (e.g. the `code-reviewer` agent's verification step, post-fix re-runs). Use the cold `npm run ci` as the **final** gate before the PR is opened — a cold run is the only run that proves correctness independent of cache state. Never substitute `ci:verify` for the final gate.
 
-> **Permission note:** `npm run ci:verify` is already authorized by the pre-existing `Bash(npm run ci:*)` allow-rule in `.claude/settings.local.json` (the rule matches any `npm run ci:`-prefixed script), so no new allow-rule is required.
+> **Permission note:** `npm run ci:verify` is already authorized by the pre-existing `Bash(npm run ci:*)` allow-rule in `.claude/settings.local.json` — the glob matches because `ci:verify` begins with the `ci:` prefix — so no new allow-rule is required.
 
 The `npm run ci` command runs CI checks in two parallel batches via `nx run-many`:
 
@@ -1214,16 +1214,10 @@ The code-reviewer agent checks:
 └────────┬────────┘
          │
          ▼
-┌─────────────────┐
-│  npm run ci     │ ◄── MUST pass with exit code 0
-│   (mandatory)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  npm run ci     │ ◄── MUST pass with exit code 0
-│   (mandatory)   │
-└────────┬────────┘
+┌──────────────────────┐
+│  npm run ci:verify   │ ◄── intermediate (cache-aware) — MUST pass with exit code 0
+│   (mandatory)        │
+└──────────┬───────────┘
          │
          ▼
 ┌─────────────────┐
@@ -1241,6 +1235,12 @@ The code-reviewer agent checks:
 ┌─────────────────┐
 │  Fix Issues     │ (if any critical/warnings)
 └────────┬────────┘
+         │
+         ▼
+┌──────────────────────┐
+│  npm run ci          │ ◄── cold final gate — MUST pass with exit code 0
+│   (mandatory)        │
+└──────────┬───────────┘
          │
          ▼
 ┌─────────────────┐
