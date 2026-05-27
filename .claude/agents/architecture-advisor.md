@@ -27,7 +27,7 @@ This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## Step 0: Load Reference Files
 
-Before providing architecture advice, read these reference files. Load them in a **single parallel batch** — issue every `Read` call together in one message rather than one after another:
+Before providing architecture advice, read these reference files. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another:
 
 - `.claude/references/clean-architecture.md` — Clean Architecture principles, layers, component coupling
 - `.claude/references/solid.md` — SOLID principles and relationships

@@ -27,7 +27,7 @@ This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## Step 0: Load Reference Files
 
-Before auditing, read these reference files for full security context. Load them in a **single parallel batch** — issue both `Read` calls together in one message rather than one after another:
+Before auditing, read these reference files for full security context. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another:
 
 - `.claude/references/auth.md` — Authentication architecture, cookie strategy, interceptors
 - `.claude/references/backend-api.md` — OpenAPI route/controller patterns, security conventions

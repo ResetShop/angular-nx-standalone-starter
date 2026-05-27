@@ -28,7 +28,7 @@ Claude should proactively delegate to this agent when:
 
 ## Step 0: Load Reference Files
 
-Before reviewing, read **ALL** reference files to have full project context. Load them in a **single parallel batch** — issue every `Read` call together in one message rather than one after another. Do **not** drop any file; the reviewer is the last line of defense and always loads the complete set (conditional/diff-scoped loading is explicitly out of scope for `code-reviewer`).
+Before reviewing, read **ALL** reference files to have full project context. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another. Do **not** drop any file; the reviewer is the last line of defense and always loads the complete set (conditional/diff-scoped loading is explicitly out of scope for `code-reviewer`).
 
 Load all of these together:
 

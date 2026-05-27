@@ -27,7 +27,7 @@ This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## Step 0: Load Reference Files
 
-Before refactoring, read these reference files for project principles. Load them in a **single parallel batch** — issue every `Read` call together in one message rather than one after another:
+Before refactoring, read these reference files for project principles. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another:
 
 - `.claude/references/solid.md` — SOLID principles and relationships
 - `.claude/references/cupid.md` — CUPID principles
