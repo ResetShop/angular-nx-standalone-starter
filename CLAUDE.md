@@ -1154,6 +1154,8 @@ There are two CI scripts. They run the **same** tasks (`stylelint`, `lint`, `typ
 
 > **Permission note:** `npm run ci:verify` is already authorized by the pre-existing `Bash(npm run ci:*)` allow-rule in `.claude/settings.local.json` — the glob matches because `ci:verify` begins with the `ci:` prefix — so no new allow-rule is required.
 
+> **Remote cache:** `ci:verify` rides the Nx **local** cache today. It also rides the Nx Cloud **remote** cache (restoring task outputs across fresh containers, sessions, and CI) once the workspace is claimed and an `NX_CLOUD_ACCESS_TOKEN` is provisioned — see [`docs/NX_CLOUD.md`](docs/NX_CLOUD.md) for the setup runbook and current status.
+
 The `npm run ci` command runs CI checks in two parallel batches via `nx run-many`:
 
 **Batch 1 (fast checks, parallel):**
