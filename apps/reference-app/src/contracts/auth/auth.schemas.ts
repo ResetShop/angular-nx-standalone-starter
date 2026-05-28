@@ -59,10 +59,13 @@ export const changePasswordResponseSchema = z.object({
 })
 
 /**
- * `/api/auth/me` returns the same shape `authUserSchema` describes — the authenticated
- * user with full roles + permissions. Aliasing keeps the two endpoints' payloads in sync.
+ * `/api/auth/me` returns the authenticated user (the `authUserSchema` shape — full roles +
+ * permissions) plus `mustChangePassword`, so a page reload re-derives the forced-change state
+ * from the server instead of losing it (the short-lived access token does not carry the flag).
  */
-export const meResponseSchema = authUserSchema
+export const meResponseSchema = authUserSchema.extend({
+	mustChangePassword: z.boolean(),
+})
 
 export const logoutResponseSchema = z.object({
 	message: z.string(),

@@ -33,6 +33,7 @@ docs {
   | email | string | User email |
   | firstName | string | User's first name |
   | lastName | string | User's last name |
+  | mustChangePassword | boolean | Whether the user must change their password before proceeding (survives page reloads) |
   | roles | Role[] | Array of roles assigned to the user |
   | roles[].id | number | Role ID |
   | roles[].code | string | Role code (e.g., "admin") |
@@ -85,6 +86,7 @@ assert {
   res.body.id: isDefined
   res.body.email: isDefined
   res.body.roles: isDefined
+  res.body.mustChangePassword: isDefined
 }
 
 tests {
@@ -110,6 +112,10 @@ tests {
 
   test("should return roles array", function() {
     expect(res.body.roles).to.be.an("array");
+  });
+
+  test("should return mustChangePassword flag", function() {
+    expect(res.body.mustChangePassword).to.be.a("boolean");
   });
 
   test("should return roles with permissions", function() {

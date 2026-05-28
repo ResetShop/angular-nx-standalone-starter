@@ -29,6 +29,8 @@ describe('GET /api/auth/me', () => {
 			expect(body.roles.length).toBeGreaterThan(0)
 			expect(body.roles[0].permissions).toBeInstanceOf(Array)
 			expect(body.roles[0].permissions.length).toBeGreaterThan(0)
+			// Exposed so the forced-change state survives a page reload (the access token omits it).
+			expect(body.mustChangePassword).toBe(false)
 		})
 	})
 

@@ -210,6 +210,13 @@ export interface AuthPasswordService {
 	 * @throws AuthError OLD_PASSWORD_MISMATCH when the current password is incorrect
 	 */
 	changePassword(userId: number, oldPassword: string, newPassword: string, tx?: DrizzleTransaction): Promise<void>
+
+	/**
+	 * Returns whether the user must change their password before proceeding. Read fresh from the
+	 * authentication record (the access token does not carry this flag), so `/api/auth/me` reflects
+	 * a password change immediately on the next navigation.
+	 */
+	getMustChangePassword(userId: number): Promise<boolean>
 }
 
 /**

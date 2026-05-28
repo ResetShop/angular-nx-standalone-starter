@@ -136,6 +136,9 @@ export const AuthStore = signalStore(
 			 */
 			validateSession() {
 				return authApi.getMe().pipe(
+					// Re-derive the forced-change state from the server on every navigation so it
+					// survives a page reload — the access token does not carry the flag.
+					tap((response) => patchState(store, { mustChangePassword: response.mustChangePassword })),
 					map((response) => mapMeResponseToUser(response)),
 					tap((user) => patchState(store, { currentUser: user })),
 				)

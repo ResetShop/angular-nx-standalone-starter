@@ -85,6 +85,7 @@ describe('Auth Mapper', () => {
 						],
 					},
 				],
+				mustChangePassword: false,
 			}
 
 			const user = mapMeResponseToUser(response)
@@ -105,6 +106,7 @@ describe('Auth Mapper', () => {
 				firstName: 'John',
 				lastName: 'Doe',
 				roles: [],
+				mustChangePassword: false,
 			}
 
 			const user = mapMeResponseToUser(response)

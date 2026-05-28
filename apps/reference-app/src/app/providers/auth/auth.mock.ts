@@ -26,6 +26,7 @@ export function createMockMeResponse(overrides: Partial<MeResponse> = {}): MeRes
 		firstName: 'Test',
 		lastName: 'User',
 		roles: [],
+		mustChangePassword: false,
 		...overrides,
 	}
 }

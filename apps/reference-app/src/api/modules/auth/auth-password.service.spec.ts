@@ -160,4 +160,20 @@ describe('AuthPasswordService', () => {
 			expect(mockAuthRepo.setPasswordCalls).toHaveLength(0)
 		})
 	})
+
+	describe('getMustChangePassword', () => {
+		it('returns true when the auth record requires a password change', async () => {
+			mockAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash, mustChangePassword: true })
+			await expect(service.getMustChangePassword(testUser.id)).resolves.toBe(true)
+		})
+
+		it('returns false when the auth record does not require a change', async () => {
+			mockAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash })
+			await expect(service.getMustChangePassword(testUser.id)).resolves.toBe(false)
+		})
+
+		it('returns false when the user has no authentication record', async () => {
+			await expect(service.getMustChangePassword(999)).resolves.toBe(false)
+		})
+	})
 })

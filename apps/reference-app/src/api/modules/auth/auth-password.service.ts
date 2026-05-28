@@ -116,6 +116,16 @@ export class AuthPasswordService implements IAuthPasswordService {
 	}
 
 	/**
+	 * Returns whether the user must change their password, read fresh from the auth record.
+	 * Defaults to false when no record exists — the caller is already authenticated, so a missing
+	 * record is a defensive edge rather than an expected state.
+	 */
+	public async getMustChangePassword(userId: number): Promise<boolean> {
+		const authRecord = await this.authRepository.findByUserId(userId)
+		return authRecord?.mustChangePassword ?? false
+	}
+
+	/**
 	 * Handles failed login attempt by tracking failures and locking the account if the threshold is reached.
 	 */
 	private async handleFailedLogin(user: UserData | null, authRecord: AuthenticationData | null): Promise<void> {

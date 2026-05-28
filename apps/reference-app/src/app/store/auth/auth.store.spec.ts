@@ -222,6 +222,14 @@ describe('AuthStore', () => {
 
 			await expect(firstValueFrom(store.validateSession())).rejects.toBe(testError)
 		})
+
+		it('should re-derive mustChangePassword from the me response (survives reload)', async () => {
+			authApiMock.getMe.mockReturnValue(of(createMockMeResponse({ mustChangePassword: true })))
+
+			await firstValueFrom(store.validateSession())
+
+			expect(store.mustChangePassword()).toBe(true)
+		})
 	})
 
 	describe('computed signals', () => {
