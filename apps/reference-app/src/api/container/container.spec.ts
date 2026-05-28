@@ -60,6 +60,14 @@ describe('DI Container', () => {
 			expect(container.cradle.refreshTokenRepository).toBeDefined()
 		})
 
+		it('should resolve passwordResetTokenRepository', () => {
+			expect(container.cradle.passwordResetTokenRepository).toBeDefined()
+		})
+
+		it('should resolve passwordResetService', () => {
+			expect(container.cradle.passwordResetService).toBeDefined()
+		})
+
 		it('should resolve authService', () => {
 			expect(container.cradle.authService).toBeDefined()
 		})

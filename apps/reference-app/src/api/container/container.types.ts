@@ -7,6 +7,8 @@ import type {
 	AuthPasswordService,
 	AuthService,
 	AuthenticationRepository,
+	PasswordResetService,
+	PasswordResetTokenRepository,
 	RefreshTokenRepository,
 	TokenMaintenanceService,
 } from '../modules/auth/interfaces'
@@ -88,6 +90,7 @@ export interface Cradle {
 	userRepository: UserRepository
 	authRepository: AuthenticationRepository
 	refreshTokenRepository: RefreshTokenRepository
+	passwordResetTokenRepository: PasswordResetTokenRepository
 	roleRepository: RoleRepository
 	permissionRepository: PermissionRepository
 	userRoleRepository: UserRoleRepository
@@ -100,6 +103,7 @@ export interface Cradle {
 	authPasswordService: AuthPasswordService
 	authService: AuthService
 	tokenMaintenanceService: TokenMaintenanceService
+	passwordResetService: PasswordResetService
 	roleService: RoleService
 	permissionService: PermissionService
 	userRoleService: UserRoleService

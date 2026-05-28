@@ -128,6 +128,31 @@ export interface RefreshTokenRepository {
 	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
 
+export interface PasswordResetTokenData {
+	userId: number
+	expiresAt: Date
+	usedAt: Date | null
+}
+
+export interface CreatePasswordResetTokenParams {
+	userId: number
+	tokenHash: string
+	expiresAt: Date
+}
+
+/**
+ * Repository for self-service password-reset tokens. Stores only token hashes (see the
+ * `password_reset_token` schema). `runInTransaction` (inherited from BaseRepository) lets the
+ * service compose the password write + token consumption atomically.
+ */
+export interface PasswordResetTokenRepository {
+	create(params: CreatePasswordResetTokenParams): Promise<void>
+	findByTokenHash(tokenHash: string): Promise<PasswordResetTokenData | null>
+	markUsed(tokenHash: string, tx?: DrizzleTransaction): Promise<void>
+	invalidateAllForUser(userId: number): Promise<void>
+	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
+}
+
 // ============================================================================
 // Auth Service Types & Interface
 // ============================================================================
@@ -230,4 +255,22 @@ export interface AuthPasswordService {
  */
 export interface TokenMaintenanceService {
 	cleanupExpiredTokens(): Promise<CleanupResult | null>
+}
+
+/**
+ * Service for the self-service password-reset flow (unauthenticated): request a reset by email
+ * and complete it with a token. Designed as a focused collaborator alongside AuthService.
+ */
+export interface PasswordResetService {
+	/**
+	 * Initiates a reset by email. Resolves silently for unknown/inactive accounts (no user
+	 * enumeration); only active users receive a reset-link email.
+	 */
+	requestPasswordReset(email: string): Promise<void>
+
+	/**
+	 * Completes a reset with the raw token + new password.
+	 * @throws AuthError RESET_TOKEN_INVALID when the token is missing/expired/used or the user is inactive
+	 */
+	resetPassword(token: string, newPassword: string): Promise<void>
 }
