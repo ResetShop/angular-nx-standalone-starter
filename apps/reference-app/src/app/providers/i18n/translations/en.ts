@@ -18,13 +18,23 @@ const en: TranslationSchema = {
 		},
 		RESET_PASSWORD: {
 			TITLE: 'Reset password',
+			DESCRIPTION: 'Enter your email and we will send you a link to reset your password.',
 			EMAIL_LABEL: 'Email address',
 			SUBMIT: 'Send reset link',
 			BACK_TO_LOGIN: 'Back to sign in',
+			CONFIRMATION: 'If an account exists for that email, a password-reset link has been sent. Check your inbox.',
+		},
+		RESET_PASSWORD_CONFIRM: {
+			TITLE: 'Set a new password',
+			DESCRIPTION: 'Choose a new password for your account.',
+			NEW_PASSWORD_LABEL: 'New password',
+			SUBMIT: 'Reset password',
+			MISSING_TOKEN: 'This reset link is invalid or incomplete. Please request a new one.',
 		},
 		ERRORS: {
 			INVALID_CREDENTIALS: 'Email or password is incorrect',
 			OLD_PASSWORD_MISMATCH: 'Your current password is incorrect',
+			RESET_TOKEN_INVALID: 'This reset link is invalid or has expired. Please request a new one.',
 			ACCOUNT_LOCKED:
 				'Your account has been temporarily locked due to multiple failed attempts. Please try again later.',
 			ACCOUNT_DISABLED: 'Your account has been disabled. Please contact support.',
