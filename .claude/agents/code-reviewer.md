@@ -12,9 +12,9 @@ You are a senior code reviewer for this Angular/Nx project.
 **NEVER prefix ANY Bash command with `cd`**. The working directory is ALREADY the project root. Using `cd <path> && ...` changes the command signature and forces the user to manually approve every command.
 
 - ✅ `git diff main...HEAD`
-- ✅ `npm run ci`
+- ✅ `npm run ci:verify`
 - ❌ `cd /path/to/project && git diff main...HEAD`
-- ❌ `cd /path/to/project && npm run ci`
+- ❌ `cd /path/to/project && npm run ci:verify`
 
 This applies to ALL commands: git, npm, and any other CLI tool.
 
@@ -49,7 +49,7 @@ Load all of these together:
 1. **Identify changes** - Use `git diff main...HEAD` to see all changes on the branch
 2. **Review against CLAUDE.md and reference files** guidelines
 3. **Check test coverage** - Verify tests exist for new code
-4. **Run build and tests** - Use `npm run ci` to ensure nothing is broken
+4. **Run build and tests** - Use `npm run ci:verify` (the cache-aware path) to ensure nothing is broken. You MUST run this verification yourself on **every** invocation — including standalone Bug-fix and Refactoring pipelines that have no preceding orchestrator CI run. Never trust or report a CI status you did not observe. `ci:verify` rides the Nx cache, so on an unchanged tree this is a near-instant cache restore rather than a cold rebuild; it runs the identical task set as the cold `npm run ci` (which the orchestrator reserves for the final gate before the PR).
 
 ## Known False Positives — Do NOT Flag
 
@@ -206,13 +206,13 @@ The **#** column provides a sequential number across all three tables within the
 
 ### Verification Results
 
-Run `npm run ci` which executes all CI checks serially. Report results:
+Run `npm run ci:verify` (the cache-aware path — identical task set to the cold `npm run ci`, but it rides the Nx cache so an unchanged tree restores near-instantly instead of rebuilding cold). Run it yourself on every invocation; report the result you actually observed:
 
-| Command      | Result    |
-| ------------ | --------- |
-| `npm run ci` | PASS/FAIL |
+| Command             | Result    |
+| ------------------- | --------- |
+| `npm run ci:verify` | PASS/FAIL |
 
-If `npm run ci` fails, report which step failed (stylelint, lint, test, build, or storybook:build).
+If `npm run ci:verify` fails, report which step failed (stylelint, lint, typecheck, test, test-integration, build, or build-storybook).
 
 ### Test Coverage
 
