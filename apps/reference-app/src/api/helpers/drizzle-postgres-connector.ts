@@ -49,3 +49,6 @@ export type DrizzlePgConnector = typeof drizzlePgConnector
 // cross-repository composition without importing from drizzle-orm/node-postgres.
 // Inner `Parameters<...>[0]` is the transaction callback; outer `[0]` is its `tx` argument.
 export type DrizzleTransaction = Parameters<Parameters<DrizzlePgConnector['transaction']>[0]>[0]
+
+/** A query runner that may be the pooled connection or an open transaction. */
+export type QueryExecutor = DrizzlePgConnector | DrizzleTransaction

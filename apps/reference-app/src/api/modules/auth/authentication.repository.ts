@@ -4,7 +4,7 @@ import { authentication } from '@schema/authentication'
 import { user } from '@schema/user'
 import { and, eq, ne, sql } from 'drizzle-orm'
 import { BaseRepository, type BaseRepositoryDeps } from '../../helpers/base.repository'
-import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
+import type { DrizzleTransaction, QueryExecutor } from '../../helpers/drizzle-postgres-connector'
 import type { AuthConfig } from './auth.config'
 import {
 	type AuthenticationData,
@@ -170,7 +170,7 @@ export class DrizzleAuthenticationRepository extends BaseRepository implements A
 	 * @param tx - Optional transaction handle for composing with the user insert
 	 */
 	public async createInitialPassword(params: CreateInitialPasswordParams, tx?: DrizzleTransaction): Promise<void> {
-		const executor = tx ?? this.db
+		const executor: QueryExecutor = tx ?? this.db
 		await executor.insert(authentication).values({
 			userId: params.userId,
 			passwordHash: params.passwordHash,
@@ -194,7 +194,7 @@ export class DrizzleAuthenticationRepository extends BaseRepository implements A
 		mustChangePassword: boolean,
 		tx?: DrizzleTransaction,
 	): Promise<boolean> {
-		const executor = tx ?? this.db
+		const executor: QueryExecutor = tx ?? this.db
 		const exists = await executor
 			.select({ id: user.id })
 			.from(user)

@@ -22,6 +22,7 @@ import {
 	updateUserStatusRoute,
 } from './user-management.routes'
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
+import { USER_ROLE_ERRORS } from './user-role.errors'
 
 const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
@@ -86,8 +87,16 @@ registerRoute(app, createUserRoute, async (c) => {
 		logger.security('user_created', { userId: result.id, email: result.email, actorId })
 		return c.json<CreateUserResponse>(result, 201)
 	} catch (error) {
-		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
-			return c.json<ErrorResponse>({ error: error.message }, 409)
+		if (error instanceof Error) {
+			if (error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
+				return c.json<ErrorResponse>({ error: error.message }, 409)
+			}
+			// Role assignment is composed into user creation, so invalid role IDs surface here.
+			// (replaceUserRoles' NON_REMOVABLE_ROLES guard is unreachable at create time — a
+			// brand-new user has no existing roles to drop — so only ROLES_NOT_FOUND needs mapping.)
+			if (error.message.startsWith(USER_ROLE_ERRORS.ROLES_NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 400)
+			}
 		}
 		throw error
 	}
