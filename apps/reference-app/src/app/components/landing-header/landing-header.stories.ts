@@ -1,16 +1,10 @@
-import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
-import { AuthStore } from '@store/auth/auth.store'
+import { provideAuthStateMock } from '@store/auth/auth.store.mock'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import { LandingHeader } from './landing-header'
-
-const provideAuthState = (isAuthenticated: boolean) => ({
-	provide: AuthStore,
-	useValue: { isAuthenticated: signal(isAuthenticated) },
-})
 
 const meta: Meta<LandingHeader> = {
 	component: LandingHeader,
@@ -48,12 +42,12 @@ type Story = StoryObj<LandingHeader>
  * Default state for an anonymous visitor — only the theme toggle and Login link are shown.
  */
 export const Unauthenticated: Story = {
-	decorators: [applicationConfig({ providers: [provideAuthState(false)] })],
+	decorators: [applicationConfig({ providers: [provideAuthStateMock(false)] })],
 }
 
 /**
  * Authenticated visitor — an additional "Go to dashboard" link appears next to Login.
  */
 export const Authenticated: Story = {
-	decorators: [applicationConfig({ providers: [provideAuthState(true)] })],
+	decorators: [applicationConfig({ providers: [provideAuthStateMock(true)] })],
 }

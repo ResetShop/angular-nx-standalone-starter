@@ -1,16 +1,10 @@
-import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
-import { AuthStore } from '@store/auth/auth.store'
+import { provideAuthStateMock } from '@store/auth/auth.store.mock'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import LandingPage from './landing'
-
-const provideAuthState = (isAuthenticated: boolean) => ({
-	provide: AuthStore,
-	useValue: { isAuthenticated: signal(isAuthenticated) },
-})
 
 const meta: Meta<LandingPage> = {
 	component: LandingPage,
@@ -46,12 +40,12 @@ type Story = StoryObj<LandingPage>
  * Default landing page as seen by an anonymous visitor.
  */
 export const Default: Story = {
-	decorators: [applicationConfig({ providers: [provideAuthState(false)] })],
+	decorators: [applicationConfig({ providers: [provideAuthStateMock(false)] })],
 }
 
 /**
  * Landing page for an authenticated visitor — the header surfaces a "Go to dashboard" link.
  */
 export const AuthenticatedVisitor: Story = {
-	decorators: [applicationConfig({ providers: [provideAuthState(true)] })],
+	decorators: [applicationConfig({ providers: [provideAuthStateMock(true)] })],
 }

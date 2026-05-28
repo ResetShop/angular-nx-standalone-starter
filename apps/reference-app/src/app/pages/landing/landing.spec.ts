@@ -1,9 +1,8 @@
-import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
 import { clearAllMocks } from '@resetshop/util/test-utils'
-import { AuthStore } from '@store/auth/auth.store'
+import { provideAuthStateMock } from '@store/auth/auth.store.mock'
 import { render, screen } from '@testing-library/angular'
 import LandingPage from './landing'
 
@@ -16,7 +15,7 @@ describe('LandingPage', () => {
 				provideRouter([]),
 				provideTranslationMock(),
 				provideMockTheme(false),
-				{ provide: AuthStore, useValue: { isAuthenticated: signal(isAuthenticated) } },
+				provideAuthStateMock(isAuthenticated),
 			],
 		})
 
