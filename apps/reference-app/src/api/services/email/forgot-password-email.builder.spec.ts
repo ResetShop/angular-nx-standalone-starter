@@ -23,6 +23,17 @@ describe('buildForgotPasswordEmail', () => {
 		expect(email.html).toContain(params.resetUrl)
 	})
 
+	it('resolves the {duration} placeholder from PASSWORD_RESET_TOKEN_EXPIRY (1h)', () => {
+		const en = buildForgotPasswordEmail(params, 'en')
+		const es = buildForgotPasswordEmail(params, 'es')
+
+		expect(en.text).toContain('1 hour')
+		expect(en.html).toContain('1 hour')
+		expect(es.text).toContain('1 hora')
+		expect(en.text).not.toContain('{duration}')
+		expect(es.html).not.toContain('{duration}')
+	})
+
 	it('escapes HTML-significant characters in the first name', () => {
 		const email = buildForgotPasswordEmail({ ...params, firstName: '<script>' }, 'en')
 
