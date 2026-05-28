@@ -1,6 +1,6 @@
 import { clearAllMocks, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { generatePassword } from './password'
+import { generatePassword, getWordList } from './password'
 
 describe('generatePassword', () => {
 	const originalAppLanguage = process.env['APP_LANGUAGE']
@@ -76,23 +76,26 @@ describe('generatePassword', () => {
 	})
 
 	describe('language selection', () => {
-		it('should produce only ASCII words for English', async () => {
-			const passwords = await Promise.all(Array.from({ length: 20 }, () => generatePassword()))
-			const words = passwords.flatMap((p) => p.split('.'))
+		it('contains only lowercase ASCII words across the entire English list', () => {
+			// Validate the whole source list rather than a random sample: the sampling version flaked
+			// (~3% per run) whenever it drew one of the former hyphenated entries (e.g. "drop-down").
+			const offending = getWordList('en').filter((word) => !/^[a-z]+$/.test(word))
 
-			for (const word of words) {
-				expect(word).toMatch(/^[a-z]+$/)
-			}
+			expect(offending).toEqual([])
 		})
 
-		it('should produce Spanish words when APP_LANGUAGE is es', async () => {
+		it('selects the Spanish list and produces accented words when APP_LANGUAGE is es', async () => {
 			process.env['APP_LANGUAGE'] = 'es'
+			const esWords = new Set(getWordList('es'))
 
-			const passwords = await Promise.all(Array.from({ length: 20 }, () => generatePassword()))
-			const words = passwords.flatMap((p) => p.split('.'))
-			const hasAccentedWord = words.some((word) => /[^a-z]/.test(word))
+			const password = await generatePassword()
 
-			expect(hasAccentedWord).toBe(true)
+			// Selection path: every generated word comes from the es list (deterministic — no RNG reliance).
+			for (const word of password.split('.')) {
+				expect(esWords.has(word)).toBe(true)
+			}
+			// The es list is genuinely Spanish (contains accented / non-ASCII words).
+			expect(getWordList('es').some((word) => /[^a-z]/.test(word))).toBe(true)
 		})
 
 		it('should throw when word list file does not exist for language', async () => {
