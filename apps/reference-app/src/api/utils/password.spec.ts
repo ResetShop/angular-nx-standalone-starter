@@ -81,7 +81,8 @@ describe('generatePassword', () => {
 			const words = passwords.flatMap((p) => p.split('.'))
 
 			for (const word of words) {
-				expect(word).toMatch(/^[a-z]+$/)
+				// Hyphen allowed: the diceware list has hyphenated ASCII words (felt-tip, drop-down, t-shirt, yo-yo).
+				expect(word).toMatch(/^[a-z-]+$/)
 			}
 		})
 
