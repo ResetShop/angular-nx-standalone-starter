@@ -1,5 +1,12 @@
+import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
-import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type {
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	LoginResponse,
+	MeResponse,
+	RefreshResponse,
+} from '@contracts/auth/auth.types'
 import type { IPermission } from '@domain/access/permission.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
@@ -15,6 +22,7 @@ describe('AuthStore', () => {
 		logout: MockFn<[], Observable<void>>
 		refreshToken: MockFn<[], Observable<RefreshResponse>>
 		getMe: MockFn<[], Observable<MeResponse>>
+		changePassword: MockFn<[ChangePasswordRequest], Observable<ChangePasswordResponse>>
 	}
 
 	const mockLoginResponse = createMockLoginResponse()
@@ -28,6 +36,7 @@ describe('AuthStore', () => {
 			logout: fn(),
 			refreshToken: fn(),
 			getMe: fn(),
+			changePassword: fn(),
 		}
 
 		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')))
@@ -203,6 +212,39 @@ describe('AuthStore', () => {
 			})
 
 			expect(emitted).toBe(true)
+		})
+	})
+
+	describe('changePassword', () => {
+		it('clears mustChangePassword and the error on success', () => {
+			authApiMock.login.mockReturnValue(of({ ...mockLoginResponse, mustChangePassword: true }))
+			store.login({ email: 'test@example.com', password: 'password' })
+			expect(store.mustChangePassword()).toBe(true)
+
+			authApiMock.changePassword.mockReturnValue(of({ message: 'Password changed successfully' }))
+
+			store.changePassword({ oldPassword: 'old-password', newPassword: 'a-fresh-secure-password' })
+
+			expect(store.mustChangePassword()).toBe(false)
+			expect(store.isChangingPassword()).toBe(false)
+			expect(store.changePasswordError()).toBeNull()
+		})
+
+		it('sets changePasswordError on failure without clearing mustChangePassword', () => {
+			authApiMock.login.mockReturnValue(of({ ...mockLoginResponse, mustChangePassword: true }))
+			store.login({ email: 'test@example.com', password: 'password' })
+
+			authApiMock.changePassword.mockReturnValue(
+				throwError(
+					() => new HttpErrorResponse({ status: 400, error: { code: 'OLD_PASSWORD_MISMATCH', message: 'wrong' } }),
+				),
+			)
+
+			store.changePassword({ oldPassword: 'wrong', newPassword: 'a-fresh-secure-password' })
+
+			expect(store.changePasswordError()?.code).toBe('OLD_PASSWORD_MISMATCH')
+			expect(store.isChangingPassword()).toBe(false)
+			expect(store.mustChangePassword()).toBe(true)
 		})
 	})
 

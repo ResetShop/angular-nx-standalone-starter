@@ -1,6 +1,13 @@
 import { HttpClient } from '@angular/common/http'
 import { inject, Injectable } from '@angular/core'
-import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type {
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	LoginRequest,
+	LoginResponse,
+	MeResponse,
+	RefreshResponse,
+} from '@contracts/auth/auth.types'
 import type { Observable } from 'rxjs'
 import type { AuthApi } from './auth.interface'
 
@@ -39,5 +46,12 @@ export class HttpAuthApi implements AuthApi {
 	 */
 	public getMe(): Observable<MeResponse> {
 		return this.http.get<MeResponse>('/api/auth/me')
+	}
+
+	/**
+	 * Change the authenticated user's password (requires the current password)
+	 */
+	public changePassword(params: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+		return this.http.post<ChangePasswordResponse>('/api/auth/change-password', params)
 	}
 }

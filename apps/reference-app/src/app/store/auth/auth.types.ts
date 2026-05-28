@@ -1,4 +1,4 @@
-import type { LoginErrorResponse } from '@contracts/auth/auth.errors'
+import type { AuthErrorResponse, LoginErrorResponse } from '@contracts/auth/auth.errors'
 import type { IUser } from '@domain/user/user.interface'
 
 /**
@@ -25,6 +25,12 @@ export interface AuthState {
 
 	/** Whether the user must change their password (set at login, reset on logout) */
 	mustChangePassword: boolean
+
+	/** Whether a change-password request is currently in progress */
+	isChangingPassword: boolean
+
+	/** Error from the last failed change-password attempt (null if no error) */
+	changePasswordError: AuthErrorResponse | null
 }
 
 /**
@@ -38,4 +44,6 @@ export const initialAuthState: AuthState = {
 	loginError: null,
 	networkError: false,
 	mustChangePassword: false,
+	isChangingPassword: false,
+	changePasswordError: null,
 }
