@@ -2,10 +2,14 @@ import { makeEnvironmentProviders } from '@angular/core'
 import type {
 	ChangePasswordRequest,
 	ChangePasswordResponse,
+	ForgotPasswordRequest,
+	ForgotPasswordResponse,
 	LoginRequest,
 	LoginResponse,
 	MeResponse,
 	RefreshResponse,
+	ResetPasswordRequest,
+	ResetPasswordResponse,
 } from '@contracts/auth/auth.types'
 import type { Observable } from 'rxjs'
 import { of, throwError } from 'rxjs'
@@ -120,6 +124,26 @@ export class InMemoryAuthApi implements AuthApi {
 		}
 
 		return of({ message: 'Password changed successfully' })
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	public forgotPassword(_params: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {
+		const error = this.errors.get('forgotPassword')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({ message: 'If an account exists for that email, a password-reset link has been sent.' })
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	public resetPassword(_params: ResetPasswordRequest): Observable<ResetPasswordResponse> {
+		const error = this.errors.get('resetPassword')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({ message: 'Your password has been reset. You can now sign in.' })
 	}
 }
 
