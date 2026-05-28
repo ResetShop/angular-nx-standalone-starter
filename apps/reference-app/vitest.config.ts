@@ -1,5 +1,6 @@
 import angular from '@analogjs/vite-plugin-angular'
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin'
+import { searchForWorkspaceRoot } from 'vite'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -31,7 +32,11 @@ export default defineConfig({
 	},
 	server: {
 		fs: {
-			allow: ['.'],
+			// Allow the monorepo root so cross-project `?raw` template imports
+			// from packages/ui resolve. Angular 21.2's Vite pipeline scopes the
+			// project root to apps/reference-app, so a bare '.' no longer reaches
+			// the sibling packages/* — searchForWorkspaceRoot finds the repo root.
+			allow: [searchForWorkspaceRoot(process.cwd())],
 		},
 	},
 	optimizeDeps: {
