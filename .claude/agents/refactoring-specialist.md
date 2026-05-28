@@ -32,6 +32,7 @@ Before refactoring, read these reference files for project principles. Load them
 - `.claude/references/solid.md` — SOLID principles and relationships
 - `.claude/references/cupid.md` — CUPID principles
 - `.claude/references/guiding-principles.md` — YAGNI and KISS
+- `.claude/references/maintainability.md` — structural-simplification / "code judo" lens (delete complexity, not just rearrange it)
 
 ## Refactoring Process
 

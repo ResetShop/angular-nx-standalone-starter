@@ -1044,10 +1044,10 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 | Agent                    | References Loaded                                                                |
 | ------------------------ | -------------------------------------------------------------------------------- |
-| `code-reviewer`          | **All 12 references — full-load, always** (never conditionally gated; see below) |
+| `code-reviewer`          | **All 13 references — full-load, always** (never conditionally gated; see below) |
 | `plan-writer`            | core + diff-relevant domain refs (conditional; see below) + `CLAUDE.md`          |
 | `architecture-advisor`   | core + diff-relevant domain refs (conditional; see below)                        |
-| `refactoring-specialist` | solid, cupid, guiding-principles                                                 |
+| `refactoring-specialist` | solid, cupid, guiding-principles, maintainability                                |
 | `domain-model-advisor`   | domain-model                                                                     |
 | `test-generator`         | testing                                                                          |
 | `security-auditor`       | auth, backend-api                                                                |
@@ -1056,7 +1056,7 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 #### Conditional Reference Loading (planning agents)
 
-The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 12-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
+The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 13-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
 
 **Core — always loaded by the planning agents (never gated):**
 
@@ -1078,6 +1078,8 @@ Both planning agents share the **same** gated domain set — `auth`, `backend-ap
 **Fail open:** on an empty, mixed-layer, or ambiguous diff — or any uncertainty — the planning agent loads **all** of its domain references. Cross-cutting diffs are the norm (the `crud` generator emits DB + API + contracts + provider + store + page at once), so the default under doubt is to load everything.
 
 > **When adding a new reference file, update this map.** A reference added without a glob→ref entry will never be conditionally loaded. If unsure where it belongs, add it to the **core** (always-loaded) set rather than leaving it ungated.
+>
+> **`maintainability.md`** (the structural-simplification lens, #409) is loaded by **`code-reviewer`** (full set) and **`refactoring-specialist`** (fixed set). It is **not** part of the planning agents' gated set today — extending it to `architecture-advisor`/`plan-writer` is a candidate for the broader agent-review-quality follow-up, not an oversight.
 
 ### Documentation Impact Scan
 
