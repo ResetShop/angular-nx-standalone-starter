@@ -49,6 +49,8 @@ In the Nx Cloud dashboard for the workspace, create a **CI access token** (read-
 - **GitHub Actions:** add the read-write token as a repository **secret** named `NX_CLOUD_ACCESS_TOKEN` (Settings → Secrets and variables → Actions → Secrets). Do **not** use a repo Variable — the token is sensitive.
 - **Local development / web sessions:** export `NX_CLOUD_ACCESS_TOKEN` in the shell or `.env`. A read-only token is appropriate for local dev if you want CI to be the only cache writer.
 
+> **Use the token exactly as the dashboard gives it.** Current Nx Cloud tokens are an opaque, base64-style string (they may end in `=`); paste the value **verbatim — do not base64-encode or decode it**. Two failure modes to know: a **missing** token makes Nx fall back to the local cache (no error), but a **present-but-invalid/mismatched** token is **fatal** — Nx returns `401 "a workspace could not be found with the provided CI Access Token"` and the task **exits non-zero**, failing the CI job. So a wrong token does not silently degrade; it breaks CI until corrected.
+
 ### 3. Network policy (egress)
 
 Remote caching requires outbound HTTPS to Nx Cloud. Allow egress to:
@@ -112,4 +114,4 @@ A concrete `nx affected` adoption (changing the `run-many` jobs to `affected -t 
 - [x] **Token + network-policy setup documented** — this file.
 - [x] **`--skip-nx-cache` masking removed from the cacheable paths** — gone from #404's `ci:verify` and from the six cacheable CI jobs; the cold `npm run ci` and the CI `e2e` job keep it by design.
 - [x] **Remote caching activated** — workspace claimed (PR #421), `NX_CLOUD_ACCESS_TOKEN` provisioned (GitHub Actions secret + local `.env`), CI wired.
-- [~] **Remote cache hits demonstrably restore tasks across a fresh container/session** — activation is complete; the demonstration runs on this PR's CI. The first run after activation populates the Nx Cloud cache (cold); a re-run on a fresh runner restores the cacheable tasks from it (timings drop, tasks report "from cache", Nx Cloud run links appear in the logs). The cold `npm run ci` and `e2e` stay full-cold by design.
+- [x] **Remote cache hits demonstrably restore tasks across a fresh container/session** — verified on PR #417's CI: all six cacheable jobs run green with Nx Cloud engaged (no `401`); the run recorded a CIPE at `https://cloud.nx.app/cipes/6a17bf4a8c10aa6339279441`. The first run after activation populates the remote cache (cold); subsequent fresh runners restore the cacheable tasks from it. The cold `npm run ci` and the CI `e2e` job stay full-cold by design.
