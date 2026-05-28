@@ -1,5 +1,6 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { createPasswordHasher, createPasswordVerifier } from '../../services/password/password-hasher'
 import type { UserData } from '../user/interfaces'
@@ -37,8 +38,13 @@ describe('AuthPasswordService', () => {
 	})
 
 	beforeEach(() => {
+		clearAllMocks()
 		mockAuthRepo = new InMemoryAuthenticationRepository()
-		service = new AuthPasswordService({ authRepository: mockAuthRepo, verifyPassword: createPasswordVerifier() })
+		service = new AuthPasswordService({
+			authRepository: mockAuthRepo,
+			verifyPassword: createPasswordVerifier(),
+			hashPassword: createPasswordHasher(),
+		})
 	})
 
 	afterEach(() => {
@@ -75,6 +81,25 @@ describe('AuthPasswordService', () => {
 			expect(mockAuthRepo.incrementedUsers).toHaveLength(0)
 		})
 
+		it('still runs a bcrypt comparison against a valid hash when the account is unknown (timing-safety)', async () => {
+			const verifySpy = fn<[string, string], Promise<boolean>>().mockResolvedValue(false)
+			const timingSafeService = new AuthPasswordService({
+				authRepository: mockAuthRepo,
+				verifyPassword: verifySpy,
+				hashPassword: createPasswordHasher(),
+			})
+
+			await expect(timingSafeService.validateCredentials(null, null, 'any-password')).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS),
+			)
+
+			// The compare MUST run even with no account, against a *genuine* bcrypt hash — a malformed
+			// or empty hash lets bcryptjs short-circuit, reopening the email-enumeration timing oracle.
+			expect(verifySpy.calls).toHaveLength(1)
+			const [, hashArgument] = verifySpy.calls[0]
+			expect(hashArgument).toMatch(/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/)
+		})
+
 		it('throws INVALID_CREDENTIALS for a disabled user even with the correct password', async () => {
 			await expect(
 				service.validateCredentials({ ...testUser, status: UserStatus.DISABLED }, buildAuthRecord(), testPassword),
@@ -94,6 +119,7 @@ describe('AuthPasswordService', () => {
 			const lockingService = new AuthPasswordService({
 				authRepository: lockingAuthRepo,
 				verifyPassword: createPasswordVerifier(),
+				hashPassword: createPasswordHasher(),
 			})
 
 			await expect(lockingService.validateCredentials(testUser, buildAuthRecord(), 'wrong-password')).rejects.toThrow(

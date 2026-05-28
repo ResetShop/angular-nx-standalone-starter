@@ -82,6 +82,7 @@ describe('AuthService', () => {
 			authPasswordService: new AuthPasswordService({
 				authRepository: mockAuthRepo,
 				verifyPassword: createPasswordVerifier(),
+				hashPassword: createPasswordHasher(),
 			}),
 		})
 	})
@@ -382,6 +383,7 @@ describe('AuthService', () => {
 				authPasswordService: new AuthPasswordService({
 					authRepository: customAuthRepo,
 					verifyPassword: createPasswordVerifier(),
+					hashPassword: createPasswordHasher(),
 				}),
 			})
 
