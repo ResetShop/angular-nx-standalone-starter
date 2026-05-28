@@ -9,6 +9,8 @@ import { AuthPasswordService } from '../modules/auth/auth-password.service'
 import { createAuthConfig } from '../modules/auth/auth.config'
 import { AuthService } from '../modules/auth/auth.service'
 import { DrizzleAuthenticationRepository } from '../modules/auth/authentication.repository'
+import { DrizzlePasswordResetTokenRepository } from '../modules/auth/password-reset-token.repository'
+import { PasswordResetService } from '../modules/auth/password-reset.service'
 import { DrizzleRefreshTokenRepository } from '../modules/auth/refresh-token.repository'
 import { TokenMaintenanceService } from '../modules/auth/token-maintenance.service'
 import { HealthService } from '../modules/health/health.service'
@@ -53,6 +55,7 @@ function registerRepositories(c: AwilixContainer<Cradle>): void {
 		userRepository: asClass(DrizzleUserRepository).singleton(),
 		authRepository: asClass(DrizzleAuthenticationRepository).singleton(),
 		refreshTokenRepository: asClass(DrizzleRefreshTokenRepository).singleton(),
+		passwordResetTokenRepository: asClass(DrizzlePasswordResetTokenRepository).singleton(),
 		roleRepository: asClass(DrizzleRoleRepository).singleton(),
 		permissionRepository: asClass(DrizzlePermissionRepository).singleton(),
 		userRoleRepository: asClass(DrizzleUserRoleRepository).singleton(),
@@ -68,6 +71,7 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 		authPasswordService: asClass(AuthPasswordService).singleton(),
 		authService: asClass(AuthService).singleton(),
 		tokenMaintenanceService: asClass(TokenMaintenanceService).singleton(),
+		passwordResetService: asClass(PasswordResetService).singleton(),
 		roleService: asClass(RoleService).singleton(),
 		permissionService: asClass(PermissionService).singleton(),
 		userRoleService: asClass(UserRoleService).singleton(),

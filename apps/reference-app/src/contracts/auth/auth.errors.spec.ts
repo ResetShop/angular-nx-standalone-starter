@@ -21,6 +21,7 @@ describe('Auth Errors', () => {
 		it('should contain all expected error codes', () => {
 			expect(InternalAuthErrorCode.INVALID_CREDENTIALS).toBe('INVALID_CREDENTIALS')
 			expect(InternalAuthErrorCode.OLD_PASSWORD_MISMATCH).toBe('OLD_PASSWORD_MISMATCH')
+			expect(InternalAuthErrorCode.RESET_TOKEN_INVALID).toBe('RESET_TOKEN_INVALID')
 			expect(InternalAuthErrorCode.USER_NOT_FOUND).toBe('USER_NOT_FOUND')
 			expect(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND).toBe('AUTH_RECORD_NOT_FOUND')
 			expect(InternalAuthErrorCode.ACCOUNT_LOCKED).toBe('ACCOUNT_LOCKED')
@@ -34,8 +35,8 @@ describe('Auth Errors', () => {
 			expect(InternalAuthErrorCode.REFRESH_TOKEN_EXPIRED).toBe('REFRESH_TOKEN_EXPIRED')
 		})
 
-		it('should have 13 error codes', () => {
-			expect(Object.keys(InternalAuthErrorCode)).toHaveLength(13)
+		it('should have 14 error codes', () => {
+			expect(Object.keys(InternalAuthErrorCode)).toHaveLength(14)
 		})
 	})
 
@@ -47,6 +48,7 @@ describe('Auth Errors', () => {
 		it('should contain all expected public error codes', () => {
 			expect(PublicAuthErrorCode.INVALID_CREDENTIALS).toBe('INVALID_CREDENTIALS')
 			expect(PublicAuthErrorCode.OLD_PASSWORD_MISMATCH).toBe('OLD_PASSWORD_MISMATCH')
+			expect(PublicAuthErrorCode.RESET_TOKEN_INVALID).toBe('RESET_TOKEN_INVALID')
 			expect(PublicAuthErrorCode.ACCOUNT_LOCKED).toBe('ACCOUNT_LOCKED')
 			expect(PublicAuthErrorCode.ACCOUNT_DISABLED).toBe('ACCOUNT_DISABLED')
 			expect(PublicAuthErrorCode.ACCOUNT_DELETED).toBe('ACCOUNT_DELETED')
@@ -55,8 +57,8 @@ describe('Auth Errors', () => {
 			expect(PublicAuthErrorCode.GENERIC).toBe('GENERIC')
 		})
 
-		it('should have 8 error codes (subset of internal plus GENERIC)', () => {
-			expect(Object.keys(PublicAuthErrorCode)).toHaveLength(8)
+		it('should have 9 error codes (subset of internal plus GENERIC)', () => {
+			expect(Object.keys(PublicAuthErrorCode)).toHaveLength(9)
 		})
 
 		it('should NOT contain security-sensitive codes', () => {
@@ -104,6 +106,12 @@ describe('Auth Errors', () => {
 		it('should map OLD_PASSWORD_MISMATCH to itself (exposed — caller is authenticated)', () => {
 			expect(InternalToPublicErrorMap[InternalAuthErrorCode.OLD_PASSWORD_MISMATCH]).toBe(
 				PublicAuthErrorCode.OLD_PASSWORD_MISMATCH,
+			)
+		})
+
+		it('should map RESET_TOKEN_INVALID to itself (exposed — non-specific by design)', () => {
+			expect(InternalToPublicErrorMap[InternalAuthErrorCode.RESET_TOKEN_INVALID]).toBe(
+				PublicAuthErrorCode.RESET_TOKEN_INVALID,
 			)
 		})
 	})

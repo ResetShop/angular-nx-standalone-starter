@@ -31,6 +31,18 @@ export interface AuthState {
 
 	/** Error from the last failed change-password attempt (null if no error) */
 	changePasswordError: AuthErrorResponse | null
+
+	/** Whether a forgot-password (request reset) call is in progress */
+	isRequestingReset: boolean
+
+	/** Whether a forgot-password request has completed — drives the neutral "link sent" confirmation */
+	resetRequested: boolean
+
+	/** Whether a reset-password (with token) call is in progress */
+	isResettingPassword: boolean
+
+	/** Error from the last failed reset-password attempt (null if no error) */
+	resetPasswordError: AuthErrorResponse | null
 }
 
 /**
@@ -46,4 +58,8 @@ export const initialAuthState: AuthState = {
 	mustChangePassword: false,
 	isChangingPassword: false,
 	changePasswordError: null,
+	isRequestingReset: false,
+	resetRequested: false,
+	isResettingPassword: false,
+	resetPasswordError: null,
 }

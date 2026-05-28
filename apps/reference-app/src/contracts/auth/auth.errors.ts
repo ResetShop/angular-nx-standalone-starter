@@ -22,6 +22,10 @@ export const InternalAuthErrorCode = Object.freeze({
 	// caller is already authenticated, so this leaks no information about another account).
 	OLD_PASSWORD_MISMATCH: 'OLD_PASSWORD_MISMATCH',
 
+	// Self-service reset: the reset token is missing, expired, or already used. Deliberately
+	// one code for all three states so an attacker cannot probe whether a token exists.
+	RESET_TOKEN_INVALID: 'RESET_TOKEN_INVALID',
+
 	// Security-sensitive (map to INVALID_CREDENTIALS to prevent user enumeration)
 	USER_NOT_FOUND: 'USER_NOT_FOUND',
 	AUTH_RECORD_NOT_FOUND: 'AUTH_RECORD_NOT_FOUND',
@@ -57,6 +61,7 @@ export type InternalAuthErrorCode = (typeof InternalAuthErrorCode)[keyof typeof 
 export const PublicAuthErrorCode = Object.freeze({
 	INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
 	OLD_PASSWORD_MISMATCH: 'OLD_PASSWORD_MISMATCH',
+	RESET_TOKEN_INVALID: 'RESET_TOKEN_INVALID',
 	ACCOUNT_LOCKED: 'ACCOUNT_LOCKED',
 	ACCOUNT_DISABLED: 'ACCOUNT_DISABLED',
 	ACCOUNT_DELETED: 'ACCOUNT_DELETED',
@@ -92,6 +97,7 @@ export type LoginErrorCode = (typeof LoginErrorCode)[keyof typeof LoginErrorCode
 export const InternalAuthErrorMessage = Object.freeze({
 	[InternalAuthErrorCode.INVALID_CREDENTIALS]: 'Invalid credentials',
 	[InternalAuthErrorCode.OLD_PASSWORD_MISMATCH]: 'Current password does not match',
+	[InternalAuthErrorCode.RESET_TOKEN_INVALID]: 'Invalid or expired password reset token',
 	[InternalAuthErrorCode.USER_NOT_FOUND]: 'User not found',
 	[InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND]: 'Authentication record not found',
 	[InternalAuthErrorCode.ACCOUNT_LOCKED]: 'Account temporarily locked due to too many failed attempts',
@@ -113,6 +119,7 @@ export const InternalToPublicErrorMap = Object.freeze({
 	// Direct mappings
 	[InternalAuthErrorCode.INVALID_CREDENTIALS]: PublicAuthErrorCode.INVALID_CREDENTIALS,
 	[InternalAuthErrorCode.OLD_PASSWORD_MISMATCH]: PublicAuthErrorCode.OLD_PASSWORD_MISMATCH,
+	[InternalAuthErrorCode.RESET_TOKEN_INVALID]: PublicAuthErrorCode.RESET_TOKEN_INVALID,
 	[InternalAuthErrorCode.ACCOUNT_LOCKED]: PublicAuthErrorCode.ACCOUNT_LOCKED,
 	[InternalAuthErrorCode.ACCOUNT_DISABLED]: PublicAuthErrorCode.ACCOUNT_DISABLED,
 	[InternalAuthErrorCode.TOKEN_EXPIRED]: PublicAuthErrorCode.TOKEN_EXPIRED,

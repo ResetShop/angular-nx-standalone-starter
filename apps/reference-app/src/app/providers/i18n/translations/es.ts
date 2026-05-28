@@ -18,13 +18,24 @@ const es: TranslationSchema = {
 		},
 		RESET_PASSWORD: {
 			TITLE: 'Restablecer contraseña',
+			DESCRIPTION: 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.',
 			EMAIL_LABEL: 'Dirección de email',
 			SUBMIT: 'Enviar enlace de restablecimiento',
 			BACK_TO_LOGIN: 'Volver al inicio de sesión',
+			CONFIRMATION:
+				'Si existe una cuenta para ese email, se ha enviado un enlace de restablecimiento. Revisa tu bandeja de entrada.',
+		},
+		RESET_PASSWORD_CONFIRM: {
+			TITLE: 'Establece una nueva contraseña',
+			DESCRIPTION: 'Elige una nueva contraseña para tu cuenta.',
+			NEW_PASSWORD_LABEL: 'Nueva contraseña',
+			SUBMIT: 'Restablecer contraseña',
+			MISSING_TOKEN: 'Este enlace de restablecimiento es inválido o está incompleto. Por favor, solicita uno nuevo.',
 		},
 		ERRORS: {
 			INVALID_CREDENTIALS: 'Email o contraseña incorrectos',
 			OLD_PASSWORD_MISMATCH: 'Tu contraseña actual es incorrecta',
+			RESET_TOKEN_INVALID: 'Este enlace de restablecimiento es inválido o ha caducado. Por favor, solicita uno nuevo.',
 			ACCOUNT_LOCKED:
 				'Tu cuenta ha sido bloqueada temporalmente debido a múltiples intentos fallidos. Por favor, intenta de nuevo más tarde.',
 			ACCOUNT_DISABLED: 'Tu cuenta ha sido deshabilitada. Por favor, contacta con soporte.',

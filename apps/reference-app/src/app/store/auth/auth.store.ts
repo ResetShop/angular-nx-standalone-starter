@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
 import { type AuthErrorResponse, PublicAuthErrorCode } from '@contracts/auth/auth.errors'
-import type { ChangePasswordRequest } from '@contracts/auth/auth.types'
+import type { ChangePasswordRequest, ResetPasswordRequest } from '@contracts/auth/auth.types'
 import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper'
 import type { IUser } from '@domain/user/user.interface'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
@@ -100,6 +100,57 @@ export const AuthStore = signalStore(
 										changePasswordError: errorBody?.code
 											? errorBody
 											: { code: PublicAuthErrorCode.GENERIC, message: 'Failed to change password' },
+									})
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			/**
+			 * Request a self-service password reset for an email. The server always responds neutrally
+			 * (no enumeration); on completion `resetRequested` flips so the page shows the neutral
+			 * "if an account exists, a link was sent" confirmation — shown on error too, for the same reason.
+			 */
+			forgotPassword: rxMethod<string>(
+				pipe(
+					tap(() => patchState(store, { isRequestingReset: true, resetRequested: false })),
+					switchMap((email) =>
+						authApi.forgotPassword({ email }).pipe(
+							tap({
+								next: () => patchState(store, { isRequestingReset: false, resetRequested: true }),
+								error: (error) => {
+									loggerService.error('AuthStore', 'forgotPassword failed', error)
+									patchState(store, { isRequestingReset: false, resetRequested: true })
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			/**
+			 * Complete a self-service password reset with a token + new password. On success the
+			 * confirm page navigates to login; on failure `resetPasswordError` is set for display.
+			 */
+			resetPassword: rxMethod<ResetPasswordRequest>(
+				pipe(
+					tap(() => patchState(store, { isResettingPassword: true, resetPasswordError: null })),
+					switchMap((body) =>
+						authApi.resetPassword(body).pipe(
+							tap({
+								next: () => patchState(store, { isResettingPassword: false, resetPasswordError: null }),
+								error: (error: HttpErrorResponse) => {
+									loggerService.error('AuthStore', 'resetPassword failed', error)
+									const errorBody = error.error as AuthErrorResponse | undefined
+									patchState(store, {
+										isResettingPassword: false,
+										resetPasswordError: errorBody?.code
+											? errorBody
+											: { code: PublicAuthErrorCode.GENERIC, message: 'Failed to reset password' },
 									})
 								},
 							}),

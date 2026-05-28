@@ -9,10 +9,14 @@ import {
 import type {
 	ChangePasswordRequest,
 	ChangePasswordResponse,
+	ForgotPasswordRequest,
+	ForgotPasswordResponse,
 	LoginRequest,
 	LoginResponse,
 	MeResponse,
 	RefreshResponse,
+	ResetPasswordRequest,
+	ResetPasswordResponse,
 } from '@contracts/auth/auth.types'
 import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
 import { logger, parseDurationToSeconds } from '@resetshop/util'
@@ -26,7 +30,16 @@ import {
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { buildBaseCookieOptions } from './auth.config'
-import { changePasswordRoute, cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
+import {
+	changePasswordRoute,
+	cleanupTokensRoute,
+	forgotPasswordRoute,
+	loginRoute,
+	logoutRoute,
+	meRoute,
+	refreshRoute,
+	resetPasswordRoute,
+} from './auth.routes'
 
 const app = createOpenAPIApp()
 
@@ -167,6 +180,46 @@ registerRoute(app, changePasswordRoute, async (c) => {
 		// 500 uses the { error } shape (errorResponseSchema, via commonResponses) — matching the
 		// /me and cleanup-tokens handlers; the coded OLD_PASSWORD_MISMATCH above keeps { code, message }.
 		return c.json({ error: 'Failed to change password' }, 500)
+	}
+})
+
+// POST /api/auth/forgot-password - Request a self-service password reset
+// Public + rate-limited. Always returns 200 with a neutral message regardless of whether the email
+// belongs to an active account (no user enumeration); internal failures are swallowed for the same reason.
+registerRoute(app, forgotPasswordRoute, async (c) => {
+	const { passwordResetService } = container.cradle
+	const { email }: ForgotPasswordRequest = c.req.valid('json')
+
+	try {
+		await passwordResetService.requestPasswordReset(email)
+	} catch (error) {
+		// Swallow — surfacing this would leak whether the email exists / that processing occurred.
+		logger.error('ForgotPassword', 'requestPasswordReset failed', error)
+	}
+
+	return c.json<ForgotPasswordResponse>(
+		{ message: 'If an account exists for that email, a password-reset link has been sent.' },
+		200,
+	)
+})
+
+// POST /api/auth/reset-password - Complete a self-service password reset with a token
+// Public + rate-limited. Invalid/expired/used tokens return 400 RESET_TOKEN_INVALID (deliberately
+// non-specific); the new password is validated against the shared length bounds.
+registerRoute(app, resetPasswordRoute, async (c) => {
+	const { passwordResetService } = container.cradle
+	const { token, newPassword }: ResetPasswordRequest = c.req.valid('json')
+
+	try {
+		await passwordResetService.resetPassword(token, newPassword)
+		return c.json<ResetPasswordResponse>({ message: 'Your password has been reset. You can now sign in.' }, 200)
+	} catch (error) {
+		if (isAuthError(error) && error.publicCode === PublicAuthErrorCode.RESET_TOKEN_INVALID) {
+			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 400)
+		}
+
+		logger.error('ResetPassword', 'resetPassword failed', error)
+		return c.json({ error: 'Failed to reset password' }, 500)
 	}
 })
 

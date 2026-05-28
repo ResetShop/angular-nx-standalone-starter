@@ -38,12 +38,22 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'AUTH.RESET_PASSWORD.EMAIL_LABEL': 'Email address',
 	'AUTH.RESET_PASSWORD.SUBMIT': 'Send reset link',
 	'AUTH.RESET_PASSWORD.BACK_TO_LOGIN': 'Back to sign in',
+	'AUTH.RESET_PASSWORD.DESCRIPTION': 'Enter your email and we will send you a link to reset your password.',
+	'AUTH.RESET_PASSWORD.CONFIRMATION':
+		'If an account exists for that email, a password-reset link has been sent. Check your inbox.',
+	'AUTH.RESET_PASSWORD_CONFIRM.TITLE': 'Set a new password',
+	'AUTH.RESET_PASSWORD_CONFIRM.DESCRIPTION': 'Choose a new password for your account.',
+	'AUTH.RESET_PASSWORD_CONFIRM.NEW_PASSWORD_LABEL': 'New password',
+	'AUTH.RESET_PASSWORD_CONFIRM.SUBMIT': 'Reset password',
+	'AUTH.RESET_PASSWORD_CONFIRM.MISSING_TOKEN': 'This reset link is invalid or incomplete. Please request a new one.',
 	'AUTH.CHANGE_PASSWORD.TITLE': 'Change your password',
 	'AUTH.CHANGE_PASSWORD.DESCRIPTION': 'For your security, set a new password before continuing.',
 	'AUTH.CHANGE_PASSWORD.OLD_PASSWORD_LABEL': 'Current password',
 	'AUTH.CHANGE_PASSWORD.NEW_PASSWORD_LABEL': 'New password',
 	'AUTH.CHANGE_PASSWORD.SUBMIT': 'Change password',
 	'AUTH.ERRORS.OLD_PASSWORD_MISMATCH': 'Your current password is incorrect',
+	'AUTH.ERRORS.RESET_TOKEN_INVALID': 'This reset link is invalid or has expired. Please request a new one.',
+	'AUTH.ERRORS.GENERIC': 'Login error. Please try again.',
 
 	// Landing
 	'LANDING.PAGE_TITLE': 'Welcome',

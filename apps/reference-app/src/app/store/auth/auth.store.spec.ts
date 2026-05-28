@@ -27,6 +27,8 @@ describe('AuthStore', () => {
 			refreshToken: fn(),
 			getMe: fn(),
 			changePassword: fn(),
+			forgotPassword: fn(),
+			resetPassword: fn(),
 		}
 
 		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')))
@@ -235,6 +237,49 @@ describe('AuthStore', () => {
 			expect(store.changePasswordError()?.code).toBe('OLD_PASSWORD_MISMATCH')
 			expect(store.isChangingPassword()).toBe(false)
 			expect(store.mustChangePassword()).toBe(true)
+		})
+	})
+
+	describe('forgotPassword', () => {
+		it('flips resetRequested on success', () => {
+			authApiMock.forgotPassword.mockReturnValue(of({ message: 'sent' }))
+
+			store.forgotPassword('user@example.com')
+
+			expect(store.resetRequested()).toBe(true)
+			expect(store.isRequestingReset()).toBe(false)
+		})
+
+		it('still flips resetRequested on error (neutral — no enumeration)', () => {
+			authApiMock.forgotPassword.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })))
+
+			store.forgotPassword('user@example.com')
+
+			expect(store.resetRequested()).toBe(true)
+		})
+	})
+
+	describe('resetPassword', () => {
+		it('clears the error on success', () => {
+			authApiMock.resetPassword.mockReturnValue(of({ message: 'reset' }))
+
+			store.resetPassword({ token: 'tok', newPassword: 'a-fresh-secure-password' })
+
+			expect(store.isResettingPassword()).toBe(false)
+			expect(store.resetPasswordError()).toBeNull()
+		})
+
+		it('sets resetPasswordError on failure', () => {
+			authApiMock.resetPassword.mockReturnValue(
+				throwError(
+					() => new HttpErrorResponse({ status: 400, error: { code: 'RESET_TOKEN_INVALID', message: 'bad' } }),
+				),
+			)
+
+			store.resetPassword({ token: 'tok', newPassword: 'a-fresh-secure-password' })
+
+			expect(store.resetPasswordError()?.code).toBe('RESET_TOKEN_INVALID')
+			expect(store.isResettingPassword()).toBe(false)
 		})
 	})
 

@@ -14,7 +14,21 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				FORGOT_PASSWORD: 'Forgot?',
 				SUBMIT: 'Sign in',
 			},
-			RESET_PASSWORD: { TITLE: 'Reset', EMAIL_LABEL: 'Email', SUBMIT: 'Send', BACK_TO_LOGIN: 'Back' },
+			RESET_PASSWORD: {
+				TITLE: 'Reset',
+				DESCRIPTION: 'Enter email',
+				EMAIL_LABEL: 'Email',
+				SUBMIT: 'Send',
+				BACK_TO_LOGIN: 'Back',
+				CONFIRMATION: 'Link sent',
+			},
+			RESET_PASSWORD_CONFIRM: {
+				TITLE: 'Set new',
+				DESCRIPTION: 'Choose new',
+				NEW_PASSWORD_LABEL: 'New',
+				SUBMIT: 'Reset',
+				MISSING_TOKEN: 'Invalid link',
+			},
 			CHANGE_PASSWORD: {
 				TITLE: 'Change',
 				DESCRIPTION: 'Set new',
@@ -25,6 +39,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			ERRORS: {
 				INVALID_CREDENTIALS: 'Invalid credentials',
 				OLD_PASSWORD_MISMATCH: 'Current password is incorrect',
+				RESET_TOKEN_INVALID: 'Invalid or expired link',
 				ACCOUNT_LOCKED: 'Locked',
 				ACCOUNT_DISABLED: 'Disabled',
 				ACCOUNT_DELETED: 'Deleted',
@@ -209,7 +224,21 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				FORGOT_PASSWORD: '¿Olvidó?',
 				SUBMIT: 'Entrar',
 			},
-			RESET_PASSWORD: { TITLE: 'Restablecer', EMAIL_LABEL: 'Correo', SUBMIT: 'Enviar', BACK_TO_LOGIN: 'Volver' },
+			RESET_PASSWORD: {
+				TITLE: 'Restablecer',
+				DESCRIPTION: 'Ingresa email',
+				EMAIL_LABEL: 'Correo',
+				SUBMIT: 'Enviar',
+				BACK_TO_LOGIN: 'Volver',
+				CONFIRMATION: 'Enlace enviado',
+			},
+			RESET_PASSWORD_CONFIRM: {
+				TITLE: 'Nueva contraseña',
+				DESCRIPTION: 'Elige nueva',
+				NEW_PASSWORD_LABEL: 'Nueva',
+				SUBMIT: 'Restablecer',
+				MISSING_TOKEN: 'Enlace inválido',
+			},
 			CHANGE_PASSWORD: {
 				TITLE: 'Cambiar',
 				DESCRIPTION: 'Nueva contraseña',
@@ -220,6 +249,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			ERRORS: {
 				INVALID_CREDENTIALS: 'Credenciales inválidas',
 				OLD_PASSWORD_MISMATCH: 'Contraseña actual incorrecta',
+				RESET_TOKEN_INVALID: 'Enlace inválido o caducado',
 				ACCOUNT_LOCKED: 'Bloqueada',
 				ACCOUNT_DISABLED: 'Desactivada',
 				ACCOUNT_DELETED: 'Eliminada',

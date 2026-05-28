@@ -30,6 +30,26 @@ export const changePasswordRequestSchema = z
 		path: ['newPassword'],
 	})
 
+/**
+ * Body for `POST /api/auth/forgot-password`. Public; always answered with 200 regardless of
+ * whether the email belongs to an active account (no user enumeration).
+ */
+export const forgotPasswordRequestSchema = z.object({
+	email: z.string().email('Invalid email format'),
+})
+
+/**
+ * Body for `POST /api/auth/reset-password`. The raw token from the emailed link plus the new
+ * password (same length bounds as change-password).
+ */
+export const resetPasswordRequestSchema = z.object({
+	token: z.string().min(1, 'Reset token is required'),
+	newPassword: z
+		.string()
+		.min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+		.max(MAX_PASSWORD_LENGTH, `Password must be no more than ${MAX_PASSWORD_LENGTH} characters`),
+})
+
 // ============================================================================
 // Response Schemas
 // ============================================================================
@@ -55,6 +75,14 @@ export const loginResponseSchema = z.object({
 export const refreshResponseSchema = z.object({})
 
 export const changePasswordResponseSchema = z.object({
+	message: z.string(),
+})
+
+export const forgotPasswordResponseSchema = z.object({
+	message: z.string(),
+})
+
+export const resetPasswordResponseSchema = z.object({
 	message: z.string(),
 })
 

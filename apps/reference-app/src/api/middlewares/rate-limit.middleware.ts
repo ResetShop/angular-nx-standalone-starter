@@ -4,10 +4,14 @@ import { rateLimiter } from 'hono-rate-limiter'
 import {
 	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX,
 	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
+	FORGOT_PASSWORD_RATE_LIMIT_MAX,
+	FORGOT_PASSWORD_RATE_LIMIT_WINDOW,
 	LOGIN_RATE_LIMIT_MAX,
 	LOGIN_RATE_LIMIT_WINDOW,
 	REFRESH_RATE_LIMIT_MAX,
 	REFRESH_RATE_LIMIT_WINDOW,
+	RESET_PASSWORD_RATE_LIMIT_MAX,
+	RESET_PASSWORD_RATE_LIMIT_WINDOW,
 } from '../constants/auth.constants'
 
 /**
@@ -59,4 +63,22 @@ export const changePasswordRateLimiter = rateLimiter({
 	standardHeaders: 'draft-7',
 	keyGenerator: getClientIp,
 	handler: createRateLimitHandler('/api/auth/change-password'),
+})
+
+/** Rate limiter for POST /api/auth/forgot-password — 5 requests per 15 minutes per IP. */
+export const forgotPasswordRateLimiter = rateLimiter({
+	windowMs: parseDurationToMs(FORGOT_PASSWORD_RATE_LIMIT_WINDOW),
+	limit: FORGOT_PASSWORD_RATE_LIMIT_MAX,
+	standardHeaders: 'draft-7',
+	keyGenerator: getClientIp,
+	handler: createRateLimitHandler('/api/auth/forgot-password'),
+})
+
+/** Rate limiter for POST /api/auth/reset-password — 5 attempts per 15 minutes per IP. */
+export const resetPasswordRateLimiter = rateLimiter({
+	windowMs: parseDurationToMs(RESET_PASSWORD_RATE_LIMIT_WINDOW),
+	limit: RESET_PASSWORD_RATE_LIMIT_MAX,
+	standardHeaders: 'draft-7',
+	keyGenerator: getClientIp,
+	handler: createRateLimitHandler('/api/auth/reset-password'),
 })

@@ -6,6 +6,7 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Button } from '@resetshop/ui/button/button'
 import { FormField } from '@resetshop/ui/form-field/form-field'
 import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
+import { AuthStore } from '@store/auth/auth.store'
 
 interface ResetPasswordForm {
 	email: string
@@ -15,7 +16,7 @@ interface ResetPasswordForm {
 	selector: 'app-reset-password-page',
 	imports: [ImmersivePanel, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField, TranslatePipe],
 	template: `
-		<form (ngSubmit)="onSubmit()" aria-labelledby="reset-password-heading" class="w-full px-8 sm:w-[420px]">
+		<form (submit)="onSubmit($event)" aria-labelledby="reset-password-heading" class="w-full px-8 sm:w-[420px]">
 			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 			<ng-template #cardTitle>
 				<span class="mt-4 flex flex-col gap-4">
@@ -27,18 +28,36 @@ interface ResetPasswordForm {
 			</ng-template>
 
 			<ng-template #cardContent>
-				<div class="flex w-full max-w-96 flex-col gap-6">
-					<app-form-field [label]="'AUTH.RESET_PASSWORD.EMAIL_LABEL' | translate">
-						<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" />
-					</app-form-field>
-				</div>
+				@if (store.resetRequested()) {
+					<p class="text-muted-foreground w-full max-w-96 text-center text-sm">
+						{{ 'AUTH.RESET_PASSWORD.CONFIRMATION' | translate }}
+					</p>
+				} @else {
+					<div class="flex w-full max-w-96 flex-col gap-6">
+						<p class="text-muted-foreground text-center text-sm">
+							{{ 'AUTH.RESET_PASSWORD.DESCRIPTION' | translate }}
+						</p>
+						<app-form-field [label]="'AUTH.RESET_PASSWORD.EMAIL_LABEL' | translate">
+							<input [formField]="resetPasswordForm.email" type="email" autocomplete="email" />
+						</app-form-field>
+					</div>
+				}
 			</ng-template>
 
 			<ng-template #cardFooter>
 				<div class="flex flex-col gap-4 font-semibold">
-					<button [fullWidth]="true" [disabled]="!isFormValid()" appButton variant="default" size="md" type="submit">
-						{{ 'AUTH.RESET_PASSWORD.SUBMIT' | translate }}
-					</button>
+					@if (!store.resetRequested()) {
+						<button
+							[fullWidth]="true"
+							[disabled]="!isFormValid() || store.isRequestingReset()"
+							appButton
+							variant="default"
+							size="md"
+							type="submit"
+						>
+							{{ 'AUTH.RESET_PASSWORD.SUBMIT' | translate }}
+						</button>
+					}
 
 					<div class="text-muted-foreground text-center text-sm">
 						<a [routerLink]="loginUrl" appButton variant="link">
@@ -59,6 +78,7 @@ interface ResetPasswordForm {
 })
 export default class ResetPassword {
 	private readonly router = inject(Router)
+	protected readonly store = inject(AuthStore)
 
 	protected readonly loginUrl = this.router.createUrlTree(['/auth/login'])
 
@@ -77,16 +97,14 @@ export default class ResetPassword {
 		return this.resetPasswordForm.email().errors().length === 0
 	})
 
-	protected onSubmit() {
+	protected onSubmit(event: Event) {
+		event.preventDefault()
 		if (!this.isFormValid()) {
-			// Signal forms FieldState.markAsTouched() only marks a single field;
-			// there is no markAllAsTouched() equivalent — each field must be touched individually.
+			// Signal forms has no markAllAsTouched() — each field must be touched individually.
 			this.resetPasswordForm.email().markAsTouched()
 			return
 		}
 
-		// TODO: Implement actual password reset logic
-		// After successful request, could navigate to a confirmation page
-		// this.router.navigate(["/reset-password-sent"]);
+		this.store.forgotPassword(this.model().email)
 	}
 }

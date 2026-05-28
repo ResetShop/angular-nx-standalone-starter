@@ -7,6 +7,11 @@ export default [
 		loadComponent: () => import('@pages/auth/login/login'),
 	},
 	{
+		path: 'reset-password/confirm',
+		title: 'Reset Password',
+		loadComponent: () => import('@pages/auth/reset-password-confirm/reset-password-confirm'),
+	},
+	{
 		path: 'reset-password',
 		title: 'Reset Password',
 		loadComponent: () => import('@pages/auth/reset-password/reset-password'),

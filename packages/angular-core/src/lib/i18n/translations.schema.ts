@@ -20,13 +20,23 @@ export interface TranslationSchema {
 		}
 		RESET_PASSWORD: {
 			TITLE: string
+			DESCRIPTION: string
 			EMAIL_LABEL: string
 			SUBMIT: string
 			BACK_TO_LOGIN: string
+			CONFIRMATION: string
+		}
+		RESET_PASSWORD_CONFIRM: {
+			TITLE: string
+			DESCRIPTION: string
+			NEW_PASSWORD_LABEL: string
+			SUBMIT: string
+			MISSING_TOKEN: string
 		}
 		ERRORS: {
 			INVALID_CREDENTIALS: string
 			OLD_PASSWORD_MISMATCH: string
+			RESET_TOKEN_INVALID: string
 			ACCOUNT_LOCKED: string
 			ACCOUNT_DISABLED: string
 			ACCOUNT_DELETED: string
