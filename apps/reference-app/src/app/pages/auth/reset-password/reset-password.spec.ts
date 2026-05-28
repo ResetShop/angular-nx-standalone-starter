@@ -1,5 +1,8 @@
+import { provideHttpClient } from '@angular/common/http'
+import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
+import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
@@ -9,7 +12,14 @@ import ResetPassword from './reset-password'
 describe('ResetPassword', () => {
 	beforeEach(() => clearAllMocks())
 
-	const defaultProviders = () => [provideRouter([]), provideTranslationMock(), ...provideSignalFormsConfig({})]
+	const defaultProviders = () => [
+		provideRouter([]),
+		provideHttpClient(),
+		provideHttpClientTesting(),
+		provideAuthMock(),
+		provideTranslationMock(),
+		...provideSignalFormsConfig({}),
+	]
 
 	const renderResetPassword = () => render(ResetPassword, { providers: defaultProviders() })
 
@@ -107,6 +117,18 @@ describe('ResetPassword', () => {
 
 		expect(screen.queryByText(/this field is required/i)).not.toBeInTheDocument()
 		expect(screen.queryByText(/please enter a valid email address/i)).not.toBeInTheDocument()
+	})
+
+	it('shows the neutral confirmation after submitting a valid email', async () => {
+		const user = userEvent.setup()
+		await renderResetPassword()
+
+		await user.type(screen.getByLabelText(/Email address/i), 'test@example.com')
+		await user.click(screen.getByRole('button', { name: /Send reset link/i }))
+
+		expect(await screen.findByText(/a password-reset link has been sent/i)).toBeInTheDocument()
+		// The email field is replaced by the confirmation (no enumeration of whether the account exists).
+		expect(screen.queryByLabelText(/Email address/i)).not.toBeInTheDocument()
 	})
 
 	it('should clear error when valid email is entered after blur', async () => {
