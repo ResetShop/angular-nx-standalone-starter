@@ -9,7 +9,7 @@ import { Button } from '@resetshop/ui/button/button'
 	imports: [RouterLink, LandingHeader, Button, TranslatePipe],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-		<div class="flex min-h-svh flex-col bg-white dark:bg-black/95">
+		<div class="flex h-svh flex-col bg-white dark:bg-black/95">
 			<a
 				href="#main-content"
 				class="text-foreground sr-only rounded bg-white px-4 py-2 shadow focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 dark:bg-black"
@@ -17,7 +17,7 @@ import { Button } from '@resetshop/ui/button/button'
 				{{ 'LANDING.SKIP_TO_CONTENT' | translate }}
 			</a>
 			<app-landing-header />
-			<main id="main-content" class="flex-1">
+			<main id="main-content" class="flex-1 overflow-y-auto">
 				<section
 					aria-labelledby="landing-hero-heading"
 					class="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 sm:py-24"
