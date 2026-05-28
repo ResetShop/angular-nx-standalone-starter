@@ -85,7 +85,7 @@ export interface UserRepository {
  * The initial credential is written separately via the auth domain
  * (AuthenticationRepository.createInitialPassword), composed in one transaction.
  */
-export interface CreateUserRepoParams {
+export interface CreateUserIdentityParams {
 	email: string
 	firstName: string
 	lastName: string
@@ -99,7 +99,7 @@ export interface UserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>
 	findByEmail(email: string): Promise<UserData | null>
-	create(params: CreateUserRepoParams, actorId: number, tx?: DrizzleTransaction): Promise<ManagedUserData>
+	create(params: CreateUserIdentityParams, actorId: number, tx?: DrizzleTransaction): Promise<ManagedUserData>
 	update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null>
 	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>
 	softDelete(id: number, changedBy: number): Promise<boolean>

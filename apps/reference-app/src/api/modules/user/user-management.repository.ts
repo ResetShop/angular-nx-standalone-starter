@@ -14,7 +14,7 @@ import type { DrizzlePgConnector, DrizzleTransaction } from '../../helpers/drizz
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type {
-	CreateUserRepoParams,
+	CreateUserIdentityParams,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
@@ -188,7 +188,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	 * @returns The newly created user with roles
 	 */
 	public async create(
-		params: CreateUserRepoParams,
+		params: CreateUserIdentityParams,
 		actorId: number,
 		tx?: DrizzleTransaction,
 	): Promise<ManagedUserData> {
