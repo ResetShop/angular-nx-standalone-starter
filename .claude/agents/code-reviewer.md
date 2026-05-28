@@ -28,19 +28,21 @@ Claude should proactively delegate to this agent when:
 
 ## Step 0: Load Reference Files
 
-Before reviewing, read ALL reference files to have full project context:
+Before reviewing, read **ALL** reference files to have full project context. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another. Do **not** drop any file; the reviewer is the last line of defense and always loads the complete set (conditional/diff-scoped loading is explicitly out of scope for `code-reviewer`).
 
-1. Read `.claude/references/testing.md`
-2. Read `.claude/references/guiding-principles.md`
-3. Read `.claude/references/cupid.md`
-4. Read `.claude/references/solid.md`
-5. Read `.claude/references/clean-architecture.md`
-6. Read `.claude/references/cross-reference.md`
-7. Read `.claude/references/domain-model.md`
-8. Read `.claude/references/auth.md`
-9. Read `.claude/references/backend-api.md`
-10. Read `.claude/references/generators.md`
-11. Read `.claude/references/accessibility.md`
+Load all of these together:
+
+- `.claude/references/testing.md`
+- `.claude/references/guiding-principles.md`
+- `.claude/references/cupid.md`
+- `.claude/references/solid.md`
+- `.claude/references/clean-architecture.md`
+- `.claude/references/cross-reference.md`
+- `.claude/references/domain-model.md`
+- `.claude/references/auth.md`
+- `.claude/references/backend-api.md`
+- `.claude/references/generators.md`
+- `.claude/references/accessibility.md`
 
 ## Review Process
 

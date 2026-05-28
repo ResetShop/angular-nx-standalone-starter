@@ -30,7 +30,7 @@ Delegate to this agent when:
 
 ## Step 0 — Load References
 
-Before doing any analysis, read these files in full:
+Before doing any analysis, read these files in full. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another:
 
 - `.claude/references/clean-architecture.md`
 - `.claude/references/solid.md`
@@ -41,7 +41,7 @@ Before doing any analysis, read these files in full:
 - `.claude/references/backend-api.md`
 - `.claude/references/generators.md`
 - `.claude/references/accessibility.md`
-- `CLAUDE.md`
+- `CLAUDE.md` — primary project guidelines (load alongside the references)
 
 ## Planning Process
 

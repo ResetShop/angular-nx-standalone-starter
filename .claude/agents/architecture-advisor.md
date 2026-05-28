@@ -27,16 +27,16 @@ This applies to ALL commands: git, npm, and any other CLI tool.
 
 ## Step 0: Load Reference Files
 
-Before providing architecture advice, read these reference files:
+Before providing architecture advice, read these reference files. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another:
 
-1. Read `.claude/references/clean-architecture.md` — Clean Architecture principles, layers, component coupling
-2. Read `.claude/references/solid.md` — SOLID principles and relationships
-3. Read `.claude/references/cupid.md` — CUPID principles for joyful, maintainable code
-4. Read `.claude/references/guiding-principles.md` — YAGNI and KISS
-5. Read `.claude/references/cross-reference.md` — How principles relate to each other
-6. Read `.claude/references/backend-api.md` — Backend API patterns (OpenAPI, routes, controllers)
-7. Read `.claude/references/generators.md` — Nx generators that emit project-convention boilerplate; prefer them when planning new entities, modules, or pages
-8. Read `.claude/references/accessibility.md` — Accessibility utilities (`data-touch-target`), WCAG 2.5.5 hit-area rationale, known limitations, and review checklist
+- `.claude/references/clean-architecture.md` — Clean Architecture principles, layers, component coupling
+- `.claude/references/solid.md` — SOLID principles and relationships
+- `.claude/references/cupid.md` — CUPID principles for joyful, maintainable code
+- `.claude/references/guiding-principles.md` — YAGNI and KISS
+- `.claude/references/cross-reference.md` — How principles relate to each other
+- `.claude/references/backend-api.md` — Backend API patterns (OpenAPI, routes, controllers)
+- `.claude/references/generators.md` — Nx generators that emit project-convention boilerplate; prefer them when planning new entities, modules, or pages
+- `.claude/references/accessibility.md` — Accessibility utilities (`data-touch-target`), WCAG 2.5.5 hit-area rationale, known limitations, and review checklist
 
 ## Advisory Process
 
