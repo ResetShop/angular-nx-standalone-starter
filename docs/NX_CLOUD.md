@@ -2,7 +2,7 @@
 
 This document is the setup runbook for **Nx Cloud remote caching** in this workspace, the evaluation of **distributed task execution (DTE)**, and the required token / network-policy configuration. It is the agent-and-performance slice of epic [#403](https://github.com/ResetShop/angular-nx-standalone-starter/issues/403) (issue [#406](https://github.com/ResetShop/angular-nx-standalone-starter/issues/406)).
 
-> **TL;DR:** Remote caching is **wired but not yet active**. `nx.json` already carries an `nxCloudId`, but the Nx Cloud workspace was never claimed and now returns `401`. To turn remote caching on, the repo owner must (1) claim the workspace and (2) provision an `NX_CLOUD_ACCESS_TOKEN`. Until then, Nx silently falls back to the **local** cache (which works) — nothing is broken.
+> **TL;DR:** Remote caching is **active**. The Nx Cloud workspace (`nxCloudId` `6a17a0e34cc7a0ffaeec195e` in `nx.json`) is claimed, the `NX_CLOUD_ACCESS_TOKEN` is provisioned (GitHub Actions secret + local `.env`), and `.github/workflows/ci.yml` reads/writes the remote cache on its cacheable jobs (`e2e` stays cold by design). The first CI run after activation is still cold (it populates the remote cache); warm/subsequent runs and other containers restore from it.
 
 ---
 
@@ -16,29 +16,31 @@ A **remote** cache restores task outputs **across** containers, sessions, and CI
 
 ## Current state (as verified)
 
-| Fact                             | Value / Evidence                                                                                                                                                                                                      |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nxCloudId` set                  | `68ee91eecec0875b0f57a8d2` (in `nx.json`)                                                                                                                                                                             |
-| Workspace claimed?               | **No.** Nx returns `401`: _"This workspace is more than three days old and is not connected. Workspaces must be connected within 3 days of creation. Claim your workspace at https://cloud.nx.app."_                  |
-| `NX_CLOUD_ACCESS_TOKEN` present? | **No** — not in the environment, not in `.env`.                                                                                                                                                                       |
-| Local cache working?             | **Yes** — `ci:verify` restored 8/12 tasks from the local cache on a warm tree; an isolated `stylelint` run restored 1/1.                                                                                              |
-| Remote cache hits demonstrable?  | **Not in this environment.** Requires the owner to claim the workspace and set a token (see below). This is the one acceptance-criterion of #406 that cannot be satisfied without owner-only Nx Cloud account access. |
+| Fact                             | Value / Evidence                                                                                                                                                                            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nxCloudId` set                  | `6a17a0e34cc7a0ffaeec195e` (in `nx.json`, set by the workspace-claim PR #421)                                                                                                               |
+| Workspace claimed?               | **Yes** — connected via Nx Cloud; the previous `68ee…` workspace had expired (`401`) and was replaced.                                                                                      |
+| `NX_CLOUD_ACCESS_TOKEN` present? | **Yes** — a GitHub Actions repository secret (consumed by `.github/workflows/ci.yml`) and a local `.env` entry for dev/agent runs.                                                          |
+| CI reads/writes the remote cache | **Yes** — `--skip-nx-cache` removed from the six cacheable jobs (`test`, `typecheck`, `lint`, `stylelint`, `build`, `storybook`); token inherited via a top-level `env:`. `e2e` stays cold. |
+| Local cache working?             | **Yes** — `ci:verify` restores tasks from the local cache on a warm tree; the cold `npm run ci` deliberately bypasses both caches.                                                          |
 
-Because `--skip-nx-cache` is passed on every `nx` invocation in `.github/workflows/ci.yml` (and on the cold `npm run ci`), the cache — local **and** remote — is currently bypassed in CI regardless. #404 already removed `--skip-nx-cache` from the local `ci:verify` path; the CI edits below complete the picture once the workspace is claimed.
+The local `ci:verify` path (#404) and the CI cacheable jobs no longer pass `--skip-nx-cache`, so both consult the Nx Cloud remote cache. The cold `npm run ci` and the CI `e2e` job intentionally keep `--skip-nx-cache`.
 
 ---
 
-## Enablement runbook (owner actions)
+## Enablement runbook (owner actions) — **completed**
 
-### 1. Claim the Nx Cloud workspace
+> This runbook records how remote caching was turned on (PR #421 claimed the workspace; the CI edits landed here). It is retained as the reproduction/recovery procedure if the workspace ever needs re-claiming or a fork needs to wire its own.
+
+### 1. Claim the Nx Cloud workspace — done (`nxCloudId` `6a17a0e34cc7a0ffaeec195e`)
 
 Open the connect-workspace guide (generated from the current `nxCloudId`):
 
 ```
-https://nx.app/setup/connect-workspace/guide?nxCloudId=68ee91eecec0875b0f57a8d2&vcsProvider=github
+https://nx.app/setup/connect-workspace/guide?nxCloudId=6a17a0e34cc7a0ffaeec195e&vcsProvider=github
 ```
 
-Sign in with the GitHub account that owns `ResetShop/angular-nx-standalone-starter` and follow the prompts to connect the repository. If the workspace has fully expired, create a fresh one with `npx nx connect` — Nx prints the new workspace ID at the end of that flow; copy it and update `nxCloudId` in `nx.json` **manually** (the connect flow does not reliably patch the file across Nx versions).
+Sign in with the GitHub account that owns `ResetShop/angular-nx-standalone-starter` and follow the prompts to connect the repository. If the workspace ever expires, create a fresh one with `npx nx connect` — Nx prints the new workspace ID at the end of that flow; copy it and update `nxCloudId` in `nx.json` **manually** (the connect flow does not reliably patch the file across Nx versions).
 
 ### 2. Provision an access token
 
@@ -57,9 +59,9 @@ Remote caching requires outbound HTTPS to Nx Cloud. Allow egress to:
 
 In sandboxed/web environments with a restrictive egress policy, these must be explicitly permitted or every cache read/write will time out and fall back to local.
 
-### 4. Apply the CI workflow edits (after step 1–3)
+### 4. Apply the CI workflow edits (after step 1–3) — done
 
-Once the workspace is claimed and `NX_CLOUD_ACCESS_TOKEN` exists, update `.github/workflows/ci.yml` so CI can read/write the remote cache. **Do not apply these before claiming** — until then they only add failing cloud round-trips and "complete setup" nags.
+`.github/workflows/ci.yml` now reads/writes the remote cache. These edits were applied **after** the workspace was claimed and the token provisioned (applying them earlier would only add failing cloud round-trips and "complete setup" nags). For the record, the edits were:
 
 Add the token at the top level so every job inherits it:
 
@@ -108,5 +110,6 @@ A concrete `nx affected` adoption (changing the `run-many` jobs to `affected -t 
 ## Verification status (issue #406 acceptance criteria)
 
 - [x] **Token + network-policy setup documented** — this file.
-- [x] **`--skip-nx-cache` masking identified** — present on every CI job and the cold `npm run ci`; the post-claim edits and #404's `ci:verify` remove it from the cacheable paths.
-- [ ] **Remote cache hits demonstrably restore tasks across a fresh container/session** — **blocked**: the Nx Cloud workspace is unclaimed (`401`) and no token exists in any reachable environment. Live verification was attempted and the blocker is documented above with evidence. This box can be checked once steps 1–3 are completed by the repo owner.
+- [x] **`--skip-nx-cache` masking removed from the cacheable paths** — gone from #404's `ci:verify` and from the six cacheable CI jobs; the cold `npm run ci` and the CI `e2e` job keep it by design.
+- [x] **Remote caching activated** — workspace claimed (PR #421), `NX_CLOUD_ACCESS_TOKEN` provisioned (GitHub Actions secret + local `.env`), CI wired.
+- [~] **Remote cache hits demonstrably restore tasks across a fresh container/session** — activation is complete; the demonstration runs on this PR's CI. The first run after activation populates the Nx Cloud cache (cold); a re-run on a fresh runner restores the cacheable tasks from it (timings drop, tasks report "from cache", Nx Cloud run links appear in the logs). The cold `npm run ci` and `e2e` stay full-cold by design.
