@@ -1,5 +1,5 @@
 import { parseDurationToMs } from '@resetshop/util'
-import { fn } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { InMemoryRefreshTokenRepository } from './refresh-token.repository.mock'
 import { TokenMaintenanceService } from './token-maintenance.service'
@@ -9,6 +9,7 @@ describe('TokenMaintenanceService', () => {
 	let service: TokenMaintenanceService
 
 	beforeEach(() => {
+		clearAllMocks()
 		mockRefreshTokenRepo = new InMemoryRefreshTokenRepository()
 		service = new TokenMaintenanceService({ refreshTokenRepository: mockRefreshTokenRepo })
 	})

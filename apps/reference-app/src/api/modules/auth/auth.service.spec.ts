@@ -1,7 +1,7 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@resetshop/util'
-import { fn } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { createHash } from 'crypto'
 import {
 	DEFAULT_ACCESS_TOKEN_EXPIRY,
@@ -63,6 +63,7 @@ describe('AuthService', () => {
 	})
 
 	beforeEach(() => {
+		clearAllMocks()
 		mockUserRepo = new InMemoryUserRepository()
 		mockAuthRepo = new InMemoryAuthenticationRepository()
 		mockRefreshTokenRepo = new InMemoryRefreshTokenRepository()

@@ -68,10 +68,11 @@ describe('AuthPasswordService', () => {
 			expect(mockAuthRepo.incrementedUsers).toHaveLength(0)
 		})
 
-		it('throws INVALID_CREDENTIALS when the auth record is missing', async () => {
+		it('throws INVALID_CREDENTIALS without incrementing when the auth record is missing', async () => {
 			await expect(service.validateCredentials(testUser, null, testPassword)).rejects.toThrow(
 				getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS),
 			)
+			expect(mockAuthRepo.incrementedUsers).toHaveLength(0)
 		})
 
 		it('throws INVALID_CREDENTIALS for a disabled user even with the correct password', async () => {
@@ -84,6 +85,21 @@ describe('AuthPasswordService', () => {
 			await expect(
 				service.validateCredentials({ ...testUser, status: UserStatus.DELETED }, buildAuthRecord(), testPassword),
 			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
+		})
+
+		it('locks the account when failed attempts reach the configured threshold', async () => {
+			// maxFailedAttempts: 1 → a single wrong password trips the lockout branch
+			const lockingAuthRepo = new InMemoryAuthenticationRepository({ maxFailedAttempts: 1 })
+			lockingAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash })
+			const lockingService = new AuthPasswordService({
+				authRepository: lockingAuthRepo,
+				verifyPassword: createPasswordVerifier(),
+			})
+
+			await expect(lockingService.validateCredentials(testUser, buildAuthRecord(), 'wrong-password')).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS),
+			)
+			expect(lockingAuthRepo.lockedUsers).toHaveLength(1)
 		})
 	})
 })
