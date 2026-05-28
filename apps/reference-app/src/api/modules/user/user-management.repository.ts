@@ -6,10 +6,7 @@ import { userProfileHistory } from '@schema/user-profile-history'
 import { userStatusHistory } from '@schema/user-status-history'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
 import { BaseRepository } from '../../helpers/base.repository'
-// REASON: `DrizzleTransaction` is an infrastructure type intentionally surfaced in the
-// repository layer so the service can compose user + auth writes in one transaction. The
-// repositories here are Drizzle-specific by definition, so abstracting it buys no decoupling.
-import type { DrizzlePgConnector, DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
+import type { DrizzleTransaction, QueryExecutor } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type {
@@ -20,9 +17,6 @@ import type {
 	UserData,
 	UserManagementRepository,
 } from './interfaces'
-
-/** A query runner that may be the pooled connection or an open transaction. */
-type QueryExecutor = DrizzlePgConnector | DrizzleTransaction
 
 // Mirrors UserWithTimestamps but kept file-local per Repository Projection Types convention.
 // Drizzle .select() returns this shape; it may diverge from the domain interface over time.
