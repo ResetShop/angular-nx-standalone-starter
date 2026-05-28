@@ -3,18 +3,24 @@ import {
 	changePasswordRequestSchema,
 	changePasswordResponseSchema,
 	cleanupTokensResponseSchema,
+	forgotPasswordRequestSchema,
+	forgotPasswordResponseSchema,
 	loginRequestSchema,
 	loginResponseSchema,
 	logoutResponseSchema,
 	meResponseSchema,
 	refreshResponseSchema,
+	resetPasswordRequestSchema,
+	resetPasswordResponseSchema,
 } from '@contracts/auth/auth.schemas'
 import { errorResponseSchema } from '@contracts/common/error.schemas'
 import { createRoute } from '@hono/zod-openapi'
 import {
 	changePasswordRateLimiter,
+	forgotPasswordRateLimiter,
 	loginRateLimiter,
 	refreshRateLimiter,
+	resetPasswordRateLimiter,
 } from '../../middlewares/rate-limit.middleware'
 import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonResponses } from '../../openapi-config'
 
@@ -104,6 +110,71 @@ export const changePasswordRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,
+	},
+})
+
+export const forgotPasswordRoute = createRoute({
+	method: 'post',
+	path: '/forgot-password',
+	tags: ['Auth'],
+	summary: 'Request a password reset',
+	description:
+		'Sends a password-reset link if an active account exists for the email. Always responds 200 with a neutral message to prevent user enumeration.',
+	security: [],
+	middleware: [forgotPasswordRateLimiter] as const,
+	request: {
+		body: {
+			content: { 'application/json': { schema: forgotPasswordRequestSchema } },
+			required: true,
+		},
+	},
+	responses: {
+		200: {
+			description: 'Request accepted (neutral response, regardless of whether the email exists)',
+			content: { 'application/json': { schema: forgotPasswordResponseSchema } },
+		},
+		400: {
+			description: 'Invalid request body',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		429: {
+			description: 'Too many requests',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+	},
+})
+
+export const resetPasswordRoute = createRoute({
+	method: 'post',
+	path: '/reset-password',
+	tags: ['Auth'],
+	summary: 'Reset password with a token',
+	description: 'Completes a self-service password reset using the single-use token from the emailed link.',
+	security: [],
+	middleware: [resetPasswordRateLimiter] as const,
+	request: {
+		body: {
+			content: { 'application/json': { schema: resetPasswordRequestSchema } },
+			required: true,
+		},
+	},
+	responses: {
+		200: {
+			description: 'Password reset successfully',
+			content: { 'application/json': { schema: resetPasswordResponseSchema } },
+		},
+		400: {
+			description: 'Invalid request body or an invalid/expired/used token',
+			content: { 'application/json': { schema: authErrorResponseSchema } },
+		},
+		429: {
+			description: 'Too many requests',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		500: {
+			description: 'Reset failed',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 	},
 })
 

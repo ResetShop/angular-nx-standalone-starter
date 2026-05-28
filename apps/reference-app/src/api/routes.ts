@@ -10,6 +10,8 @@ export const PUBLIC_AUTH_ROUTES = [
 	'/api/auth/login',
 	'/api/auth/refresh',
 	'/api/auth/logout',
+	'/api/auth/forgot-password',
+	'/api/auth/reset-password',
 	'/api/auth/cleanup-tokens',
 	'/api/health', // Health checks must be public for load balancers/monitoring
 	'/api/docs', // Swagger UI
