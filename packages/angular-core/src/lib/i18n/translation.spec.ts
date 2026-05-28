@@ -15,8 +15,16 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				SUBMIT: 'Sign in',
 			},
 			RESET_PASSWORD: { TITLE: 'Reset', EMAIL_LABEL: 'Email', SUBMIT: 'Send', BACK_TO_LOGIN: 'Back' },
+			CHANGE_PASSWORD: {
+				TITLE: 'Change',
+				DESCRIPTION: 'Set new',
+				OLD_PASSWORD_LABEL: 'Current',
+				NEW_PASSWORD_LABEL: 'New',
+				SUBMIT: 'Change',
+			},
 			ERRORS: {
 				INVALID_CREDENTIALS: 'Invalid credentials',
+				OLD_PASSWORD_MISMATCH: 'Current password is incorrect',
 				ACCOUNT_LOCKED: 'Locked',
 				ACCOUNT_DISABLED: 'Disabled',
 				ACCOUNT_DELETED: 'Deleted',
@@ -183,8 +191,16 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				SUBMIT: 'Entrar',
 			},
 			RESET_PASSWORD: { TITLE: 'Restablecer', EMAIL_LABEL: 'Correo', SUBMIT: 'Enviar', BACK_TO_LOGIN: 'Volver' },
+			CHANGE_PASSWORD: {
+				TITLE: 'Cambiar',
+				DESCRIPTION: 'Nueva contraseña',
+				OLD_PASSWORD_LABEL: 'Actual',
+				NEW_PASSWORD_LABEL: 'Nueva',
+				SUBMIT: 'Cambiar',
+			},
 			ERRORS: {
 				INVALID_CREDENTIALS: 'Credenciales inválidas',
+				OLD_PASSWORD_MISMATCH: 'Contraseña actual incorrecta',
 				ACCOUNT_LOCKED: 'Bloqueada',
 				ACCOUNT_DISABLED: 'Desactivada',
 				ACCOUNT_DELETED: 'Eliminada',
