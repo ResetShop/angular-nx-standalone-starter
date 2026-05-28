@@ -55,7 +55,13 @@ interface ResetPasswordConfirmForm {
 
 			<ng-template #cardFooter>
 				<div class="flex justify-center font-semibold">
-					<button [fullWidth]="true" [disabled]="!isFormValid() || !token()" appButton size="md" type="submit">
+					<button
+						[fullWidth]="true"
+						[disabled]="!isFormValid() || !token() || authStore.isResettingPassword()"
+						appButton
+						size="md"
+						type="submit"
+					>
 						{{ 'AUTH.RESET_PASSWORD_CONFIRM.SUBMIT' | translate }}
 					</button>
 				</div>
@@ -71,7 +77,7 @@ interface ResetPasswordConfirmForm {
 	`,
 })
 export default class ResetPasswordConfirm {
-	private readonly authStore = inject(AuthStore)
+	protected readonly authStore = inject(AuthStore)
 	private readonly router = inject(Router)
 	private readonly route = inject(ActivatedRoute)
 	private readonly translation = inject(Translation)
