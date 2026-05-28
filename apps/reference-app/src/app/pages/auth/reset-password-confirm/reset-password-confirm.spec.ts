@@ -83,4 +83,16 @@ describe('ResetPasswordConfirm', () => {
 
 		expect(await screen.findByText(/invalid or has expired/i)).toBeInTheDocument()
 	})
+
+	it('falls back to the generic error message on an uncoded server error', async () => {
+		const api = new InMemoryAuthApi()
+		api.setError('resetPassword', new HttpErrorResponse({ status: 500 }))
+		const user = userEvent.setup()
+		await renderPage('some-token', api)
+
+		await user.type(screen.getByLabelText('New password'), 'a-fresh-secure-password')
+		await user.click(screen.getByRole('button', { name: /Reset password/i }))
+
+		expect(await screen.findByText(/login error/i)).toBeInTheDocument()
+	})
 })

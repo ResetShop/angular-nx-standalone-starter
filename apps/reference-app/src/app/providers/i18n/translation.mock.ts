@@ -53,6 +53,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'AUTH.CHANGE_PASSWORD.SUBMIT': 'Change password',
 	'AUTH.ERRORS.OLD_PASSWORD_MISMATCH': 'Your current password is incorrect',
 	'AUTH.ERRORS.RESET_TOKEN_INVALID': 'This reset link is invalid or has expired. Please request a new one.',
+	'AUTH.ERRORS.GENERIC': 'Login error. Please try again.',
 
 	// Common
 	'COMMON.LOADING': 'Loading...',
