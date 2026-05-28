@@ -3,7 +3,7 @@ import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@resetshop/util'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { createHash } from 'crypto'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import type { SendEmailParams } from '../../services/email/interfaces'
 import { createPasswordHasher, createPasswordVerifier } from '../../services/password/password-hasher'
 import type { UserData } from '../user/interfaces'
@@ -48,13 +48,6 @@ describe('PasswordResetService', () => {
 			emailService: { send: emailSend },
 			hashPassword: createPasswordHasher(),
 		})
-	})
-
-	afterEach(() => {
-		userRepo.clear()
-		authRepo.clear()
-		resetTokenRepo.clear()
-		refreshTokenRepo.clear()
 	})
 
 	describe('requestPasswordReset', () => {
