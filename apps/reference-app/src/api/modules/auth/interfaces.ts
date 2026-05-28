@@ -163,12 +163,25 @@ export interface RefreshResult {
 }
 
 /**
- * Service interface for authentication operations: login, logout, and token refresh.
+ * Parameters for changing an authenticated user's password.
+ * `currentRefreshToken` (from the caller's cookie) is preserved when revoking the user's other
+ * sessions, so the in-flight session survives the change; omit it to revoke every session.
+ */
+export interface ChangePasswordParams {
+	userId: number
+	oldPassword: string
+	newPassword: string
+	currentRefreshToken?: string
+}
+
+/**
+ * Service interface for authentication operations: login, logout, token refresh, and password change.
  */
 export interface AuthService {
 	authenticate(credentials: AuthCredentials): Promise<AuthResult>
 	refreshToken(token: string): Promise<RefreshResult>
 	logout(userId: number): Promise<void>
+	changePassword(params: ChangePasswordParams): Promise<void>
 }
 
 /**
@@ -189,6 +202,14 @@ export interface AuthPasswordService {
 		authRecord: AuthenticationData | null,
 		password: string,
 	): Promise<{ user: UserData; authRecord: AuthenticationData }>
+
+	/**
+	 * Changes an authenticated user's password: verifies the current password, hashes the new one,
+	 * and persists it while clearing the must-change-password flag. Accepts an optional `tx` so the
+	 * caller can compose the write with session revocation in a single transaction.
+	 * @throws AuthError OLD_PASSWORD_MISMATCH when the current password is incorrect
+	 */
+	changePassword(userId: number, oldPassword: string, newPassword: string, tx?: DrizzleTransaction): Promise<void>
 }
 
 /**

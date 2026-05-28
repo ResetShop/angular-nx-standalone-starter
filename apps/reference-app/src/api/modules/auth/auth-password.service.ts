@@ -1,6 +1,7 @@
 import { AuthError, getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { logger } from '@resetshop/util'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import { type UserData } from '../user/interfaces'
 import {
 	type AuthenticationData,
@@ -83,6 +84,35 @@ export class AuthPasswordService implements IAuthPasswordService {
 		}
 
 		return { user, authRecord }
+	}
+
+	/**
+	 * Changes an authenticated user's password. Verifies the current password against the stored
+	 * hash, then writes the new hash and clears the must-change-password flag. The optional `tx`
+	 * lets the caller (AuthService) compose this write with session revocation atomically — a
+	 * failed verification throws before any write, so the transaction rolls back untouched.
+	 *
+	 * @throws AuthError OLD_PASSWORD_MISMATCH when the current password does not match
+	 * @throws AuthError AUTH_RECORD_NOT_FOUND when the user has no authentication record
+	 */
+	public async changePassword(
+		userId: number,
+		oldPassword: string,
+		newPassword: string,
+		tx?: DrizzleTransaction,
+	): Promise<void> {
+		const authRecord = await this.authRepository.findByUserId(userId)
+		if (!authRecord) {
+			throw new AuthError(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND)
+		}
+
+		const oldPasswordMatches = await this.verifyPassword(oldPassword, authRecord.passwordHash)
+		if (!oldPasswordMatches) {
+			throw new AuthError(InternalAuthErrorCode.OLD_PASSWORD_MISMATCH)
+		}
+
+		const newPasswordHash = await this.hashPassword(newPassword)
+		await this.authRepository.setPassword(userId, newPasswordHash, false, tx)
 	}
 
 	/**

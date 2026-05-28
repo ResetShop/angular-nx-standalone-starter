@@ -406,6 +406,56 @@ describe('AuthService', () => {
 		})
 	})
 
+	describe('changePassword', () => {
+		const currentRefreshToken = 'current-session-refresh-token'
+
+		beforeEach(() => {
+			mockUserRepo.addUser(testUser)
+			mockAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash, mustChangePassword: true })
+		})
+
+		it('writes the new password (clearing must-change) and revokes every session except the current one', async () => {
+			await authService.changePassword({
+				userId: testUser.id,
+				oldPassword: testPassword,
+				newPassword: 'a-brand-new-password',
+				currentRefreshToken,
+			})
+
+			expect(mockAuthRepo.setPasswordCalls).toHaveLength(1)
+			expect(mockAuthRepo.setPasswordCalls[0].mustChangePassword).toBe(false)
+
+			const expectedExceptHash = createHash('sha256').update(currentRefreshToken).digest('hex')
+			expect(mockRefreshTokenRepo.revokedUserExceptCalls).toEqual([
+				{ userId: testUser.id, exceptTokenHash: expectedExceptHash },
+			])
+		})
+
+		it('does not change the password or revoke sessions when the current password is wrong', async () => {
+			await expect(
+				authService.changePassword({
+					userId: testUser.id,
+					oldPassword: 'wrong-current-password',
+					newPassword: 'a-brand-new-password',
+					currentRefreshToken,
+				}),
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.OLD_PASSWORD_MISMATCH))
+
+			expect(mockAuthRepo.setPasswordCalls).toHaveLength(0)
+			expect(mockRefreshTokenRepo.revokedUserExceptCalls).toHaveLength(0)
+		})
+
+		it('revokes all sessions when no current refresh token is supplied', async () => {
+			await authService.changePassword({
+				userId: testUser.id,
+				oldPassword: testPassword,
+				newPassword: 'a-brand-new-password',
+			})
+
+			expect(mockRefreshTokenRepo.revokedUserExceptCalls).toEqual([{ userId: testUser.id, exceptTokenHash: '' }])
+		})
+	})
+
 	describe('refreshToken', () => {
 		const existingRefreshToken = 'existing-refresh-token'
 		const tokenFamily = 'test-token-family'

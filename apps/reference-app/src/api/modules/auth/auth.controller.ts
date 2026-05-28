@@ -6,7 +6,14 @@ import {
 	PublicAuthErrorCode,
 	toLoginErrorResponse,
 } from '@contracts/auth/auth.errors'
-import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type {
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	LoginRequest,
+	LoginResponse,
+	MeResponse,
+	RefreshResponse,
+} from '@contracts/auth/auth.types'
 import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
 import { logger, parseDurationToSeconds } from '@resetshop/util'
 import { timingSafeEqual } from 'crypto'
@@ -19,7 +26,7 @@ import {
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { buildBaseCookieOptions } from './auth.config'
-import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
+import { changePasswordRoute, cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
 
 const app = createOpenAPIApp()
 
@@ -123,6 +130,39 @@ registerRoute(app, refreshRoute, async (c) => {
 
 		// Unknown error (e.g., PASETO verification failure)
 		return c.json<AuthErrorResponse>({ code: PublicAuthErrorCode.TOKEN_INVALID, message: 'Token refresh failed' }, 401)
+	}
+})
+
+// POST /api/auth/change-password - Change the authenticated user's password
+// Requires the current password; clears must-change-password and revokes the user's other sessions.
+// The current session's tokens are preserved (the refresh-token cookie is excluded from revocation).
+registerRoute(app, changePasswordRoute, async (c) => {
+	const { authService } = container.cradle
+	const user = (c as AuthenticatedContext).user
+
+	if (!user) {
+		return c.json<AuthErrorResponse>({ code: PublicAuthErrorCode.TOKEN_INVALID, message: 'Unauthorized' }, 401)
+	}
+
+	const { oldPassword, newPassword }: ChangePasswordRequest = c.req.valid('json')
+
+	try {
+		await authService.changePassword({
+			userId: Number(user.sub),
+			oldPassword,
+			newPassword,
+			currentRefreshToken: getCookie(c, REFRESH_TOKEN_COOKIE_NAME),
+		})
+
+		return c.json<ChangePasswordResponse>({ message: 'Password changed successfully' }, 200)
+	} catch (error) {
+		// Safe to surface — the caller is already authenticated, so this leaks nothing about other accounts.
+		if (isAuthError(error) && error.publicCode === PublicAuthErrorCode.OLD_PASSWORD_MISMATCH) {
+			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 400)
+		}
+
+		logger.error('ChangePassword', 'Password change failed', error)
+		return c.json<AuthErrorResponse>({ code: PublicAuthErrorCode.GENERIC, message: 'Failed to change password' }, 500)
 	}
 })
 

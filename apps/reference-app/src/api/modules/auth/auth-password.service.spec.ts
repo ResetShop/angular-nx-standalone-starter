@@ -128,4 +128,36 @@ describe('AuthPasswordService', () => {
 			expect(lockingAuthRepo.lockedUsers).toHaveLength(1)
 		})
 	})
+
+	describe('changePassword', () => {
+		it('hashes and stores the new password and clears the must-change flag', async () => {
+			mockAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash, mustChangePassword: true })
+			const newPassword = 'a-brand-new-password'
+
+			await service.changePassword(testUser.id, testPassword, newPassword)
+
+			expect(mockAuthRepo.setPasswordCalls).toHaveLength(1)
+			const [call] = mockAuthRepo.setPasswordCalls
+			expect(call.userId).toBe(testUser.id)
+			expect(call.mustChangePassword).toBe(false)
+			// The stored hash must verify against the NEW password — proof it was hashed, not stored raw.
+			await expect(createPasswordVerifier()(newPassword, call.passwordHash)).resolves.toBe(true)
+		})
+
+		it('throws OLD_PASSWORD_MISMATCH and does not write when the current password is wrong', async () => {
+			mockAuthRepo.addAuthRecord(testUser.id, { passwordHash: testPasswordHash })
+
+			await expect(
+				service.changePassword(testUser.id, 'wrong-current-password', 'a-brand-new-password'),
+			).rejects.toThrow(getInternalErrorMessage(InternalAuthErrorCode.OLD_PASSWORD_MISMATCH))
+			expect(mockAuthRepo.setPasswordCalls).toHaveLength(0)
+		})
+
+		it('throws AUTH_RECORD_NOT_FOUND when the user has no authentication record', async () => {
+			await expect(service.changePassword(999, testPassword, 'a-brand-new-password')).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND),
+			)
+			expect(mockAuthRepo.setPasswordCalls).toHaveLength(0)
+		})
+	})
 })

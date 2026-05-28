@@ -12,6 +12,7 @@ import {
 	type AuthService as AuthServiceInterface,
 	type AuthenticationData,
 	type AuthenticationRepository,
+	type ChangePasswordParams,
 	type RefreshResult,
 	type RefreshTokenRepository,
 } from './interfaces'
@@ -275,5 +276,30 @@ export class AuthService implements AuthServiceInterface {
 
 		// Delete all expired tokens for this user
 		await this.refreshTokenRepository.deleteExpiredTokensForUser(userId)
+	}
+
+	/**
+	 * Changes an authenticated user's password and revokes their other sessions.
+	 * Delegates password verification + the write to AuthPasswordService, then revokes every
+	 * refresh token except the caller's current one — all inside a single transaction, so a failed
+	 * password check leaves both the password and the existing sessions untouched.
+	 *
+	 * @param params - userId, current + new passwords, and the caller's current refresh token
+	 * @throws AuthError OLD_PASSWORD_MISMATCH when the current password is incorrect
+	 */
+	public async changePassword({
+		userId,
+		oldPassword,
+		newPassword,
+		currentRefreshToken,
+	}: ChangePasswordParams): Promise<void> {
+		// Hash the cookie the same way stored tokens are (sha256 hex) so the caller's live session is
+		// the one preserved; an absent cookie yields a hash matching nothing, revoking every session.
+		const exceptTokenHash = currentRefreshToken ? createHash('sha256').update(currentRefreshToken).digest('hex') : ''
+
+		await this.refreshTokenRepository.runInTransaction(async (tx) => {
+			await this.authPasswordService.changePassword(userId, oldPassword, newPassword, tx)
+			await this.refreshTokenRepository.revokeAllForUserExcept(userId, exceptTokenHash, tx)
+		})
 	}
 }
