@@ -53,3 +53,15 @@ export const REFRESH_RATE_LIMIT_WINDOW = '1m'
 
 /** Maximum refresh attempts per window. */
 export const REFRESH_RATE_LIMIT_MAX = 10
+
+/**
+ * Default rate-limit window for the change-password endpoint (duration string).
+ * Overridable via `AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW`; resolved with `parseDurationToMs()`.
+ */
+export const DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW = '15m'
+
+/**
+ * Default maximum change-password attempts per window.
+ * Overridable via `AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX`.
+ */
+export const DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX = 5

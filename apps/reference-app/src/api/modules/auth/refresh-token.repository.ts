@@ -2,9 +2,10 @@ import { isServerless } from '@resetshop/hono-core'
 import { parseDurationToMs } from '@resetshop/util'
 import { refreshToken } from '@schema/refresh-token'
 import { user } from '@schema/user'
-import { and, eq, inArray, lt, sql } from 'drizzle-orm'
+import { and, eq, inArray, lt, ne, sql } from 'drizzle-orm'
 import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
 import { BaseRepository } from '../../helpers/base.repository'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
@@ -161,11 +162,15 @@ export class DrizzleRefreshTokenRepository extends BaseRepository implements Ref
 	}
 
 	/**
-	 * Create a new refresh token
+	 * Create a new refresh token.
+	 * Accepts an optional `tx` so the caller can compose the insert into a transaction
+	 * (e.g. password change rotates the token alongside the password write atomically).
 	 * @param params Parameters for the new token. See the CreateRefreshTokenParams interface for details.
+	 * @param tx Optional transaction handle; falls back to the pooled connection.
 	 */
-	public async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {
-		const result = await this.db
+	public async create(params: CreateRefreshTokenParams, tx?: DrizzleTransaction): Promise<RefreshTokenData> {
+		const executor = tx ?? this.db
+		const result = await executor
 			.insert(refreshToken)
 			.values({
 				userId: params.userId,
@@ -204,6 +209,25 @@ export class DrizzleRefreshTokenRepository extends BaseRepository implements Ref
 				revokedAt: new Date(),
 			})
 			.where(eq(refreshToken.userId, userId))
+	}
+
+	/**
+	 * Revoke every refresh token for a user EXCEPT the one whose hash is `exceptTokenHash`.
+	 * Used by the change-password flow to invalidate other sessions while keeping the current
+	 * one alive (the current token is rotated separately within the same transaction).
+	 * @param userId User ID whose other tokens should be revoked
+	 * @param exceptTokenHash Hash of the token to preserve (the caller's current session)
+	 * @param tx Optional transaction handle; falls back to the pooled connection.
+	 */
+	public async revokeAllForUserExcept(userId: number, exceptTokenHash: string, tx?: DrizzleTransaction): Promise<void> {
+		const executor = tx ?? this.db
+		await executor
+			.update(refreshToken)
+			.set({
+				isRevoked: true,
+				revokedAt: new Date(),
+			})
+			.where(and(eq(refreshToken.userId, userId), ne(refreshToken.tokenHash, exceptTokenHash)))
 	}
 
 	/**

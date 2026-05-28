@@ -11,6 +11,13 @@ export interface TranslationSchema {
 			FORGOT_PASSWORD: string
 			SUBMIT: string
 		}
+		CHANGE_PASSWORD: {
+			TITLE: string
+			DESCRIPTION: string
+			OLD_PASSWORD_LABEL: string
+			NEW_PASSWORD_LABEL: string
+			SUBMIT: string
+		}
 		RESET_PASSWORD: {
 			TITLE: string
 			EMAIL_LABEL: string
@@ -19,6 +26,7 @@ export interface TranslationSchema {
 		}
 		ERRORS: {
 			INVALID_CREDENTIALS: string
+			OLD_PASSWORD_MISMATCH: string
 			ACCOUNT_LOCKED: string
 			ACCOUNT_DISABLED: string
 			ACCOUNT_DELETED: string

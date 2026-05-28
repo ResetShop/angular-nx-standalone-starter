@@ -1,21 +1,19 @@
+import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
-import type { LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type { RefreshResponse } from '@contracts/auth/auth.types'
 import type { IPermission } from '@domain/access/permission.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { createMockLoginResponse, createMockMeResponse } from '@providers/auth/auth.mock'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
-import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs'
+import { firstValueFrom, NEVER, of, throwError } from 'rxjs'
 import { AuthStore } from './auth.store'
 
 describe('AuthStore', () => {
 	let store: InstanceType<typeof AuthStore>
-	let authApiMock: {
-		login: MockFn<[{ email: string; password: string }], Observable<LoginResponse>>
-		logout: MockFn<[], Observable<void>>
-		refreshToken: MockFn<[], Observable<RefreshResponse>>
-		getMe: MockFn<[], Observable<MeResponse>>
-	}
+	// Record<keyof AuthApi, MockFn> keeps the mock structurally in sync with the AuthApi interface —
+	// adding a method to AuthApi forces a corresponding mock key here.
+	let authApiMock: Record<keyof AuthApi, MockFn>
 
 	const mockLoginResponse = createMockLoginResponse()
 	const mockMeResponse = createMockMeResponse()
@@ -28,6 +26,7 @@ describe('AuthStore', () => {
 			logout: fn(),
 			refreshToken: fn(),
 			getMe: fn(),
+			changePassword: fn(),
 		}
 
 		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')))
@@ -206,6 +205,39 @@ describe('AuthStore', () => {
 		})
 	})
 
+	describe('changePassword', () => {
+		it('clears mustChangePassword and the error on success', () => {
+			authApiMock.login.mockReturnValue(of({ ...mockLoginResponse, mustChangePassword: true }))
+			store.login({ email: 'test@example.com', password: 'password' })
+			expect(store.mustChangePassword()).toBe(true)
+
+			authApiMock.changePassword.mockReturnValue(of({ message: 'Password changed successfully' }))
+
+			store.changePassword({ oldPassword: 'old-password', newPassword: 'a-fresh-secure-password' })
+
+			expect(store.mustChangePassword()).toBe(false)
+			expect(store.isChangingPassword()).toBe(false)
+			expect(store.changePasswordError()).toBeNull()
+		})
+
+		it('sets changePasswordError on failure without clearing mustChangePassword', () => {
+			authApiMock.login.mockReturnValue(of({ ...mockLoginResponse, mustChangePassword: true }))
+			store.login({ email: 'test@example.com', password: 'password' })
+
+			authApiMock.changePassword.mockReturnValue(
+				throwError(
+					() => new HttpErrorResponse({ status: 400, error: { code: 'OLD_PASSWORD_MISMATCH', message: 'wrong' } }),
+				),
+			)
+
+			store.changePassword({ oldPassword: 'wrong', newPassword: 'a-fresh-secure-password' })
+
+			expect(store.changePasswordError()?.code).toBe('OLD_PASSWORD_MISMATCH')
+			expect(store.isChangingPassword()).toBe(false)
+			expect(store.mustChangePassword()).toBe(true)
+		})
+	})
+
 	describe('validateSession', () => {
 		it('should call getMe and update currentUser on success', async () => {
 			authApiMock.getMe.mockReturnValue(of(mockMeResponse))
@@ -221,6 +253,14 @@ describe('AuthStore', () => {
 			authApiMock.getMe.mockReturnValue(throwError(() => testError))
 
 			await expect(firstValueFrom(store.validateSession())).rejects.toBe(testError)
+		})
+
+		it('should re-derive mustChangePassword from the me response (survives reload)', async () => {
+			authApiMock.getMe.mockReturnValue(of(createMockMeResponse({ mustChangePassword: true })))
+
+			await firstValueFrom(store.validateSession())
+
+			expect(store.mustChangePassword()).toBe(true)
 		})
 	})
 

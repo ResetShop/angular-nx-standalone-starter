@@ -38,6 +38,12 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'AUTH.RESET_PASSWORD.EMAIL_LABEL': 'Email address',
 	'AUTH.RESET_PASSWORD.SUBMIT': 'Send reset link',
 	'AUTH.RESET_PASSWORD.BACK_TO_LOGIN': 'Back to sign in',
+	'AUTH.CHANGE_PASSWORD.TITLE': 'Change your password',
+	'AUTH.CHANGE_PASSWORD.DESCRIPTION': 'For your security, set a new password before continuing.',
+	'AUTH.CHANGE_PASSWORD.OLD_PASSWORD_LABEL': 'Current password',
+	'AUTH.CHANGE_PASSWORD.NEW_PASSWORD_LABEL': 'New password',
+	'AUTH.CHANGE_PASSWORD.SUBMIT': 'Change password',
+	'AUTH.ERRORS.OLD_PASSWORD_MISMATCH': 'Your current password is incorrect',
 
 	// Landing
 	'LANDING.PAGE_TITLE': 'Welcome',

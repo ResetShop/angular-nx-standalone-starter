@@ -1,6 +1,7 @@
 import type { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@resetshop/util'
 import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import {
 	type CleanupResult,
 	type CreateRefreshTokenParams,
@@ -26,6 +27,7 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 	// Track method calls for assertions
 	public readonly revokedTokenIds: number[] = []
 	public readonly revokedUserIds: number[] = []
+	public readonly revokedUserExceptCalls: Array<{ userId: number; exceptTokenHash: string }> = []
 	public readonly deletedExpiredForUsers: number[] = []
 	public readonly revokedTokenFamilies: string[] = []
 	public readonly createdTokens: RefreshTokenData[] = []
@@ -79,6 +81,7 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 		this.users.clear()
 		this.revokedTokenIds.length = 0
 		this.revokedUserIds.length = 0
+		this.revokedUserExceptCalls.length = 0
 		this.deletedExpiredForUsers.length = 0
 		this.revokedTokenFamilies.length = 0
 		this.createdTokens.length = 0
@@ -96,6 +99,7 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 		return { token, user: userData }
 	}
 
+	// The interface's optional `tx` is omitted here (fewer params is assignable) — standard in-memory double.
 	public async create(params: CreateRefreshTokenParams): Promise<RefreshTokenData> {
 		const token = this.addToken(params.tokenHash, {
 			userId: params.userId,
@@ -104,6 +108,21 @@ export class InMemoryRefreshTokenRepository implements RefreshTokenRepository {
 		})
 		this.createdTokens.push(token)
 		return token
+	}
+
+	public async revokeAllForUserExcept(userId: number, exceptTokenHash: string): Promise<void> {
+		this.revokedUserExceptCalls.push({ userId, exceptTokenHash })
+		for (const token of this.tokens.values()) {
+			if (token.userId === userId && token.tokenHash !== exceptTokenHash) {
+				token.isRevoked = true
+				token.revokedAt = new Date()
+			}
+		}
+	}
+
+	// Executes the callback inline with a stub tx — the mocked writes ignore it.
+	public async runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T> {
+		return fn(undefined as unknown as DrizzleTransaction)
 	}
 
 	public async revokeToken(tokenId: number): Promise<void> {

@@ -1,5 +1,12 @@
 import { makeEnvironmentProviders } from '@angular/core'
-import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type {
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	LoginRequest,
+	LoginResponse,
+	MeResponse,
+	RefreshResponse,
+} from '@contracts/auth/auth.types'
 import type { Observable } from 'rxjs'
 import { of, throwError } from 'rxjs'
 import type { AuthApi } from './auth.interface'
@@ -26,6 +33,7 @@ export function createMockMeResponse(overrides: Partial<MeResponse> = {}): MeRes
 		firstName: 'Test',
 		lastName: 'User',
 		roles: [],
+		mustChangePassword: false,
 		...overrides,
 	}
 }
@@ -102,6 +110,16 @@ export class InMemoryAuthApi implements AuthApi {
 		}
 
 		return throwError(() => new Error('No session'))
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	public changePassword(_params: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+		const error = this.errors.get('changePassword')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({ message: 'Password changed successfully' })
 	}
 }
 

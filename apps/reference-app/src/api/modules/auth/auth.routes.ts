@@ -1,5 +1,7 @@
 import {
 	authErrorResponseSchema,
+	changePasswordRequestSchema,
+	changePasswordResponseSchema,
 	cleanupTokensResponseSchema,
 	loginRequestSchema,
 	loginResponseSchema,
@@ -9,7 +11,11 @@ import {
 } from '@contracts/auth/auth.schemas'
 import { errorResponseSchema } from '@contracts/common/error.schemas'
 import { createRoute } from '@hono/zod-openapi'
-import { loginRateLimiter, refreshRateLimiter } from '../../middlewares/rate-limit.middleware'
+import {
+	changePasswordRateLimiter,
+	loginRateLimiter,
+	refreshRateLimiter,
+} from '../../middlewares/rate-limit.middleware'
 import { CRON_SECRET_SCHEME, PASETO_COOKIE_SCHEME, commonResponses } from '../../openapi-config'
 
 export const loginRoute = createRoute({
@@ -67,6 +73,37 @@ export const refreshRoute = createRoute({
 			description: 'Too many requests',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
+	},
+})
+
+export const changePasswordRoute = createRoute({
+	method: 'post',
+	path: '/change-password',
+	tags: ['Auth'],
+	summary: 'Change password',
+	description:
+		'Changes the password of the authenticated user. Requires the current password, clears the must-change-password flag, and revokes the other sessions.',
+	middleware: [changePasswordRateLimiter] as const,
+	request: {
+		body: {
+			content: { 'application/json': { schema: changePasswordRequestSchema } },
+			required: true,
+		},
+	},
+	responses: {
+		200: {
+			description: 'Password changed successfully',
+			content: { 'application/json': { schema: changePasswordResponseSchema } },
+		},
+		400: {
+			description: 'Invalid request body or incorrect current password',
+			content: { 'application/json': { schema: authErrorResponseSchema } },
+		},
+		429: {
+			description: 'Too many requests',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
+		...commonResponses,
 	},
 })
 

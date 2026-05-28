@@ -1,6 +1,7 @@
 import { AuthError, getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { logger } from '@resetshop/util'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import { type UserData } from '../user/interfaces'
 import {
 	type AuthenticationData,
@@ -11,6 +12,7 @@ import {
 interface AuthPasswordServiceDeps {
 	authRepository: AuthenticationRepository
 	verifyPassword: (plain: string, hash: string) => Promise<boolean>
+	hashPassword: (plain: string) => Promise<string>
 }
 
 /**
@@ -23,10 +25,30 @@ interface AuthPasswordServiceDeps {
 export class AuthPasswordService implements IAuthPasswordService {
 	private readonly authRepository: AuthenticationRepository
 	private readonly verifyPassword: (plain: string, hash: string) => Promise<boolean>
+	private readonly hashPassword: (plain: string) => Promise<string>
 
-	constructor({ authRepository, verifyPassword }: AuthPasswordServiceDeps) {
+	/** Memoized real bcrypt hash used to equalize timing for unknown accounts (see validateCredentials). */
+	private dummyHashPromise: Promise<string> | undefined
+
+	constructor({ authRepository, verifyPassword, hashPassword }: AuthPasswordServiceDeps) {
 		this.authRepository = authRepository
 		this.verifyPassword = verifyPassword
+		this.hashPassword = hashPassword
+	}
+
+	/**
+	 * Lazily produces — and caches — a genuine bcrypt hash of a throwaway value, hashed through
+	 * the same `hashPassword` factory as real credentials so its bcrypt cost matches production
+	 * (and the integration BCRYPT_COST override). The result is never compared for equality; only
+	 * the cost of running `verifyPassword` against a *valid* hash matters. Computed at most once.
+	 *
+	 * This replaces a hand-written, malformed hash literal: a malformed hash lets bcryptjs
+	 * short-circuit instead of running the key-derivation, silently reopening the timing oracle.
+	 */
+	private getDummyHash(): Promise<string> {
+		// A value that is never a usable credential; only the bcrypt CPU cost is significant.
+		const timingSafetySentinel = 'unmatchable-dummy-password-for-timing-safety'
+		return (this.dummyHashPromise ??= this.hashPassword(timingSafetySentinel))
 	}
 
 	/**
@@ -34,10 +56,11 @@ export class AuthPasswordService implements IAuthPasswordService {
 	 *
 	 * SECURITY: Accepts nullable parameters to maintain timing-safety. Even when user
 	 * or authRecord is null (invalid email), we MUST perform the expensive bcrypt
-	 * password comparison using a dummy hash. Skipping bcrypt for invalid cases would
-	 * create a timing vulnerability: valid emails take ~200ms (DB + bcrypt), invalid
-	 * emails take ~50ms (DB only), allowing attackers to enumerate valid emails by
-	 * measuring response times. The cost is intentional and necessary for security.
+	 * password comparison against a real hash (see getDummyHash). Skipping bcrypt for
+	 * invalid cases would create a timing vulnerability: valid emails take ~200ms
+	 * (DB + bcrypt), invalid emails take ~50ms (DB only), allowing attackers to
+	 * enumerate valid emails by measuring response times. The cost is intentional and
+	 * necessary for security.
 	 *
 	 * Handles failed login tracking before throwing.
 	 *
@@ -52,8 +75,7 @@ export class AuthPasswordService implements IAuthPasswordService {
 		authRecord: AuthenticationData | null,
 		password: string,
 	): Promise<{ user: UserData; authRecord: AuthenticationData }> {
-		const dummyHash = '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy'
-		const hashToCompare = authRecord?.passwordHash ?? dummyHash
+		const hashToCompare = authRecord?.passwordHash ?? (await this.getDummyHash())
 		const passwordMatch = await this.verifyPassword(password, hashToCompare)
 
 		if (!user || !authRecord || !passwordMatch || user.status !== UserStatus.ACTIVE) {
@@ -62,6 +84,45 @@ export class AuthPasswordService implements IAuthPasswordService {
 		}
 
 		return { user, authRecord }
+	}
+
+	/**
+	 * Changes an authenticated user's password. Verifies the current password against the stored
+	 * hash, then writes the new hash and clears the must-change-password flag. The optional `tx`
+	 * lets the caller (AuthService) compose this write with session revocation atomically — a
+	 * failed verification throws before any write, so the transaction rolls back untouched.
+	 *
+	 * @throws AuthError OLD_PASSWORD_MISMATCH when the current password does not match
+	 * @throws AuthError AUTH_RECORD_NOT_FOUND when the user has no authentication record
+	 */
+	public async changePassword(
+		userId: number,
+		oldPassword: string,
+		newPassword: string,
+		tx?: DrizzleTransaction,
+	): Promise<void> {
+		const authRecord = await this.authRepository.findByUserId(userId)
+		if (!authRecord) {
+			throw new AuthError(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND)
+		}
+
+		const oldPasswordMatches = await this.verifyPassword(oldPassword, authRecord.passwordHash)
+		if (!oldPasswordMatches) {
+			throw new AuthError(InternalAuthErrorCode.OLD_PASSWORD_MISMATCH)
+		}
+
+		const newPasswordHash = await this.hashPassword(newPassword)
+		await this.authRepository.setPassword(userId, newPasswordHash, false, tx)
+	}
+
+	/**
+	 * Returns whether the user must change their password, read fresh from the auth record.
+	 * Defaults to false when no record exists — the caller is already authenticated, so a missing
+	 * record is a defensive edge rather than an expected state.
+	 */
+	public async getMustChangePassword(userId: number): Promise<boolean> {
+		const authRecord = await this.authRepository.findByUserId(userId)
+		return authRecord?.mustChangePassword ?? false
 	}
 
 	/**

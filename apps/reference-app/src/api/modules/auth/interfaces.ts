@@ -108,14 +108,24 @@ export interface CleanupResult {
 
 export interface RefreshTokenRepository {
 	findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null>
-	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>
+	create(params: CreateRefreshTokenParams, tx?: DrizzleTransaction): Promise<RefreshTokenData>
 	revokeToken(tokenId: number): Promise<void>
 	revokeAllForUser(userId: number): Promise<void>
+	/**
+	 * Revokes all of a user's refresh tokens except the one matching `exceptTokenHash`.
+	 * Accepts an optional `tx` for composition with other writes in one transaction.
+	 */
+	revokeAllForUserExcept(userId: number, exceptTokenHash: string, tx?: DrizzleTransaction): Promise<void>
 	revokeTokenFamily(tokenFamily: string): Promise<void>
 	deleteExpiredTokensForUser(userId: number): Promise<number>
 	tryAcquireCleanupLock(): Promise<boolean>
 	releaseCleanupLock(): Promise<void>
 	deleteAllExpiredTokens(): Promise<CleanupResult>
+	/**
+	 * Runs a callback inside a transaction, exposing the handle so the auth service can
+	 * compose the password write + token revocation + token rotation atomically.
+	 */
+	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
 
 // ============================================================================
@@ -153,12 +163,25 @@ export interface RefreshResult {
 }
 
 /**
- * Service interface for authentication operations: login, logout, and token refresh.
+ * Parameters for changing an authenticated user's password.
+ * `currentRefreshToken` (from the caller's cookie) is preserved when revoking the user's other
+ * sessions, so the in-flight session survives the change; omit it to revoke every session.
+ */
+export interface ChangePasswordParams {
+	userId: number
+	oldPassword: string
+	newPassword: string
+	currentRefreshToken?: string
+}
+
+/**
+ * Service interface for authentication operations: login, logout, token refresh, and password change.
  */
 export interface AuthService {
 	authenticate(credentials: AuthCredentials): Promise<AuthResult>
 	refreshToken(token: string): Promise<RefreshResult>
 	logout(userId: number): Promise<void>
+	changePassword(params: ChangePasswordParams): Promise<void>
 }
 
 /**
@@ -179,6 +202,21 @@ export interface AuthPasswordService {
 		authRecord: AuthenticationData | null,
 		password: string,
 	): Promise<{ user: UserData; authRecord: AuthenticationData }>
+
+	/**
+	 * Changes an authenticated user's password: verifies the current password, hashes the new one,
+	 * and persists it while clearing the must-change-password flag. Accepts an optional `tx` so the
+	 * caller can compose the write with session revocation in a single transaction.
+	 * @throws AuthError OLD_PASSWORD_MISMATCH when the current password is incorrect
+	 */
+	changePassword(userId: number, oldPassword: string, newPassword: string, tx?: DrizzleTransaction): Promise<void>
+
+	/**
+	 * Returns whether the user must change their password before proceeding. Read fresh from the
+	 * authentication record (the access token does not carry this flag), so `/api/auth/me` reflects
+	 * a password change immediately on the next navigation.
+	 */
+	getMustChangePassword(userId: number): Promise<boolean>
 }
 
 /**

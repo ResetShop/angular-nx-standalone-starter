@@ -87,6 +87,7 @@ describe('HttpAuthApi', () => {
 				firstName: 'Test',
 				lastName: 'User',
 				roles: [],
+				mustChangePassword: false,
 			}
 
 			service.getMe().subscribe((response) => {

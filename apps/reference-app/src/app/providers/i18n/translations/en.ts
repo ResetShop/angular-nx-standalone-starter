@@ -9,6 +9,13 @@ const en: TranslationSchema = {
 			FORGOT_PASSWORD: 'Forgot your password?',
 			SUBMIT: 'Sign in',
 		},
+		CHANGE_PASSWORD: {
+			TITLE: 'Change your password',
+			DESCRIPTION: 'For your security, set a new password before continuing.',
+			OLD_PASSWORD_LABEL: 'Current password',
+			NEW_PASSWORD_LABEL: 'New password',
+			SUBMIT: 'Change password',
+		},
 		RESET_PASSWORD: {
 			TITLE: 'Reset password',
 			EMAIL_LABEL: 'Email address',
@@ -17,6 +24,7 @@ const en: TranslationSchema = {
 		},
 		ERRORS: {
 			INVALID_CREDENTIALS: 'Email or password is incorrect',
+			OLD_PASSWORD_MISMATCH: 'Your current password is incorrect',
 			ACCOUNT_LOCKED:
 				'Your account has been temporarily locked due to multiple failed attempts. Please try again later.',
 			ACCOUNT_DISABLED: 'Your account has been disabled. Please contact support.',

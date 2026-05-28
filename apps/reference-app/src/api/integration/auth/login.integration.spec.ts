@@ -69,6 +69,27 @@ describe('POST /api/auth/login', () => {
 			const { response } = await loginAs(app, 'admin@sistema.com', 'wrongpassword')
 			expect(response.status).toBe(401)
 		})
+
+		it('returns an identical 401 body for an unknown email and a wrong password (no user enumeration)', async () => {
+			// Ensure the real account is not locked, so the wrong-password path resolves to
+			// INVALID_CREDENTIALS rather than ACCOUNT_LOCKED (which legitimately differs).
+			await resetAdminLockout(getTestDb())
+
+			const unknownEmail = await loginAs(app, 'no-such-user@test.com', 'irrelevant-password')
+			const wrongPassword = await loginAs(app, 'admin@sistema.com', 'definitely-the-wrong-password')
+
+			expect(unknownEmail.response.status).toBe(401)
+			expect(wrongPassword.response.status).toBe(401)
+
+			const unknownBody = await unknownEmail.response.json()
+			const wrongBody = await wrongPassword.response.json()
+
+			// The two failure modes must be byte-identical — a differing code or message would let an
+			// attacker enumerate which emails have accounts. This is the response-level contract that the
+			// timing-safety hash (AuthPasswordService.getDummyHash) backs up at the latency level.
+			expect(unknownBody).toEqual(wrongBody)
+			expect(JSON.stringify(wrongBody)).not.toContain('admin@sistema.com')
+		})
 	})
 
 	describe('validation errors', () => {

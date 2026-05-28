@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
+import { type AuthErrorResponse, PublicAuthErrorCode } from '@contracts/auth/auth.errors'
+import type { ChangePasswordRequest } from '@contracts/auth/auth.types'
 import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper'
 import type { IUser } from '@domain/user/user.interface'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
@@ -62,6 +64,42 @@ export const AuthStore = signalStore(
 										isLoggingIn: false,
 										loginError: isNetworkError ? null : error.error,
 										networkError: isNetworkError,
+									})
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			/**
+			 * Change the authenticated user's password.
+			 *
+			 * On success the must-change-password flag is cleared (other sessions are revoked
+			 * server-side); the change-password page reacts to `isChangingPassword` returning to
+			 * false with no `changePasswordError` and navigates onward.
+			 */
+			changePassword: rxMethod<ChangePasswordRequest>(
+				pipe(
+					tap(() => patchState(store, { isChangingPassword: true, changePasswordError: null })),
+					switchMap((body) =>
+						authApi.changePassword(body).pipe(
+							tap({
+								next: () =>
+									patchState(store, {
+										isChangingPassword: false,
+										changePasswordError: null,
+										mustChangePassword: false,
+									}),
+								error: (error: HttpErrorResponse) => {
+									loggerService.error('AuthStore', 'changePassword failed', error)
+									const errorBody = error.error as AuthErrorResponse | undefined
+									patchState(store, {
+										isChangingPassword: false,
+										changePasswordError: errorBody?.code
+											? errorBody
+											: { code: PublicAuthErrorCode.GENERIC, message: 'Failed to change password' },
 									})
 								},
 							}),
@@ -136,6 +174,9 @@ export const AuthStore = signalStore(
 			 */
 			validateSession() {
 				return authApi.getMe().pipe(
+					// Re-derive the forced-change state from the server on every navigation so it
+					// survives a page reload — the access token does not carry the flag.
+					tap((response) => patchState(store, { mustChangePassword: response.mustChangePassword })),
 					map((response) => mapMeResponseToUser(response)),
 					tap((user) => patchState(store, { currentUser: user })),
 				)
