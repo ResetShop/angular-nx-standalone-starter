@@ -25,7 +25,13 @@ const WORDLISTS: Readonly<Record<string, readonly string[]>> = Object.freeze({
 	es: parseWordlist(esWordlistRaw),
 })
 
-function getWordList(language: string): readonly string[] {
+/**
+ * Returns the (frozen) word list for a language. Exported so specs can assert invariants over the
+ * entire source list deterministically instead of sampling generated passwords (which flaked when a
+ * single hyphenated entry was drawn).
+ * @throws if the language is not allow-listed or its list is empty
+ */
+export function getWordList(language: string): readonly string[] {
 	// Allowlist check via Object.hasOwn — guards against inherited members (e.g. `language`
 	// set to '__proto__' or 'constructor') returning truthy non-array values that would
 	// pass a plain `if (!words)` check and crash later in randomInt(words.length).
