@@ -5,6 +5,12 @@ import { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
 
 export const appRoutes: Route[] = [
 	{
+		path: '',
+		title: 'LANDING.PAGE_TITLE',
+		pathMatch: 'full',
+		loadComponent: () => import('./pages/landing/landing'),
+	},
+	{
 		path: 'auth',
 		title: 'AUTH.LOGIN.TITLE',
 		canActivate: [noAuthGuard],
