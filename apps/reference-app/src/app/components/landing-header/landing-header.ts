@@ -16,12 +16,14 @@ import { AuthStore } from '@store/auth/auth.store'
 				</a>
 				<div class="flex items-center gap-2">
 					<app-theme-toggle />
+					<!-- isAuthenticated() is false during SSR (this public route runs no session validation); the dashboard link appears only after client hydration when a valid session cookie is present -->
 					@if (isAuthenticated()) {
 						<a [routerLink]="['/dashboard']" appButton variant="outline" size="sm">
 							{{ 'LANDING.GO_TO_DASHBOARD' | translate }}
 						</a>
 					}
-					<a [routerLink]="['/auth/login']" appButton variant="default" size="sm">
+					<!-- data-touch-target is on the primary Login CTA only; applying it to both adjacent links would overlap their extended hit areas across the gap-2 spacing -->
+					<a [routerLink]="['/auth/login']" appButton variant="default" size="sm" data-touch-target>
 						{{ 'LANDING.LOGIN_BUTTON' | translate }}
 					</a>
 				</div>
