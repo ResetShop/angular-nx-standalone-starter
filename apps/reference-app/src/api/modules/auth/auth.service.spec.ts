@@ -1,8 +1,7 @@
 import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@resetshop/util'
-import { fn } from '@resetshop/util/test-utils'
-import { hash } from 'bcryptjs'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { createHash } from 'crypto'
 import {
 	DEFAULT_ACCESS_TOKEN_EXPIRY,
@@ -11,9 +10,11 @@ import {
 	DEFAULT_REFRESH_TOKEN_EXPIRY,
 } from '../../constants/auth.constants'
 import { InMemoryPasetoService } from '../../services/paseto/paseto.service.mock'
+import { createPasswordHasher, createPasswordVerifier } from '../../services/password/password-hasher'
 import type { RoleWithPermissions } from '../access/role/interfaces'
 import type { UserRoleService } from '../user/interfaces'
 import { InMemoryUserRepository } from '../user/user.repository.mock'
+import { AuthPasswordService } from './auth-password.service'
 import type { AuthConfig } from './auth.config'
 import { AuthService } from './auth.service'
 import { InMemoryAuthenticationRepository } from './authentication.repository.mock'
@@ -57,11 +58,12 @@ describe('AuthService', () => {
 	}
 
 	beforeAll(async () => {
-		// Create a real bcrypt hash for testing
-		testPasswordHash = await hash(testPassword, 10)
+		// Create a real password hash for testing via the production hasher (no direct bcrypt import)
+		testPasswordHash = await createPasswordHasher()(testPassword)
 	})
 
 	beforeEach(() => {
+		clearAllMocks()
 		mockUserRepo = new InMemoryUserRepository()
 		mockAuthRepo = new InMemoryAuthenticationRepository()
 		mockRefreshTokenRepo = new InMemoryRefreshTokenRepository()
@@ -77,6 +79,10 @@ describe('AuthService', () => {
 			userRoleService: mockUserRoleService as UserRoleService,
 			pasetoService: mockPasetoService,
 			authConfig: testAuthConfig,
+			authPasswordService: new AuthPasswordService({
+				authRepository: mockAuthRepo,
+				verifyPassword: createPasswordVerifier(),
+			}),
 		})
 	})
 
@@ -373,6 +379,10 @@ describe('AuthService', () => {
 				userRoleService: mockUserRoleService as UserRoleService,
 				pasetoService: mockPasetoService,
 				authConfig: customAuthConfig,
+				authPasswordService: new AuthPasswordService({
+					authRepository: customAuthRepo,
+					verifyPassword: createPasswordVerifier(),
+				}),
 			})
 
 			// Set up user with 2 failed attempts
@@ -593,73 +603,6 @@ describe('AuthService', () => {
 			await authService.logout(testUser.id)
 
 			expect(mockRefreshTokenRepo.deletedExpiredForUsers).toContain(testUser.id)
-		})
-	})
-
-	describe('cleanupExpiredTokens', () => {
-		it('should acquire lock and delete all expired tokens', async () => {
-			const result = await authService.cleanupExpiredTokens()
-
-			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(false) // Lock released after cleanup
-			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(true)
-			expect(result).not.toBeNull()
-			expect(result?.deletedCount).toBeGreaterThanOrEqual(0)
-			expect(result?.incomplete).toBe(false)
-		})
-
-		it('should return null when lock cannot be acquired', async () => {
-			// Simulate another process holding the lock
-			mockRefreshTokenRepo.cleanupLockAcquired = true
-
-			const result = await authService.cleanupExpiredTokens()
-
-			expect(result).toBeNull()
-			expect(mockRefreshTokenRepo.deleteAllExpiredCalled).toBe(false)
-		})
-
-		it('should release lock after successful cleanup', async () => {
-			await authService.cleanupExpiredTokens()
-
-			// Lock should be released
-			expect(mockRefreshTokenRepo.cleanupLockAcquired).toBe(false)
-		})
-
-		it('should delete expired tokens and return count', async () => {
-			// Add some expired tokens
-			mockRefreshTokenRepo.addToken('expired-1', {
-				userId: 1,
-				expiresAt: new Date(Date.now() - parseDurationToMs('1d')), // 1 day ago
-			})
-			mockRefreshTokenRepo.addToken('expired-2', {
-				userId: 2,
-				expiresAt: new Date(Date.now() - parseDurationToMs('1d')), // 1 day ago
-			})
-			mockRefreshTokenRepo.addToken('valid', {
-				userId: 3,
-				expiresAt: new Date(Date.now() + parseDurationToMs('1d')), // 1 day from now
-			})
-
-			const result = await authService.cleanupExpiredTokens()
-
-			expect(result?.deletedCount).toBe(2)
-			expect(result?.incomplete).toBe(false)
-		})
-
-		it('should return cleanup result even when lock release fails', async () => {
-			// Save original and replace with a mock that rejects
-			const originalRelease = mockRefreshTokenRepo.releaseCleanupLock.bind(mockRefreshTokenRepo)
-			const releaseFn = fn<[], Promise<void>>().mockRejectedValue(new Error('Connection lost'))
-			mockRefreshTokenRepo.releaseCleanupLock = releaseFn
-
-			try {
-				const result = await authService.cleanupExpiredTokens()
-
-				expect(result).not.toBeNull()
-				expect(result?.deletedCount).toBeGreaterThanOrEqual(0)
-				expect(releaseFn.calls).toHaveLength(1)
-			} finally {
-				mockRefreshTokenRepo.releaseCleanupLock = originalRelease
-			}
 		})
 	})
 })

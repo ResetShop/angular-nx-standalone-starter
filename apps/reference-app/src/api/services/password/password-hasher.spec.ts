@@ -1,7 +1,7 @@
 import { clearAllMocks } from '@resetshop/util/test-utils'
-import { compare } from 'bcryptjs'
+import { compare, hash } from 'bcryptjs'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { createPasswordHasher } from './password-hasher'
+import { createPasswordHasher, createPasswordVerifier } from './password-hasher'
 
 describe('createPasswordHasher', () => {
 	// Captured before beforeEach mutates the env — afterEach restores it.
@@ -65,5 +65,25 @@ describe('createPasswordHasher', () => {
 		const hashed = await hashPassword('default-cost')
 
 		expect(hashed).toMatch(/^\$2[aby]\$12\$/)
+	})
+})
+
+describe('createPasswordVerifier', () => {
+	it('returns a verifier function', () => {
+		expect(typeof createPasswordVerifier()).toBe('function')
+	})
+
+	it('returns true when the plaintext matches the hash', async () => {
+		const hashed = await hash('correct.horse.battery', 1)
+		const verify = createPasswordVerifier()
+
+		expect(await verify('correct.horse.battery', hashed)).toBe(true)
+	})
+
+	it('returns false when the plaintext does not match the hash', async () => {
+		const hashed = await hash('correct.horse.battery', 1)
+		const verify = createPasswordVerifier()
+
+		expect(await verify('wrong.password', hashed)).toBe(false)
 	})
 })

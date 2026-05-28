@@ -1,21 +1,19 @@
-import { AuthError, InternalAuthErrorCode, getInternalErrorMessage } from '@contracts/auth/auth.errors'
+import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { logger, parseDurationToMs } from '@resetshop/util'
-import { compare } from 'bcryptjs'
 import { createHash, randomUUID } from 'crypto'
 import { type PasetoService } from '../../services/paseto/interfaces'
 import { type UserData, type UserRepository, type UserRoleService } from '../user/interfaces'
 import type { AuthConfig } from './auth.config'
 import {
 	type AuthCredentials,
+	type AuthPasswordService,
 	type AuthResult,
 	type AuthService as AuthServiceInterface,
 	type AuthenticationData,
 	type AuthenticationRepository,
-	type CleanupResult,
 	type RefreshResult,
 	type RefreshTokenRepository,
-	type TokenMaintenanceService,
 } from './interfaces'
 
 interface AuthServiceDeps {
@@ -25,20 +23,22 @@ interface AuthServiceDeps {
 	userRoleService: UserRoleService
 	pasetoService: PasetoService
 	authConfig: AuthConfig
+	authPasswordService: AuthPasswordService
 }
 
 /**
  * Service for user authentication and token management.
- * Handles login, logout, token refresh, and expired token cleanup.
+ * Handles login, logout, and token refresh.
  * Uses PASETO tokens for secure, stateless authentication with refresh token rotation.
  */
-export class AuthService implements AuthServiceInterface, TokenMaintenanceService {
+export class AuthService implements AuthServiceInterface {
 	private readonly userRepository: UserRepository
 	private readonly authRepository: AuthenticationRepository
 	private readonly refreshTokenRepository: RefreshTokenRepository
 	private readonly userRoleService: UserRoleService
 	private readonly pasetoService: PasetoService
 	private readonly authConfig: AuthConfig
+	private readonly authPasswordService: AuthPasswordService
 
 	constructor({
 		userRepository,
@@ -47,6 +47,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		userRoleService,
 		pasetoService,
 		authConfig,
+		authPasswordService,
 	}: AuthServiceDeps) {
 		this.userRepository = userRepository
 		this.authRepository = authRepository
@@ -54,6 +55,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		this.userRoleService = userRoleService
 		this.pasetoService = pasetoService
 		this.authConfig = authConfig
+		this.authPasswordService = authPasswordService
 	}
 
 	/**
@@ -71,7 +73,7 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		const { user, authRecord } = await this.findUserAndAuth(credentials.email)
 		this.checkAccountLockout(authRecord, user?.id)
 
-		const validated = await this.validateCredentials(user, authRecord, credentials.password)
+		const validated = await this.authPasswordService.validateCredentials(user, authRecord, credentials.password)
 		await this.handleSuccessfulLogin(validated.user, validated.authRecord)
 
 		const tokens = await this.generateTokenPair(validated.user)
@@ -126,85 +128,6 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
 			logger.security('login_blocked_account_locked', { userId, lockedUntil: authRecord.lockedUntil.toISOString() })
 			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED)
-		}
-	}
-
-	/**
-	 * Validates user credentials with timing-safe comparison.
-	 *
-	 * SECURITY: Accepts nullable parameters to maintain timing-safety. Even when user
-	 * or authRecord is null (invalid email), we MUST perform the expensive bcrypt
-	 * password comparison using a dummy hash. Skipping bcrypt for invalid cases would
-	 * create a timing vulnerability: valid emails take ~200ms (DB + bcrypt), invalid
-	 * emails take ~50ms (DB only), allowing attackers to enumerate valid emails by
-	 * measuring response times. The cost is intentional and necessary for security.
-	 *
-	 * Handles failed login tracking before throwing.
-	 *
-	 * @param user - User object or null
-	 * @param authRecord - Authentication record or null
-	 * @param password - Password to verify
-	 * @returns Validated user and auth record
-	 * @throws AuthError with INVALID_CREDENTIALS code if validation fails
-	 */
-	private async validateCredentials(
-		user: UserData | null,
-		authRecord: AuthenticationData | null,
-		password: string,
-	): Promise<{ user: UserData; authRecord: AuthenticationData }> {
-		const hashToCompare = authRecord?.passwordHash ?? '$2a$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummy'
-		const passwordMatch = await compare(password, hashToCompare)
-
-		if (!user || !authRecord || !passwordMatch || user.status !== UserStatus.ACTIVE) {
-			await this.handleFailedLogin(user, authRecord)
-			throw new AuthError(InternalAuthErrorCode.INVALID_CREDENTIALS)
-		}
-
-		return { user, authRecord }
-	}
-
-	/**
-	 * Handles failed login attempt by tracking failures and locking account if threshold reached.
-	 *
-	 * @param user - User object or null
-	 * @param authRecord - Authentication record or null
-	 */
-	private async handleFailedLogin(user: UserData | null, authRecord: AuthenticationData | null): Promise<void> {
-		if (!user || !authRecord) {
-			this.logAuthFailure(user, authRecord)
-			return
-		}
-
-		const result = await this.authRepository.incrementAndLockIfNeeded(user.id)
-
-		if (result.wasLocked && result.lockedUntil) {
-			logger.security('account_locked', {
-				userId: user.id,
-				failedAttempts: result.failedAttempts,
-				lockedUntil: result.lockedUntil.toISOString(),
-			})
-		}
-
-		this.logAuthFailure(user, authRecord)
-	}
-
-	/**
-	 * Logs authentication failure reasons for debugging.
-	 *
-	 * @param user - User object or null
-	 * @param authRecord - Authentication record or null
-	 */
-	private logAuthFailure(user: UserData | null, authRecord: AuthenticationData | null): void {
-		if (!user) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND))
-		} else if (!authRecord) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.AUTH_RECORD_NOT_FOUND))
-		} else if (user.status === UserStatus.DELETED) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DELETED))
-		} else if (user.status === UserStatus.DISABLED) {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED))
-		} else {
-			logger.error('AuthService', getInternalErrorMessage(InternalAuthErrorCode.INVALID_CREDENTIALS))
 		}
 	}
 
@@ -352,54 +275,5 @@ export class AuthService implements AuthServiceInterface, TokenMaintenanceServic
 
 		// Delete all expired tokens for this user
 		await this.refreshTokenRepository.deleteExpiredTokensForUser(userId)
-	}
-
-	/**
-	 * Deletes all expired refresh tokens from the database.
-	 * Uses PostgreSQL advisory lock to prevent concurrent executions across multiple server instances.
-	 * Called by cron jobs and the manual cleanup endpoint.
-	 *
-	 * @returns CleanupResult with deleted count and incomplete flag, or null if skipped
-	 *          due to concurrent execution or lock acquisition failure
-	 */
-	public async cleanupExpiredTokens(): Promise<CleanupResult | null> {
-		// Try to acquire database-level lock (works across multiple server instances)
-		let lockAcquired = false
-		try {
-			lockAcquired = await this.refreshTokenRepository.tryAcquireCleanupLock()
-		} catch (error) {
-			logger.error('TokenCleanup', 'Failed to acquire advisory lock', error)
-			return null
-		}
-
-		if (!lockAcquired) {
-			logger.info('TokenCleanup', 'Skipped - cleanup already in progress (another instance holds the lock)')
-			return null
-		}
-
-		try {
-			const startTime = Date.now()
-			const result = await this.refreshTokenRepository.deleteAllExpiredTokens()
-			const durationMs = Date.now() - startTime
-
-			logger.security('token_cleanup', { deletedCount: result.deletedCount, durationMs, incomplete: result.incomplete })
-			logger.info('TokenCleanup', `Deleted ${result.deletedCount} expired tokens in ${durationMs}ms`)
-			if (result.incomplete) {
-				logger.warn('TokenCleanup', 'Cleanup was incomplete - more expired tokens may remain')
-			}
-			return result
-		} finally {
-			try {
-				await this.refreshTokenRepository.releaseCleanupLock()
-			} catch (error) {
-				// PostgreSQL session advisory locks are automatically released when the
-				// database session/connection ends — the lock won't persist indefinitely.
-				logger.error(
-					'TokenCleanup',
-					'Failed to release advisory lock. Lock will auto-release when DB session ends',
-					error,
-				)
-			}
-		}
 	}
 }

@@ -1,5 +1,6 @@
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { AuthService } from '../modules/auth/auth.service'
+import { TokenMaintenanceService } from '../modules/auth/token-maintenance.service'
 import { container } from './container'
 import { InMemoryContainer } from './container.mock'
 import type { Cradle } from './container.types'
@@ -63,6 +64,14 @@ describe('DI Container', () => {
 			expect(container.cradle.authService).toBeDefined()
 		})
 
+		it('should resolve authPasswordService', () => {
+			expect(container.cradle.authPasswordService).toBeDefined()
+		})
+
+		it('should resolve verifyPassword', () => {
+			expect(container.cradle.verifyPassword).toBeDefined()
+		})
+
 		it('should resolve tokenMaintenanceService', () => {
 			expect(container.cradle.tokenMaintenanceService).toBeDefined()
 		})
@@ -93,8 +102,11 @@ describe('DI Container', () => {
 			expect(repo1).toBe(repo2)
 		})
 
-		it('should resolve tokenMaintenanceService to the same instance as authService', () => {
-			expect(container.cradle.tokenMaintenanceService).toBe(container.cradle.authService)
+		it('should return the same tokenMaintenanceService instance', () => {
+			const service1 = container.cradle.tokenMaintenanceService
+			const service2 = container.cradle.tokenMaintenanceService
+			expect(service1).toBe(service2)
+			expect(service1).toBeInstanceOf(TokenMaintenanceService)
 		})
 	})
 

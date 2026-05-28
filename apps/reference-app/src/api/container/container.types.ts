@@ -4,6 +4,7 @@ import type { PermissionRepository, PermissionService } from '../modules/access/
 import type { RoleRepository, RoleService } from '../modules/access/role/interfaces'
 import type { AuthConfig } from '../modules/auth/auth.config'
 import type {
+	AuthPasswordService,
 	AuthService,
 	AuthenticationRepository,
 	RefreshTokenRepository,
@@ -30,14 +31,21 @@ import type { PasetoService } from '../services/paseto/interfaces'
  *
  * AuthConfig (value, no deps)
  *
- * AuthService (satisfies AuthService & TokenMaintenanceService interfaces)
+ * AuthService (satisfies AuthService interface)
  *   ├── UserRepository ──────► db
  *   ├── AuthRepository ──────► db, authConfig
  *   ├── RefreshTokenRepository ► db
  *   ├── PasetoService (no deps)
- *   └── authConfig
+ *   ├── UserRoleService
+ *   ├── authConfig
+ *   └── AuthPasswordService
  *
- * TokenMaintenanceService ──► AuthService (same instance, narrower interface)
+ * AuthPasswordService
+ *   ├── AuthRepository ──────► db, authConfig
+ *   └── verifyPassword (value)
+ *
+ * TokenMaintenanceService
+ *   └── RefreshTokenRepository ► db
  *
  * RoleService
  *   ├── RoleRepository ──────► db
@@ -73,6 +81,7 @@ export interface Cradle {
 	logger: Logger
 	generatePassword: () => Promise<string>
 	hashPassword: (plain: string) => Promise<string>
+	verifyPassword: (plain: string, hash: string) => Promise<boolean>
 
 	// Repositories (registerRepositories)
 	emailRepository: EmailRepository
@@ -88,7 +97,8 @@ export interface Cradle {
 	healthService: HealthService
 	emailService: EmailService
 	pasetoService: PasetoService
-	authService: AuthService & TokenMaintenanceService
+	authPasswordService: AuthPasswordService
+	authService: AuthService
 	tokenMaintenanceService: TokenMaintenanceService
 	roleService: RoleService
 	permissionService: PermissionService
