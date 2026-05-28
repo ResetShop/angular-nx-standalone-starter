@@ -50,4 +50,10 @@ describe('LandingPage', () => {
 		expect(screen.getByRole('heading', { level: 3, name: /role-based access control/i })).toBeInTheDocument()
 		expect(screen.getByRole('heading', { level: 3, name: /server-side rendering/i })).toBeInTheDocument()
 	})
+
+	it('renders a skip link targeting the main content', async () => {
+		await renderPage()
+
+		expect(screen.getByRole('link', { name: /skip to main content/i })).toHaveAttribute('href', '#main-content')
+	})
 })

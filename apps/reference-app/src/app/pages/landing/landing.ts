@@ -10,6 +10,12 @@ import { Button } from '@resetshop/ui/button/button'
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="flex min-h-svh flex-col bg-white dark:bg-black/95">
+			<a
+				href="#main-content"
+				class="text-foreground sr-only rounded bg-white px-4 py-2 shadow focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 dark:bg-black"
+			>
+				{{ 'LANDING.SKIP_TO_CONTENT' | translate }}
+			</a>
 			<app-landing-header />
 			<main id="main-content" class="flex-1">
 				<section

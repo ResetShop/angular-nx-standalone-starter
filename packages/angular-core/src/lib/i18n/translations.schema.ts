@@ -35,6 +35,7 @@ export interface TranslationSchema {
 		HERO_CTA: string
 		LOGIN_BUTTON: string
 		GO_TO_DASHBOARD: string
+		SKIP_TO_CONTENT: string
 		FEATURES: {
 			TITLE: string
 			AUTH_TITLE: string

@@ -48,6 +48,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'LANDING.HERO_CTA': 'Get started',
 	'LANDING.LOGIN_BUTTON': 'Sign in',
 	'LANDING.GO_TO_DASHBOARD': 'Go to dashboard',
+	'LANDING.SKIP_TO_CONTENT': 'Skip to main content',
 	'LANDING.FEATURES.TITLE': "What's included",
 	'LANDING.FEATURES.AUTH_TITLE': 'Authentication',
 	'LANDING.FEATURES.AUTH_DESCRIPTION': 'Secure PASETO-based authentication with token refresh and session management.',

@@ -35,6 +35,7 @@ const es: TranslationSchema = {
 		HERO_CTA: 'Comenzar',
 		LOGIN_BUTTON: 'Iniciar sesión',
 		GO_TO_DASHBOARD: 'Ir al panel',
+		SKIP_TO_CONTENT: 'Saltar al contenido principal',
 		FEATURES: {
 			TITLE: 'Qué incluye',
 			AUTH_TITLE: 'Autenticación',
