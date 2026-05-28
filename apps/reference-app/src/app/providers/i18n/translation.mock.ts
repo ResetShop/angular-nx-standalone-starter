@@ -174,13 +174,13 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
  * If an assertion needs a translated value, add the key to MOCK_TRANSLATIONS above.
  */
 export const mockTranslation = {
-	instant: (key: string) => MOCK_TRANSLATIONS[key] ?? key,
+	instant: (key: string, fallback?: string) => MOCK_TRANSLATIONS[key] ?? fallback ?? key,
 }
 
 @Injectable({ providedIn: 'root' })
 export class TranslationMock extends Translation {
-	public override instant(key: TranslationKey): string {
-		return MOCK_TRANSLATIONS[key] ?? key
+	public override instant(key: TranslationKey, fallback?: string): string {
+		return MOCK_TRANSLATIONS[key] ?? fallback ?? key
 	}
 
 	public override async loadDefaultLanguage(): Promise<void> {
