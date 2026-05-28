@@ -1,5 +1,6 @@
 import type { UserStatus } from '@contracts/user/user.constants'
 import type { AuthUser } from '@contracts/user/user.types'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 
 export interface AuthenticationData {
 	id: number
@@ -22,12 +23,38 @@ export interface IncrementAttemptsResult {
 	lockedUntil?: Date
 }
 
+/**
+ * Parameters for inserting the initial authentication row of a newly-created user.
+ */
+export interface CreateInitialPasswordParams {
+	userId: number
+	passwordHash: string
+	mustChangePassword: boolean
+}
+
 export interface AuthenticationRepository {
 	findByUserId(userId: number): Promise<AuthenticationData | null>
 	incrementFailedAttempts(userId: number): Promise<number>
 	lockAccount(userId: number, lockedUntil: Date): Promise<void>
 	resetFailedAttempts(userId: number): Promise<void>
 	incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult>
+	/**
+	 * Inserts the initial authentication row for a newly-created user.
+	 * Accepts an optional `tx` so the caller can compose this write into a
+	 * single transaction spanning the user, auth, and role tables.
+	 */
+	createInitialPassword(params: CreateInitialPasswordParams, tx?: DrizzleTransaction): Promise<void>
+	/**
+	 * Replaces a user's password hash and sets the must-change-password flag.
+	 * Skips deleted users (joined check on the `user` table).
+	 * @returns true if updated, false if the user does not exist or is deleted
+	 */
+	setPassword(
+		userId: number,
+		passwordHash: string,
+		mustChangePassword: boolean,
+		tx?: DrizzleTransaction,
+	): Promise<boolean>
 }
 
 export interface RefreshTokenData {
