@@ -29,6 +29,7 @@ export interface TranslationSchema {
 	}
 	LANDING: {
 		PAGE_TITLE: string
+		BRAND_NAME: string
 		HERO_HEADING: string
 		HERO_SUBHEADING: string
 		HERO_CTA: string

@@ -28,6 +28,7 @@ const es: TranslationSchema = {
 	},
 	LANDING: {
 		PAGE_TITLE: 'Bienvenido',
+		BRAND_NAME: 'Angular Nx Starter',
 		HERO_HEADING: 'Starter SSR de Angular + Nx',
 		HERO_SUBHEADING:
 			'Un starter listo para producción con autenticación, control de acceso basado en roles y renderizado del lado del servidor integrados.',

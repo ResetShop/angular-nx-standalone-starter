@@ -27,6 +27,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 		},
 		LANDING: {
 			PAGE_TITLE: 'Welcome',
+			BRAND_NAME: 'Starter',
 			HERO_HEADING: 'Starter',
 			HERO_SUBHEADING: 'Subheading',
 			HERO_CTA: 'Get started',
@@ -212,6 +213,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 		},
 		LANDING: {
 			PAGE_TITLE: 'Bienvenido',
+			BRAND_NAME: 'Starter',
 			HERO_HEADING: 'Starter',
 			HERO_SUBHEADING: 'Subtítulo',
 			HERO_CTA: 'Comenzar',

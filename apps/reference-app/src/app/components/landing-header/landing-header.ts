@@ -12,7 +12,7 @@ import { AuthStore } from '@store/auth/auth.store'
 		<header class="border-b border-gray-200 bg-white dark:border-white/10 dark:bg-black/95">
 			<div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
 				<a [routerLink]="['/']" class="text-foreground text-base font-semibold sm:text-lg">
-					{{ 'LANDING.HERO_HEADING' | translate }}
+					{{ 'LANDING.BRAND_NAME' | translate }}
 				</a>
 				<div class="flex items-center gap-2">
 					<app-theme-toggle />
