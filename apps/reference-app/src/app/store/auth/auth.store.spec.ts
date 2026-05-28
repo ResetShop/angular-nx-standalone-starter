@@ -1,29 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
-import type {
-	ChangePasswordRequest,
-	ChangePasswordResponse,
-	LoginResponse,
-	MeResponse,
-	RefreshResponse,
-} from '@contracts/auth/auth.types'
+import type { RefreshResponse } from '@contracts/auth/auth.types'
 import type { IPermission } from '@domain/access/permission.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { createMockLoginResponse, createMockMeResponse } from '@providers/auth/auth.mock'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
-import { firstValueFrom, NEVER, of, throwError, type Observable } from 'rxjs'
+import { firstValueFrom, NEVER, of, throwError } from 'rxjs'
 import { AuthStore } from './auth.store'
 
 describe('AuthStore', () => {
 	let store: InstanceType<typeof AuthStore>
-	let authApiMock: {
-		login: MockFn<[{ email: string; password: string }], Observable<LoginResponse>>
-		logout: MockFn<[], Observable<void>>
-		refreshToken: MockFn<[], Observable<RefreshResponse>>
-		getMe: MockFn<[], Observable<MeResponse>>
-		changePassword: MockFn<[ChangePasswordRequest], Observable<ChangePasswordResponse>>
-	}
+	// Record<keyof AuthApi, MockFn> keeps the mock structurally in sync with the AuthApi interface —
+	// adding a method to AuthApi forces a corresponding mock key here.
+	let authApiMock: Record<keyof AuthApi, MockFn>
 
 	const mockLoginResponse = createMockLoginResponse()
 	const mockMeResponse = createMockMeResponse()

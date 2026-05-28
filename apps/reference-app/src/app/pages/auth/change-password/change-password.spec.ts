@@ -1,8 +1,8 @@
-import { provideHttpClient } from '@angular/common/http'
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
-import { provideAuthMock } from '@providers/auth/auth.mock'
+import { InMemoryAuthApi, provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
@@ -90,5 +90,30 @@ describe('ChangePassword', () => {
 
 		expect(screen.queryByText(/this field is required/i)).not.toBeInTheDocument()
 		expect(screen.queryByText(/must be at least/i)).not.toBeInTheDocument()
+	})
+
+	it('shows the error banner when the change-password request fails', async () => {
+		const api = new InMemoryAuthApi()
+		api.setError(
+			'changePassword',
+			new HttpErrorResponse({ status: 400, error: { code: 'OLD_PASSWORD_MISMATCH', message: 'wrong' } }),
+		)
+		const user = userEvent.setup()
+		await render(ChangePassword, {
+			providers: [
+				provideRouter([]),
+				provideHttpClient(),
+				provideHttpClientTesting(),
+				provideAuthMock(api),
+				provideTranslationMock(),
+				...provideSignalFormsConfig({}),
+			],
+		})
+
+		await user.type(screen.getByLabelText(/Current password/i), 'old-password-123')
+		await user.type(screen.getByLabelText(/New password/i), 'a-fresh-secure-password')
+		await user.click(screen.getByRole('button', { name: /Change password/i }))
+
+		expect(await screen.findByText(/Your current password is incorrect/i)).toBeInTheDocument()
 	})
 })

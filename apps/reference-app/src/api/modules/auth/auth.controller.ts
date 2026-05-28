@@ -141,7 +141,9 @@ registerRoute(app, changePasswordRoute, async (c) => {
 	const user = (c as AuthenticatedContext).user
 
 	if (!user) {
-		return c.json<AuthErrorResponse>({ code: PublicAuthErrorCode.TOKEN_INVALID, message: 'Unauthorized' }, 401)
+		// Defensive only — the global verifyAccessToken middleware already 401s unauthenticated
+		// requests with this same { error } shape (errorResponseSchema, via commonResponses).
+		return c.json({ error: 'Unauthorized' }, 401)
 	}
 
 	const { oldPassword, newPassword }: ChangePasswordRequest = c.req.valid('json')
@@ -162,7 +164,9 @@ registerRoute(app, changePasswordRoute, async (c) => {
 		}
 
 		logger.error('ChangePassword', 'Password change failed', error)
-		return c.json<AuthErrorResponse>({ code: PublicAuthErrorCode.GENERIC, message: 'Failed to change password' }, 500)
+		// 500 uses the { error } shape (errorResponseSchema, via commonResponses) — matching the
+		// /me and cleanup-tokens handlers; the coded OLD_PASSWORD_MISMATCH above keeps { code, message }.
+		return c.json({ error: 'Failed to change password' }, 500)
 	}
 })
 
