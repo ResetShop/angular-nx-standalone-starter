@@ -101,6 +101,31 @@ describe('User management endpoints (/api/user)', () => {
 			expect(userData.roles.length).toBeGreaterThan(0)
 		})
 
+		it('returns 400 for invalid role IDs and rolls back the user insert', async () => {
+			const response = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: {
+					email: 'invalidroles@test.com',
+					firstName: 'Invalid',
+					lastName: 'Roles',
+					roleIds: [99999],
+				},
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Roles not found')
+
+			// Creation is atomic: the failed role assignment rolled back the user insert, so the
+			// same email is still free — a leftover partial user would make this retry 409.
+			const retry = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'invalidroles@test.com', firstName: 'Invalid', lastName: 'Roles' },
+			})
+			expect(retry.status).toBe(201)
+		})
+
 		it('returns 409 for duplicate email', async () => {
 			const response = await authenticatedRequest(app, '/api/user', {
 				method: 'POST',

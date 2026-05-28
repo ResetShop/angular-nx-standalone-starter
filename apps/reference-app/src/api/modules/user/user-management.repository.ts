@@ -1,17 +1,16 @@
 import { QUERY_DEFAULTS } from '@contracts/common/query.constants'
 import { UserStatus } from '@contracts/user/user.constants'
-import { authentication } from '@schema/authentication'
 import { role } from '@schema/role'
 import { user, userRole } from '@schema/user'
 import { userProfileHistory } from '@schema/user-profile-history'
-import { UserRoleHistoryAction, userRoleHistory } from '@schema/user-role-history'
 import { userStatusHistory } from '@schema/user-status-history'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
 import { BaseRepository } from '../../helpers/base.repository'
+import type { DrizzleTransaction, QueryExecutor } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type {
-	CreateUserWithHashedPasswordParams,
+	CreateUserIdentityParams,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
@@ -104,7 +103,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 			this.db.select({ count: count() }).from(user).where(whereClause),
 		])
 
-		const usersWithRoles = await this.attachRolesToUsers(users)
+		const usersWithRoles = await this.attachRolesToUsers(users, this.db)
 
 		return {
 			data: usersWithRoles,
@@ -143,7 +142,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 			return null
 		}
 
-		const usersWithRoles = await this.attachRolesToUsers(result)
+		const usersWithRoles = await this.attachRolesToUsers(result, this.db)
 		return usersWithRoles[0]
 	}
 
@@ -170,60 +169,44 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	}
 
 	/**
-	 * Creates a new user with authentication and role assignments in a single transaction.
-	 * If any step fails (e.g. invalid roleId FK violation), the entire operation is rolled back.
+	 * Inserts a user identity row — and nothing else.
+	 * Writes neither credentials (auth context) nor role assignments (user-role context);
+	 * the service composes those into the same transaction via `runInTransaction` so a
+	 * later failure in any of them rolls back the user insert too. When a `tx` is supplied
+	 * the insert joins that transaction. The returned user therefore has an empty `roles`
+	 * array; callers re-read with roles after assignments are written.
 	 *
-	 * @param params - User creation parameters including password hash and role IDs
-	 * @returns The newly created user with roles
+	 * @param params - User identity parameters (email, first/last name)
+	 * @param tx - Optional transaction handle; falls back to the pooled connection
+	 * @returns The newly created user (roles empty until assigned by the user-role context)
 	 */
-	public async create(params: CreateUserWithHashedPasswordParams, actorId: number): Promise<ManagedUserData> {
-		return this.db.transaction(async (tx) => {
-			const userResult = await tx
-				.insert(user)
-				.values({
-					email: params.email,
-					firstName: params.firstName,
-					lastName: params.lastName,
-				})
-				.returning({
-					id: user.id,
-					email: user.email,
-					firstName: user.firstName,
-					lastName: user.lastName,
-					status: user.status,
-					statusChangedAt: user.statusChangedAt,
-					statusChangedBy: user.statusChangedBy,
-					deletedAt: user.deletedAt,
-					createdAt: user.createdAt,
-					updatedAt: user.updatedAt,
-				})
+	public async create(params: CreateUserIdentityParams, tx?: DrizzleTransaction): Promise<ManagedUserData> {
+		const executor: QueryExecutor = tx ?? this.db
 
-			const newUser = userResult[0]
-
-			await tx.insert(authentication).values({
-				userId: newUser.id,
-				passwordHash: params.passwordHash,
-				mustChangePassword: params.mustChangePassword,
+		const userResult = await executor
+			.insert(user)
+			.values({
+				email: params.email,
+				firstName: params.firstName,
+				lastName: params.lastName,
+			})
+			.returning({
+				id: user.id,
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				status: user.status,
+				statusChangedAt: user.statusChangedAt,
+				statusChangedBy: user.statusChangedBy,
+				deletedAt: user.deletedAt,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
 			})
 
-			if (params.roleIds.length > 0) {
-				const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }))
-				await tx.insert(userRole).values(values)
-
-				const now = new Date()
-				const historyRows = params.roleIds.map((roleId) => ({
-					userId: newUser.id,
-					roleId,
-					action: UserRoleHistoryAction.ASSIGNED,
-					changedBy: actorId,
-					changedAt: now,
-				}))
-				await tx.insert(userRoleHistory).values(historyRows)
-			}
-
-			const [result] = await this.attachRolesToUsers([newUser])
-			return result
-		})
+		// No roles are assigned during the identity insert, so this returns an empty roles array;
+		// the service re-reads with roles after the role-assignment write commits.
+		const [result] = await this.attachRolesToUsers([userResult[0]], executor)
+		return result
 	}
 
 	/**
@@ -309,38 +292,6 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	}
 
 	/**
-	 * Replaces a user's password hash and sets the must-change-password flag.
-	 * Skips deleted users. Updates the authentication row keyed by user_id.
-	 *
-	 * @param id - The user's primary key
-	 * @param passwordHash - The new bcrypt password hash
-	 * @param mustChangePassword - Whether the user must change the password on next login
-	 * @returns true if updated, false if the user does not exist or is deleted
-	 */
-	public async updatePasswordAndMustChange(
-		id: number,
-		passwordHash: string,
-		mustChangePassword: boolean,
-	): Promise<boolean> {
-		return this.db.transaction(async (tx) => {
-			const exists = await tx
-				.select({ id: user.id })
-				.from(user)
-				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-				.limit(1)
-			if (exists.length === 0) return false
-
-			const now = new Date()
-			await tx
-				.update(authentication)
-				.set({ passwordHash, mustChangePassword, lastPasswordChangedAt: now, updatedAt: now })
-				.where(eq(authentication.userId, id))
-
-			return true
-		})
-	}
-
-	/**
 	 * Updates a user's account status with audit trail.
 	 * Deleted users cannot be modified.
 	 *
@@ -385,7 +336,7 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 				changedAt: now,
 			})
 
-			const [updatedWithRoles] = await this.attachRolesToUsers(result)
+			const [updatedWithRoles] = await this.attachRolesToUsers(result, tx)
 			return updatedWithRoles
 		})
 	}
@@ -393,15 +344,17 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	/**
 	 * Attaches roles to an array of user records.
 	 * Fetches all role assignments in a single query for efficiency.
+	 * Runs on the supplied executor so it can read rows written earlier in the
+	 * same transaction (e.g. the role assignments inserted during `create`).
 	 */
-	private async attachRolesToUsers(users: UserProjection[]): Promise<ManagedUserData[]> {
+	private async attachRolesToUsers(users: UserProjection[], executor: QueryExecutor): Promise<ManagedUserData[]> {
 		if (users.length === 0) {
 			return []
 		}
 
 		const userIds = users.map((u) => u.id)
 
-		const roleAssignments = await this.db
+		const roleAssignments = await executor
 			.select({
 				userId: userRole.userId,
 				roleId: role.id,

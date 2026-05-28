@@ -13,6 +13,7 @@ import type { PermissionData, RoleData } from '../access/role/interfaces'
 import type { CreateUserParams, ManagedUserData, UpdateUserParams, UpdateUserStatusParams } from './interfaces'
 import userManagementController from './user-management.controller'
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
+import { USER_ROLE_ERRORS } from './user-role.errors'
 
 describe('User Management Controller', () => {
 	// Create mock functions
@@ -276,6 +277,25 @@ describe('User Management Controller', () => {
 			expect(res.status).toBe(409)
 			const data = await res.json()
 			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)
+		})
+
+		it('should return 400 when role IDs are invalid', async () => {
+			mockCreateUser.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 99999`))
+
+			const res = await app.request('/users', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+					roleIds: [99999],
+				}),
+			})
+
+			expect(res.status).toBe(400)
+			const data = await res.json()
+			expect(data.error).toContain(USER_ROLE_ERRORS.ROLES_NOT_FOUND)
 		})
 
 		it('should validate required fields', async () => {
