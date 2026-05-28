@@ -65,3 +65,24 @@ export const DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW = '15m'
  * Overridable via `AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX`.
  */
 export const DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX = 5
+
+/**
+ * Expiry for self-service password-reset tokens (duration string).
+ * Tokens are single-use and rejected after this window.
+ */
+export const PASSWORD_RESET_TOKEN_EXPIRY = '1h'
+
+/** Rate limit window for the forgot-password endpoint. */
+export const FORGOT_PASSWORD_RATE_LIMIT_WINDOW = '15m'
+
+/** Maximum forgot-password requests per window. */
+export const FORGOT_PASSWORD_RATE_LIMIT_MAX = 5
+
+/** Rate limit window for the reset-password endpoint. */
+export const RESET_PASSWORD_RATE_LIMIT_WINDOW = '15m'
+
+/** Maximum reset-password attempts per window. */
+export const RESET_PASSWORD_RATE_LIMIT_MAX = 5
+
+/** Frontend path where users complete a password reset (raw token passed as the `token` query param). */
+export const PASSWORD_RESET_PATH = '/auth/reset-password/confirm'
