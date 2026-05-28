@@ -3,7 +3,6 @@ import { UserStatus } from '@contracts/user/user.constants'
 import { role } from '@schema/role'
 import { user, userRole } from '@schema/user'
 import { userProfileHistory } from '@schema/user-profile-history'
-import { UserRoleHistoryAction, userRoleHistory } from '@schema/user-role-history'
 import { userStatusHistory } from '@schema/user-status-history'
 import { and, count, eq, ilike, inArray, ne, or } from 'drizzle-orm'
 import { BaseRepository } from '../../helpers/base.repository'
@@ -176,22 +175,18 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	}
 
 	/**
-	 * Inserts a user identity row plus its role assignments.
-	 * Writes nothing to the `authentication` table — the initial credential is
-	 * created by the auth domain; the service composes both in one transaction
-	 * via `runInTransaction`. When a `tx` is supplied every write joins that
-	 * transaction so a later auth-row failure rolls back the user insert too.
+	 * Inserts a user identity row — and nothing else.
+	 * Writes neither credentials (auth context) nor role assignments (user-role context);
+	 * the service composes those into the same transaction via `runInTransaction` so a
+	 * later failure in any of them rolls back the user insert too. When a `tx` is supplied
+	 * the insert joins that transaction. The returned user therefore has an empty `roles`
+	 * array; callers re-read with roles after assignments are written.
 	 *
-	 * @param params - User identity parameters and role IDs
-	 * @param actorId - ID of the user performing the action (for role-history audit)
+	 * @param params - User identity parameters (email, first/last name)
 	 * @param tx - Optional transaction handle; falls back to the pooled connection
-	 * @returns The newly created user with roles
+	 * @returns The newly created user (roles empty until assigned by the user-role context)
 	 */
-	public async create(
-		params: CreateUserIdentityParams,
-		actorId: number,
-		tx?: DrizzleTransaction,
-	): Promise<ManagedUserData> {
+	public async create(params: CreateUserIdentityParams, tx?: DrizzleTransaction): Promise<ManagedUserData> {
 		const executor: QueryExecutor = tx ?? this.db
 
 		const userResult = await executor
@@ -214,24 +209,9 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 				updatedAt: user.updatedAt,
 			})
 
-		const newUser = userResult[0]
-
-		if (params.roleIds.length > 0) {
-			const values = params.roleIds.map((roleId) => ({ userId: newUser.id, roleId }))
-			await executor.insert(userRole).values(values)
-
-			const now = new Date()
-			const historyRows = params.roleIds.map((roleId) => ({
-				userId: newUser.id,
-				roleId,
-				action: UserRoleHistoryAction.ASSIGNED,
-				changedBy: actorId,
-				changedAt: now,
-			}))
-			await executor.insert(userRoleHistory).values(historyRows)
-		}
-
-		const [result] = await this.attachRolesToUsers([newUser], executor)
+		// No roles are assigned during the identity insert, so this returns an empty roles array;
+		// the service re-reads with roles after the role-assignment write commits.
+		const [result] = await this.attachRolesToUsers([userResult[0]], executor)
 		return result
 	}
 

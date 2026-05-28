@@ -11,6 +11,7 @@ import type {
 	UpdateUserStatusParams,
 	UserData,
 	UserManagementRepository,
+	UserRoleRepository,
 } from './interfaces'
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service'
 
@@ -40,6 +41,39 @@ describe('UserManagementService', () => {
 		// DrizzleTransaction would require a live DB connection, which unit tests must not need.
 		runInTransaction: <T>(callback: (tx: DrizzleTransaction) => Promise<T>): Promise<T> =>
 			callback(undefined as unknown as DrizzleTransaction),
+	}
+
+	// User-role repository mock — createUser composes role assignment through this boundary
+	const mockReplaceUserRoles = fn<Parameters<UserRoleRepository['replaceUserRoles']>, Promise<void>>()
+
+	// Typed as the real interface so a new UserRoleRepository method fails compilation until mocked.
+	// Only replaceUserRoles is driven by createUser; the rest are unused stubs typed for parity.
+	const mockUserRoleRepository: UserRoleRepository = {
+		findRolesForUser: fn<
+			Parameters<UserRoleRepository['findRolesForUser']>,
+			ReturnType<UserRoleRepository['findRolesForUser']>
+		>(),
+		findRolesWithPermissionsForUser: fn<
+			Parameters<UserRoleRepository['findRolesWithPermissionsForUser']>,
+			ReturnType<UserRoleRepository['findRolesWithPermissionsForUser']>
+		>(),
+		findPermissionsForUser: fn<
+			Parameters<UserRoleRepository['findPermissionsForUser']>,
+			ReturnType<UserRoleRepository['findPermissionsForUser']>
+		>(),
+		assignRoleToUser: fn<
+			Parameters<UserRoleRepository['assignRoleToUser']>,
+			ReturnType<UserRoleRepository['assignRoleToUser']>
+		>(),
+		removeRoleFromUser: fn<
+			Parameters<UserRoleRepository['removeRoleFromUser']>,
+			ReturnType<UserRoleRepository['removeRoleFromUser']>
+		>(),
+		findUserHasRole: fn<
+			Parameters<UserRoleRepository['findUserHasRole']>,
+			ReturnType<UserRoleRepository['findUserHasRole']>
+		>(),
+		replaceUserRoles: mockReplaceUserRoles,
 	}
 
 	// Auth repository mock — user-management composes its password writes through this boundary
@@ -127,6 +161,7 @@ describe('UserManagementService', () => {
 
 		service = new UserManagementService({
 			userManagementRepository: mockRepository,
+			userRoleRepository: mockUserRoleRepository,
 			authRepository: mockAuthRepository,
 			emailService: mockEmailService,
 			generatePassword: mockGeneratePassword,
@@ -185,9 +220,11 @@ describe('UserManagementService', () => {
 	})
 
 	describe('createUser', () => {
-		it('should create a new user with roles and send welcome email', async () => {
+		it('should create a user, assign roles in the same transaction, and send welcome email', async () => {
 			mockFindByEmail.mockResolvedValue(null)
-			mockCreate.mockResolvedValue(testManagedUser)
+			// Identity insert returns no roles; the post-commit re-read reflects the assignments.
+			mockCreate.mockResolvedValue({ ...testManagedUser, roles: [] })
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 
 			const { passwordEmailSent, ...user } = await service.createUser(
 				{
@@ -203,13 +240,21 @@ describe('UserManagementService', () => {
 			expect(passwordEmailSent).toBe(true)
 			expect(mockFindByEmail.calls).toEqual([['test@example.com']])
 			expect(mockCreate.calls).toHaveLength(1)
-			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [1] })
+			// create() receives identity only — no roleIds (authorization) and no actorId
+			expect(mockCreate.calls[0][0]).toEqual({ email: 'test@example.com', firstName: 'Test', lastName: 'User' })
+			// Role assignment is composed through the user-role context inside the same transaction
+			expect(mockReplaceUserRoles.calls).toHaveLength(1)
+			expect(mockReplaceUserRoles.calls[0][0]).toBe(testManagedUser.id)
+			expect(mockReplaceUserRoles.calls[0][1]).toEqual([1])
+			expect(mockReplaceUserRoles.calls[0][2]).toBe(999)
+			// Response reflects the assigned roles via the post-commit re-read
+			expect(mockFindByIdWithRoles.calls).toEqual([[testManagedUser.id]])
 			// The auth row is written through the auth domain inside the same transaction
 			expect(mockCreateInitialPassword.calls).toHaveLength(1)
 			expect(mockCreateInitialPassword.calls[0][0]).toMatchObject({ userId: testManagedUser.id })
 		})
 
-		it('should create user without roles when roleIds is omitted', async () => {
+		it('should create a user without touching the user-role context when roleIds is omitted', async () => {
 			const userWithNoRoles = { ...testManagedUser, roles: [] }
 			mockFindByEmail.mockResolvedValue(null)
 			mockCreate.mockResolvedValue(userWithNoRoles)
@@ -224,7 +269,10 @@ describe('UserManagementService', () => {
 			)
 
 			expect(result.roles).toEqual([])
-			expect(mockCreate.calls[0][0]).toMatchObject({ roleIds: [] })
+			expect(mockCreate.calls[0][0]).toEqual({ email: 'test@example.com', firstName: 'Test', lastName: 'User' })
+			// No roles requested → no authorization write and no re-read
+			expect(mockReplaceUserRoles.calls).toHaveLength(0)
+			expect(mockFindByIdWithRoles.calls).toHaveLength(0)
 		})
 
 		it('should throw EMAIL_EXISTS when email is taken', async () => {
@@ -398,6 +446,22 @@ describe('UserManagementService', () => {
 			).rejects.toThrow('auth insert failed')
 			// The welcome email is sent only after the transaction commits, so a failed
 			// auth-row write must abort createUser before any email is dispatched.
+			expect(mockSend.calls).toHaveLength(0)
+		})
+
+		it('should propagate an error when role assignment fails and skip the welcome email', async () => {
+			mockFindByEmail.mockResolvedValue(null)
+			mockCreate.mockResolvedValue({ ...testManagedUser, roles: [] })
+			// clearAllMocks resets call records, not implementations — explicitly let the auth-row
+			// write succeed so the failure isolates to replaceUserRoles.
+			mockCreateInitialPassword.mockResolvedValue(undefined)
+			mockReplaceUserRoles.mockRejectedValue(new Error('Roles not found: 9'))
+
+			await expect(
+				service.createUser({ email: 'test@example.com', firstName: 'Test', lastName: 'User', roleIds: [9] }, 999),
+			).rejects.toThrow('Roles not found')
+			// Role assignment runs inside the same transaction; its failure rolls back the user and
+			// auth-row inserts and aborts createUser before any welcome email is dispatched.
 			expect(mockSend.calls).toHaveLength(0)
 		})
 	})
