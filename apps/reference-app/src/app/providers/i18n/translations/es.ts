@@ -26,6 +26,24 @@ const es: TranslationSchema = {
 			GENERIC: 'Error al iniciar sesión. Por favor, intenta de nuevo.',
 		},
 	},
+	LANDING: {
+		PAGE_TITLE: 'Bienvenido',
+		HERO_HEADING: 'Starter SSR de Angular + Nx',
+		HERO_SUBHEADING:
+			'Un starter listo para producción con autenticación, control de acceso basado en roles y renderizado del lado del servidor integrados.',
+		HERO_CTA: 'Comenzar',
+		LOGIN_BUTTON: 'Iniciar sesión',
+		GO_TO_DASHBOARD: 'Ir al panel',
+		FEATURES: {
+			TITLE: 'Qué incluye',
+			AUTH_TITLE: 'Autenticación',
+			AUTH_DESCRIPTION: 'Autenticación segura basada en PASETO con renovación de tokens y gestión de sesiones.',
+			RBAC_TITLE: 'Control de acceso basado en roles',
+			RBAC_DESCRIPTION: 'Permisos granulares con roles, aplicados tanto a nivel de ruta como de API.',
+			SSR_TITLE: 'Renderizado del lado del servidor',
+			SSR_DESCRIPTION: 'Angular SSR listo para usar para una primera carga más rápida y un mejor SEO.',
+		},
+	},
 	COMMON: {
 		LOADING: 'Cargando...',
 		CANCEL: 'Cancelar',

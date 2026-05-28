@@ -39,6 +39,22 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'AUTH.RESET_PASSWORD.SUBMIT': 'Send reset link',
 	'AUTH.RESET_PASSWORD.BACK_TO_LOGIN': 'Back to sign in',
 
+	// Landing
+	'LANDING.PAGE_TITLE': 'Welcome',
+	'LANDING.HERO_HEADING': 'Angular + Nx SSR Starter',
+	'LANDING.HERO_SUBHEADING':
+		'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
+	'LANDING.HERO_CTA': 'Get started',
+	'LANDING.LOGIN_BUTTON': 'Sign in',
+	'LANDING.GO_TO_DASHBOARD': 'Go to dashboard',
+	'LANDING.FEATURES.TITLE': "What's included",
+	'LANDING.FEATURES.AUTH_TITLE': 'Authentication',
+	'LANDING.FEATURES.AUTH_DESCRIPTION': 'Secure PASETO-based authentication with token refresh and session management.',
+	'LANDING.FEATURES.RBAC_TITLE': 'Role-based access control',
+	'LANDING.FEATURES.RBAC_DESCRIPTION': 'Granular permissions with roles, enforced at both the route and API level.',
+	'LANDING.FEATURES.SSR_TITLE': 'Server-side rendering',
+	'LANDING.FEATURES.SSR_DESCRIPTION': 'Angular SSR out of the box for faster first paint and better SEO.',
+
 	// Common
 	'COMMON.LOADING': 'Loading...',
 	'COMMON.CANCEL': 'Cancel',

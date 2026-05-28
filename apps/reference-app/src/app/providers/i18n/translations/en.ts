@@ -26,6 +26,24 @@ const en: TranslationSchema = {
 			GENERIC: 'Login error. Please try again.',
 		},
 	},
+	LANDING: {
+		PAGE_TITLE: 'Welcome',
+		HERO_HEADING: 'Angular + Nx SSR Starter',
+		HERO_SUBHEADING:
+			'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
+		HERO_CTA: 'Get started',
+		LOGIN_BUTTON: 'Sign in',
+		GO_TO_DASHBOARD: 'Go to dashboard',
+		FEATURES: {
+			TITLE: "What's included",
+			AUTH_TITLE: 'Authentication',
+			AUTH_DESCRIPTION: 'Secure PASETO-based authentication with token refresh and session management.',
+			RBAC_TITLE: 'Role-based access control',
+			RBAC_DESCRIPTION: 'Granular permissions with roles, enforced at both the route and API level.',
+			SSR_TITLE: 'Server-side rendering',
+			SSR_DESCRIPTION: 'Angular SSR out of the box for faster first paint and better SEO.',
+		},
+	},
 	COMMON: {
 		LOADING: 'Loading...',
 		CANCEL: 'Cancel',
