@@ -22,7 +22,7 @@ describe('LandingPage', () => {
 	it('renders the hero heading', async () => {
 		await renderPage()
 
-		expect(screen.getByRole('heading', { level: 1, name: /angular \+ nx ssr starter/i })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { level: 1, name: /ssr starter/i })).toBeInTheDocument()
 	})
 
 	it('renders the hero subheading', async () => {
