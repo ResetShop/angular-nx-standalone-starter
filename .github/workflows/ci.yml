@@ -3,6 +3,11 @@ name: CI
 on:
   pull_request:
 
+# Inherited by every job so Nx tasks can read/write the Nx Cloud remote cache.
+# The cacheable jobs below drop `--skip-nx-cache`; `e2e` stays cold by design.
+env:
+  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+
 jobs:
   setup:
     name: 'Setup and dependencies'
@@ -58,7 +63,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run Tests
-        run: npx nx run-many -t test --skip-nx-cache
+        run: npx nx run-many -t test
 
   typecheck:
     needs: setup
@@ -76,7 +81,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run typecheck
-        run: npx nx run-many -t typecheck --skip-nx-cache
+        run: npx nx run-many -t typecheck
 
   lint:
     needs: setup
@@ -94,7 +99,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run Linter
-        run: npx nx run-many -t lint --skip-nx-cache
+        run: npx nx run-many -t lint
 
   stylelint:
     needs: setup
@@ -112,7 +117,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run stylelint
-        run: npx nx stylelint reference-app --skip-nx-cache
+        run: npx nx stylelint reference-app
 
   test-integration:
     needs: setup
@@ -204,7 +209,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run build
-        run: npx nx run reference-app:build:production --skip-nx-cache
+        run: npx nx run reference-app:build:production
 
   storybook:
     needs: setup
@@ -222,4 +227,4 @@ jobs:
           node-version: '22.20'
 
       - name: Run Storybook build
-        run: npx nx run reference-app:build-storybook --skip-nx-cache
+        run: npx nx run reference-app:build-storybook

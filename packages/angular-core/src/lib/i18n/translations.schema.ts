@@ -45,6 +45,25 @@ export interface TranslationSchema {
 			GENERIC: string
 		}
 	}
+	LANDING: {
+		PAGE_TITLE: string
+		BRAND_NAME: string
+		HERO_HEADING: string
+		HERO_SUBHEADING: string
+		HERO_CTA: string
+		LOGIN_BUTTON: string
+		GO_TO_DASHBOARD: string
+		SKIP_TO_CONTENT: string
+		FEATURES: {
+			TITLE: string
+			AUTH_TITLE: string
+			AUTH_DESCRIPTION: string
+			RBAC_TITLE: string
+			RBAC_DESCRIPTION: string
+			SSR_TITLE: string
+			SSR_DESCRIPTION: string
+		}
+	}
 	COMMON: {
 		LOADING: string
 		CANCEL: string
