@@ -12,17 +12,6 @@ import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs'
 import { initialAuthState } from './auth.types'
 
 /**
- * AuthStore - Signal Store for authentication state
- *
- * Manages authentication state using NgRx Signal Store.
- * Components inject this store directly for all auth operations.
- * Uses AuthApi for HTTP calls.
- *
- * Session validation is performed by the route guards on every navigation
- * via `validateSession()`. Works on both browser and server platforms —
- * cookies are forwarded by the SSR cookie interceptor on the server side.
- */
-/**
  * Converts a 429 rate-limit response's `Retry-After` header (whole seconds) into an absolute ISO-8601
  * instant the page countdown can tick down to. Returns null for non-429 responses or a missing/invalid
  * header. Shared by the forgot-password and reset-password flows.
@@ -34,6 +23,17 @@ function throttledUntilFrom(error: HttpErrorResponse): string | null {
 	return new Date(Date.now() + retryAfterSeconds * 1000).toISOString()
 }
 
+/**
+ * AuthStore - Signal Store for authentication state
+ *
+ * Manages authentication state using NgRx Signal Store.
+ * Components inject this store directly for all auth operations.
+ * Uses AuthApi for HTTP calls.
+ *
+ * Session validation is performed by the route guards on every navigation
+ * via `validateSession()`. Works on both browser and server platforms —
+ * cookies are forwarded by the SSR cookie interceptor on the server side.
+ */
 export const AuthStore = signalStore(
 	{ providedIn: 'root' },
 	withState(initialAuthState),
@@ -289,7 +289,13 @@ export const AuthStore = signalStore(
 			 * instead of a stale confirmation/error lingering from a previous visit.
 			 */
 			clearResetState() {
-				patchState(store, { resetRequested: false, isResettingPassword: false, resetPasswordError: null })
+				patchState(store, {
+					resetRequested: false,
+					resetThrottledUntil: null,
+					isResettingPassword: false,
+					resetPasswordError: null,
+					resetPasswordThrottledUntil: null,
+				})
 			},
 		}
 	}),

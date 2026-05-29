@@ -307,6 +307,27 @@ describe('AuthStore', () => {
 
 			expect(store.isResettingPassword()).toBe(false)
 		})
+
+		it('clears both throttle timestamps left by 429 responses', () => {
+			useFakeTimers()
+			try {
+				const rateLimited = () =>
+					throwError(() => new HttpErrorResponse({ status: 429, headers: new HttpHeaders({ 'Retry-After': '900' }) }))
+				authApiMock.forgotPassword.mockReturnValue(rateLimited())
+				authApiMock.resetPassword.mockReturnValue(rateLimited())
+				store.forgotPassword('user@example.com')
+				store.resetPassword({ token: 'tok', newPassword: 'a-fresh-secure-password' })
+				expect(store.resetThrottledUntil()).not.toBeNull()
+				expect(store.resetPasswordThrottledUntil()).not.toBeNull()
+
+				store.clearResetState()
+
+				expect(store.resetThrottledUntil()).toBeNull()
+				expect(store.resetPasswordThrottledUntil()).toBeNull()
+			} finally {
+				useRealTimers()
+			}
+		})
 	})
 
 	describe('resetPassword', () => {
