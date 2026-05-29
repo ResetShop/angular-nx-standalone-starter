@@ -47,14 +47,7 @@ interface ResetPasswordForm {
 			<ng-template #cardFooter>
 				<div class="flex flex-col gap-4 font-semibold">
 					@if (!store.resetRequested()) {
-						<button
-							[fullWidth]="true"
-							[disabled]="!isFormValid() || store.isRequestingReset()"
-							appButton
-							variant="default"
-							size="md"
-							type="submit"
-						>
+						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton variant="default" size="md" type="submit">
 							{{ 'AUTH.RESET_PASSWORD.SUBMIT' | translate }}
 						</button>
 					}
