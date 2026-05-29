@@ -237,6 +237,15 @@ export const AuthStore = signalStore(
 			updateCurrentUser(user: IUser) {
 				patchState(store, { currentUser: user })
 			},
+
+			/**
+			 * Clear all transient password-reset state. The reset flow's state lives in the root store,
+			 * so the reset-request and reset-confirm pages call this on entry to guarantee a fresh form
+			 * instead of a stale confirmation/error lingering from a previous visit.
+			 */
+			clearResetState() {
+				patchState(store, { resetRequested: false, isResettingPassword: false, resetPasswordError: null })
+			},
 		}
 	}),
 )

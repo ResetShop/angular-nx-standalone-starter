@@ -272,6 +272,42 @@ describe('AuthStore', () => {
 		})
 	})
 
+	describe('clearResetState', () => {
+		it('clears resetRequested set optimistically by forgotPassword', () => {
+			authApiMock.forgotPassword.mockReturnValue(NEVER)
+			store.forgotPassword('user@example.com')
+			expect(store.resetRequested()).toBe(true)
+
+			store.clearResetState()
+
+			expect(store.resetRequested()).toBe(false)
+		})
+
+		it('clears resetPasswordError left by a failed resetPassword', () => {
+			authApiMock.resetPassword.mockReturnValue(
+				throwError(
+					() => new HttpErrorResponse({ status: 400, error: { code: 'RESET_TOKEN_INVALID', message: 'bad' } }),
+				),
+			)
+			store.resetPassword({ token: 'tok', newPassword: 'a-fresh-secure-password' })
+			expect(store.resetPasswordError()).not.toBeNull()
+
+			store.clearResetState()
+
+			expect(store.resetPasswordError()).toBeNull()
+		})
+
+		it('clears isResettingPassword while a resetPassword call is in flight', () => {
+			authApiMock.resetPassword.mockReturnValue(NEVER)
+			store.resetPassword({ token: 'tok', newPassword: 'a-fresh-secure-password' })
+			expect(store.isResettingPassword()).toBe(true)
+
+			store.clearResetState()
+
+			expect(store.isResettingPassword()).toBe(false)
+		})
+	})
+
 	describe('resetPassword', () => {
 		it('clears the error on success', () => {
 			authApiMock.resetPassword.mockReturnValue(of({ message: 'reset' }))
