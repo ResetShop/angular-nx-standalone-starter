@@ -2,11 +2,13 @@ import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
+import { AuthApi } from '@providers/auth/auth.interface'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
+import { NEVER } from 'rxjs'
 import ResetPassword from './reset-password'
 
 describe('ResetPassword', () => {
@@ -128,6 +130,22 @@ describe('ResetPassword', () => {
 
 		expect(await screen.findByText(/a password-reset link has been sent/i)).toBeInTheDocument()
 		// The email field is replaced by the confirmation (no enumeration of whether the account exists).
+		expect(screen.queryByLabelText(/Email address/i)).not.toBeInTheDocument()
+	})
+
+	it('shows the confirmation immediately, before the request resolves (optimistic, no timing leak)', async () => {
+		const user = userEvent.setup()
+		// forgotPassword never completes — proves the confirmation does not wait on the round-trip, so
+		// its timing cannot reveal whether the account exists.
+		const hangingApi = { forgotPassword: () => NEVER } as unknown as AuthApi
+		await render(ResetPassword, {
+			providers: [...defaultProviders(), { provide: AuthApi, useValue: hangingApi }],
+		})
+
+		await user.type(screen.getByLabelText(/Email address/i), 'test@example.com')
+		await user.click(screen.getByRole('button', { name: /Send reset link/i }))
+
+		expect(await screen.findByText(/a password-reset link has been sent/i)).toBeInTheDocument()
 		expect(screen.queryByLabelText(/Email address/i)).not.toBeInTheDocument()
 	})
 

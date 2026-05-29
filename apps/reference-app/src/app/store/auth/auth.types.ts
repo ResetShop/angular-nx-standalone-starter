@@ -32,10 +32,11 @@ export interface AuthState {
 	/** Error from the last failed change-password attempt (null if no error) */
 	changePasswordError: AuthErrorResponse | null
 
-	/** Whether a forgot-password (request reset) call is in progress */
-	isRequestingReset: boolean
-
-	/** Whether a forgot-password request has completed — drives the neutral "link sent" confirmation */
+	/**
+	 * Whether the neutral "link sent" confirmation should be shown. Flipped optimistically the moment
+	 * a forgot-password request is submitted (the API call fires best-effort) so the UI never reveals,
+	 * via timing, whether the email belongs to an account.
+	 */
 	resetRequested: boolean
 
 	/** Whether a reset-password (with token) call is in progress */
@@ -58,7 +59,6 @@ export const initialAuthState: AuthState = {
 	mustChangePassword: false,
 	isChangingPassword: false,
 	changePasswordError: null,
-	isRequestingReset: false,
 	resetRequested: false,
 	isResettingPassword: false,
 	resetPasswordError: null,

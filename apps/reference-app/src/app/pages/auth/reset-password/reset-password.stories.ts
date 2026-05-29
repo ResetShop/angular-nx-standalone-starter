@@ -36,7 +36,6 @@ const meta: Meta<ResetPasswordStoryComponent> = {
 					provide: AuthStore,
 					useFactory: () => ({
 						resetRequested: storyResetRequested,
-						isRequestingReset: signal(false),
 						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						forgotPassword: () => {},
 					}),

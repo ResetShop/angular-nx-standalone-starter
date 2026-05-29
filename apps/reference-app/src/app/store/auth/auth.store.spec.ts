@@ -5,6 +5,7 @@ import type { IPermission } from '@domain/access/permission.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { createMockLoginResponse, createMockMeResponse } from '@providers/auth/auth.mock'
+import { Logger } from '@resetshop/angular-core/logger/logger.token'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { firstValueFrom, NEVER, of, throwError } from 'rxjs'
 import { AuthStore } from './auth.store'
@@ -14,6 +15,7 @@ describe('AuthStore', () => {
 	// Record<keyof AuthApi, MockFn> keeps the mock structurally in sync with the AuthApi interface —
 	// adding a method to AuthApi forces a corresponding mock key here.
 	let authApiMock: Record<keyof AuthApi, MockFn>
+	let loggerMock: { info: MockFn; warn: MockFn; error: MockFn; security: MockFn }
 
 	const mockLoginResponse = createMockLoginResponse()
 	const mockMeResponse = createMockMeResponse()
@@ -30,11 +32,12 @@ describe('AuthStore', () => {
 			forgotPassword: fn(),
 			resetPassword: fn(),
 		}
+		loggerMock = { info: fn(), warn: fn(), error: fn(), security: fn() }
 
 		authApiMock.getMe.mockReturnValue(throwError(() => new Error('No session')))
 
 		TestBed.configureTestingModule({
-			providers: [AuthStore, { provide: AuthApi, useValue: authApiMock }],
+			providers: [AuthStore, { provide: AuthApi, useValue: authApiMock }, { provide: Logger, useValue: loggerMock }],
 		})
 
 		store = TestBed.inject(AuthStore)
@@ -241,21 +244,31 @@ describe('AuthStore', () => {
 	})
 
 	describe('forgotPassword', () => {
-		it('flips resetRequested on success', () => {
-			authApiMock.forgotPassword.mockReturnValue(of({ message: 'sent' }))
+		it('flips resetRequested immediately, without waiting for the request to resolve', () => {
+			// NEVER => the request never completes. The confirmation must still appear, proving the flip
+			// is optimistic and the UI timing cannot leak whether the account exists.
+			authApiMock.forgotPassword.mockReturnValue(NEVER)
 
 			store.forgotPassword('user@example.com')
 
 			expect(store.resetRequested()).toBe(true)
-			expect(store.isRequestingReset()).toBe(false)
 		})
 
-		it('still flips resetRequested on error (neutral — no enumeration)', () => {
+		it('keeps resetRequested true when the request errors (neutral — no enumeration)', () => {
 			authApiMock.forgotPassword.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })))
 
 			store.forgotPassword('user@example.com')
 
 			expect(store.resetRequested()).toBe(true)
+		})
+
+		it('logs the error when the best-effort request fails (observability preserved)', () => {
+			const err = new HttpErrorResponse({ status: 500 })
+			authApiMock.forgotPassword.mockReturnValue(throwError(() => err))
+
+			store.forgotPassword('user@example.com')
+
+			expect(loggerMock.error.calls).toContainEqual(['AuthStore', 'forgotPassword failed', err])
 		})
 	})
 

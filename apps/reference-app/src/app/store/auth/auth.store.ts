@@ -110,21 +110,19 @@ export const AuthStore = signalStore(
 			),
 
 			/**
-			 * Request a self-service password reset for an email. The server always responds neutrally
-			 * (no enumeration); on completion `resetRequested` flips so the page shows the neutral
-			 * "if an account exists, a link was sent" confirmation — shown on error too, for the same reason.
+			 * Request a self-service password reset for an email. Flips `resetRequested` optimistically —
+			 * before the request is even sent — so the neutral "if an account exists, a link was sent"
+			 * confirmation appears with timing independent of whether the account exists (no enumeration).
+			 * The request fires best-effort: errors are logged for observability but never surfaced, and
+			 * the confirmation is never rolled back.
 			 */
 			forgotPassword: rxMethod<string>(
 				pipe(
-					tap(() => patchState(store, { isRequestingReset: true, resetRequested: false })),
+					tap(() => patchState(store, { resetRequested: true })),
 					switchMap((email) =>
 						authApi.forgotPassword({ email }).pipe(
 							tap({
-								next: () => patchState(store, { isRequestingReset: false, resetRequested: true }),
-								error: (error) => {
-									loggerService.error('AuthStore', 'forgotPassword failed', error)
-									patchState(store, { isRequestingReset: false, resetRequested: true })
-								},
+								error: (error) => loggerService.error('AuthStore', 'forgotPassword failed', error),
 							}),
 							catchError(() => EMPTY),
 						),
