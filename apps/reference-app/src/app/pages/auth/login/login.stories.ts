@@ -4,6 +4,7 @@ import { Component, effect, input, signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { LoginErrorCode } from '@contracts/auth/auth.errors'
+import { parseDurationToMs } from '@resetshop/util'
 import { AuthStore } from '@store/auth/auth.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
@@ -20,6 +21,9 @@ type ErrorCodeOption = LoginErrorCode | null
  * The story wrapper writes to it; the Login component's effect reads it via AuthStore.
  */
 const storyLoginError = signal<{ code: string } | null>(null)
+
+/** Drives the mock AuthStore's loginLockedUntil — set ~15 min ahead for the ACCOUNT_LOCKED story so the countdown renders. */
+const storyLoginLockedUntil = signal<string | null>(null)
 
 /**
  * Thin wrapper that renders the actual Login page component and
@@ -39,6 +43,9 @@ class LoginStoryComponent {
 	private readonly syncErrorEffect = effect(() => {
 		const code = this.errorCode()
 		storyLoginError.set(code ? { code } : null)
+		storyLoginLockedUntil.set(
+			code === LoginErrorCode.ACCOUNT_LOCKED ? new Date(Date.now() + parseDurationToMs('15m')).toISOString() : null,
+		)
 	})
 }
 
@@ -58,6 +65,7 @@ const meta: Meta<LoginStoryComponent> = {
 					useFactory: () => ({
 						currentUser: signal(null),
 						loginError: storyLoginError,
+						loginLockedUntil: storyLoginLockedUntil,
 						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						login: () => {},
 					}),
@@ -124,5 +132,12 @@ type Story = StoryObj<LoginStoryComponent>
 export const Default: Story = {
 	args: {
 		errorCode: null,
+	},
+}
+
+/** Account locked after repeated failures — shows the live "try again in mm:ss" countdown and disables submit. */
+export const AccountLocked: Story = {
+	args: {
+		errorCode: LoginErrorCode.ACCOUNT_LOCKED,
 	},
 }

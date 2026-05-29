@@ -3,10 +3,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { email, form, required, schema, FormField as SignalFormField, type FieldTree } from '@angular/forms/signals'
 import { Router, RouterLink } from '@angular/router'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
+import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '@resetshop/ui/button/button'
 import { FormField } from '@resetshop/ui/form-field/form-field'
 import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
 import { AuthStore } from '@store/auth/auth.store'
+import { createCountdown, formatCountdown } from '../countdown'
 
 interface ResetPasswordForm {
 	email: string
@@ -28,7 +30,9 @@ interface ResetPasswordForm {
 			</ng-template>
 
 			<ng-template #cardContent>
-				@if (store.resetRequested()) {
+				@if (throttleMessage()) {
+					<p class="text-destructive w-full max-w-96 text-center text-sm font-medium">{{ throttleMessage() }}</p>
+				} @else if (store.resetRequested()) {
 					<p class="text-muted-foreground w-full max-w-96 text-center text-sm">
 						{{ 'AUTH.RESET_PASSWORD.CONFIRMATION' | translate }}
 					</p>
@@ -46,7 +50,7 @@ interface ResetPasswordForm {
 
 			<ng-template #cardFooter>
 				<div class="flex flex-col gap-4 font-semibold">
-					@if (!store.resetRequested()) {
+					@if (!store.resetRequested() && throttleSeconds() === 0) {
 						<button [fullWidth]="true" [disabled]="!isFormValid()" appButton variant="default" size="md" type="submit">
 							{{ 'AUTH.RESET_PASSWORD.SUBMIT' | translate }}
 						</button>
@@ -72,8 +76,17 @@ interface ResetPasswordForm {
 export default class ResetPassword {
 	private readonly router = inject(Router)
 	protected readonly store = inject(AuthStore)
+	private readonly translation = inject(Translation)
 
 	protected readonly loginUrl = this.router.createUrlTree(['/auth/login'])
+
+	// Seconds left on the per-IP forgot-password rate limit (0 when not throttled); drives the countdown.
+	protected readonly throttleSeconds = createCountdown(this.store.resetThrottledUntil)
+	protected readonly throttleMessage = computed(() => {
+		const seconds = this.throttleSeconds()
+		if (seconds === 0) return null
+		return this.translation.instant('AUTH.ERRORS.RATE_LIMITED_UNTIL').replace('{time}', formatCountdown(seconds))
+	})
 
 	private readonly model = signal<ResetPasswordForm>({ email: '' })
 	protected readonly resetPasswordForm: FieldTree<ResetPasswordForm> = form(

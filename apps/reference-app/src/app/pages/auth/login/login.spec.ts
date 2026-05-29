@@ -1,10 +1,14 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
+import { LoginErrorCode, type LoginErrorResponse } from '@contracts/auth/auth.errors'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { clearAllMocks } from '@resetshop/util/test-utils'
+import { parseDurationToMs } from '@resetshop/util'
+import { clearAllMocks, fn, useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
+import { AuthStore } from '@store/auth/auth.store'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import Login from './login'
@@ -134,5 +138,37 @@ describe('Login', () => {
 
 		expect(screen.queryByText(/this field is required/i)).not.toBeInTheDocument()
 		expect(screen.queryByText(/must be at least/i)).not.toBeInTheDocument()
+	})
+
+	describe('account lockout countdown', () => {
+		beforeEach(() => useFakeTimers())
+		afterEach(() => useRealTimers())
+
+		const lockedStore = (lockedUntil: string | null) => ({
+			currentUser: signal(null),
+			loginError: signal<LoginErrorResponse | null>(
+				lockedUntil ? { code: LoginErrorCode.ACCOUNT_LOCKED, message: 'locked' } : null,
+			),
+			loginLockedUntil: signal<string | null>(lockedUntil),
+			login: fn(),
+		})
+
+		it('shows the lockout countdown and disables submit while locked', async () => {
+			const future = new Date(Date.now() + parseDurationToMs('1m')).toISOString()
+			await render(Login, {
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: lockedStore(future) }],
+			})
+
+			expect(await screen.findByText(/too many failed attempts/i)).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /Sign in/i })).toBeDisabled()
+		})
+
+		it('does not show a lockout countdown when the account is not locked', async () => {
+			await render(Login, {
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: lockedStore(null) }],
+			})
+
+			expect(screen.queryByText(/too many failed attempts/i)).not.toBeInTheDocument()
+		})
 	})
 })

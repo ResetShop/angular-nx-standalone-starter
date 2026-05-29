@@ -6,7 +6,8 @@ import { provideRouter } from '@angular/router'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { parseDurationToMs } from '@resetshop/util'
+import { clearAllMocks, fn, useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
@@ -176,6 +177,7 @@ describe('ResetPassword', () => {
 			const resetRequested = signal(true)
 			const mockStore = {
 				resetRequested,
+				resetThrottledUntil: signal<string | null>(null),
 				forgotPassword: fn(),
 				clearResetState: () => resetRequested.set(false),
 			}
@@ -191,6 +193,7 @@ describe('ResetPassword', () => {
 		it('clears the reset state once on init', async () => {
 			const mockStore = {
 				resetRequested: signal(false),
+				resetThrottledUntil: signal<string | null>(null),
 				forgotPassword: fn(),
 				clearResetState: fn(),
 			}
@@ -200,6 +203,27 @@ describe('ResetPassword', () => {
 			})
 
 			expect(mockStore.clearResetState.calls).toHaveLength(1)
+		})
+	})
+
+	describe('rate-limit countdown', () => {
+		beforeEach(() => useFakeTimers())
+		afterEach(() => useRealTimers())
+
+		it('shows the countdown and hides the submit button when throttled', async () => {
+			const mockStore = {
+				resetRequested: signal(false),
+				resetThrottledUntil: signal<string | null>(new Date(Date.now() + parseDurationToMs('1m')).toISOString()),
+				forgotPassword: fn(),
+				clearResetState: fn(),
+			}
+
+			await render(ResetPassword, {
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: mockStore }],
+			})
+
+			expect(await screen.findByText(/too many requests/i)).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: /Send reset link/i })).not.toBeInTheDocument()
 		})
 	})
 })

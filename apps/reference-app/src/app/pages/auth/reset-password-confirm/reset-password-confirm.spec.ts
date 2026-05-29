@@ -6,7 +6,8 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import type { AuthErrorResponse } from '@contracts/auth/auth.errors'
 import { InMemoryAuthApi, provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { parseDurationToMs } from '@resetshop/util'
+import { clearAllMocks, fn, useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
@@ -108,6 +109,7 @@ describe('ResetPasswordConfirm', () => {
 		const mockStore = {
 			isResettingPassword: signal(false),
 			resetPasswordError,
+			resetPasswordThrottledUntil: signal<string | null>(null),
 			resetPassword: fn(),
 			clearResetState: () => resetPasswordError.set(null),
 		}
@@ -125,5 +127,37 @@ describe('ResetPasswordConfirm', () => {
 		})
 
 		expect(screen.queryByText(/invalid or has expired/i)).not.toBeInTheDocument()
+	})
+
+	describe('rate-limit countdown', () => {
+		beforeEach(() => useFakeTimers())
+		afterEach(() => useRealTimers())
+
+		it('shows the countdown and disables submit when throttled', async () => {
+			const mockStore = {
+				isResettingPassword: signal(false),
+				resetPasswordError: signal<AuthErrorResponse | null>(null),
+				resetPasswordThrottledUntil: signal<string | null>(
+					new Date(Date.now() + parseDurationToMs('1m')).toISOString(),
+				),
+				resetPassword: fn(),
+				clearResetState: fn(),
+			}
+
+			await render(ResetPasswordConfirm, {
+				providers: [
+					provideRouter([]),
+					provideHttpClient(),
+					provideHttpClientTesting(),
+					provideTranslationMock(),
+					...provideSignalFormsConfig({}),
+					routeWithToken('some-token'),
+					{ provide: AuthStore, useValue: mockStore },
+				],
+			})
+
+			expect(await screen.findByText(/too many requests/i)).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /Reset password/i })).toBeDisabled()
+		})
 	})
 })

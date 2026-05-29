@@ -9,6 +9,7 @@ import {
 	type FieldTree,
 } from '@angular/forms/signals'
 import { Router, RouterLink } from '@angular/router'
+import { LoginErrorCode } from '@contracts/auth/auth.errors'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Alert, AlertDescription } from '@resetshop/ui/alert/alert'
@@ -17,6 +18,7 @@ import { FormField } from '@resetshop/ui/form-field/form-field'
 import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
 import { AuthStore } from '@store/auth/auth.store'
 import type { LoginForm } from '../../../interfaces/auth'
+import { createCountdown, formatCountdown } from '../countdown'
 
 @Component({
 	selector: 'app-login-page',
@@ -64,7 +66,11 @@ import type { LoginForm } from '../../../interfaces/auth'
 					</ng-template>
 				</div>
 
-				@if (errorMessage()) {
+				@if (lockoutMessage()) {
+					<div appAlert variant="destructive" class="mt-4">
+						<p appAlertDescription>{{ lockoutMessage() }}</p>
+					</div>
+				} @else if (errorMessage()) {
 					<div appAlert variant="destructive" class="mt-4">
 						<p appAlertDescription>{{ errorMessage() }}</p>
 					</div>
@@ -96,6 +102,9 @@ export default class Login {
 	protected readonly resetPassword = this.router.createUrlTree(['/auth/reset-password'])
 	protected readonly errorMessage = signal<string | null>(null)
 
+	// Seconds remaining on the account lockout (0 when not locked); drives the countdown + disables submit.
+	protected readonly remainingSeconds = createCountdown(this.authStore.loginLockedUntil)
+
 	private readonly model = signal<LoginForm>({ email: '', password: '' })
 	protected readonly loginForm: FieldTree<LoginForm> = form(
 		this.model,
@@ -106,7 +115,15 @@ export default class Login {
 		}),
 	)
 
+	// Live "try again in mm:ss" message while the account is locked; null once the countdown elapses.
+	protected readonly lockoutMessage = computed(() => {
+		const seconds = this.remainingSeconds()
+		if (seconds === 0) return null
+		return this.translation.instant('AUTH.ERRORS.ACCOUNT_LOCKED_UNTIL').replace('{time}', formatCountdown(seconds))
+	})
+
 	protected readonly isFormValid = computed(() => {
+		if (this.remainingSeconds() > 0) return false
 		const { email, password } = this.model()
 		if (!email || !password) return false
 		return this.loginForm.email().errors().length === 0 && this.loginForm.password().errors().length === 0
@@ -121,7 +138,14 @@ export default class Login {
 			this.loginEffect.destroy() // safe: field is assigned before this callback runs
 			this.router.navigate(['/dashboard'])
 		} else if (error) {
-			this.errorMessage.set(this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'))
+			// While the account is locked, the live countdown banner (lockoutMessage) supersedes the static
+			// message. Reading remainingSeconds re-runs this effect once the countdown populates / elapses.
+			const isLockoutWithCountdown = error.code === LoginErrorCode.ACCOUNT_LOCKED && this.remainingSeconds() > 0
+			this.errorMessage.set(
+				isLockoutWithCountdown
+					? null
+					: this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'),
+			)
 		}
 	})
 
