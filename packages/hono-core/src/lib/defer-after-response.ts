@@ -31,7 +31,12 @@ export function deferAfterResponse(
 	work: () => Promise<unknown>,
 	{ onError }: DeferAfterResponseOptions,
 ): void {
-	const task = Promise.resolve().then(work).catch(onError)
+	const task = Promise.resolve()
+		.then(work)
+		.catch(onError)
+		// Last-resort guard: onError is the real error sink, but if it ever throws this keeps the
+		// deferred task from surfacing an unhandled rejection (Node) or a rejected waitUntil (serverless).
+		.catch(() => undefined)
 	getExecutionCtx(c)?.waitUntil(task)
 }
 

@@ -16,7 +16,7 @@ function ctxWithoutExecution(): Pick<Context, 'executionCtx'> {
 	} as unknown as Pick<Context, 'executionCtx'>
 }
 
-// Flush microtasks + one macrotask so the deferred work has settled.
+// Yield to the event loop (a macrotask tick, after the microtask queue drains) so the deferred work settles.
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0))
 const noopOnError = (): void => undefined
 
@@ -41,6 +41,22 @@ describe('deferAfterResponse', () => {
 		)
 
 		expect(registered).toHaveLength(1)
+		await expect(registered[0]).resolves.toBeUndefined()
+	})
+
+	it('never surfaces an unhandled rejection even if onError itself throws', async () => {
+		const registered: Promise<unknown>[] = []
+		deferAfterResponse(
+			ctxWithExecution((promise) => registered.push(promise)),
+			async () => Promise.reject(new Error('work failed')),
+			{
+				onError: () => {
+					throw new Error('onError failed')
+				},
+			},
+		)
+
+		// The task registered with waitUntil resolves rather than rejecting, despite the throwing onError.
 		await expect(registered[0]).resolves.toBeUndefined()
 	})
 
