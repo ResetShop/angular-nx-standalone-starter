@@ -5,6 +5,7 @@ import {
 	cleanupTokensResponseSchema,
 	forgotPasswordRequestSchema,
 	forgotPasswordResponseSchema,
+	loginErrorResponseSchema,
 	loginRequestSchema,
 	loginResponseSchema,
 	logoutResponseSchema,
@@ -48,8 +49,9 @@ export const loginRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		401: {
-			description: 'Authentication failed',
-			content: { 'application/json': { schema: authErrorResponseSchema } },
+			description:
+				'Authentication failed. For ACCOUNT_LOCKED, the body carries `lockedUntil` (ISO-8601) so the client can render a lockout countdown.',
+			content: { 'application/json': { schema: loginErrorResponseSchema } },
 		},
 		429: {
 			description: 'Too many requests',
@@ -138,7 +140,7 @@ export const forgotPasswordRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		429: {
-			description: 'Too many requests',
+			description: 'Too many requests. The `Retry-After` header carries the seconds until the limit resets.',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 	},
@@ -168,7 +170,7 @@ export const resetPasswordRoute = createRoute({
 			content: { 'application/json': { schema: authErrorResponseSchema } },
 		},
 		429: {
-			description: 'Too many requests',
+			description: 'Too many requests. The `Retry-After` header carries the seconds until the limit resets.',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		500: {

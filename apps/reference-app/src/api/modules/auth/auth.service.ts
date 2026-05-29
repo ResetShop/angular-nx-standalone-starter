@@ -128,7 +128,7 @@ export class AuthService implements AuthServiceInterface {
 	private checkAccountLockout(authRecord: AuthenticationData | null, userId?: number): void {
 		if (authRecord?.lockedUntil && authRecord.lockedUntil > new Date()) {
 			logger.security('login_blocked_account_locked', { userId, lockedUntil: authRecord.lockedUntil.toISOString() })
-			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED)
+			throw new AuthError(InternalAuthErrorCode.ACCOUNT_LOCKED, authRecord.lockedUntil)
 		}
 	}
 
