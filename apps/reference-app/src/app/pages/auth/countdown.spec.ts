@@ -44,6 +44,13 @@ describe('createCountdown', () => {
 		expect(remaining()).toBe(0)
 	})
 
+	it('stays at 0 for a malformed timestamp', () => {
+		const remaining = build(signal<string | null>('not-a-date'))
+		TestBed.tick()
+
+		expect(remaining()).toBe(0)
+	})
+
 	it('resets to 0 when the source clears', () => {
 		const source = signal<string | null>(new Date(Date.now() + 5000).toISOString())
 		const remaining = build(source)
