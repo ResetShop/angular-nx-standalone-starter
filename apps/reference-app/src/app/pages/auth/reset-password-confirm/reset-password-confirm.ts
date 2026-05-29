@@ -124,7 +124,8 @@ export default class ResetPasswordConfirm {
 	constructor() {
 		// Clear stale reset state on entry so a fresh link never surfaces an error or spinner left over
 		// from a previous visit. Synchronous (before first render) so the error effect's first run sees
-		// no stale error.
+		// no stale error. This is a plain method call, not an effect() — the field-initializer rule
+		// applies only to effect()/afterRenderEffect()/afterNextRender().
 		this.authStore.clearResetState()
 	}
 

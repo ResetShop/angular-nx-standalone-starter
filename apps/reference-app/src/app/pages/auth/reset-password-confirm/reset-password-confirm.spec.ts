@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router'
+import type { AuthErrorResponse } from '@contracts/auth/auth.errors'
 import { InMemoryAuthApi, provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
@@ -100,7 +101,7 @@ describe('ResetPasswordConfirm', () => {
 
 	it('does not surface a stale error banner left over from a previous visit (clears on init)', async () => {
 		// Simulates arriving with a fresh link while the root store still holds an error from a prior bad-token visit.
-		const resetPasswordError = signal<{ code: string; message: string } | null>({
+		const resetPasswordError = signal<AuthErrorResponse | null>({
 			code: 'RESET_TOKEN_INVALID',
 			message: 'stale',
 		})

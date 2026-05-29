@@ -168,6 +168,9 @@ describe('ResetPassword', () => {
 	})
 
 	describe('stale state isolation', () => {
+		// These tests replace AuthStore with a plain mock, so the provideAuthMock() inside defaultProviders
+		// is inert here (the mock never touches AuthApi); it is kept only so the provider set matches the
+		// rest of the file.
 		it('shows the form, not a stale confirmation, when resetRequested is already true on arrival', async () => {
 			// Simulates returning to the page after a prior request left resetRequested=true in the root store.
 			const resetRequested = signal(true)
