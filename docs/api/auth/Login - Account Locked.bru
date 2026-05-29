@@ -1,0 +1,50 @@
+meta {
+  name: Login - Account Locked
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "admin@sistema.com",
+    "password": "wrongpassword"
+  }
+}
+
+docs {
+  # Login - Account Locked
+
+  Documents the locked-account response. **Precondition:** the account must already be locked —
+  send this request (or any wrong-password login) `AUTH_MAX_FAILED_ATTEMPTS` times (default 5), then
+  send it once more. The next attempt returns `401` with:
+
+  ```json
+  { "code": "ACCOUNT_LOCKED", "message": "...", "lockedUntil": "2026-06-01T00:15:00.000Z" }
+  ```
+
+  `lockedUntil` is an ISO-8601 instant the frontend turns into a "try again in mm:ss" countdown.
+  The lock auto-expires after `AUTH_LOCKOUT_DURATION` (default `15m`) — no admin action required.
+}
+
+assert {
+  res.status: eq 401
+}
+
+tests {
+  test("locked response is a 401", function() {
+    expect(res.status).to.equal(401);
+  });
+
+  test("when locked, body carries code ACCOUNT_LOCKED and an ISO lockedUntil", function() {
+    if (res.body.code === "ACCOUNT_LOCKED") {
+      expect(res.body.lockedUntil).to.be.a("string");
+      expect(new Date(res.body.lockedUntil).getTime()).to.be.greaterThan(Date.now());
+    }
+  });
+}

@@ -130,5 +130,20 @@ describe('POST /api/auth/login', () => {
 			const body = await response.json()
 			expect(body.code).toBe('ACCOUNT_LOCKED')
 		})
+
+		it('includes a future ISO-8601 lockedUntil in the ACCOUNT_LOCKED response', async () => {
+			for (let i = 0; i < 5; i++) {
+				await loginAs(app, 'admin@sistema.com', 'wrongpassword')
+			}
+
+			const { response } = await loginAs(app, 'admin@sistema.com', adminPassword)
+			const body = await response.json()
+
+			expect(body.code).toBe('ACCOUNT_LOCKED')
+			expect(typeof body.lockedUntil).toBe('string')
+			const lockExpiry = new Date(body.lockedUntil).getTime()
+			expect(Number.isFinite(lockExpiry)).toBe(true)
+			expect(lockExpiry).toBeGreaterThan(Date.now())
+		})
 	})
 })
