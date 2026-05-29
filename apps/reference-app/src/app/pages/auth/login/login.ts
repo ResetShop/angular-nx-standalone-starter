@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core'
 import {
 	email as emailValidator,
 	form,
@@ -139,8 +139,9 @@ export default class Login {
 			this.router.navigate(['/dashboard'])
 		} else if (error) {
 			// While the account is locked, the live countdown banner (lockoutMessage) supersedes the static
-			// message. Reading remainingSeconds re-runs this effect once the countdown populates / elapses.
-			const isLockoutWithCountdown = error.code === LoginErrorCode.ACCOUNT_LOCKED && this.remainingSeconds() > 0
+			// message in the template. untracked() so this effect reacts to the error, not to every tick.
+			const isLockoutWithCountdown =
+				error.code === LoginErrorCode.ACCOUNT_LOCKED && untracked(() => this.remainingSeconds() > 0)
 			this.errorMessage.set(
 				isLockoutWithCountdown
 					? null
