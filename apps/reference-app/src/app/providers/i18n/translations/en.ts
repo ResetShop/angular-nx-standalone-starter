@@ -42,6 +42,8 @@ const en: TranslationSchema = {
 			TOKEN_EXPIRED: 'Your session has expired. Please log in again.',
 			TOKEN_INVALID: 'Invalid session. Please log in again.',
 			GENERIC: 'Login error. Please try again.',
+			ACCOUNT_LOCKED_UNTIL: 'Too many failed attempts — try again in {time}',
+			RATE_LIMITED_UNTIL: 'Too many requests — try again in {time}',
 		},
 	},
 	LANDING: {

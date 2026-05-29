@@ -54,6 +54,10 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'AUTH.ERRORS.OLD_PASSWORD_MISMATCH': 'Your current password is incorrect',
 	'AUTH.ERRORS.RESET_TOKEN_INVALID': 'This reset link is invalid or has expired. Please request a new one.',
 	'AUTH.ERRORS.GENERIC': 'Login error. Please try again.',
+	'AUTH.ERRORS.ACCOUNT_LOCKED':
+		'Your account has been temporarily locked due to multiple failed attempts. Please try again later.',
+	'AUTH.ERRORS.ACCOUNT_LOCKED_UNTIL': 'Too many failed attempts — try again in {time}',
+	'AUTH.ERRORS.RATE_LIMITED_UNTIL': 'Too many requests — try again in {time}',
 
 	// Landing
 	'LANDING.PAGE_TITLE': 'Welcome',

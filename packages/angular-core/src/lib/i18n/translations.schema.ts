@@ -43,6 +43,8 @@ export interface TranslationSchema {
 			TOKEN_EXPIRED: string
 			TOKEN_INVALID: string
 			GENERIC: string
+			ACCOUNT_LOCKED_UNTIL: string
+			RATE_LIMITED_UNTIL: string
 		}
 	}
 	LANDING: {
