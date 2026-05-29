@@ -18,7 +18,7 @@ import type {
 	ResetPasswordRequest,
 	ResetPasswordResponse,
 } from '@contracts/auth/auth.types'
-import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
+import { createOpenAPIApp, deferAfterResponse, registerRoute } from '@resetshop/hono-core'
 import { logger, parseDurationToSeconds } from '@resetshop/util'
 import { timingSafeEqual } from 'crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
@@ -185,17 +185,18 @@ registerRoute(app, changePasswordRoute, async (c) => {
 
 // POST /api/auth/forgot-password - Request a self-service password reset
 // Public + rate-limited. Always returns 200 with a neutral message regardless of whether the email
-// belongs to an active account (no user enumeration); internal failures are swallowed for the same reason.
+// belongs to an active account (no user enumeration).
 registerRoute(app, forgotPasswordRoute, async (c) => {
 	const { passwordResetService } = container.cradle
 	const { email }: ForgotPasswordRequest = c.req.valid('json')
 
-	try {
-		await passwordResetService.requestPasswordReset(email)
-	} catch (error) {
-		// Swallow — surfacing this would leak whether the email exists / that processing occurred.
-		logger.error('ForgotPassword', 'requestPasswordReset failed', error)
-	}
+	// Run the lookup + token + email work AFTER the response so the endpoint's latency cannot leak
+	// whether the email belongs to an active account: the unknown-email path (a single DB read) and
+	// the active-account path (DB writes + SMTP) now return identically and immediately. The neutral
+	// 200 below is independent of the outcome, so failures are logged but never surfaced.
+	deferAfterResponse(c, () => passwordResetService.requestPasswordReset(email), {
+		onError: (error) => logger.error('ForgotPassword', 'requestPasswordReset failed', error),
+	})
 
 	return c.json<ForgotPasswordResponse>(
 		{ message: 'If an account exists for that email, a password-reset link has been sent.' },

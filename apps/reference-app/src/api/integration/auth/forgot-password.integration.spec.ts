@@ -29,15 +29,26 @@ describe('POST /api/auth/forgot-password', () => {
 		})
 	}
 
+	// The token + email work runs AFTER the response (deferAfterResponse), so the row appears
+	// asynchronously — poll for it. Also serves to drain the deferred write before afterEach cleanup.
+	async function waitForResetTokens(userId: number): Promise<{ id: number }[]> {
+		for (let attempt = 0; attempt < 80; attempt++) {
+			const rows = await getTestDb()
+				.select({ id: passwordResetToken.id })
+				.from(passwordResetToken)
+				.where(eq(passwordResetToken.userId, userId))
+			if (rows.length > 0) return rows
+			await new Promise((resolve) => setTimeout(resolve, 25))
+		}
+		return []
+	}
+
 	it('returns 200 and creates a reset token for an existing active account', async () => {
 		const response = await forgotPassword('admin@sistema.com')
 
 		expect(response.status).toBe(200)
-		const rows = await getTestDb()
-			.select({ id: passwordResetToken.id })
-			.from(passwordResetToken)
-			.where(eq(passwordResetToken.userId, adminUserId))
-		expect(rows).toHaveLength(1)
+		// Created by deferred post-response work — poll until it lands.
+		expect(await waitForResetTokens(adminUserId)).toHaveLength(1)
 	})
 
 	it('returns 200 with an identical body for a known and an unknown email (no enumeration)', async () => {
@@ -47,6 +58,9 @@ describe('POST /api/auth/forgot-password', () => {
 		expect(known.status).toBe(200)
 		expect(unknown.status).toBe(200)
 		expect(await unknown.json()).toEqual(await known.json())
+
+		// Drain the known email's deferred token write so afterEach reliably cleans it up.
+		await waitForResetTokens(adminUserId)
 	})
 
 	it('returns 400 for an invalid email format', async () => {
