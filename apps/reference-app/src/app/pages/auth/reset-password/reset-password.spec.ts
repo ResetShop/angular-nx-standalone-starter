@@ -1,11 +1,13 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { clearAllMocks } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { AuthStore } from '@store/auth/auth.store'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import { NEVER } from 'rxjs'
@@ -163,5 +165,38 @@ describe('ResetPassword', () => {
 
 		expect(screen.queryByText(/this field is required/i)).not.toBeInTheDocument()
 		expect(screen.queryByText(/please enter a valid email address/i)).not.toBeInTheDocument()
+	})
+
+	describe('stale state isolation', () => {
+		it('shows the form, not a stale confirmation, when resetRequested is already true on arrival', async () => {
+			// Simulates returning to the page after a prior request left resetRequested=true in the root store.
+			const resetRequested = signal(true)
+			const mockStore = {
+				resetRequested,
+				forgotPassword: fn(),
+				clearResetState: () => resetRequested.set(false),
+			}
+
+			await render(ResetPassword, {
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: mockStore }],
+			})
+
+			expect(screen.getByLabelText(/Email address/i)).toBeInTheDocument()
+			expect(screen.queryByText(/a password-reset link has been sent/i)).not.toBeInTheDocument()
+		})
+
+		it('clears the reset state once on init', async () => {
+			const mockStore = {
+				resetRequested: signal(false),
+				forgotPassword: fn(),
+				clearResetState: fn(),
+			}
+
+			await render(ResetPassword, {
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: mockStore }],
+			})
+
+			expect(mockStore.clearResetState.calls).toHaveLength(1)
+		})
 	})
 })

@@ -121,6 +121,13 @@ export default class ResetPasswordConfirm {
 		}
 	})
 
+	constructor() {
+		// Clear stale reset state on entry so a fresh link never surfaces an error or spinner left over
+		// from a previous visit. Synchronous (before first render) so the error effect's first run sees
+		// no stale error.
+		this.authStore.clearResetState()
+	}
+
 	protected onSubmit(event: Event) {
 		event.preventDefault()
 		if (!this.isFormValid() || !this.token()) {

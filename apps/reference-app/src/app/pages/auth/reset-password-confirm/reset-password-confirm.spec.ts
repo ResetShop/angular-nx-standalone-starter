@@ -1,10 +1,12 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
+import { signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router'
 import { InMemoryAuthApi, provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { clearAllMocks } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { AuthStore } from '@store/auth/auth.store'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import ResetPasswordConfirm from './reset-password-confirm'
@@ -94,5 +96,33 @@ describe('ResetPasswordConfirm', () => {
 		await user.click(screen.getByRole('button', { name: /Reset password/i }))
 
 		expect(await screen.findByText(/login error/i)).toBeInTheDocument()
+	})
+
+	it('does not surface a stale error banner left over from a previous visit (clears on init)', async () => {
+		// Simulates arriving with a fresh link while the root store still holds an error from a prior bad-token visit.
+		const resetPasswordError = signal<{ code: string; message: string } | null>({
+			code: 'RESET_TOKEN_INVALID',
+			message: 'stale',
+		})
+		const mockStore = {
+			isResettingPassword: signal(false),
+			resetPasswordError,
+			resetPassword: fn(),
+			clearResetState: () => resetPasswordError.set(null),
+		}
+
+		await render(ResetPasswordConfirm, {
+			providers: [
+				provideRouter([]),
+				provideHttpClient(),
+				provideHttpClientTesting(),
+				provideTranslationMock(),
+				...provideSignalFormsConfig({}),
+				routeWithToken('some-token'),
+				{ provide: AuthStore, useValue: mockStore },
+			],
+		})
+
+		expect(screen.queryByText(/invalid or has expired/i)).not.toBeInTheDocument()
 	})
 })

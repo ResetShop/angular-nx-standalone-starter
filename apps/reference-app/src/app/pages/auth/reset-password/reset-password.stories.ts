@@ -38,6 +38,8 @@ const meta: Meta<ResetPasswordStoryComponent> = {
 						resetRequested: storyResetRequested,
 						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						forgotPassword: () => {},
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						clearResetState: () => {},
 					}),
 				},
 			],
