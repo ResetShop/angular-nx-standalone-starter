@@ -125,14 +125,6 @@ const en: TranslationSchema = {
 			ROLES_LABEL: 'Roles',
 			SUCCESS_TOAST: 'User created successfully.',
 		},
-		EDIT_DRAWER: {
-			TITLE: 'Edit User',
-			FIRST_NAME: 'First Name',
-			LAST_NAME: 'Last Name',
-			EMAIL: 'Email',
-			ROLES_LABEL: 'Roles',
-			SUCCESS_TOAST: 'User updated successfully.',
-		},
 		DETAIL: {
 			TITLE: 'User Details',
 			BACK: 'Back to Users',

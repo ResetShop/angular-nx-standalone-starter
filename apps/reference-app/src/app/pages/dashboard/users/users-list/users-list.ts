@@ -8,6 +8,7 @@ import {
 	untracked,
 	viewChild,
 } from '@angular/core'
+import { Router } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
@@ -29,7 +30,6 @@ import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
-import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 import { UserCard } from './user-card'
 
 @Component({
@@ -43,7 +43,6 @@ import { UserCard } from './user-card'
 		DataTable,
 		DataTableCardDef,
 		DataTableCellDef,
-		EditUserDrawer,
 		HasPermissionDirective,
 		PageShell,
 		Pagination,
@@ -107,7 +106,7 @@ import { UserCard } from './user-card'
 
 				<ng-template appDataTableCardDef let-row>
 					<app-user-card
-						(edit)="editDrawer.open(row.id)"
+						(edit)="goToDetail(row)"
 						(delete)="confirmDelete(row)"
 						(resetPassword)="confirmResetPassword(row)"
 						[user]="row"
@@ -127,7 +126,6 @@ import { UserCard } from './user-card'
 		</app-page-shell>
 
 		<app-create-user-drawer #createDrawer />
-		<app-edit-user-drawer #editDrawer />
 
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
@@ -155,9 +153,9 @@ export default class UsersList {
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
+	private readonly router = inject(Router)
 	protected readonly currentUser = inject(CurrentUser)
 
-	private readonly editDrawerRef = viewChild.required<EditUserDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
 
@@ -215,6 +213,10 @@ export default class UsersList {
 		this.store.setSearchQuery(input.value)
 	}
 
+	protected goToDetail(user: IManagedUser): void {
+		void this.router.navigate(['/dashboard/users', user.id])
+	}
+
 	protected getRowActions(row: IManagedUser): readonly (readonly RowAction[])[] {
 		const user = this.authStore.currentUser()
 		const isSelf = this.currentUser.is(row)
@@ -223,7 +225,7 @@ export default class UsersList {
 		if (user?.hasPermission('admin:users:update')) {
 			nonDestructive.push({
 				label: this.translation.instant('COMMON.EDIT'),
-				onSelect: () => this.editDrawerRef().open(row.id),
+				onSelect: () => this.goToDetail(row),
 			})
 		}
 

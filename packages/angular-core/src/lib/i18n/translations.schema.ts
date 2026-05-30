@@ -124,14 +124,6 @@ export interface TranslationSchema {
 			ROLES_LABEL: string
 			SUCCESS_TOAST: string
 		}
-		EDIT_DRAWER: {
-			TITLE: string
-			FIRST_NAME: string
-			LAST_NAME: string
-			EMAIL: string
-			ROLES_LABEL: string
-			SUCCESS_TOAST: string
-		}
 		DETAIL: {
 			TITLE: string
 			BACK: string

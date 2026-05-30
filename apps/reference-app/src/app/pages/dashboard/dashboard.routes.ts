@@ -49,6 +49,14 @@ export default [
 				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
 			},
 			{
+				path: 'users/:id',
+				title: 'USERS.DETAIL.TITLE',
+				loadComponent: () => import('./users/user-detail-page/user-detail-page'),
+				canActivate: [permissionGuard],
+				data: { requiredPermission: 'admin:users:read' },
+				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
+			},
+			{
 				path: 'authorization',
 				title: 'DASHBOARD.AUTHORIZATION.NAV',
 				children: [
