@@ -56,7 +56,13 @@ export const AuthStore = signalStore(
 			login: rxMethod<{ email: string; password: string }>(
 				pipe(
 					tap(() =>
-						patchState(store, { isLoggingIn: true, loginError: null, loginLockedUntil: null, networkError: false }),
+						patchState(store, {
+							isLoggingIn: true,
+							loginError: null,
+							loginLockedUntil: null,
+							loginThrottledUntil: null,
+							networkError: false,
+						}),
 					),
 					switchMap((params) =>
 						authApi.login(params).pipe(
@@ -70,6 +76,7 @@ export const AuthStore = signalStore(
 										isTokenRefreshing: false,
 										loginError: null,
 										loginLockedUntil: null,
+										loginThrottledUntil: null,
 										networkError: false,
 									})
 								},
@@ -79,8 +86,10 @@ export const AuthStore = signalStore(
 									patchState(store, {
 										isLoggingIn: false,
 										loginError: isNetworkError ? null : error.error,
-										// Only ACCOUNT_LOCKED carries lockedUntil; drives the login countdown.
+										// Only ACCOUNT_LOCKED carries lockedUntil; drives the lockout half of the login countdown.
 										loginLockedUntil: isNetworkError ? null : (body?.lockedUntil ?? null),
+										// A 429 from the per-IP login rate limiter carries Retry-After; same countdown UX.
+										loginThrottledUntil: isNetworkError ? null : throttledUntilFrom(error),
 										networkError: isNetworkError,
 									})
 								},

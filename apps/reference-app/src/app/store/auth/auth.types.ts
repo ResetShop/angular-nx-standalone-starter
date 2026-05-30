@@ -23,6 +23,9 @@ export interface AuthState {
 	/** ISO-8601 instant the account lockout expires (from a 401 ACCOUNT_LOCKED), or null. Drives the login countdown. */
 	loginLockedUntil: string | null
 
+	/** ISO-8601 instant the per-IP login rate limit resets (from a 429 `Retry-After`), or null. Drives the login countdown. */
+	loginThrottledUntil: string | null
+
 	/** Whether a network/server error occurred during login (5xx or connection failure) */
 	networkError: boolean
 
@@ -65,6 +68,7 @@ export const initialAuthState: AuthState = {
 	isLoggingOut: false,
 	loginError: null,
 	loginLockedUntil: null,
+	loginThrottledUntil: null,
 	networkError: false,
 	mustChangePassword: false,
 	isChangingPassword: false,
