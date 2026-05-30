@@ -134,6 +134,49 @@ describe('parseAuthEnv', () => {
 		})
 	})
 
+	describe('AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW', () => {
+		it('defaults to "15m"', () => {
+			expect(parseAuthEnv(validMinimalEnv()).AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW).toBe('15m')
+		})
+
+		it('uses a valid duration string', () => {
+			expect(
+				parseAuthEnv(validMinimalEnv({ AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW: '30m' }))
+					.AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
+			).toBe('30m')
+		})
+
+		it('falls back to default on invalid duration string', () => {
+			expect(
+				parseAuthEnv(validMinimalEnv({ AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW: 'not-a-duration' }))
+					.AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
+			).toBe('15m')
+		})
+	})
+
+	describe('AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX', () => {
+		it('defaults to 5', () => {
+			expect(parseAuthEnv(validMinimalEnv()).AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX).toBe(5)
+		})
+
+		it('coerces a valid positive integer', () => {
+			expect(
+				parseAuthEnv(validMinimalEnv({ AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX: '10' }))
+					.AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX,
+			).toBe(10)
+		})
+
+		it('falls back to default on invalid values (tolerant)', () => {
+			expect(
+				parseAuthEnv(validMinimalEnv({ AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX: 'abc' }))
+					.AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX,
+			).toBe(5)
+			expect(
+				parseAuthEnv(validMinimalEnv({ AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX: '0' })).AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX,
+			).toBe(5)
+		})
+	})
+
 	describe('BCRYPT_COST', () => {
 		it('defaults to 12', () => {
 			expect(parseAuthEnv(validMinimalEnv()).BCRYPT_COST).toBe(12)

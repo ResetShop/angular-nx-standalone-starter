@@ -1,12 +1,14 @@
 /**
  * Auth env sub-schema.
  *
- * Covers PASETO secrets and token expiries, account-lockout policy, the bcrypt
- * cost factor, the cron-job bearer secret, and the cookie security flag.
+ * Covers PASETO secrets and token expiries, account-lockout policy, the
+ * change-password rate-limit overrides, the bcrypt cost factor, the cron-job
+ * bearer secret, and the cookie security flag.
  * Self-contained — no dependency on any other env sub-module — so services that
  * only need auth config (PasetoService, AuthConfig, the cleanup-tokens
- * controller, the user-management service's password hashing) import from here
- * without triggering validation for unrelated domains.
+ * controller, the change-password rate limiter, the user-management service's
+ * password hashing) import from here without triggering validation for unrelated
+ * domains.
  *
  * Consumers must import `authEnv` (or `parseAuthEnv` / `seedAuthEnv` for tests).
  * Direct `process.env[...]` access is ESLint-forbidden everywhere except files
@@ -16,6 +18,8 @@ import { parseDurationToMs } from '@resetshop/util'
 import { z } from 'zod'
 import {
 	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX,
+	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
 	DEFAULT_LOCKOUT_DURATION,
 	DEFAULT_MAX_FAILED_ATTEMPTS,
 	DEFAULT_REFRESH_TOKEN_EXPIRY,
@@ -62,6 +66,19 @@ const AuthEnvSchema = z.object({
 			if (!v) return DEFAULT_LOCKOUT_DURATION
 			return isValidDuration(v) ? v : DEFAULT_LOCKOUT_DURATION
 		}),
+	AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW: z
+		.string()
+		.optional()
+		.transform((v) => {
+			if (!v) return DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW
+			return isValidDuration(v) ? v : DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW
+		}),
+	AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX: z.coerce
+		.number()
+		.int()
+		.positive()
+		.default(DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX)
+		.catch(DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX),
 	BCRYPT_COST: z.coerce.number().int().positive().default(DEFAULT_BCRYPT_COST).catch(DEFAULT_BCRYPT_COST),
 	CRON_SECRET: z.string().optional(),
 })
