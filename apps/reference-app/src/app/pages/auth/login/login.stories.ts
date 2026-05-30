@@ -25,6 +25,9 @@ const storyLoginError = signal<{ code: string } | null>(null)
 /** Drives the mock AuthStore's loginLockedUntil — set ~15 min ahead for the ACCOUNT_LOCKED story so the countdown renders. */
 const storyLoginLockedUntil = signal<string | null>(null)
 
+/** Drives the mock AuthStore's loginThrottledUntil — set ~15 min ahead for a per-IP rate-limit (429) story. */
+const storyLoginThrottledUntil = signal<string | null>(null)
+
 /**
  * Thin wrapper that renders the actual Login page component and
  * drives its error state via a mock AuthStore provider.
@@ -39,12 +42,16 @@ const storyLoginLockedUntil = signal<string | null>(null)
 })
 class LoginStoryComponent {
 	public readonly errorCode = input<ErrorCodeOption>(null)
+	public readonly throttled = input<boolean>(false)
 
 	private readonly syncErrorEffect = effect(() => {
 		const code = this.errorCode()
 		storyLoginError.set(code ? { code } : null)
 		storyLoginLockedUntil.set(
 			code === LoginErrorCode.ACCOUNT_LOCKED ? new Date(Date.now() + parseDurationToMs('15m')).toISOString() : null,
+		)
+		storyLoginThrottledUntil.set(
+			this.throttled() ? new Date(Date.now() + parseDurationToMs('15m')).toISOString() : null,
 		)
 	})
 }
@@ -66,6 +73,7 @@ const meta: Meta<LoginStoryComponent> = {
 						currentUser: signal(null),
 						loginError: storyLoginError,
 						loginLockedUntil: storyLoginLockedUntil,
+						loginThrottledUntil: storyLoginThrottledUntil,
 						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						login: () => {},
 					}),
@@ -119,6 +127,11 @@ The login page handles several error conditions (using \`LoginErrorCode\`):
 				[LoginErrorCode.GENERIC]: 'Generic Error',
 			},
 		},
+		throttled: {
+			control: 'boolean',
+			description: 'Show the per-IP rate-limit countdown (too many requests)',
+			table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+		},
 	},
 }
 
@@ -139,5 +152,12 @@ export const Default: Story = {
 export const AccountLocked: Story = {
 	args: {
 		errorCode: LoginErrorCode.ACCOUNT_LOCKED,
+	},
+}
+
+/** Per-IP rate limit tripped (429) — the same countdown UX, with the "too many requests" message. */
+export const RateLimited: Story = {
+	args: {
+		throttled: true,
 	},
 }
