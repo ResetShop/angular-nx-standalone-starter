@@ -90,6 +90,13 @@ export default class ResetPassword {
 		return this.resetPasswordForm.email().errors().length === 0
 	})
 
+	constructor() {
+		// Clear any stale reset state so returning to this page always shows a fresh form rather than a
+		// confirmation lingering from a previous request (the flag lives in the root-scoped store).
+		// Done synchronously here — before the first render — to avoid a flash of the stale confirmation.
+		this.store.clearResetState()
+	}
+
 	protected onSubmit(event: Event) {
 		event.preventDefault()
 		if (!this.isFormValid()) {

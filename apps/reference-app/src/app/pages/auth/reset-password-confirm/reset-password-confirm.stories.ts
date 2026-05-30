@@ -53,6 +53,8 @@ const meta: Meta<ResetPasswordConfirmStoryComponent> = {
 						resetPasswordError: storyResetError,
 						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						resetPassword: () => {},
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						clearResetState: () => {},
 					}),
 				},
 			],
