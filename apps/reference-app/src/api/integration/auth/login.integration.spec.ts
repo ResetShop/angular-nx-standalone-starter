@@ -130,5 +130,43 @@ describe('POST /api/auth/login', () => {
 			const body = await response.json()
 			expect(body.code).toBe('ACCOUNT_LOCKED')
 		})
+
+		it('includes a future ISO-8601 lockedUntil in the ACCOUNT_LOCKED response', async () => {
+			for (let i = 0; i < 5; i++) {
+				await loginAs(app, 'admin@sistema.com', 'wrongpassword')
+			}
+
+			const { response } = await loginAs(app, 'admin@sistema.com', adminPassword)
+			const body = await response.json()
+
+			expect(body.code).toBe('ACCOUNT_LOCKED')
+			expect(typeof body.lockedUntil).toBe('string')
+			const lockExpiry = new Date(body.lockedUntil).getTime()
+			expect(Number.isFinite(lockExpiry)).toBe(true)
+			expect(lockExpiry).toBeGreaterThan(Date.now())
+		})
+	})
+
+	describe('rate limiting', () => {
+		afterEach(async () => {
+			await resetAdminLockout(getTestDb())
+		})
+
+		it('returns 429 with a Retry-After header once the per-IP login rate limit is exceeded', async () => {
+			// Same IP for every call so the per-IP limiter (5 / 15m) trips on the 6th request. Distinct from
+			// the per-account lockout — this fires in middleware before the handler reaches checkAccountLockout.
+			const fromSameIp = () =>
+				app.request('/api/auth/login', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.97.0.1' },
+					body: JSON.stringify({ email: 'admin@sistema.com', password: 'wrongpassword' }),
+				})
+
+			let last: Response | undefined
+			for (let i = 0; i < 6; i++) last = await fromSameIp()
+
+			expect(last?.status).toBe(429)
+			expect(Number(last?.headers.get('Retry-After'))).toBeGreaterThan(0)
+		})
 	})
 })

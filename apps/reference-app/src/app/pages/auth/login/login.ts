@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core'
 import {
 	email as emailValidator,
 	form,
@@ -17,6 +17,7 @@ import { FormField } from '@resetshop/ui/form-field/form-field'
 import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
 import { AuthStore } from '@store/auth/auth.store'
 import type { LoginForm } from '../../../interfaces/auth'
+import { createCountdown, formatCountdown } from '../countdown'
 
 @Component({
 	selector: 'app-login-page',
@@ -64,7 +65,11 @@ import type { LoginForm } from '../../../interfaces/auth'
 					</ng-template>
 				</div>
 
-				@if (errorMessage()) {
+				@if (lockoutMessage()) {
+					<div appAlert variant="destructive" class="mt-4">
+						<p appAlertDescription>{{ lockoutMessage() }}</p>
+					</div>
+				} @else if (errorMessage()) {
 					<div appAlert variant="destructive" class="mt-4">
 						<p appAlertDescription>{{ errorMessage() }}</p>
 					</div>
@@ -96,6 +101,14 @@ export default class Login {
 	protected readonly resetPassword = this.router.createUrlTree(['/auth/reset-password'])
 	protected readonly errorMessage = signal<string | null>(null)
 
+	// Either of these blocks a login attempt: an account-level lockout (ACCOUNT_LOCKED 401) or the per-IP
+	// rate limit (429 Retry-After). Lockout takes precedence if both are set — it's account-state-level.
+	private readonly blockedUntil = computed(
+		() => this.authStore.loginLockedUntil() ?? this.authStore.loginThrottledUntil(),
+	)
+	// Seconds remaining on whichever block is active (0 when neither); drives the countdown + disables submit.
+	protected readonly remainingSeconds = createCountdown(this.blockedUntil)
+
 	private readonly model = signal<LoginForm>({ email: '', password: '' })
 	protected readonly loginForm: FieldTree<LoginForm> = form(
 		this.model,
@@ -106,7 +119,19 @@ export default class Login {
 		}),
 	)
 
+	// Live "try again in mm:ss" message while a block is active; null once the countdown elapses.
+	// The key differs for lockout ("too many failed attempts") vs throttle ("too many requests").
+	protected readonly lockoutMessage = computed(() => {
+		const seconds = this.remainingSeconds()
+		if (seconds === 0) return null
+		const key = this.authStore.loginLockedUntil()
+			? 'AUTH.ERRORS.ACCOUNT_LOCKED_UNTIL'
+			: 'AUTH.ERRORS.RATE_LIMITED_UNTIL'
+		return this.translation.instant(key).replace('{time}', formatCountdown(seconds))
+	})
+
 	protected readonly isFormValid = computed(() => {
+		if (this.remainingSeconds() > 0) return false
 		const { email, password } = this.model()
 		if (!email || !password) return false
 		return this.loginForm.email().errors().length === 0 && this.loginForm.password().errors().length === 0
@@ -121,7 +146,16 @@ export default class Login {
 			this.loginEffect.destroy() // safe: field is assigned before this callback runs
 			this.router.navigate(['/dashboard'])
 		} else if (error) {
-			this.errorMessage.set(this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'))
+			// While EITHER a lockout (ACCOUNT_LOCKED) or a per-IP throttle (429) is active, the live countdown
+			// banner (lockoutMessage) supersedes the static message in the template. The 429 body has no
+			// `code`, so it would otherwise fall through to GENERIC ("Error al iniciar sesión…"). untracked()
+			// so this effect reacts to the arrival of a new error, not to every tick of the countdown.
+			const isBlockedWithCountdown = untracked(() => this.remainingSeconds() > 0)
+			this.errorMessage.set(
+				isBlockedWithCountdown
+					? null
+					: this.translation.instant(error.code ? `AUTH.ERRORS.${error.code}` : 'AUTH.ERRORS.GENERIC'),
+			)
 		}
 	})
 

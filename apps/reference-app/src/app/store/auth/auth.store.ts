@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
-import { type AuthErrorResponse, PublicAuthErrorCode } from '@contracts/auth/auth.errors'
+import { type AuthErrorResponse, type LoginErrorResponse, PublicAuthErrorCode } from '@contracts/auth/auth.errors'
 import type { ChangePasswordRequest, ResetPasswordRequest } from '@contracts/auth/auth.types'
 import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper'
 import type { IUser } from '@domain/user/user.interface'
@@ -10,6 +10,18 @@ import { AuthApi } from '@providers/auth/auth.interface'
 import { Logger } from '@resetshop/angular-core/logger/logger.token'
 import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs'
 import { initialAuthState } from './auth.types'
+
+/**
+ * Converts a 429 rate-limit response's `Retry-After` header (whole seconds) into an absolute ISO-8601
+ * instant the page countdown can tick down to. Returns null for non-429 responses or a missing/invalid
+ * header. Shared by the forgot-password and reset-password flows.
+ */
+function throttledUntilFrom(error: HttpErrorResponse): string | null {
+	if (error.status !== 429) return null
+	const retryAfterSeconds = Number(error.headers.get('Retry-After'))
+	if (!Number.isFinite(retryAfterSeconds) || retryAfterSeconds <= 0) return null
+	return new Date(Date.now() + retryAfterSeconds * 1000).toISOString()
+}
 
 /**
  * AuthStore - Signal Store for authentication state
@@ -43,7 +55,15 @@ export const AuthStore = signalStore(
 			 */
 			login: rxMethod<{ email: string; password: string }>(
 				pipe(
-					tap(() => patchState(store, { isLoggingIn: true, loginError: null, networkError: false })),
+					tap(() =>
+						patchState(store, {
+							isLoggingIn: true,
+							loginError: null,
+							loginLockedUntil: null,
+							loginThrottledUntil: null,
+							networkError: false,
+						}),
+					),
 					switchMap((params) =>
 						authApi.login(params).pipe(
 							tap({
@@ -55,14 +75,21 @@ export const AuthStore = signalStore(
 										isLoggingIn: false,
 										isTokenRefreshing: false,
 										loginError: null,
+										loginLockedUntil: null,
+										loginThrottledUntil: null,
 										networkError: false,
 									})
 								},
 								error: (error: HttpErrorResponse) => {
 									const isNetworkError = error.status === 0 || error.status >= 500
+									const body = error.error as LoginErrorResponse | undefined
 									patchState(store, {
 										isLoggingIn: false,
 										loginError: isNetworkError ? null : error.error,
+										// Only ACCOUNT_LOCKED carries lockedUntil; drives the lockout half of the login countdown.
+										loginLockedUntil: isNetworkError ? null : (body?.lockedUntil ?? null),
+										// A 429 from the per-IP login rate limiter carries Retry-After; same countdown UX.
+										loginThrottledUntil: isNetworkError ? null : throttledUntilFrom(error),
 										networkError: isNetworkError,
 									})
 								},
@@ -118,11 +145,17 @@ export const AuthStore = signalStore(
 			 */
 			forgotPassword: rxMethod<string>(
 				pipe(
-					tap(() => patchState(store, { resetRequested: true })),
+					tap(() => patchState(store, { resetRequested: true, resetThrottledUntil: null })),
 					switchMap((email) =>
 						authApi.forgotPassword({ email }).pipe(
 							tap({
-								error: (error) => loggerService.error('AuthStore', 'forgotPassword failed', error),
+								error: (error: HttpErrorResponse) => {
+									loggerService.error('AuthStore', 'forgotPassword failed', error)
+									// A 429 is per-IP (fires before any account lookup), so surfacing its countdown over the
+									// optimistic confirmation leaks nothing about account existence.
+									const throttledUntil = throttledUntilFrom(error)
+									if (throttledUntil) patchState(store, { resetThrottledUntil: throttledUntil })
+								},
 							}),
 							catchError(() => EMPTY),
 						),
@@ -136,13 +169,34 @@ export const AuthStore = signalStore(
 			 */
 			resetPassword: rxMethod<ResetPasswordRequest>(
 				pipe(
-					tap(() => patchState(store, { isResettingPassword: true, resetPasswordError: null })),
+					tap(() =>
+						patchState(store, {
+							isResettingPassword: true,
+							resetPasswordError: null,
+							resetPasswordThrottledUntil: null,
+						}),
+					),
 					switchMap((body) =>
 						authApi.resetPassword(body).pipe(
 							tap({
-								next: () => patchState(store, { isResettingPassword: false, resetPasswordError: null }),
+								next: () =>
+									patchState(store, {
+										isResettingPassword: false,
+										resetPasswordError: null,
+										resetPasswordThrottledUntil: null,
+									}),
 								error: (error: HttpErrorResponse) => {
 									loggerService.error('AuthStore', 'resetPassword failed', error)
+									// On a 429, show the countdown instead of a generic error banner (per-IP, no enumeration).
+									const throttledUntil = throttledUntilFrom(error)
+									if (throttledUntil) {
+										patchState(store, {
+											isResettingPassword: false,
+											resetPasswordError: null,
+											resetPasswordThrottledUntil: throttledUntil,
+										})
+										return
+									}
 									const errorBody = error.error as AuthErrorResponse | undefined
 									patchState(store, {
 										isResettingPassword: false,
@@ -244,7 +298,13 @@ export const AuthStore = signalStore(
 			 * instead of a stale confirmation/error lingering from a previous visit.
 			 */
 			clearResetState() {
-				patchState(store, { resetRequested: false, isResettingPassword: false, resetPasswordError: null })
+				patchState(store, {
+					resetRequested: false,
+					resetThrottledUntil: null,
+					isResettingPassword: false,
+					resetPasswordError: null,
+					resetPasswordThrottledUntil: null,
+				})
 			},
 		}
 	}),

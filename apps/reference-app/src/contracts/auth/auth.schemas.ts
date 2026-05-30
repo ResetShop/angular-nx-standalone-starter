@@ -67,6 +67,16 @@ export const authErrorResponseSchema = z.object({
 	message: z.string(),
 })
 
+/**
+ * Login-specific 401 error shape. Extends the shared auth error with an optional `lockedUntil`
+ * (ISO-8601), populated only for `ACCOUNT_LOCKED` so the client can render a lockout countdown.
+ */
+export const loginErrorResponseSchema = z.object({
+	code: z.string(),
+	message: z.string(),
+	lockedUntil: z.iso.datetime().optional(),
+})
+
 export const loginResponseSchema = z.object({
 	user: authUserSchema,
 	mustChangePassword: z.boolean(),

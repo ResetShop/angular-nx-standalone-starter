@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http'
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import type { RefreshResponse } from '@contracts/auth/auth.types'
 import type { IPermission } from '@domain/access/permission.interface'
@@ -6,7 +6,8 @@ import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { createMockLoginResponse, createMockMeResponse } from '@providers/auth/auth.mock'
 import { Logger } from '@resetshop/angular-core/logger/logger.token'
-import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
+import { parseDurationToMs } from '@resetshop/util'
+import { clearAllMocks, fn, type MockFn, useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
 import { firstValueFrom, NEVER, of, throwError } from 'rxjs'
 import { AuthStore } from './auth.store'
 
@@ -306,6 +307,27 @@ describe('AuthStore', () => {
 
 			expect(store.isResettingPassword()).toBe(false)
 		})
+
+		it('clears both throttle timestamps left by 429 responses', () => {
+			useFakeTimers()
+			try {
+				const rateLimited = () =>
+					throwError(() => new HttpErrorResponse({ status: 429, headers: new HttpHeaders({ 'Retry-After': '900' }) }))
+				authApiMock.forgotPassword.mockReturnValue(rateLimited())
+				authApiMock.resetPassword.mockReturnValue(rateLimited())
+				store.forgotPassword('user@example.com')
+				store.resetPassword({ token: 'tok', newPassword: 'a-fresh-secure-password' })
+				expect(store.resetThrottledUntil()).not.toBeNull()
+				expect(store.resetPasswordThrottledUntil()).not.toBeNull()
+
+				store.clearResetState()
+
+				expect(store.resetThrottledUntil()).toBeNull()
+				expect(store.resetPasswordThrottledUntil()).toBeNull()
+			} finally {
+				useRealTimers()
+			}
+		})
 	})
 
 	describe('resetPassword', () => {
@@ -401,6 +423,86 @@ describe('AuthStore', () => {
 
 			store.failTokenRefresh()
 			expect(store.isTokenRefreshing()).toBe(false)
+		})
+	})
+
+	describe('lockout & throttle state', () => {
+		it('captures loginLockedUntil from a 401 ACCOUNT_LOCKED response', () => {
+			const lockedUntil = new Date('2026-06-01T00:15:00.000Z').toISOString()
+			authApiMock.login.mockReturnValue(
+				throwError(
+					() =>
+						new HttpErrorResponse({ status: 401, error: { code: 'ACCOUNT_LOCKED', message: 'locked', lockedUntil } }),
+				),
+			)
+
+			store.login({ email: 'user@example.com', password: 'wrong' })
+
+			expect(store.loginLockedUntil()).toBe(lockedUntil)
+		})
+
+		it('derives loginThrottledUntil from a 429 Retry-After on the login endpoint', () => {
+			useFakeTimers()
+			try {
+				authApiMock.login.mockReturnValue(
+					throwError(() => new HttpErrorResponse({ status: 429, headers: new HttpHeaders({ 'Retry-After': '900' }) })),
+				)
+
+				store.login({ email: 'user@example.com', password: 'wrong' })
+
+				expect(store.loginThrottledUntil()).toBe(new Date(Date.now() + parseDurationToMs('15m')).toISOString())
+				expect(store.loginLockedUntil()).toBeNull()
+			} finally {
+				useRealTimers()
+			}
+		})
+
+		it('clears loginLockedUntil on a successful login', () => {
+			const lockedUntil = new Date('2026-06-01T00:15:00.000Z').toISOString()
+			authApiMock.login.mockReturnValue(
+				throwError(
+					() =>
+						new HttpErrorResponse({ status: 401, error: { code: 'ACCOUNT_LOCKED', message: 'locked', lockedUntil } }),
+				),
+			)
+			store.login({ email: 'user@example.com', password: 'wrong' })
+			expect(store.loginLockedUntil()).toBe(lockedUntil)
+
+			authApiMock.login.mockReturnValue(of(mockLoginResponse))
+			store.login({ email: 'user@example.com', password: 'right' })
+
+			expect(store.loginLockedUntil()).toBeNull()
+		})
+
+		it('derives resetThrottledUntil from a 429 Retry-After on forgotPassword', () => {
+			useFakeTimers()
+			try {
+				authApiMock.forgotPassword.mockReturnValue(
+					throwError(() => new HttpErrorResponse({ status: 429, headers: new HttpHeaders({ 'Retry-After': '900' }) })),
+				)
+
+				store.forgotPassword('user@example.com')
+
+				expect(store.resetThrottledUntil()).toBe(new Date(Date.now() + parseDurationToMs('15m')).toISOString())
+			} finally {
+				useRealTimers()
+			}
+		})
+
+		it('derives resetPasswordThrottledUntil from a 429 and suppresses the generic error', () => {
+			useFakeTimers()
+			try {
+				authApiMock.resetPassword.mockReturnValue(
+					throwError(() => new HttpErrorResponse({ status: 429, headers: new HttpHeaders({ 'Retry-After': '900' }) })),
+				)
+
+				store.resetPassword({ token: 'tok', newPassword: 'a-fresh-secure-password' })
+
+				expect(store.resetPasswordThrottledUntil()).toBe(new Date(Date.now() + parseDurationToMs('15m')).toISOString())
+				expect(store.resetPasswordError()).toBeNull()
+			} finally {
+				useRealTimers()
+			}
 		})
 	})
 })

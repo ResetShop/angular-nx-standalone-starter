@@ -10,6 +10,7 @@ import { Button } from '@resetshop/ui/button/button'
 import { FormField } from '@resetshop/ui/form-field/form-field'
 import ImmersivePanel from '@resetshop/ui/immersive-panel/immersive-panel'
 import { AuthStore } from '@store/auth/auth.store'
+import { createCountdown, formatCountdown } from '../countdown'
 
 interface ResetPasswordConfirmForm {
 	newPassword: string
@@ -46,7 +47,11 @@ interface ResetPasswordConfirmForm {
 					</div>
 				}
 
-				@if (errorMessage()) {
+				@if (throttleMessage()) {
+					<div appAlert variant="destructive" class="mt-4">
+						<p appAlertDescription>{{ throttleMessage() }}</p>
+					</div>
+				} @else if (errorMessage()) {
 					<div appAlert variant="destructive" class="mt-4">
 						<p appAlertDescription>{{ errorMessage() }}</p>
 					</div>
@@ -86,6 +91,14 @@ export default class ResetPasswordConfirm {
 	protected readonly token = signal(this.route.snapshot.queryParamMap.get('token') ?? '')
 	protected readonly errorMessage = signal<string | null>(null)
 
+	// Seconds left on the per-IP reset-password rate limit (0 when not throttled); drives the countdown.
+	protected readonly throttleSeconds = createCountdown(this.authStore.resetPasswordThrottledUntil)
+	protected readonly throttleMessage = computed(() => {
+		const seconds = this.throttleSeconds()
+		if (seconds === 0) return null
+		return this.translation.instant('AUTH.ERRORS.RATE_LIMITED_UNTIL').replace('{time}', formatCountdown(seconds))
+	})
+
 	// Set on submit so the success effect only navigates after a reset this page initiated.
 	private readonly submitted = signal(false)
 
@@ -99,6 +112,7 @@ export default class ResetPasswordConfirm {
 	)
 
 	protected readonly isFormValid = computed(() => {
+		if (this.throttleSeconds() > 0) return false
 		if (!this.model().newPassword) return false
 		return this.resetForm.newPassword().errors().length === 0
 	})

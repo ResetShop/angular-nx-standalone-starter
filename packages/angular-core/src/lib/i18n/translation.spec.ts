@@ -46,6 +46,8 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				TOKEN_EXPIRED: 'Expired',
 				TOKEN_INVALID: 'Invalid',
 				GENERIC: 'Error',
+				ACCOUNT_LOCKED_UNTIL: 'Locked for {time}',
+				RATE_LIMITED_UNTIL: 'Rate limited for {time}',
 			},
 		},
 		LANDING: {
@@ -256,6 +258,8 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				TOKEN_EXPIRED: 'Expirada',
 				TOKEN_INVALID: 'Inválida',
 				GENERIC: 'Error de inicio de sesión',
+				ACCOUNT_LOCKED_UNTIL: 'Bloqueada por {time}',
+				RATE_LIMITED_UNTIL: 'Limitada por {time}',
 			},
 		},
 		LANDING: {

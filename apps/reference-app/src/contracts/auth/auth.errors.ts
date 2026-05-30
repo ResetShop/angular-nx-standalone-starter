@@ -156,6 +156,8 @@ export interface AuthErrorResponse {
 export interface LoginErrorResponse {
 	code: LoginErrorCode
 	message: string
+	/** ISO-8601 timestamp until which the account is locked. Only set when `code === ACCOUNT_LOCKED`. */
+	lockedUntil?: string
 }
 
 // endregion
@@ -169,12 +171,15 @@ export interface LoginErrorResponse {
 export class AuthError extends Error {
 	public readonly internalCode: InternalAuthErrorCode
 	public readonly publicCode: PublicAuthErrorCode
+	/** When the error is ACCOUNT_LOCKED, the instant the lock expires (so the response can surface a countdown). */
+	public readonly lockedUntil: Date | null
 
-	constructor(internalCode: InternalAuthErrorCode) {
+	constructor(internalCode: InternalAuthErrorCode, lockedUntil?: Date | null) {
 		super(InternalAuthErrorMessage[internalCode])
 		this.name = 'AuthError'
 		this.internalCode = internalCode
 		this.publicCode = InternalToPublicErrorMap[internalCode]
+		this.lockedUntil = lockedUntil ?? null
 	}
 }
 
@@ -213,10 +218,15 @@ export function isLoginErrorCode(code: PublicAuthErrorCode): code is LoginErrorC
  */
 export function toLoginErrorResponse(error: AuthError): LoginErrorResponse {
 	const code = isLoginErrorCode(error.publicCode) ? error.publicCode : LoginErrorCode.GENERIC
-	return {
+	const response: LoginErrorResponse = {
 		code,
 		message: isLoginErrorCode(error.publicCode) ? error.message : 'Authentication failed',
 	}
+	// Surface the lock expiry only for the locked case, so the client can render a live countdown.
+	if (code === LoginErrorCode.ACCOUNT_LOCKED && error.lockedUntil) {
+		response.lockedUntil = error.lockedUntil.toISOString()
+	}
+	return response
 }
 
 // endregion

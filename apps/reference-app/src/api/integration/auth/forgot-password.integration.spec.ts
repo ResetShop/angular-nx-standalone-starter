@@ -68,4 +68,23 @@ describe('POST /api/auth/forgot-password', () => {
 
 		expect(response.status).toBe(400)
 	})
+
+	it('returns 429 with a Retry-After header once the per-IP rate limit is exceeded', async () => {
+		// Same IP for every call so the limiter (5 / 15m) trips on the 6th request.
+		const fromSameIp = () =>
+			app.request('/api/auth/forgot-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.99.0.1' },
+				body: JSON.stringify({ email: 'admin@sistema.com' }),
+			})
+
+		let last: Response | undefined
+		for (let i = 0; i < 6; i++) last = await fromSameIp()
+
+		expect(last?.status).toBe(429)
+		expect(Number(last?.headers.get('Retry-After'))).toBeGreaterThan(0)
+
+		// Drain any deferred token writes from the allowed requests so afterEach cleans up reliably.
+		await waitForResetTokens(adminUserId)
+	})
 })

@@ -43,6 +43,8 @@ const es: TranslationSchema = {
 			TOKEN_EXPIRED: 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.',
 			TOKEN_INVALID: 'Sesión inválida. Por favor, inicia sesión de nuevo.',
 			GENERIC: 'Error al iniciar sesión. Por favor, intenta de nuevo.',
+			ACCOUNT_LOCKED_UNTIL: 'Demasiados intentos fallidos — intenta de nuevo en {time}',
+			RATE_LIMITED_UNTIL: 'Demasiadas solicitudes — intenta de nuevo en {time}',
 		},
 	},
 	LANDING: {
