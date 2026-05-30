@@ -17,34 +17,74 @@ body:json {
   }
 }
 
+script:pre-request {
+  // Self-contained repro of the 401 ACCOUNT_LOCKED response. Two preconditions must hold simultaneously:
+  //   (1) the per-account lockout has fired — 5 wrong-password attempts against the target email, and
+  //   (2) THIS request comes from an IP that has NOT consumed its per-IP login rate-limit quota —
+  //       otherwise the 429 (rate limit) would shadow the 401 (account lockout) on the same IP.
+  // We satisfy both by burning the failed attempts from one "burner" IP, then sending this request
+  // from a different "target" IP. Each run uses fresh IPs (the per-IP limiter is in-memory and keyed
+  // on X-Forwarded-For), so repeated runs within the 15-min window still work.
+
+  const axios = require('axios');
+  const baseUrl = bru.getEnvVar('baseUrl');
+  const stamp = Date.now();
+  const burnerIp = `10.50.${(stamp >> 8) & 0xff}.${stamp & 0xff}`;
+  const targetIp = `10.51.${(stamp >> 8) & 0xff}.${stamp & 0xff}`;
+
+  // Step 1: lock the account from a burner IP. Each call returns 401 (INVALID_CREDENTIALS or, after
+  // the 5th, ACCOUNT_LOCKED) — we don't care which; we just need failed_attempts to hit the threshold.
+  // validateStatus: () => true so axios doesn't throw on the 401s.
+  for (let i = 0; i < 5; i++) {
+    await axios.post(
+      `${baseUrl}/auth/login`,
+      { email: 'admin@sistema.com', password: 'wrongpassword' },
+      { headers: { 'X-Forwarded-For': burnerIp }, validateStatus: () => true },
+    );
+  }
+
+  // Step 2: send this request from a different (clean) IP so the per-IP limiter doesn't intercept
+  // and the request reaches checkAccountLockout → 401 ACCOUNT_LOCKED with lockedUntil.
+  req.setHeader('X-Forwarded-For', targetIp);
+}
+
 docs {
   # Login - Account Locked
 
-  Documents the locked-account response. **Precondition:** the account must already be locked —
-  send this request (or any wrong-password login) `AUTH_MAX_FAILED_ATTEMPTS` times (default 5), then
-  send it once more. The next attempt returns `401` with:
+  Self-triggers the `401 ACCOUNT_LOCKED` response with a populated `lockedUntil`. The pre-request
+  script:
+
+  1. Picks two fresh `X-Forwarded-For` values per run (the limiter's key, in-memory store).
+  2. From the "burner" IP, fires 5 wrong-password attempts against `admin@sistema.com` — this trips
+     the per-account lockout (`AUTH_MAX_FAILED_ATTEMPTS`, default 5), setting `lockedUntil = now + 15m`.
+  3. Sets this request's `X-Forwarded-For` to a different "target" IP so it bypasses the per-IP
+     rate limiter (`5 / 15m`), which would otherwise return 429 and shadow the 401.
+
+  The main request then hits `checkAccountLockout` → returns:
 
   ```json
-  { "code": "ACCOUNT_LOCKED", "message": "...", "lockedUntil": "2026-06-01T00:15:00.000Z" }
+  { "code": "ACCOUNT_LOCKED", "message": "...", "lockedUntil": "2026-..." }
   ```
 
   `lockedUntil` is an ISO-8601 instant the frontend turns into a "try again in mm:ss" countdown.
-  The lock auto-expires after `AUTH_LOCKOUT_DURATION` (default `15m`) — no admin action required.
+  Auto-expires 15 min after the 5th burner attempt (no admin action required).
+
+  > **Side effect:** the seeded admin account stays locked for ~15 min after running this — any
+  > other Bruno test that tries to log in as `admin@sistema.com` will get ACCOUNT_LOCKED until then.
+  > The DB row's `failed_attempts` / `locked_until` reset on a successful login once the lock expires.
 }
 
 assert {
   res.status: eq 401
+  res.body.code: eq ACCOUNT_LOCKED
+  res.body.lockedUntil: isDefined
 }
 
 tests {
-  test("locked response is a 401", function() {
+  test("returns 401 ACCOUNT_LOCKED with a future lockedUntil", function() {
     expect(res.status).to.equal(401);
-  });
-
-  test("when locked, body carries code ACCOUNT_LOCKED and an ISO lockedUntil", function() {
-    if (res.body.code === "ACCOUNT_LOCKED") {
-      expect(res.body.lockedUntil).to.be.a("string");
-      expect(new Date(res.body.lockedUntil).getTime()).to.be.greaterThan(Date.now());
-    }
+    expect(res.body.code).to.equal('ACCOUNT_LOCKED');
+    expect(res.body.lockedUntil).to.be.a('string');
+    expect(new Date(res.body.lockedUntil).getTime()).to.be.greaterThan(Date.now());
   });
 }
