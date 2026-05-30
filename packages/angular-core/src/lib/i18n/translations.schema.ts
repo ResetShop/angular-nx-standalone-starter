@@ -132,6 +132,47 @@ export interface TranslationSchema {
 			ROLES_LABEL: string
 			SUCCESS_TOAST: string
 		}
+		DETAIL: {
+			TITLE: string
+			BACK: string
+			PROFILE: {
+				TITLE: string
+				FIRST_NAME: string
+				LAST_NAME: string
+				EMAIL: string
+				SAVE: string
+				SUCCESS_TOAST: string
+			}
+			ROLES: {
+				TITLE: string
+				EMPTY: string
+				EDIT_BUTTON: string
+				DRAWER_TITLE: string
+				ROLES_LABEL: string
+				SUCCESS_TOAST: string
+			}
+			ACCOUNT: {
+				TITLE: string
+				RESET_PASSWORD: string
+				DISABLE: string
+				ENABLE: string
+				DISABLE_DIALOG: {
+					TITLE: string
+					MESSAGE: string
+				}
+				ENABLE_DIALOG: {
+					TITLE: string
+					MESSAGE: string
+				}
+				DISABLE_TOAST: string
+				ENABLE_TOAST: string
+			}
+			DANGER: {
+				TITLE: string
+				DESCRIPTION: string
+				DELETE: string
+			}
+		}
 		DELETE_TOAST: string
 		RESET_PASSWORD_TOAST: string
 	}
