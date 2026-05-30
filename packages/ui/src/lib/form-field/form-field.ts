@@ -242,19 +242,25 @@ export class FormField {
 
 		switch (error.kind) {
 			case 'required':
-				return this.translation.instant('VALIDATION.REQUIRED')
+				return this.translation.instant('VALIDATION.REQUIRED', 'This field is required')
 			case 'email':
-				return this.translation.instant('VALIDATION.EMAIL')
+				return this.translation.instant('VALIDATION.EMAIL', 'Please enter a valid email address')
 			case 'minLength':
-				return this.translation.instant('VALIDATION.MIN_LENGTH').replace('{min}', String(error.minLength))
+				return this.translation
+					.instant('VALIDATION.MIN_LENGTH', 'Must be at least {min} characters')
+					.replace('{min}', String(error.minLength))
 			case 'maxLength':
-				return this.translation.instant('VALIDATION.MAX_LENGTH').replace('{max}', String(error.maxLength))
+				return this.translation
+					.instant('VALIDATION.MAX_LENGTH', 'Must be no more than {max} characters')
+					.replace('{max}', String(error.maxLength))
 			case 'min':
-				return this.translation.instant('VALIDATION.MIN').replace('{min}', String(error.min))
+				return this.translation.instant('VALIDATION.MIN', 'Must be at least {min}').replace('{min}', String(error.min))
 			case 'max':
-				return this.translation.instant('VALIDATION.MAX').replace('{max}', String(error.max))
+				return this.translation
+					.instant('VALIDATION.MAX', 'Must be no more than {max}')
+					.replace('{max}', String(error.max))
 			case 'pattern':
-				return this.translation.instant('VALIDATION.PATTERN')
+				return this.translation.instant('VALIDATION.PATTERN', 'Invalid format')
 			default:
 				return error.message ?? error.kind
 		}

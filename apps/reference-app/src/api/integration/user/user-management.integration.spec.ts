@@ -101,6 +101,31 @@ describe('User management endpoints (/api/user)', () => {
 			expect(userData.roles.length).toBeGreaterThan(0)
 		})
 
+		it('returns 400 for invalid role IDs and rolls back the user insert', async () => {
+			const response = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: {
+					email: 'invalidroles@test.com',
+					firstName: 'Invalid',
+					lastName: 'Roles',
+					roleIds: [99999],
+				},
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Roles not found')
+
+			// Creation is atomic: the failed role assignment rolled back the user insert, so the
+			// same email is still free — a leftover partial user would make this retry 409.
+			const retry = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'invalidroles@test.com', firstName: 'Invalid', lastName: 'Roles' },
+			})
+			expect(retry.status).toBe(201)
+		})
+
 		it('returns 409 for duplicate email', async () => {
 			const response = await authenticatedRequest(app, '/api/user', {
 				method: 'POST',
@@ -365,6 +390,64 @@ describe('User management endpoints (/api/user)', () => {
 				cookies: restrictedCookies,
 			})
 			expect(response.status).toBe(403)
+		})
+	})
+
+	// ── Reset Password ────────────────────────────────────────────
+	describe('POST /api/user/{id}/reset-password', () => {
+		it('resets the password for an existing user and returns 200', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'reset-target@test.com', firstName: 'Reset', lastName: 'Target' },
+			})
+			const createdUser = await createResponse.json()
+
+			const response = await authenticatedRequest(app, `/api/user/${createdUser.id}/reset-password`, {
+				method: 'POST',
+				cookies: adminCookies,
+			})
+
+			expect(response.status).toBe(200)
+			const body = await response.json()
+			expect(body.message).toBeDefined()
+			// NoopEmailRepository is used in tests, so the send fails and the flag is false —
+			// assert the type, not the value, to keep the test environment-agnostic.
+			expect(typeof body.passwordEmailSent).toBe('boolean')
+			// The generated password must never be exposed in the response.
+			expect(body).not.toHaveProperty('password')
+		})
+
+		it('returns 404 for a non-existent user', async () => {
+			const response = await authenticatedRequest(app, '/api/user/99999/reset-password', {
+				method: 'POST',
+				cookies: adminCookies,
+			})
+			expect(response.status).toBe(404)
+		})
+
+		it('returns 401 without authentication', async () => {
+			const response = await app.request(`/api/user/${adminUserId}/reset-password`, { method: 'POST' })
+			expect(response.status).toBe(401)
+		})
+
+		it('returns 403 without required permission', async () => {
+			const restrictedCookies = await loginAsRestricted(app)
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/reset-password`, {
+				method: 'POST',
+				cookies: restrictedCookies,
+			})
+			expect(response.status).toBe(403)
+		})
+
+		it('returns 403 when an admin targets their own account', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/reset-password`, {
+				method: 'POST',
+				cookies: adminCookies,
+			})
+			expect(response.status).toBe(403)
+			const body = await response.json()
+			expect(body.error).toMatch(/cannot change status of your own account/i)
 		})
 	})
 })

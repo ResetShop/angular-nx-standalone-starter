@@ -49,3 +49,14 @@ export default meta
 type Story = StoryObj<CardStoryHostComponent>
 
 export const Default: Story = {}
+
+/**
+ * Mobile-viewport rendering. Card padding tightens from `p-4` (default) to `p-3` below `sm:`. Pick a
+ * non-mobile viewport (or resize) to see the `p-4`/`p-5` desktop padding.
+ */
+export const MobileViewport: Story = {
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+}

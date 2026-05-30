@@ -12,20 +12,25 @@ import { PageShell } from '@components/page-shell/page-shell'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
+import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
+import { type RowAction } from '@resetshop/ui/row-actions-menu/row-action-item'
+import { RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
 import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
+import { UserCard } from './user-card'
 
 @Component({
 	selector: 'app-users-list',
@@ -36,12 +41,15 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		ConfirmDialog,
 		CreateUserDrawer,
 		DataTable,
+		DataTableCardDef,
 		DataTableCellDef,
 		EditUserDrawer,
 		HasPermissionDirective,
 		PageShell,
 		Pagination,
+		RowActionsMenu,
 		TranslatePipe,
+		UserCard,
 	],
 	template: `
 		<app-page-shell
@@ -51,19 +59,26 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 		>
 			<p pageDescription>{{ 'USERS.PAGE.DESCRIPTION' | translate }}</p>
 
-			<div pageActionsSkeleton class="flex items-center justify-between gap-4" data-testid="users-actions-skeleton">
+			<div
+				pageActionsSkeleton
+				class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+				data-testid="users-actions-skeleton"
+			>
 				<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
-				<div class="bg-muted h-9 w-24 animate-pulse rounded-md"></div>
+				<div class="bg-muted h-9 w-full animate-pulse rounded-md sm:w-24"></div>
 			</div>
 
-			<div pageActions class="flex items-center justify-between gap-4">
+			<div
+				pageActions
+				class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+			>
 				<input
 					(input)="onSearchInput($event)"
 					[placeholder]="'USERS.PAGE.SEARCH' | translate"
 					type="search"
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-base focus:ring-1 focus:outline-none sm:text-sm"
 				/>
-				<button (click)="createDrawer.open()" *hasPermission="'admin:users:create'" appButton>
+				<button (click)="createDrawer.open()" *hasPermission="'admin:users:create'" appButton class="w-full sm:w-auto">
 					{{ 'USERS.PAGE.CREATE_BUTTON' | translate }}
 				</button>
 			</div>
@@ -73,6 +88,9 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 				[data]="store.users()"
 				[loading]="store.isMutating()"
 				[caption]="'USERS.TABLE.CAPTION' | translate"
+				[displayModes]="displayModes"
+				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="status" let-value>
 					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
@@ -80,28 +98,20 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 					</span>
 				</ng-template>
 
-				<ng-template appDataTableCellDef="actions" let-value let-row="row">
-					<div class="flex gap-2">
-						<button
-							(click)="editDrawer.open(row.id)"
-							*hasPermission="'admin:users:update'"
-							appButton
-							variant="ghost"
-							size="sm"
-						>
-							{{ 'COMMON.EDIT' | translate }}
-						</button>
-						<button
-							(click)="confirmDelete(row)"
-							*hasPermission="'admin:users:delete'"
-							appButton
-							variant="ghost"
-							size="sm"
-							class="text-destructive"
-						>
-							{{ 'COMMON.DELETE' | translate }}
-						</button>
-					</div>
+				<ng-template appDataTableCellDef="actions" let-row="row">
+					<app-row-actions-menu
+						[actions]="getRowActions(row)"
+						[triggerLabel]="'ROW_ACTIONS.TRIGGER_LABEL' | translate"
+					/>
+				</ng-template>
+
+				<ng-template appDataTableCardDef let-row>
+					<app-user-card
+						(edit)="editDrawer.open(row.id)"
+						(delete)="confirmDelete(row)"
+						(resetPassword)="confirmResetPassword(row)"
+						[user]="row"
+					/>
 				</ng-template>
 			</app-data-table>
 
@@ -127,16 +137,27 @@ import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 			#deleteDialog
 			confirmVariant="destructive"
 		/>
+
+		<app-confirm-dialog
+			(confirmed)="onResetPasswordConfirmed()"
+			[message]="resetPasswordMessage()"
+			[title]="'USERS.PAGE.RESET_PASSWORD_DIALOG.TITLE' | translate"
+			[confirmText]="'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate"
+			#resetPasswordDialog
+		/>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
 	protected readonly UserStatus = UserStatus
+	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
+	protected readonly currentUser = inject(CurrentUser)
 
+	private readonly editDrawerRef = viewChild.required<EditUserDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
 
@@ -152,6 +173,21 @@ export default class UsersList {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
+	private readonly resetPasswordDialog = viewChild.required<ConfirmDialog>('resetPasswordDialog')
+	private readonly resetPasswordToast = createMutationToast(this.translation.instant('USERS.RESET_PASSWORD_TOAST'))
+
+	protected readonly userToResetPassword = signal<IManagedUser | null>(null)
+	protected readonly resetPasswordMessage = computed(() => {
+		const email = this.userToResetPassword()?.email ?? ''
+		return this.translation.instant('USERS.PAGE.RESET_PASSWORD_DIALOG.MESSAGE').replace('{email}', email)
+	})
+
+	private readonly resetPasswordToastEffect = effect(() => {
+		const resetting = this.store.isResettingPassword()
+		const error = this.store.mutationError().resetPassword
+		untracked(() => this.resetPasswordToast.handleResult(resetting, error))
+	})
+
 	protected readonly columns = computed((): ColumnDef<IManagedUser, unknown>[] => {
 		const base: ColumnDef<IManagedUser, unknown>[] = [
 			{ accessorKey: 'fullName', header: this.translation.instant('USERS.TABLE.HEADER.NAME') },
@@ -160,11 +196,15 @@ export default class UsersList {
 			{
 				id: 'roles',
 				header: this.translation.instant('USERS.TABLE.HEADER.ROLES'),
-				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '\u2014'),
+				accessorFn: (row) => (row.roles.length ? row.roles.map((r) => r.name).join(', ') : '—'),
 			},
 		]
 		const user = this.authStore.currentUser()
-		if (user?.hasPermission('admin:users:update') || user?.hasPermission('admin:users:delete')) {
+		if (
+			user?.hasPermission('admin:users:update') ||
+			user?.hasPermission('admin:users:delete') ||
+			user?.hasPermission('admin:users:reset_password')
+		) {
 			return [...base, { id: 'actions', header: '', enableSorting: false }]
 		}
 		return base
@@ -173,6 +213,38 @@ export default class UsersList {
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement
 		this.store.setSearchQuery(input.value)
+	}
+
+	protected getRowActions(row: IManagedUser): readonly (readonly RowAction[])[] {
+		const user = this.authStore.currentUser()
+		const isSelf = this.currentUser.is(row)
+		const nonDestructive: RowAction[] = []
+
+		if (user?.hasPermission('admin:users:update')) {
+			nonDestructive.push({
+				label: this.translation.instant('COMMON.EDIT'),
+				onSelect: () => this.editDrawerRef().open(row.id),
+			})
+		}
+
+		if (!isSelf && user?.hasPermission('admin:users:reset_password')) {
+			nonDestructive.push({
+				label: this.translation.instant('USERS.PAGE.RESET_PASSWORD_BUTTON'),
+				onSelect: () => this.confirmResetPassword(row),
+			})
+		}
+
+		const destructive: RowAction[] = []
+
+		if (!isSelf && user?.hasPermission('admin:users:delete')) {
+			destructive.push({
+				label: this.translation.instant('COMMON.DELETE'),
+				onSelect: () => this.confirmDelete(row),
+				variant: 'destructive',
+			})
+		}
+
+		return [nonDestructive, destructive]
 	}
 
 	protected confirmDelete(user: IManagedUser): void {
@@ -186,6 +258,20 @@ export default class UsersList {
 			this.deleteToast.markSubmitted()
 			this.store.deleteUser(user.id)
 			this.userToDelete.set(null)
+		}
+	}
+
+	protected confirmResetPassword(user: IManagedUser): void {
+		this.userToResetPassword.set(user)
+		this.resetPasswordDialog().show()
+	}
+
+	protected onResetPasswordConfirmed(): void {
+		const user = this.userToResetPassword()
+		if (user) {
+			this.resetPasswordToast.markSubmitted()
+			this.store.resetPassword(user.id)
+			this.userToResetPassword.set(null)
 		}
 	}
 }

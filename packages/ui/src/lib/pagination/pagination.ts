@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons'
+import { createBreakpointSignal } from '@resetshop/angular-core/breakpoint/breakpoint'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '../button/button'
 import { PaginationTracker } from './pagination-tracker'
@@ -11,24 +12,16 @@ interface PageItem {
 	value: number
 }
 
-const PAGINATION_KEYS = Object.freeze({
-	LABEL: 'PAGINATION.LABEL',
-	ROWS_PER_PAGE: 'PAGINATION.ROWS_PER_PAGE',
-	GO_TO_PREVIOUS: 'PAGINATION.GO_TO_PREVIOUS',
-	GO_TO_NEXT: 'PAGINATION.GO_TO_NEXT',
-	GO_TO_PAGE: 'PAGINATION.GO_TO_PAGE',
-} as const)
-
 @Component({
 	selector: 'app-pagination',
 	standalone: true,
 	imports: [Button, NgIcon],
 	viewProviders: [provideIcons({ featherChevronLeft, featherChevronRight })],
 	template: `
-		<nav [attr.aria-label]="paginationLabel" class="flex items-center justify-between gap-4">
+		<nav [attr.aria-label]="paginationLabel" class="flex items-center justify-between gap-3 sm:gap-4">
 			<!-- Rows per page selector (left) -->
 			<div class="flex items-center gap-2">
-				<label [attr.for]="selectId" class="text-muted-foreground text-sm">
+				<label [attr.for]="selectId" class="text-muted-foreground sr-only text-sm sm:not-sr-only">
 					{{ rowsPerPageLabel }}
 				</label>
 				<select
@@ -45,7 +38,7 @@ const PAGINATION_KEYS = Object.freeze({
 
 			<!-- Page navigation (right) -->
 			<div class="flex items-center gap-1">
-				<!-- Previous button -->
+				<!-- Previous button — data-touch-target extends hit area to 44px on mobile -->
 				<button
 					(click)="onPrevious()"
 					[disabled]="isFirstPage()"
@@ -55,12 +48,18 @@ const PAGINATION_KEYS = Object.freeze({
 					variant="ghost"
 					size="sm"
 					class="h-8 w-8 p-0"
+					data-touch-target
 				>
 					<ng-icon name="featherChevronLeft" class="h-4 w-4" />
 				</button>
 
-				<!-- Page number buttons -->
-				@for (item of pageItems(); track $index) {
+				<!-- Current-page indicator — sr-only at all viewports; announces page changes via aria-live -->
+				<span aria-atomic="true" aria-live="polite" role="status" class="sr-only">
+					{{ pageOfLabel() }}
+				</span>
+
+				<!-- Page number buttons — 5 items below sm:, 7 from sm: up, via visiblePageItems() -->
+				@for (item of visiblePageItems(); track $index) {
 					@if (item.type === 'ellipsis') {
 						<span class="text-muted-foreground flex h-8 w-8 items-center justify-center text-sm">…</span>
 					} @else {
@@ -71,14 +70,14 @@ const PAGINATION_KEYS = Object.freeze({
 							[attr.aria-current]="item.value === currentPage() ? 'page' : null"
 							appButton
 							size="sm"
-							class="h-8 w-8 p-0"
+							class="inline-flex h-8 w-8 p-0"
 						>
 							{{ item.value }}
 						</button>
 					}
 				}
 
-				<!-- Next button -->
+				<!-- Next button — data-touch-target extends hit area to 44px on mobile -->
 				<button
 					(click)="onNext()"
 					[disabled]="isLastPage()"
@@ -88,6 +87,7 @@ const PAGINATION_KEYS = Object.freeze({
 					variant="ghost"
 					size="sm"
 					class="h-8 w-8 p-0"
+					data-touch-target
 				>
 					<ng-icon name="featherChevronRight" class="h-4 w-4" />
 				</button>
@@ -121,35 +121,17 @@ export class Pagination {
 	/** Emits new page size when user changes the rows per page */
 	public readonly pageSizeChange = output<number>()
 
-	/**
-	 * Translated nav aria-label, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly paginationLabel = this.translation.instant(PAGINATION_KEYS.LABEL)
+	protected readonly paginationLabel = this.translation.instant('PAGINATION.LABEL', 'Pagination')
+	protected readonly rowsPerPageLabel = this.translation.instant('PAGINATION.ROWS_PER_PAGE', 'Rows per page')
+	protected readonly goToPreviousLabel = this.translation.instant('PAGINATION.GO_TO_PREVIOUS', 'Go to previous page')
+	protected readonly goToNextLabel = this.translation.instant('PAGINATION.GO_TO_NEXT', 'Go to next page')
+	private readonly goToPageTemplate = this.translation.instant('PAGINATION.GO_TO_PAGE', 'Go to page {page}')
+	private readonly pageOfTemplate = this.translation.instant('PAGINATION.PAGE_OF', 'Page {current} of {total}')
 
-	/**
-	 * Translated "Rows per page" label, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly rowsPerPageLabel = this.translation.instant(PAGINATION_KEYS.ROWS_PER_PAGE)
-
-	/**
-	 * Translated aria-label for the previous button, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly goToPreviousLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_PREVIOUS)
-
-	/**
-	 * Translated aria-label for the next button, resolved once at construction.
-	 * Not reactive to language changes — re-create the component to pick up a new locale.
-	 */
-	protected readonly goToNextLabel = this.translation.instant(PAGINATION_KEYS.GO_TO_NEXT)
-
-	/**
-	 * Translated template for page button aria-label, resolved once at construction.
-	 * Contains `{page}` placeholder interpolated by `getPageLabel`.
-	 */
-	private readonly goToPageTemplate = this.translation.instant(PAGINATION_KEYS.GO_TO_PAGE)
+	/** Current-page label (e.g. "Page 5 of 10"). Read by the `sr-only` `aria-live` span — never visually shown. */
+	protected readonly pageOfLabel = computed(() =>
+		this.pageOfTemplate.replace('{current}', String(this.currentPage())).replace('{total}', String(this.totalPages())),
+	)
 
 	/** Whether current page is the first page */
 	protected readonly isFirstPage = computed(() => this.currentPage() <= 1)
@@ -157,51 +139,103 @@ export class Pagination {
 	/** Whether current page is the last page */
 	protected readonly isLastPage = computed(() => this.currentPage() >= this.totalPages())
 
+	/** True when the viewport is below the sm breakpoint (< 640 px). Drives the mobile item cap. */
+	private readonly isMobile = createBreakpointSignal('sm')
+
 	/**
-	 * Page items (numbers and ellipses) derived from current page and total pages.
+	 * Desktop page items — renders a stable count of 7 items when totalPages > 7,
+	 * keeping width constant across navigation. Applies from the sm breakpoint up
+	 * (mobile landscape, tablet, desktop).
 	 *
-	 * Logic:
-	 * - If totalPages <= 4: show all pages
-	 * - If totalPages > 4:
-	 *   - Always show first page
-	 *   - Show ellipsis if gap exists after first
-	 *   - Show pages around current
-	 *   - Show ellipsis if gap exists before last
-	 *   - Always show last page
+	 * Patterns (total > 7):
+	 *  - Near start (current ≤ 4): [1, 2, 3, 4, 5, …, total]
+	 *  - Middle (4 < current < total - 3): [1, …, c-1, c, c+1, …, total]
+	 *  - Near end (current ≥ total - 3): [1, …, total-4, total-3, total-2, total-1, total]
+	 * When totalPages ≤ 7, all pages are shown contiguously without ellipsis.
 	 */
-	protected readonly pageItems = computed<PageItem[]>(() => {
+	private readonly desktopPageItems = computed<PageItem[]>(() => {
 		const total = this.totalPages()
 		const current = this.currentPage()
 
-		if (total <= 4) {
+		if (total <= 7) {
 			return this.range(1, total).map((n) => ({ type: 'page' as const, value: n }))
 		}
 
-		const items: PageItem[] = []
-		items.push({ type: 'page', value: 1 })
-		if (current > 3) items.push({ type: 'ellipsis', value: -1 })
-
-		const [start, end] = this.middlePageRange(current, total)
-		for (let i = start; i <= end; i++) {
-			if (i > 1 && i < total) items.push({ type: 'page', value: i })
+		if (current <= 4) {
+			return [
+				...this.range(1, 5).map((n) => ({ type: 'page' as const, value: n })),
+				{ type: 'ellipsis', value: -1 },
+				{ type: 'page', value: total },
+			]
 		}
 
-		if (current < total - 2) items.push({ type: 'ellipsis', value: -2 })
-		items.push({ type: 'page', value: total })
-		return items
+		if (current >= total - 3) {
+			return [
+				{ type: 'page', value: 1 },
+				{ type: 'ellipsis', value: -1 },
+				...this.range(total - 4, total).map((n) => ({ type: 'page' as const, value: n })),
+			]
+		}
+
+		return [
+			{ type: 'page', value: 1 },
+			{ type: 'ellipsis', value: -1 },
+			{ type: 'page', value: current - 1 },
+			{ type: 'page', value: current },
+			{ type: 'page', value: current + 1 },
+			{ type: 'ellipsis', value: -2 },
+			{ type: 'page', value: total },
+		]
 	})
 
 	/**
-	 * Returns the start and end indices of the middle-page window to show,
-	 * excluding the always-visible first and last pages. The window is a
-	 * 2-page span when the current page is near either edge, and a 3-page
-	 * span centred on `current` when the current page is in the middle.
+	 * Mobile page items — renders a stable count of 5 items when totalPages > 5,
+	 * always keeping the first and last pages visible. Applies below the sm breakpoint
+	 * (portrait mobile, < 640 px).
+	 *
+	 * Patterns (total > 5):
+	 *  - Near start (current ≤ 3): [1, 2, 3, …, total]
+	 *  - Middle (3 < current < total - 2): [1, …, current, …, total]
+	 *  - Near end (current ≥ total - 2): [1, …, total-2, total-1, total]
+	 * When totalPages ≤ 5, all pages are shown contiguously without ellipsis.
 	 */
-	private middlePageRange(current: number, total: number): [number, number] {
-		if (current <= 3) return [2, 3]
-		if (current >= total - 2) return [total - 2, total - 1]
-		return [current - 1, current + 1]
-	}
+	private readonly mobilePageItems = computed<PageItem[]>(() => {
+		const total = this.totalPages()
+		const current = this.currentPage()
+
+		if (total <= 5) {
+			return this.range(1, total).map((n) => ({ type: 'page' as const, value: n }))
+		}
+
+		if (current <= 3) {
+			return [
+				...this.range(1, 3).map((n) => ({ type: 'page' as const, value: n })),
+				{ type: 'ellipsis', value: -1 },
+				{ type: 'page', value: total },
+			]
+		}
+
+		if (current >= total - 2) {
+			return [
+				{ type: 'page', value: 1 },
+				{ type: 'ellipsis', value: -1 },
+				...this.range(total - 2, total).map((n) => ({ type: 'page' as const, value: n })),
+			]
+		}
+
+		return [
+			{ type: 'page', value: 1 },
+			{ type: 'ellipsis', value: -1 },
+			{ type: 'page', value: current },
+			{ type: 'ellipsis', value: -2 },
+			{ type: 'page', value: total },
+		]
+	})
+
+	/** Visible items: 5 below sm:, 7 from sm: up. */
+	protected readonly visiblePageItems = computed<PageItem[]>(() =>
+		this.isMobile() ? this.mobilePageItems() : this.desktopPageItems(),
+	)
 
 	/** Creates an array of numbers from start to end (inclusive) */
 	private range(start: number, end: number): number[] {

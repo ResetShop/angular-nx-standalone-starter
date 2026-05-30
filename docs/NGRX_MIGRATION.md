@@ -84,8 +84,8 @@ src/app/store/
 Stores are imported directly — **no barrel exports** (forbidden by project rules):
 
 ```typescript
-import { UsersStore } from '@store/users/users.store';
-import { UIStore } from '@store/ui/ui.store';
+import { UsersStore } from '@store/users/users.store'
+import { UIStore } from '@store/ui/ui.store'
 ```
 
 ## Store Inventory
@@ -184,7 +184,7 @@ These are lightweight, UI-only concerns with no API dependencies. Converting the
    - Use `{ providedIn: 'root' }` for app-wide singletons
    - Use `rxMethod` for all API calls — never `firstValueFrom` or `async/await`
    - Add `patchReadError` / `patchMutationError` helper functions
-   - Log errors with `console.error('[StoreName] methodName failed:', err)`
+   - Log errors with `loggerService.error('StoreName', 'methodName failed', err)` via `inject(Logger)` from `@providers/logger/logger.token`
    - Add `withHooks({ onInit(store) { store.loadX(store.listParams); } })` as the last block to trigger reactive initial data loading
 
 4. **Write tests** — `<domain>.store.spec.ts`:
@@ -201,27 +201,27 @@ These are lightweight, UI-only concerns with no API dependencies. Converting the
 ```typescript
 // notifications.types.ts
 export interface NotificationsReadError {
-	readonly list: string | null;
+	readonly list: string | null
 }
 
 // Replace with your actual domain type import
 // import type { NotificationData } from '@contracts/notification/notification.types';
 interface NotificationData {
-	id: number;
-	message: string;
+	id: number
+	message: string
 }
 
 export interface NotificationsState {
-	readonly items: NotificationData[];
-	readonly isLoading: boolean;
-	readonly readError: NotificationsReadError;
+	readonly items: NotificationData[]
+	readonly isLoading: boolean
+	readonly readError: NotificationsReadError
 }
 
 export const initialNotificationsState: NotificationsState = {
 	items: [],
 	isLoading: false,
 	readError: { list: null },
-};
+}
 
 // notifications.store.ts
 export const NotificationsStore = signalStore(
@@ -231,7 +231,8 @@ export const NotificationsStore = signalStore(
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 	})),
 	withMethods((store) => {
-		const api = inject(NotificationsApiService);
+		const api = inject(NotificationsApiService)
+		const loggerService = inject(Logger)
 		return {
 			loadNotifications: rxMethod<void>(
 				pipe(
@@ -241,11 +242,11 @@ export const NotificationsStore = signalStore(
 							tap({
 								next: (items) => patchState(store, { items, isLoading: false }),
 								error: (err) => {
-									console.error('[NotificationsStore] loadNotifications failed:', err);
+									loggerService.error('NotificationsStore', 'loadNotifications failed', err)
 									patchState(store, {
 										isLoading: false,
 										readError: { list: 'Failed to load notifications' },
-									});
+									})
 								},
 							}),
 							catchError(() => EMPTY),
@@ -253,14 +254,14 @@ export const NotificationsStore = signalStore(
 					),
 				),
 			),
-		};
+		}
 	}),
 	withHooks({
 		onInit(store) {
-			store.loadNotifications();
+			store.loadNotifications()
 		},
 	}),
-);
+)
 ```
 
 ---

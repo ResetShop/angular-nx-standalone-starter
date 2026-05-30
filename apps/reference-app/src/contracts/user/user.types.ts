@@ -6,6 +6,7 @@ import type {
 	createUserResponseSchema,
 	managedUserSchema,
 	replaceUserRolesRequestSchema,
+	resetPasswordResponseSchema,
 	updateUserRequestSchema,
 	updateUserStatusRequestSchema,
 	userDataSchema,
@@ -26,6 +27,7 @@ export type ManagedUser = z.infer<typeof managedUserSchema>
 export type CreateUserRequest = z.infer<typeof createUserRequestSchema>
 export type CreateUserResponse = z.infer<typeof createUserResponseSchema>
 export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>
+export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>
 
 // ============================================================================
 // User Role Request Types

@@ -1,7 +1,9 @@
+import { BreakpointObserver } from '@angular/cdk/layout'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
+import { of } from 'rxjs'
 import { Pagination } from './pagination'
 
 const TRANSLATIONS: Record<string, string> = {
@@ -10,10 +12,11 @@ const TRANSLATIONS: Record<string, string> = {
 	'PAGINATION.GO_TO_PREVIOUS': 'Go to previous page',
 	'PAGINATION.GO_TO_NEXT': 'Go to next page',
 	'PAGINATION.GO_TO_PAGE': 'Go to page {page}',
+	'PAGINATION.PAGE_OF': 'Page {current} of {total}',
 }
 
 const mockTranslation = {
-	instant: (key: string) => TRANSLATIONS[key] ?? key,
+	instant: (key: string, fallback?: string) => TRANSLATIONS[key] ?? fallback ?? key,
 }
 
 describe('Pagination', () => {
@@ -78,16 +81,19 @@ describe('Pagination', () => {
 			expect(screen.getByRole('button', { name: /go to page 4/i })).toBeInTheDocument()
 		})
 
-		it('should show ellipsis when totalPages > 4 and at start', async () => {
+		it('should show ellipsis when totalPages > 7 and at start', async () => {
 			await render(Pagination, {
 				inputs: { currentPage: 1, totalPages: 10 },
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// Should show: 1, 2, 3, ..., 10
+			// Should show: 1, 2, 3, 4, 5, …, 10 (7-item fixed desktop window)
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
 			expect(screen.getByText('…')).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
 		})
@@ -113,12 +119,123 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// Should show: 1, ..., 8, 9, 10
+			// Should show: 1, …, 6, 7, 8, 9, 10 (7-item fixed desktop window)
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
 			expect(screen.getByText('…')).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+		})
+
+		describe('desktop 7-item windowing (totalPages=10)', () => {
+			// Desktop renders a stable 7-item window when totalPages > 7. Pattern per current page:
+			//   current ≤ 4              → [1, 2, 3, 4, 5, …, 10]   (near start)
+			//   4 < current < total - 3  → [1, …, c-1, c, c+1, …, 10] (middle)
+			//   current ≥ total - 3      → [1, …, 6, 7, 8, 9, 10]   (near end)
+
+			it('should show no leading ellipsis at currentPage=3 (1 2 3 4 5 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 3, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
+
+			it('should show no leading ellipsis at currentPage=4 (1 2 3 4 5 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 4, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
+
+			it('should show ellipsis on both sides at currentPage=5 (1 … 4 5 6 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 5, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 2' })).not.toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 3' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 7' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getAllByText('…')).toHaveLength(2)
+			})
+
+			it('should show ellipsis on both sides at currentPage=6 (1 … 5 6 7 … 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 6, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 4' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 8' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getAllByText('…')).toHaveLength(2)
+			})
+
+			it('should show no trailing ellipsis at currentPage=7 (1 … 6 7 8 9 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 7, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
+
+			it('should show no trailing ellipsis at currentPage=8 (1 … 6 7 8 9 10)', async () => {
+				await render(Pagination, {
+					inputs: { currentPage: 8, totalPages: 10 },
+					providers: [{ provide: Translation, useValue: mockTranslation }],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.queryByRole('button', { name: 'Go to page 5' })).not.toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 7' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText('…')).toBeInTheDocument()
+				expect(screen.queryAllByText('…')).toHaveLength(1)
+			})
 		})
 
 		it('should mark current page with aria-current', async () => {
@@ -203,9 +320,10 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			await user.click(screen.getByRole('button', { name: /go to page 3/i }))
+			// At currentPage=1, totalPages=5 (≤ 7 desktop threshold): all pages [1, 2, 3, 4, 5] are shown
+			await user.click(screen.getByRole('button', { name: /go to page 2/i }))
 
-			expect(pageChangeSpy.calls).toContainEqual([3])
+			expect(pageChangeSpy.calls).toContainEqual([2])
 		})
 
 		it('should not emit pageChange when clicking current page', async () => {
@@ -310,10 +428,306 @@ describe('Pagination', () => {
 				providers: [{ provide: Translation, useValue: mockTranslation }],
 			})
 
-			// With 5 pages and current at 3, should show: 1, ..., 2, 3, 4, ..., 5
-			// But since 5 > 4, it will use the ellipsis logic
+			// Desktop: totalPages ≤ 7 → all pages shown contiguously, no ellipsis.
+			// Mobile (not asserted here) also shows all 5 pages since totalPages ≤ 5.
 			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+			expect(screen.queryByText('…')).not.toBeInTheDocument()
+		})
+	})
+
+	describe('responsive layout', () => {
+		it('should be a single-row layout at all viewports', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const nav = screen.getByRole('navigation', { name: /pagination/i })
+			expect(nav).toHaveClass('flex')
+			expect(nav).toHaveClass('items-center')
+			expect(nav).toHaveClass('justify-between')
+			expect(nav).not.toHaveClass('flex-col')
+		})
+
+		it('should mark the rows-per-page label sr-only on mobile, visible from sm: up', async () => {
+			// jsdom cannot evaluate media queries; this asserts class presence as a regression guard.
+			// Visual breakpoint behaviour is covered by the 'Mobile' Storybook story.
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Rows per page')
+			expect(label).toHaveClass('sr-only')
+			expect(label).toHaveClass('sm:not-sr-only')
+		})
+
+		it('should not carry hidden/sm:inline-flex classes on page-number buttons (data-level trim replaces CSS hide)', async () => {
+			// jsdom cannot evaluate media queries; class-presence assertions act as regression guards.
+			// Visual breakpoint behaviour is covered by the 'Mobile' Storybook story.
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const pageBtn = screen.getByRole('button', { name: /go to page 1/i })
+			expect(pageBtn).not.toHaveClass('hidden')
+			expect(pageBtn).not.toHaveClass('sm:inline-flex')
+		})
+
+		it('should render page-number buttons with inline-flex class', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const pageBtn = screen.getByRole('button', { name: /go to page 1/i })
+			expect(pageBtn).toHaveClass('inline-flex')
+		})
+
+		it('should keep the current-page label sr-only at all viewports', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Page 3 of 10')
+			expect(label).toBeInTheDocument()
+			expect(label).toHaveClass('sr-only')
+		})
+
+		it('should apply role="status", aria-live polite, and aria-atomic to the current-page label', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const label = screen.getByText('Page 1 of 5')
+			expect(label).toHaveAttribute('role', 'status')
+			expect(label).toHaveAttribute('aria-live', 'polite')
+			expect(label).toHaveAttribute('aria-atomic', 'true')
+		})
+
+		it('should reflect updated currentPage input in the current-page label (computed signal reactivity)', async () => {
+			const { rerender } = await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByText('Page 2 of 5')).toBeInTheDocument()
+
+			await rerender({ inputs: { currentPage: 4, totalPages: 5 } })
+
+			expect(screen.getByText('Page 4 of 5')).toBeInTheDocument()
+			expect(screen.queryByText('Page 2 of 5')).not.toBeInTheDocument()
+		})
+
+		it('should apply data-touch-target to the previous button', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByRole('button', { name: /go to previous page/i })).toHaveAttribute('data-touch-target')
+		})
+
+		it('should apply data-touch-target to the next button', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			expect(screen.getByRole('button', { name: /go to next page/i })).toHaveAttribute('data-touch-target')
+		})
+
+		it('should apply text-base sm:text-sm to the rows-per-page select for iOS zoom-on-focus prevention', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [{ provide: Translation, useValue: mockTranslation }],
+			})
+
+			const select = screen.getByLabelText(/rows per page/i)
+			expect(select).toHaveClass('text-base')
+			expect(select).toHaveClass('sm:text-sm')
+		})
+	})
+
+	describe('viewport-aware windowing (mobile 5 / desktop 7)', () => {
+		const mobileObserver = { observe: () => of({ matches: true, breakpoints: {} }) }
+		const desktopObserver = { observe: () => of({ matches: false, breakpoints: {} }) }
+
+		it('should render the middle 5-item mobile pattern at currentPage=5 (1 … 5 … 10)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 5, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: mobileObserver },
+				],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 4' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 5' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 6' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(2)
+		})
+
+		it('should render the near-start 5-item mobile pattern at currentPage=3 (1 2 3 … 10)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: mobileObserver },
+				],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 2' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 3' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 4' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(1)
+		})
+
+		it('should render the near-end 5-item mobile pattern at currentPage=9 (1 … 8 9 10)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 9, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: mobileObserver },
+				],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'Go to page 7' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 8' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 9' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(1)
+		})
+
+		// Regression guard: previously the slice(0, 4) implementation hid the last page
+		// in the middle case (e.g., currentPage=3, totalPages=10 → [1, 2, 3, 4]).
+		it.each([1, 3, 5, 7, 9, 10])(
+			'should always include first and last page on mobile at currentPage=%i (totalPages=10)',
+			async (currentPage) => {
+				await render(Pagination, {
+					inputs: { currentPage, totalPages: 10 },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: mobileObserver },
+					],
+				})
+
+				expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+				expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+				expect(screen.getByText(new RegExp(`Page ${currentPage} of 10`))).toBeInTheDocument()
+			},
+		)
+
+		it('should render the desktop 7-item pattern at currentPage=5 (1 … 4 5 6 … 10)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 5, totalPages: 10 },
+				providers: [
+					{ provide: Translation, useValue: mockTranslation },
+					{ provide: BreakpointObserver, useValue: desktopObserver },
+				],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 4' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 6' })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Go to page 10' })).toBeInTheDocument()
+			expect(screen.getAllByText('…')).toHaveLength(2)
+		})
+
+		// Regression guard: previously the count drifted from 4 to 7 slots depending on currentPage.
+		// Each slot is either a page button or an ellipsis (6 buttons + 1 ellipsis near edges,
+		// 5 buttons + 2 ellipses in the middle).
+		it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])(
+			'should hold a stable 7-slot count on desktop at currentPage=%i (totalPages=10)',
+			async (currentPage) => {
+				await render(Pagination, {
+					inputs: { currentPage, totalPages: 10 },
+					providers: [
+						{ provide: Translation, useValue: mockTranslation },
+						{ provide: BreakpointObserver, useValue: desktopObserver },
+					],
+				})
+
+				const pageButtons = screen.getAllByRole('button', { name: /^Go to page \d+$/ })
+				const ellipses = screen.queryAllByText('…')
+				expect(pageButtons.length + ellipses.length).toBe(7)
+			},
+		)
+	})
+
+	describe('fallback strings (no Translation provider)', () => {
+		// Provide a Translation stub that mirrors the real service's "no translations loaded"
+		// path: when a fallback is supplied, return it; otherwise return the raw key.
+		const fallbackProvider = {
+			provide: Translation,
+			useValue: { instant: (key: string, fallback?: string) => fallback ?? key },
+		}
+
+		it('should render "Pagination" nav aria-label when translations are not loaded (LABEL)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
+		})
+
+		it('should render "Rows per page" label when translations are not loaded (ROWS_PER_PAGE)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			// getByLabelText verifies both the rendered text AND the `for`/`id` association
+			// between the <label> and its <select>, per the project's query priority rules.
+			expect(screen.getByLabelText('Rows per page')).toBeInTheDocument()
+		})
+
+		it('should render "Go to previous page" aria-label when translations are not loaded (GO_TO_PREVIOUS)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 2, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to previous page' })).toBeInTheDocument()
+		})
+
+		it('should render "Go to next page" aria-label when translations are not loaded (GO_TO_NEXT)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to next page' })).toBeInTheDocument()
+		})
+
+		it('should render interpolated "Go to page N" aria-label when translations are not loaded (GO_TO_PAGE)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 1, totalPages: 5 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByRole('button', { name: 'Go to page 1' })).toBeInTheDocument()
+		})
+
+		it('should render interpolated "Page N of M" sr-only label when translations are not loaded (PAGE_OF)', async () => {
+			await render(Pagination, {
+				inputs: { currentPage: 3, totalPages: 10 },
+				providers: [fallbackProvider],
+			})
+
+			expect(screen.getByText('Page 3 of 10')).toBeInTheDocument()
 		})
 	})
 })

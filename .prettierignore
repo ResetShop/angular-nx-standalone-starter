@@ -4,3 +4,7 @@
 /.nx/cache
 /.nx/workspace-data
 .angular
+# node_modules is excluded by Prettier v3+ by default; listed here for clarity
+node_modules
+
+.nx/self-healing

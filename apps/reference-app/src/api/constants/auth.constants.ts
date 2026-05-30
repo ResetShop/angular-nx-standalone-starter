@@ -18,16 +18,6 @@ export const DEFAULT_MAX_FAILED_ATTEMPTS = 5
 export const DEFAULT_LOCKOUT_DURATION = '15m'
 
 /**
- * Returns the number of salt rounds for bcrypt password hashing.
- * Reads BCRYPT_COST at call time (not module load time) so that
- * integration tests can set the env var before any hashing occurs.
- * Default: 12 (production). Override: BCRYPT_COST=1 (tests).
- */
-export function getBcryptSaltRounds(): number {
-	return Number(process.env['BCRYPT_COST']) || 12
-}
-
-/**
  * Expiry buffer for refresh token cleanup (duration string notation).
  * Tokens must be expired for at least this duration before deletion,
  * preventing race conditions during active refresh operations.
@@ -63,3 +53,36 @@ export const REFRESH_RATE_LIMIT_WINDOW = '1m'
 
 /** Maximum refresh attempts per window. */
 export const REFRESH_RATE_LIMIT_MAX = 10
+
+/**
+ * Default rate-limit window for the change-password endpoint (duration string).
+ * Overridable via `AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW`; resolved with `parseDurationToMs()`.
+ */
+export const DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW = '15m'
+
+/**
+ * Default maximum change-password attempts per window.
+ * Overridable via `AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX`.
+ */
+export const DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX = 5
+
+/**
+ * Expiry for self-service password-reset tokens (duration string).
+ * Tokens are single-use and rejected after this window.
+ */
+export const PASSWORD_RESET_TOKEN_EXPIRY = '1h'
+
+/** Rate limit window for the forgot-password endpoint. */
+export const FORGOT_PASSWORD_RATE_LIMIT_WINDOW = '15m'
+
+/** Maximum forgot-password requests per window. */
+export const FORGOT_PASSWORD_RATE_LIMIT_MAX = 5
+
+/** Rate limit window for the reset-password endpoint. */
+export const RESET_PASSWORD_RATE_LIMIT_WINDOW = '15m'
+
+/** Maximum reset-password attempts per window. */
+export const RESET_PASSWORD_RATE_LIMIT_MAX = 5
+
+/** Frontend path where users complete a password reset (raw token passed as the `token` query param). */
+export const PASSWORD_RESET_PATH = '/auth/reset-password/confirm'

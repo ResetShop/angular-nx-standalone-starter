@@ -1,17 +1,18 @@
 import { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse } from '@contracts/user/user.types'
+import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
-import { hash } from 'bcryptjs'
-import { getBcryptSaltRounds } from '../../constants/auth.constants'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
+import { buildResetPasswordEmail } from '../../services/email/reset-password-email.builder'
 import { buildWelcomeEmail } from '../../services/email/welcome-email.builder'
+import type { AuthenticationRepository } from '../auth/interfaces'
 import type {
 	CreateUserParams,
 	ManagedUserData,
 	UpdateUserParams,
 	UpdateUserStatusParams,
 	UserManagementRepository,
+	UserRoleRepository,
 } from './interfaces'
 
 export const USER_MANAGEMENT_ERRORS = {
@@ -35,8 +36,11 @@ export const userManagementErrors = {
 
 interface UserManagementServiceDeps {
 	userManagementRepository: UserManagementRepository
+	userRoleRepository: UserRoleRepository
+	authRepository: AuthenticationRepository
 	emailService: EmailService
 	generatePassword: () => Promise<string>
+	hashPassword: (plain: string) => Promise<string>
 }
 
 /**
@@ -46,13 +50,26 @@ interface UserManagementServiceDeps {
  */
 export class UserManagementService {
 	private userManagementRepository: UserManagementRepository
+	private userRoleRepository: UserRoleRepository
+	private authRepository: AuthenticationRepository
 	private emailService: EmailService
 	private generatePassword: () => Promise<string>
+	private hashPassword: (plain: string) => Promise<string>
 
-	constructor({ userManagementRepository, emailService, generatePassword }: UserManagementServiceDeps) {
+	constructor({
+		userManagementRepository,
+		userRoleRepository,
+		authRepository,
+		emailService,
+		generatePassword,
+		hashPassword,
+	}: UserManagementServiceDeps) {
 		this.userManagementRepository = userManagementRepository
+		this.userRoleRepository = userRoleRepository
+		this.authRepository = authRepository
 		this.emailService = emailService
 		this.generatePassword = generatePassword
+		this.hashPassword = hashPassword
 	}
 
 	/**
@@ -101,21 +118,28 @@ export class UserManagementService {
 		}
 
 		const plainPassword = await this.generatePassword()
-		const passwordHash = await hash(plainPassword, getBcryptSaltRounds())
-
+		const passwordHash = await this.hashPassword(plainPassword)
 		const mustChangePassword = params.mustChangePassword ?? true
+		const roleIds = [...new Set(params.roleIds ?? [])]
 
-		const user = await this.userManagementRepository.create(
-			{
-				email: params.email,
-				firstName: params.firstName,
-				lastName: params.lastName,
-				passwordHash,
-				mustChangePassword,
-				roleIds: [...new Set(params.roleIds ?? [])],
-			},
-			actorId,
-		)
+		const createdUser = await this.userManagementRepository.runInTransaction(async (tx) => {
+			const newUser = await this.userManagementRepository.create(
+				{ email: params.email, firstName: params.firstName, lastName: params.lastName },
+				tx,
+			)
+			await this.authRepository.createInitialPassword({ userId: newUser.id, passwordHash, mustChangePassword }, tx)
+			if (roleIds.length > 0) {
+				await this.userRoleRepository.replaceUserRoles(newUser.id, roleIds, actorId, tx)
+			}
+			return newUser
+		})
+
+		// Roles are written by the user-role context inside the transaction above; the identity
+		// insert returns an empty roles array, so re-read when roles were assigned (mirrors updateUser).
+		const createdWithRoles =
+			roleIds.length > 0
+				? ((await this.userManagementRepository.findByIdWithRoles(createdUser.id)) ?? createdUser)
+				: createdUser
 
 		const passwordEmailSent = await this.sendWelcomeEmail(
 			params.email,
@@ -124,7 +148,7 @@ export class UserManagementService {
 			mustChangePassword,
 		)
 
-		return { ...user, passwordEmailSent }
+		return { ...createdWithRoles, passwordEmailSent }
 	}
 
 	private async sendWelcomeEmail(
@@ -221,6 +245,47 @@ export class UserManagementService {
 		const deleted = await this.userManagementRepository.softDelete(id, currentUserId)
 		if (!deleted) {
 			throw userManagementErrors.notFound(id)
+		}
+	}
+
+	/**
+	 * Admin-initiated password reset. Generates a new temporary password, hashes
+	 * and persists it with `mustChangePassword: true`, and emails it to the user.
+	 * The generated password is never returned to the caller.
+	 *
+	 * @param id - The target user's primary key
+	 * @param currentUserId - The ID of the admin performing the reset (for self-action prevention)
+	 * @returns A confirmation message and whether the reset email was sent
+	 * @throws Error if the admin targets their own account
+	 * @throws Error if the user is not found
+	 */
+	public async resetPassword(id: number, currentUserId: number): Promise<ResetPasswordResponse> {
+		if (id === currentUserId) {
+			throw userManagementErrors.selfLockout()
+		}
+
+		const userData = await this.userManagementRepository.findByIdWithRoles(id)
+		if (!userData) {
+			throw userManagementErrors.notFound(id)
+		}
+
+		const plainPassword = await this.generatePassword()
+		const passwordHash = await this.hashPassword(plainPassword)
+		await this.authRepository.setPassword(id, passwordHash, true)
+
+		const passwordEmailSent = await this.sendResetPasswordEmail(userData.email, userData.firstName, plainPassword)
+
+		return { message: 'Password reset successfully', passwordEmailSent }
+	}
+
+	private async sendResetPasswordEmail(email: string, firstName: string, password: string): Promise<boolean> {
+		try {
+			const emailContent = buildResetPasswordEmail({ firstName, email, password })
+			await this.emailService.send({ to: email, ...emailContent })
+			return true
+		} catch (error: unknown) {
+			logger.error('UserManagementService', 'Reset password email failed', error)
+			return false
 		}
 	}
 

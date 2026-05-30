@@ -57,6 +57,11 @@ Do not proceed to Phase 3 until the user explicitly approves.
 1. Execute the plan steps from `workspace/PLAN.md` in order.
 2. Create one atomic git commit per logical unit of work.
 3. Before writing new components, services, or files: check whether a matching generator exists in `packages/generators/src/generators/`. If one exists, use it. If none exists, inform the user and proceed only after acknowledgment.
+4. **Update the `CHANGELOG.md` — this is mandatory, not optional.** Every issue resolved through this workflow MUST add an entry under the `## [Unreleased]` section before the work is considered complete. This is the single hardest thing to remember and the easiest to skip — do not skip it.
+   - **Subsection:** `### Added` for new features/files/endpoints, `### Changed` for modifications to existing behavior (including any fork-visible breaking change), `### Fixed` for bug fixes. Create the subsection under `## [Unreleased]` if it does not already exist.
+   - **Entry format** (match the existing entries' density): a **bold lead-in** naming what changed, then prose covering the concrete files/APIs touched, and — for any breaking change — an explicit **Migration:** note describing what a fork must do. End every entry with the issue link `([#<issue>](<issue-url>))`.
+   - **Commit it** as its own atomic commit, message `[#<issue>] - Document <feature> in CHANGELOG`, OR fold it into the final logical commit of the feature. It must land before Phase 6.
+   - If the change is genuinely invisible to forks (no behavior, API, schema, file, doc, or tooling change — e.g. a comment-only tweak), state that explicitly to the user and skip the entry. This exemption is rare; when in doubt, add the entry.
 
 ### Commit rules
 
@@ -116,6 +121,7 @@ Present this message:
 
 **Purpose:** Push, create the PR, and update the original issue.
 
+0. **CHANGELOG gate.** Before pushing, verify a `## [Unreleased]` entry for this issue exists (`git diff main...HEAD -- CHANGELOG.md` must be non-empty, unless the rare fork-invisible exemption from Phase 3 step 4 was explicitly declared to the user). If it is missing, stop and add it now (Phase 3 step 4) — do not push or open the PR without it.
 1. Run `git push -u origin <branch-name>`.
 2. Create the PR using `gh pr create` with:
    - Title: `[#<issue>] - <issue-title>`
@@ -135,7 +141,35 @@ Present this message:
 4. Scan the session for items that went **out of scope** (fixes, discoveries, enhancements beyond the original issue). If any exist:
    - Update the original issue's description (via `gh issue edit`) with an "Out of scope (addressed in this PR)" section listing what was done beyond the original scope.
    - Prompt the user: "The following out-of-scope items were addressed. Would you like me to create separate GitHub issues for any future follow-ups?" Wait for confirmation before creating issues.
-5. Present a final summary: branch name, PR URL, number of commits, findings addressed.
+5. Present the final summary as **exactly** this Item/Value table — no other format, no additional summary forms substituted. The table is the authoritative completion artifact for the workflow. Render it after the PR is opened and the issue body has been updated.
+
+   **Required structure:**
+
+   ```markdown
+   **Workflow complete.**
+
+   | Item               | Value                                                         |
+   | ------------------ | ------------------------------------------------------------- |
+   | Issue              | [#<number>](issue-url) — <issue-title>                        |
+   | Branch             | `<branch-name>`                                               |
+   | PR                 | [#<pr-number>](pr-url)                                        |
+   | Commits            | <N> atomic commits                                            |
+   | Findings addressed | <X> critical · <Y> warnings · <Z> suggestions — <disposition> |
+   | CI status          | <Green locally / Red — see <reason>>                          |
+   ```
+
+   **Cell rules:**
+   - `Issue` and `PR` cells must use markdown links with the actual numeric IDs and URLs.
+   - `Commits` counts only commits on the feature branch (`git rev-list --count main..HEAD`).
+   - `Findings addressed` lists the counts from `workspace/CODE_REVIEW.md` and a disposition phrase. Use `all fixed`, `none required`, or `<n> deferred — see <issue-url(s)>` as appropriate. If a review category had zero findings, still list it with `0 critical` / `0 warnings` / `0 suggestions` — never omit a row or cell.
+   - `CI status` reports the result of the last `npm run ci` run on this branch.
+
+   Optional content that may follow the table — never replace it:
+   - A bulleted list of commit messages (helps reviewers).
+   - A closing sentence about out-of-scope items if any were addressed in this PR.
+   - A prompt asking whether to file follow-up issues (per step 4).
+
+   **Ordering assertion:** The table MUST be rendered only after steps 1–4 of this phase have completed — i.e., after `git push` succeeded, after `gh pr create` returned a real PR URL, and after the issue body has been edited if out-of-scope items existed. Do not synthesise the table from anticipated values before these steps complete; every cell must reflect verified state from the prior steps (PR URL from `gh pr create` output, commit count from `git rev-list --count main..HEAD`, etc.). If any of those steps failed or was skipped, do NOT render the table — report the failure instead and stop. The table's contract is that its presence implies the workflow completed end-to-end on real artifacts.
 
 ---
 
@@ -146,6 +180,7 @@ These are hard constraints active throughout the entire workflow:
 - Never use direct `nx` commands — always `npm run <task>`.
 - Never prefix git commands with `cd` — the working directory is already at project root.
 - Never open the PR before `npm run ci` passes and the `code-reviewer` agent has run.
+- Never open the PR without a `CHANGELOG.md` entry under `## [Unreleased]` for the issue (see Phase 3 step 4 and the Phase 6 CHANGELOG gate), unless the rare fork-invisible exemption was explicitly declared to the user.
 - Never skip the Plan phase — even trivial changes benefit from a brief plan documenting scope and rationale.
 - Never use HEREDOC (`$(cat <<'EOF'...)`) substitution in commit messages.
 - All `.claude/references/coding-agent-policies.md` rules apply throughout:

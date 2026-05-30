@@ -3,14 +3,14 @@ import type { DrawerDirection } from './drawer'
 
 /**
  * Computes the CSS panel classes for the Drawer component based on
- * direction and any host `class` overrides (e.g. `class="lg:w-lg"`).
+ * direction and any host `class` overrides (e.g. `class="w-full sm:w-lg"`).
  *
- * Consumer overrides should use breakpoint-prefixed utilities so they
- * layer on top of the base `sm:max-w-3/4` cap rather than replacing
- * it at every viewport — for example `lg:w-lg` narrows the panel to
- * 32rem from the `lg:` breakpoint up while leaving the 75% cap in
- * effect from `sm:` to `lg:` and the full-viewport behaviour below
- * `sm:` untouched.
+ * Consumer overrides should declare the full mobile + desktop pair so
+ * they layer cleanly on top of the base `sm:max-w-3/4` cap — for example
+ * `w-full sm:w-lg` keeps the panel full-width below `sm:` and narrows it
+ * to 32rem at and above `sm:`, with the 75% cap still in effect until the
+ * viewport is wide enough that 75% exceeds 32rem (the `sm:` breakpoint
+ * + ~43px, where 75% of viewport first crosses 512px).
  *
  * Applied as a hostDirective on Drawer with `direction` input forwarded.
  */

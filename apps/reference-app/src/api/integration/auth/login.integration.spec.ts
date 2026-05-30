@@ -69,6 +69,27 @@ describe('POST /api/auth/login', () => {
 			const { response } = await loginAs(app, 'admin@sistema.com', 'wrongpassword')
 			expect(response.status).toBe(401)
 		})
+
+		it('returns an identical 401 body for an unknown email and a wrong password (no user enumeration)', async () => {
+			// Ensure the real account is not locked, so the wrong-password path resolves to
+			// INVALID_CREDENTIALS rather than ACCOUNT_LOCKED (which legitimately differs).
+			await resetAdminLockout(getTestDb())
+
+			const unknownEmail = await loginAs(app, 'no-such-user@test.com', 'irrelevant-password')
+			const wrongPassword = await loginAs(app, 'admin@sistema.com', 'definitely-the-wrong-password')
+
+			expect(unknownEmail.response.status).toBe(401)
+			expect(wrongPassword.response.status).toBe(401)
+
+			const unknownBody = await unknownEmail.response.json()
+			const wrongBody = await wrongPassword.response.json()
+
+			// The two failure modes must be byte-identical — a differing code or message would let an
+			// attacker enumerate which emails have accounts. This is the response-level contract that the
+			// timing-safety hash (AuthPasswordService.getDummyHash) backs up at the latency level.
+			expect(unknownBody).toEqual(wrongBody)
+			expect(JSON.stringify(wrongBody)).not.toContain('admin@sistema.com')
+		})
 	})
 
 	describe('validation errors', () => {
@@ -108,6 +129,44 @@ describe('POST /api/auth/login', () => {
 			expect(response.status).toBe(401)
 			const body = await response.json()
 			expect(body.code).toBe('ACCOUNT_LOCKED')
+		})
+
+		it('includes a future ISO-8601 lockedUntil in the ACCOUNT_LOCKED response', async () => {
+			for (let i = 0; i < 5; i++) {
+				await loginAs(app, 'admin@sistema.com', 'wrongpassword')
+			}
+
+			const { response } = await loginAs(app, 'admin@sistema.com', adminPassword)
+			const body = await response.json()
+
+			expect(body.code).toBe('ACCOUNT_LOCKED')
+			expect(typeof body.lockedUntil).toBe('string')
+			const lockExpiry = new Date(body.lockedUntil).getTime()
+			expect(Number.isFinite(lockExpiry)).toBe(true)
+			expect(lockExpiry).toBeGreaterThan(Date.now())
+		})
+	})
+
+	describe('rate limiting', () => {
+		afterEach(async () => {
+			await resetAdminLockout(getTestDb())
+		})
+
+		it('returns 429 with a Retry-After header once the per-IP login rate limit is exceeded', async () => {
+			// Same IP for every call so the per-IP limiter (5 / 15m) trips on the 6th request. Distinct from
+			// the per-account lockout — this fires in middleware before the handler reaches checkAccountLockout.
+			const fromSameIp = () =>
+				app.request('/api/auth/login', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.97.0.1' },
+					body: JSON.stringify({ email: 'admin@sistema.com', password: 'wrongpassword' }),
+				})
+
+			let last: Response | undefined
+			for (let i = 0; i < 6; i++) last = await fromSameIp()
+
+			expect(last?.status).toBe(429)
+			expect(Number(last?.headers.get('Retry-After'))).toBeGreaterThan(0)
 		})
 	})
 })

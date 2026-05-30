@@ -6,8 +6,19 @@ import {
 	PublicAuthErrorCode,
 	toLoginErrorResponse,
 } from '@contracts/auth/auth.errors'
-import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
-import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
+import type {
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	ForgotPasswordRequest,
+	ForgotPasswordResponse,
+	LoginRequest,
+	LoginResponse,
+	MeResponse,
+	RefreshResponse,
+	ResetPasswordRequest,
+	ResetPasswordResponse,
+} from '@contracts/auth/auth.types'
+import { createOpenAPIApp, deferAfterResponse, registerRoute } from '@resetshop/hono-core'
 import { logger, parseDurationToSeconds } from '@resetshop/util'
 import { timingSafeEqual } from 'crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
@@ -19,7 +30,16 @@ import {
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
 import { buildBaseCookieOptions } from './auth.config'
-import { cleanupTokensRoute, loginRoute, logoutRoute, meRoute, refreshRoute } from './auth.routes'
+import {
+	changePasswordRoute,
+	cleanupTokensRoute,
+	forgotPasswordRoute,
+	loginRoute,
+	logoutRoute,
+	meRoute,
+	refreshRoute,
+	resetPasswordRoute,
+} from './auth.routes'
 
 const app = createOpenAPIApp()
 
@@ -126,11 +146,89 @@ registerRoute(app, refreshRoute, async (c) => {
 	}
 })
 
+// POST /api/auth/change-password - Change the authenticated user's password
+// Requires the current password; clears must-change-password and revokes the user's other sessions.
+// The current session's tokens are preserved (the refresh-token cookie is excluded from revocation).
+registerRoute(app, changePasswordRoute, async (c) => {
+	const { authService } = container.cradle
+	const user = (c as AuthenticatedContext).user
+
+	if (!user) {
+		// Defensive only — the global verifyAccessToken middleware already 401s unauthenticated
+		// requests with this same { error } shape (errorResponseSchema, via commonResponses).
+		return c.json({ error: 'Unauthorized' }, 401)
+	}
+
+	const { oldPassword, newPassword }: ChangePasswordRequest = c.req.valid('json')
+
+	try {
+		await authService.changePassword({
+			userId: Number(user.sub),
+			oldPassword,
+			newPassword,
+			currentRefreshToken: getCookie(c, REFRESH_TOKEN_COOKIE_NAME),
+		})
+
+		return c.json<ChangePasswordResponse>({ message: 'Password changed successfully' }, 200)
+	} catch (error) {
+		// Safe to surface — the caller is already authenticated, so this leaks nothing about other accounts.
+		if (isAuthError(error) && error.publicCode === PublicAuthErrorCode.OLD_PASSWORD_MISMATCH) {
+			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 400)
+		}
+
+		logger.error('ChangePassword', 'Password change failed', error)
+		// 500 uses the { error } shape (errorResponseSchema, via commonResponses) — matching the
+		// /me and cleanup-tokens handlers; the coded OLD_PASSWORD_MISMATCH above keeps { code, message }.
+		return c.json({ error: 'Failed to change password' }, 500)
+	}
+})
+
+// POST /api/auth/forgot-password - Request a self-service password reset
+// Public + rate-limited. Always returns 200 with a neutral message regardless of whether the email
+// belongs to an active account (no user enumeration).
+registerRoute(app, forgotPasswordRoute, async (c) => {
+	const { passwordResetService } = container.cradle
+	const { email }: ForgotPasswordRequest = c.req.valid('json')
+
+	// Run the lookup + token + email work AFTER the response so the endpoint's latency cannot leak
+	// whether the email belongs to an active account: the unknown-email path (a single DB read) and
+	// the active-account path (DB writes + SMTP) now return identically and immediately. The neutral
+	// 200 below is independent of the outcome, so failures are logged but never surfaced.
+	deferAfterResponse(c, () => passwordResetService.requestPasswordReset(email), {
+		onError: (error) => logger.error('ForgotPassword', 'requestPasswordReset failed', error),
+	})
+
+	return c.json<ForgotPasswordResponse>(
+		{ message: 'If an account exists for that email, a password-reset link has been sent.' },
+		200,
+	)
+})
+
+// POST /api/auth/reset-password - Complete a self-service password reset with a token
+// Public + rate-limited. Invalid/expired/used tokens return 400 RESET_TOKEN_INVALID (deliberately
+// non-specific); the new password is validated against the shared length bounds.
+registerRoute(app, resetPasswordRoute, async (c) => {
+	const { passwordResetService } = container.cradle
+	const { token, newPassword }: ResetPasswordRequest = c.req.valid('json')
+
+	try {
+		await passwordResetService.resetPassword(token, newPassword)
+		return c.json<ResetPasswordResponse>({ message: 'Your password has been reset. You can now sign in.' }, 200)
+	} catch (error) {
+		if (isAuthError(error) && error.publicCode === PublicAuthErrorCode.RESET_TOKEN_INVALID) {
+			return c.json<AuthErrorResponse>({ code: error.publicCode, message: error.message }, 400)
+		}
+
+		logger.error('ResetPassword', 'resetPassword failed', error)
+		return c.json({ error: 'Failed to reset password' }, 500)
+	}
+})
+
 // GET /api/auth/me - Token introspection endpoint
 // Returns the current authenticated user's information with roles and permissions
 // Useful for verifying token validity, getting user data, and frontend authorization
 registerRoute(app, meRoute, async (c) => {
-	const { userRoleService } = container.cradle
+	const { userRoleService, authPasswordService } = container.cradle
 	const user = (c as AuthenticatedContext).user
 
 	if (!user) {
@@ -139,8 +237,11 @@ registerRoute(app, meRoute, async (c) => {
 
 	const userId = Number(user.sub)
 
-	// Fetch roles with their nested permissions
-	const roles = await userRoleService.getUserRolesWithPermissions(userId)
+	// Roles (with nested permissions) and the must-change flag are independent reads — run in parallel.
+	const [roles, mustChangePassword] = await Promise.all([
+		userRoleService.getUserRolesWithPermissions(userId),
+		authPasswordService.getMustChangePassword(userId),
+	])
 
 	return c.json<MeResponse>({
 		id: userId,
@@ -148,6 +249,7 @@ registerRoute(app, meRoute, async (c) => {
 		firstName: user.firstName,
 		lastName: user.lastName,
 		roles,
+		mustChangePassword,
 	})
 })
 

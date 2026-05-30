@@ -34,17 +34,17 @@ Services should accept dependencies via a destructured object parameter:
 // src/api/services/my.service.ts
 
 interface MyServiceDeps {
-	userRepository: UserRepository;
-	someOtherService: SomeOtherService;
+	userRepository: UserRepository
+	someOtherService: SomeOtherService
 }
 
 export class MyService {
-	private userRepository: UserRepository;
-	private someOtherService: SomeOtherService;
+	private userRepository: UserRepository
+	private someOtherService: SomeOtherService
 
 	constructor({ userRepository, someOtherService }: MyServiceDeps) {
-		this.userRepository = userRepository;
-		this.someOtherService = someOtherService;
+		this.userRepository = userRepository
+		this.someOtherService = someOtherService
 	}
 
 	async doSomething(): Promise<void> {
@@ -60,7 +60,7 @@ Update the `Cradle` interface in `src/api/container/container.types.ts`:
 ```typescript
 export interface Cradle {
 	// ... existing deps
-	myService: MyService;
+	myService: MyService
 }
 ```
 
@@ -72,7 +72,7 @@ Add the registration in `container.register()`:
 container.register({
 	// ... existing registrations
 	myService: asClass(MyService).singleton(),
-});
+})
 ```
 
 ### 4. Use in Controllers/Middleware
@@ -81,19 +81,19 @@ container.register({
 This ensures better test isolation since services are resolved at call time rather than import time.
 
 ```typescript
-import { container } from '../../container';
+import { container } from '../../container'
 
 // In a Hono route handler
 app.post('/endpoint', async (c) => {
-	const myService = container.cradle.myService;
+	const myService = container.cradle.myService
 	// Use myService...
-});
+})
 
 // In middleware
 export async function myMiddleware(c: Context, next: Next) {
-	const myService = container.cradle.myService;
+	const myService = container.cradle.myService
 	// Use myService...
-	await next();
+	await next()
 }
 ```
 
@@ -101,12 +101,12 @@ export async function myMiddleware(c: Context, next: Next) {
 
 ```typescript
 // DON'T do this - harder to mock in tests
-import { container } from '../../container';
-const myService = container.cradle.myService; // Resolved at import time
+import { container } from '../../container'
+const myService = container.cradle.myService // Resolved at import time
 
 app.post('/endpoint', async (c) => {
 	// myService already resolved, can't be mocked easily
-});
+})
 ```
 
 ## Adding a New Repository
@@ -115,15 +115,15 @@ Repositories extend `BaseRepository` which handles the database connection:
 
 ```typescript
 // src/api/modules/mymodule/my.repository.ts
-import { BaseRepository } from '../../helpers/base.repository';
+import { BaseRepository } from '../../helpers/base.repository'
 
 export class MyRepository extends BaseRepository {
 	// No constructor needed - inherited from BaseRepository
 
 	async findById(id: number): Promise<MyData | null> {
-		const result = await this.db.select().from(myTable).where(eq(myTable.id, id)).limit(1);
+		const result = await this.db.select().from(myTable).where(eq(myTable.id, id)).limit(1)
 
-		return result[0] ?? null;
+		return result[0] ?? null
 	}
 }
 ```
@@ -156,17 +156,17 @@ Mock utilities are split across two modules:
 Use `container.use(new MockContainer(...))` to provide mock services without `vi.mock`:
 
 ```typescript
-import { clearAllMocks, fn } from '@test-utils';
-import { container } from '../../container/container';
-import { MockContainer } from '../../container/container.mock';
+import { clearAllMocks, fn } from '@test-utils'
+import { container } from '../../container/container'
+import { MockContainer } from '../../container/container.mock'
 
 describe('MyController', () => {
 	// Create typed mock functions
-	const mockGetAll = fn<[{ offset?: number; limit?: number }], Promise<MyData[]>>();
-	const mockCreate = fn<[CreateParams], Promise<MyData>>();
+	const mockGetAll = fn<[{ offset?: number; limit?: number }], Promise<MyData[]>>()
+	const mockCreate = fn<[CreateParams], Promise<MyData>>()
 
 	beforeEach(() => {
-		clearAllMocks();
+		clearAllMocks()
 		container.use(
 			new MockContainer({
 				myService: {
@@ -174,30 +174,30 @@ describe('MyController', () => {
 					create: mockCreate,
 				},
 			}),
-		);
-	});
+		)
+	})
 
 	afterEach(() => {
-		container.restore();
-	});
+		container.restore()
+	})
 
 	it('should return data', async () => {
-		mockGetAll.mockResolvedValue([{ id: 1, name: 'Test' }]);
+		mockGetAll.mockResolvedValue([{ id: 1, name: 'Test' }])
 
-		const res = await app.request('/my-endpoint');
+		const res = await app.request('/my-endpoint')
 
-		expect(res.status).toBe(200);
-		expect(mockGetAll.calls).toEqual([[{ offset: undefined, limit: undefined }]]);
-	});
+		expect(res.status).toBe(200)
+		expect(mockGetAll.calls).toEqual([[{ offset: undefined, limit: undefined }]])
+	})
 
 	it('should handle errors', async () => {
-		mockCreate.mockRejectedValue(new Error('Validation failed'));
+		mockCreate.mockRejectedValue(new Error('Validation failed'))
 
-		const res = await app.request('/my-endpoint', { method: 'POST', body: '{}' });
+		const res = await app.request('/my-endpoint', { method: 'POST', body: '{}' })
 
-		expect(res.status).toBe(400);
-	});
-});
+		expect(res.status).toBe(400)
+	})
+})
 ```
 
 ### Mock Function API
@@ -205,22 +205,22 @@ describe('MyController', () => {
 The `fn()` function creates mock functions with these methods:
 
 ```typescript
-const mockFn = fn<[number, string], Promise<Result>>();
+const mockFn = fn<[number, string], Promise<Result>>()
 
 // Set return values
-mockFn.mockResolvedValue(result); // Returns Promise.resolve(result)
-mockFn.mockRejectedValue(error); // Returns Promise.reject(error)
-mockFn.mockReturnValue(value); // Returns value directly
+mockFn.mockResolvedValue(result) // Returns Promise.resolve(result)
+mockFn.mockRejectedValue(error) // Returns Promise.reject(error)
+mockFn.mockReturnValue(value) // Returns value directly
 
 // Track calls
-mockFn.calls; // Array of all call arguments
-mockFn.mockClear(); // Clear call history
+mockFn.calls // Array of all call arguments
+mockFn.mockClear() // Clear call history
 
 // Example assertion
 expect(mockFn.calls).toEqual([
 	[1, 'test'],
 	[2, 'other'],
-]);
+])
 ```
 
 ### Unit Testing Services
@@ -228,29 +228,29 @@ expect(mockFn.calls).toEqual([
 For service tests, you can inject mocks directly via the constructor:
 
 ```typescript
-import { MyService } from './my.service';
-import { clearAllMocks, fn } from '@test-utils';
+import { MyService } from './my.service'
+import { clearAllMocks, fn } from '@test-utils'
 
 describe('MyService', () => {
-	const mockFindById = fn<[number], Promise<MyData | null>>();
+	const mockFindById = fn<[number], Promise<MyData | null>>()
 
 	beforeEach(() => {
-		clearAllMocks();
-	});
+		clearAllMocks()
+	})
 
 	it('should do something', async () => {
-		mockFindById.mockResolvedValue({ id: 1, name: 'Test' });
+		mockFindById.mockResolvedValue({ id: 1, name: 'Test' })
 
 		const service = new MyService({
 			myRepository: { findById: mockFindById } as any,
-		});
+		})
 
-		const result = await service.getById(1);
+		const result = await service.getById(1)
 
-		expect(result).toEqual({ id: 1, name: 'Test' });
-		expect(mockFindById.calls).toEqual([[1]]);
-	});
-});
+		expect(result).toEqual({ id: 1, name: 'Test' })
+		expect(mockFindById.calls).toEqual([[1]])
+	})
+})
 ```
 
 ### Why Not vi.mock or vi.fn?
@@ -270,14 +270,14 @@ For the full testing guidelines, see [Testing Reference](../.claude/references/t
 For integration tests, use the real container:
 
 ```typescript
-import { container } from './container';
+import { container } from './container'
 
 describe('DI Container Integration', () => {
 	it('should resolve all dependencies', () => {
-		expect(container.cradle.authService).toBeDefined();
-		expect(container.cradle.userRepository).toBeDefined();
-	});
-});
+		expect(container.cradle.authService).toBeDefined()
+		expect(container.cradle.userRepository).toBeDefined()
+	})
+})
 ```
 
 ## Scoped Dependencies (Future)
@@ -287,17 +287,17 @@ If you need request-scoped dependencies in the future:
 ```typescript
 // Create a scoped container per request
 app.use(async (c, next) => {
-	const scopedContainer = container.createScope();
+	const scopedContainer = container.createScope()
 
 	// Register request-specific values
 	scopedContainer.register({
 		requestId: asValue(c.get('requestId')),
 		currentUser: asValue(c.get('user')),
-	});
+	})
 
-	c.set('container', scopedContainer);
-	await next();
-});
+	c.set('container', scopedContainer)
+	await next()
+})
 ```
 
 ## Best Practices

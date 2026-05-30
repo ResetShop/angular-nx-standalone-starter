@@ -228,6 +228,38 @@ export const DeeplyNestedBreadcrumb: Story = {
 }
 
 /**
+ * Mobile-viewport rendering of the header with a four-segment breadcrumb. The breadcrumb collapses
+ * to `first › … › last` below `sm:`, and the host padding tightens to `px-2`. Pick a non-mobile
+ * viewport (or resize) to see the full chain and `px-4` padding return.
+ */
+export const MobileViewport: Story = {
+	decorators: [
+		applicationConfig({
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherChevronRight, featherMenu }),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Admin', path: '/dashboard/admin', isActive: false },
+					{ title: 'Settings', path: '/dashboard/admin/settings', isActive: false },
+					{ title: 'Profile', path: '/dashboard/admin/settings/profile', isActive: true },
+				]),
+			],
+		}),
+	],
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+	render: () => ({
+		template: `
+			<header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-black/95">
+				<div appHeader></div>
+			</header>`,
+	}),
+}
+
+/**
  * Header showing responsive layout with full dashboard context.
  */
 export const ResponsiveDashboardLayout: Story = {

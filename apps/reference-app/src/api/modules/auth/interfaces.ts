@@ -1,5 +1,7 @@
 import type { UserStatus } from '@contracts/user/user.constants'
 import type { AuthUser } from '@contracts/user/user.types'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
+import type { UserData } from '../user/interfaces'
 
 export interface AuthenticationData {
 	id: number
@@ -22,12 +24,38 @@ export interface IncrementAttemptsResult {
 	lockedUntil?: Date
 }
 
+/**
+ * Parameters for inserting the initial authentication row of a newly-created user.
+ */
+export interface CreateInitialPasswordParams {
+	userId: number
+	passwordHash: string
+	mustChangePassword: boolean
+}
+
 export interface AuthenticationRepository {
 	findByUserId(userId: number): Promise<AuthenticationData | null>
 	incrementFailedAttempts(userId: number): Promise<number>
 	lockAccount(userId: number, lockedUntil: Date): Promise<void>
 	resetFailedAttempts(userId: number): Promise<void>
 	incrementAndLockIfNeeded(userId: number): Promise<IncrementAttemptsResult>
+	/**
+	 * Inserts the initial authentication row for a newly-created user.
+	 * Accepts an optional `tx` so the caller can compose this write into a
+	 * single transaction spanning the user, auth, and role tables.
+	 */
+	createInitialPassword(params: CreateInitialPasswordParams, tx?: DrizzleTransaction): Promise<void>
+	/**
+	 * Replaces a user's password hash and sets the must-change-password flag.
+	 * Skips deleted users (joined check on the `user` table).
+	 * @returns true if updated, false if the user does not exist or is deleted
+	 */
+	setPassword(
+		userId: number,
+		passwordHash: string,
+		mustChangePassword: boolean,
+		tx?: DrizzleTransaction,
+	): Promise<boolean>
 }
 
 export interface RefreshTokenData {
@@ -80,14 +108,49 @@ export interface CleanupResult {
 
 export interface RefreshTokenRepository {
 	findByTokenHashWithUser(tokenHash: string): Promise<RefreshTokenWithUser | null>
-	create(params: CreateRefreshTokenParams): Promise<RefreshTokenData>
+	create(params: CreateRefreshTokenParams, tx?: DrizzleTransaction): Promise<RefreshTokenData>
 	revokeToken(tokenId: number): Promise<void>
 	revokeAllForUser(userId: number): Promise<void>
+	/**
+	 * Revokes all of a user's refresh tokens except the one matching `exceptTokenHash`.
+	 * Accepts an optional `tx` for composition with other writes in one transaction.
+	 */
+	revokeAllForUserExcept(userId: number, exceptTokenHash: string, tx?: DrizzleTransaction): Promise<void>
 	revokeTokenFamily(tokenFamily: string): Promise<void>
 	deleteExpiredTokensForUser(userId: number): Promise<number>
 	tryAcquireCleanupLock(): Promise<boolean>
 	releaseCleanupLock(): Promise<void>
 	deleteAllExpiredTokens(): Promise<CleanupResult>
+	/**
+	 * Runs a callback inside a transaction, exposing the handle so the auth service can
+	 * compose the password write + token revocation + token rotation atomically.
+	 */
+	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
+}
+
+export interface PasswordResetTokenData {
+	userId: number
+	expiresAt: Date
+	usedAt: Date | null
+}
+
+export interface CreatePasswordResetTokenParams {
+	userId: number
+	tokenHash: string
+	expiresAt: Date
+}
+
+/**
+ * Repository for self-service password-reset tokens. Stores only token hashes (see the
+ * `password_reset_token` schema). `runInTransaction` (inherited from BaseRepository) lets the
+ * service compose the password write + token consumption atomically.
+ */
+export interface PasswordResetTokenRepository {
+	create(params: CreatePasswordResetTokenParams): Promise<void>
+	findByTokenHash(tokenHash: string): Promise<PasswordResetTokenData | null>
+	markUsed(tokenHash: string, tx?: DrizzleTransaction): Promise<void>
+	invalidateAllForUser(userId: number): Promise<void>
+	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
 
 // ============================================================================
@@ -125,12 +188,60 @@ export interface RefreshResult {
 }
 
 /**
- * Service interface for authentication operations: login, logout, and token refresh.
+ * Parameters for changing an authenticated user's password.
+ * `currentRefreshToken` (from the caller's cookie) is preserved when revoking the user's other
+ * sessions, so the in-flight session survives the change; omit it to revoke every session.
+ */
+export interface ChangePasswordParams {
+	userId: number
+	oldPassword: string
+	newPassword: string
+	currentRefreshToken?: string
+}
+
+/**
+ * Service interface for authentication operations: login, logout, token refresh, and password change.
  */
 export interface AuthService {
 	authenticate(credentials: AuthCredentials): Promise<AuthResult>
 	refreshToken(token: string): Promise<RefreshResult>
 	logout(userId: number): Promise<void>
+	changePassword(params: ChangePasswordParams): Promise<void>
+}
+
+/**
+ * Service interface for password-credential operations.
+ * Encapsulates timing-safe password verification and failed-login/lockout tracking —
+ * the password mechanism as a cohesive unit. Designed as an extension seam: future
+ * non-password auth mechanisms (OAuth, SSO, passkeys) become sibling collaborators
+ * without changing AuthService.
+ */
+export interface AuthPasswordService {
+	/**
+	 * Validates credentials with timing-safe comparison and tracks failed attempts.
+	 * Accepts nullable user/authRecord to preserve timing-safety (see implementation).
+	 * @throws AuthError INVALID_CREDENTIALS when validation fails
+	 */
+	validateCredentials(
+		user: UserData | null,
+		authRecord: AuthenticationData | null,
+		password: string,
+	): Promise<{ user: UserData; authRecord: AuthenticationData }>
+
+	/**
+	 * Changes an authenticated user's password: verifies the current password, hashes the new one,
+	 * and persists it while clearing the must-change-password flag. Accepts an optional `tx` so the
+	 * caller can compose the write with session revocation in a single transaction.
+	 * @throws AuthError OLD_PASSWORD_MISMATCH when the current password is incorrect
+	 */
+	changePassword(userId: number, oldPassword: string, newPassword: string, tx?: DrizzleTransaction): Promise<void>
+
+	/**
+	 * Returns whether the user must change their password before proceeding. Read fresh from the
+	 * authentication record (the access token does not carry this flag), so `/api/auth/me` reflects
+	 * a password change immediately on the next navigation.
+	 */
+	getMustChangePassword(userId: number): Promise<boolean>
 }
 
 /**
@@ -144,4 +255,22 @@ export interface AuthService {
  */
 export interface TokenMaintenanceService {
 	cleanupExpiredTokens(): Promise<CleanupResult | null>
+}
+
+/**
+ * Service for the self-service password-reset flow (unauthenticated): request a reset by email
+ * and complete it with a token. Designed as a focused collaborator alongside AuthService.
+ */
+export interface PasswordResetService {
+	/**
+	 * Initiates a reset by email. Resolves silently for unknown/inactive accounts (no user
+	 * enumeration); only active users receive a reset-link email.
+	 */
+	requestPasswordReset(email: string): Promise<void>
+
+	/**
+	 * Completes a reset with the raw token + new password.
+	 * @throws AuthError RESET_TOKEN_INVALID when the token is missing/expired/used or the user is inactive
+	 */
+	resetPassword(token: string, newPassword: string): Promise<void>
 }

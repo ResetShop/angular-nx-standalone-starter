@@ -200,6 +200,43 @@ export const WithActionsLoading: Story = {
 	}),
 }
 
+/**
+ * Mobile-viewport rendering. Title scales to `text-xl`, section gaps tighten to `space-y-4`, and
+ * the action bar stacks `flex-col` with full-width controls. Pick a non-mobile viewport (or resize)
+ * to see the desktop `text-2xl` / `space-y-6` / side-by-side action layout.
+ */
+export const MobileLayout: Story = {
+	args: {
+		title: 'Users',
+		loading: false,
+		error: null,
+		description: 'Manage system users, their roles, and account status.',
+	},
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+	render: (args) => ({
+		props: args,
+		moduleMetadata: { imports: [PageShell] },
+		template: `
+			<div class="bg-background p-2 sm:p-6 rounded border border-border">
+				<app-page-shell [title]="title" [loading]="loading" [error]="error">
+					<p pageDescription>{{ description }}</p>
+					<div pageActions class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+						<input type="search" placeholder="Search users..."
+							class="border-input bg-background text-foreground h-9 w-full max-w-sm rounded-md border px-3 text-base sm:text-sm" />
+						<button class="bg-primary text-primary-foreground h-9 rounded-md px-4 text-sm font-medium w-full sm:w-auto">Create User</button>
+					</div>
+					<div class="rounded-lg border border-border bg-card p-3 sm:p-4 md:p-5 text-center text-muted-foreground">
+						Data table goes here
+					</div>
+				</app-page-shell>
+			</div>
+		`,
+	}),
+}
+
 export const NoDescription: Story = {
 	args: {
 		title: 'Dashboard',

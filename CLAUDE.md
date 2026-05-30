@@ -40,23 +40,26 @@
 
 Use `npm` for all package management and script execution:
 
-| Command                    | Description                                    |
-| -------------------------- | ---------------------------------------------- |
-| `npm install`              | Install dependencies                           |
-| `npm run ci`               | Run all CI checks locally (required before PR) |
-| `npm run build`            | Build the project                              |
-| `npm run dev`              | Start development server                       |
-| `npm run lint`             | Run linting                                    |
-| `npm run storybook`        | Run storybook dev server                       |
-| `npm run storybook:build`  | Build storybook                                |
-| `npm run stylelint`        | Run stylelint                                  |
-| `npm run typecheck`        | Type-check spec files (tsc --noEmit)           |
-| `npm run test`             | Run all unit tests                             |
-| `npm run test:integration` | Run backend integration tests (requires DB)    |
-| `npm run test:e2e`         | Run all end-to-end tests                       |
-| `npm install <pkg>`        | Add a dependency                               |
-| `npm install -D <pkg>`     | Add a dev dependency                           |
-| `npm install -g <pkg>`     | Add a global dependency                        |
+| Command                    | Description                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm install`              | Install dependencies                                                                     |
+| `npm run ci`               | Run all CI checks **cold** (`--skip-nx-cache`) — authoritative final gate                |
+| `npm run ci:verify`        | Run all CI checks **cache-aware** (Nx local/remote cache) — intermediate/inner-loop runs |
+| `npm run build`            | Build the project                                                                        |
+| `npm run dev`              | Start development server                                                                 |
+| `npm run format`           | Format all files with Prettier                                                           |
+| `npm run format:check`     | Check formatting without writing                                                         |
+| `npm run lint`             | Run linting                                                                              |
+| `npm run storybook`        | Run storybook dev server                                                                 |
+| `npm run storybook:build`  | Build storybook                                                                          |
+| `npm run stylelint`        | Run stylelint                                                                            |
+| `npm run typecheck`        | Type-check spec files (tsc --noEmit)                                                     |
+| `npm run test`             | Run all unit tests                                                                       |
+| `npm run test:integration` | Run backend integration tests (requires DB)                                              |
+| `npm run test:e2e`         | Run all end-to-end tests                                                                 |
+| `npm install <pkg>`        | Add a dependency                                                                         |
+| `npm install -D <pkg>`     | Add a dev dependency                                                                     |
+| `npm install -g <pkg>`     | Add a global dependency                                                                  |
 
 #### CRITICAL: Command Execution Policy
 
@@ -142,26 +145,27 @@ All `packages/*` are exposed via `@resetshop/*` path aliases in `tsconfig.base.j
 
 These are non-negotiable rules. Violations require explicit justification.
 
-| Constraint                          | Limit                                                                                                                                                                                                                                                           | Rationale                             |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Function length                     | ≤ 50 lines                                                                                                                                                                                                                                                      | Readability, SRP                      |
-| File length                         | ≤ 500 lines (spec files exempt)                                                                                                                                                                                                                                 | Maintainability                       |
-| Cyclomatic complexity               | ≤ 10                                                                                                                                                                                                                                                            | Testability                           |
-| Nesting depth                       | ≤ 3 levels                                                                                                                                                                                                                                                      | Readability                           |
-| Barrel imports/exports              | Not allowed in any part of the project                                                                                                                                                                                                                          | Maintainability, Performance          |
-| `any` type                          | Forbidden without `// REASON:` comment                                                                                                                                                                                                                          | Type safety                           |
-| `// @ts-ignore`                     | Forbidden without linked issue                                                                                                                                                                                                                                  | Technical debt tracking               |
-| `console.log`                       | Remove before commit                                                                                                                                                                                                                                            | Clean code                            |
-| TypeScript enums                    | Forbidden - use `Object.freeze()` instead                                                                                                                                                                                                                       | Consistency, type safety              |
-| Type-only imports                   | Use `type` keyword for types/interfaces when only used in the context of type annotations                                                                                                                                                                       | Bundle size, clarity                  |
-| Raw time literals                   | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()`                                                                                                                                      | Readability, consistency              |
-| `vi.fn()`/`vi.mock()`               | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                                                                                                                                                      | Framework independence                |
-| `firstValueFrom`/`toPromise`        | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                                                                                                                                                           | Signals-first, no promises            |
-| `TestBed.flushEffects()`            | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                                                                                                                                                      | API deprecation                       |
-| Storybook stories                   | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                                                                                                                                                              | Visual testing, documentation         |
-| External repo issues                | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves                                                                                                                                            | Ownership, etiquette                  |
-| Permission string literals          | Every file using permission identifier strings must have a test validating them against `PERMISSION_DEFINITIONS`                                                                                                                                                | Catches typos, stale refs             |
-| Coding agent recommendation framing | All AI agents must follow [`.claude/references/coding-agent-policies.md`](.claude/references/coding-agent-policies.md). No solo-maintainer shortcut framings, no "skip the test for this small change", no deferring code review past PR open. Review-blocking. | Multi-collaborator showcase precedent |
+| Constraint                              | Limit                                                                                                                                                                                                                                                           | Rationale                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Function length                         | ≤ 50 lines                                                                                                                                                                                                                                                      | Readability, SRP                        |
+| File length                             | ≤ 500 lines (spec files exempt)                                                                                                                                                                                                                                 | Maintainability                         |
+| Cyclomatic complexity                   | ≤ 10                                                                                                                                                                                                                                                            | Testability                             |
+| Nesting depth                           | ≤ 3 levels                                                                                                                                                                                                                                                      | Readability                             |
+| Barrel imports/exports                  | Not allowed in any part of the project                                                                                                                                                                                                                          | Maintainability, Performance            |
+| `any` type                              | Forbidden without `// REASON:` comment                                                                                                                                                                                                                          | Type safety                             |
+| `// @ts-ignore`                         | Forbidden without linked issue                                                                                                                                                                                                                                  | Technical debt tracking                 |
+| `console.log`                           | Remove before commit                                                                                                                                                                                                                                            | Clean code                              |
+| TypeScript enums                        | Forbidden - use `Object.freeze()` instead                                                                                                                                                                                                                       | Consistency, type safety                |
+| Type-only imports                       | Use `type` keyword for types/interfaces when only used in the context of type annotations                                                                                                                                                                       | Bundle size, clarity                    |
+| Raw time literals                       | Forbidden — use duration strings (`'15m'`, `'1h'`, `'7d'`) resolved via `parseDurationToMs()` / `parseDurationToSeconds()`                                                                                                                                      | Readability, consistency                |
+| `vi.fn()`/`vi.mock()`                   | Forbidden — use `fn()` from `@test-utils`; ESLint enforced                                                                                                                                                                                                      | Framework independence                  |
+| `firstValueFrom`/`toPromise`            | Forbidden in Angular frontend (`src/app/`) — use `rxMethod` from `@ngrx/signals/rxjs-interop` instead                                                                                                                                                           | Signals-first, no promises              |
+| `Translation.instant` in `packages/ui/` | Must supply an English fallback as the 2nd arg (`instant(key, fallback)`). Verbatim from `en.ts`. Required for every call site in `packages/ui/src/lib/**/*.ts`; not required in `apps/*` or `packages/angular-core/`                                           | Storybook-renderable library components |
+| `TestBed.flushEffects()`                | Deprecated since Angular 20 — use `TestBed.tick()` instead                                                                                                                                                                                                      | API deprecation                         |
+| Storybook stories                       | Every new UI component in `src/app/components/` must include a `*.stories.ts` file                                                                                                                                                                              | Visual testing, documentation           |
+| External repo issues                    | Never create issues on repos where the user is not a contributor — inform the user and let them create it themselves                                                                                                                                            | Ownership, etiquette                    |
+| Permission string literals              | Every file using permission identifier strings must have a test validating them against `PERMISSION_DEFINITIONS`                                                                                                                                                | Catches typos, stale refs               |
+| Coding agent recommendation framing     | All AI agents must follow [`.claude/references/coding-agent-policies.md`](.claude/references/coding-agent-policies.md). No solo-maintainer shortcut framings, no "skip the test for this small change", no deferring code review past PR open. Review-blocking. | Multi-collaborator showcase precedent   |
 
 ### Object.freeze() Instead of Enums
 
@@ -275,6 +279,44 @@ export const HEALTH_CHECK_TIMEOUT_MS = 5000
 | `DEFAULT_REFRESH_TOKEN_EXPIRY` | `src/api/constants/auth.constants.ts`        | `'7d'`  |
 | `REFRESH_TOKEN_EXPIRY_BUFFER`  | `src/api/constants/auth.constants.ts`        | `'1h'`  |
 | `HEALTH_CHECK_TIMEOUT`         | `src/api/modules/health/health.constants.ts` | `'5s'`  |
+
+### Translation Fallbacks in Reusable UI Components
+
+Components in `packages/ui/src/lib/` are reusable across apps and Storybook stories. Storybook does **not** wire `provideTranslation()` — stories render with the empty default loader, and `Translation.instant(key)` returns the raw key. To keep stories (and any other consumer that doesn't wire translations) rendering meaningful text, every `instant(key)` call inside `packages/ui/src/lib/**/*.ts` MUST pass an English fallback as the second argument.
+
+The fallback is silently overridden whenever a translation is actually loaded — apps wired with `provideTranslation()` still receive localized strings. The fallback only takes effect when `Translation.instant()` cannot resolve the key.
+
+```typescript
+// ✅ Correct — fallback supplied
+protected readonly label = this.translation.instant('PAGINATION.LABEL', 'Pagination')
+
+protected readonly pageOfTemplate = this.translation.instant('PAGINATION.PAGE_OF', 'Page {current} of {total}')
+
+case 'minLength':
+	return this.translation
+		.instant('VALIDATION.MIN_LENGTH', 'Must be at least {min} characters')
+		.replace('{min}', String(error.minLength))
+
+// ❌ Incorrect — Storybook renders the literal string 'PAGINATION.LABEL'
+protected readonly label = this.translation.instant('PAGINATION.LABEL')
+```
+
+**Rules:**
+
+1. **Verbatim from `en.ts`.** Fallback strings must be exact copies of the English entries in `apps/reference-app/src/app/providers/i18n/translations/en.ts`. Any divergence means production users in English see one string while Storybook viewers see another.
+2. **Keep interpolation placeholders intact.** Interpolated keys retain their `{page}`, `{current}`, `{total}`, `{min}`, `{max}` tokens — existing `.replace(...)` calls work identically on the fallback path with no branching.
+3. **Inline, not abstracted.** Do not introduce intermediate `*_KEYS` / `*_DEFAULTS` frozen objects or per-component `resolved()` helpers — they add indirection for no DRY win and have been explicitly removed (see PR #372). The string literal lives once at the call site.
+4. **Fallback-path test per translated string.** Every translated string in a `packages/ui` component must have a dedicated test that replaces the `Translation` provider with `{ instant: (key, fallback) => fallback ?? key }` and asserts the rendered English fallback. See `packages/ui/src/lib/{pagination,data-table,form-field}/*.spec.ts` for the canonical pattern.
+5. **No `Translate.instant` wrappers.** The previous `resolveOrDefault` helper has been deleted. `Translation.instant(key, fallback)` is now the only sanctioned API for resolution-with-fallback.
+
+**Scope — where this rule does NOT apply:**
+
+- `apps/*/src/app/` — apps always wire `provideTranslation()`, so a fallback would be dead code. Existing call sites use the single-arg `instant(key)` form and should stay that way.
+- `packages/angular-core/` — internal helpers (`TranslatePipe`, `NavigationTitleStrategy`) are consumed inside apps and don't need fallbacks. Tests mock `Translation` directly.
+
+**Dev warnings:**
+
+`Translation.instant()` emits a deduplicated `logger.warn('Translation', 'Missing translation for "X" in language "Y"')` for every unresolved key in `isDevMode()`. The warning fires **even when a fallback is supplied** — a missing key is information the developer should always see. Repeated raw-key warnings during dev are a signal that either (a) a `packages/ui` call site is missing a fallback, or (b) a key is genuinely absent from `en.ts`/`es.ts` and needs to be added.
 
 ### Signals-First State Management (No Promises)
 
@@ -977,26 +1019,28 @@ Use the Task tool to delegate to specialized agents at each development phase:
 
 | Phase          | Trigger                              | Agents                                                                |
 | -------------- | ------------------------------------ | --------------------------------------------------------------------- |
-| Planning       | New feature/component/module/service | `architecture-advisor`, `domain-model-advisor`                        |
-| Implementation | Plan approved, code being written    | `test-generator`, `domain-model-advisor`                              |
-| Pre-review     | Implementation complete              | `security-auditor`                                                    |
+| Planning       | New feature/component/module/service | `architecture-advisor` ∥ `domain-model-advisor` (parallel)            |
+| Implementation | Plan approved, code being written    | `test-generator` ∥ `domain-model-advisor` (parallel — write-disjoint) |
+| Pre-review     | Implementation complete              | `test-generator` ∥ `security-auditor` (parallel)                      |
 | Review         | Pre-review passes                    | `code-reviewer` (reads ALL references)                                |
 | Maintenance    | On-demand                            | `refactoring-specialist`, `migration-planner`, `documentation-writer` |
 
-**Common Pipelines:**
+**Common Pipelines** (`∥` = run in parallel; `→` = sequential):
 
-| Scenario    | Agent Sequence                                                                                                        |
-| ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| New feature | `architecture-advisor` → `domain-model-advisor` → implement → `test-generator` → `security-auditor` → `code-reviewer` |
-| Bug fix     | implement → `test-generator` → `code-reviewer`                                                                        |
-| Refactoring | `refactoring-specialist` → `test-generator` → `code-reviewer`                                                         |
-| Upgrade     | `migration-planner` → implement → `test-generator` → `code-reviewer`                                                  |
+| Scenario    | Agent Sequence                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| New feature | (`architecture-advisor` ∥ `domain-model-advisor`) → implement → (`test-generator` ∥ `security-auditor`) → `code-reviewer` |
+| Bug fix     | implement → `test-generator` → `code-reviewer`                                                                            |
+| Refactoring | `refactoring-specialist` → `test-generator` → `code-reviewer`                                                             |
+| Upgrade     | `migration-planner` → implement → `test-generator` → `code-reviewer`                                                      |
 
-**Invocation:** Use the Task tool to delegate to `<agent-name>` agent. Example:
+**Parallel vs sequential:** Advisors that are independent — no data dependency on each other and **no shared write target** — run concurrently in a single message with multiple `Agent` calls. Two such groups exist: the planning advisors (`architecture-advisor` ∥ `domain-model-advisor`) and the pre-review advisors (`test-generator` ∥ `security-auditor`). Keep agents **sequential** when one consumes another's output or when they would write to the same file (e.g. both editing the same `workspace/*.md` artifact such as `workspace/PLAN.md` or `workspace/CODE_REVIEW.md`); the correctness rule is _no shared write target_. The `/issue-workflow` skill's own phase pauses (after Plan, after Review) remain sequential by design — parallelization applies only to the intra-phase advisor fan-out.
 
-```
-Use the architecture-advisor agent to review the proposed component structure
-```
+**Invocation:** Use the Task tool to delegate to `<agent-name>` agent.
+
+- Sequential (single agent): `Use the architecture-advisor agent to review the proposed component structure`
+- Parallel group, planning (issue both `Agent` calls in **one** message): `Use the architecture-advisor and domain-model-advisor agents in parallel to review the planned module` — the two run concurrently because neither depends on the other and they share no write target.
+- Parallel group, pre-review (same one-message pattern): `Use the test-generator and security-auditor agents in parallel on this branch` — `test-generator` writes `*.spec.ts` files while `security-auditor` is read-only, so there is no shared write target.
 
 ### Available Agents
 
@@ -1019,19 +1063,46 @@ The `/issue-workflow <issue-url>` skill (`.claude/skills/issue-workflow/SKILL.md
 
 ### Agent Reference Loading
 
-Which `.claude/references/` files each agent loads in Step 0:
+Which `.claude/references/` files each agent loads in Step 0. All multi-reference agents load their set in a **single parallel batch** (see each agent's Step 0).
 
-| Agent                    | References Loaded                                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `code-reviewer`          | All 11 references                                                                                                   |
-| `plan-writer`            | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators, accessibility |
-| `architecture-advisor`   | clean-architecture, solid, cupid, guiding-principles, cross-reference, auth, backend-api, generators, accessibility |
-| `refactoring-specialist` | solid, cupid, guiding-principles                                                                                    |
-| `domain-model-advisor`   | domain-model                                                                                                        |
-| `test-generator`         | testing                                                                                                             |
-| `security-auditor`       | auth, backend-api                                                                                                   |
-| `documentation-writer`   | —                                                                                                                   |
-| `migration-planner`      | —                                                                                                                   |
+| Agent                    | References Loaded                                                                |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `code-reviewer`          | **All 13 references — full-load, always** (never conditionally gated; see below) |
+| `plan-writer`            | core + diff-relevant domain refs (conditional; see below) + `CLAUDE.md`          |
+| `architecture-advisor`   | core + diff-relevant domain refs (conditional; see below)                        |
+| `refactoring-specialist` | solid, cupid, guiding-principles, maintainability                                |
+| `domain-model-advisor`   | domain-model                                                                     |
+| `test-generator`         | testing                                                                          |
+| `security-auditor`       | auth, backend-api                                                                |
+| `documentation-writer`   | —                                                                                |
+| `migration-planner`      | —                                                                                |
+
+#### Conditional Reference Loading (planning agents)
+
+The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 13-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
+
+**Core — always loaded by the planning agents (never gated):**
+
+`clean-architecture`, `solid`, `cupid`, `guiding-principles`, `cross-reference`, **`coding-agent-policies`** (hard-pinned, review-blocking), and `CLAUDE.md` (plan-writer only).
+
+> `coding-agent-policies.md` is **hard-pinned to always-load** for every agent that loads references — it is never gated, in keeping with the session-start requirement at the top of this file.
+
+**Domain — gated by the diff, per this glob→ref map:**
+
+| Diff touches…                                                         | Load reference(s)                       |
+| --------------------------------------------------------------------- | --------------------------------------- |
+| `src/api/**`, `src/db/**`, `src/contracts/**`                         | `backend-api` + `domain-model` + `auth` |
+| `*.guard.ts`, the auth store, `src/api/**/auth`, `src/contracts/auth` | `auth`                                  |
+| generator dirs / generated files, or a scaffolding task               | `generators`                            |
+| `src/app/components/**`, component templates, styles                  | `accessibility`                         |
+
+Both planning agents share the **same** gated domain set — `auth`, `backend-api`, `domain-model`, `generators`, `accessibility` — so this map applies to each uniformly (no per-agent exceptions). `plan-writer` additionally always-loads `CLAUDE.md` as part of its core.
+
+**Fail open:** on an empty, mixed-layer, or ambiguous diff — or any uncertainty — the planning agent loads **all** of its domain references. Cross-cutting diffs are the norm (the `crud` generator emits DB + API + contracts + provider + store + page at once), so the default under doubt is to load everything.
+
+> **When adding a new reference file, update this map.** A reference added without a glob→ref entry will never be conditionally loaded. If unsure where it belongs, add it to the **core** (always-loaded) set rather than leaving it ungated.
+>
+> **`maintainability.md`** (the structural-simplification lens, #409) is loaded by **`code-reviewer`** (full set) and **`refactoring-specialist`** (fixed set). It is **not** part of the planning agents' gated set today — extending it to `architecture-advisor`/`plan-writer` is a candidate for the broader agent-review-quality follow-up, not an oversight.
 
 ### Documentation Impact Scan
 
@@ -1109,7 +1180,7 @@ export class PermissionSelector extends FormFieldCustomControl implements FormVa
 This is a mandatory step in the workflow:
 
 1. Complete implementation (code changes, tests, commits)
-2. **Run `npm run ci`** — All CI checks must pass (exit code 0) before work is considered complete
+2. **Run `npm run ci:verify`** (cache-aware) — all CI checks must pass (exit code 0) before work is considered complete. This is an **intermediate** run; the cold `npm run ci` is reserved for the authoritative final gate before the PR is opened (see [Local CI Verification](#local-ci-verification)).
 3. **Automatically run code review** using the `code-reviewer` agent
 4. Provide a report to the user, with a prioritization of all the found issues, plus the recommendations and suggestions to address them. The report must be in form of a table, that will be used to track the pending work while addressing the issues, recommendations and suggestions.
 5. Save the Proactive Review results to the `workspace/CODE_REVIEW.md` file for the user to review. The user will then manually decide what to do based on the report.
@@ -1120,7 +1191,22 @@ This is a mandatory step in the workflow:
 
 ### Local CI Verification
 
-**CRITICAL:** Before considering any implementation work complete, `npm run ci` MUST pass with exit code 0.
+**CRITICAL:** Before considering any implementation work complete, CI MUST pass with exit code 0 — use the cache-aware `npm run ci:verify` for intermediate runs and the cold `npm run ci` as the authoritative final gate before the PR (see below).
+
+#### Two verification paths: cold `ci` vs cache-aware `ci:verify`
+
+There are two CI scripts. They run the **same** tasks (`stylelint`, `lint`, `typecheck`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
+
+| Script              | Cache                                                              | Use for                                                                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run ci`        | **Cold** — `--skip-nx-cache` on every task                         | The **authoritative final gate** (Phase 6 / before opening a PR). Guarantees correctness independent of cache state.                                                                                          |
+| `npm run ci:verify` | **Cache-aware** — rides the Nx local (and remote, see below) cache | Repeated **intermediate** runs in the agent inner loop, where the tree is largely unchanged between runs. On an unchanged tree this collapses to a near-instant cache restore instead of a full cold rebuild. |
+
+**Rule:** Use `npm run ci:verify` for the repeated intermediate checks inside a workflow (e.g. the `code-reviewer` agent's verification step, post-fix re-runs). Use the cold `npm run ci` as the **final** gate before the PR is opened — a cold run is the only run that proves correctness independent of cache state. Never substitute `ci:verify` for the final gate.
+
+> **Permission note:** `npm run ci:verify` is already authorized by the pre-existing `Bash(npm run ci:*)` allow-rule in `.claude/settings.local.json` — the glob matches because `ci:verify` begins with the `ci:` prefix — so no new allow-rule is required.
+
+> **Remote cache:** `ci:verify` rides the Nx **local** cache today. It also rides the Nx Cloud **remote** cache (restoring task outputs across fresh containers, sessions, and CI) once the workspace is claimed and an `NX_CLOUD_ACCESS_TOKEN` is provisioned — see [`docs/NX_CLOUD.md`](docs/NX_CLOUD.md) for the setup runbook and current status.
 
 The `npm run ci` command runs CI checks in two parallel batches via `nx run-many`:
 
@@ -1182,16 +1268,10 @@ The code-reviewer agent checks:
 └────────┬────────┘
          │
          ▼
-┌─────────────────┐
-│  npm run ci     │ ◄── MUST pass with exit code 0
-│   (mandatory)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  npm run ci     │ ◄── MUST pass with exit code 0
-│   (mandatory)   │
-└────────┬────────┘
+┌──────────────────────┐
+│  npm run ci:verify   │ ◄── intermediate (cache-aware) — MUST pass with exit code 0
+│   (mandatory)        │
+└──────────┬───────────┘
          │
          ▼
 ┌─────────────────┐
@@ -1209,6 +1289,12 @@ The code-reviewer agent checks:
 ┌─────────────────┐
 │  Fix Issues     │ (if any critical/warnings)
 └────────┬────────┘
+         │
+         ▼
+┌──────────────────────┐
+│  npm run ci          │ ◄── cold final gate — MUST pass with exit code 0
+│   (mandatory)        │
+└──────────┬───────────┘
          │
          ▼
 ┌─────────────────┐

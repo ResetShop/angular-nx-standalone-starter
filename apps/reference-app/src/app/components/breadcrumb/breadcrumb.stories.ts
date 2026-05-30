@@ -34,7 +34,7 @@ A breadcrumb navigation component that displays the hierarchical path to the cur
 - **Native Angular Router**: Uses the Route \`title\` property to configure breadcrumb labels
 - **Navigable**: Click any breadcrumb item to navigate back to that route
 - **Accessible**: Full ARIA support with proper semantic HTML
-- **Responsive**: Wraps breadcrumb items on smaller screens
+- **Responsive**: Per-segment truncation on mobile (below \`sm:\`); full width restored on wider viewports via \`sm:max-w-none\`. Chains of 3+ items collapse intermediate segments into an ellipsis (\`first › … › last\`) on mobile.
 - **Dark Mode Support**: Automatic dark mode styling with Tailwind CSS
 - **Icon Separators**: Uses chevron icons as visual separators
 - **Current Page Indicator**: Highlights the active/current page
@@ -150,7 +150,9 @@ export const DeepNesting: Story = {
 }
 
 /**
- * Breadcrumb with long titles demonstrating text wrapping.
+ * Breadcrumb with long titles rendered inside a `max-w-2xl` container — wider than the `sm:`
+ * breakpoint, so the per-segment truncation caps are lifted by `sm:max-w-none` and both segments
+ * render in full. Use the `MobileLongSegments` story below to see the truncation in effect.
  */
 export const LongTitles: Story = {
 	decorators: [
@@ -269,8 +271,9 @@ export const InPageHeader: Story = {
 }
 
 /**
- * Breadcrumb with responsive behavior.
- * Demonstrates how breadcrumbs wrap on smaller screens.
+ * Demonstrates the intermediate-item truncation at a constrained container width. Below `sm:`, the
+ * chain collapses to `first › … › last` (the middle two items stay in the DOM but are CSS-hidden
+ * via `hidden sm:inline-flex`). Resize to a wider viewport to see the full chain return.
  */
 export const Responsive: Story = {
 	decorators: [
@@ -292,6 +295,65 @@ export const Responsive: Story = {
 				<app-breadcrumb />
 			</div>
 		`,
+	}),
+}
+
+/**
+ * Mobile-viewport demonstration of the intermediate-item truncation. A four-segment trail collapses
+ * to `first › … › last` below `sm:`; the two middle segments stay in the DOM marked `hidden
+ * sm:inline-flex`. Resize Storybook to a wider viewport (or pick a non-mobile preset) to see the
+ * full chain re-appear.
+ */
+export const MobileEllipsis: Story = {
+	decorators: [
+		applicationConfig({
+			providers: [
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Dashboard', path: '/dashboard', isActive: false },
+					{ title: 'Administration', path: '/dashboard/admin', isActive: false },
+					{ title: 'User Management', path: '/dashboard/admin/users', isActive: false },
+					{ title: 'Edit', path: '/dashboard/admin/users/edit', isActive: true },
+				]),
+			],
+		}),
+	],
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+	render: () => ({
+		template: '<app-breadcrumb />',
+	}),
+}
+
+/**
+ * Mobile-viewport demonstration of per-segment width truncation. The first and last segments are
+ * intentionally long: the first inactive link is capped at `max-w-[8rem]` and the active span at
+ * `max-w-[14rem]`, both with `truncate` to produce an ellipsis. Hover (or use assistive tech) to
+ * see the full label via the `title` attribute. Resize to a wider viewport to confirm the caps
+ * are lifted by `sm:max-w-none`.
+ */
+export const MobileLongSegments: Story = {
+	decorators: [
+		applicationConfig({
+			providers: [
+				provideRouter([]),
+				createNavigationWithBreadcrumbs([
+					{ title: 'Administration & Configuration', path: '/admin', isActive: false },
+					{ title: 'Users', path: '/admin/users', isActive: false },
+					{ title: 'Manage', path: '/admin/users/manage', isActive: false },
+					{ title: 'Edit User: A Very Long Name Here', path: '/admin/users/manage/edit', isActive: true },
+				]),
+			],
+		}),
+	],
+	parameters: {
+		viewport: { defaultViewport: 'mobile' },
+		docs: { canvas: { sourceState: 'shown' } },
+	},
+	render: () => ({
+		template: '<app-breadcrumb />',
 	}),
 }
 

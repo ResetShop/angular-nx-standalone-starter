@@ -1,58 +1,47 @@
 import { logger } from '@resetshop/util'
 import { randomInt } from 'crypto'
-import { readFile } from 'fs/promises'
-import { resolve } from 'path'
 import { z } from 'zod'
+import enWordlistRaw from './wordlists/en-password-seed.txt?raw'
+import esWordlistRaw from './wordlists/es-password-seed.txt?raw'
 
-const wordListCache = new Map<string, readonly string[]>()
 const wordCountSchema = z.number().int().positive()
 
-async function readWordListFile(filename: string): Promise<string> {
-	/**
-	 * Candidate directories for wordlist files, checked in order.
-	 * - Production: copied to dist/reference-app/server/wordlists/ via copy-server-assets Nx target
-	 * - Development: source tree location
-	 */
-	const candidateDirs = [resolve(import.meta.dirname, 'wordlists'), resolve(process.cwd(), 'src/api/utils/wordlists')]
-	const triedPaths: string[] = []
-
-	for (const dir of candidateDirs) {
-		const candidate = resolve(dir, filename)
-		try {
-			return await readFile(candidate, 'utf-8')
-		} catch (error: unknown) {
-			if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-				triedPaths.push(candidate)
-			} else {
-				throw error
-			}
-		}
-	}
-	throw new Error(`Word list file not found: ${filename} (tried: ${triedPaths.join(', ')})`)
-}
-
-// TODO (#159): Validate language against an allowlist to prevent path traversal
-async function getWordList(language: string): Promise<readonly string[]> {
-	const cached = wordListCache.get(language)
-	if (cached) {
-		return cached
-	}
-
-	const content = await readWordListFile(`${language}-password-seed.txt`)
-	const lines = content.split('\n')
-	const words = Object.freeze(
-		lines
+/**
+ * Parses a diceware wordlist file. The first line is a header count;
+ * subsequent lines are one word per line. Returns a frozen array.
+ */
+function parseWordlist(content: string): readonly string[] {
+	return Object.freeze(
+		content
+			.split('\n')
 			.slice(1)
 			.map((word) => word.trim())
 			.filter(Boolean),
 	)
+}
 
+const WORDLISTS: Readonly<Record<string, readonly string[]>> = Object.freeze({
+	en: parseWordlist(enWordlistRaw),
+	es: parseWordlist(esWordlistRaw),
+})
+
+/**
+ * Returns the (frozen) word list for a language. Exported so specs can assert invariants over the
+ * entire source list deterministically instead of sampling generated passwords (which flaked when a
+ * single hyphenated entry was drawn).
+ * @throws if the language is not allow-listed or its list is empty
+ */
+export function getWordList(language: string): readonly string[] {
+	// Allowlist check via Object.hasOwn — guards against inherited members (e.g. `language`
+	// set to '__proto__' or 'constructor') returning truthy non-array values that would
+	// pass a plain `if (!words)` check and crash later in randomInt(words.length).
+	if (!Object.hasOwn(WORDLISTS, language)) {
+		throw new Error(`Word list not found for language: ${language}`)
+	}
+	const words = WORDLISTS[language]
 	if (words.length === 0) {
 		throw new Error(`Word list is empty for language: ${language}`)
 	}
-
-	wordListCache.set(language, words)
-
 	return words
 }
 
@@ -74,7 +63,7 @@ export async function generatePassword(wordCount = 3): Promise<string> {
 	const effectiveWordCount = parsed.success ? wordCount : 3
 
 	const language = process.env['APP_LANGUAGE'] || 'en'
-	const words = await getWordList(language)
+	const words = getWordList(language)
 
 	return Array.from({ length: effectiveWordCount }, () => words[randomInt(words.length)]).join('.')
 }

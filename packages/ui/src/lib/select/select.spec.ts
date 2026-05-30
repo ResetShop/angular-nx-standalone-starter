@@ -10,6 +10,7 @@ import {
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
+import userEvent from '@testing-library/user-event'
 import { FormField } from '../form-field/form-field'
 import { Select } from './select'
 import type { SelectOption } from './select-option'
@@ -109,5 +110,16 @@ describe('Select', () => {
 		await fixture.whenStable()
 
 		expect(screen.getByText('United Kingdom')).toBeInTheDocument()
+	})
+
+	it('should apply max-h-[min(60vh,240px)] to the dropdown when open', async () => {
+		// jsdom cannot evaluate min() or vh units; class-presence asserts the responsive
+		// max-height rule. Visual behaviour is covered by the `MobileViewport` Storybook story.
+		await renderSelect()
+
+		await userEvent.setup().click(screen.getByRole('combobox'))
+
+		const dropdown = screen.getByTestId('select-dropdown')
+		expect(dropdown).toHaveClass('max-h-[min(60vh,240px)]')
 	})
 })

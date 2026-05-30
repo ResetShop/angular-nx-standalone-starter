@@ -6,6 +6,7 @@ import type {
 	CreateUserRequest,
 	CreateUserResponse,
 	ManagedUser,
+	ResetPasswordResponse,
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
@@ -46,5 +47,9 @@ export class HttpUsersApi implements UsersApi {
 
 	public updateStatus(id: number, body: UpdateUserStatusRequest): Observable<ManagedUser> {
 		return this.http.patch<ManagedUser>(`/api/user/${id}/status`, body)
+	}
+
+	public resetPassword(id: number): Observable<ResetPasswordResponse> {
+		return this.http.post<ResetPasswordResponse>(`/api/user/${id}/reset-password`, {})
 	}
 }

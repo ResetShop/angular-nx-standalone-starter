@@ -14,12 +14,19 @@
 				"tsConfig": "packages/hono-core/tsconfig.lib.json"
 			}
 		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/packages/hono-core"],
+			"options": {
+				"config": "packages/hono-core/vitest.config.ts"
+			}
+		},
 		"typecheck": {
 			"executor": "nx:run-commands",
 			"cache": true,
 			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
 			"options": {
-				"command": "tsc --noEmit -p packages/hono-core/tsconfig.lib.json"
+				"command": "tsc --noEmit -p packages/hono-core/tsconfig.spec.json"
 			}
 		},
 		"lint": {

@@ -64,7 +64,7 @@ const EMPTY_MODEL: EditUserFormModel = { email: '', firstName: '', lastName: '',
 			(afterClosed)="toast.flushPending()"
 			[closeOnBackdrop]="false"
 			[title]="'USERS.EDIT_DRAWER.TITLE' | translate"
-			class="lg:w-lg"
+			class="w-full sm:w-lg"
 			#drawer
 		>
 			<form (submit)="onSubmit($event)" id="edit-user-form" class="flex h-full flex-col gap-4">

@@ -1,6 +1,11 @@
 import { parseDurationToMs } from '@resetshop/util'
 import { DEFAULT_LOCKOUT_DURATION, DEFAULT_MAX_FAILED_ATTEMPTS } from '../../constants/auth.constants'
-import { type AuthenticationData, type AuthenticationRepository, type IncrementAttemptsResult } from './interfaces'
+import {
+	type AuthenticationData,
+	type AuthenticationRepository,
+	type CreateInitialPasswordParams,
+	type IncrementAttemptsResult,
+} from './interfaces'
 
 interface MockAuthRecord {
 	passwordHash: string
@@ -19,6 +24,8 @@ export class InMemoryAuthenticationRepository implements AuthenticationRepositor
 	public incrementedUsers: number[] = []
 	public lockedUsers: Array<{ userId: number; lockedUntil: Date }> = []
 	public resetUsers: number[] = []
+	public createdPasswords: CreateInitialPasswordParams[] = []
+	public setPasswordCalls: Array<{ userId: number; passwordHash: string; mustChangePassword: boolean }> = []
 
 	constructor(options?: { maxFailedAttempts?: number; lockoutDuration?: string }) {
 		this.maxAttempts = options?.maxFailedAttempts ?? DEFAULT_MAX_FAILED_ATTEMPTS
@@ -42,6 +49,8 @@ export class InMemoryAuthenticationRepository implements AuthenticationRepositor
 		this.incrementedUsers = []
 		this.lockedUsers = []
 		this.resetUsers = []
+		this.createdPasswords = []
+		this.setPasswordCalls = []
 		this.nextId = 1
 	}
 
@@ -120,5 +129,22 @@ export class InMemoryAuthenticationRepository implements AuthenticationRepositor
 			failedAttempts: newAttemptCount,
 			wasLocked: false,
 		}
+	}
+
+	public async createInitialPassword(params: CreateInitialPasswordParams): Promise<void> {
+		this.createdPasswords.push(params)
+		this.authRecords.set(params.userId, {
+			passwordHash: params.passwordHash,
+			mustChangePassword: params.mustChangePassword,
+		})
+	}
+
+	public async setPassword(userId: number, passwordHash: string, mustChangePassword: boolean): Promise<boolean> {
+		this.setPasswordCalls.push({ userId, passwordHash, mustChangePassword })
+		const record = this.authRecords.get(userId)
+		if (!record) return false
+		record.passwordHash = passwordHash
+		record.mustChangePassword = mustChangePassword
+		return true
 	}
 }

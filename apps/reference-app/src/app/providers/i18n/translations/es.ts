@@ -9,14 +9,33 @@ const es: TranslationSchema = {
 			FORGOT_PASSWORD: '¿Olvidaste tu contraseña?',
 			SUBMIT: 'Iniciar sesión',
 		},
+		CHANGE_PASSWORD: {
+			TITLE: 'Cambiar tu contraseña',
+			DESCRIPTION: 'Por tu seguridad, establece una nueva contraseña antes de continuar.',
+			OLD_PASSWORD_LABEL: 'Contraseña actual',
+			NEW_PASSWORD_LABEL: 'Nueva contraseña',
+			SUBMIT: 'Cambiar contraseña',
+		},
 		RESET_PASSWORD: {
 			TITLE: 'Restablecer contraseña',
+			DESCRIPTION: 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.',
 			EMAIL_LABEL: 'Dirección de email',
 			SUBMIT: 'Enviar enlace de restablecimiento',
 			BACK_TO_LOGIN: 'Volver al inicio de sesión',
+			CONFIRMATION:
+				'Si existe una cuenta para ese email, se ha enviado un enlace de restablecimiento. Revisa tu bandeja de entrada.',
+		},
+		RESET_PASSWORD_CONFIRM: {
+			TITLE: 'Establece una nueva contraseña',
+			DESCRIPTION: 'Elige una nueva contraseña para tu cuenta.',
+			NEW_PASSWORD_LABEL: 'Nueva contraseña',
+			SUBMIT: 'Restablecer contraseña',
+			MISSING_TOKEN: 'Este enlace de restablecimiento es inválido o está incompleto. Por favor, solicita uno nuevo.',
 		},
 		ERRORS: {
 			INVALID_CREDENTIALS: 'Email o contraseña incorrectos',
+			OLD_PASSWORD_MISMATCH: 'Tu contraseña actual es incorrecta',
+			RESET_TOKEN_INVALID: 'Este enlace de restablecimiento es inválido o ha caducado. Por favor, solicita uno nuevo.',
 			ACCOUNT_LOCKED:
 				'Tu cuenta ha sido bloqueada temporalmente debido a múltiples intentos fallidos. Por favor, intenta de nuevo más tarde.',
 			ACCOUNT_DISABLED: 'Tu cuenta ha sido deshabilitada. Por favor, contacta con soporte.',
@@ -24,6 +43,28 @@ const es: TranslationSchema = {
 			TOKEN_EXPIRED: 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.',
 			TOKEN_INVALID: 'Sesión inválida. Por favor, inicia sesión de nuevo.',
 			GENERIC: 'Error al iniciar sesión. Por favor, intenta de nuevo.',
+			ACCOUNT_LOCKED_UNTIL: 'Demasiados intentos fallidos — intenta de nuevo en {time}',
+			RATE_LIMITED_UNTIL: 'Demasiadas solicitudes — intenta de nuevo en {time}',
+		},
+	},
+	LANDING: {
+		PAGE_TITLE: 'Bienvenido',
+		BRAND_NAME: 'Angular Nx Starter',
+		HERO_HEADING: 'Starter SSR de Angular + Nx',
+		HERO_SUBHEADING:
+			'Un starter listo para producción con autenticación, control de acceso basado en roles y renderizado del lado del servidor integrados.',
+		HERO_CTA: 'Comenzar',
+		LOGIN_BUTTON: 'Iniciar sesión',
+		GO_TO_DASHBOARD: 'Ir al panel',
+		SKIP_TO_CONTENT: 'Saltar al contenido principal',
+		FEATURES: {
+			TITLE: 'Qué incluye',
+			AUTH_TITLE: 'Autenticación',
+			AUTH_DESCRIPTION: 'Autenticación segura basada en PASETO con renovación de tokens y gestión de sesiones.',
+			RBAC_TITLE: 'Control de acceso basado en roles',
+			RBAC_DESCRIPTION: 'Permisos granulares con roles, aplicados tanto a nivel de ruta como de API.',
+			SSR_TITLE: 'Renderizado del lado del servidor',
+			SSR_DESCRIPTION: 'Angular SSR listo para usar para una primera carga más rápida y un mejor SEO.',
 		},
 	},
 	COMMON: {
@@ -55,39 +96,46 @@ const es: TranslationSchema = {
 			TITLE: 'Usuarios',
 			DESCRIPTION: 'Administrar usuarios del sistema, sus roles y estado de cuenta.',
 			SEARCH: 'Buscar usuarios...',
-			CREATE_BUTTON: 'Crear Usuario',
+			CREATE_BUTTON: 'Crear usuario',
+			RESET_PASSWORD_BUTTON: 'Restablecer contraseña',
 			DELETE_DIALOG: {
-				TITLE: 'Eliminar Usuario',
+				TITLE: 'Eliminar usuario',
 				MESSAGE: "¿Estás seguro de que deseas eliminar al usuario '{name}'? Esta acción no se puede deshacer.",
+			},
+			RESET_PASSWORD_DIALOG: {
+				TITLE: 'Restablecer contraseña',
+				MESSAGE:
+					"¿Estás seguro de que deseas restablecer la contraseña de '{email}'? Se enviará una nueva contraseña temporal al usuario por correo electrónico, quien deberá cambiarla en su próximo inicio de sesión.",
 			},
 		},
 		TABLE: {
 			CAPTION: 'Lista de usuarios',
 			HEADER: {
 				NAME: 'Nombre',
-				EMAIL: 'Correo Electrónico',
+				EMAIL: 'Correo electrónico',
 				STATUS: 'Estado',
 				ROLES: 'Roles',
 			},
 		},
 		CREATE_DRAWER: {
-			TITLE: 'Crear Usuario',
+			TITLE: 'Crear usuario',
 			FIRST_NAME: 'Nombre',
 			LAST_NAME: 'Apellido',
-			EMAIL: 'Correo Electrónico',
+			EMAIL: 'Correo electrónico',
 			MUST_CHANGE_PASSWORD: 'Debe cambiar la contraseña al primer inicio de sesión',
 			ROLES_LABEL: 'Roles',
 			SUCCESS_TOAST: 'Usuario creado exitosamente.',
 		},
 		EDIT_DRAWER: {
-			TITLE: 'Editar Usuario',
+			TITLE: 'Editar usuario',
 			FIRST_NAME: 'Nombre',
 			LAST_NAME: 'Apellido',
-			EMAIL: 'Correo Electrónico',
+			EMAIL: 'Correo electrónico',
 			ROLES_LABEL: 'Roles',
 			SUCCESS_TOAST: 'Usuario actualizado exitosamente.',
 		},
 		DELETE_TOAST: 'Usuario eliminado exitosamente.',
+		RESET_PASSWORD_TOAST: 'Correo de restablecimiento de contraseña enviado.',
 	},
 	ROLES: {
 		PAGE: {
@@ -95,9 +143,9 @@ const es: TranslationSchema = {
 			TITLE: 'Roles',
 			DESCRIPTION: 'Administrar roles del sistema y sus permisos asociados.',
 			SEARCH: 'Buscar roles...',
-			CREATE_BUTTON: 'Crear Rol',
+			CREATE_BUTTON: 'Crear rol',
 			DELETE_DIALOG: {
-				TITLE: 'Eliminar Rol',
+				TITLE: 'Eliminar rol',
 				MESSAGE: "¿Estás seguro de que deseas eliminar el rol '{name}'? Esta acción no se puede deshacer.",
 			},
 		},
@@ -110,7 +158,7 @@ const es: TranslationSchema = {
 			},
 		},
 		CREATE_DRAWER: {
-			TITLE: 'Crear Rol',
+			TITLE: 'Crear rol',
 			NAME: 'Nombre',
 			CODE: 'Código',
 			CODE_HINT: 'Generado automáticamente a partir del nombre',
@@ -119,7 +167,7 @@ const es: TranslationSchema = {
 			SUCCESS_TOAST: 'Rol creado exitosamente.',
 		},
 		EDIT_DRAWER: {
-			TITLE: 'Editar Rol',
+			TITLE: 'Editar rol',
 			NAME: 'Nombre',
 			CODE: 'Código',
 			CODE_HINT: 'El código no se puede cambiar',
@@ -162,26 +210,26 @@ const es: TranslationSchema = {
 	},
 	HEALTH: {
 		NAV: 'Salud',
-		TITLE: 'Verificador de Salud de la Aplicación',
+		TITLE: 'Verificador de salud de la aplicación',
 		LOADING: 'Cargando...',
 		STATUS_LABEL: 'Estado:',
-		DATE_TIME_LABEL: 'Fecha y Hora:',
+		DATE_TIME_LABEL: 'Fecha y hora:',
 		CHECKS_HEADER: 'Controles',
 		ERROR_TITLE: 'Error:',
 		DATABASE: {
-			HEADER: 'Base de Datos',
+			HEADER: 'Base de datos',
 			STATUS: 'Estado:',
-			RESPONSE_TIME: 'Tiempo de Respuesta:',
+			RESPONSE_TIME: 'Tiempo de respuesta:',
 		},
 	},
 	DASHBOARD: {
-		BREADCRUMB: 'Panel Principal',
+		BREADCRUMB: 'Panel principal',
 		SECTIONS: {
-			SETTINGS: 'Ajustes y Mantenimiento',
+			SETTINGS: 'Ajustes y mantenimiento',
 			ADMIN: 'Administración',
 		},
 		HOME: {
-			NAV: 'Configuración Inicial',
+			NAV: 'Configuración inicial',
 			NO_ACCESS_TITLE: 'Sin acceso a módulos',
 			NO_ACCESS_MESSAGE:
 				'Tu cuenta aún no tiene acceso a ningún módulo. Contacta a tu administrador para solicitar los permisos que necesitas.',
@@ -214,6 +262,14 @@ const es: TranslationSchema = {
 	DATA_TABLE: {
 		EMPTY: 'No hay datos disponibles',
 		LOADING: 'Cargando...',
+		TOGGLE: {
+			TABLE: 'Vista de tabla',
+			CARDS: 'Vista de tarjetas',
+			GROUP_LABEL: 'Modo de visualización',
+		},
+	},
+	ROW_ACTIONS: {
+		TRIGGER_LABEL: 'Acciones',
 	},
 	PAGINATION: {
 		LABEL: 'Paginación',
@@ -221,6 +277,7 @@ const es: TranslationSchema = {
 		GO_TO_PREVIOUS: 'Ir a la página anterior',
 		GO_TO_NEXT: 'Ir a la página siguiente',
 		GO_TO_PAGE: 'Ir a la página {page}',
+		PAGE_OF: 'Página {current} de {total}',
 	},
 	VALIDATION: {
 		REQUIRED: 'Este campo es requerido',

@@ -17,14 +17,18 @@ import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
+import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
+import { type RowAction } from '@resetshop/ui/row-actions-menu/row-action-item'
+import { RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { AuthStore } from '@store/auth/auth.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateRoleDrawer } from '../create-role-drawer/create-role-drawer'
 import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
+import { RoleCard } from './role-card'
 
 @Component({
 	selector: 'app-roles-list',
@@ -35,11 +39,14 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		ConfirmDialog,
 		CreateRoleDrawer,
 		DataTable,
+		DataTableCardDef,
 		DataTableCellDef,
 		EditRoleDrawer,
 		HasPermissionDirective,
 		PageShell,
 		Pagination,
+		RoleCard,
+		RowActionsMenu,
 		TranslatePipe,
 	],
 	template: `
@@ -50,19 +57,26 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 		>
 			<p pageDescription>{{ 'ROLES.PAGE.DESCRIPTION' | translate }}</p>
 
-			<div pageActionsSkeleton class="flex items-center justify-between gap-4" data-testid="roles-actions-skeleton">
+			<div
+				pageActionsSkeleton
+				class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+				data-testid="roles-actions-skeleton"
+			>
 				<div class="bg-muted h-9 w-full max-w-sm animate-pulse rounded-md"></div>
-				<div class="bg-muted h-9 w-24 animate-pulse rounded-md"></div>
+				<div class="bg-muted h-9 w-full animate-pulse rounded-md sm:w-24"></div>
 			</div>
 
-			<div pageActions class="flex items-center justify-between gap-4">
+			<div
+				pageActions
+				class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+			>
 				<input
 					(input)="onSearchInput($event)"
 					[placeholder]="'ROLES.PAGE.SEARCH' | translate"
 					type="search"
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-base focus:ring-1 focus:outline-none sm:text-sm"
 				/>
-				<button (click)="createDrawer.open()" *hasPermission="'admin:roles:create'" appButton>
+				<button (click)="createDrawer.open()" *hasPermission="'admin:roles:create'" appButton class="w-full sm:w-auto">
 					{{ 'ROLES.PAGE.CREATE_BUTTON' | translate }}
 				</button>
 			</div>
@@ -72,30 +86,23 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 				[data]="store.roles()"
 				[loading]="store.isMutating()"
 				[caption]="'ROLES.TABLE.CAPTION' | translate"
+				[displayModes]="displayModes"
+				cardsBelow="sm"
+				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="code" let-value>
 					<span appBadge variant="secondary">{{ value }}</span>
 				</ng-template>
 
-				<ng-template appDataTableCellDef="actions" let-value let-row="row">
-					<div class="flex gap-2">
-						<button
-							(click)="editDrawer.open(row.id)"
-							*hasPermission="'admin:roles:update'"
-							appButton
-							variant="ghost"
-							size="sm"
-						>
-							{{ 'COMMON.EDIT' | translate }}
-						</button>
-						<ng-container *hasPermission="'admin:roles:delete'">
-							@if (row.removable) {
-								<button (click)="confirmDelete(row)" appButton variant="ghost" size="sm" class="text-destructive">
-									{{ 'COMMON.DELETE' | translate }}
-								</button>
-							}
-						</ng-container>
-					</div>
+				<ng-template appDataTableCellDef="actions" let-row="row">
+					<app-row-actions-menu
+						[actions]="getRowActions(row)"
+						[triggerLabel]="'ROW_ACTIONS.TRIGGER_LABEL' | translate"
+					/>
+				</ng-template>
+
+				<ng-template appDataTableCardDef let-row>
+					<app-role-card (edit)="editDrawer.open(row.id)" (delete)="confirmDelete(row)" [role]="row" />
 				</ng-template>
 			</app-data-table>
 
@@ -126,10 +133,12 @@ import { EditRoleDrawer } from '../edit-role-drawer/edit-role-drawer'
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore)
+	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
 
+	private readonly editDrawerRef = viewChild.required<EditRoleDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('ROLES.DELETE_TOAST'))
 
@@ -161,6 +170,30 @@ export default class RolesList {
 	protected onSearchInput(event: Event): void {
 		const input = event.target as HTMLInputElement
 		this.store.setSearchQuery(input.value)
+	}
+
+	protected getRowActions(row: IRole): readonly (readonly RowAction[])[] {
+		const user = this.authStore.currentUser()
+		const nonDestructive: RowAction[] = []
+
+		if (user?.hasPermission('admin:roles:update')) {
+			nonDestructive.push({
+				label: this.translation.instant('COMMON.EDIT'),
+				onSelect: () => this.editDrawerRef().open(row.id),
+			})
+		}
+
+		const destructive: RowAction[] = []
+
+		if (row.removable && user?.hasPermission('admin:roles:delete')) {
+			destructive.push({
+				label: this.translation.instant('COMMON.DELETE'),
+				onSelect: () => this.confirmDelete(row),
+				variant: 'destructive',
+			})
+		}
+
+		return [nonDestructive, destructive]
 	}
 
 	protected confirmDelete(role: IRole): void {

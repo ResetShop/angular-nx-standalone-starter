@@ -1,34 +1,35 @@
-import { Component, effect, ErrorHandler, inject, input, signal } from '@angular/core'
+import { Component, effect, input, signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
-import { Translation, type Language } from '@resetshop/angular-core/i18n/translation'
+import { parseDurationToMs } from '@resetshop/util'
+import { AuthStore } from '@store/auth/auth.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import ResetPassword from './reset-password'
+
+/** Shared signal driving the mock AuthStore's `resetRequested` state (form vs. confirmation). */
+const storyResetRequested = signal(false)
+
+/** Shared signal driving the mock AuthStore's `resetThrottledUntil` (rate-limit countdown). */
+const storyResetThrottledUntil = signal<string | null>(null)
 
 @Component({
 	selector: 'app-reset-password-story',
 	standalone: true,
 	imports: [ResetPassword],
 	template: `
-		@if (isReady()) {
-			<app-reset-password-page />
-		}
+		<app-reset-password-page />
 	`,
 })
 class ResetPasswordStoryComponent {
-	private readonly errorHandler = inject(ErrorHandler)
-	private readonly translation = inject(Translation)
-	public readonly language = input<Language>('es')
-	protected readonly isReady = signal(false)
+	public readonly requested = input<boolean>(false)
+	public readonly throttled = input<boolean>(false)
 
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation
-			.setLanguage(lang)
-			.then(() => this.isReady.set(true))
-			.catch((error: unknown) => this.errorHandler.handleError(error))
+	private readonly syncEffect = effect(() => {
+		storyResetRequested.set(this.requested())
+		storyResetThrottledUntil.set(
+			this.throttled() ? new Date(Date.now() + parseDurationToMs('15m')).toISOString() : null,
+		)
 	})
 }
 
@@ -38,7 +39,21 @@ const meta: Meta<ResetPasswordStoryComponent> = {
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({}), provideRouter([])],
+			providers: [
+				...provideSignalFormsConfig({}),
+				provideRouter([]),
+				{
+					provide: AuthStore,
+					useFactory: () => ({
+						resetRequested: storyResetRequested,
+						resetThrottledUntil: storyResetThrottledUntil,
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						forgotPassword: () => {},
+						// eslint-disable-next-line @typescript-eslint/no-empty-function
+						clearResetState: () => {},
+					}),
+				},
+			],
 		}),
 	],
 	parameters: {
@@ -47,13 +62,12 @@ const meta: Meta<ResetPasswordStoryComponent> = {
 		docs: {
 			description: {
 				component: `
-Password reset request page. Email-only form with validation and a back-to-login link.
+Password-reset **request** page. Email-only form that calls \`forgotPassword\`; on completion it shows a
+neutral "if an account exists, a link was sent" confirmation (no user enumeration), regardless of whether
+the email is registered.
 
-Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<app-immersive-panel>\`) with no card chrome and no surrounding backdrop. From \`sm:\` up the form sits as a 420 × 420 card centred on a dark backdrop.
-
-## Language Support
-
-Use the **language** control to switch between Spanish and English; validation messages localize via the Translation service.
+Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<app-immersive-panel>\`); from
+\`sm:\` up the form sits as a card centred on a dark backdrop.
 `,
 			},
 			canvas: {
@@ -62,12 +76,15 @@ Use the **language** control to switch between Spanish and English; validation m
 		},
 	},
 	argTypes: {
-		language: {
-			control: 'select',
-			options: ['es', 'en'],
-			description: 'Language for validation messages',
-			table: { type: { summary: 'Language' }, defaultValue: { summary: 'es' } },
-			labels: { es: 'Español', en: 'English' },
+		requested: {
+			control: 'boolean',
+			description: 'Show the post-submit confirmation state instead of the form',
+			table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+		},
+		throttled: {
+			control: 'boolean',
+			description: 'Show the rate-limit countdown (too many requests)',
+			table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
 		},
 	},
 }
@@ -76,4 +93,17 @@ export default meta
 
 type Story = StoryObj<ResetPasswordStoryComponent>
 
-export const Default: Story = { args: { language: 'es' } }
+/** The request form (default state). */
+export const Default: Story = {
+	args: { requested: false },
+}
+
+/** The neutral confirmation shown after a request is submitted. */
+export const Confirmation: Story = {
+	args: { requested: true },
+}
+
+/** Rate-limited: the live "try again in mm:ss" countdown shown after too many requests. */
+export const Throttled: Story = {
+	args: { throttled: true },
+}

@@ -4,6 +4,7 @@ import type {
 	CreateUserRequest,
 	CreateUserResponse,
 	ManagedUser,
+	ResetPasswordResponse,
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
@@ -16,10 +17,12 @@ import {
 	deleteUserRoute,
 	getUserRoute,
 	listUsersRoute,
+	resetPasswordRoute,
 	updateUserRoute,
 	updateUserStatusRoute,
 } from './user-management.routes'
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
+import { USER_ROLE_ERRORS } from './user-role.errors'
 
 const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
@@ -84,8 +87,16 @@ registerRoute(app, createUserRoute, async (c) => {
 		logger.security('user_created', { userId: result.id, email: result.email, actorId })
 		return c.json<CreateUserResponse>(result, 201)
 	} catch (error) {
-		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
-			return c.json<ErrorResponse>({ error: error.message }, 409)
+		if (error instanceof Error) {
+			if (error.message.startsWith(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)) {
+				return c.json<ErrorResponse>({ error: error.message }, 409)
+			}
+			// Role assignment is composed into user creation, so invalid role IDs surface here.
+			// (replaceUserRoles' NON_REMOVABLE_ROLES guard is unreachable at create time — a
+			// brand-new user has no existing roles to drop — so only ROLES_NOT_FOUND needs mapping.)
+			if (error.message.startsWith(USER_ROLE_ERRORS.ROLES_NOT_FOUND)) {
+				return c.json<ErrorResponse>({ error: error.message }, 400)
+			}
 		}
 		throw error
 	}
@@ -166,6 +177,29 @@ registerRoute(app, deleteUserRoute, async (c) => {
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
 			logger.security('self_lockout_blocked', { actorId, operation: 'user_deleted', reason: error.message })
+		}
+		const mapped = resolveErrorStatus(error)
+		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
+		throw error
+	}
+})
+
+/**
+ * POST /api/user/:id/reset-password
+ * Admin-initiated password reset — generates, hashes, persists, and emails a new temp password
+ */
+registerRoute(app, resetPasswordRoute, async (c) => {
+	const { userManagementService } = container.cradle
+	const { id }: { id: number } = c.req.valid('param')
+	const actorId = Number((c as AuthenticatedContext).user.sub)
+
+	try {
+		const result = await userManagementService.resetPassword(id, actorId)
+		logger.security('user_password_reset', { userId: id, actorId, passwordEmailSent: result.passwordEmailSent })
+		return c.json<ResetPasswordResponse>(result)
+	} catch (error) {
+		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
+			logger.security('self_lockout_blocked', { actorId, operation: 'user_password_reset', reason: error.message })
 		}
 		const mapped = resolveErrorStatus(error)
 		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)

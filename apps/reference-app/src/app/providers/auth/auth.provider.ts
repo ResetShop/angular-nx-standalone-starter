@@ -1,4 +1,5 @@
 import { type EnvironmentProviders, inject, makeEnvironmentProviders, type Provider } from '@angular/core'
+import { CURRENT_USER_SOURCE } from '@resetshop/angular-core/auth/current-user.token'
 import { NAVIGATION_PERMISSION_CHECK } from '@resetshop/angular-core/navigation/navigation'
 import { AuthStore } from '@store/auth/auth.store'
 import { HttpAuthApi } from './auth'
@@ -61,6 +62,10 @@ export function withNavigationPermissionCheck(): AuthFeature {
 export function provideAuth(...features: AuthFeature[]): EnvironmentProviders {
 	return makeEnvironmentProviders([
 		{ provide: AuthApi, useExisting: HttpAuthApi },
+		// Inversion seam for the @resetshop/angular-core/auth/CurrentUser service.
+		// Unconditional — not an opt-in AuthFeature — so any consumer that injects
+		// CurrentUser resolves CURRENT_USER_SOURCE without extra wiring.
+		{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 		...features.flatMap((feature) => feature.providers),
 	])
 }

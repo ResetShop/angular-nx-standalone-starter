@@ -9,14 +9,32 @@ const en: TranslationSchema = {
 			FORGOT_PASSWORD: 'Forgot your password?',
 			SUBMIT: 'Sign in',
 		},
+		CHANGE_PASSWORD: {
+			TITLE: 'Change your password',
+			DESCRIPTION: 'For your security, set a new password before continuing.',
+			OLD_PASSWORD_LABEL: 'Current password',
+			NEW_PASSWORD_LABEL: 'New password',
+			SUBMIT: 'Change password',
+		},
 		RESET_PASSWORD: {
 			TITLE: 'Reset password',
+			DESCRIPTION: 'Enter your email and we will send you a link to reset your password.',
 			EMAIL_LABEL: 'Email address',
 			SUBMIT: 'Send reset link',
 			BACK_TO_LOGIN: 'Back to sign in',
+			CONFIRMATION: 'If an account exists for that email, a password-reset link has been sent. Check your inbox.',
+		},
+		RESET_PASSWORD_CONFIRM: {
+			TITLE: 'Set a new password',
+			DESCRIPTION: 'Choose a new password for your account.',
+			NEW_PASSWORD_LABEL: 'New password',
+			SUBMIT: 'Reset password',
+			MISSING_TOKEN: 'This reset link is invalid or incomplete. Please request a new one.',
 		},
 		ERRORS: {
 			INVALID_CREDENTIALS: 'Email or password is incorrect',
+			OLD_PASSWORD_MISMATCH: 'Your current password is incorrect',
+			RESET_TOKEN_INVALID: 'This reset link is invalid or has expired. Please request a new one.',
 			ACCOUNT_LOCKED:
 				'Your account has been temporarily locked due to multiple failed attempts. Please try again later.',
 			ACCOUNT_DISABLED: 'Your account has been disabled. Please contact support.',
@@ -24,6 +42,28 @@ const en: TranslationSchema = {
 			TOKEN_EXPIRED: 'Your session has expired. Please log in again.',
 			TOKEN_INVALID: 'Invalid session. Please log in again.',
 			GENERIC: 'Login error. Please try again.',
+			ACCOUNT_LOCKED_UNTIL: 'Too many failed attempts — try again in {time}',
+			RATE_LIMITED_UNTIL: 'Too many requests — try again in {time}',
+		},
+	},
+	LANDING: {
+		PAGE_TITLE: 'Welcome',
+		BRAND_NAME: 'Angular Nx Starter',
+		HERO_HEADING: 'Angular + Nx SSR Starter',
+		HERO_SUBHEADING:
+			'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
+		HERO_CTA: 'Get started',
+		LOGIN_BUTTON: 'Sign in',
+		GO_TO_DASHBOARD: 'Go to dashboard',
+		SKIP_TO_CONTENT: 'Skip to main content',
+		FEATURES: {
+			TITLE: "What's included",
+			AUTH_TITLE: 'Authentication',
+			AUTH_DESCRIPTION: 'Secure PASETO-based authentication with token refresh and session management.',
+			RBAC_TITLE: 'Role-based access control',
+			RBAC_DESCRIPTION: 'Granular permissions with roles, enforced at both the route and API level.',
+			SSR_TITLE: 'Server-side rendering',
+			SSR_DESCRIPTION: 'Angular SSR out of the box for faster first paint and better SEO.',
 		},
 	},
 	COMMON: {
@@ -56,9 +96,15 @@ const en: TranslationSchema = {
 			DESCRIPTION: 'Manage system users, their roles, and account status.',
 			SEARCH: 'Search users...',
 			CREATE_BUTTON: 'Create User',
+			RESET_PASSWORD_BUTTON: 'Reset Password',
 			DELETE_DIALOG: {
 				TITLE: 'Delete User',
 				MESSAGE: "Are you sure you want to delete the user '{name}'? This action cannot be undone.",
+			},
+			RESET_PASSWORD_DIALOG: {
+				TITLE: 'Reset Password',
+				MESSAGE:
+					"Are you sure you want to reset the password for '{email}'? A new temporary password will be emailed to the user, who will be required to change it on next login.",
 			},
 		},
 		TABLE: {
@@ -88,6 +134,7 @@ const en: TranslationSchema = {
 			SUCCESS_TOAST: 'User updated successfully.',
 		},
 		DELETE_TOAST: 'User deleted successfully.',
+		RESET_PASSWORD_TOAST: 'Password reset email sent.',
 	},
 	ROLES: {
 		PAGE: {
@@ -213,6 +260,14 @@ const en: TranslationSchema = {
 	DATA_TABLE: {
 		EMPTY: 'No data available',
 		LOADING: 'Loading...',
+		TOGGLE: {
+			TABLE: 'Table view',
+			CARDS: 'Card view',
+			GROUP_LABEL: 'Display mode',
+		},
+	},
+	ROW_ACTIONS: {
+		TRIGGER_LABEL: 'Actions',
 	},
 	PAGINATION: {
 		LABEL: 'Pagination',
@@ -220,6 +275,7 @@ const en: TranslationSchema = {
 		GO_TO_PREVIOUS: 'Go to previous page',
 		GO_TO_NEXT: 'Go to next page',
 		GO_TO_PAGE: 'Go to page {page}',
+		PAGE_OF: 'Page {current} of {total}',
 	},
 	VALIDATION: {
 		REQUIRED: 'This field is required',

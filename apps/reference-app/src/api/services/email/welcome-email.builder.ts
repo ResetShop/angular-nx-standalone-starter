@@ -1,14 +1,11 @@
+import type { EmailContent, EmailLanguage } from './email-builder.utils'
+import { escapeHtml, resolveEmailLanguage } from './email-builder.utils'
+
 export interface WelcomeEmailParams {
 	firstName: string
 	email: string
 	password: string
 	mustChangePassword: boolean
-}
-
-export interface EmailContent {
-	subject: string
-	html: string
-	text: string
 }
 
 // File-local bilingual email translations
@@ -29,11 +26,11 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 	es: {
 		subject: 'Tu nueva cuenta ha sido creada',
 		greeting: 'Hola',
-		welcome: '¡Bienvenido! Tu cuenta ha sido creada exitosamente.',
+		welcome: '¡Te damos la bienvenida! Tu cuenta ha sido creada exitosamente.',
 		credentialsHeader: 'Tus credenciales de inicio de sesión:',
-		emailLabel: 'Correo Electrónico:',
+		emailLabel: 'Correo electrónico:',
 		passwordLabel: 'Contraseña',
-		tempPasswordLabel: 'Contraseña Temporal',
+		tempPasswordLabel: 'Contraseña temporal',
 		changeWarning:
 			'IMPORTANTE: Por favor, cambia tu contraseña inmediatamente después de tu primer inicio de sesión por razones de seguridad.',
 		footer: 'Este es un mensaje automatizado. Por favor, no respondas a este correo electrónico.',
@@ -41,12 +38,6 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 		team: 'El Equipo',
 	},
 } as const)
-
-type EmailLanguage = keyof typeof EMAIL_TRANSLATIONS
-
-function resolveEmailLanguage(lang: string | undefined): EmailLanguage {
-	return lang === 'es' ? 'es' : 'en'
-}
 
 /**
  * Build welcome email content for new user accounts
@@ -85,15 +76,6 @@ ${t.footer}
 
 ${t.signOff}
 ${t.team}`
-}
-
-function escapeHtml(value: string): string {
-	return value
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;')
 }
 
 function buildHtmlContent(

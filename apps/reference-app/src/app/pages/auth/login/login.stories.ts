@@ -1,10 +1,10 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
-import { Component, effect, ErrorHandler, inject, input, signal } from '@angular/core'
+import { Component, effect, input, signal } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
 import { LoginErrorCode } from '@contracts/auth/auth.errors'
-import { Translation, type Language } from '@resetshop/angular-core/i18n/translation'
+import { parseDurationToMs } from '@resetshop/util'
 import { AuthStore } from '@store/auth/auth.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
@@ -22,6 +22,12 @@ type ErrorCodeOption = LoginErrorCode | null
  */
 const storyLoginError = signal<{ code: string } | null>(null)
 
+/** Drives the mock AuthStore's loginLockedUntil — set ~15 min ahead for the ACCOUNT_LOCKED story so the countdown renders. */
+const storyLoginLockedUntil = signal<string | null>(null)
+
+/** Drives the mock AuthStore's loginThrottledUntil — set ~15 min ahead for a per-IP rate-limit (429) story. */
+const storyLoginThrottledUntil = signal<string | null>(null)
+
 /**
  * Thin wrapper that renders the actual Login page component and
  * drives its error state via a mock AuthStore provider.
@@ -35,30 +41,18 @@ const storyLoginError = signal<{ code: string } | null>(null)
 	`,
 })
 class LoginStoryComponent {
-	private readonly errorHandler = inject(ErrorHandler)
-	private readonly translation = inject(Translation)
-
 	public readonly errorCode = input<ErrorCodeOption>(null)
-	public readonly language = input<Language>('es')
-
-	private readonly isReady = signal(false)
+	public readonly throttled = input<boolean>(false)
 
 	private readonly syncErrorEffect = effect(() => {
 		const code = this.errorCode()
-		if (!this.isReady()) {
-			storyLoginError.set(null)
-			return
-		}
 		storyLoginError.set(code ? { code } : null)
-	})
-
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation
-			.setLanguage(lang)
-			.then(() => this.isReady.set(true))
-			.catch((error: unknown) => this.errorHandler.handleError(error))
+		storyLoginLockedUntil.set(
+			code === LoginErrorCode.ACCOUNT_LOCKED ? new Date(Date.now() + parseDurationToMs('15m')).toISOString() : null,
+		)
+		storyLoginThrottledUntil.set(
+			this.throttled() ? new Date(Date.now() + parseDurationToMs('15m')).toISOString() : null,
+		)
 	})
 }
 
@@ -69,7 +63,6 @@ const meta: Meta<LoginStoryComponent> = {
 	decorators: [
 		applicationConfig({
 			providers: [
-				Translation,
 				...provideSignalFormsConfig({}),
 				provideRouter([]),
 				provideHttpClient(),
@@ -79,6 +72,8 @@ const meta: Meta<LoginStoryComponent> = {
 					useFactory: () => ({
 						currentUser: signal(null),
 						loginError: storyLoginError,
+						loginLockedUntil: storyLoginLockedUntil,
+						loginThrottledUntil: storyLoginThrottledUntil,
 						// eslint-disable-next-line @typescript-eslint/no-empty-function
 						login: () => {},
 					}),
@@ -102,7 +97,6 @@ Below the \`sm:\` breakpoint the page renders as a full-screen takeover (via \`<
 - Error message display for authentication failures
 - Account lockout message for security
 - Responsive design with dark mode support
-- **i18n Support**: Error messages are localized using the Translation service
 
 ## Error States
 
@@ -110,14 +104,6 @@ The login page handles several error conditions (using \`LoginErrorCode\`):
 - **INVALID_CREDENTIALS**: Displayed when email/password combination is incorrect
 - **ACCOUNT_LOCKED**: Displayed when too many failed login attempts occur
 - **GENERIC**: Displayed for unexpected server errors
-
-## Language Support
-
-Use the **language** control to switch between:
-- **es** (Spanish) - Default
-- **en** (English)
-
-Error messages will automatically update to the selected language.
 				`,
 			},
 			canvas: {
@@ -129,7 +115,7 @@ Error messages will automatically update to the selected language.
 		errorCode: {
 			control: 'select',
 			options: [null, LoginErrorCode.INVALID_CREDENTIALS, LoginErrorCode.ACCOUNT_LOCKED, LoginErrorCode.GENERIC],
-			description: 'Error code to display (uses Translation service for localized message)',
+			description: 'Error code to display',
 			table: {
 				type: { summary: 'LoginErrorCode | null' },
 				defaultValue: { summary: 'null' },
@@ -141,18 +127,10 @@ Error messages will automatically update to the selected language.
 				[LoginErrorCode.GENERIC]: 'Generic Error',
 			},
 		},
-		language: {
-			control: 'select',
-			options: ['es', 'en'],
-			description: 'Language for error messages',
-			table: {
-				type: { summary: 'Language' },
-				defaultValue: { summary: 'es' },
-			},
-			labels: {
-				es: 'Español',
-				en: 'English',
-			},
+		throttled: {
+			control: 'boolean',
+			description: 'Show the per-IP rate-limit countdown (too many requests)',
+			table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
 		},
 	},
 }
@@ -167,6 +145,19 @@ type Story = StoryObj<LoginStoryComponent>
 export const Default: Story = {
 	args: {
 		errorCode: null,
-		language: 'es',
+	},
+}
+
+/** Account locked after repeated failures — shows the live "try again in mm:ss" countdown and disables submit. */
+export const AccountLocked: Story = {
+	args: {
+		errorCode: LoginErrorCode.ACCOUNT_LOCKED,
+	},
+}
+
+/** Per-IP rate limit tripped (429) — the same countdown UX, with the "too many requests" message. */
+export const RateLimited: Story = {
+	args: {
+		throttled: true,
 	},
 }

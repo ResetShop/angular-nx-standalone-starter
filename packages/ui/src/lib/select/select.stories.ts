@@ -1,4 +1,4 @@
-import { Component, effect, ErrorHandler, inject, input, signal } from '@angular/core'
+import { Component, input, signal } from '@angular/core'
 import {
 	form,
 	provideSignalFormsConfig,
@@ -7,7 +7,6 @@ import {
 	FormField as SignalFormField,
 	type FieldTree,
 } from '@angular/forms/signals'
-import { Translation, type Language } from '@resetshop/angular-core/i18n/translation'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import { FormField } from '../form-field/form-field'
@@ -32,28 +31,21 @@ const MANY_OPTIONS: SelectOption[] = Array.from({ length: 50 }, (_, i) => ({
 	standalone: true,
 	imports: [FormField, SignalFormField, Select],
 	template: `
-		@if (isReady()) {
-			<app-form-field [label]="'Country'" [hint]="showHint() ? 'Select your country of residence' : undefined">
-				<app-select
-					[formField]="hasRequired() ? requiredField : optionalField"
-					[options]="options()"
-					[placeholder]="'Select a country'"
-					[isDisabled]="isDisabled()"
-				/>
-			</app-form-field>
-		}
+		<app-form-field [label]="'Country'" [hint]="showHint() ? 'Select your country of residence' : undefined">
+			<app-select
+				[formField]="hasRequired() ? requiredField : optionalField"
+				[options]="options()"
+				[placeholder]="'Select a country'"
+				[isDisabled]="isDisabled()"
+			/>
+		</app-form-field>
 	`,
 })
 class StorySelect {
-	private readonly errorHandler = inject(ErrorHandler)
-	private readonly translation = inject(Translation)
-
 	public readonly options = input<SelectOption[]>(COUNTRY_OPTIONS)
 	public readonly isDisabled = input<boolean>(false)
 	public readonly showHint = input<boolean>(false)
 	public readonly hasRequired = input<boolean>(true)
-	public readonly language = input<Language>('en')
-	protected readonly isReady = signal(false)
 
 	private readonly model = signal('')
 	protected readonly requiredField: FieldTree<string> = form(
@@ -63,15 +55,6 @@ class StorySelect {
 		}),
 	)
 	protected readonly optionalField: FieldTree<string> = form(this.model)
-
-	private readonly syncLanguageEffect = effect(() => {
-		const lang = this.language()
-		this.isReady.set(false)
-		this.translation
-			.setLanguage(lang)
-			.then(() => this.isReady.set(true))
-			.catch((error: unknown) => this.errorHandler.handleError(error))
-	})
 }
 
 const meta: Meta<StorySelect> = {
@@ -80,7 +63,7 @@ const meta: Meta<StorySelect> = {
 	component: StorySelect,
 	decorators: [
 		applicationConfig({
-			providers: [Translation, ...provideSignalFormsConfig({})],
+			providers: [...provideSignalFormsConfig({})],
 		}),
 	],
 	parameters: {
@@ -90,19 +73,12 @@ const meta: Meta<StorySelect> = {
 			},
 		},
 	},
-	argTypes: {
-		language: {
-			control: 'select',
-			options: ['en', 'es'],
-			description: 'Language for translated validation messages',
-		},
-	},
 	render: (args) => ({ props: args }),
 }
 export default meta
 
 export const Playground: StoryObj<StorySelect> = {
-	args: { options: COUNTRY_OPTIONS, isDisabled: false, showHint: false, hasRequired: true, language: 'en' },
+	args: { options: COUNTRY_OPTIONS, isDisabled: false, showHint: false, hasRequired: true },
 	argTypes: {
 		isDisabled: { control: 'boolean', description: 'Disable the select' },
 		showHint: { control: 'boolean', description: 'Show hint text' },
@@ -111,14 +87,28 @@ export const Playground: StoryObj<StorySelect> = {
 }
 
 export const Disabled: StoryObj<StorySelect> = {
-	args: { options: COUNTRY_OPTIONS, isDisabled: true, hasRequired: false, language: 'en' },
+	args: { options: COUNTRY_OPTIONS, isDisabled: true, hasRequired: false },
 	render: (args) => ({ props: args }),
 }
 
 export const WithValidation: StoryObj<StorySelect> = {
-	args: { options: COUNTRY_OPTIONS, hasRequired: true, language: 'en' },
+	args: { options: COUNTRY_OPTIONS, hasRequired: true },
 }
 
 export const ManyOptions: StoryObj<StorySelect> = {
-	args: { options: MANY_OPTIONS, hasRequired: false, language: 'en' },
+	args: { options: MANY_OPTIONS, hasRequired: false },
+}
+
+/**
+ * Mobile viewport (375 px) with 50 options — verifies the dropdown max-height is capped at
+ * `min(60vh, 240px)`. On a 375 × 667 portrait phone, 60vh ≈ 400 px → the 240 px cap wins.
+ * On a 375 px-tall landscape phone, 60vh ≈ 225 px → the viewport-relative cap engages and the
+ * dropdown is 225 px tall instead.
+ */
+export const MobileViewport: StoryObj<StorySelect> = {
+	args: { options: MANY_OPTIONS, hasRequired: false },
+	parameters: {
+		docs: { canvas: { sourceState: 'shown' } },
+		viewport: { defaultViewport: 'mobile' },
+	},
 }

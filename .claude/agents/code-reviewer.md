@@ -12,9 +12,9 @@ You are a senior code reviewer for this Angular/Nx project.
 **NEVER prefix ANY Bash command with `cd`**. The working directory is ALREADY the project root. Using `cd <path> && ...` changes the command signature and forces the user to manually approve every command.
 
 - ✅ `git diff main...HEAD`
-- ✅ `npm run ci`
+- ✅ `npm run ci:verify`
 - ❌ `cd /path/to/project && git diff main...HEAD`
-- ❌ `cd /path/to/project && npm run ci`
+- ❌ `cd /path/to/project && npm run ci:verify`
 
 This applies to ALL commands: git, npm, and any other CLI tool.
 
@@ -28,26 +28,30 @@ Claude should proactively delegate to this agent when:
 
 ## Step 0: Load Reference Files
 
-Before reviewing, read ALL reference files to have full project context:
+Before reviewing, read **ALL 13** reference files to have full project context. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another. Do **not** drop any file; the reviewer is the last line of defense and always loads the complete set (conditional/diff-scoped loading is explicitly out of scope for `code-reviewer`).
 
-1. Read `.claude/references/testing.md`
-2. Read `.claude/references/guiding-principles.md`
-3. Read `.claude/references/cupid.md`
-4. Read `.claude/references/solid.md`
-5. Read `.claude/references/clean-architecture.md`
-6. Read `.claude/references/cross-reference.md`
-7. Read `.claude/references/domain-model.md`
-8. Read `.claude/references/auth.md`
-9. Read `.claude/references/backend-api.md`
-10. Read `.claude/references/generators.md`
-11. Read `.claude/references/accessibility.md`
+Load all of these together:
+
+- `.claude/references/testing.md`
+- `.claude/references/guiding-principles.md`
+- `.claude/references/cupid.md`
+- `.claude/references/solid.md`
+- `.claude/references/clean-architecture.md`
+- `.claude/references/cross-reference.md`
+- `.claude/references/domain-model.md`
+- `.claude/references/auth.md`
+- `.claude/references/backend-api.md`
+- `.claude/references/generators.md`
+- `.claude/references/accessibility.md`
+- `.claude/references/maintainability.md` — structural-simplification / "code judo" lens
+- `.claude/references/coding-agent-policies.md` — hard-pinned, review-blocking; always loaded
 
 ## Review Process
 
 1. **Identify changes** - Use `git diff main...HEAD` to see all changes on the branch
 2. **Review against CLAUDE.md and reference files** guidelines
 3. **Check test coverage** - Verify tests exist for new code
-4. **Run build and tests** - Use `npm run ci` to ensure nothing is broken
+4. **Run build and tests** - Use `npm run ci:verify` (the cache-aware path) to ensure nothing is broken. You MUST run this verification yourself on **every** invocation — including standalone Bug-fix and Refactoring pipelines that have no preceding orchestrator CI run. Never trust or report a CI status you did not observe. `ci:verify` rides the Nx cache, so on an unchanged tree this is a near-instant cache restore rather than a cold rebuild; it runs the identical task set as the cold `npm run ci` (which the orchestrator reserves for the final gate before the PR).
 
 ## Known False Positives — Do NOT Flag
 
@@ -204,13 +208,13 @@ The **#** column provides a sequential number across all three tables within the
 
 ### Verification Results
 
-Run `npm run ci` which executes all CI checks serially. Report results:
+Run `npm run ci:verify` (the cache-aware path — identical task set to the cold `npm run ci`, but it rides the Nx cache so an unchanged tree restores near-instantly instead of rebuilding cold). Run it yourself on every invocation; report the result you actually observed:
 
-| Command      | Result    |
-| ------------ | --------- |
-| `npm run ci` | PASS/FAIL |
+| Command             | Result    |
+| ------------------- | --------- |
+| `npm run ci:verify` | PASS/FAIL |
 
-If `npm run ci` fails, report which step failed (stylelint, lint, test, build, or storybook:build).
+If `npm run ci:verify` fails, report which step failed (stylelint, lint, typecheck, test, test-integration, build, or build-storybook).
 
 ### Test Coverage
 

@@ -10,11 +10,16 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	// Data table & pagination
 	'DATA_TABLE.EMPTY': 'No data available',
 	'DATA_TABLE.LOADING': 'Loading...',
+	'DATA_TABLE.TOGGLE.TABLE': 'Table view',
+	'DATA_TABLE.TOGGLE.CARDS': 'Card view',
+	'DATA_TABLE.TOGGLE.GROUP_LABEL': 'Display mode',
+	'ROW_ACTIONS.TRIGGER_LABEL': 'Actions',
 	'PAGINATION.LABEL': 'Pagination',
 	'PAGINATION.ROWS_PER_PAGE': 'Rows per page',
 	'PAGINATION.GO_TO_PREVIOUS': 'Previous page',
 	'PAGINATION.GO_TO_NEXT': 'Next page',
 	'PAGINATION.GO_TO_PAGE': 'Go to page {page}',
+	'PAGINATION.PAGE_OF': 'Page {current} of {total}',
 	'VALIDATION.REQUIRED': 'This field is required',
 	'VALIDATION.EMAIL': 'Please enter a valid email address',
 	'VALIDATION.MIN_LENGTH': 'Must be at least {min} characters',
@@ -33,6 +38,44 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'AUTH.RESET_PASSWORD.EMAIL_LABEL': 'Email address',
 	'AUTH.RESET_PASSWORD.SUBMIT': 'Send reset link',
 	'AUTH.RESET_PASSWORD.BACK_TO_LOGIN': 'Back to sign in',
+	'AUTH.RESET_PASSWORD.DESCRIPTION': 'Enter your email and we will send you a link to reset your password.',
+	'AUTH.RESET_PASSWORD.CONFIRMATION':
+		'If an account exists for that email, a password-reset link has been sent. Check your inbox.',
+	'AUTH.RESET_PASSWORD_CONFIRM.TITLE': 'Set a new password',
+	'AUTH.RESET_PASSWORD_CONFIRM.DESCRIPTION': 'Choose a new password for your account.',
+	'AUTH.RESET_PASSWORD_CONFIRM.NEW_PASSWORD_LABEL': 'New password',
+	'AUTH.RESET_PASSWORD_CONFIRM.SUBMIT': 'Reset password',
+	'AUTH.RESET_PASSWORD_CONFIRM.MISSING_TOKEN': 'This reset link is invalid or incomplete. Please request a new one.',
+	'AUTH.CHANGE_PASSWORD.TITLE': 'Change your password',
+	'AUTH.CHANGE_PASSWORD.DESCRIPTION': 'For your security, set a new password before continuing.',
+	'AUTH.CHANGE_PASSWORD.OLD_PASSWORD_LABEL': 'Current password',
+	'AUTH.CHANGE_PASSWORD.NEW_PASSWORD_LABEL': 'New password',
+	'AUTH.CHANGE_PASSWORD.SUBMIT': 'Change password',
+	'AUTH.ERRORS.OLD_PASSWORD_MISMATCH': 'Your current password is incorrect',
+	'AUTH.ERRORS.RESET_TOKEN_INVALID': 'This reset link is invalid or has expired. Please request a new one.',
+	'AUTH.ERRORS.GENERIC': 'Login error. Please try again.',
+	'AUTH.ERRORS.ACCOUNT_LOCKED':
+		'Your account has been temporarily locked due to multiple failed attempts. Please try again later.',
+	'AUTH.ERRORS.ACCOUNT_LOCKED_UNTIL': 'Too many failed attempts — try again in {time}',
+	'AUTH.ERRORS.RATE_LIMITED_UNTIL': 'Too many requests — try again in {time}',
+
+	// Landing
+	'LANDING.PAGE_TITLE': 'Welcome',
+	'LANDING.BRAND_NAME': 'Angular Nx Starter',
+	'LANDING.HERO_HEADING': 'Angular + Nx SSR Starter',
+	'LANDING.HERO_SUBHEADING':
+		'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
+	'LANDING.HERO_CTA': 'Get started',
+	'LANDING.LOGIN_BUTTON': 'Sign in',
+	'LANDING.GO_TO_DASHBOARD': 'Go to dashboard',
+	'LANDING.SKIP_TO_CONTENT': 'Skip to main content',
+	'LANDING.FEATURES.TITLE': "What's included",
+	'LANDING.FEATURES.AUTH_TITLE': 'Authentication',
+	'LANDING.FEATURES.AUTH_DESCRIPTION': 'Secure PASETO-based authentication with token refresh and session management.',
+	'LANDING.FEATURES.RBAC_TITLE': 'Role-based access control',
+	'LANDING.FEATURES.RBAC_DESCRIPTION': 'Granular permissions with roles, enforced at both the route and API level.',
+	'LANDING.FEATURES.SSR_TITLE': 'Server-side rendering',
+	'LANDING.FEATURES.SSR_DESCRIPTION': 'Angular SSR out of the box for faster first paint and better SEO.',
 
 	// Common
 	'COMMON.LOADING': 'Loading...',
@@ -57,9 +100,13 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'USERS.PAGE.DESCRIPTION': 'Manage system users, their roles, and account status.',
 	'USERS.PAGE.SEARCH': 'Search users...',
 	'USERS.PAGE.CREATE_BUTTON': 'Create User',
+	'USERS.PAGE.RESET_PASSWORD_BUTTON': 'Reset Password',
 	'USERS.PAGE.DELETE_DIALOG.TITLE': 'Delete User',
 	'USERS.PAGE.DELETE_DIALOG.MESSAGE':
 		"Are you sure you want to delete the user '{name}'? This action cannot be undone.",
+	'USERS.PAGE.RESET_PASSWORD_DIALOG.TITLE': 'Reset Password',
+	'USERS.PAGE.RESET_PASSWORD_DIALOG.MESSAGE':
+		"Are you sure you want to reset the password for '{email}'? A new temporary password will be emailed to the user, who will be required to change it on next login.",
 	'USERS.TABLE.CAPTION': 'Users list',
 	'USERS.TABLE.HEADER.NAME': 'Name',
 	'USERS.TABLE.HEADER.EMAIL': 'Email',
@@ -79,6 +126,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'USERS.EDIT_DRAWER.ROLES_LABEL': 'Roles',
 	'USERS.EDIT_DRAWER.SUCCESS_TOAST': 'User updated successfully.',
 	'USERS.DELETE_TOAST': 'User deleted successfully.',
+	'USERS.RESET_PASSWORD_TOAST': 'Password reset email sent.',
 
 	// Roles
 	'ROLES.PAGE.TITLE': 'Roles',
@@ -146,13 +194,13 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
  * If an assertion needs a translated value, add the key to MOCK_TRANSLATIONS above.
  */
 export const mockTranslation = {
-	instant: (key: string) => MOCK_TRANSLATIONS[key] ?? key,
+	instant: (key: string, fallback?: string) => MOCK_TRANSLATIONS[key] ?? fallback ?? key,
 }
 
 @Injectable({ providedIn: 'root' })
 export class TranslationMock extends Translation {
-	public override instant(key: TranslationKey): string {
-		return MOCK_TRANSLATIONS[key] ?? key
+	public override instant(key: TranslationKey, fallback?: string): string {
+		return MOCK_TRANSLATIONS[key] ?? fallback ?? key
 	}
 
 	public override async loadDefaultLanguage(): Promise<void> {

@@ -27,13 +27,18 @@ describe('Auth Controller - /me endpoint', () => {
 	app.route('/auth', authController)
 
 	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>()
+	const mockGetMustChangePassword = fn<[number], Promise<boolean>>()
 
 	beforeEach(() => {
 		clearAllMocks()
+		mockGetMustChangePassword.mockResolvedValue(false)
 		container.use(
 			new InMemoryContainer({
 				userRoleService: {
 					getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
+				},
+				authPasswordService: {
+					getMustChangePassword: mockGetMustChangePassword,
 				},
 			}),
 		)
@@ -92,6 +97,20 @@ describe('Auth Controller - /me endpoint', () => {
 		expect(data.roles[0].permissions).toHaveLength(2)
 		expect(data.roles[0].permissions[0].resource).toBe('users')
 		expect(data.roles[0].permissions[0].action).toBe('read')
+		expect(data.mustChangePassword).toBe(false)
+	})
+
+	it('should reflect mustChangePassword from the auth password service', async () => {
+		mockGetUserRolesWithPermissions.mockResolvedValue([])
+		mockGetMustChangePassword.mockResolvedValue(true)
+
+		const res = await app.request('/auth/me', {
+			headers: { Authorization: 'Bearer valid-token' },
+		})
+
+		expect(res.status).toBe(200)
+		const data = await res.json()
+		expect(data.mustChangePassword).toBe(true)
 	})
 
 	it('should return empty roles array when user has no roles', async () => {

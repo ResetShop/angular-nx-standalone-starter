@@ -114,3 +114,20 @@ export const AllVariants: Story = {
 	args: { placement: 'bottom-center' },
 	render: (args) => ({ props: args }),
 }
+
+/**
+ * Mobile viewport (375 px) — canonical visual regression for the responsive width of
+ * `ToastNotification`. The toast width is capped at `min(350px, 100vw - 2rem)`, leaving a
+ * 1 rem visual margin on each side at sub-350 px viewports.
+ *
+ * This story is the regression guard for that behaviour because the component is not
+ * unit-tested in isolation — see the JSDoc on `ToastNotification` for the full rationale.
+ */
+export const MobileViewport: Story = {
+	args: { placement: 'bottom-center' },
+	render: (args) => ({ props: args }),
+	parameters: {
+		docs: { canvas: { sourceState: 'shown' } },
+		viewport: { defaultViewport: 'mobile' },
+	},
+}

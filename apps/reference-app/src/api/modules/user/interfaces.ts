@@ -1,5 +1,6 @@
 import type { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse } from '@contracts/user/user.types'
+import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
 
@@ -79,13 +80,27 @@ export interface UserRepository {
 	findById(id: number): Promise<UserData | null>
 }
 
-export interface CreateUserWithHashedPasswordParams {
+/**
+ * Parameters for inserting a user's **identity** — the non-credential, non-authorization
+ * facet of an account: who they are (email, name). It deliberately carries neither
+ * credentials nor role assignments.
+ *
+ * Boundary (DDD): "user identity" lives in the `user` table, owned by this context.
+ * Two adjacent concerns are written by their own contexts, composed in one transaction
+ * by `UserManagementService.createUser`:
+ *   - credentials (password hash, must-change flag) → auth context,
+ *     via `AuthenticationRepository.createInitialPassword`
+ *   - role assignments (authorization) → user-role context,
+ *     via `UserRoleRepository.replaceUserRoles`
+ *
+ * Not to be confused with the frontend `IUser` domain model (the `user` bounded context's
+ * "session identity" — the authenticated principal resolved for permission checks): that sense of
+ * "identity" means the active session, not the persisted account record written here.
+ */
+export interface CreateUserIdentityParams {
 	email: string
 	firstName: string
 	lastName: string
-	passwordHash: string
-	mustChangePassword: boolean
-	roleIds: number[]
 }
 
 /**
@@ -95,10 +110,15 @@ export interface UserManagementRepository {
 	findAll(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>
 	findByEmail(email: string): Promise<UserData | null>
-	create(params: CreateUserWithHashedPasswordParams, actorId: number): Promise<ManagedUserData>
+	create(params: CreateUserIdentityParams, tx?: DrizzleTransaction): Promise<ManagedUserData>
 	update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null>
 	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>
 	softDelete(id: number, changedBy: number): Promise<boolean>
+	/**
+	 * Runs a callback inside a transaction, exposing the transaction handle so the
+	 * service can compose the user insert and the auth-row insert atomically.
+	 */
+	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
 
 // ============================================================================
@@ -161,10 +181,12 @@ export interface UserRoleRepository {
 	findUserHasRole(userId: number, roleId: number): Promise<boolean>
 
 	/**
-	 * Replace all role assignments for a user
+	 * Replace all role assignments for a user.
+	 * Pass `tx` to compose this write into a caller-owned transaction (e.g. user creation);
+	 * omit it to run standalone in its own transaction.
 	 * @throws Error if any role ID does not exist
 	 */
-	replaceUserRoles(userId: number, roleIds: number[], actorId: number): Promise<void>
+	replaceUserRoles(userId: number, roleIds: number[], actorId: number, tx?: DrizzleTransaction): Promise<void>
 }
 
 /**
@@ -215,4 +237,5 @@ export interface UserManagementService {
 	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
 	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
 	deleteUser(id: number, currentUserId: number): Promise<void>
+	resetPassword(id: number, currentUserId: number): Promise<ResetPasswordResponse>
 }

@@ -158,3 +158,27 @@ export const MinimalDialog: Story = {
 		`,
 	}),
 }
+
+/**
+ * Mobile viewport (375 px) — verifies the dialog content has `mx-4` (1 rem horizontal margin)
+ * and `p-4` (1 rem padding) below `sm:`, restored to `mx-0 p-6` from `sm:` up. This keeps the
+ * dialog from going edge-to-edge on narrow screens.
+ */
+export const MobileViewport: Story = {
+	render: () => ({
+		template: `
+			<button appButton (click)="dialog.show()">Open Dialog</button>
+
+			<app-confirm-dialog #dialog
+				title="Confirm Action"
+				message="Are you sure you want to proceed?"
+				confirmText="Confirm"
+				cancelText="Cancel"
+			/>
+		`,
+	}),
+	parameters: {
+		docs: { canvas: { sourceState: 'shown' } },
+		viewport: { defaultViewport: 'mobile' },
+	},
+}

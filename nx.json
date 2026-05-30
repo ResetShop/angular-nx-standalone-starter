@@ -22,7 +22,7 @@
 		],
 		"sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
 	},
-	"nxCloudId": "68ee91eecec0875b0f57a8d2",
+	"nxCloudId": "6a17a0e34cc7a0ffaeec195e",
 	"targetDefaults": {
 		"@angular/build:application": {
 			"cache": true,
@@ -32,9 +32,11 @@
 			"cache": true,
 			"inputs": [
 				"default",
+				"^default",
 				"{workspaceRoot}/.eslintrc.json",
 				"{workspaceRoot}/.eslintignore",
-				"{workspaceRoot}/eslint.config.mjs"
+				"{workspaceRoot}/eslint.config.mjs",
+				"{workspaceRoot}/tools/eslint-rules/**/*"
 			]
 		},
 		"@nx/vitest:test": {

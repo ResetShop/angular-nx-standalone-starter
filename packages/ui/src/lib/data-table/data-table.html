@@ -1,3 +1,48 @@
+@if (showToggle()) {
+<!--
+	"Tab attached to body" layout: a horizontal rule terminates at the toggle's bottom-left
+	corner; the toggle sits as a rounded tab (top + side borders, no bottom) so the table
+	body opens beneath it. When `tabBleed` is set, the rule bleeds out by that scale value
+	on each side (cancelling the parent layout's matching `p-{n}`), filling the horizontal
+	gaps. The right spacer's width also matches `tabBleed` so the toggle's horizontal
+	position is independent of the bleed amount. Default `tabBleed=null` keeps the rule
+	within the host's content area, making the component safe for any parent padding.
+-->
+<div [class]="'mb-4 flex items-end ' + tabBleedWrapperClass()">
+	<div class="flex-1 border-b border-gray-200 dark:border-gray-700"></div>
+	<div
+		[attr.aria-label]="toggleGroupLabel"
+		role="group"
+		class="flex gap-4 rounded-t-lg border border-b-0 border-gray-200 px-2 pt-2 pb-1 dark:border-gray-700"
+	>
+		<button
+			(click)="handleToggle('table')"
+			[attr.aria-pressed]="resolvedDisplayMode() === 'table'"
+			appButton
+			variant="ghost"
+			size="icon"
+			type="button"
+			data-touch-target
+		>
+			<ng-icon name="featherTable" aria-hidden="true" />
+			<span class="sr-only">{{ toggleTableLabel }}</span>
+		</button>
+		<button
+			(click)="handleToggle('cards')"
+			[attr.aria-pressed]="resolvedDisplayMode() === 'cards'"
+			appButton
+			variant="ghost"
+			size="icon"
+			type="button"
+			data-touch-target
+		>
+			<ng-icon name="featherGrid" aria-hidden="true" />
+			<span class="sr-only">{{ toggleCardsLabel }}</span>
+		</button>
+	</div>
+	<div [class]="'border-b border-gray-200 dark:border-gray-700 ' + tabBleedSpacerClass()"></div>
+</div>
+} @if (resolvedDisplayMode() === 'table') {
 <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
 	<table [attr.aria-busy]="loading()" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
 		@if (caption()) {
@@ -60,7 +105,6 @@
 						type="button"
 					>
 						<span aria-hidden="true">{{ row.getIsExpanded() ? '▼' : '▶' }}</span>
-						<span class="sr-only">{{ row.getIsExpanded() ? 'Collapse' : 'Expand' }}</span>
 						{{ resolveGroupLabel(row) }}
 						<span class="text-xs font-normal text-gray-500">({{ row.subRows.length }})</span>
 					</button>
@@ -83,11 +127,66 @@
 		</tbody>
 	</table>
 </div>
+} @else {
+<ul [attr.aria-busy]="loading()" role="list" class="flex flex-col gap-4">
+	@if (loading()) {
+	<li>
+		<div
+			class="flex items-center justify-center gap-2 px-4 py-8 text-gray-500 dark:text-gray-400"
+			role="status"
+			aria-live="polite"
+		>
+			<app-spinner class="size-5" />
+			{{ loadingMessage }}
+		</div>
+	</li>
+	} @else { @for (row of table.getRowModel().rows; track row.id) { @if (row.depth === 0) { @if (row.getIsGrouped()) {
+	<!-- Group container — heading-with-button follows the W3C Disclosure Pattern. `<h3>` keeps heading semantics; the inner `<button>` exposes the collapse affordance. -->
+	<li [attr.aria-labelledby]="'group-' + row.id" role="group">
+		<h3 [id]="'group-' + row.id" class="border-b border-gray-200 pt-3 pb-1 dark:border-gray-700">
+			<button
+				(click)="row.getToggleExpandedHandler()()"
+				[attr.aria-expanded]="row.getIsExpanded()"
+				class="flex w-full items-center gap-2 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400"
+				type="button"
+				data-touch-target
+			>
+				<span aria-hidden="true">{{ row.getIsExpanded() ? '▼' : '▶' }}</span>
+				{{ resolveGroupLabel(row) }}
+				<span class="ml-1 font-normal normal-case">({{ row.subRows.length }})</span>
+			</button>
+		</h3>
+		@if (row.getIsExpanded()) {
+		<ul role="list" class="mt-2 flex flex-col gap-4">
+			@for (subRow of row.subRows; track subRow.id) {
+			<li>
+				<!-- cardDefTemplate() is non-null here: resolvedDisplayMode === 'cards' guards cardDef presence. -->
+				<ng-container
+					[ngTemplateOutlet]="cardDefTemplate()!"
+					[ngTemplateOutletContext]="{ $implicit: subRow.original }"
+				/>
+			</li>
+			}
+		</ul>
+		}
+	</li>
+	} @else {
+	<li>
+		<!-- cardDefTemplate() is non-null here: resolvedDisplayMode === 'cards' guards cardDef presence. -->
+		<ng-container [ngTemplateOutlet]="cardDefTemplate()!" [ngTemplateOutletContext]="{ $implicit: row.original }" />
+	</li>
+	} } } @empty {
+	<li class="px-4 py-8 text-center text-gray-500 dark:text-gray-400" role="status" aria-live="polite">
+		{{ emptyMessage() }}
+	</li>
+	} }
+</ul>
+}
 
 <ng-template #dataRow let-row>
 	<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
 		@for (cell of row.getVisibleCells(); track cell.id) {
-		<td class="px-4 py-3 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">
+		<td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
 			@if (cellDefMap().get(cell.column.id); as cellDef) {
 			<ng-container
 				[ngTemplateOutlet]="cellDef.template"

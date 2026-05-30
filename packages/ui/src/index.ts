@@ -8,7 +8,13 @@ export { Button } from './lib/button/button'
 export { default as Card } from './lib/card/card'
 export { Combobox } from './lib/combobox/combobox'
 export { ConfirmDialog } from './lib/confirm-dialog/confirm-dialog'
-export { DataTable, type DataTableSortEvent } from './lib/data-table/data-table'
+export {
+	DataTable,
+	type DataTableDisplayMode,
+	type DataTableSortEvent,
+	type DataTableTabBleed,
+} from './lib/data-table/data-table'
+export { DataTableCardDef, type DataTableCardDefContext } from './lib/data-table/data-table-card-def'
 export { DataTableCellDef, type DataTableCellDefContext } from './lib/data-table/data-table-cell-def'
 export { Drawer } from './lib/drawer/drawer'
 export { FormField } from './lib/form-field/form-field'
@@ -21,3 +27,7 @@ export { Select } from './lib/select/select'
 export type { SelectOption } from './lib/select/select-option'
 export { Spinner } from './lib/spinner/spinner'
 // Toast components remain in the app — they depend on UIStore
+export { RowActionItem } from './lib/row-actions-menu/row-action-item'
+export type { RowAction } from './lib/row-actions-menu/row-action-item'
+export { RowActionsMenu } from './lib/row-actions-menu/row-actions-menu'
+export type { RowActionsInput } from './lib/row-actions-menu/row-actions-menu'

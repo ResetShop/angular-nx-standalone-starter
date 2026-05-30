@@ -1,5 +1,16 @@
 import { InjectionToken } from '@angular/core'
-import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type {
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	ForgotPasswordRequest,
+	ForgotPasswordResponse,
+	LoginRequest,
+	LoginResponse,
+	MeResponse,
+	RefreshResponse,
+	ResetPasswordRequest,
+	ResetPasswordResponse,
+} from '@contracts/auth/auth.types'
 import type { Observable } from 'rxjs'
 
 export interface AuthApi {
@@ -7,6 +18,9 @@ export interface AuthApi {
 	logout(): Observable<void>
 	refreshToken(): Observable<RefreshResponse>
 	getMe(): Observable<MeResponse>
+	changePassword(params: ChangePasswordRequest): Observable<ChangePasswordResponse>
+	forgotPassword(params: ForgotPasswordRequest): Observable<ForgotPasswordResponse>
+	resetPassword(params: ResetPasswordRequest): Observable<ResetPasswordResponse>
 }
 
 export const AuthApi = new InjectionToken<AuthApi>('AuthApi')

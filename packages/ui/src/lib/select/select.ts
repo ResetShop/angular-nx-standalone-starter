@@ -40,7 +40,8 @@ import type { SelectOption } from './select-option'
 			}
 			<ng-icon name="featherChevronDown" class="text-muted-foreground ml-auto shrink-0" size="16" />
 
-			<div *ngpSelectPortal ngpSelectDropdown>
+			<!-- data-testid: ngpSelectPortal renders this div outside the component tree and ngpSelectDropdown carries no ARIA role getByRole can target. The testid is the only stable Testing Library handle. -->
+			<div *ngpSelectPortal ngpSelectDropdown data-testid="select-dropdown" class="max-h-[min(60vh,240px)]">
 				@for (option of options(); track option.value) {
 					<div [ngpSelectOptionValue]="option.value" ngpSelectOption>
 						{{ option.label }}
