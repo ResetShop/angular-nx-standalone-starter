@@ -8,7 +8,16 @@ import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
 import { createMockManagedUser } from '@providers/users/users.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
+import { DRAWER_SPINNER_MIN_DISPLAY } from '@resetshop/ui/drawer/drawer-loading'
+import { parseDurationToMs } from '@resetshop/util'
+import {
+	advanceTimersByTimeAsync,
+	clearAllMocks,
+	fn,
+	type MockFn,
+	useFakeTimers,
+	useRealTimers,
+} from '@resetshop/util/test-utils'
 import { fireEvent, render, screen } from '@testing-library/angular'
 import { of } from 'rxjs'
 import { EditUserRolesDrawer } from './edit-user-roles-drawer'
@@ -27,6 +36,7 @@ describe('EditUserRolesDrawer', () => {
 	let rolesApiMock: Record<keyof RolesApi, MockFn>
 
 	beforeEach(() => {
+		useFakeTimers()
 		clearAllMocks()
 		usersApiMock = {
 			getAll: fn(),
@@ -48,8 +58,11 @@ describe('EditUserRolesDrawer', () => {
 		}
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 		usersApiMock.update.mockReturnValue(of(createMockManagedUser()))
+		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 		rolesApiMock.getAllUnpaginated.mockReturnValue(of(ROLES))
 	})
+
+	afterEach(() => useRealTimers())
 
 	async function renderDrawer(overrides: Partial<ManagedUser> = {}) {
 		const view = await render(EditUserRolesDrawer, {
@@ -67,7 +80,7 @@ describe('EditUserRolesDrawer', () => {
 	it('saves the updated role selection via updateUser', async () => {
 		const view = await renderDrawer({ id: 8, roles: [ROLES[0]] })
 		view.fixture.componentInstance.open()
-		TestBed.tick()
+		await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_SPINNER_MIN_DISPLAY))
 		view.fixture.detectChanges()
 
 		// Add the Editor role on top of the pre-selected Admin role.

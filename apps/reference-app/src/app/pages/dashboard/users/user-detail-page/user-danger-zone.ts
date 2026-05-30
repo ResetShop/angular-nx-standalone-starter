@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	input,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, untracked } from '@angular/core'
 import { Router } from '@angular/router'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
@@ -35,7 +26,7 @@ import { UsersStore } from '@store/users/users.store'
 				<p class="text-muted-foreground mt-1 text-sm">{{ 'USERS.DETAIL.DANGER.DESCRIPTION' | translate }}</p>
 
 				<div class="mt-4 flex justify-end">
-					<button (click)="deleteDialog().show()" *hasPermission="'admin:users:delete'" appButton variant="destructive">
+					<button (click)="deleteDialog.show()" *hasPermission="'admin:users:delete'" appButton variant="destructive">
 						{{ 'USERS.DETAIL.DANGER.DELETE' | translate }}
 					</button>
 				</div>
@@ -61,7 +52,6 @@ export class UserDangerZone {
 	private readonly router = inject(Router)
 	protected readonly currentUser = inject(CurrentUser)
 
-	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
 
 	protected readonly deleteMessage = computed(() =>

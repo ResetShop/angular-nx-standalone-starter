@@ -93,7 +93,8 @@ describe('UserDangerZone', () => {
 
 		expect(usersApiMock.delete.calls).toHaveLength(1)
 		expect(usersApiMock.delete.calls[0][0]).toBe(7)
-		expect(navigateSpy).toHaveBeenCalledWith(['/dashboard/users'])
+		expect(navigateSpy.calls).toHaveLength(1)
+		expect(navigateSpy.calls[0][0]).toEqual(['/dashboard/users'])
 	})
 })
 

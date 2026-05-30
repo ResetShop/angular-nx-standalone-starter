@@ -165,7 +165,8 @@ describe('UsersList', () => {
 			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
 			TestBed.tick()
 
-			expect(navigateSpy).toHaveBeenCalledWith(['/dashboard/users', 7])
+			expect(navigateSpy.calls).toHaveLength(1)
+			expect(navigateSpy.calls[0][0]).toEqual(['/dashboard/users', 7])
 		})
 	})
 

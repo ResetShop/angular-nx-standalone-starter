@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	input,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, untracked } from '@angular/core'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
@@ -32,14 +23,14 @@ import { UsersStore } from '@store/users/users.store'
 			@if (!currentUser.is(user())) {
 				<div class="mt-4 flex flex-col gap-3 sm:flex-row">
 					<button
-						(click)="resetPasswordDialog().show()"
+						(click)="resetPasswordDialog.show()"
 						*hasPermission="'admin:users:reset_password'"
 						appButton
 						variant="outline"
 					>
 						{{ 'USERS.DETAIL.ACCOUNT.RESET_PASSWORD' | translate }}
 					</button>
-					<button (click)="statusDialog().show()" *hasPermission="'admin:users:disable'" appButton variant="outline">
+					<button (click)="statusDialog.show()" *hasPermission="'admin:users:disable'" appButton variant="outline">
 						{{ statusActionLabel() | translate }}
 					</button>
 				</div>
@@ -71,9 +62,6 @@ export class UserAccountActions {
 	private readonly usersStore = inject(UsersStore)
 	private readonly translation = inject(Translation)
 	protected readonly currentUser = inject(CurrentUser)
-
-	private readonly resetPasswordDialog = viewChild.required<ConfirmDialog>('resetPasswordDialog')
-	private readonly statusDialog = viewChild.required<ConfirmDialog>('statusDialog')
 
 	private readonly resetPasswordToast = createMutationToast(this.translation.instant('USERS.RESET_PASSWORD_TOAST'))
 	private readonly disableToast = createMutationToast(this.translation.instant('USERS.DETAIL.ACCOUNT.DISABLE_TOAST'))

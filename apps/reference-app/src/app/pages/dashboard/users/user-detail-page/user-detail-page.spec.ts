@@ -51,6 +51,7 @@ describe('UserDetailPage', () => {
 			assignPermissions: fn(),
 		}
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
+		rolesApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 		rolesApiMock.getAllUnpaginated.mockReturnValue(of([]))
 	})
 

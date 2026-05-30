@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, viewChild } from '@angular/core'
+import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -17,7 +17,7 @@ import { EditUserRolesDrawer } from './edit-user-roles-drawer'
 					{{ 'USERS.DETAIL.ROLES.TITLE' | translate }}
 				</h2>
 				<button
-					(click)="rolesDrawer().open()"
+					(click)="rolesDrawer.open()"
 					*hasPermission="'admin:users:update'"
 					appButton
 					variant="outline"
@@ -46,6 +46,4 @@ import { EditUserRolesDrawer } from './edit-user-roles-drawer'
 })
 export class UserRolesSection {
 	public readonly user = input.required<IManagedUser>()
-
-	protected readonly rolesDrawer = viewChild.required<EditUserRolesDrawer>('rolesDrawer')
 }

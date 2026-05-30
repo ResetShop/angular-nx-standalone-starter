@@ -14,8 +14,7 @@ import { CURRENT_USER_SOURCE } from '@resetshop/angular-core/auth/current-user.t
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
-import { render, screen } from '@testing-library/angular'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, render, screen } from '@testing-library/angular'
 import { of } from 'rxjs'
 import { UserProfileSection } from './user-profile-section'
 
@@ -62,9 +61,9 @@ describe('UserProfileSection', () => {
 	it('populates the form fields from the user input', async () => {
 		await renderSection(true, { firstName: 'Jane', lastName: 'Roe', email: 'jane@example.com' })
 
-		expect(screen.getByLabelText('First Name')).toHaveValue('Jane')
-		expect(screen.getByLabelText('Last Name')).toHaveValue('Roe')
-		expect(screen.getByLabelText('Email')).toHaveValue('jane@example.com')
+		expect(screen.getByRole('textbox', { name: /first name/i })).toHaveValue('Jane')
+		expect(screen.getByRole('textbox', { name: /last name/i })).toHaveValue('Roe')
+		expect(screen.getByRole('textbox', { name: /email/i })).toHaveValue('jane@example.com')
 	})
 
 	it('hides the save button when the user lacks admin:users:update', async () => {
@@ -74,13 +73,12 @@ describe('UserProfileSection', () => {
 	})
 
 	it('calls updateUser with the edited profile when saved', async () => {
-		const user = userEvent.setup()
 		await renderSection(true, { id: 5 })
 
-		const firstName = screen.getByLabelText('First Name')
-		await user.clear(firstName)
-		await user.type(firstName, 'Updated')
-		await user.click(screen.getByRole('button', { name: /save changes/i }))
+		fireEvent.input(screen.getByRole('textbox', { name: /first name/i }), { target: { value: 'Updated' } })
+		TestBed.tick()
+		fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+		TestBed.tick()
 
 		expect(usersApiMock.update.calls).toHaveLength(1)
 		expect(usersApiMock.update.calls[0][0]).toBe(5)
