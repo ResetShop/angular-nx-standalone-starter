@@ -66,6 +66,7 @@ export default class UserDetailPage {
 	)
 
 	constructor() {
+		// Read the snapshot once — no reactive re-fetch needed since the route id is stable.
 		const id = Number(this.route.snapshot.paramMap.get('id'))
 		if (Number.isInteger(id) && id > 0) {
 			this.store.loadUser(id)

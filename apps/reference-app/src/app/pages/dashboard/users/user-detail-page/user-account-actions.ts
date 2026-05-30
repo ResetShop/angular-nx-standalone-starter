@@ -94,6 +94,7 @@ export class UserAccountActions {
 		const updating = this.usersStore.isUpdating()
 		const error = this.usersStore.mutationError().updateStatus
 		untracked(() => {
+			// Only the submitted toast reacts — the other is unsubmitted and returns null.
 			this.disableToast.handleResult(updating, error)
 			this.enableToast.handleResult(updating, error)
 		})

@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import type { ManagedUser } from '@contracts/user/user.types'
@@ -19,7 +20,7 @@ import {
 	useRealTimers,
 } from '@resetshop/util/test-utils'
 import { fireEvent, render, screen } from '@testing-library/angular'
-import { of } from 'rxjs'
+import { of, throwError } from 'rxjs'
 import { EditUserRolesDrawer } from './edit-user-roles-drawer'
 
 function buildUser(overrides: Partial<ManagedUser> = {}) {
@@ -90,6 +91,22 @@ describe('EditUserRolesDrawer', () => {
 
 		expect(usersApiMock.update.calls).toHaveLength(1)
 		expect(usersApiMock.update.calls[0][0]).toBe(8)
-		expect(usersApiMock.update.calls[0][1].roleIds).toEqual([1, 2])
+		expect(usersApiMock.update.calls[0][1]).toMatchObject({ roleIds: [1, 2] })
+	})
+
+	it('shows a destructive alert inline when the update fails', async () => {
+		usersApiMock.update.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ status: 409, error: { error: 'Role assignment failed' } })),
+		)
+		const view = await renderDrawer({ id: 8, roles: [ROLES[0]] })
+		view.fixture.componentInstance.open()
+		await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_SPINNER_MIN_DISPLAY))
+		view.fixture.detectChanges()
+
+		fireEvent.click(screen.getByRole('checkbox', { name: /editor/i }))
+		fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+		view.fixture.detectChanges()
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Role assignment failed')
 	})
 })

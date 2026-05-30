@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
@@ -15,7 +16,7 @@ import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
 import { fireEvent, render, screen } from '@testing-library/angular'
-import { of } from 'rxjs'
+import { of, throwError } from 'rxjs'
 import { UserProfileSection } from './user-profile-section'
 
 function buildUser(overrides: Partial<ManagedUser> = {}) {
@@ -83,6 +84,20 @@ describe('UserProfileSection', () => {
 		expect(usersApiMock.update.calls).toHaveLength(1)
 		expect(usersApiMock.update.calls[0][0]).toBe(5)
 		expect(usersApiMock.update.calls[0][1]).toMatchObject({ firstName: 'Updated' })
+	})
+
+	it('shows a destructive alert when the update fails', async () => {
+		usersApiMock.update.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ status: 409, error: { error: 'Email already in use' } })),
+		)
+		await renderSection(true, { id: 5 })
+
+		fireEvent.input(screen.getByRole('textbox', { name: /first name/i }), { target: { value: 'Updated' } })
+		TestBed.tick()
+		fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+		TestBed.tick()
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Email already in use')
 	})
 })
 

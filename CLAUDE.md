@@ -533,6 +533,7 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                                              |
 | `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideEnvironmentInitializer(ToastBridge)`             |
+| `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`                                         |
 | `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                                               |
 | `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideEnvironmentInitializer(ToastBridge)` |
 

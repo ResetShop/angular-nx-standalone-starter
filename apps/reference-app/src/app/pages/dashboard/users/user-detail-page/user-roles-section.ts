@@ -22,6 +22,7 @@ import { EditUserRolesDrawer } from './edit-user-roles-drawer'
 					appButton
 					variant="outline"
 					size="sm"
+					data-touch-target
 				>
 					{{ 'USERS.DETAIL.ROLES.EDIT_BUTTON' | translate }}
 				</button>

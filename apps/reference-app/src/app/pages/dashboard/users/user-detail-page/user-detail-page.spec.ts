@@ -93,10 +93,17 @@ describe('UserDetailPage', () => {
 
 		await renderPage('1')
 
-		expect(screen.getByText('Profile')).toBeInTheDocument()
-		expect(screen.getByText('Roles')).toBeInTheDocument()
-		expect(screen.getByText('Account Actions')).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: /profile/i })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: /roles/i })).toBeInTheDocument()
+		expect(screen.getByRole('heading', { name: /account actions/i })).toBeInTheDocument()
 		expect(screen.getByText('Active')).toBeInTheDocument()
+		expect(screen.getByRole('link', { name: /back to users/i })).toBeInTheDocument()
+	})
+
+	it('does not load a user when the route id is not a positive integer', async () => {
+		await renderPage('abc')
+
+		expect(usersApiMock.getById.calls).toHaveLength(0)
 		expect(screen.getByRole('link', { name: /back to users/i })).toBeInTheDocument()
 	})
 })
