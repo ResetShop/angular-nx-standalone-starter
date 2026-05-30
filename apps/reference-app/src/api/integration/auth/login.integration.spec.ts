@@ -146,4 +146,27 @@ describe('POST /api/auth/login', () => {
 			expect(lockExpiry).toBeGreaterThan(Date.now())
 		})
 	})
+
+	describe('rate limiting', () => {
+		afterEach(async () => {
+			await resetAdminLockout(getTestDb())
+		})
+
+		it('returns 429 with a Retry-After header once the per-IP login rate limit is exceeded', async () => {
+			// Same IP for every call so the per-IP limiter (5 / 15m) trips on the 6th request. Distinct from
+			// the per-account lockout — this fires in middleware before the handler reaches checkAccountLockout.
+			const fromSameIp = () =>
+				app.request('/api/auth/login', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.97.0.1' },
+					body: JSON.stringify({ email: 'admin@sistema.com', password: 'wrongpassword' }),
+				})
+
+			let last: Response | undefined
+			for (let i = 0; i < 6; i++) last = await fromSameIp()
+
+			expect(last?.status).toBe(429)
+			expect(Number(last?.headers.get('Retry-After'))).toBeGreaterThan(0)
+		})
+	})
 })

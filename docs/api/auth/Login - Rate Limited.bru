@@ -1,0 +1,46 @@
+meta {
+  name: Login - Rate Limited
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "admin@sistema.com",
+    "password": "wrongpassword"
+  }
+}
+
+docs {
+  # Login - Rate Limited (429)
+
+  The login endpoint is rate-limited per IP (default 5 / 15m). **Precondition:** send this request
+  more than the limit within the window; the next call returns `429` with a `Retry-After` header
+  (whole seconds until the window resets). The frontend turns `Retry-After` into a "try again in
+  mm:ss" countdown on the login page — the same countdown UX as the per-account ACCOUNT_LOCKED
+  case. The 429 is per-IP and fires before any account lookup, so it leaks nothing about specific
+  accounts.
+
+  Note: on a single client IP this throttle trips *before* the per-account lockout can be observed
+  through the UI (both are 5/15m), so most real users will see this 429 countdown, not the
+  ACCOUNT_LOCKED one. The ACCOUNT_LOCKED 401 (with `lockedUntil`) is reached by a victim on a clean
+  IP after attackers have spent failed attempts from elsewhere.
+}
+
+assert {
+  res.headers.ratelimit: isDefined
+}
+
+tests {
+  test("once limited, status is 429 with a positive Retry-After", function() {
+    if (res.status === 429) {
+      expect(Number(res.headers["retry-after"])).to.be.greaterThan(0);
+    }
+  });
+}

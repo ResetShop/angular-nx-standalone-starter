@@ -441,6 +441,22 @@ describe('AuthStore', () => {
 			expect(store.loginLockedUntil()).toBe(lockedUntil)
 		})
 
+		it('derives loginThrottledUntil from a 429 Retry-After on the login endpoint', () => {
+			useFakeTimers()
+			try {
+				authApiMock.login.mockReturnValue(
+					throwError(() => new HttpErrorResponse({ status: 429, headers: new HttpHeaders({ 'Retry-After': '900' }) })),
+				)
+
+				store.login({ email: 'user@example.com', password: 'wrong' })
+
+				expect(store.loginThrottledUntil()).toBe(new Date(Date.now() + parseDurationToMs('15m')).toISOString())
+				expect(store.loginLockedUntil()).toBeNull()
+			} finally {
+				useRealTimers()
+			}
+		})
+
 		it('clears loginLockedUntil on a successful login', () => {
 			const lockedUntil = new Date('2026-06-01T00:15:00.000Z').toISOString()
 			authApiMock.login.mockReturnValue(

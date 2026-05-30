@@ -144,19 +144,20 @@ describe('Login', () => {
 		beforeEach(() => useFakeTimers())
 		afterEach(() => useRealTimers())
 
-		const lockedStore = (lockedUntil: string | null) => ({
+		const blockedStore = (lockedUntil: string | null, throttledUntil: string | null = null) => ({
 			currentUser: signal(null),
 			loginError: signal<LoginErrorResponse | null>(
 				lockedUntil ? { code: LoginErrorCode.ACCOUNT_LOCKED, message: 'locked' } : null,
 			),
 			loginLockedUntil: signal<string | null>(lockedUntil),
+			loginThrottledUntil: signal<string | null>(throttledUntil),
 			login: fn(),
 		})
 
 		it('shows the lockout countdown and disables submit while locked', async () => {
 			const future = new Date(Date.now() + parseDurationToMs('1m')).toISOString()
 			await render(Login, {
-				providers: [...defaultProviders(), { provide: AuthStore, useValue: lockedStore(future) }],
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: blockedStore(future) }],
 			})
 
 			expect(await screen.findByText(/too many failed attempts/i)).toBeInTheDocument()
@@ -165,10 +166,20 @@ describe('Login', () => {
 
 		it('does not show a lockout countdown when the account is not locked', async () => {
 			await render(Login, {
-				providers: [...defaultProviders(), { provide: AuthStore, useValue: lockedStore(null) }],
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: blockedStore(null) }],
 			})
 
 			expect(screen.queryByText(/too many failed attempts/i)).not.toBeInTheDocument()
+		})
+
+		it('shows the rate-limit countdown and disables submit when the per-IP login limit (429) is tripped', async () => {
+			const future = new Date(Date.now() + parseDurationToMs('1m')).toISOString()
+			await render(Login, {
+				providers: [...defaultProviders(), { provide: AuthStore, useValue: blockedStore(null, future) }],
+			})
+
+			expect(await screen.findByText(/too many requests/i)).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /Sign in/i })).toBeDisabled()
 		})
 	})
 })
