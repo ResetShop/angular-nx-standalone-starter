@@ -186,10 +186,10 @@ The test-setup files (`apps/**/src/test-setup.ts` and `apps/**/src/api/integrati
 
 ## Enforcement Summary
 
-| Layer                            | What it checks                                                                                                                    |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Zod schemas                      | Field presence, type, range, cross-field refinements (e.g. SMTP_HOST required when EMAIL_PROVIDER=nodemailer). Fail-fast at boot. |
-| `scripts/check-no-env-files.mjs` | Runs from pre-commit AND `npm run ci`. Fails if any `.env*` file exists at repo root or under `apps/*`.                           |
-| `.gitignore`                     | Ignores `.env` and `.env.*` patterns as a second line of defense against accidental `git add -A`.                                 |
-| `.claude/settings.json`          | Deny rules block AI coding agents from reading, writing, editing, or shell-creating `.env*` files.                                |
-| ESLint                           | (Coming in a follow-up PR.) `no-process-env` rule with a tight allowlist for `@config/*` and test setup files.                    |
+| Layer                            | What it checks                                                                                                                                                                                                                                                    |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zod schemas                      | Field presence, type, range, cross-field refinements (e.g. SMTP_HOST required when EMAIL_PROVIDER=nodemailer). Fail-fast at boot.                                                                                                                                 |
+| `scripts/check-no-env-files.mjs` | Runs from pre-commit AND `npm run ci`. Fails if any `.env*` file exists at repo root or under `apps/*`.                                                                                                                                                           |
+| `.gitignore`                     | Ignores `.env` and `.env.*` patterns as a second line of defense against accidental `git add -A`.                                                                                                                                                                 |
+| `.claude/settings.json`          | Deny rules block AI coding agents from reading, writing, editing, or shell-creating `.env*` files.                                                                                                                                                                |
+| ESLint                           | `no-restricted-syntax` rule in `eslint.config.mjs` blocks `process.env.X` / `process.env['X']` reads outside the allowlist (`apps/**/src/api/config/**`, `apps/**/src/test-setup.ts`, `apps/**/src/api/integration/**`). Fails `npm run lint` (and `npm run ci`). |
