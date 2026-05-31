@@ -1,5 +1,5 @@
 import { logger } from '@resetshop/util'
-import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
+import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
 import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import { DrizzlePermissionRepository } from '../modules/access/permission/permission.repository'
 import { PermissionService } from '../modules/access/permission/permission.service'
@@ -24,6 +24,7 @@ import { EtherealEmailRepository } from '../services/email/ethereal-email.reposi
 import { EMAIL_PROVIDERS } from '../services/email/interfaces'
 import { NodemailerRepository } from '../services/email/nodemailer.repository'
 import { NoopEmailRepository } from '../services/email/noop-email.repository'
+import { createPasetoConfig } from '../services/paseto/paseto.config'
 import { PasetoService } from '../services/paseto/paseto.service'
 import { createPasswordHasher, createPasswordVerifier } from '../services/password/password-hasher'
 import { generatePassword } from '../utils/password'
@@ -35,6 +36,7 @@ function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
 		db: asValue(drizzlePgConnector),
 		authConfig: asValue(createAuthConfig()),
+		pasetoConfig: asFunction(createPasetoConfig).singleton(),
 		logger: asValue(logger),
 		generatePassword: asValue(generatePassword),
 		hashPassword: asValue(createPasswordHasher()),

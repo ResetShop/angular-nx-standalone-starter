@@ -1,23 +1,25 @@
 import { V3 } from 'paseto'
-import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import { type RefreshTokenPayload, type TokenPayload } from './interfaces'
+import type { PasetoConfig } from './paseto.config'
 
 /**
  * Service to interact with PASETO tokens. It allows for the generation and validation of access and refresh tokens
  * using Paseto v3. This class acts as an abstraction layer above the PASETO library.
  *
- * For this service to work properly, the PASETO_SECRET_KEY and PASETO_ISSUER env vars are mandatory.
- * Optionally, the PASETO_ACCESS_TOKEN_EXPIRY env var can also be defined.
+ * Configuration is supplied via constructor-injected {@link PasetoConfig} (resolved from the
+ * Awilix cradle in production, or constructed directly in specs). The service never reads
+ * `process.env` itself.
  *
  * */
 export class PasetoService {
 	private readonly secretKey: Buffer
 	private readonly issuer: string
+	private readonly pasetoConfig: PasetoConfig
 
-	constructor() {
-		// Defense-in-depth: This validation is also performed in container.ts at startup.
-		// Keeping it here ensures the service fails safely even if instantiated outside the DI container.
-		const keyHex = process.env['PASETO_SECRET_KEY']
+	constructor({ pasetoConfig }: { pasetoConfig: PasetoConfig }) {
+		// Defense-in-depth: the env schema already validates these, but keeping the checks here
+		// ensures the service fails safely even if constructed with a hand-built config.
+		const keyHex = pasetoConfig.secretKey
 		if (!keyHex) {
 			throw new Error('PASETO_SECRET_KEY not configured')
 		}
@@ -32,11 +34,11 @@ export class PasetoService {
 
 		this.secretKey = Buffer.from(keyHex, 'hex')
 
-		const issuer = process.env['PASETO_ISSUER']
-		if (!issuer) {
+		if (!pasetoConfig.issuer) {
 			throw new Error('PASETO_ISSUER not configured')
 		}
-		this.issuer = issuer
+		this.issuer = pasetoConfig.issuer
+		this.pasetoConfig = pasetoConfig
 	}
 
 	/**
@@ -47,8 +49,7 @@ export class PasetoService {
 	 * @returns Encrypted PASETO v3.local token string
 	 */
 	public async generateAccessToken(payload: TokenPayload): Promise<string> {
-		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
-		const expiresIn = process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY
+		const expiresIn = this.pasetoConfig.accessTokenExpiry
 
 		return await V3.encrypt(
 			{
@@ -75,8 +76,7 @@ export class PasetoService {
 	 * @returns Encrypted PASETO v3.local token string
 	 */
 	public async generateRefreshToken(userId: string, tokenFamily?: string): Promise<string> {
-		// ExpiresIn is read directly from env vars to allow changing the token expiration time at runtime
-		const expiresIn = process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY
+		const expiresIn = this.pasetoConfig.refreshTokenExpiry
 
 		return await V3.encrypt(
 			{
@@ -104,7 +104,7 @@ export class PasetoService {
 		try {
 			const result = await V3.decrypt<TokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,
-				clockTolerance: process.env['PASETO_CLOCK_TOLERANCE'] ?? '1m', // Allow default 1 minute clock drift
+				clockTolerance: this.pasetoConfig.clockTolerance, // Allow default 1 minute clock drift
 			})
 
 			return result
@@ -125,7 +125,7 @@ export class PasetoService {
 		try {
 			const result = await V3.decrypt<RefreshTokenPayload>(token, this.secretKey, {
 				issuer: this.issuer,
-				clockTolerance: process.env['PASETO_CLOCK_TOLERANCE'] ?? '1m', // Allow default 1 minute clock drift
+				clockTolerance: this.pasetoConfig.clockTolerance, // Allow default 1 minute clock drift
 			})
 
 			return result

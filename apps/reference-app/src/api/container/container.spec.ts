@@ -48,6 +48,14 @@ describe('DI Container', () => {
 			expect(container.cradle.pasetoService).toBeDefined()
 		})
 
+		it('should resolve pasetoConfig', () => {
+			expect(container.cradle.pasetoConfig).toBeDefined()
+		})
+
+		it('should resolve authConfig', () => {
+			expect(container.cradle.authConfig).toBeDefined()
+		})
+
 		it('should resolve userRepository', () => {
 			expect(container.cradle.userRepository).toBeDefined()
 		})
@@ -102,6 +110,12 @@ describe('DI Container', () => {
 			const service1 = container.cradle.pasetoService
 			const service2 = container.cradle.pasetoService
 			expect(service1).toBe(service2)
+		})
+
+		it('should return the same pasetoConfig instance', () => {
+			const config1 = container.cradle.pasetoConfig
+			const config2 = container.cradle.pasetoConfig
+			expect(config1).toBe(config2)
 		})
 
 		it('should return the same userRepository instance', () => {
