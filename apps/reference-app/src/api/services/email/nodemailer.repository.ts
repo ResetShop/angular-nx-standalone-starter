@@ -28,13 +28,16 @@ export class NodemailerRepository implements EmailRepository {
 		// otherwise), and SMTP_PORT is already a coerced, range-validated number (default 587).
 		this.fromAddress = emailEnv.SMTP_FROM
 
+		// SMTP_HOST/USER/PASS are typed `string | undefined` (schema `.optional()`), but emailEnv's
+		// superRefine guarantees they are present whenever EMAIL_PROVIDER=nodemailer — the proxy
+		// process.exit(1)s at boot otherwise. The casts make that contract explicit at the call site.
 		this.transporter = nodemailer.createTransport({
-			host: emailEnv.SMTP_HOST,
+			host: emailEnv.SMTP_HOST as string,
 			port: emailEnv.SMTP_PORT,
 			secure: emailEnv.SMTP_SECURE,
 			auth: {
-				user: emailEnv.SMTP_USER,
-				pass: emailEnv.SMTP_PASS,
+				user: emailEnv.SMTP_USER as string,
+				pass: emailEnv.SMTP_PASS as string,
 			},
 		})
 	}

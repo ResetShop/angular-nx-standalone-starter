@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { clearAllMocks } from '@resetshop/util/test-utils'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { seedAppEnv } from '../../config/app.env'
 import { buildForgotPasswordEmail } from './forgot-password-email.builder'
 
 describe('buildForgotPasswordEmail', () => {
@@ -6,6 +8,19 @@ describe('buildForgotPasswordEmail', () => {
 		firstName: 'Ada',
 		resetUrl: 'https://app.test/auth/reset-password/confirm?token=raw-token-abc',
 	}
+
+	beforeEach(() => {
+		clearAllMocks()
+		// Seed the app env cache to its defaults (APP_LANGUAGE='en'), bypassing process.env —
+		// the dev shell may export APP_LANGUAGE, which would otherwise leak into the no-lang test below.
+		seedAppEnv()
+	})
+
+	it('defaults to English when no lang is passed (reads appEnv.APP_LANGUAGE)', () => {
+		const email = buildForgotPasswordEmail(params)
+
+		expect(email.subject).toBe('Reset your password')
+	})
 
 	it('renders the reset URL in both text and HTML (English)', () => {
 		const email = buildForgotPasswordEmail(params, 'en')

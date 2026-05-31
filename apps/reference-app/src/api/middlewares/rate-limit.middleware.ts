@@ -53,6 +53,11 @@ export const refreshRateLimiter = rateLimiter({
 /**
  * Rate limiter for POST /api/auth/change-password — defaults to 5 attempts per 15 minutes per IP.
  * Window and limit are overridable via AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW / _MAX.
+ *
+ * NOTE: `authEnv` is read here at module-eval time (this const is built when the module is imported),
+ * which locks in the auth env snapshot for the whole process on first access. Any env value that must
+ * be observable through `authEnv`/`authConfig` (e.g. CRON_SECRET in integration tests) must be present
+ * in `process.env` BEFORE this module loads — see `integration/setup/env-helpers.ts` configureEnvVars().
  */
 export const changePasswordRateLimiter = rateLimiter({
 	windowMs: parseDurationToMs(authEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW),
