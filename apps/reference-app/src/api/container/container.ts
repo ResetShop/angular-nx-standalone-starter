@@ -34,9 +34,13 @@ import { validateEnvironment } from './validate-environment'
 
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
-		db: asFunction(createDrizzlePgConnector).singleton(),
-		authConfig: asFunction(createAuthConfig).singleton(),
-		pasetoConfig: asFunction(createPasetoConfig).singleton(),
+		// Wrapped in arrows so Awilix does not pass the cradle proxy as the factory's first
+		// argument — createAuthConfig/createPasetoConfig take an optional AuthEnv source that
+		// must default to the authEnv proxy, not the cradle. createDrizzlePgConnector takes no
+		// args; it is wrapped too for uniformity.
+		db: asFunction(() => createDrizzlePgConnector()).singleton(),
+		authConfig: asFunction(() => createAuthConfig()).singleton(),
+		pasetoConfig: asFunction(() => createPasetoConfig()).singleton(),
 		logger: asValue(logger),
 		generatePassword: asValue(generatePassword),
 		hashPassword: asValue(createPasswordHasher()),
