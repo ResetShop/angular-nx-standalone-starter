@@ -1,10 +1,4 @@
-import { parseDurationToMs } from '@resetshop/util'
-import {
-	DEFAULT_ACCESS_TOKEN_EXPIRY,
-	DEFAULT_LOCKOUT_DURATION,
-	DEFAULT_MAX_FAILED_ATTEMPTS,
-	DEFAULT_REFRESH_TOKEN_EXPIRY,
-} from '../../constants/auth.constants'
+import { authEnv, type AuthEnv } from '../../config/auth.env'
 
 export interface AuthConfig {
 	/** Whether cookies require HTTPS. Defaults to true; set COOKIE_SECURE=false only for local dev. */
@@ -17,12 +11,10 @@ export interface AuthConfig {
 	maxFailedAttempts: number
 	/** Account lockout duration as a duration string (e.g. '15m'). Resolve via parseDurationToMs() at point of use. */
 	lockoutDuration: string
+	/** Bearer secret authorizing scheduled cron-job invocations (e.g. token cleanup). Undefined when unset. */
+	cronSecret: string | undefined
 }
 
-/**
- * Reads and validates auth-related environment variables at startup.
- * Returns a frozen config object suitable for injection into services and repositories.
- */
 export function buildBaseCookieOptions(authConfig: AuthConfig) {
 	return {
 		httpOnly: true,
@@ -32,29 +24,21 @@ export function buildBaseCookieOptions(authConfig: AuthConfig) {
 	}
 }
 
-export function createAuthConfig(): AuthConfig {
+/**
+ * Maps the validated `authEnv` fields onto the typed {@link AuthConfig} shape.
+ *
+ * The optional `source` parameter (defaulting to the lazy `authEnv` proxy) lets specs drive the
+ * mapping from a `parseAuthEnv({...})` result without env mutation. All fields are already at
+ * their final types after Zod parsing (booleans, numbers, validated duration strings), so no
+ * per-field coercion is needed here.
+ */
+export function createAuthConfig(source: AuthEnv = authEnv): AuthConfig {
 	return Object.freeze({
-		// WARNING: COOKIE_SECURE=false must ONLY be used in local development (no HTTPS).
-		// In production, omit the variable entirely — it defaults to true (HTTPS required).
-		cookieSecure: process.env['COOKIE_SECURE'] !== 'false',
-		accessTokenExpiry: process.env['PASETO_ACCESS_TOKEN_EXPIRY'] ?? DEFAULT_ACCESS_TOKEN_EXPIRY,
-		refreshTokenExpiry: process.env['PASETO_REFRESH_TOKEN_EXPIRY'] ?? DEFAULT_REFRESH_TOKEN_EXPIRY,
-		maxFailedAttempts: parseMaxFailedAttempts(process.env['AUTH_MAX_FAILED_ATTEMPTS']),
-		lockoutDuration: parseLockoutDuration(process.env['AUTH_LOCKOUT_DURATION']),
+		cookieSecure: source.COOKIE_SECURE,
+		accessTokenExpiry: source.PASETO_ACCESS_TOKEN_EXPIRY,
+		refreshTokenExpiry: source.PASETO_REFRESH_TOKEN_EXPIRY,
+		maxFailedAttempts: source.AUTH_MAX_FAILED_ATTEMPTS,
+		lockoutDuration: source.AUTH_LOCKOUT_DURATION,
+		cronSecret: source.CRON_SECRET,
 	})
-}
-
-function parseMaxFailedAttempts(value: string | undefined): number {
-	const parsed = parseInt(value ?? '', 10)
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_FAILED_ATTEMPTS
-}
-
-function parseLockoutDuration(value: string | undefined): string {
-	if (!value) return DEFAULT_LOCKOUT_DURATION
-	try {
-		parseDurationToMs(value) // validate the format
-		return value
-	} catch {
-		return DEFAULT_LOCKOUT_DURATION
-	}
 }
