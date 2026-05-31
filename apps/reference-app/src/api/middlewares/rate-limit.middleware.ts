@@ -1,9 +1,8 @@
 import { logger, parseDurationToMs } from '@resetshop/util'
 import type { Context } from 'hono'
 import { rateLimiter } from 'hono-rate-limiter'
+import { authEnv } from '../config/auth.env'
 import {
-	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX,
-	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
 	FORGOT_PASSWORD_RATE_LIMIT_MAX,
 	FORGOT_PASSWORD_RATE_LIMIT_WINDOW,
 	LOGIN_RATE_LIMIT_MAX,
@@ -56,10 +55,8 @@ export const refreshRateLimiter = rateLimiter({
  * Window and limit are overridable via AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW / _MAX.
  */
 export const changePasswordRateLimiter = rateLimiter({
-	windowMs: parseDurationToMs(
-		process.env['AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW'] || DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
-	),
-	limit: Number(process.env['AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX']) || DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX,
+	windowMs: parseDurationToMs(authEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW),
+	limit: authEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX,
 	standardHeaders: 'draft-7',
 	keyGenerator: getClientIp,
 	handler: createRateLimitHandler('/api/auth/change-password'),

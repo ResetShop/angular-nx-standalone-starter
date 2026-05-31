@@ -2,6 +2,7 @@ import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { logger, parseDurationToMs } from '@resetshop/util'
 import { createHash, randomBytes } from 'crypto'
+import { httpEnv } from '../../config/http.env'
 import { PASSWORD_RESET_PATH, PASSWORD_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import { buildForgotPasswordEmail } from '../../services/email/forgot-password-email.builder'
 import { type EmailService } from '../../services/email/interfaces'
@@ -114,9 +115,9 @@ export class PasswordResetService implements IPasswordResetService {
 	}
 
 	private buildResetUrl(rawToken: string): string {
-		// CORS_ORIGIN is the configured frontend origin; fall back to the dev server. Take the first
-		// origin if a comma-separated list is configured, and strip any trailing slash.
-		const origin = (process.env['CORS_ORIGIN'] || 'http://localhost:4200').split(',')[0].trim().replace(/\/$/, '')
+		// httpEnv.CORS_ORIGIN is the configured frontend origin (defaults to the dev server in the schema).
+		// Take the first origin if a comma-separated list is configured, and strip any trailing slash.
+		const origin = httpEnv.CORS_ORIGIN.split(',')[0].trim().replace(/\/$/, '')
 		return `${origin}${PASSWORD_RESET_PATH}?token=${encodeURIComponent(rawToken)}`
 	}
 }
