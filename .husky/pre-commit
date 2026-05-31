@@ -1,4 +1,8 @@
 #!/bin/sh
+echo "--- Checking for forbidden .env* files ---"
+node scripts/check-no-env-files.mjs || exit 1
+
+echo ""
 echo "--- Formatting Code ---"
 echo ""
 npx pretty-quick --staged
