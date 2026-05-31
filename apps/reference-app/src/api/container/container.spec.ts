@@ -1,4 +1,5 @@
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { seedDbEnv } from '../config/db.env'
 import { AuthService } from '../modules/auth/auth.service'
 import { TokenMaintenanceService } from '../modules/auth/token-maintenance.service'
 import { container } from './container'
@@ -29,6 +30,10 @@ function createMockRoleService(): Cradle['roleService'] {
 describe('DI Container', () => {
 	beforeEach(() => {
 		clearAllMocks()
+		// Seed dbEnv so the lazy `createDrizzlePgConnector` factory resolves with a valid
+		// connection string in unit tests (test-setup.ts does not set PG_CONNECTION_STRING).
+		// Drizzle builds a connection pool lazily, so no real DB connection is attempted.
+		seedDbEnv()
 	})
 
 	describe('dependency resolution', () => {
