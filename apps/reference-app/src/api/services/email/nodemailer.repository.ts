@@ -1,6 +1,7 @@
 import { logger } from '@resetshop/util'
 import type { Transporter } from 'nodemailer'
 import * as nodemailer from 'nodemailer'
+import { emailEnv } from '../../config/email.env'
 import type { EmailRepository, SendEmailParams } from './interfaces'
 
 /**
@@ -22,28 +23,18 @@ export class NodemailerRepository implements EmailRepository {
 	private readonly fromAddress: string
 
 	constructor() {
-		const host = process.env['SMTP_HOST']
-		const user = process.env['SMTP_USER']
-		const pass = process.env['SMTP_PASS']
-
-		if (!host || !user || !pass) {
-			throw new Error('SMTP configuration incomplete. Required: SMTP_HOST, SMTP_USER, SMTP_PASS')
-		}
-
-		const port = parseInt(process.env['SMTP_PORT'] || '587', 10)
-		if (isNaN(port) || port < 1 || port > 65535) {
-			throw new Error(`Invalid SMTP_PORT: "${process.env['SMTP_PORT']}". Must be a number between 1 and 65535`)
-		}
-		const secure = process.env['SMTP_SECURE'] === 'true'
-		this.fromAddress = process.env['SMTP_FROM'] || 'noreply@example.com'
+		// SMTP settings come from the validated emailEnv proxy. When EMAIL_PROVIDER=nodemailer,
+		// emailEnv's superRefine guarantees SMTP_HOST/USER/PASS are present (failing fast at boot
+		// otherwise), and SMTP_PORT is already a coerced, range-validated number (default 587).
+		this.fromAddress = emailEnv.SMTP_FROM
 
 		this.transporter = nodemailer.createTransport({
-			host,
-			port,
-			secure,
+			host: emailEnv.SMTP_HOST,
+			port: emailEnv.SMTP_PORT,
+			secure: emailEnv.SMTP_SECURE,
 			auth: {
-				user,
-				pass,
+				user: emailEnv.SMTP_USER,
+				pass: emailEnv.SMTP_PASS,
 			},
 		})
 	}
