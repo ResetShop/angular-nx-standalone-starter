@@ -1,6 +1,6 @@
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { beforeEach } from 'vitest'
-import { resetAppEnv, seedAppEnv } from '../../config/app.env'
+import { seedAppEnv } from '../../config/app.env'
 import { buildWelcomeEmail } from './welcome-email.builder'
 
 describe('buildWelcomeEmail', () => {
@@ -13,7 +13,9 @@ describe('buildWelcomeEmail', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
-		resetAppEnv()
+		// Seed the app env cache to its defaults (APP_LANGUAGE='en'), bypassing process.env —
+		// the dev shell may export APP_LANGUAGE, which would otherwise leak into these tests.
+		seedAppEnv()
 	})
 
 	describe('Return structure', () => {
