@@ -1,6 +1,7 @@
 import { logger } from '@resetshop/util'
 import { randomInt } from 'crypto'
 import { z } from 'zod'
+import { appEnv } from '../config/app.env'
 import enWordlistRaw from './wordlists/en-password-seed.txt?raw'
 import esWordlistRaw from './wordlists/es-password-seed.txt?raw'
 
@@ -48,22 +49,24 @@ export function getWordList(language: string): readonly string[] {
 /**
  * Generate a cryptographically secure passphrase in the format: word.word.word
  *
- * Reads APP_LANGUAGE env var to select the word list (defaults to 'en').
+ * The word list is selected by `language`, defaulting to `appEnv.APP_LANGUAGE` (itself 'en' by
+ * default). The optional parameter lets specs choose a language without env mutation, mirroring
+ * the `buildWelcomeEmail(params, lang?)` shape.
  * Uses crypto.randomInt for uniform random word selection from a diceware word list.
  * With the default 7,776-word lists, 3 words provide ~38.8 bits of entropy —
  * suitable for temporary passwords that must be changed on first login.
  *
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
-export async function generatePassword(wordCount = 3): Promise<string> {
+export async function generatePassword(wordCount = 3, language?: string): Promise<string> {
 	const parsed = wordCountSchema.safeParse(wordCount)
 	if (!parsed.success) {
 		logger.warn('generatePassword', `Invalid wordCount (${wordCount}), using default: ${parsed.error.message}`)
 	}
 	const effectiveWordCount = parsed.success ? wordCount : 3
 
-	const language = process.env['APP_LANGUAGE'] || 'en'
-	const words = getWordList(language)
+	const resolvedLanguage = language ?? appEnv.APP_LANGUAGE
+	const words = getWordList(resolvedLanguage)
 
 	return Array.from({ length: effectiveWordCount }, () => words[randomInt(words.length)]).join('.')
 }

@@ -83,7 +83,7 @@ export interface Cradle {
 	authConfig: AuthConfig
 	pasetoConfig: PasetoConfig
 	logger: Logger
-	generatePassword: () => Promise<string>
+	generatePassword: (wordCount?: number, language?: string) => Promise<string>
 	hashPassword: (plain: string) => Promise<string>
 	verifyPassword: (plain: string, hash: string) => Promise<boolean>
 
