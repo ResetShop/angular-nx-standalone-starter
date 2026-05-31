@@ -12,8 +12,9 @@ import type { PasetoConfig } from './paseto.config'
  *
  * */
 export class PasetoService {
+	// secretKey is the hex string decoded to a Buffer once at construction (used on every V3 call);
+	// all other settings are read from pasetoConfig directly to avoid a second source of truth.
 	private readonly secretKey: Buffer
-	private readonly issuer: string
 	private readonly pasetoConfig: PasetoConfig
 
 	constructor({ pasetoConfig }: { pasetoConfig: PasetoConfig }) {
@@ -32,12 +33,11 @@ export class PasetoService {
 			)
 		}
 
-		this.secretKey = Buffer.from(keyHex, 'hex')
-
 		if (!pasetoConfig.issuer) {
 			throw new Error('PASETO_ISSUER not configured')
 		}
-		this.issuer = pasetoConfig.issuer
+
+		this.secretKey = Buffer.from(keyHex, 'hex')
 		this.pasetoConfig = pasetoConfig
 	}
 
@@ -57,7 +57,7 @@ export class PasetoService {
 				email: payload.email,
 				firstName: payload.firstName,
 				lastName: payload.lastName,
-				iss: this.issuer,
+				iss: this.pasetoConfig.issuer,
 			},
 			this.secretKey,
 			{
@@ -82,7 +82,7 @@ export class PasetoService {
 			{
 				sub: userId,
 				tokenFamily: tokenFamily || crypto.randomUUID(),
-				iss: this.issuer,
+				iss: this.pasetoConfig.issuer,
 			},
 			this.secretKey,
 			{
@@ -103,7 +103,7 @@ export class PasetoService {
 	public async verifyAccessToken(token: string): Promise<TokenPayload> {
 		try {
 			const result = await V3.decrypt<TokenPayload>(token, this.secretKey, {
-				issuer: this.issuer,
+				issuer: this.pasetoConfig.issuer,
 				clockTolerance: this.pasetoConfig.clockTolerance, // Allow default 1 minute clock drift
 			})
 
@@ -124,7 +124,7 @@ export class PasetoService {
 	public async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
 		try {
 			const result = await V3.decrypt<RefreshTokenPayload>(token, this.secretKey, {
-				issuer: this.issuer,
+				issuer: this.pasetoConfig.issuer,
 				clockTolerance: this.pasetoConfig.clockTolerance, // Allow default 1 minute clock drift
 			})
 
