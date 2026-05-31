@@ -55,4 +55,9 @@ export function configureEnvVars(testConnectionString: string): void {
 	process.env['COOKIE_SECURE'] = 'false'
 	process.env['EMAIL_PROVIDER'] = 'noop'
 	process.env['BCRYPT_COST'] = '1'
+	// Set here (not in the cleanup-tokens spec's beforeAll) so it is present before the route
+	// graph imports — the change-password rate limiter reads authEnv at module load, which caches
+	// the auth env snapshot. A late process.env write would never reach authConfig.cronSecret.
+	// Keep in sync with TEST_CRON_SECRET in cleanup-tokens.integration.spec.ts.
+	process.env['CRON_SECRET'] = 'integration-cron-secret-0123456789abcdef'
 }
