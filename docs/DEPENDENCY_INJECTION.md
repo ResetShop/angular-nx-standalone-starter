@@ -304,7 +304,7 @@ app.use(async (c, next) => {
 
 1. **Resolve dependencies inside handler functions**, not at module level (improves test isolation)
 2. **Always use singletons** for stateless services and repositories
-3. **Validate configuration early** in container setup (see `validateEnvironment()`)
+3. **Let the typed env proxies validate configuration** — each `<domain>Env` proxy (`@config/*.env`) validates on first access and `process.exit(1)`s with a FATAL message on failure; `verifyContainer()` resolves every registration at startup, triggering those reads
 4. **Keep the Cradle interface updated** when adding/removing dependencies
 5. **Use the `verifyContainer()` function** at startup to catch configuration errors
 6. **Prefer constructor injection** over property injection for testability
