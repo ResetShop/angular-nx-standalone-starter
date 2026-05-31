@@ -96,10 +96,11 @@ const viRestrictedSyntax = [
 	},
 ]
 
-// Forbids direct `process.env` access (both `process.env.X` and `process.env['X']`) — the single
-// selector matches the `process.env` MemberExpression itself, which is the inner node in every
-// access form. Allowlisted in the `no-process-env-allowlist` config below for the env sub-schema
-// factory and the test/integration setup files that legitimately read process.env.
+// Forbids direct `process.env` access — the single selector matches the `process.env`
+// MemberExpression itself, which is the inner node in every access form: `process.env.X`,
+// `process.env['X']`, and bare `process.env` (e.g. passed as an argument). Allowlisted in the
+// `no-process-env-allowlist` config below for the env sub-schema factory and the test/integration
+// setup files that legitimately read process.env.
 const processEnvRestrictedSyntax = [
 	{
 		selector: "MemberExpression[object.name='process'][property.name='env']",
