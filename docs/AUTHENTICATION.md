@@ -552,7 +552,7 @@ app.use('*', async (c, next) => {
 
 1. **Credentials Support**: `credentials: true` allows cookies to be sent/received cross-origin
 2. **Specific Origin Required**: When using credentials, the origin **cannot** be `*` (wildcard) - it must be a specific domain
-3. **Preflight Caching**: `maxAge: 86400` caches preflight responses for 24 hours to reduce OPTIONS requests
+3. **Preflight Caching**: `maxAge` is read from `httpEnv.CORS_MAX_AGE` (configurable via the `CORS_MAX_AGE` env var; default 86400 s / 24 h) to reduce OPTIONS requests
 
 ### Production Deployment
 

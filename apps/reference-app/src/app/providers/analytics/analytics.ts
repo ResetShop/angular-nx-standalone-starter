@@ -19,7 +19,7 @@ export class Analytics {
 			return
 		}
 
-		// TODO: Uncomment if you're using Clarity analytics, after installing the @microsoft/clarity package, setting the environment variable CLARITY_PROJECT_ID and setting up the api/helpers/environment.ts file
+		// TODO: Uncomment if you're using Clarity analytics, after installing the @microsoft/clarity package and setting the build-time __ENV_CLARITY_PROJECT_ID__ define in project.json (see README → Analytics Integration). For backend Clarity calls, see packages/hono-core/src/lib/clarity-connector.ts.
 		try {
 			// const clarityModule = await import('@microsoft/clarity');
 			// const clarity = clarityModule.default;

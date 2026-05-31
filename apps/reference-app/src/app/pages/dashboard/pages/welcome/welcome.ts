@@ -23,9 +23,9 @@ import { RouterOutlet } from '@angular/router'
 				<li>Remove TestEndpointComponent from the app.component.ts file, and also from the project.</li>
 				<li>
 					Check which helpers you need to use in the application backend. You'll find the helpers in the
-					/src/api/helpers folder, together with the environment information to set them up from environment variables
-					in the /src/api/helpers/environment.ts file. To properly use the helpers you'll need to install specific
-					packages, which are detailed in the comments for each of them.
+					/src/api/helpers folder. Backend environment variables are declared in the domain-scoped Zod sub-schemas under
+					/src/api/config/*.env.ts and consumed via the @config/* alias (see docs/environment-variables.md). To properly
+					use the helpers you'll need to install specific packages, which are detailed in the comments for each of them.
 				</li>
 				<li>
 					Under AnalyticsService, you'll find commented code that'll allow you to set up Vercel Speed Insights and
