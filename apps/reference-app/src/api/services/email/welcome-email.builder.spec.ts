@@ -1,5 +1,6 @@
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { beforeEach } from 'vitest'
+import { resetAppEnv, seedAppEnv } from '../../config/app.env'
 import { buildWelcomeEmail } from './welcome-email.builder'
 
 describe('buildWelcomeEmail', () => {
@@ -10,19 +11,9 @@ describe('buildWelcomeEmail', () => {
 		mustChangePassword: true,
 	}
 
-	const originalAppLanguage = process.env['APP_LANGUAGE']
-
 	beforeEach(() => {
 		clearAllMocks()
-		delete process.env['APP_LANGUAGE']
-	})
-
-	afterEach(() => {
-		if (originalAppLanguage !== undefined) {
-			process.env['APP_LANGUAGE'] = originalAppLanguage
-		} else {
-			delete process.env['APP_LANGUAGE']
-		}
+		resetAppEnv()
 	})
 
 	describe('Return structure', () => {
@@ -139,7 +130,7 @@ describe('buildWelcomeEmail', () => {
 		})
 
 		it('should set html lang attribute from APP_LANGUAGE', () => {
-			process.env['APP_LANGUAGE'] = 'es'
+			seedAppEnv({ APP_LANGUAGE: 'es' })
 
 			const result = buildWelcomeEmail(mockParams)
 

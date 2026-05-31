@@ -1,3 +1,4 @@
+import { appEnv } from '../../config/app.env'
 import { PASSWORD_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import type { EmailContent, EmailLanguage } from './email-builder.utils'
 import { escapeHtml, resolveEmailLanguage } from './email-builder.utils'
@@ -48,7 +49,7 @@ const EMAIL_TRANSLATIONS = Object.freeze({
  * @param lang Optional language override. Falls back to APP_LANGUAGE env var, then 'en'.
  */
 export function buildForgotPasswordEmail(params: ForgotPasswordEmailParams, lang?: string): EmailContent {
-	const resolvedLang = resolveEmailLanguage(lang ?? process.env['APP_LANGUAGE'])
+	const resolvedLang = resolveEmailLanguage(lang ?? appEnv.APP_LANGUAGE)
 	const t = EMAIL_TRANSLATIONS[resolvedLang]
 	const expiryNote = t.expiryNote.replace('{duration}', formatExpiryDuration(PASSWORD_RESET_TOKEN_EXPIRY, resolvedLang))
 
