@@ -10,7 +10,9 @@ import {
 	viewChild,
 } from '@angular/core'
 import { form, FormField as SignalFormField } from '@angular/forms/signals'
+import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
+import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Alert, AlertDescription } from '@resetshop/ui/alert/alert'
@@ -63,7 +65,11 @@ interface RolesFormModel {
 
 				@if (rolesStore.allRoles().length > 0) {
 					<app-form-field [label]="'USERS.DETAIL.ROLES.ROLES_LABEL' | translate" class="flex min-h-0 flex-1 flex-col">
-						<app-role-selector [formField]="rolesForm.roleIds" [roles]="rolesStore.allRoles()" />
+						<app-role-selector
+							[formField]="rolesForm.roleIds"
+							[roles]="rolesStore.allRoles()"
+							[lockedRoleIds]="lockedRoleIds()"
+						/>
 					</app-form-field>
 				}
 			</form>
@@ -89,7 +95,21 @@ export class EditUserRolesDrawer {
 	private readonly usersStore = inject(UsersStore)
 	protected readonly rolesStore = inject(RolesStore)
 	private readonly translation = inject(Translation)
+	private readonly currentUser = inject(CurrentUser)
 	private readonly drawer = viewChild.required<Drawer>('drawer')
+
+	/**
+	 * Roles that cannot be deselected. When an admin edits their OWN roles, their admin role is locked
+	 * on so they cannot remove it and lock themselves out. Empty for every other case. The backend
+	 * enforces the same rule (SELF_LOCKOUT) as defense-in-depth.
+	 */
+	protected readonly lockedRoleIds = computed(() => {
+		if (!this.currentUser.is(this.user())) {
+			return []
+		}
+		const adminRole = this.user().roles.find((role) => role.code === ADMIN_ROLE_CODE)
+		return adminRole ? [adminRole.id] : []
+	})
 
 	protected readonly toast = createMutationToast(this.translation.instant('USERS.DETAIL.ROLES.SUCCESS_TOAST'), {
 		deferred: true,

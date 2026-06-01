@@ -14,8 +14,9 @@ import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-cust
 					<input
 						(change)="toggleRole(role.id)"
 						[checked]="selectedSet().has(role.id)"
+						[disabled]="lockedSet().has(role.id)"
 						type="checkbox"
-						class="border-input text-default focus:ring-ring h-4 w-4 rounded"
+						class="border-input text-default focus:ring-ring h-4 w-4 rounded disabled:cursor-not-allowed disabled:opacity-60"
 					/>
 					<div class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
 						<span class="text-sm text-gray-700 dark:text-gray-300">{{ role.name }}</span>
@@ -35,6 +36,8 @@ import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-cust
 })
 export class RoleSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
 	public readonly roles = input.required<IRole[]>()
+	/** Role ids that are locked on (rendered checked + disabled and cannot be toggled off). */
+	public readonly lockedRoleIds = input<number[]>([])
 	public readonly value = model<number[]>([])
 
 	protected readonly containerClasses = computed(() => {
@@ -47,7 +50,13 @@ export class RoleSelector extends FormFieldCustomControl implements FormValueCon
 		computation: (ids) => new Set(ids),
 	})
 
+	protected readonly lockedSet = computed(() => new Set(this.lockedRoleIds()))
+
 	protected toggleRole(id: number): void {
+		// Locked roles cannot be toggled (e.g. an admin cannot remove their own admin role).
+		if (this.lockedSet().has(id)) {
+			return
+		}
 		const set = new Set(this.selectedSet())
 		if (set.has(id)) {
 			set.delete(id)
