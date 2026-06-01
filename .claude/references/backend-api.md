@@ -286,7 +286,7 @@ for (const route of routes) {
 | Health | `/api/health` | `GET /api/health/v1`                                |
 | Auth   | `/api/auth`   | `POST /api/auth/login`, `/refresh`, `/logout`, etc. |
 | Access | `/api/access` | `/api/access/roles/*`, `/api/access/permissions/*`  |
-| User   | `/api/users`  | `/api/users/*`, `/api/users/:userId/roles/*`        |
+| User   | `/api/users`  | `/api/users/*`, `/api/users/{userId}/roles/*`       |
 
 ---
 
