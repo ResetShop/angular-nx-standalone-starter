@@ -162,6 +162,20 @@ jobs:
   e2e:
     needs: setup
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Restore repository
         uses: actions/cache@v4.2.3
@@ -182,6 +196,11 @@ jobs:
 
       - name: Run Tests
         run: npx nx run reference-app:e2e --skip-nx-cache
+        env:
+          # The Playwright globalSetup seeds this postgres:17 service (same pattern as test-integration).
+          # Both values come from GitHub Actions repo Variables, not Secrets — neither is sensitive.
+          PG_TEST_CONNECTION_STRING: ${{ vars.PG_TEST_CONNECTION_STRING }}
+          INTEGRATION_TEST_ADMIN_PASSWORD: ${{ vars.INTEGRATION_TEST_ADMIN_PASSWORD }}
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
