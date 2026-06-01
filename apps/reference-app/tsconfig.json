@@ -13,6 +13,7 @@
 			"@resetshop/hono-core/*": ["../../packages/hono-core/src/lib/*"],
 
 			"@components/*": ["src/app/components/*"],
+			"@config/*": ["src/api/config/*"],
 			"@configs/*": ["src/app/configs/*"],
 			"@contracts/*": ["src/contracts/*"],
 			"@directives/*": ["src/app/directives/*"],

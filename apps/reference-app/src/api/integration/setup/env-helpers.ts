@@ -55,4 +55,9 @@ export function configureEnvVars(testConnectionString: string): void {
 	process.env['COOKIE_SECURE'] = 'false'
 	process.env['EMAIL_PROVIDER'] = 'noop'
 	process.env['BCRYPT_COST'] = '1'
+	// Set here (in the setup file, before any test request) so it is present in process.env when the
+	// authEnv proxy is first parsed — which happens on first cradle/handler access during a test, and
+	// caches the auth snapshot for the worker. A per-spec late write could miss that first read.
+	// Keep in sync with TEST_CRON_SECRET in cleanup-tokens.integration.spec.ts.
+	process.env['CRON_SECRET'] = 'integration-cron-secret-0123456789abcdef'
 }

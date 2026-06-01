@@ -96,6 +96,19 @@ const viRestrictedSyntax = [
 	},
 ]
 
+// Forbids direct `process.env` access — the single selector matches the `process.env`
+// MemberExpression itself, which is the inner node in every access form: `process.env.X`,
+// `process.env['X']`, and bare `process.env` (e.g. passed as an argument). Allowlisted in the
+// `no-process-env-allowlist` config below for the env sub-schema factory and the test/integration
+// setup files that legitimately read process.env.
+const processEnvRestrictedSyntax = [
+	{
+		selector: "MemberExpression[object.name='process'][property.name='env']",
+		message:
+			"Direct process.env access is forbidden. Import the typed value from '@config/<domain>.env' (e.g. dbEnv.PG_CONNECTION_STRING, authEnv.PASETO_SECRET_KEY). The allowlist lives in eslint.config.mjs.",
+	},
+]
+
 export default [
 	{
 		name: 'ignores',
@@ -251,7 +264,12 @@ export default [
 			'@typescript-eslint/no-non-null-assertion': 'error',
 			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-require-imports': 'error',
-			'no-restricted-syntax': ['error', ...commonRestrictedSyntax, ...viRestrictedSyntax],
+			'no-restricted-syntax': [
+				'error',
+				...commonRestrictedSyntax,
+				...viRestrictedSyntax,
+				...processEnvRestrictedSyntax,
+			],
 			'@stylistic/js/no-extra-semi': 'off',
 			'vitest/no-focused-tests': 'error',
 			'no-barrel-files/no-barrel-files': 'error',
@@ -263,6 +281,19 @@ export default [
 		files: ['src/test-utils.ts', 'packages/util/src/lib/test-utils.ts'],
 		rules: {
 			'no-restricted-syntax': ['error', ...commonRestrictedSyntax],
+		},
+	},
+	{
+		// process.env allowlist — the only files that may read process.env directly:
+		//   - api/config/** : the env sub-schemas and the createEnvHandler factory (env-utils.ts),
+		//     which parse process.env once per domain behind the lazy proxy, plus their specs.
+		//   - test-setup.ts : pre-seeds env values before any production module loads.
+		//   - api/integration/** : integration setup helpers and specs that drive test fixtures via env.
+		// These keep the common + vi restrictions; only the process.env restriction is lifted.
+		name: 'no-process-env-allowlist',
+		files: ['apps/**/src/api/config/**/*.ts', 'apps/**/src/test-setup.ts', 'apps/**/src/api/integration/**/*.ts'],
+		rules: {
+			'no-restricted-syntax': ['error', ...commonRestrictedSyntax, ...viRestrictedSyntax],
 		},
 	},
 	{

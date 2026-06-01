@@ -1,9 +1,8 @@
 import { logger, parseDurationToMs } from '@resetshop/util'
 import type { Context } from 'hono'
 import { rateLimiter } from 'hono-rate-limiter'
+import { authEnv } from '../config/auth.env'
 import {
-	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX,
-	DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
 	FORGOT_PASSWORD_RATE_LIMIT_MAX,
 	FORGOT_PASSWORD_RATE_LIMIT_WINDOW,
 	LOGIN_RATE_LIMIT_MAX,
@@ -54,16 +53,27 @@ export const refreshRateLimiter = rateLimiter({
 /**
  * Rate limiter for POST /api/auth/change-password — defaults to 5 attempts per 15 minutes per IP.
  * Window and limit are overridable via AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW / _MAX.
+ *
+ * Built lazily on the first request rather than at module-eval, because the underlying `authEnv`
+ * read parses the whole auth schema (requiring PASETO_SECRET_KEY / PASETO_ISSUER) and would
+ * `process.exit(1)` when this module is imported in an env-less context — notably the Angular SSR
+ * route-extraction / prerender worker, which imports the server bundle with no env vars set. This
+ * mirrors the deferred `cors()` middleware in `server.ts`. The other limiters above read only
+ * compile-time constants, so they stay eager.
  */
-export const changePasswordRateLimiter = rateLimiter({
-	windowMs: parseDurationToMs(
-		process.env['AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW'] || DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_WINDOW,
-	),
-	limit: Number(process.env['AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX']) || DEFAULT_CHANGE_PASSWORD_RATE_LIMIT_MAX,
-	standardHeaders: 'draft-7',
-	keyGenerator: getClientIp,
-	handler: createRateLimitHandler('/api/auth/change-password'),
-})
+let changePasswordRateLimiterImpl: ReturnType<typeof rateLimiter> | null = null
+export const changePasswordRateLimiter: ReturnType<typeof rateLimiter> = (c, next) => {
+	if (changePasswordRateLimiterImpl === null) {
+		changePasswordRateLimiterImpl = rateLimiter({
+			windowMs: parseDurationToMs(authEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW),
+			limit: authEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX,
+			standardHeaders: 'draft-7',
+			keyGenerator: getClientIp,
+			handler: createRateLimitHandler('/api/auth/change-password'),
+		})
+	}
+	return changePasswordRateLimiterImpl(c, next)
+}
 
 /** Rate limiter for POST /api/auth/forgot-password — 5 requests per 15 minutes per IP. */
 export const forgotPasswordRateLimiter = rateLimiter({

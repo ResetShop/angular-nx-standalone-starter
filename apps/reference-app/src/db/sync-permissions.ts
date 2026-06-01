@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { environment } from '../api/environment'
+import { dbEnv } from '../api/config/db.env'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
 import { permission } from './schema/permission'
 
@@ -27,7 +27,7 @@ function computeOrphaned(existingNames: Set<string>) {
 }
 
 async function syncPermissions(): Promise<void> {
-	const pool = new Pool({ connectionString: environment.database.pg.connectionString })
+	const pool = new Pool({ connectionString: dbEnv.PG_CONNECTION_STRING })
 	const db = drizzle(pool)
 
 	try {

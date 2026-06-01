@@ -1,4 +1,5 @@
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { seedDbEnv } from '../config/db.env'
 import { AuthService } from '../modules/auth/auth.service'
 import { TokenMaintenanceService } from '../modules/auth/token-maintenance.service'
 import { container } from './container'
@@ -29,6 +30,10 @@ function createMockRoleService(): Cradle['roleService'] {
 describe('DI Container', () => {
 	beforeEach(() => {
 		clearAllMocks()
+		// Seed dbEnv so the lazy `createDrizzlePgConnector` factory resolves with a valid
+		// connection string in unit tests (test-setup.ts does not set PG_CONNECTION_STRING).
+		// Drizzle builds a connection pool lazily, so no real DB connection is attempted.
+		seedDbEnv()
 	})
 
 	describe('dependency resolution', () => {
@@ -46,6 +51,14 @@ describe('DI Container', () => {
 
 		it('should resolve pasetoService', () => {
 			expect(container.cradle.pasetoService).toBeDefined()
+		})
+
+		it('should resolve pasetoConfig', () => {
+			expect(container.cradle.pasetoConfig).toBeDefined()
+		})
+
+		it('should resolve authConfig', () => {
+			expect(container.cradle.authConfig).toBeDefined()
 		})
 
 		it('should resolve userRepository', () => {
@@ -102,6 +115,12 @@ describe('DI Container', () => {
 			const service1 = container.cradle.pasetoService
 			const service2 = container.cradle.pasetoService
 			expect(service1).toBe(service2)
+		})
+
+		it('should return the same pasetoConfig instance', () => {
+			const config1 = container.cradle.pasetoConfig
+			const config2 = container.cradle.pasetoConfig
+			expect(config1).toBe(config2)
 		})
 
 		it('should return the same userRepository instance', () => {

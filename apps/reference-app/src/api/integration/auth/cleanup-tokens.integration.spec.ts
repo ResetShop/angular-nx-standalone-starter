@@ -11,33 +11,24 @@ import { createTestApp } from '../setup/test-app'
 const SUITE_TOKEN_FAMILY = 'cleanup-tokens-integration'
 
 // 40 chars — comfortably above MIN_CRON_SECRET_LENGTH (32).
+// Must match the CRON_SECRET set in integration setup (env-helpers.ts configureEnvVars),
+// which the change-password rate limiter's module-load authEnv read locks in before any test runs.
 const TEST_CRON_SECRET = 'integration-cron-secret-0123456789abcdef'
 
 describe('GET /api/auth/cleanup-tokens', () => {
 	let app: OpenAPIHono
 	let adminUserId: number
-	let originalCronSecret: string | undefined
 
 	beforeAll(async () => {
 		app = createTestApp()
 		const ids = await getSeededAdminIds(getTestDb())
 		adminUserId = ids.adminUserId
-		originalCronSecret = process.env['CRON_SECRET']
-		process.env['CRON_SECRET'] = TEST_CRON_SECRET
 	})
 
 	afterEach(async () => {
 		// Remove any token this suite seeded; the endpoint already deletes the expired ones,
 		// this clears the surviving valid token so state does not leak between tests.
 		await getTestDb().delete(refreshToken).where(eq(refreshToken.tokenFamily, SUITE_TOKEN_FAMILY))
-	})
-
-	afterAll(() => {
-		if (originalCronSecret === undefined) {
-			delete process.env['CRON_SECRET']
-		} else {
-			process.env['CRON_SECRET'] = originalCronSecret
-		}
 	})
 
 	it('deletes expired tokens and keeps valid ones when called with a valid CRON_SECRET', async () => {

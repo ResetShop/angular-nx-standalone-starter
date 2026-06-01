@@ -1,5 +1,6 @@
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { beforeEach } from 'vitest'
+import { seedAppEnv } from '../../config/app.env'
 import { buildResetPasswordEmail } from './reset-password-email.builder'
 
 describe('buildResetPasswordEmail', () => {
@@ -9,19 +10,11 @@ describe('buildResetPasswordEmail', () => {
 		password: 'TempPass123_xyz',
 	}
 
-	const originalAppLanguage = process.env['APP_LANGUAGE']
-
 	beforeEach(() => {
 		clearAllMocks()
-		delete process.env['APP_LANGUAGE']
-	})
-
-	afterEach(() => {
-		if (originalAppLanguage !== undefined) {
-			process.env['APP_LANGUAGE'] = originalAppLanguage
-		} else {
-			delete process.env['APP_LANGUAGE']
-		}
+		// Seed the app env cache to its defaults (APP_LANGUAGE='en'), bypassing process.env —
+		// the dev shell may export APP_LANGUAGE, which would otherwise leak into these tests.
+		seedAppEnv()
 	})
 
 	describe('Return structure', () => {
@@ -49,7 +42,7 @@ describe('buildResetPasswordEmail', () => {
 		})
 
 		it('should have the correct Spanish subject when APP_LANGUAGE is es', () => {
-			process.env['APP_LANGUAGE'] = 'es'
+			seedAppEnv({ APP_LANGUAGE: 'es' })
 			const result = buildResetPasswordEmail(mockParams)
 			expect(result.subject).toBe('Tu contraseña ha sido restablecida')
 		})
@@ -100,7 +93,7 @@ describe('buildResetPasswordEmail', () => {
 		})
 
 		it('should set html lang attribute from APP_LANGUAGE', () => {
-			process.env['APP_LANGUAGE'] = 'es'
+			seedAppEnv({ APP_LANGUAGE: 'es' })
 			const result = buildResetPasswordEmail(mockParams)
 			expect(result.html).toContain('<html lang="es">')
 		})
