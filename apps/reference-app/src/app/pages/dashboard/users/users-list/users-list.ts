@@ -10,13 +10,11 @@ import {
 } from '@angular/core'
 import { Router } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
-import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
@@ -30,6 +28,7 @@ import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
+import { UserStatusBadge } from '../user-status-badge/user-status-badge'
 import { UserCard } from './user-card'
 
 @Component({
@@ -49,6 +48,7 @@ import { UserCard } from './user-card'
 		RowActionsMenu,
 		TranslatePipe,
 		UserCard,
+		UserStatusBadge,
 	],
 	template: `
 		<app-page-shell
@@ -92,9 +92,7 @@ import { UserCard } from './user-card'
 				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="status" let-value>
-					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
-						{{ value.charAt(0).toUpperCase() + value.slice(1) }}
-					</span>
+					<app-user-status-badge [status]="value" />
 				</ng-template>
 
 				<ng-template appDataTableCellDef="actions" let-row="row">
@@ -148,7 +146,6 @@ import { UserCard } from './user-card'
 })
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
-	protected readonly UserStatus = UserStatus
 	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
 
 	private readonly authStore = inject(AuthStore)

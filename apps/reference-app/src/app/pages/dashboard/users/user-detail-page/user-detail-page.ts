@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
 import { ActivatedRoute, RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
-import { UserStatus } from '@contracts/user/user.constants'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherArrowLeft } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { Badge } from '@resetshop/ui/badge/badge'
 import { UsersStore } from '@store/users/users.store'
+import { UserStatusBadge } from '../user-status-badge/user-status-badge'
 import { UserAccountActions } from './user-account-actions'
 import { UserDangerZone } from './user-danger-zone'
 import { UserProfileSection } from './user-profile-section'
@@ -18,13 +17,13 @@ import { UserRolesSection } from './user-roles-section'
 	standalone: true,
 	imports: [
 		PageShell,
-		Badge,
 		NgIcon,
 		RouterLink,
 		UserProfileSection,
 		UserRolesSection,
 		UserAccountActions,
 		UserDangerZone,
+		UserStatusBadge,
 		TranslatePipe,
 	],
 	viewProviders: [provideIcons({ featherArrowLeft })],
@@ -41,9 +40,7 @@ import { UserRolesSection } from './user-roles-section'
 			<section class="flex flex-col gap-4">
 				@if (store.selectedUser(); as user) {
 					<div class="flex items-center gap-3">
-						<span [variant]="user.status === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
-							{{ statusLabel(user.status) | translate }}
-						</span>
+						<app-user-status-badge [status]="user.status" />
 					</div>
 
 					<app-user-profile-section [user]="user" />
@@ -58,7 +55,6 @@ import { UserRolesSection } from './user-roles-section'
 })
 export default class UserDetailPage {
 	protected readonly store = inject(UsersStore)
-	protected readonly UserStatus = UserStatus
 
 	private readonly route = inject(ActivatedRoute)
 	private readonly translation = inject(Translation)
@@ -73,14 +69,5 @@ export default class UserDetailPage {
 		if (Number.isInteger(id) && id > 0) {
 			this.store.loadUser(id)
 		}
-	}
-
-	protected statusLabel(status: UserStatus): string {
-		const labels = {
-			[UserStatus.ACTIVE]: 'COMMON.STATUS.ACTIVE',
-			[UserStatus.DISABLED]: 'COMMON.STATUS.DISABLED',
-			[UserStatus.DELETED]: 'COMMON.STATUS.DELETED',
-		} as const
-		return labels[status]
 	}
 }
