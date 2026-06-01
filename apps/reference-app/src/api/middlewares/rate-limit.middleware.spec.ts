@@ -2,8 +2,8 @@
    absent from process.env, which inherently requires deleting/restoring them directly. The
    no-process-env rule's allowlist (config/test-setup/integration) does not cover middleware specs;
    a direct process.env touch here is the documented exception that the rule message invites. */
-import { spyOn } from '@resetshop/util/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { clearAllMocks, spyOn } from '@resetshop/util/test-utils'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 /**
  * Guards the module-eval env-safety contract: importing this middleware module must NOT read
@@ -18,8 +18,14 @@ import { afterEach, describe, expect, it } from 'vitest'
  * genuine module-eval with the PASETO vars unset.
  */
 describe('rate-limit.middleware module-eval env safety', () => {
-	const originalKey = process.env['PASETO_SECRET_KEY']
-	const originalIssuer = process.env['PASETO_ISSUER']
+	let originalKey: string | undefined
+	let originalIssuer: string | undefined
+
+	beforeEach(() => {
+		clearAllMocks()
+		originalKey = process.env['PASETO_SECRET_KEY']
+		originalIssuer = process.env['PASETO_ISSUER']
+	})
 
 	afterEach(() => {
 		if (originalKey === undefined) delete process.env['PASETO_SECRET_KEY']
@@ -34,6 +40,8 @@ describe('rate-limit.middleware module-eval env safety', () => {
 		delete process.env['PASETO_SECRET_KEY']
 		delete process.env['PASETO_ISSUER']
 
+		// Relies on per-file process isolation (Vitest pool: forks default) so the module cache is
+		// fresh per spec file — this dynamic import is the first module-eval of the middleware here.
 		const mod = await import('./rate-limit.middleware')
 
 		expect(exitSpy.calls).toHaveLength(0)
