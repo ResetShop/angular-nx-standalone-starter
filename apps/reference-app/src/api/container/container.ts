@@ -31,7 +31,6 @@ import { createPasswordHasher, createPasswordVerifier } from '../services/passwo
 import { generatePassword } from '../utils/password'
 import type { Container } from './container.interface'
 import type { Cradle } from './container.types'
-import { validateEnvironment } from './validate-environment'
 
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
@@ -88,9 +87,14 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 
 /**
  * Creates and wires the Awilix DI container.
- * Environment validation and container wiring happen on first access,
- * not at module import time. This keeps the module pure and avoids
- * throwing in test files that only use the mock container.
+ * Container wiring happens on first access, not at module import time, keeping the
+ * module pure and avoiding throws in test files that only use the mock container.
+ *
+ * Environment validation is no longer performed eagerly here: each `<domain>Env` proxy
+ * (`@config/*.env`) validates on first property access and `process.exit(1)`s with a
+ * formatted FATAL message on failure. `container.verify()` (called at server startup)
+ * resolves every registration, which triggers those proxy reads — so missing or invalid
+ * config still fails fast at boot.
  *
  * Using PROXY injection mode for:
  * - Works with minified code (production builds)
@@ -98,8 +102,6 @@ function registerServices(c: AwilixContainer<Cradle>): void {
  * - Destructured constructor parameters work correctly
  */
 function createAwilixContainer(): Readonly<AwilixContainer<Cradle>> {
-	validateEnvironment()
-
 	const c = createContainer<Cradle>({
 		injectionMode: InjectionMode.PROXY,
 		strict: true,

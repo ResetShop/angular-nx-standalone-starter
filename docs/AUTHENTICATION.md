@@ -192,6 +192,8 @@ if (authStore.isTokenRefreshing()) {
 
 ## Environment Variables
 
+> **Source of truth:** [`docs/environment-variables.md`](environment-variables.md) documents every backend variable, the sub-schema that owns it, and the four supported delivery mechanisms (out-of-tree env file + Node `--env-file`, IDE run config, shell export, direnv). The auth-relevant subset below is consumed **exclusively through the typed `@config/*` proxies** — `authEnv` (`PASETO_*`, `COOKIE_SECURE`, `AUTH_*`, `CRON_SECRET`), `httpEnv` (`CORS_*`, `IS_SERVERLESS`), and `cronEnv` (`TOKEN_CLEANUP_*`). Direct `process.env[...]` access is forbidden outside the sub-schema files; never read these via `process.env`. There is no `.env*` file in the working tree.
+
 | Variable                      | Required | Default                 | Description                                              |
 | ----------------------------- | -------- | ----------------------- | -------------------------------------------------------- |
 | `PASETO_SECRET_KEY`           | Yes      | -                       | 32-byte hex-encoded secret key                           |
@@ -526,15 +528,23 @@ The authentication system uses HttpOnly cookies for refresh tokens, which requir
 
 ### How It Works
 
-CORS middleware is configured in `server.ts` with the following settings:
+CORS middleware is configured in `server.ts`. It is built lazily on the first request (so importing
+the server bundle — e.g. by the SSR prerender worker — never reads env) from the validated `httpEnv`
+proxy rather than `process.env`:
 
 ```typescript
-cors({
-	origin: process.env['CORS_ORIGIN'] || 'http://localhost:4200',
-	credentials: true,
-	allowHeaders: ['Content-Type', 'Authorization'],
-	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-	maxAge: Number(process.env['CORS_MAX_AGE']) || 86400, // Default: 24 hours
+let corsMiddleware: ReturnType<typeof cors> | null = null
+app.use('*', async (c, next) => {
+	if (corsMiddleware === null) {
+		corsMiddleware = cors({
+			origin: httpEnv.CORS_ORIGIN.split(','),
+			credentials: true,
+			allowHeaders: ['Content-Type', 'Authorization'],
+			allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+			maxAge: httpEnv.CORS_MAX_AGE, // httpEnv default: 24h in seconds
+		})
+	}
+	return corsMiddleware(c, next)
 })
 ```
 
@@ -542,7 +552,7 @@ cors({
 
 1. **Credentials Support**: `credentials: true` allows cookies to be sent/received cross-origin
 2. **Specific Origin Required**: When using credentials, the origin **cannot** be `*` (wildcard) - it must be a specific domain
-3. **Preflight Caching**: `maxAge: 86400` caches preflight responses for 24 hours to reduce OPTIONS requests
+3. **Preflight Caching**: `maxAge` is read from `httpEnv.CORS_MAX_AGE` (configurable via the `CORS_MAX_AGE` env var; default 86400 s / 24 h) to reduce OPTIONS requests
 
 ### Production Deployment
 
@@ -572,9 +582,13 @@ If OPTIONS requests are failing:
 
 ## Troubleshooting
 
-### "PASETO_SECRET_KEY not configured"
+### `FATAL: Environment validation failed (auth domain)` / "PASETO_SECRET_KEY not configured"
 
-Set the environment variable with a valid 32-byte hex key:
+A missing or malformed `PASETO_SECRET_KEY` (or `PASETO_ISSUER`) makes the `authEnv` proxy print a
+formatted `FATAL: Environment validation failed (auth domain)` message and `process.exit(1)` on first
+access (e.g. at server startup via `container.verify()`). Deliver a valid 32-byte hex key via one of
+the mechanisms in [`docs/environment-variables.md`](environment-variables.md) — do **not** create a
+`.env` file in the working tree. For a quick shell session:
 
 ```bash
 export PASETO_SECRET_KEY=$(openssl rand -hex 32)
