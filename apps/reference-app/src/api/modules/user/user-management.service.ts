@@ -1,3 +1,4 @@
+import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
@@ -19,6 +20,7 @@ export const USER_MANAGEMENT_ERRORS = {
 	NOT_FOUND: 'User not found',
 	EMAIL_EXISTS: 'A user with this email already exists',
 	SELF_LOCKOUT: 'Cannot change status of your own account',
+	SELF_ADMIN_REMOVAL: 'Cannot remove your own admin role',
 	INVALID_TRANSITION: 'Invalid status transition',
 } as const
 
@@ -30,6 +32,7 @@ export const userManagementErrors = {
 	notFound: (id: number) => new Error(`${USER_MANAGEMENT_ERRORS.NOT_FOUND} (id: ${id})`),
 	emailExists: (email: string) => new Error(`${USER_MANAGEMENT_ERRORS.EMAIL_EXISTS} (email: ${email})`),
 	selfLockout: () => new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT),
+	selfAdminRemoval: () => new Error(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL),
 	invalidTransition: (from: string, to: string) =>
 		new Error(`${USER_MANAGEMENT_ERRORS.INVALID_TRANSITION}: ${from} -> ${to}`),
 }
@@ -183,6 +186,15 @@ export class UserManagementService {
 			throw userManagementErrors.notFound(id)
 		}
 
+		// Prevent an admin from removing their own admin role (self-lockout). Mirrors the Edit Roles
+		// drawer's UI lock as a defense-in-depth backend guard.
+		if (id === actorId && params.roleIds !== undefined) {
+			const adminRole = existingUser.roles.find((role) => role.code === ADMIN_ROLE_CODE)
+			if (adminRole && !params.roleIds.includes(adminRole.id)) {
+				throw userManagementErrors.selfAdminRemoval()
+			}
+		}
+
 		// Check email uniqueness if changing email
 		if (params.email !== undefined && params.email !== existingUser.email) {
 			const emailUser = await this.userManagementRepository.findByEmail(params.email)
@@ -191,8 +203,18 @@ export class UserManagementService {
 			}
 		}
 
-		// Update user fields
-		await this.userManagementRepository.update(id, params, actorId)
+		// Update profile fields only when provided (avoids a spurious profile-history entry on a roles-only edit).
+		if (params.email !== undefined || params.firstName !== undefined || params.lastName !== undefined) {
+			await this.userManagementRepository.update(id, params, actorId)
+		}
+
+		// Replace the user's roles when a set is provided (full-set replace; the repo records only the
+		// added/removed roles in the audit history). NOTE: profile and roles are persisted in separate
+		// transactions today — in practice each edit surface sends one or the other. Folding them into a
+		// single atomic payload is tracked as the user-update consolidation follow-up.
+		if (params.roleIds !== undefined) {
+			await this.userRoleRepository.replaceUserRoles(id, params.roleIds, actorId)
+		}
 
 		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!updatedUser) {

@@ -493,6 +493,46 @@ describe('UserManagementService', () => {
 				USER_MANAGEMENT_ERRORS.EMAIL_EXISTS,
 			)
 		})
+
+		it('should replace roles via the user-role context when roleIds is provided (no profile write)', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockReplaceUserRoles.mockResolvedValue(undefined)
+
+			await service.updateUser(1, { roleIds: [1, 2] }, 999)
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2], 999]])
+			// Roles-only edit must not write the user profile (no spurious profile-history entry).
+			expect(mockUpdate.calls).toHaveLength(0)
+		})
+
+		it('should throw SELF_ADMIN_REMOVAL when an admin removes their own admin role', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+
+			// id === actorId (self) and the new role set excludes the admin role (id 1).
+			await expect(service.updateUser(1, { roleIds: [2] }, 1)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL,
+			)
+			expect(mockReplaceUserRoles.calls).toHaveLength(0)
+		})
+
+		it('should allow an admin to keep their own admin role when editing self', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockReplaceUserRoles.mockResolvedValue(undefined)
+
+			await service.updateUser(1, { roleIds: [1, 3] }, 1)
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 3], 1]])
+		})
+
+		it('should not guard role changes when updating a different user', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockReplaceUserRoles.mockResolvedValue(undefined)
+
+			// Removing the admin role from someone else (actor 999 != target 1) is allowed.
+			await service.updateUser(1, { roleIds: [] }, 999)
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [], 999]])
+		})
 	})
 
 	describe('deleteUser', () => {

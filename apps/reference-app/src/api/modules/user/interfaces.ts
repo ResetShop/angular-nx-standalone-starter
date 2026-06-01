@@ -58,6 +58,8 @@ export interface UpdateUserParams {
 	email?: string
 	firstName?: string
 	lastName?: string
+	/** Full replacement set of role ids. When provided, the user's roles are replaced with this set. */
+	roleIds?: number[]
 }
 
 /**

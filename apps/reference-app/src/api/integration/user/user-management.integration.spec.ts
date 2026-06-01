@@ -233,6 +233,36 @@ describe('User management endpoints (/api/user)', () => {
 			expect(body.lastName).toBe('Name')
 		})
 
+		it('replaces the user roles when roleIds is provided', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/user', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'roleupdate@test.com', firstName: 'Role', lastName: 'Update' },
+			})
+			const created = await createResponse.json()
+			expect(created.roles).toHaveLength(0)
+
+			const response = await authenticatedRequest(app, `/api/user/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { roleIds: [adminRoleId] },
+			})
+
+			expect(response.status).toBe(200)
+			const body = await response.json()
+			expect(body.roles.map((role: { id: number }) => role.id)).toEqual([adminRoleId])
+		})
+
+		it('returns 403 when an admin removes their own admin role', async () => {
+			const response = await authenticatedRequest(app, `/api/user/${adminUserId}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { roleIds: [] },
+			})
+
+			expect(response.status).toBe(403)
+		})
+
 		it('returns 404 for non-existent user', async () => {
 			const response = await authenticatedRequest(app, '/api/user/99999', {
 				method: 'PATCH',
