@@ -217,6 +217,11 @@ export const UsersStore = signalStore(
 							tap({
 								next: () => {
 									patchState(store, { isUpdating: false })
+									// Refresh the detail view when the mutated user is the one being viewed, so its badge,
+									// profile, and roles reflect the change (the list reload alone leaves the detail stale).
+									if (store.selectedUser()?.id === id) {
+										store.loadUser(id)
+									}
 									store.loadUsers(store.listParams())
 								},
 								error: (err) => {
@@ -250,6 +255,11 @@ export const UsersStore = signalStore(
 							tap({
 								next: () => {
 									patchState(store, { isUpdating: false })
+									// Refresh the detail view when the mutated user is the one being viewed, so its badge,
+									// profile, and roles reflect the change (the list reload alone leaves the detail stale).
+									if (store.selectedUser()?.id === id) {
+										store.loadUser(id)
+									}
 									store.loadUsers(store.listParams())
 								},
 								error: (err) => {
