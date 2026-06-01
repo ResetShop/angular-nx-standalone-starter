@@ -32,7 +32,7 @@ export default [
 		controller: accessRoutes,
 	},
 	{
-		path: '/user',
+		path: '/users',
 		controller: userRoutes,
 	},
 ]

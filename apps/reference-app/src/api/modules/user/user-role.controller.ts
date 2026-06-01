@@ -18,7 +18,7 @@ import {
 const app = createOpenAPIApp()
 
 /**
- * GET /api/user/:userId/roles
+ * GET /api/users/:userId/roles
  * Get all roles assigned to a user with pagination
  */
 registerRoute(app, getUserRolesRoute, async (c) => {
@@ -39,7 +39,7 @@ registerRoute(app, getUserRolesRoute, async (c) => {
 })
 
 /**
- * GET /api/user/:userId/permissions
+ * GET /api/users/:userId/permissions
  * Get all permissions for a user (aggregated from all their roles)
  */
 registerRoute(app, getUserPermissionsRoute, async (c) => {
@@ -58,7 +58,7 @@ registerRoute(app, getUserPermissionsRoute, async (c) => {
 })
 
 /**
- * POST /api/user/:userId/roles
+ * POST /api/users/:userId/roles
  * Assign a role to a user
  */
 registerRoute(app, assignRoleRoute, async (c) => {
@@ -88,7 +88,7 @@ registerRoute(app, assignRoleRoute, async (c) => {
 })
 
 /**
- * PUT /api/user/:userId/roles
+ * PUT /api/users/:userId/roles
  * Replace all role assignments for a user
  */
 registerRoute(app, replaceUserRolesRoute, async (c) => {
@@ -123,7 +123,7 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
 })
 
 /**
- * DELETE /api/user/:userId/roles/:roleId
+ * DELETE /api/users/:userId/roles/:roleId
  * Remove a role from a user
  */
 registerRoute(app, removeRoleRoute, async (c) => {
