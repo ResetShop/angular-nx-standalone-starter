@@ -1,3 +1,4 @@
+import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -126,7 +127,7 @@ describe('UserManagementService', () => {
 	const testRole: RoleData = {
 		id: 1,
 		name: 'Admin',
-		code: 'admin',
+		code: ADMIN_ROLE_CODE,
 		description: 'Administrator',
 		removable: false,
 		createdAt: new Date(),

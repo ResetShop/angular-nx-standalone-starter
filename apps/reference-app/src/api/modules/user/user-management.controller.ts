@@ -117,11 +117,14 @@ registerRoute(app, updateUserRoute, async (c) => {
 		const userData = await userManagementService.updateUser(id, body, actorId)
 		logger.security('user_updated', {
 			userId: id,
-			changes: { email: body.email, firstName: body.firstName, lastName: body.lastName },
+			changes: { email: body.email, firstName: body.firstName, lastName: body.lastName, roleIds: body.roleIds },
 			actorId,
 		})
 		return c.json<ManagedUser>(userData)
 	} catch (error) {
+		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL)) {
+			logger.security('self_admin_removal_blocked', { actorId, userId: id, reason: error.message })
+		}
 		const mapped = resolveErrorStatus(error)
 		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
 		throw error

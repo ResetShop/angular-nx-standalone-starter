@@ -1,4 +1,5 @@
 import { permission } from '@contracts/permission/permission.constants'
+import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
@@ -34,7 +35,7 @@ describe('User Management Controller', () => {
 	const testRole: RoleData = {
 		id: 1,
 		name: 'Admin',
-		code: 'admin',
+		code: ADMIN_ROLE_CODE,
 		description: 'Administrator',
 		removable: false,
 		createdAt: new Date('2024-01-01'),
@@ -432,6 +433,21 @@ describe('User Management Controller', () => {
 			})
 
 			expect(res.status).toBe(400)
+		})
+
+		it('should return 403 and audit when removing your own admin role', async () => {
+			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL))
+
+			const res = await app.request(`/users/${ADMIN_USER_ID}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [] }),
+			})
+
+			expect(res.status).toBe(403)
+			const data = await res.json()
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL)
+			expect(loggerSecuritySpy.calls.some(([event]) => event === 'self_admin_removal_blocked')).toBe(true)
 		})
 	})
 
