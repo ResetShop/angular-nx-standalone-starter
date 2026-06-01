@@ -237,6 +237,37 @@ describe('UsersStore', () => {
 			expect(store.isUpdating()).toBe(false)
 		})
 
+		it('should refresh the selected user when it is the one being updated', () => {
+			const user = createMockManagedUser({ id: 5, firstName: 'Old' })
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))
+			setupStore()
+			store.selectUser(store.users()[0])
+
+			usersApiMock.update.mockReturnValue(of(createMockManagedUser({ id: 5, firstName: 'Updated' })))
+			usersApiMock.getById.mockReturnValue(of(createMockManagedUser({ id: 5, firstName: 'Updated' })))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockManagedUser({ id: 5 })], 1)))
+
+			store.updateUser({ id: 5, body: { firstName: 'Updated' } })
+
+			expect(usersApiMock.getById.calls).toHaveLength(1)
+			expect(usersApiMock.getById.calls[0][0]).toBe(5)
+			expect(store.selectedUser()?.firstName).toBe('Updated')
+		})
+
+		it('should not refresh the selected user when a different user is updated', () => {
+			const user = createMockManagedUser({ id: 5 })
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))
+			setupStore()
+			store.selectUser(store.users()[0])
+
+			usersApiMock.update.mockReturnValue(of(createMockManagedUser({ id: 9 })))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))
+
+			store.updateUser({ id: 9, body: { firstName: 'Other' } })
+
+			expect(usersApiMock.getById.calls).toHaveLength(0)
+		})
+
 		it('should set mutationError on failure', () => {
 			setupStore()
 
@@ -333,9 +364,7 @@ describe('UsersStore', () => {
 			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
 			setupStore()
 
-			usersApiMock.resetPassword.mockReturnValue(
-				of({ message: 'Password reset successfully', passwordEmailSent: true }),
-			)
+			usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully' }))
 			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
 
 			store.resetPassword(1)
@@ -374,6 +403,22 @@ describe('UsersStore', () => {
 
 			expect(store.users()[0].status).toBe(UserStatus.DISABLED)
 			expect(store.isUpdating()).toBe(false)
+		})
+
+		it('should refresh the selected user when its status is the one being updated', () => {
+			const user = createMockManagedUser({ id: 3, status: UserStatus.ACTIVE })
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))
+			setupStore()
+			store.selectUser(store.users()[0])
+
+			usersApiMock.updateStatus.mockReturnValue(of(createMockManagedUser({ id: 3, status: UserStatus.DISABLED })))
+			usersApiMock.getById.mockReturnValue(of(createMockManagedUser({ id: 3, status: UserStatus.DISABLED })))
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockManagedUser({ id: 3 })], 1)))
+
+			store.updateUserStatus({ id: 3, body: { status: UserStatus.DISABLED } })
+
+			expect(usersApiMock.getById.calls).toHaveLength(1)
+			expect(store.selectedUser()?.status).toBe(UserStatus.DISABLED)
 		})
 
 		it('should set mutationError on failure', () => {

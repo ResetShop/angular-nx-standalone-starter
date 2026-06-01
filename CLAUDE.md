@@ -530,12 +530,13 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 
 **Current route registrations (`dashboard.routes.ts`):**
 
-| Route                       | Providers                                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                                              |
-| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideEnvironmentInitializer(ToastBridge)`             |
-| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                                               |
-| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideEnvironmentInitializer(ToastBridge)` |
+| Route                       | Providers                                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------- |
+| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                  |
+| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
+| `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
+| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                   |
+| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideToast()` |
 
 ---
 

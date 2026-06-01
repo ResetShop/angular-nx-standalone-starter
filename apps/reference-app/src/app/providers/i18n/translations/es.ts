@@ -126,16 +126,50 @@ const es: TranslationSchema = {
 			ROLES_LABEL: 'Roles',
 			SUCCESS_TOAST: 'Usuario creado exitosamente.',
 		},
-		EDIT_DRAWER: {
-			TITLE: 'Editar usuario',
-			FIRST_NAME: 'Nombre',
-			LAST_NAME: 'Apellido',
-			EMAIL: 'Correo electrónico',
-			ROLES_LABEL: 'Roles',
-			SUCCESS_TOAST: 'Usuario actualizado exitosamente.',
+		DETAIL: {
+			TITLE: 'Detalles del usuario',
+			BACK: 'Volver a Usuarios',
+			PROFILE: {
+				TITLE: 'Perfil',
+				FIRST_NAME: 'Nombre',
+				LAST_NAME: 'Apellido',
+				EMAIL: 'Correo electrónico',
+				SAVE: 'Guardar cambios',
+				SUCCESS_TOAST: 'Usuario actualizado exitosamente.',
+			},
+			ROLES: {
+				TITLE: 'Roles',
+				EMPTY: 'Sin roles asignados',
+				EDIT_BUTTON: 'Editar roles',
+				DRAWER_TITLE: 'Editar roles',
+				ROLES_LABEL: 'Roles',
+				SUCCESS_TOAST: 'Roles actualizados exitosamente.',
+			},
+			ACCOUNT: {
+				TITLE: 'Acciones de la cuenta',
+				RESET_PASSWORD: 'Enviar enlace de restablecimiento de contraseña',
+				DISABLE: 'Deshabilitar usuario',
+				ENABLE: 'Habilitar usuario',
+				DISABLE_DIALOG: {
+					TITLE: 'Deshabilitar usuario',
+					MESSAGE:
+						"¿Estás seguro de que deseas deshabilitar a '{name}'? No podrá iniciar sesión hasta que se vuelva a habilitar.",
+				},
+				ENABLE_DIALOG: {
+					TITLE: 'Habilitar usuario',
+					MESSAGE: "¿Estás seguro de que deseas habilitar a '{name}'? Recuperará el acceso para iniciar sesión.",
+				},
+				DISABLE_TOAST: 'Usuario deshabilitado exitosamente.',
+				ENABLE_TOAST: 'Usuario habilitado exitosamente.',
+			},
+			DANGER: {
+				TITLE: 'Zona de peligro',
+				DESCRIPTION: 'Acciones irreversibles y destructivas.',
+				DELETE: 'Eliminar usuario',
+			},
 		},
 		DELETE_TOAST: 'Usuario eliminado exitosamente.',
-		RESET_PASSWORD_TOAST: 'Correo de restablecimiento de contraseña enviado.',
+		RESET_PASSWORD_TOAST: 'Contraseña restablecida. La contraseña temporal se está enviando por correo al usuario.',
 	},
 	ROLES: {
 		PAGE: {

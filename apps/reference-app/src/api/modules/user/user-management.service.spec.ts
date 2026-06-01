@@ -1,3 +1,4 @@
+import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -126,7 +127,7 @@ describe('UserManagementService', () => {
 	const testRole: RoleData = {
 		id: 1,
 		name: 'Admin',
-		code: 'admin',
+		code: ADMIN_ROLE_CODE,
 		description: 'Administrator',
 		removable: false,
 		createdAt: new Date(),
@@ -493,6 +494,46 @@ describe('UserManagementService', () => {
 				USER_MANAGEMENT_ERRORS.EMAIL_EXISTS,
 			)
 		})
+
+		it('should replace roles via the user-role context when roleIds is provided (no profile write)', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockReplaceUserRoles.mockResolvedValue(undefined)
+
+			await service.updateUser(1, { roleIds: [1, 2] }, 999)
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2], 999]])
+			// Roles-only edit must not write the user profile (no spurious profile-history entry).
+			expect(mockUpdate.calls).toHaveLength(0)
+		})
+
+		it('should throw SELF_ADMIN_REMOVAL when an admin removes their own admin role', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+
+			// id === actorId (self) and the new role set excludes the admin role (id 1).
+			await expect(service.updateUser(1, { roleIds: [2] }, 1)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL,
+			)
+			expect(mockReplaceUserRoles.calls).toHaveLength(0)
+		})
+
+		it('should allow an admin to keep their own admin role when editing self', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockReplaceUserRoles.mockResolvedValue(undefined)
+
+			await service.updateUser(1, { roleIds: [1, 3] }, 1)
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 3], 1]])
+		})
+
+		it('should not guard role changes when updating a different user', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockReplaceUserRoles.mockResolvedValue(undefined)
+
+			// Removing the admin role from someone else (actor 999 != target 1) is allowed.
+			await service.updateUser(1, { roleIds: [] }, 999)
+
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [], 999]])
+		})
 	})
 
 	describe('deleteUser', () => {
@@ -561,16 +602,19 @@ describe('UserManagementService', () => {
 	})
 
 	describe('resetPassword', () => {
-		it('should generate, hash, persist a new password and send the reset email', async () => {
+		it('should generate, hash, persist a new password and return a deferred email sender', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockSetPassword.mockResolvedValue(true)
 
 			const result = await service.resetPassword(1, 999)
 
 			expect(result.message).toBe('Password reset successfully')
-			expect(result.passwordEmailSent).toBe(true)
 			expect(mockGeneratePassword.calls).toHaveLength(1)
 			expect(mockSetPassword.calls).toHaveLength(1)
+			// Email is NOT sent during the reset — it is deferred to the returned thunk.
+			expect(mockSend.calls).toHaveLength(0)
+
+			await result.sendResetEmail()
 			expect(mockSend.calls).toHaveLength(1)
 		})
 
@@ -608,15 +652,18 @@ describe('UserManagementService', () => {
 			expect(mockSetPassword.calls).toHaveLength(0)
 		})
 
-		it('should return passwordEmailSent false when the email send fails, without throwing', async () => {
+		it('does not block the reset on email delivery; the deferred sender rejects on SMTP failure', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockSetPassword.mockResolvedValue(true)
 			mockSend.mockRejectedValue(new Error('SMTP down'))
 
+			// The reset itself succeeds regardless of email — the thunk is not invoked here.
 			const result = await service.resetPassword(1, 999)
+			expect(result.message).toBe('Password reset successfully')
+			expect(mockSetPassword.calls).toHaveLength(1)
 
-			expect(result.passwordEmailSent).toBe(false)
-			expect(consoleErrorSpy.calls[0][0]).toContain('[UserManagementService]')
+			// Invoking the deferred sender surfaces the failure to the caller (the controller's onError logs it).
+			await expect(result.sendResetEmail()).rejects.toThrow('SMTP down')
 		})
 	})
 })

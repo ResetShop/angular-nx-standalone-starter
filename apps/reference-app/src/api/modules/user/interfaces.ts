@@ -1,5 +1,5 @@
 import type { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
+import type { CreateUserResponse } from '@contracts/user/user.types'
 import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
@@ -58,6 +58,8 @@ export interface UpdateUserParams {
 	email?: string
 	firstName?: string
 	lastName?: string
+	/** Full replacement set of role ids. When provided, the user's roles are replaced with this set. */
+	roleIds?: number[]
 }
 
 /**
@@ -237,5 +239,9 @@ export interface UserManagementService {
 	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
 	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
 	deleteUser(id: number, currentUserId: number): Promise<void>
-	resetPassword(id: number, currentUserId: number): Promise<ResetPasswordResponse>
+	/**
+	 * Resets the user's password and returns a confirmation message plus a `sendResetEmail` thunk the
+	 * controller dispatches best-effort AFTER the response (so the response isn't blocked on SMTP).
+	 */
+	resetPassword(id: number, currentUserId: number): Promise<{ message: string; sendResetEmail: () => Promise<void> }>
 }

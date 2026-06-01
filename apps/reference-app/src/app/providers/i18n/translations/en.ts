@@ -125,16 +125,49 @@ const en: TranslationSchema = {
 			ROLES_LABEL: 'Roles',
 			SUCCESS_TOAST: 'User created successfully.',
 		},
-		EDIT_DRAWER: {
-			TITLE: 'Edit User',
-			FIRST_NAME: 'First Name',
-			LAST_NAME: 'Last Name',
-			EMAIL: 'Email',
-			ROLES_LABEL: 'Roles',
-			SUCCESS_TOAST: 'User updated successfully.',
+		DETAIL: {
+			TITLE: 'User Details',
+			BACK: 'Back to Users',
+			PROFILE: {
+				TITLE: 'Profile',
+				FIRST_NAME: 'First Name',
+				LAST_NAME: 'Last Name',
+				EMAIL: 'Email',
+				SAVE: 'Save changes',
+				SUCCESS_TOAST: 'User updated successfully.',
+			},
+			ROLES: {
+				TITLE: 'Roles',
+				EMPTY: 'No roles assigned',
+				EDIT_BUTTON: 'Edit roles',
+				DRAWER_TITLE: 'Edit Roles',
+				ROLES_LABEL: 'Roles',
+				SUCCESS_TOAST: 'Roles updated successfully.',
+			},
+			ACCOUNT: {
+				TITLE: 'Account Actions',
+				RESET_PASSWORD: 'Send password reset link',
+				DISABLE: 'Disable user',
+				ENABLE: 'Enable user',
+				DISABLE_DIALOG: {
+					TITLE: 'Disable User',
+					MESSAGE: "Are you sure you want to disable '{name}'? They will be unable to sign in until re-enabled.",
+				},
+				ENABLE_DIALOG: {
+					TITLE: 'Enable User',
+					MESSAGE: "Are you sure you want to enable '{name}'? They will regain access to sign in.",
+				},
+				DISABLE_TOAST: 'User disabled successfully.',
+				ENABLE_TOAST: 'User enabled successfully.',
+			},
+			DANGER: {
+				TITLE: 'Danger Zone',
+				DESCRIPTION: 'Irreversible and destructive actions.',
+				DELETE: 'Delete user',
+			},
 		},
 		DELETE_TOAST: 'User deleted successfully.',
-		RESET_PASSWORD_TOAST: 'Password reset email sent.',
+		RESET_PASSWORD_TOAST: 'Password reset. The temporary password is being emailed to the user.',
 	},
 	ROLES: {
 		PAGE: {

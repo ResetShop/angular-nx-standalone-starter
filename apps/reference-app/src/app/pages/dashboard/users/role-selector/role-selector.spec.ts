@@ -45,11 +45,12 @@ function createMockRoles(): IRole[] {
 describe('RoleSelector', () => {
 	beforeEach(() => clearAllMocks())
 
-	async function renderComponent(value: number[] = []) {
+	async function renderComponent(value: number[] = [], lockedRoleIds: number[] = []) {
 		return render(RoleSelector, {
 			inputs: {
 				roles: createMockRoles(),
 				value,
+				lockedRoleIds,
 			},
 		})
 	}
@@ -99,5 +100,28 @@ describe('RoleSelector', () => {
 		await user.click(editorCheckbox)
 
 		expect(editorCheckbox).not.toBeChecked()
+	})
+
+	it('renders a locked role as checked + disabled and prevents toggling it off', async () => {
+		const user = userEvent.setup()
+		await renderComponent([1], [1]) // Admin selected and locked
+
+		const adminCheckbox = screen.getAllByRole('checkbox')[0]
+		expect(adminCheckbox).toBeChecked()
+		expect(adminCheckbox).toBeDisabled()
+
+		await user.click(adminCheckbox)
+
+		expect(adminCheckbox).toBeChecked()
+	})
+
+	it('still allows toggling non-locked roles when another role is locked', async () => {
+		const user = userEvent.setup()
+		await renderComponent([1], [1]) // Admin locked, Editor free
+
+		const editorCheckbox = screen.getAllByRole('checkbox')[1]
+		await user.click(editorCheckbox)
+
+		expect(editorCheckbox).toBeChecked()
 	})
 })

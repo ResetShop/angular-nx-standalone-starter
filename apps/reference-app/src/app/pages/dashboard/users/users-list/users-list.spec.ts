@@ -1,5 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { TestBed } from '@angular/core/testing'
+import { provideRouter, Router } from '@angular/router'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
 import { createMockUser } from '@mocks/user.mock'
@@ -96,6 +97,7 @@ describe('UsersList', () => {
 	async function renderComponent() {
 		const view = await render(UsersList, {
 			providers: [
+				provideRouter([]),
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
@@ -116,6 +118,7 @@ describe('UsersList', () => {
 
 		await render(UsersList, {
 			providers: [
+				provideRouter([]),
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
@@ -148,21 +151,22 @@ describe('UsersList', () => {
 			expect(dialog).toHaveClass('w-full')
 			expect(dialog).toHaveClass('sm:w-lg')
 		})
+	})
 
-		it('should apply w-full sm:w-lg to the Edit User drawer dialog', async () => {
-			const users = [createMockManagedUser({ id: 1, firstName: 'John', lastName: 'Doe' })]
+	describe('edit navigation', () => {
+		it('navigates to the user detail page when the Edit row action is selected', async () => {
+			const users = [createMockManagedUser({ id: 7, firstName: 'John', lastName: 'Doe' })]
 			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
-			usersApiMock.getById.mockReturnValue(of(users[0]))
 
 			await renderComponent()
+			const navigateSpy = spyOn(TestBed.inject(Router), 'navigate')
 			await openRowActionsMenu()
 
 			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
 			TestBed.tick()
 
-			const dialog = screen.getByRole('dialog', { name: /edit user/i })
-			expect(dialog).toHaveClass('w-full')
-			expect(dialog).toHaveClass('sm:w-lg')
+			expect(navigateSpy.calls).toHaveLength(1)
+			expect(navigateSpy.calls[0][0]).toEqual(['/dashboard/users', 7])
 		})
 	})
 
@@ -175,6 +179,7 @@ describe('UsersList', () => {
 
 			await render(UsersList, {
 				providers: [
+					provideRouter([]),
 					{ provide: UsersApi, useValue: usersApiMock },
 					{ provide: RolesApi, useValue: rolesApiMock },
 					{ provide: AuthApi, useValue: new InMemoryAuthApi() },
@@ -406,7 +411,7 @@ describe('UsersList', () => {
 	it('should call resetPassword when reset is confirmed', async () => {
 		const users = [createMockManagedUser({ id: 42, email: 'jane@example.com' })]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
-		usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully', passwordEmailSent: true }))
+		usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully' }))
 
 		await renderComponent()
 		await openRowActionsMenu()
@@ -429,6 +434,7 @@ describe('UsersList', () => {
 
 		const view = await render(UsersList, {
 			providers: [
+				provideRouter([]),
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
@@ -462,6 +468,7 @@ describe('UsersList', () => {
 
 		const view = await render(UsersList, {
 			providers: [
+				provideRouter([]),
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
@@ -496,6 +503,7 @@ describe('UsersList', () => {
 
 			const view = await render(UsersList, {
 				providers: [
+					provideRouter([]),
 					{ provide: UsersApi, useValue: usersApiMock },
 					{ provide: RolesApi, useValue: rolesApiMock },
 					{ provide: AuthApi, useValue: new InMemoryAuthApi() },

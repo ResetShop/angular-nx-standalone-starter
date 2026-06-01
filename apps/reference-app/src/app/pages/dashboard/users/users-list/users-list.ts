@@ -8,14 +8,13 @@ import {
 	untracked,
 	viewChild,
 } from '@angular/core'
+import { Router } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
-import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { Badge } from '@resetshop/ui/badge/badge'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
@@ -29,27 +28,26 @@ import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
-import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
+import { UserStatusBadge } from '../user-status-badge/user-status-badge'
 import { UserCard } from './user-card'
 
 @Component({
 	selector: 'app-users-list',
 	standalone: true,
 	imports: [
-		Badge,
 		Button,
 		ConfirmDialog,
 		CreateUserDrawer,
 		DataTable,
 		DataTableCardDef,
 		DataTableCellDef,
-		EditUserDrawer,
 		HasPermissionDirective,
 		PageShell,
 		Pagination,
 		RowActionsMenu,
 		TranslatePipe,
 		UserCard,
+		UserStatusBadge,
 	],
 	template: `
 		<app-page-shell
@@ -93,9 +91,7 @@ import { UserCard } from './user-card'
 				tabBleed="4"
 			>
 				<ng-template appDataTableCellDef="status" let-value>
-					<span [variant]="value === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
-						{{ value.charAt(0).toUpperCase() + value.slice(1) }}
-					</span>
+					<app-user-status-badge [status]="value" />
 				</ng-template>
 
 				<ng-template appDataTableCellDef="actions" let-row="row">
@@ -107,7 +103,7 @@ import { UserCard } from './user-card'
 
 				<ng-template appDataTableCardDef let-row>
 					<app-user-card
-						(edit)="editDrawer.open(row.id)"
+						(edit)="goToDetail(row)"
 						(delete)="confirmDelete(row)"
 						(resetPassword)="confirmResetPassword(row)"
 						[user]="row"
@@ -127,7 +123,6 @@ import { UserCard } from './user-card'
 		</app-page-shell>
 
 		<app-create-user-drawer #createDrawer />
-		<app-edit-user-drawer #editDrawer />
 
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
@@ -150,14 +145,13 @@ import { UserCard } from './user-card'
 })
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
-	protected readonly UserStatus = UserStatus
 	protected readonly displayModes: Array<'table' | 'cards'> = ['table', 'cards']
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
+	private readonly router = inject(Router)
 	protected readonly currentUser = inject(CurrentUser)
 
-	private readonly editDrawerRef = viewChild.required<EditUserDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
 
@@ -215,6 +209,10 @@ export default class UsersList {
 		this.store.setSearchQuery(input.value)
 	}
 
+	protected goToDetail(user: IManagedUser): void {
+		void this.router.navigate(['/dashboard/users', user.id])
+	}
+
 	protected getRowActions(row: IManagedUser): readonly (readonly RowAction[])[] {
 		const user = this.authStore.currentUser()
 		const isSelf = this.currentUser.is(row)
@@ -223,7 +221,7 @@ export default class UsersList {
 		if (user?.hasPermission('admin:users:update')) {
 			nonDestructive.push({
 				label: this.translation.instant('COMMON.EDIT'),
-				onSelect: () => this.editDrawerRef().open(row.id),
+				onSelect: () => this.goToDetail(row),
 			})
 		}
 

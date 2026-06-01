@@ -1,4 +1,5 @@
 import { permission } from '@contracts/permission/permission.constants'
+import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
@@ -26,7 +27,7 @@ describe('User Management Controller', () => {
 	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>()
 	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>()
 	const mockDeleteUser = fn<[number, number], Promise<void>>()
-	const mockResetPassword = fn<[number, number], Promise<{ message: string; passwordEmailSent: boolean }>>()
+	const mockResetPassword = fn<[number, number], Promise<{ message: string; sendResetEmail: () => Promise<void> }>>()
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>()
 
 	let app: Hono
@@ -34,7 +35,7 @@ describe('User Management Controller', () => {
 	const testRole: RoleData = {
 		id: 1,
 		name: 'Admin',
-		code: 'admin',
+		code: ADMIN_ROLE_CODE,
 		description: 'Administrator',
 		removable: false,
 		createdAt: new Date('2024-01-01'),
@@ -433,6 +434,21 @@ describe('User Management Controller', () => {
 
 			expect(res.status).toBe(400)
 		})
+
+		it('should return 403 and audit when removing your own admin role', async () => {
+			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL))
+
+			const res = await app.request(`/users/${ADMIN_USER_ID}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [] }),
+			})
+
+			expect(res.status).toBe(403)
+			const data = await res.json()
+			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL)
+			expect(loggerSecuritySpy.calls.some(([event]) => event === 'self_admin_removal_blocked')).toBe(true)
+		})
 	})
 
 	describe('PATCH /users/:id/status', () => {
@@ -569,26 +585,45 @@ describe('User Management Controller', () => {
 
 	describe('POST /users/:id/reset-password', () => {
 		it('should reset the password and emit a security audit log', async () => {
-			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', passwordEmailSent: true })
+			mockResetPassword.mockResolvedValue({
+				message: 'Password reset successfully',
+				sendResetEmail: () => Promise.resolve(),
+			})
 
 			const res = await app.request('/users/1/reset-password', { method: 'POST' })
 
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.message).toBe('Password reset successfully')
-			expect(data.passwordEmailSent).toBe(true)
 			expect(mockResetPassword.calls).toEqual([[1, ADMIN_USER_ID]])
 			expect(loggerSecuritySpy.calls[0][0]).toBe('user_password_reset')
 		})
 
-		it('should not expose a generated password in the response', async () => {
-			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', passwordEmailSent: true })
+		it('should not expose a generated password in the response and omit the email-delivery flag', async () => {
+			mockResetPassword.mockResolvedValue({
+				message: 'Password reset successfully',
+				sendResetEmail: () => Promise.resolve(),
+			})
 
 			const res = await app.request('/users/1/reset-password', { method: 'POST' })
 			const data = await res.json()
 
 			expect(data).not.toHaveProperty('password')
-			expect(Object.keys(data).sort()).toEqual(['message', 'passwordEmailSent'])
+			// Email is dispatched best-effort after the response, so no delivery flag is returned.
+			expect(Object.keys(data).sort()).toEqual(['message'])
+		})
+
+		it('dispatches the reset email after responding (best-effort)', async () => {
+			const sendResetEmail = fn<[], Promise<void>>()
+			sendResetEmail.mockResolvedValue(undefined)
+			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', sendResetEmail })
+
+			const res = await app.request('/users/1/reset-password', { method: 'POST' })
+			// Flush the deferred microtask scheduled by deferAfterResponse.
+			await Promise.resolve()
+
+			expect(res.status).toBe(200)
+			expect(sendResetEmail.calls).toHaveLength(1)
 		})
 
 		it('should return 403 when trying to reset own password', async () => {

@@ -338,7 +338,7 @@ export class InMemoryUsersApi implements UsersApi {
 		if (!user) {
 			return throwError(() => new Error(`User ${id} not found`))
 		}
-		return of({ message: 'Password reset successfully', passwordEmailSent: true })
+		return of({ message: 'Password reset successfully' })
 	}
 }
 
