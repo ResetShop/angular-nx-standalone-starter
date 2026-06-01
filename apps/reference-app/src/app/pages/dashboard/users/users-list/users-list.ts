@@ -35,7 +35,6 @@ import { UserCard } from './user-card'
 	selector: 'app-users-list',
 	standalone: true,
 	imports: [
-		Badge,
 		Button,
 		ConfirmDialog,
 		CreateUserDrawer,
