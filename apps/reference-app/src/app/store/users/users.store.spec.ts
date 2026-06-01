@@ -364,9 +364,7 @@ describe('UsersStore', () => {
 			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
 			setupStore()
 
-			usersApiMock.resetPassword.mockReturnValue(
-				of({ message: 'Password reset successfully', passwordEmailSent: true }),
-			)
+			usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully' }))
 			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users, 2)))
 
 			store.resetPassword(1)

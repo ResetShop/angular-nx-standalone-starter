@@ -101,12 +101,13 @@ export const updateUserStatusRequestSchema = z.object({
 
 /**
  * Reset password response schema.
- * Returned from the admin-initiated password reset endpoint. The generated
- * password is intentionally omitted — it is emailed to the user, never returned.
+ * Returned from the admin-initiated password reset endpoint. The generated password is intentionally
+ * omitted — it is emailed to the user, never returned. The response is sent as soon as the password
+ * is reset; the email is dispatched best-effort AFTER the response, so no `passwordEmailSent` flag is
+ * reported (delivery is not known at response time).
  */
 export const resetPasswordResponseSchema = z.object({
 	message: z.string(),
-	passwordEmailSent: z.boolean(),
 })
 
 // ============================================================================

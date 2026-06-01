@@ -169,7 +169,7 @@ const es: TranslationSchema = {
 			},
 		},
 		DELETE_TOAST: 'Usuario eliminado exitosamente.',
-		RESET_PASSWORD_TOAST: 'Correo de restablecimiento de contraseña enviado.',
+		RESET_PASSWORD_TOAST: 'Contraseña restablecida. La contraseña temporal se está enviando por correo al usuario.',
 	},
 	ROLES: {
 		PAGE: {

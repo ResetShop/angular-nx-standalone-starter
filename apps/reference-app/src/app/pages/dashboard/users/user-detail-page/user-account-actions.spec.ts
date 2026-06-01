@@ -38,7 +38,7 @@ describe('UserAccountActions', () => {
 		}
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([])))
 		usersApiMock.updateStatus.mockReturnValue(of(createMockManagedUser()))
-		usersApiMock.resetPassword.mockReturnValue(of({ message: 'ok', passwordEmailSent: true }))
+		usersApiMock.resetPassword.mockReturnValue(of({ message: 'ok' }))
 	})
 
 	async function renderActions(permissions: string[], overrides: Partial<ManagedUser> = {}) {

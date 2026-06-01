@@ -601,16 +601,19 @@ describe('UserManagementService', () => {
 	})
 
 	describe('resetPassword', () => {
-		it('should generate, hash, persist a new password and send the reset email', async () => {
+		it('should generate, hash, persist a new password and return a deferred email sender', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockSetPassword.mockResolvedValue(true)
 
 			const result = await service.resetPassword(1, 999)
 
 			expect(result.message).toBe('Password reset successfully')
-			expect(result.passwordEmailSent).toBe(true)
 			expect(mockGeneratePassword.calls).toHaveLength(1)
 			expect(mockSetPassword.calls).toHaveLength(1)
+			// Email is NOT sent during the reset — it is deferred to the returned thunk.
+			expect(mockSend.calls).toHaveLength(0)
+
+			await result.sendResetEmail()
 			expect(mockSend.calls).toHaveLength(1)
 		})
 
@@ -648,15 +651,18 @@ describe('UserManagementService', () => {
 			expect(mockSetPassword.calls).toHaveLength(0)
 		})
 
-		it('should return passwordEmailSent false when the email send fails, without throwing', async () => {
+		it('does not block the reset on email delivery; the deferred sender rejects on SMTP failure', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockSetPassword.mockResolvedValue(true)
 			mockSend.mockRejectedValue(new Error('SMTP down'))
 
+			// The reset itself succeeds regardless of email — the thunk is not invoked here.
 			const result = await service.resetPassword(1, 999)
+			expect(result.message).toBe('Password reset successfully')
+			expect(mockSetPassword.calls).toHaveLength(1)
 
-			expect(result.passwordEmailSent).toBe(false)
-			expect(consoleErrorSpy.calls[0][0]).toContain('[UserManagementService]')
+			// Invoking the deferred sender surfaces the failure to the caller (the controller's onError logs it).
+			await expect(result.sendResetEmail()).rejects.toThrow('SMTP down')
 		})
 	})
 })

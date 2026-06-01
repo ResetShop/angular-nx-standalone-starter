@@ -8,7 +8,7 @@ import type {
 	UpdateUserRequest,
 	UpdateUserStatusRequest,
 } from '@contracts/user/user.types'
-import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
+import { createOpenAPIApp, deferAfterResponse, registerRoute } from '@resetshop/hono-core'
 import { logger } from '@resetshop/util'
 import { container } from '../../container/container'
 import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
@@ -187,7 +187,9 @@ registerRoute(app, deleteUserRoute, async (c) => {
 
 /**
  * POST /api/user/:id/reset-password
- * Admin-initiated password reset — generates, hashes, persists, and emails a new temp password
+ * Admin-initiated password reset — generates, hashes, and persists a new temp password, then responds
+ * immediately. The temp-password email is dispatched best-effort AFTER the response (deferAfterResponse)
+ * so the client's success toast reflects the completed reset, not the SMTP round-trip.
  */
 registerRoute(app, resetPasswordRoute, async (c) => {
 	const { userManagementService } = container.cradle
@@ -195,9 +197,12 @@ registerRoute(app, resetPasswordRoute, async (c) => {
 	const actorId = Number((c as AuthenticatedContext).user.sub)
 
 	try {
-		const result = await userManagementService.resetPassword(id, actorId)
-		logger.security('user_password_reset', { userId: id, actorId, passwordEmailSent: result.passwordEmailSent })
-		return c.json<ResetPasswordResponse>(result)
+		const { message, sendResetEmail } = await userManagementService.resetPassword(id, actorId)
+		logger.security('user_password_reset', { userId: id, actorId })
+		deferAfterResponse(c, sendResetEmail, {
+			onError: (error) => logger.error('UserManagement', 'Reset password email failed', error),
+		})
+		return c.json<ResetPasswordResponse>({ message })
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
 			logger.security('self_lockout_blocked', { actorId, operation: 'user_password_reset', reason: error.message })

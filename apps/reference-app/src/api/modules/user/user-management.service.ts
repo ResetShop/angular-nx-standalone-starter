@@ -1,6 +1,6 @@
 import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse, ResetPasswordResponse } from '@contracts/user/user.types'
+import type { CreateUserResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
@@ -277,11 +277,16 @@ export class UserManagementService {
 	 *
 	 * @param id - The target user's primary key
 	 * @param currentUserId - The ID of the admin performing the reset (for self-action prevention)
-	 * @returns A confirmation message and whether the reset email was sent
+	 * @returns A confirmation message and a `sendResetEmail` thunk the caller dispatches best-effort
+	 *   AFTER the response (so the response/toast isn't blocked on SMTP). The generated password is
+	 *   captured in the closure and never returned.
 	 * @throws Error if the admin targets their own account
 	 * @throws Error if the user is not found
 	 */
-	public async resetPassword(id: number, currentUserId: number): Promise<ResetPasswordResponse> {
+	public async resetPassword(
+		id: number,
+		currentUserId: number,
+	): Promise<{ message: string; sendResetEmail: () => Promise<void> }> {
 		if (id === currentUserId) {
 			throw userManagementErrors.selfLockout()
 		}
@@ -295,20 +300,17 @@ export class UserManagementService {
 		const passwordHash = await this.hashPassword(plainPassword)
 		await this.authRepository.setPassword(id, passwordHash, true)
 
-		const passwordEmailSent = await this.sendResetPasswordEmail(userData.email, userData.firstName, plainPassword)
-
-		return { message: 'Password reset successfully', passwordEmailSent }
+		// The password is now reset — that is the completed action. Hand the email back as a thunk so the
+		// controller can dispatch it AFTER the response (best-effort, via deferAfterResponse).
+		return {
+			message: 'Password reset successfully',
+			sendResetEmail: () => this.sendResetPasswordEmail(userData.email, userData.firstName, plainPassword),
+		}
 	}
 
-	private async sendResetPasswordEmail(email: string, firstName: string, password: string): Promise<boolean> {
-		try {
-			const emailContent = buildResetPasswordEmail({ firstName, email, password })
-			await this.emailService.send({ to: email, ...emailContent })
-			return true
-		} catch (error: unknown) {
-			logger.error('UserManagementService', 'Reset password email failed', error)
-			return false
-		}
+	private async sendResetPasswordEmail(email: string, firstName: string, password: string): Promise<void> {
+		const emailContent = buildResetPasswordEmail({ firstName, email, password })
+		await this.emailService.send({ to: email, ...emailContent })
 	}
 
 	private isValidTransition(from: UserStatus, to: UserStatus): boolean {

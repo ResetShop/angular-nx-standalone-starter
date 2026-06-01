@@ -411,7 +411,7 @@ describe('UsersList', () => {
 	it('should call resetPassword when reset is confirmed', async () => {
 		const users = [createMockManagedUser({ id: 42, email: 'jane@example.com' })]
 		usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
-		usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully', passwordEmailSent: true }))
+		usersApiMock.resetPassword.mockReturnValue(of({ message: 'Password reset successfully' }))
 
 		await renderComponent()
 		await openRowActionsMenu()

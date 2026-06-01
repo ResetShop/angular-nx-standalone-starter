@@ -441,10 +441,9 @@ describe('User management endpoints (/api/user)', () => {
 			expect(response.status).toBe(200)
 			const body = await response.json()
 			expect(body.message).toBeDefined()
-			// NoopEmailRepository is used in tests, so the send fails and the flag is false —
-			// assert the type, not the value, to keep the test environment-agnostic.
-			expect(typeof body.passwordEmailSent).toBe('boolean')
-			// The generated password must never be exposed in the response.
+			// The email is dispatched best-effort AFTER the response, so the response carries only the
+			// message — no delivery flag — and never the generated password.
+			expect(Object.keys(body)).toEqual(['message'])
 			expect(body).not.toHaveProperty('password')
 		})
 

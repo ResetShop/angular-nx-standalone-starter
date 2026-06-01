@@ -149,7 +149,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'USERS.DETAIL.DANGER.DESCRIPTION': 'Irreversible and destructive actions.',
 	'USERS.DETAIL.DANGER.DELETE': 'Delete user',
 	'USERS.DELETE_TOAST': 'User deleted successfully.',
-	'USERS.RESET_PASSWORD_TOAST': 'Password reset email sent.',
+	'USERS.RESET_PASSWORD_TOAST': 'Password reset. The temporary password is being emailed to the user.',
 
 	// Roles
 	'ROLES.PAGE.TITLE': 'Roles',

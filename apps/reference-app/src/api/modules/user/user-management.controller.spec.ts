@@ -26,7 +26,7 @@ describe('User Management Controller', () => {
 	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>()
 	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>()
 	const mockDeleteUser = fn<[number, number], Promise<void>>()
-	const mockResetPassword = fn<[number, number], Promise<{ message: string; passwordEmailSent: boolean }>>()
+	const mockResetPassword = fn<[number, number], Promise<{ message: string; sendResetEmail: () => Promise<void> }>>()
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>()
 
 	let app: Hono
@@ -569,26 +569,45 @@ describe('User Management Controller', () => {
 
 	describe('POST /users/:id/reset-password', () => {
 		it('should reset the password and emit a security audit log', async () => {
-			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', passwordEmailSent: true })
+			mockResetPassword.mockResolvedValue({
+				message: 'Password reset successfully',
+				sendResetEmail: () => Promise.resolve(),
+			})
 
 			const res = await app.request('/users/1/reset-password', { method: 'POST' })
 
 			expect(res.status).toBe(200)
 			const data = await res.json()
 			expect(data.message).toBe('Password reset successfully')
-			expect(data.passwordEmailSent).toBe(true)
 			expect(mockResetPassword.calls).toEqual([[1, ADMIN_USER_ID]])
 			expect(loggerSecuritySpy.calls[0][0]).toBe('user_password_reset')
 		})
 
-		it('should not expose a generated password in the response', async () => {
-			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', passwordEmailSent: true })
+		it('should not expose a generated password in the response and omit the email-delivery flag', async () => {
+			mockResetPassword.mockResolvedValue({
+				message: 'Password reset successfully',
+				sendResetEmail: () => Promise.resolve(),
+			})
 
 			const res = await app.request('/users/1/reset-password', { method: 'POST' })
 			const data = await res.json()
 
 			expect(data).not.toHaveProperty('password')
-			expect(Object.keys(data).sort()).toEqual(['message', 'passwordEmailSent'])
+			// Email is dispatched best-effort after the response, so no delivery flag is returned.
+			expect(Object.keys(data).sort()).toEqual(['message'])
+		})
+
+		it('dispatches the reset email after responding (best-effort)', async () => {
+			const sendResetEmail = fn<[], Promise<void>>()
+			sendResetEmail.mockResolvedValue(undefined)
+			mockResetPassword.mockResolvedValue({ message: 'Password reset successfully', sendResetEmail })
+
+			const res = await app.request('/users/1/reset-password', { method: 'POST' })
+			// Flush the deferred microtask scheduled by deferAfterResponse.
+			await Promise.resolve()
+
+			expect(res.status).toBe(200)
+			expect(sendResetEmail.calls).toHaveLength(1)
 		})
 
 		it('should return 403 when trying to reset own password', async () => {

@@ -167,7 +167,7 @@ const en: TranslationSchema = {
 			},
 		},
 		DELETE_TOAST: 'User deleted successfully.',
-		RESET_PASSWORD_TOAST: 'Password reset email sent.',
+		RESET_PASSWORD_TOAST: 'Password reset. The temporary password is being emailed to the user.',
 	},
 	ROLES: {
 		PAGE: {
