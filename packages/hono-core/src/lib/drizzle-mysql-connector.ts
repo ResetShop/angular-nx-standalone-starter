@@ -3,10 +3,10 @@
 
 // import { drizzle } from 'drizzle-orm/mysql2';
 // import mysql from 'mysql2/promise';
-// import { environment } from '../environment';
+// import { dbEnv } from '@config/db.env';
 //
 // const poolConnection = mysql.createPool({
-//   uri: environment.mySqlDatabase,
+//   uri: dbEnv.MYSQL_CONNECTION_STRING,
 //   multipleStatements: false,
 // });
 //

@@ -1,3 +1,4 @@
+import { appEnv } from '../../config/app.env'
 import type { EmailContent, EmailLanguage } from './email-builder.utils'
 import { escapeHtml, resolveEmailLanguage } from './email-builder.utils'
 
@@ -47,7 +48,7 @@ const EMAIL_TRANSLATIONS = Object.freeze({
  * @returns Email content with subject, HTML, and text versions
  */
 export function buildResetPasswordEmail(params: ResetPasswordEmailParams, lang?: string): EmailContent {
-	const resolvedLang = resolveEmailLanguage(lang ?? process.env['APP_LANGUAGE'])
+	const resolvedLang = resolveEmailLanguage(lang ?? appEnv.APP_LANGUAGE)
 	const t = EMAIL_TRANSLATIONS[resolvedLang]
 
 	const text = buildTextContent(params, t)

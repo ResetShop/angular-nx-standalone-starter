@@ -183,7 +183,7 @@ if (isMainModule(import.meta.url)) {
 			process.exit(1)
 		}
 
-		const port = Number(process.env['PORT'] || 4000)
+		const port = httpEnv.PORT
 		const server = serve(
 			{
 				fetch: app.fetch,

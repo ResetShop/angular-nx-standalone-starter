@@ -1,7 +1,7 @@
 import { eq, inArray } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import { environment } from '../api/environment'
+import { dbEnv } from '../api/config/db.env'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
 import { authentication } from './schema/authentication'
 import { permission } from './schema/permission'
@@ -9,7 +9,7 @@ import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 
 const pool = new Pool({
-	connectionString: environment.database.pg.connectionString,
+	connectionString: dbEnv.PG_CONNECTION_STRING,
 })
 
 const db = drizzle(pool)

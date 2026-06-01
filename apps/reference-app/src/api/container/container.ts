@@ -1,5 +1,6 @@
 import { logger } from '@resetshop/util'
 import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
+import { emailEnv } from '../config/email.env'
 import { createDrizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import { DrizzlePermissionRepository } from '../modules/access/permission/permission.repository'
 import { PermissionService } from '../modules/access/permission/permission.service'
@@ -49,7 +50,7 @@ function registerValues(c: AwilixContainer<Cradle>): void {
 }
 
 function resolveEmailRepository() {
-	const provider = process.env['EMAIL_PROVIDER']
+	const provider = emailEnv.EMAIL_PROVIDER
 	if (provider === EMAIL_PROVIDERS.NOOP) return asClass(NoopEmailRepository).singleton()
 	if (provider === EMAIL_PROVIDERS.ETHEREAL) return asClass(EtherealEmailRepository).singleton()
 	return asClass(NodemailerRepository).singleton()

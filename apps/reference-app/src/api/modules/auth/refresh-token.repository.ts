@@ -1,8 +1,9 @@
-import { isServerless } from '@resetshop/hono-core'
 import { parseDurationToMs } from '@resetshop/util'
 import { refreshToken } from '@schema/refresh-token'
 import { user } from '@schema/user'
 import { and, eq, inArray, lt, ne, sql } from 'drizzle-orm'
+import { cronEnv } from '../../config/cron.env'
+import { isServerless } from '../../config/http.env'
 import { REFRESH_TOKEN_EXPIRY_BUFFER } from '../../constants/auth.constants'
 import { BaseRepository } from '../../helpers/base.repository'
 import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
@@ -27,7 +28,7 @@ const MAX_MAX_BATCHES = 1000
  * @returns Batch size clamped between MIN_BATCH_SIZE and MAX_BATCH_SIZE
  */
 function getDeleteBatchSize(): number {
-	const envValue = process.env['TOKEN_CLEANUP_BATCH_SIZE']
+	const envValue = cronEnv.TOKEN_CLEANUP_BATCH_SIZE
 	const raw = parseInt(envValue ?? '', 10)
 
 	if (!Number.isFinite(raw)) {
@@ -53,7 +54,7 @@ function getDeleteBatchSize(): number {
  * @returns Max batches clamped between MIN_MAX_BATCHES and MAX_MAX_BATCHES
  */
 function getMaxCleanupBatches(): number {
-	const envValue = process.env['TOKEN_CLEANUP_MAX_BATCH_COUNT']
+	const envValue = cronEnv.TOKEN_CLEANUP_MAX_BATCH_COUNT
 	const raw = parseInt(envValue ?? '', 10)
 
 	if (!Number.isFinite(raw)) {
