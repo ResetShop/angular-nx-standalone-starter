@@ -7,6 +7,7 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
+import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 
@@ -15,12 +16,12 @@ import { UsersStore } from '@store/users/users.store'
 	standalone: true,
 	imports: [Button, ConfirmDialog, HasPermissionDirective, TranslatePipe],
 	template: `
-		<section class="border-border bg-card rounded-xl border p-4 sm:p-5" aria-labelledby="account-actions-title">
-			<h2 id="account-actions-title" class="text-foreground text-lg font-semibold">
-				{{ 'USERS.DETAIL.ACCOUNT.TITLE' | translate }}
-			</h2>
+		@if (hasAnyAction()) {
+			<section class="border-border bg-card rounded-xl border p-4 sm:p-5" aria-labelledby="account-actions-title">
+				<h2 id="account-actions-title" class="text-foreground text-lg font-semibold">
+					{{ 'USERS.DETAIL.ACCOUNT.TITLE' | translate }}
+				</h2>
 
-			@if (!currentUser.is(user())) {
 				<div class="mt-4 flex flex-col gap-3 sm:flex-row">
 					<button
 						(click)="resetPasswordDialog.show()"
@@ -34,25 +35,25 @@ import { UsersStore } from '@store/users/users.store'
 						{{ statusActionLabel() | translate }}
 					</button>
 				</div>
-			}
-		</section>
+			</section>
 
-		<app-confirm-dialog
-			(confirmed)="onResetPasswordConfirmed()"
-			[title]="'USERS.PAGE.RESET_PASSWORD_DIALOG.TITLE' | translate"
-			[message]="resetPasswordMessage()"
-			[confirmText]="'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate"
-			#resetPasswordDialog
-		/>
+			<app-confirm-dialog
+				(confirmed)="onResetPasswordConfirmed()"
+				[title]="'USERS.PAGE.RESET_PASSWORD_DIALOG.TITLE' | translate"
+				[message]="resetPasswordMessage()"
+				[confirmText]="'USERS.PAGE.RESET_PASSWORD_BUTTON' | translate"
+				#resetPasswordDialog
+			/>
 
-		<app-confirm-dialog
-			(confirmed)="onStatusConfirmed()"
-			[title]="statusDialogTitle() | translate"
-			[message]="statusDialogMessage()"
-			[confirmText]="statusActionLabel() | translate"
-			[confirmVariant]="isActive() ? 'destructive' : 'default'"
-			#statusDialog
-		/>
+			<app-confirm-dialog
+				(confirmed)="onStatusConfirmed()"
+				[title]="statusDialogTitle() | translate"
+				[message]="statusDialogMessage()"
+				[confirmText]="statusActionLabel() | translate"
+				[confirmVariant]="isActive() ? 'destructive' : 'default'"
+				#statusDialog
+			/>
+		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -61,7 +62,22 @@ export class UserAccountActions {
 
 	private readonly usersStore = inject(UsersStore)
 	private readonly translation = inject(Translation)
+	private readonly authStore = inject(AuthStore)
 	protected readonly currentUser = inject(CurrentUser)
+
+	/**
+	 * Whether any account action is available for the viewed user. False for the self-row (you cannot
+	 * reset/disable your own account — avoids admin lockout) and when the actor lacks BOTH the
+	 * reset-password and disable permissions. The whole card is hidden when this is false so no empty
+	 * titled shell renders. Per-button `*hasPermission` still hides individually-unpermitted buttons.
+	 */
+	protected readonly hasAnyAction = computed(() => {
+		if (this.currentUser.is(this.user())) {
+			return false
+		}
+		const actor = this.authStore.currentUser()
+		return !!actor && (actor.hasPermission('admin:users:reset_password') || actor.hasPermission('admin:users:disable'))
+	})
 
 	private readonly resetPasswordToast = createMutationToast(this.translation.instant('USERS.RESET_PASSWORD_TOAST'))
 	private readonly disableToast = createMutationToast(this.translation.instant('USERS.DETAIL.ACCOUNT.DISABLE_TOAST'))

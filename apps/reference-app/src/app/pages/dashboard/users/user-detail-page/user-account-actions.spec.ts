@@ -71,13 +71,25 @@ describe('UserAccountActions', () => {
 		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 42, hasPermission: () => true }))
 		view.fixture.detectChanges()
 
+		// Whole card is gone (not just the buttons) — no empty titled shell on the self-row.
+		expect(screen.queryByText('Account Actions')).not.toBeInTheDocument()
 		expect(screen.queryByRole('button', { name: /send password reset link/i })).not.toBeInTheDocument()
 		expect(screen.queryByRole('button', { name: /disable user/i })).not.toBeInTheDocument()
 	})
 
-	it('hides the reset password button without admin:users:reset_password', async () => {
+	it('hides the entire actions card when the actor has neither action permission', async () => {
+		await renderActions([], { id: 7 })
+
+		expect(screen.queryByText('Account Actions')).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /send password reset link/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /disable user/i })).not.toBeInTheDocument()
+	})
+
+	it('shows the card with only the permitted button (reset hidden without admin:users:reset_password)', async () => {
 		await renderActions(['admin:users:disable'])
 
+		expect(screen.getByText('Account Actions')).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: /disable user/i })).toBeInTheDocument()
 		expect(screen.queryByRole('button', { name: /send password reset link/i })).not.toBeInTheDocument()
 	})
 
