@@ -16,6 +16,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { join } from 'node:path'
 
 // Health verification - runs all startup checks (DI container, database, etc.)
+import { httpEnv } from './api/config/http.env'
 import { ACCESS_TOKEN_COOKIE_NAME } from './api/constants/auth.constants'
 import { verifyHealth } from './api/modules/health/verify-health'
 import { CRON_SECRET_SCHEME, OPENAPI_INFO, PASETO_COOKIE_SCHEME } from './api/openapi-config'
@@ -34,16 +35,25 @@ import { startCronJobs, stopCronJobs } from './api/cron-jobs'
 export const app = new OpenAPIHono({ strict: false })
 
 app.use(requestId())
-app.use(
-	'*',
-	cors({
-		origin: process.env['CORS_ORIGIN'] || 'http://localhost:4200',
-		credentials: true,
-		allowHeaders: ['Content-Type', 'Authorization'],
-		allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-		maxAge: Number(process.env['CORS_MAX_AGE']) || parseDurationToSeconds('24h'), // Cache preflight requests
-	}),
-)
+
+// Module-level: intentionally shared across every request in this server process.
+// The cors() middleware is built on the first request rather than at module-eval so that
+// importing this bundle (e.g. the Angular SSR prerender worker, which runs without env vars)
+// never triggers a read of httpEnv. CORS_ORIGIN may be a single origin or a comma-separated list.
+let corsMiddleware: ReturnType<typeof cors> | null = null
+app.use('*', async (c, next) => {
+	if (corsMiddleware === null) {
+		corsMiddleware = cors({
+			origin: httpEnv.CORS_ORIGIN.split(','),
+			credentials: true,
+			allowHeaders: ['Content-Type', 'Authorization'],
+			allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+			maxAge: httpEnv.CORS_MAX_AGE, // Cache preflight requests
+		})
+	}
+	return corsMiddleware(c, next)
+})
+
 app.use(secureHeaders())
 
 /**

@@ -1,6 +1,6 @@
 import { logger } from '@resetshop/util'
-import { asClass, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
-import { drizzlePgConnector } from '../helpers/drizzle-postgres-connector'
+import { asClass, asFunction, asValue, type AwilixContainer, createContainer, InjectionMode } from 'awilix'
+import { createDrizzlePgConnector } from '../helpers/drizzle-postgres-connector'
 import { DrizzlePermissionRepository } from '../modules/access/permission/permission.repository'
 import { PermissionService } from '../modules/access/permission/permission.service'
 import { DrizzleRoleRepository } from '../modules/access/role/role.repository'
@@ -24,6 +24,7 @@ import { EtherealEmailRepository } from '../services/email/ethereal-email.reposi
 import { EMAIL_PROVIDERS } from '../services/email/interfaces'
 import { NodemailerRepository } from '../services/email/nodemailer.repository'
 import { NoopEmailRepository } from '../services/email/noop-email.repository'
+import { createPasetoConfig } from '../services/paseto/paseto.config'
 import { PasetoService } from '../services/paseto/paseto.service'
 import { createPasswordHasher, createPasswordVerifier } from '../services/password/password-hasher'
 import { generatePassword } from '../utils/password'
@@ -33,8 +34,13 @@ import { validateEnvironment } from './validate-environment'
 
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
-		db: asValue(drizzlePgConnector),
-		authConfig: asValue(createAuthConfig()),
+		// Wrapped in arrows so Awilix does not pass the cradle proxy as the factory's first
+		// argument — createAuthConfig/createPasetoConfig take an optional AuthEnv source that
+		// must default to the authEnv proxy, not the cradle. createDrizzlePgConnector takes no
+		// args; it is wrapped too for uniformity.
+		db: asFunction(() => createDrizzlePgConnector()).singleton(),
+		authConfig: asFunction(() => createAuthConfig()).singleton(),
+		pasetoConfig: asFunction(() => createPasetoConfig()).singleton(),
 		logger: asValue(logger),
 		generatePassword: asValue(generatePassword),
 		hashPassword: asValue(createPasswordHasher()),

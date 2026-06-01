@@ -10,9 +10,7 @@ import { userProfileHistory } from '@schema/user-profile-history'
 import { userRoleHistory } from '@schema/user-role-history'
 import { userStatusHistory } from '@schema/user-status-history'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { environment } from '../environment'
-
-const { connectionString } = environment.database.pg
+import { dbEnv } from '../config/db.env'
 
 // Schema object for Drizzle's relational query API
 const schema = {
@@ -38,11 +36,19 @@ const schema = {
 	userStatusHistory,
 }
 
-// Initialize Drizzle with schema for relational query API support
-export const drizzlePgConnector = drizzle(connectionString, { schema })
+/**
+ * Builds the Drizzle Postgres connector, reading `PG_CONNECTION_STRING` from the validated
+ * `dbEnv` proxy. Exposed as a factory (registered via `asFunction(...).singleton()` in the
+ * container) so the connection string is read lazily on first cradle resolution — never at
+ * module-eval time. This lets the Angular SSR prerender worker import the server bundle in an
+ * env-less context without triggering a fatal env read.
+ */
+export function createDrizzlePgConnector() {
+	return drizzle(dbEnv.PG_CONNECTION_STRING, { schema })
+}
 
 // Type export for DI container
-export type DrizzlePgConnector = typeof drizzlePgConnector
+export type DrizzlePgConnector = ReturnType<typeof createDrizzlePgConnector>
 
 // Transaction handle passed to a `db.transaction(async (tx) => ...)` callback.
 // Derived from the connector so repositories can accept an optional `tx` for

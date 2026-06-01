@@ -22,6 +22,7 @@ import type {
 } from '../modules/user/interfaces'
 import type { EmailRepository, EmailService } from '../services/email/interfaces'
 import type { PasetoService } from '../services/paseto/interfaces'
+import type { PasetoConfig } from '../services/paseto/paseto.config'
 
 /**
  * Cradle interface defines all dependencies available in the container.
@@ -37,7 +38,7 @@ import type { PasetoService } from '../services/paseto/interfaces'
  *   ├── UserRepository ──────► db
  *   ├── AuthRepository ──────► db, authConfig
  *   ├── RefreshTokenRepository ► db
- *   ├── PasetoService (no deps)
+ *   ├── PasetoService ──────────► pasetoConfig
  *   ├── UserRoleService
  *   ├── authConfig
  *   └── AuthPasswordService
@@ -71,7 +72,7 @@ import type { PasetoService } from '../services/paseto/interfaces'
  *
  * EmailService
  *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
- * PasetoService (no deps)
+ * PasetoService ──► pasetoConfig (value)
  *
  * Middleware/Controllers resolve services lazily at runtime.
  * All services are registered as singletons.
@@ -80,8 +81,9 @@ export interface Cradle {
 	// Values (registerValues)
 	db: DrizzlePgConnector
 	authConfig: AuthConfig
+	pasetoConfig: PasetoConfig
 	logger: Logger
-	generatePassword: () => Promise<string>
+	generatePassword: (wordCount?: number, language?: string) => Promise<string>
 	hashPassword: (plain: string) => Promise<string>
 	verifyPassword: (plain: string, hash: string) => Promise<boolean>
 
