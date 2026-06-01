@@ -34,6 +34,16 @@ describe('parseEmailEnv', () => {
 			expect(() => parseEmailEnv({ EMAIL_PROVIDER: 'nodemailer' })).toThrow(/SMTP_HOST is required/)
 		})
 
+		it('guides the user toward EMAIL_PROVIDER=ethereal when SMTP credentials are missing', () => {
+			expect(() => parseEmailEnv({ EMAIL_PROVIDER: 'nodemailer' })).toThrow(/set EMAIL_PROVIDER=ethereal/)
+		})
+
+		it('lists the missing SMTP variables in the guidance message', () => {
+			expect(() => parseEmailEnv({ EMAIL_PROVIDER: 'nodemailer', SMTP_HOST: 'smtp.example.com' })).toThrow(
+				/requires SMTP_USER, SMTP_PASS/,
+			)
+		})
+
 		it('succeeds when all SMTP credentials are present with nodemailer', () => {
 			const env = parseEmailEnv({
 				EMAIL_PROVIDER: 'nodemailer',
