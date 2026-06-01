@@ -4,10 +4,13 @@ import { provideSignalFormsConfig } from '@angular/forms/signals'
 import type { ManagedUser } from '@contracts/user/user.types'
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
+import { AuthApi } from '@providers/auth/auth.interface'
+import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { mockTranslation } from '@providers/i18n/translation.mock'
 import { RolesApi } from '@providers/roles/roles.interface'
 import { UsersApi } from '@providers/users/users.interface'
 import { createMockManagedUser } from '@providers/users/users.mock'
+import { CURRENT_USER_SOURCE } from '@resetshop/angular-core/auth/current-user.token'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@resetshop/ui/drawer/drawer-loading'
 import { parseDurationToMs } from '@resetshop/util'
@@ -19,6 +22,7 @@ import {
 	useFakeTimers,
 	useRealTimers,
 } from '@resetshop/util/test-utils'
+import { AuthStore } from '@store/auth/auth.store'
 import { fireEvent, render, screen } from '@testing-library/angular'
 import { of, throwError } from 'rxjs'
 import { EditUserRolesDrawer } from './edit-user-roles-drawer'
@@ -71,6 +75,8 @@ describe('EditUserRolesDrawer', () => {
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
+				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
 				...provideSignalFormsConfig({}),
 			],
