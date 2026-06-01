@@ -34,13 +34,23 @@ const EmailEnvSchema = z
 		if (!data.SMTP_HOST) missing.push('SMTP_HOST')
 		if (!data.SMTP_USER) missing.push('SMTP_USER')
 		if (!data.SMTP_PASS) missing.push('SMTP_PASS')
+		if (missing.length === 0) return
 		for (const field of missing) {
 			ctx.addIssue({
 				code: 'custom',
 				path: [field],
-				message: `${field} is required when EMAIL_PROVIDER=nodemailer`,
+				message: `${field} is required when EMAIL_PROVIDER=nodemailer (the default provider, which sends real email over SMTP)`,
 			})
 		}
+		ctx.addIssue({
+			code: 'custom',
+			path: ['EMAIL_PROVIDER'],
+			message:
+				`EMAIL_PROVIDER defaults to "nodemailer", which sends real email and therefore requires ${missing.join(', ')}. ` +
+				'If you do NOT intend to use a real email provider (e.g. local development, testing, or CI), ' +
+				'set EMAIL_PROVIDER=ethereal to route mail to a disposable Ethereal test inbox instead — no SMTP credentials needed. ' +
+				'(Use EMAIL_PROVIDER=noop to disable email sending entirely.)',
+		})
 	})
 
 export type EmailEnv = z.infer<typeof EmailEnvSchema>
