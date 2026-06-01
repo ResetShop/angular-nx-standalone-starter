@@ -1,9 +1,13 @@
 // drizzle.config.ts
+import { dbEnv } from '@config/db.env'
 import { defineConfig } from 'drizzle-kit'
 
-// drizzle-kit is a build tool that runs at the workspace root, outside any Nx project boundary.
-// Importing from an Nx project here would violate @nx/enforce-module-boundaries; the config also
-// only needs one env var, not the full app environment object. Read process.env directly.
+// The `drizzle:create-migrations` / `drizzle:push-migrations` scripts invoke drizzle-kit through
+// `tsx --tsconfig apps/reference-app/tsconfig.json`, so the `@config/*` alias resolves when this
+// config loads. Reading `dbEnv.PG_CONNECTION_STRING` (instead of process.env) makes the script fail
+// fast at boot with the formatted FATAL message when PG_CONNECTION_STRING is missing. This file is
+// not part of any Nx project's lint/typecheck target, so the alias import does not trip
+// @nx/enforce-module-boundaries.
 export default defineConfig({
 	// TODO: Manage to define dialect programmatically via config when setting up the repo
 	// dialect: 'mysql',
@@ -11,8 +15,7 @@ export default defineConfig({
 	schema: './apps/reference-app/src/db/schema',
 	dbCredentials: {
 		// TODO: Manage to define dbCredentials programmatically via config when setting up the repo
-		// url: process.env['MYSQL_CONNECTION_STRING'] as string,
-		// REASON: PG_CONNECTION_STRING is required at drizzle-kit invocation time; undefined indicates a misconfigured invocation.
-		url: process.env['PG_CONNECTION_STRING'] as string,
+		// url: dbEnv.MYSQL_CONNECTION_STRING,
+		url: dbEnv.PG_CONNECTION_STRING,
 	},
 })

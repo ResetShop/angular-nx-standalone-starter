@@ -1,4 +1,4 @@
-import { clearAllMocks } from '@resetshop/util/test-utils'
+import { clearAllMocks, spyOn } from '@resetshop/util/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { type DbEnv, dbEnv, parseDbEnv, resetDbEnv, seedDbEnv } from './db.env'
 
@@ -90,5 +90,32 @@ describe('seedDbEnv / resetDbEnv / dbEnv proxy', () => {
 		resetDbEnv()
 		seedDbEnv({ PG_CONNECTION_STRING: 'postgresql://second/db' })
 		expect(dbEnv.PG_CONNECTION_STRING).toBe('postgresql://second/db')
+	})
+
+	// Fail-fast contract for the entry-point scripts (seed.ts, sync-permissions.ts, drizzle.config.ts):
+	// reading PG_CONNECTION_STRING when it is missing prints a FATAL message and process.exit(1)s.
+	it('exits with code 1 and logs a FATAL message when PG_CONNECTION_STRING is missing', () => {
+		const originalConnString = process.env['PG_CONNECTION_STRING']
+		const errorSpy = spyOn(console, 'error')
+		const exitSpy = spyOn(process, 'exit')
+		exitSpy.mockImplementation((() => {
+			throw new Error('process.exit called')
+		}) as never)
+
+		try {
+			delete process.env['PG_CONNECTION_STRING']
+			resetDbEnv()
+
+			expect(() => dbEnv.PG_CONNECTION_STRING).toThrow('process.exit called')
+			expect(exitSpy.calls).toContainEqual([1])
+			expect(errorSpy.calls.some(([msg]) => String(msg).includes('FATAL'))).toBe(true)
+		} finally {
+			if (originalConnString !== undefined) {
+				process.env['PG_CONNECTION_STRING'] = originalConnString
+			}
+			// Self-contained cleanup: clear the cache unconditionally so a failed assertion above
+			// never leaves the proxy in an uninitialized state for the next test.
+			resetDbEnv()
+		}
 	})
 })
