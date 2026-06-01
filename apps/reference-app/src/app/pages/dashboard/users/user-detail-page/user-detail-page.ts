@@ -38,18 +38,20 @@ import { UserRolesSection } from './user-roles-section'
 		</a>
 
 		<app-page-shell [title]="pageTitle()" [loading]="store.isLoadingDetail()" [error]="store.readError().detail">
-			@if (store.selectedUser(); as user) {
-				<div class="flex items-center gap-3">
-					<span [variant]="user.status === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
-						{{ statusLabel(user.status) | translate }}
-					</span>
-				</div>
+			<section class="flex flex-col gap-4">
+				@if (store.selectedUser(); as user) {
+					<div class="flex items-center gap-3">
+						<span [variant]="user.status === UserStatus.ACTIVE ? 'default' : 'destructive'" appBadge>
+							{{ statusLabel(user.status) | translate }}
+						</span>
+					</div>
 
-				<app-user-profile-section [user]="user" />
-				<app-user-roles-section [user]="user" />
-				<app-user-account-actions [user]="user" />
-				<app-user-danger-zone [user]="user" />
-			}
+					<app-user-profile-section [user]="user" />
+					<app-user-roles-section [user]="user" />
+					<app-user-account-actions [user]="user" />
+					<app-user-danger-zone [user]="user" />
+				}
+			</section>
 		</app-page-shell>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
