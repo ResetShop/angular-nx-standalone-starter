@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router'
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router'
 import { UserStatus } from '@contracts/user/user.constants'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
 import { createMockUser } from '@mocks/user.mock'
@@ -17,11 +17,12 @@ import {
 	clearAllMocks,
 	fn,
 	type MockFn,
+	spyOn,
 	useFakeTimers,
 	useRealTimers,
 } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
-import { render, screen } from '@testing-library/angular'
+import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { of } from 'rxjs'
 import UserDetailPage from './user-detail-page'
 
@@ -105,5 +106,24 @@ describe('UserDetailPage', () => {
 
 		expect(usersApiMock.getById.calls).toHaveLength(0)
 		expect(screen.getByRole('link', { name: /back to users/i })).toBeInTheDocument()
+	})
+
+	it('navigates back to the list after the viewed user is deleted', async () => {
+		usersApiMock.getById.mockReturnValue(of(createMockManagedUser({ id: 7, status: UserStatus.ACTIVE })))
+		usersApiMock.delete.mockReturnValue(of(undefined))
+		const view = await renderPage('7')
+		const navigateSpy = spyOn(TestBed.inject(Router), 'navigate')
+
+		fireEvent.click(screen.getByRole('button', { name: /delete user/i }))
+		TestBed.tick()
+		const dialog = screen.getByRole('alertdialog')
+		fireEvent.click(within(dialog).getByRole('button', { name: /delete/i }))
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		expect(usersApiMock.delete.calls).toHaveLength(1)
+		expect(usersApiMock.delete.calls[0][0]).toBe(7)
+		expect(navigateSpy.calls).toHaveLength(1)
+		expect(navigateSpy.calls[0][0]).toEqual(['/dashboard/users'])
 	})
 })

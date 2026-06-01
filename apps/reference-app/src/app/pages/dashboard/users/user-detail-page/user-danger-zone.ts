@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, untracked } from '@angular/core'
-import { Router } from '@angular/router'
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
@@ -7,8 +6,6 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
-import { createMutationToast } from '@store/ui/mutation-toast'
-import { UsersStore } from '@store/users/users.store'
 
 @Component({
 	selector: 'app-user-danger-zone',
@@ -33,7 +30,7 @@ import { UsersStore } from '@store/users/users.store'
 			</section>
 
 			<app-confirm-dialog
-				(confirmed)="onDeleteConfirmed()"
+				(confirmed)="deleteConfirmed.emit()"
 				[title]="'USERS.PAGE.DELETE_DIALOG.TITLE' | translate"
 				[message]="deleteMessage()"
 				[confirmText]="'COMMON.DELETE' | translate"
@@ -47,30 +44,17 @@ import { UsersStore } from '@store/users/users.store'
 export class UserDangerZone {
 	public readonly user = input.required<IManagedUser>()
 
-	private readonly usersStore = inject(UsersStore)
-	private readonly translation = inject(Translation)
-	private readonly router = inject(Router)
-	protected readonly currentUser = inject(CurrentUser)
+	/**
+	 * Emitted when the admin confirms deletion. The parent page owns the delete dispatch, success toast,
+	 * and navigation — a successful delete nulls `selectedUser`, which tears down this component, so the
+	 * post-delete reaction must live on the surviving page, not here.
+	 */
+	public readonly deleteConfirmed = output<void>()
 
-	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
+	private readonly translation = inject(Translation)
+	protected readonly currentUser = inject(CurrentUser)
 
 	protected readonly deleteMessage = computed(() =>
 		this.translation.instant('USERS.PAGE.DELETE_DIALOG.MESSAGE').replace('{name}', this.user().fullName),
 	)
-
-	// On successful delete, toast then navigate back to the list.
-	private readonly deleteToastEffect = effect(() => {
-		const deleting = this.usersStore.isDeleting()
-		const error = this.usersStore.mutationError().delete
-		untracked(() => {
-			if (this.deleteToast.handleResult(deleting, error) === 'success') {
-				void this.router.navigate(['/dashboard/users'])
-			}
-		})
-	})
-
-	protected onDeleteConfirmed(): void {
-		this.deleteToast.markSubmitted()
-		this.usersStore.deleteUser(this.user().id)
-	}
 }
