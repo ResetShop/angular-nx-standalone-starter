@@ -43,7 +43,7 @@ function resolveErrorStatus(error: unknown): { message: string; status: 403 | 40
 const app = createOpenAPIApp()
 
 /**
- * GET /api/user
+ * GET /api/users
  * List users with pagination and optional search
  */
 registerRoute(app, listUsersRoute, async (c) => {
@@ -56,7 +56,7 @@ registerRoute(app, listUsersRoute, async (c) => {
 })
 
 /**
- * GET /api/user/:id
+ * GET /api/users/:id
  * Get user details with roles
  */
 registerRoute(app, getUserRoute, async (c) => {
@@ -75,7 +75,7 @@ registerRoute(app, getUserRoute, async (c) => {
 })
 
 /**
- * POST /api/user
+ * POST /api/users
  * Create a new user with optional role assignments
  */
 registerRoute(app, createUserRoute, async (c) => {
@@ -104,7 +104,7 @@ registerRoute(app, createUserRoute, async (c) => {
 })
 
 /**
- * PATCH /api/user/:id
+ * PATCH /api/users/:id
  * Update user details or role assignments
  */
 registerRoute(app, updateUserRoute, async (c) => {
@@ -132,7 +132,7 @@ registerRoute(app, updateUserRoute, async (c) => {
 })
 
 /**
- * PATCH /api/user/:id/status
+ * PATCH /api/users/:id/status
  * Update user account status (state machine enforcement)
  */
 registerRoute(app, updateUserStatusRoute, async (c) => {
@@ -166,7 +166,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 })
 
 /**
- * DELETE /api/user/:id
+ * DELETE /api/users/:id
  * Soft delete a user
  */
 registerRoute(app, deleteUserRoute, async (c) => {
@@ -189,7 +189,7 @@ registerRoute(app, deleteUserRoute, async (c) => {
 })
 
 /**
- * POST /api/user/:id/reset-password
+ * POST /api/users/:id/reset-password
  * Admin-initiated password reset — generates, hashes, and persists a new temp password, then responds
  * immediately. The temp-password email is dispatched best-effort AFTER the response (deferAfterResponse)
  * so the client's success toast reflects the completed reset, not the SMTP round-trip.

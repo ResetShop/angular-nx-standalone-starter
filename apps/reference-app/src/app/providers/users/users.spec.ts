@@ -31,7 +31,7 @@ describe('HttpUsersApi', () => {
 	})
 
 	describe('getAll', () => {
-		it('should make GET request to /api/user with default pagination', () => {
+		it('should make GET request to /api/users with default pagination', () => {
 			const mockResponse: PaginatedResponse<ManagedUser> = {
 				data: [createMockManagedUser()],
 				total: 1,
@@ -45,7 +45,7 @@ describe('HttpUsersApi', () => {
 
 			const req = httpMock.expectOne(
 				(r) =>
-					r.url === '/api/user' &&
+					r.url === '/api/users' &&
 					r.params.get('offset') === String(QUERY_DEFAULTS.OFFSET) &&
 					r.params.get('limit') === String(QUERY_DEFAULTS.LIMIT),
 			)
@@ -66,7 +66,7 @@ describe('HttpUsersApi', () => {
 				expect(result).toEqual(mockResponse)
 			})
 
-			const req = httpMock.expectOne((r) => r.url === '/api/user' && r.params.get('search') === 'john')
+			const req = httpMock.expectOne((r) => r.url === '/api/users' && r.params.get('search') === 'john')
 			expect(req.request.method).toBe('GET')
 
 			req.flush(mockResponse)
@@ -75,7 +75,7 @@ describe('HttpUsersApi', () => {
 		it('should omit search param when not provided', () => {
 			service.getAll({ offset: 0, limit: 10 }).subscribe()
 
-			const req = httpMock.expectOne((r) => r.url === '/api/user')
+			const req = httpMock.expectOne((r) => r.url === '/api/users')
 			expect(req.request.params.has('search')).toBe(false)
 
 			req.flush({ data: [], total: 0, offset: 0, limit: 10 })
@@ -83,14 +83,14 @@ describe('HttpUsersApi', () => {
 	})
 
 	describe('getById', () => {
-		it('should make GET request to /api/user/:id', () => {
+		it('should make GET request to /api/users/:id', () => {
 			const mockUser = createMockManagedUser({ id: 42 })
 
 			service.getById(42).subscribe((result) => {
 				expect(result).toEqual(mockUser)
 			})
 
-			const req = httpMock.expectOne('/api/user/42')
+			const req = httpMock.expectOne('/api/users/42')
 			expect(req.request.method).toBe('GET')
 
 			req.flush(mockUser)
@@ -98,7 +98,7 @@ describe('HttpUsersApi', () => {
 	})
 
 	describe('create', () => {
-		it('should make POST request to /api/user', () => {
+		it('should make POST request to /api/users', () => {
 			const body: CreateUserRequest = {
 				email: 'new@example.com',
 				firstName: 'New',
@@ -115,7 +115,7 @@ describe('HttpUsersApi', () => {
 				expect(result).toEqual(mockResponse)
 			})
 
-			const req = httpMock.expectOne('/api/user')
+			const req = httpMock.expectOne('/api/users')
 			expect(req.request.method).toBe('POST')
 			expect(req.request.body).toEqual(body)
 
@@ -124,7 +124,7 @@ describe('HttpUsersApi', () => {
 	})
 
 	describe('update', () => {
-		it('should make PATCH request to /api/user/:id', () => {
+		it('should make PATCH request to /api/users/:id', () => {
 			const body: UpdateUserRequest = { firstName: 'Updated' }
 			const mockResponse = createMockManagedUser({ firstName: 'Updated' })
 
@@ -132,7 +132,7 @@ describe('HttpUsersApi', () => {
 				expect(result).toEqual(mockResponse)
 			})
 
-			const req = httpMock.expectOne('/api/user/1')
+			const req = httpMock.expectOne('/api/users/1')
 			expect(req.request.method).toBe('PATCH')
 			expect(req.request.body).toEqual(body)
 
@@ -141,10 +141,10 @@ describe('HttpUsersApi', () => {
 	})
 
 	describe('delete', () => {
-		it('should make DELETE request to /api/user/:id', () => {
+		it('should make DELETE request to /api/users/:id', () => {
 			service.delete(1).subscribe()
 
-			const req = httpMock.expectOne('/api/user/1')
+			const req = httpMock.expectOne('/api/users/1')
 			expect(req.request.method).toBe('DELETE')
 
 			req.flush(null)
@@ -152,7 +152,7 @@ describe('HttpUsersApi', () => {
 	})
 
 	describe('updateStatus', () => {
-		it('should make PATCH request to /api/user/:id/status', () => {
+		it('should make PATCH request to /api/users/:id/status', () => {
 			const body: UpdateUserStatusRequest = { status: 'disabled' }
 			const mockResponse = createMockManagedUser({ status: 'disabled' })
 
@@ -160,7 +160,7 @@ describe('HttpUsersApi', () => {
 				expect(result).toEqual(mockResponse)
 			})
 
-			const req = httpMock.expectOne('/api/user/1/status')
+			const req = httpMock.expectOne('/api/users/1/status')
 			expect(req.request.method).toBe('PATCH')
 			expect(req.request.body).toEqual(body)
 
@@ -177,7 +177,7 @@ describe('HttpUsersApi', () => {
 				},
 			})
 
-			const req = httpMock.expectOne((r) => r.url === '/api/user')
+			const req = httpMock.expectOne((r) => r.url === '/api/users')
 			req.flush(null, { status: 500, statusText: 'Internal Server Error' })
 		})
 	})

@@ -270,7 +270,7 @@ export default [
 	{ path: '/health', controller: healthController },
 	{ path: '/auth', controller: authController },
 	{ path: '/access', controller: accessRoutes },
-	{ path: '/user', controller: userRoutes },
+	{ path: '/users', controller: userRoutes },
 ]
 
 // src/server.ts
@@ -286,7 +286,7 @@ for (const route of routes) {
 | Health | `/api/health` | `GET /api/health/v1`                                |
 | Auth   | `/api/auth`   | `POST /api/auth/login`, `/refresh`, `/logout`, etc. |
 | Access | `/api/access` | `/api/access/roles/*`, `/api/access/permissions/*`  |
-| User   | `/api/user`   | `/api/user/*`, `/api/user/:userId/roles/*`          |
+| User   | `/api/users`  | `/api/users/*`, `/api/users/:userId/roles/*`        |
 
 ---
 

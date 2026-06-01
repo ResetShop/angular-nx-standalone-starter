@@ -3,7 +3,7 @@ import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/
 import { getSeededAdminIds, getTestDb } from '../setup/db-helpers'
 import { createTestApp } from '../setup/test-app'
 
-describe('User role endpoints (/api/user/{userId}/roles)', () => {
+describe('User role endpoints (/api/users/{userId}/roles)', () => {
 	let app: OpenAPIHono
 	let adminCookies: Awaited<ReturnType<typeof loginAsAdmin>>
 	let adminUserId: number
@@ -18,9 +18,9 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 	})
 
 	// ── Get User Roles ────────────────────────────────────────────
-	describe('GET /api/user/{userId}/roles', () => {
+	describe('GET /api/users/{userId}/roles', () => {
 		it('returns paginated roles for a user', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				cookies: adminCookies,
 			})
 
@@ -32,21 +32,21 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 404 for non-existent user', async () => {
-			const response = await authenticatedRequest(app, '/api/user/99999/roles', {
+			const response = await authenticatedRequest(app, '/api/users/99999/roles', {
 				cookies: adminCookies,
 			})
 			expect(response.status).toBe(404)
 		})
 
 		it('returns 401 without authentication', async () => {
-			const response = await app.request(`/api/user/${adminUserId}/roles`)
+			const response = await app.request(`/api/users/${adminUserId}/roles`)
 			expect(response.status).toBe(401)
 		})
 
 		it('returns 403 without required permission', async () => {
 			const restrictedCookies = await loginAsRestricted(app)
 
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				cookies: restrictedCookies,
 			})
 			expect(response.status).toBe(403)
@@ -54,9 +54,9 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 	})
 
 	// ── Get User Permissions ──────────────────────────────────────
-	describe('GET /api/user/{userId}/permissions', () => {
+	describe('GET /api/users/{userId}/permissions', () => {
 		it('returns aggregated permissions for a user', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/permissions`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/permissions`, {
 				cookies: adminCookies,
 			})
 
@@ -72,20 +72,20 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 404 for non-existent user', async () => {
-			const response = await authenticatedRequest(app, '/api/user/99999/permissions', {
+			const response = await authenticatedRequest(app, '/api/users/99999/permissions', {
 				cookies: adminCookies,
 			})
 			expect(response.status).toBe(404)
 		})
 
 		it('returns 401 without authentication', async () => {
-			const response = await app.request(`/api/user/${adminUserId}/permissions`)
+			const response = await app.request(`/api/users/${adminUserId}/permissions`)
 			expect(response.status).toBe(401)
 		})
 
 		it('returns 403 without required permission', async () => {
 			const restrictedCookies = await loginAsRestricted(app)
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/permissions`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/permissions`, {
 				cookies: restrictedCookies,
 			})
 			expect(response.status).toBe(403)
@@ -93,9 +93,9 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 	})
 
 	// ── Assign Role ───────────────────────────────────────────────
-	describe('POST /api/user/{userId}/roles', () => {
+	describe('POST /api/users/{userId}/roles', () => {
 		it('assigns a role to a user', async () => {
-			const createUserResponse = await authenticatedRequest(app, '/api/user', {
+			const createUserResponse = await authenticatedRequest(app, '/api/users', {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { email: 'role-assign-target@test.com', firstName: 'Role', lastName: 'Target' },
@@ -109,7 +109,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 			})
 			const newRole = await createRoleResponse.json()
 
-			const response = await authenticatedRequest(app, `/api/user/${targetUser.id}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${targetUser.id}/roles`, {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { roleId: newRole.id },
@@ -120,7 +120,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 409 when role is already assigned', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { roleId: adminRoleId },
@@ -129,7 +129,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 404 for non-existent user', async () => {
-			const response = await authenticatedRequest(app, '/api/user/99999/roles', {
+			const response = await authenticatedRequest(app, '/api/users/99999/roles', {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { roleId: 1 },
@@ -138,7 +138,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 404 for non-existent role', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { roleId: 99999 },
@@ -147,7 +147,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 400 for missing roleId', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'POST',
 				cookies: adminCookies,
 				body: {},
@@ -156,7 +156,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 400 for invalid roleId type', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { roleId: 'not-a-number' },
@@ -165,7 +165,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 401 without authentication', async () => {
-			const response = await app.request(`/api/user/${adminUserId}/roles`, {
+			const response = await app.request(`/api/users/${adminUserId}/roles`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ roleId: 1 }),
@@ -175,7 +175,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 
 		it('returns 403 without required permission', async () => {
 			const restrictedCookies = await loginAsRestricted(app)
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'POST',
 				cookies: restrictedCookies,
 				body: { roleId: 1 },
@@ -185,9 +185,9 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 	})
 
 	// ── Replace User Roles ────────────────────────────────────────
-	describe('PUT /api/user/{userId}/roles', () => {
+	describe('PUT /api/users/{userId}/roles', () => {
 		it('replaces all roles for a user', async () => {
-			const createUserResponse = await authenticatedRequest(app, '/api/user', {
+			const createUserResponse = await authenticatedRequest(app, '/api/users', {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { email: 'role-replace-target@test.com', firstName: 'Replace', lastName: 'Target' },
@@ -208,7 +208,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 			})
 			const role2 = await role2Response.json()
 
-			const response = await authenticatedRequest(app, `/api/user/${targetUser.id}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${targetUser.id}/roles`, {
 				method: 'PUT',
 				cookies: adminCookies,
 				body: { roleIds: [role1.id, role2.id] },
@@ -219,7 +219,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 404 for non-existent user', async () => {
-			const response = await authenticatedRequest(app, '/api/user/99999/roles', {
+			const response = await authenticatedRequest(app, '/api/users/99999/roles', {
 				method: 'PUT',
 				cookies: adminCookies,
 				body: { roleIds: [1] },
@@ -228,7 +228,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 400 for missing roleIds', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'PUT',
 				cookies: adminCookies,
 				body: {},
@@ -237,7 +237,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 400 for duplicate roleIds', async () => {
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'PUT',
 				cookies: adminCookies,
 				body: { roleIds: [1, 1] },
@@ -246,7 +246,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 401 without authentication', async () => {
-			const response = await app.request(`/api/user/${adminUserId}/roles`, {
+			const response = await app.request(`/api/users/${adminUserId}/roles`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ roleIds: [1] }),
@@ -256,7 +256,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 
 		it('returns 403 without required permission', async () => {
 			const restrictedCookies = await loginAsRestricted(app)
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles`, {
 				method: 'PUT',
 				cookies: restrictedCookies,
 				body: { roleIds: [1] },
@@ -266,9 +266,9 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 	})
 
 	// ── Remove Role ───────────────────────────────────────────────
-	describe('DELETE /api/user/{userId}/roles/{roleId}', () => {
+	describe('DELETE /api/users/{userId}/roles/{roleId}', () => {
 		it('removes a role from a user', async () => {
-			const createUserResponse = await authenticatedRequest(app, '/api/user', {
+			const createUserResponse = await authenticatedRequest(app, '/api/users', {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { email: 'role-remove-target@test.com', firstName: 'Remove', lastName: 'Target' },
@@ -282,13 +282,13 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 			})
 			const newRole = await createRoleResponse.json()
 
-			await authenticatedRequest(app, `/api/user/${targetUser.id}/roles`, {
+			await authenticatedRequest(app, `/api/users/${targetUser.id}/roles`, {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { roleId: newRole.id },
 			})
 
-			const response = await authenticatedRequest(app, `/api/user/${targetUser.id}/roles/${newRole.id}`, {
+			const response = await authenticatedRequest(app, `/api/users/${targetUser.id}/roles/${newRole.id}`, {
 				method: 'DELETE',
 				cookies: adminCookies,
 			})
@@ -298,14 +298,14 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 404 when role is not assigned', async () => {
-			const createUserResponse = await authenticatedRequest(app, '/api/user', {
+			const createUserResponse = await authenticatedRequest(app, '/api/users', {
 				method: 'POST',
 				cookies: adminCookies,
 				body: { email: 'no-roles@test.com', firstName: 'No', lastName: 'Roles' },
 			})
 			const targetUser = await createUserResponse.json()
 
-			const response = await authenticatedRequest(app, `/api/user/${targetUser.id}/roles/99999`, {
+			const response = await authenticatedRequest(app, `/api/users/${targetUser.id}/roles/99999`, {
 				method: 'DELETE',
 				cookies: adminCookies,
 			})
@@ -313,7 +313,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 		})
 
 		it('returns 401 without authentication', async () => {
-			const response = await app.request(`/api/user/${adminUserId}/roles/${adminRoleId}`, {
+			const response = await app.request(`/api/users/${adminUserId}/roles/${adminRoleId}`, {
 				method: 'DELETE',
 			})
 			expect(response.status).toBe(401)
@@ -321,7 +321,7 @@ describe('User role endpoints (/api/user/{userId}/roles)', () => {
 
 		it('returns 403 without required permission', async () => {
 			const restrictedCookies = await loginAsRestricted(app)
-			const response = await authenticatedRequest(app, `/api/user/${adminUserId}/roles/${adminRoleId}`, {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}/roles/${adminRoleId}`, {
 				method: 'DELETE',
 				cookies: restrictedCookies,
 			})

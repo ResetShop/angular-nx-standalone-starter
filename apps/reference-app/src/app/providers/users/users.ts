@@ -26,30 +26,30 @@ export class HttpUsersApi implements UsersApi {
 		if (search) {
 			params['search'] = search
 		}
-		return this.http.get<PaginatedResponse<ManagedUser>>('/api/user', { params })
+		return this.http.get<PaginatedResponse<ManagedUser>>('/api/users', { params })
 	}
 
 	public getById(id: number): Observable<ManagedUser> {
-		return this.http.get<ManagedUser>(`/api/user/${id}`)
+		return this.http.get<ManagedUser>(`/api/users/${id}`)
 	}
 
 	public create(body: CreateUserRequest): Observable<CreateUserResponse> {
-		return this.http.post<CreateUserResponse>('/api/user', body)
+		return this.http.post<CreateUserResponse>('/api/users', body)
 	}
 
 	public update(id: number, body: UpdateUserRequest): Observable<ManagedUser> {
-		return this.http.patch<ManagedUser>(`/api/user/${id}`, body)
+		return this.http.patch<ManagedUser>(`/api/users/${id}`, body)
 	}
 
 	public delete(id: number): Observable<void> {
-		return this.http.delete<void>(`/api/user/${id}`)
+		return this.http.delete<void>(`/api/users/${id}`)
 	}
 
 	public updateStatus(id: number, body: UpdateUserStatusRequest): Observable<ManagedUser> {
-		return this.http.patch<ManagedUser>(`/api/user/${id}/status`, body)
+		return this.http.patch<ManagedUser>(`/api/users/${id}/status`, body)
 	}
 
 	public resetPassword(id: number): Observable<ResetPasswordResponse> {
-		return this.http.post<ResetPasswordResponse>(`/api/user/${id}/reset-password`, {})
+		return this.http.post<ResetPasswordResponse>(`/api/users/${id}/reset-password`, {})
 	}
 }
