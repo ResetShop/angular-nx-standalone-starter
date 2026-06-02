@@ -11,6 +11,4 @@ const statesDir = join(here, 'states')
  */
 export const STORAGE_STATE = {
 	admin: join(statesDir, 'admin.json'),
-	noPermission: join(statesDir, 'no-permission.json'),
-	mustChange: join(statesDir, 'must-change.json'),
 } as const

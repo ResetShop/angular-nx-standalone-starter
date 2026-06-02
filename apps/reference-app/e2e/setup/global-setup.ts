@@ -8,9 +8,9 @@
  * (Playwright does not resolve the project's TS path aliases here).
  */
 import type { FullConfig } from '@playwright/test'
-import { startEmbeddedPostgres } from '../../src/api/integration/setup/embedded-pg-test-db'
 import { seedE2eUsers } from './db-seed'
-import { configureE2eEnvVars, getTestConnectionString, loadEnvFile } from './env-helpers'
+import { configureE2eEnvVars, loadEnvFile } from './env-helpers'
+import { e2eConnectionString, startE2ePostgres } from './test-db'
 
 async function pushSchemaToDb(connectionString: string): Promise<void> {
 	const { pushSchema } = await import('drizzle-kit/api')
@@ -60,11 +60,11 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
 	loadEnvFile()
 
 	if (!process.env['PG_TEST_CONNECTION_STRING']) {
-		process.env['PG_TEST_CONNECTION_STRING'] = await startEmbeddedPostgres()
+		await startE2ePostgres()
 		process.env['E2E_USED_EMBEDDED_PG'] = 'true'
 	}
 
-	const connectionString = getTestConnectionString()
+	const connectionString = e2eConnectionString()
 	configureE2eEnvVars(connectionString)
 	await pushSchemaToDb(connectionString)
 

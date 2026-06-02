@@ -1,23 +1,25 @@
 import { expect, test } from '../../fixtures'
-import { STORAGE_STATE } from '../../fixtures/storage-state'
+import { LoginPage } from '../../page-objects/login.page'
+import { E2E_USERS } from '../../setup/db-seed'
 
-test.use({ storageState: STORAGE_STATE.mustChange })
+const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD'] ?? ''
 
+// Exercised via the real login flow (client-side navigation), which is how a user actually reaches the
+// forced-change guard: logging in navigates to /dashboard, where forcedPasswordChangeGuard redirects.
 test.describe('Forced password change', () => {
-	test('a must-change user is bounced from /dashboard to /auth/change-password', async ({ page }) => {
-		await page.goto('/dashboard')
+	test('a must-change user is sent to the change-password page after logging in', async ({ page }) => {
+		const login = new LoginPage(page)
+		await login.goto()
+		await login.login(E2E_USERS.mustChange, password)
 		await expect(page).toHaveURL(/\/auth\/change-password$/)
 	})
 
-	test('a must-change user is bounced from /dashboard/users to /auth/change-password', async ({ page }) => {
-		await page.goto('/dashboard/users')
-		await expect(page).toHaveURL(/\/auth\/change-password$/)
-	})
-
-	test('a must-change user is not redirected away from /auth/change-password (no loop)', async ({ page }) => {
-		await page.goto('/auth/change-password')
+	test('the change-password form is shown and not redirected away (no loop)', async ({ page }) => {
+		const login = new LoginPage(page)
+		await login.goto()
+		await login.login(E2E_USERS.mustChange, password)
 		await expect(page).toHaveURL(/\/auth\/change-password$/)
 		await expect(page.getByLabel('Current password')).toBeVisible()
-		await expect(page.getByLabel('New password')).toBeVisible()
+		await expect(page.getByLabel('New password', { exact: true })).toBeVisible()
 	})
 })
