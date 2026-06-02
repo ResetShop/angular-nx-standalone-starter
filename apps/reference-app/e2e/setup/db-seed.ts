@@ -1,8 +1,16 @@
 /**
- * Seeds the three e2e fixture users directly via Drizzle. Runs inside Playwright's globalSetup, so it
- * uses relative imports only (no `@schema`/`@contracts` aliases) and hashes passwords with bcryptjs
- * directly rather than through the app's `createPasswordHasher` (which reads `authEnv` via `@config`,
- * unresolvable in this context). All three users share the same password (INTEGRATION_TEST_ADMIN_PASSWORD).
+ * Seeds the three e2e fixture users directly via Drizzle. Runs inside Playwright's globalSetup, which
+ * resolves workspace path aliases (`@resetshop/*`, `@config/*`, `@schema/*`) unreliably — so everything
+ * here uses relative imports only.
+ *
+ * Passwords are hashed with bcryptjs directly rather than via the app's `createPasswordHasher` for two
+ * reasons: (1) that factory transitively imports `@resetshop/util` (through `auth.env`), which we can't
+ * rely on resolving in this loader; and (2) it reads the `authEnv` proxy, whose first access parses the
+ * whole auth schema and `process.exit(1)`s if PASETO_* vars are absent — coupling a password hash to full
+ * auth-env validation. bcrypt embeds the cost in the hash, so a cost-1 hash verifies identically against
+ * the app's production verifier (`createPasswordVerifier`); there is no correctness difference.
+ *
+ * All three users share the same password (INTEGRATION_TEST_ADMIN_PASSWORD).
  */
 import bcrypt from 'bcryptjs'
 import { inArray } from 'drizzle-orm'
