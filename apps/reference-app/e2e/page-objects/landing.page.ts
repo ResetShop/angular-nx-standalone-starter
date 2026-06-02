@@ -16,6 +16,15 @@ export class LandingPage {
 	get featuresHeading(): Locator {
 		return this.page.getByRole('heading', { name: "What's included", level: 2 })
 	}
+	get authFeatureHeading(): Locator {
+		return this.page.getByRole('heading', { name: 'Authentication' })
+	}
+	get rbacFeatureHeading(): Locator {
+		return this.page.getByRole('heading', { name: 'Role-based access control' })
+	}
+	get ssrFeatureHeading(): Locator {
+		return this.page.getByRole('heading', { name: 'Server-side rendering' })
+	}
 	get themeToggle(): Locator {
 		return this.page.getByRole('button', { name: /switch to (light|dark) mode/i })
 	}
