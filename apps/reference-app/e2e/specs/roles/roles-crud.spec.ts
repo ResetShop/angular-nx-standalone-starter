@@ -3,7 +3,7 @@ import { STORAGE_STATE } from '../../fixtures/storage-state'
 import { RolesListPage } from '../../page-objects/roles-list.page'
 
 // Mutating success paths are mocked (page.route, method-guarded) so the shared DB is never written.
-test.describe('Roles (admin)', () => {
+test.describe('Roles list (admin)', () => {
 	test.use({ storageState: STORAGE_STATE.admin })
 
 	let roles: RolesListPage
@@ -46,7 +46,7 @@ test.describe('Roles (admin)', () => {
 		})
 		await roles.createButton.click()
 		await roles.drawerName.fill('E2E Role')
-		await page.getByLabel('Description').fill('Created in e2e')
+		await roles.drawerDescription.fill('Created in e2e')
 		await roles.drawerSubmit.click()
 		await expect(page.getByText('Role created successfully.')).toBeVisible()
 	})
@@ -56,6 +56,7 @@ test.describe('Roles (admin)', () => {
 		await roles.menuItem('Edit').click()
 		await expect(page.getByText('Edit Role', { exact: true })).toBeVisible()
 		await expect(roles.drawerName).toHaveValue('Restricted')
+		await expect(roles.drawerCode).toHaveValue('restricted')
 	})
 
 	test('deletes a removable role with confirmation and a success toast', async ({ page }) => {

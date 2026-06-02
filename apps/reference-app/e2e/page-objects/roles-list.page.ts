@@ -25,9 +25,15 @@ export class RolesListPage {
 		return this.page.getByRole('menuitem', { name })
 	}
 
-	// --- Create drawer ---
+	// --- Create / edit drawer (same field labels) ---
 	get drawerName(): Locator {
 		return this.page.getByLabel('Name')
+	}
+	get drawerCode(): Locator {
+		return this.page.getByLabel('Code')
+	}
+	get drawerDescription(): Locator {
+		return this.page.getByLabel('Description')
 	}
 	get drawerSubmit(): Locator {
 		return this.page.getByRole('button', { name: 'Create', exact: true })
