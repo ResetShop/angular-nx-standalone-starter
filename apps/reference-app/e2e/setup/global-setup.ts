@@ -68,5 +68,9 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
 	configureE2eEnvVars(connectionString)
 	await pushSchemaToDb(connectionString)
 
-	await seedE2eUsers(connectionString, adminPassword())
+	const { viewableUserId, adminUserId } = await seedE2eUsers(connectionString, adminPassword())
+	// Published for specs (inherited by worker processes forked after globalSetup) so the user-detail
+	// specs can navigate directly to known target users' pages.
+	process.env['E2E_VIEWABLE_USER_ID'] = String(viewableUserId)
+	process.env['E2E_ADMIN_USER_ID'] = String(adminUserId)
 }
