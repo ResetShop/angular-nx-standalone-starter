@@ -21,8 +21,9 @@ import { ToastNotification } from './toast-notification'
  * `provideToast()`, which only `provideEnvironmentInitializer(() => inject(this))` — i.e.
  * it eagerly instantiates the single root instance so the `effect()` is live, without
  * creating a new one. `NgpToastManager` is likewise a root singleton (it renders into
- * `document.body`, so its provision location is irrelevant); its config is registered
- * once at the application root (`app.config.ts`).
+ * `document.body`, so its provision location is irrelevant). No `NgpToastConfig` is
+ * provided anywhere — this bridge passes its presentation options per `show()` (see below),
+ * so there is no app-wide toast config to leak onto routes that never show toasts.
  */
 @Injectable({ providedIn: 'root' })
 export class ToastBridgeService {
@@ -36,8 +37,14 @@ export class ToastBridgeService {
 
 		for (const notification of notifications) {
 			if (!this.activeToasts.has(notification.id)) {
+				// Presentation options are passed per-show, so no DI-provided NgpToastConfig has to live
+				// anywhere globally (placement would otherwise default to 'top-end'). Container-level settings
+				// not expressible per-show (maxToasts, gap, zIndex) use ng-primitives' defaults — maxToasts is
+				// already 3, which matches this app's intent.
 				const ref = this.toastManager.show(ToastNotification, {
 					context: notification,
+					placement: 'bottom-center',
+					dismissible: true,
 					duration: parseDurationToMs(notification.duration ?? DEFAULT_NOTIFICATION_DURATION),
 				})
 				this.activeToasts.set(notification.id, ref)
