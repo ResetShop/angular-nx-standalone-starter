@@ -9,8 +9,8 @@ const statesDir = join(here, 'states')
  * (`e2e/setup/auth-setup.ts`). Specs reference these via `test.use({ storageState: STORAGE_STATE.x })`.
  * Resolved from this file's location so they are independent of the process working directory.
  */
-// Later epic slices add keys here (e.g. noPermission for #461, mustChange deep-links for #462) and a
-// matching capture in auth-setup.ts. This slice only consumes the admin state.
+// Captured by the `setup` project (auth-setup.ts). Later slices may add more keys + captures.
 export const STORAGE_STATE = Object.freeze({
 	admin: join(statesDir, 'admin.json'),
+	noPermission: join(statesDir, 'no-permission.json'),
 } as const)
