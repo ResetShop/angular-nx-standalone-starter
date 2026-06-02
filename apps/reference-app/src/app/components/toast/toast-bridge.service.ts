@@ -15,12 +15,14 @@ import { ToastNotification } from './toast-notification'
  *
  * Because it watches the shared, global `UIStore.notifications()`, there must be
  * exactly ONE live instance — otherwise every instance renders every notification
- * (the #471 duplicate-toast root cause). It is therefore provided (and eagerly
- * instantiated via `provideEnvironmentInitializer`) once at the `dashboard` shell by
- * `provideToast()`, NOT per child route. `providedIn: 'root'` is kept only for
- * tree-shaking and as a safe fallback; `provideToast()` deliberately re-provides it to
- * create a single route-scoped instance co-located with its `NgpToastManager` — do not
- * remove that explicit provision.
+ * (the #471 duplicate-toast root cause). It is a `providedIn: 'root'` singleton and must
+ * NEVER be listed as a class in any route's `providers` (that mints a route-scoped
+ * instance and resurrects the duplicate). Routes that fire toasts opt in via
+ * `provideToast()`, which only `provideEnvironmentInitializer(() => inject(this))` — i.e.
+ * it eagerly instantiates the single root instance so the `effect()` is live, without
+ * creating a new one. `NgpToastManager` is likewise a root singleton (it renders into
+ * `document.body`, so its provision location is irrelevant); its config is registered
+ * once at the application root (`app.config.ts`).
  */
 @Injectable({ providedIn: 'root' })
 export class ToastBridgeService {

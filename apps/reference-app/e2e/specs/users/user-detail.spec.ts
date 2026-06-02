@@ -140,7 +140,7 @@ test.describe('User detail — permission gating', () => {
 		await page.goto(`/dashboard/users/${requireUserId('E2E_VIEWABLE_USER_ID')}`)
 		await expect(page).toHaveURL('/dashboard')
 		// Redirect is the security-critical assertion. Exactly one toast expected — `getByText` is strict
-		// (fails on >1 match), the regression guard for #471 (toast infra now lives once at the shell).
+		// (fails on >1 match), the regression guard for #471 (a single root ToastBridgeService renders it).
 		await expect(page.getByText("You don't have permission to access that page.")).toBeVisible()
 	})
 })
