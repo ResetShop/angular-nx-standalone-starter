@@ -36,7 +36,6 @@ export default meta
 type Story = StoryObj<LandingPage>
 
 /**
- * The landing page as seen by every visitor — the public route runs no session validation, so it renders
- * identically whether or not a session cookie is present.
+ * The landing page as seen by every visitor.
  */
 export const Default: Story = {}

@@ -31,9 +31,9 @@ describe('LandingHeader', () => {
 		expect(screen.getByRole('button', { name: /switch to (light|dark) mode/i })).toBeInTheDocument()
 	})
 
-	// The header is intentionally stateless and never surfaces a dashboard link: the public landing route
-	// runs no session validation, so an authenticated shortcut here would be dead code (see #468).
-	it('does not render a dashboard link', async () => {
+	// The public landing route runs no session validation, so an authenticated shortcut here would be dead
+	// code (see #468). The rationale is in the test name so it surfaces in CI output, not just this comment.
+	it('never renders a dashboard link (stateless by design)', async () => {
 		await renderHeader()
 
 		expect(screen.queryByRole('link', { name: /go to dashboard/i })).not.toBeInTheDocument()
