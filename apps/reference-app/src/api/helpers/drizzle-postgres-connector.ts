@@ -1,3 +1,4 @@
+import { logger } from '@resetshop/util'
 import { authentication, authenticationRelations } from '@schema/authentication'
 import { permission, permissionRelations } from '@schema/permission'
 import { permissionRoute, permissionRouteRelations } from '@schema/permission-route'
@@ -44,7 +45,14 @@ const schema = {
  * env-less context without triggering a fatal env read.
  */
 export function createDrizzlePgConnector() {
-	return drizzle(dbEnv.PG_CONNECTION_STRING, { schema })
+	const db = drizzle(dbEnv.PG_CONNECTION_STRING, { schema })
+	// A pg Pool emits 'error' on an *idle* client when its connection drops (DB restart, network blip, or —
+	// in e2e — the embedded Postgres shutting down at teardown). Without a listener, Node treats it as an
+	// unhandled 'error' event and crashes the process; with one, it's a recoverable warning (the pool
+	// reconnects on the next query). This is the listener the node-postgres docs recommend every Pool have.
+	// Log only the message — the pg error carries the whole Client object, which floods the logs if dumped.
+	db.$client.on('error', (error) => logger.warn('Database', `Idle Postgres client error: ${error.message}`))
+	return db
 }
 
 // Type export for DI container
