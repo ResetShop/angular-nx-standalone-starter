@@ -501,42 +501,46 @@ Domain stores keep `providedIn: 'root'` for tree-shaking, but must be **explicit
 
 Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on constructor side effects (`effect()`) that must be active before the route's components fire notifications. Because `providedIn: 'root'` services are instantiated lazily on first injection, a service that is never injected by any component stays dormant. Use `provideEnvironmentInitializer(() => inject(Service))` in the route's `providers` array to force instantiation when the route activates.
 
+`provideToast()` is the canonical example: it bundles `provideEnvironmentInitializer(() => inject(ToastBridgeService))`, so the bridge's `effect()` is active as soon as the route activates. It MUST be registered once on the nearest persistent shell ancestor of all toast-firing routes — never per child route.
+
 ```typescript
-// ✅ Correct — eagerly instantiates the root singleton at route activation
+// ✅ Correct — provideToast() registered ONCE at the dashboard shell (a persistent ancestor of every
+// toast-firing child route AND the permissionGuard deny-redirect target): one ToastBridgeService
 {
-  path: 'users',
-  providers: [
-    provideUsers(), provideRoles(), UsersStore, RolesStore,
-    provideEnvironmentInitializer(() => inject(ToastBridgeService)),
+  path: '',
+  component: Dashboard,
+  providers: [provideNavigation(), provideNavigationConfig(dashboardNavigationConfig), provideToast()],
+  children: [
+    // users, users/:id, authorization/roles — NO provideToast() here
   ],
 }
 
-// ❌ Incorrect — re-provides the service, creating a second instance
+// ❌ Incorrect — provideToast() on each child route: every route-scoped ToastBridgeService instance
+// renders the SHARED UIStore notifications, so a denied deep-link of a parameterized route fires the
+// deny toast from two live bridges at once → duplicate toast (#471)
 {
-  path: 'users',
-  providers: [
-    provideUsers(), provideRoles(), UsersStore, RolesStore,
-    ToastBridgeService, // duplicates the root singleton!
-    provideEnvironmentInitializer(() => inject(ToastBridgeService)),
-  ],
+  path: 'users/:id',
+  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
 }
 ```
 
 **Rules:**
 
-- Only add `provideEnvironmentInitializer` on routes that actually use the service's side effects (e.g., routes with mutation toasts need `ToastBridgeService`)
-- Never list the service class itself in the route `providers` alongside the initializer — that creates a second instance and duplicates side effects
-- The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created
+- Register toast infrastructure (`provideToast()`) once at the nearest persistent shell ancestor of all toast-firing routes — never per child route, which spawns multiple bridges that each render the global `UIStore` notifications ([#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471)).
+- When using the lower-level pattern directly, only add `provideEnvironmentInitializer` on a route that actually uses the service's side effects, and never list the service class itself in the route `providers` alongside the initializer — that creates a second instance and duplicates side effects.
+- The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created.
 
 **Current route registrations (`dashboard.routes.ts`):**
 
-| Route                       | Providers                                                                                    |
-| --------------------------- | -------------------------------------------------------------------------------------------- |
-| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                  |
-| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                   |
-| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideToast()` |
+| Route                       | Providers                                                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------- |
+| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`, `provideToast()` |
+| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`                                |
+| `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`                                |
+| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                    |
+| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`                    |
+
+> **`provideToast()` is provided once at the `dashboard` shell, never per child route.** The shell is a persistent ancestor of every toast-firing route and the redirect target of `permissionGuard` denials, so a single `ToastBridgeService` renders all `UIStore` notifications. Providing it per-child spawned multiple route-scoped bridges that each rendered the shared notifications — on a denied deep-link of a parameterized route (`/dashboard/users/:id`) two bridges fired and produced a duplicate deny toast ([#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471)).
 
 ---
 
