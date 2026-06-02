@@ -14,7 +14,7 @@ test.describe('Permissions list (admin)', () => {
 
 	test('renders the read-only permissions list', async ({ page }) => {
 		await expect(permissions.heading).toBeVisible()
-		await expect(page.getByText('module:resource:action')).toBeVisible()
+		await expect(permissions.description).toBeVisible()
 		await expect(permissions.table).toBeVisible()
 	})
 
@@ -29,8 +29,9 @@ test.describe('Permissions list (permission gating)', () => {
 
 	test('a no-permission user deep-linking the permissions page is redirected', async ({ page }) => {
 		await page.goto('/dashboard/authorization/permissions')
-		// Redirect is the deterministic, security-critical assertion. The transient access-denied toast is
-		// covered canonically by the dashboard-shell deny spec (#461); asserting it here races its auto-dismiss.
+		// Redirect is the deterministic, security-critical assertion. The transient access-denied toast was
+		// observed to flake here (it auto-dismissed before the assertion polled on a slower run); a longer
+		// timeout can't help once it's gone. The toast is covered canonically by the dashboard-shell deny spec (#461).
 		await expect(page).toHaveURL('/dashboard')
 	})
 })

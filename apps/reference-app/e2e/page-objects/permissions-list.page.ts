@@ -7,6 +7,9 @@ export class PermissionsListPage {
 	get heading(): Locator {
 		return this.page.getByRole('heading', { name: 'Permissions' })
 	}
+	get description(): Locator {
+		return this.page.getByText('module:resource:action')
+	}
 	get table(): Locator {
 		return this.page.getByRole('table')
 	}
