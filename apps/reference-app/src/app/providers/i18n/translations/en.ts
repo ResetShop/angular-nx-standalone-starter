@@ -54,7 +54,6 @@ const en: TranslationSchema = {
 			'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
 		HERO_CTA: 'Get started',
 		LOGIN_BUTTON: 'Sign in',
-		GO_TO_DASHBOARD: 'Go to dashboard',
 		SKIP_TO_CONTENT: 'Skip to main content',
 		FEATURES: {
 			TITLE: "What's included",
