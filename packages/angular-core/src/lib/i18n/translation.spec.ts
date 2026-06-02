@@ -57,7 +57,6 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			HERO_SUBHEADING: 'Subheading',
 			HERO_CTA: 'Get started',
 			LOGIN_BUTTON: 'Sign in',
-			GO_TO_DASHBOARD: 'Dashboard',
 			SKIP_TO_CONTENT: 'Skip',
 			FEATURES: {
 				TITLE: 'Features',
@@ -292,7 +291,6 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			HERO_SUBHEADING: 'Subtítulo',
 			HERO_CTA: 'Comenzar',
 			LOGIN_BUTTON: 'Iniciar sesión',
-			GO_TO_DASHBOARD: 'Panel',
 			SKIP_TO_CONTENT: 'Saltar',
 			FEATURES: {
 				TITLE: 'Características',

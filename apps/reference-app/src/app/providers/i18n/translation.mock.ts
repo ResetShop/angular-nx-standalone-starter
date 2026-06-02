@@ -67,7 +67,6 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 		'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
 	'LANDING.HERO_CTA': 'Get started',
 	'LANDING.LOGIN_BUTTON': 'Sign in',
-	'LANDING.GO_TO_DASHBOARD': 'Go to dashboard',
 	'LANDING.SKIP_TO_CONTENT': 'Skip to main content',
 	'LANDING.FEATURES.TITLE': "What's included",
 	'LANDING.FEATURES.AUTH_TITLE': 'Authentication',
