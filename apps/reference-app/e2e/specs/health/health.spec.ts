@@ -16,8 +16,9 @@ test.describe('Health', () => {
 		await expect(health.heading).toBeVisible()
 		await expect(health.checksHeading).toBeVisible()
 		await expect(health.databaseHeading).toBeVisible()
-		// The overall status and the database check both report 'healthy' against the live backend.
-		await expect(health.healthyBadge.first()).toBeVisible()
-		await expect(health.healthyBadge).toHaveCount(2)
+		// The overall status (first badge) and the database check (second) both report 'healthy' against the
+		// live backend. Asserting the two positionally is robust if further checks are added later.
+		await expect(health.healthyBadge.nth(0)).toBeVisible()
+		await expect(health.healthyBadge.nth(1)).toBeVisible()
 	})
 })
