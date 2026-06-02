@@ -2,21 +2,15 @@ import { provideRouter } from '@angular/router'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
 import { clearAllMocks } from '@resetshop/util/test-utils'
-import { provideAuthStateMock } from '@store/auth/auth.store.mock'
 import { render, screen } from '@testing-library/angular'
 import LandingPage from './landing'
 
 describe('LandingPage', () => {
 	beforeEach(() => clearAllMocks())
 
-	const renderPage = (isAuthenticated = false) =>
+	const renderPage = () =>
 		render(LandingPage, {
-			providers: [
-				provideRouter([]),
-				provideTranslationMock(),
-				provideMockTheme(false),
-				provideAuthStateMock(isAuthenticated),
-			],
+			providers: [provideRouter([]), provideTranslationMock(), provideMockTheme(false)],
 		})
 
 	it('renders the hero heading', async () => {

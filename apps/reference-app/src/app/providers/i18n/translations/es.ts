@@ -55,7 +55,6 @@ const es: TranslationSchema = {
 			'Un starter listo para producción con autenticación, control de acceso basado en roles y renderizado del lado del servidor integrados.',
 		HERO_CTA: 'Comenzar',
 		LOGIN_BUTTON: 'Iniciar sesión',
-		GO_TO_DASHBOARD: 'Ir al panel',
 		SKIP_TO_CONTENT: 'Saltar al contenido principal',
 		FEATURES: {
 			TITLE: 'Qué incluye',
