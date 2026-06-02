@@ -16,7 +16,12 @@ export default [
 		path: '',
 		title: '',
 		component: Dashboard,
-		providers: [provideNavigation(), provideNavigationConfig(dashboardNavigationConfig)],
+		// Toast infrastructure is provided ONCE here at the shell — a persistent ancestor of every
+		// toast-firing child route AND the target of permission-deny redirects. Providing it per-child
+		// (as before) spawned multiple route-scoped ToastBridgeService instances that each rendered the
+		// shared UIStore notifications; on a denied deep-link of a parameterized route the denied route's
+		// bridge and the redirect context's bridge both fired, producing a duplicate deny toast (#471).
+		providers: [provideNavigation(), provideNavigationConfig(dashboardNavigationConfig), provideToast()],
 		children: [
 			{
 				path: '',
@@ -46,7 +51,7 @@ export default [
 				loadComponent: () => import('./users/users-list/users-list'),
 				canActivate: [permissionGuard],
 				data: { requiredPermission: 'admin:users:read' },
-				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
+				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
 			},
 			{
 				path: 'users/:id',
@@ -54,7 +59,7 @@ export default [
 				loadComponent: () => import('./users/user-detail-page/user-detail-page'),
 				canActivate: [permissionGuard],
 				data: { requiredPermission: 'admin:users:read' },
-				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
+				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
 			},
 			{
 				path: 'authorization',
@@ -80,7 +85,7 @@ export default [
 						loadComponent: () => import('./roles/roles-list/roles-list'),
 						canActivate: [permissionGuard],
 						data: { requiredPermission: 'admin:roles:read' },
-						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore, provideToast()],
+						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore],
 					},
 				],
 			},
