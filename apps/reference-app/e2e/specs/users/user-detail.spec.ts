@@ -136,11 +136,12 @@ test.describe('User detail — admin viewing own account', () => {
 test.describe('User detail — permission gating', () => {
 	test.use({ storageState: STORAGE_STATE.noPermission })
 
-	test('a no-permission user deep-linking a detail page is redirected with a deny toast', async ({ page }) => {
+	test('a no-permission user deep-linking a detail page is redirected with a single deny toast', async ({ page }) => {
 		await page.goto(`/dashboard/users/${requireUserId('E2E_VIEWABLE_USER_ID')}`)
 		await expect(page).toHaveURL('/dashboard')
-		// Redirect is the security-critical assertion. The deny toast appears; `.first()` because on a
-		// detail deep-link two toast elements were observed (vs one on the list route) — tracked in #471.
-		await expect(page.getByText("You don't have permission to access that page.").first()).toBeVisible()
+		// Exactly one toast: #471 moved the toast infrastructure to the dashboard shell (one bridge), so the
+		// previously-observed duplicate on parameterized deep-links is gone. `getByText` is strict and fails
+		// if two toasts are present — the regression guard for #471.
+		await expect(page.getByText("You don't have permission to access that page.")).toBeVisible()
 	})
 })
