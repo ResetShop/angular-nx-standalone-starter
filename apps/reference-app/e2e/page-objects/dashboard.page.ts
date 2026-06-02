@@ -20,8 +20,9 @@ export class DashboardPage {
 		return this.page.getByRole('button', { name: 'Open navigation menu' })
 	}
 	get noAccessTitle(): Locator {
-		// The no-module-access empty state renders <div appAlert> (role="status") with this title.
-		return this.page.getByText('No module access')
+		// The no-module-access empty state renders <div appAlert> (role="status") with this title;
+		// scoping to role="status" also asserts the ARIA contract and avoids any future text collision.
+		return this.page.getByRole('status').getByText('No module access')
 	}
 
 	/** A sidebar nav link (exact name), e.g. 'Users', 'Settings', 'Health'. */

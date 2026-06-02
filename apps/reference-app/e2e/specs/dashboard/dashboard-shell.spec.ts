@@ -2,9 +2,9 @@ import { expect, test } from '../../fixtures'
 import { STORAGE_STATE } from '../../fixtures/storage-state'
 import { DashboardPage } from '../../page-objects/dashboard.page'
 
-test.use({ storageState: STORAGE_STATE.admin })
-
 test.describe('Dashboard shell (admin)', () => {
+	test.use({ storageState: STORAGE_STATE.admin })
+
 	let dashboard: DashboardPage
 	test.beforeEach(async ({ page }) => {
 		dashboard = new DashboardPage(page)

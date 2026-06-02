@@ -10,10 +10,12 @@ import { test as setup } from '../fixtures'
 import { STORAGE_STATE } from '../fixtures/storage-state'
 import { adminPassword, E2E_USERS } from './db-seed'
 
-async function login(page: import('@playwright/test').Page, email: string): Promise<void> {
+// All e2e fixture users share INTEGRATION_TEST_ADMIN_PASSWORD by construction (see db-seed.ts); the
+// password is a parameter (defaulting to it) so a future user with a different credential can override.
+async function login(page: import('@playwright/test').Page, email: string, password = adminPassword()): Promise<void> {
 	await page.goto('/auth/login')
 	await page.getByLabel('Email address').fill(email)
-	await page.getByLabel('Password').fill(adminPassword())
+	await page.getByLabel('Password').fill(password)
 	await page.getByRole('button', { name: 'Sign in' }).click()
 	await page.waitForURL('**/dashboard')
 }

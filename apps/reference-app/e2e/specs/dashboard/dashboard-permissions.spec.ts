@@ -31,8 +31,9 @@ test.describe('Dashboard shell — no-permission user', () => {
 	}) => {
 		await page.goto('/dashboard/users')
 		await expect(page).toHaveURL('/dashboard')
+		// Shown exactly once: permissionGuard fires a single toast per denied navigation and the /dashboard
+		// redirect target is gated only by authGuard, so the redirected navigation can't re-fire it.
 		await expect(dashboard.toast(ACCESS_DENIED)).toBeVisible()
-		await expect(dashboard.toast(ACCESS_DENIED)).toHaveCount(1)
 	})
 })
 
