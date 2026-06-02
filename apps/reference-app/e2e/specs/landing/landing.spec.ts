@@ -36,7 +36,9 @@ test.describe('Landing page (anonymous)', () => {
 		await expect(landing.skipLink).toBeAttached()
 	})
 
-	test('does not show the "Go to dashboard" link when unauthenticated', async () => {
+	test('the header has no "Go to dashboard" link', async () => {
+		// The landing header is stateless by design — the public route runs no session validation, so it
+		// never surfaces a dashboard shortcut (see #468). Guarded here against accidental reintroduction.
 		await expect(landing.dashboardLink).toHaveCount(0)
 	})
 })
@@ -55,11 +57,9 @@ test.describe('Landing page (authenticated cold load)', () => {
 		await expect(page).toHaveURL('/')
 	})
 
-	test('the "Go to dashboard" link is absent on a cold load (known gap #468)', async () => {
-		// The public landing route runs no session validation and nothing rehydrates `currentUser` from the
-		// cookie, so `isAuthenticated()` is false on a cold load and the header's `@if`-guarded "Go to
-		// dashboard" link never renders. This asserts the *current* behavior; when #468 is resolved (the
-		// link is made reachable, or removed), update this expectation accordingly.
+	test('the header has no "Go to dashboard" link even with a session cookie', async () => {
+		// The public landing route runs no session validation by design, so the header is stateless and shows
+		// no dashboard shortcut regardless of an existing session cookie (#468 removed the unreachable link).
 		await expect(landing.dashboardLink).toHaveCount(0)
 	})
 })
