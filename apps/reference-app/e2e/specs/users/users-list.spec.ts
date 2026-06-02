@@ -51,10 +51,10 @@ test.describe('Users list (admin)', () => {
 		await users.createButton.click()
 		await users.drawerFirstName.fill('New')
 		await users.drawerLastName.fill('User')
-		await users.drawerEmail.fill(`e2e-created-${Date.now()}@test.com`)
+		// Value is irrelevant — the POST is mocked and never reaches the DB.
+		await users.drawerEmail.fill('e2e-create-test@test.com')
 		await users.drawerSubmit.click()
 		await expect(page.getByText('User created successfully.')).toBeVisible()
-		await page.unroute('**/api/users')
 	})
 
 	test('deletes a user from the list with confirmation and a success toast', async ({ page }) => {
@@ -73,7 +73,6 @@ test.describe('Users list (admin)', () => {
 		await users.menuItem('Delete').click()
 		await users.confirmButton('Delete').click()
 		await expect(page.getByText('User deleted successfully.')).toBeVisible()
-		await page.unroute(/\/api\/users\/\d+$/)
 	})
 
 	test('the Edit row action navigates to the user detail page', async ({ page }) => {

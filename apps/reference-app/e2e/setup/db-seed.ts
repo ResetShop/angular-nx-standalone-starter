@@ -96,7 +96,8 @@ export async function seedE2eUsers(connectionString: string, password: string): 
 			passwordHash,
 		})
 
-		// Extra users so the list spans more than one page (default page size 10) and pagination is exercised.
+		// Extra users so the list spans more than one page (default page size 10) and pagination is exercised:
+		// 4 named users + 8 bulk = 12 total. Fixed emails are safe because globalSetup drops all tables first.
 		for (let i = 1; i <= 8; i += 1) {
 			await seedUser(db, {
 				email: `e2e-bulk-${i}@test.com`,
