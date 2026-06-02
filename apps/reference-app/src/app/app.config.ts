@@ -23,7 +23,10 @@ import { initializeTranslation } from '@resetshop/angular-core/i18n/translation.
 import { provideTranslation } from '@resetshop/angular-core/i18n/translation.provider'
 import { NavigationTitleStrategy } from '@resetshop/angular-core/navigation/navigation-title.strategy'
 import { provideTheme } from '@resetshop/angular-core/theme/theme'
+import { parseDurationToMs } from '@resetshop/util'
+import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.constants'
 import { UIStore } from '@store/ui/ui.store'
+import { provideToastConfig } from 'ng-primitives/toast'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
 import { authInterceptor } from './interceptors/auth.interceptor'
@@ -74,6 +77,16 @@ export const appConfig: ApplicationConfig = {
 		// Custom providers
 		Analytics,
 		UIStore,
+		// Toast config for the root-singleton NgpToastManager (renders into document.body). Lives once at
+		// the root so the single manager/bridge picks it up; routes opt into rendering via provideToast().
+		...provideToastConfig({
+			placement: 'bottom-center',
+			duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
+			dismissible: true,
+			maxToasts: 3,
+			gap: 16,
+			zIndex: 9999,
+		}),
 		provideTheme(),
 		provideProjectConfig(projectConfig),
 		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },

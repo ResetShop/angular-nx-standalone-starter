@@ -1,38 +1,24 @@
 import type { EnvironmentProviders } from '@angular/core'
 import { inject, makeEnvironmentProviders, provideEnvironmentInitializer } from '@angular/core'
-import { parseDurationToMs } from '@resetshop/util'
-import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.constants'
-import { NgpToastManager, provideToastConfig } from 'ng-primitives/toast'
 import { ToastBridgeService } from './toast-bridge.service'
 
 /**
- * Provides the full toast infrastructure for a route: ng-primitives config,
- * toast manager, bridge service, and eager instantiation of the bridge.
+ * Activates toast rendering for a route that fires toast notifications.
  *
- * All three dependencies (`NgpToastConfig`, `NgpToastManager`, `ToastBridgeService`)
- * must live in the same injector so the manager resolves the config and the bridge
- * resolves the manager. Since `NgpToastManager` and `ToastBridgeService` are both
- * `providedIn: 'root'`, explicitly providing them here creates route-scoped instances
- * that see the co-located config.
+ * `NgpToastManager` and `ToastBridgeService` are both `providedIn: 'root'` singletons
+ * (the manager renders into `document.body`, so its provision location is irrelevant),
+ * and the toast config (`provideToastConfig`) is registered once at the application
+ * root (`app.config.ts`). This function therefore provisions **nothing new** — it only
+ * eagerly `inject()`s the single root `ToastBridgeService` so its `effect()` is live for
+ * this route. The injection resolves up to the one root instance (no route re-provides
+ * it), so every route that calls this shares the same bridge and a notification renders
+ * exactly once.
  *
- * Register this ONCE, at the nearest persistent shell ancestor of all toast-firing
- * routes (the `dashboard` shell) — never per child route. The `ToastBridgeService`
- * each call creates watches the shared, global `UIStore.notifications()`, so multiple
- * route-scoped bridges would each render every notification, duplicating toasts on a
- * denied parameterized-route deep-link (#471).
+ * Add it to the `providers` of each route that fires toasts — never list
+ * `NgpToastManager`/`ToastBridgeService` as classes in a route's `providers` (that would
+ * mint a route-scoped instance; multiple live instances each render every notification,
+ * the #471 duplicate-toast bug). Routes that fire no toasts add nothing.
  */
 export function provideToast(): EnvironmentProviders {
-	return makeEnvironmentProviders([
-		...provideToastConfig({
-			placement: 'bottom-center',
-			duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
-			dismissible: true,
-			maxToasts: 3,
-			gap: 16,
-			zIndex: 9999,
-		}),
-		NgpToastManager,
-		ToastBridgeService,
-		provideEnvironmentInitializer(() => inject(ToastBridgeService)),
-	])
+	return makeEnvironmentProviders([provideEnvironmentInitializer(() => inject(ToastBridgeService))])
 }
