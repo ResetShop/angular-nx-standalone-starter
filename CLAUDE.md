@@ -540,7 +540,7 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 | `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                    |
 | `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`                    |
 
-> **`provideToast()` is provided once at the `dashboard` shell, never per child route.** The shell is a persistent ancestor of every toast-firing route and the redirect target of `permissionGuard` denials, so a single `ToastBridgeService` renders all `UIStore` notifications. Providing it per-child spawned multiple route-scoped bridges that each rendered the shared notifications — on a denied deep-link of a parameterized route (`/dashboard/users/:id`) two bridges fired and produced a duplicate deny toast ([#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471)).
+> **`provideToast()` is provided once at the `dashboard` shell, never per child route.** The shell is a persistent ancestor of every toast-firing route and the redirect target of `permissionGuard` denials, so a single `ToastBridgeService` renders all `UIStore` notifications. Providing it per-child spawned multiple route-scoped bridges that each rendered the shared notifications — on a denied deep-link of a parameterized route (`/dashboard/users/:id`) two bridges fired and produced a duplicate deny toast ([#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471)). If a fork introduces a second layout shell with its own toast-firing routes, register `provideToast()` once on that shell — never on its children.
 
 ---
 
