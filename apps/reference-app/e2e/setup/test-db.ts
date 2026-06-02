@@ -6,6 +6,8 @@
  *
  * In CI, `PG_TEST_CONNECTION_STRING` points at the postgres:17 service and the embedded path is skipped.
  */
+// Fixed (not random) so the connection string is known at playwright.config eval time. Uncommon port to
+// avoid clashing with a local dev Postgres (5432); change it if it conflicts with something on your machine.
 const PORT = 54329
 const USER = 'postgres'
 const PASSWORD = 'postgres'

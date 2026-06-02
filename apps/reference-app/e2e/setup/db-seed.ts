@@ -1,8 +1,8 @@
 /**
- * Seeds the four e2e fixture users directly via Drizzle. Runs inside Playwright's globalSetup, so it
+ * Seeds the three e2e fixture users directly via Drizzle. Runs inside Playwright's globalSetup, so it
  * uses relative imports only (no `@schema`/`@contracts` aliases) and hashes passwords with bcryptjs
  * directly rather than through the app's `createPasswordHasher` (which reads `authEnv` via `@config`,
- * unresolvable in this context). All four users share the same password (INTEGRATION_TEST_ADMIN_PASSWORD).
+ * unresolvable in this context). All three users share the same password (INTEGRATION_TEST_ADMIN_PASSWORD).
  */
 import bcrypt from 'bcryptjs'
 import { inArray } from 'drizzle-orm'
@@ -24,12 +24,24 @@ interface SeedUserParams {
 	mustChangePassword?: boolean
 }
 
-/** Email addresses of the seeded fixture users, shared with auth-setup.ts. */
-export const E2E_USERS = {
+/** Email addresses of the seeded fixture users, shared with auth-setup.ts and the specs. */
+export const E2E_USERS = Object.freeze({
 	admin: 'admin@sistema.com',
 	noPermission: 'e2e-noperm@test.com',
 	mustChange: 'e2e-mustchange@test.com',
-} as const
+} as const)
+
+/**
+ * The shared fixture-user password. Throws (rather than silently using an empty string) when the env
+ * var is missing, so a misconfigured run fails fast with a clear message instead of confusing auth errors.
+ */
+export function adminPassword(): string {
+	const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD']
+	if (!password) {
+		throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD is required for e2e (DB seed + fixture logins).')
+	}
+	return password
+}
 
 export async function seedE2eUsers(connectionString: string, password: string): Promise<void> {
 	const db = drizzle(connectionString)

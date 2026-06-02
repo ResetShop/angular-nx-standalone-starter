@@ -8,7 +8,7 @@
  * (Playwright does not resolve the project's TS path aliases here).
  */
 import type { FullConfig } from '@playwright/test'
-import { seedE2eUsers } from './db-seed'
+import { adminPassword, seedE2eUsers } from './db-seed'
 import { configureE2eEnvVars, loadEnvFile } from './env-helpers'
 import { e2eConnectionString, startE2ePostgres } from './test-db'
 
@@ -68,9 +68,5 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
 	configureE2eEnvVars(connectionString)
 	await pushSchemaToDb(connectionString)
 
-	const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD']
-	if (!password) {
-		throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD is required to seed e2e fixture users.')
-	}
-	await seedE2eUsers(connectionString, password)
+	await seedE2eUsers(connectionString, adminPassword())
 }

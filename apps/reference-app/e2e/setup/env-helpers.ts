@@ -29,14 +29,6 @@ export function loadEnvFile(): void {
 	}
 }
 
-export function getTestConnectionString(): string {
-	const connectionString = process.env['PG_TEST_CONNECTION_STRING']
-	if (!connectionString) {
-		throw new Error('PG_TEST_CONNECTION_STRING is required (set in .env, exported, or provided by CI).')
-	}
-	return connectionString
-}
-
 /**
  * Points the app server at the test database and sets test-friendly auth/email defaults.
  * Deliberately leaves PASETO_ACCESS_TOKEN_EXPIRY at the server default so sessions stay valid

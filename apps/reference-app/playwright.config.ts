@@ -43,8 +43,9 @@ export default defineConfig({
 		cwd: workspaceRoot,
 		// SSR dev-server cold start can take a while, especially in CI.
 		timeout: 180_000,
-		// Force the server onto the seeded test database (overriding any ambient PG_CONNECTION_STRING) and
-		// onto test-friendly auth/email settings. Mirrors e2e/setup/env-helpers.ts so server and seed agree.
+		// Env for the dev-server CHILD process (distinct from configureE2eEnvVars(), which sets env on the
+		// globalSetup/seed process). Forces the server onto the seeded test database (overriding any ambient
+		// PG_CONNECTION_STRING) and onto test-friendly auth/email settings, kept in sync with env-helpers.ts.
 		env: {
 			PG_CONNECTION_STRING: e2eConnectionString(),
 			PASETO_SECRET_KEY: process.env['PASETO_SECRET_KEY'] || 'a'.repeat(64),

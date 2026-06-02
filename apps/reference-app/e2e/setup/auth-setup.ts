@@ -9,14 +9,12 @@
  */
 import { test as setup } from '../fixtures'
 import { STORAGE_STATE } from '../fixtures/storage-state'
-import { E2E_USERS } from './db-seed'
-
-const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD'] ?? ''
+import { adminPassword, E2E_USERS } from './db-seed'
 
 setup('authenticate as admin', async ({ page }) => {
 	await page.goto('/auth/login')
 	await page.getByLabel('Email address').fill(E2E_USERS.admin)
-	await page.getByLabel('Password').fill(password)
+	await page.getByLabel('Password').fill(adminPassword())
 	await page.getByRole('button', { name: 'Sign in' }).click()
 	await page.waitForURL('**/dashboard')
 	await page.context().storageState({ path: STORAGE_STATE.admin })

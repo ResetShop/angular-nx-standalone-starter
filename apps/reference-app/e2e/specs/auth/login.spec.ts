@@ -1,14 +1,12 @@
 import { expect, test } from '../../fixtures'
 import { LoginPage } from '../../page-objects/login.page'
-import { E2E_USERS } from '../../setup/db-seed'
-
-const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD'] ?? ''
+import { adminPassword, E2E_USERS } from '../../setup/db-seed'
 
 test.describe('Login', () => {
 	test('valid credentials redirect to the dashboard', async ({ page }) => {
 		const login = new LoginPage(page)
 		await login.goto()
-		await login.login(E2E_USERS.admin, password)
+		await login.login(E2E_USERS.admin, adminPassword())
 		await expect(page).toHaveURL(/\/dashboard$/)
 	})
 
@@ -25,7 +23,7 @@ test.describe('Login', () => {
 		await login.goto()
 		await expect(login.submitButton).toBeDisabled()
 		await login.emailInput.fill(E2E_USERS.admin)
-		await login.passwordInput.fill(password)
+		await login.passwordInput.fill(adminPassword())
 		await expect(login.submitButton).toBeEnabled()
 	})
 
