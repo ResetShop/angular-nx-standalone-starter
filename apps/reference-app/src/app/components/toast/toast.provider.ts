@@ -15,7 +15,11 @@ import { ToastBridgeService } from './toast-bridge.service'
  * `providedIn: 'root'`, explicitly providing them here creates route-scoped instances
  * that see the co-located config.
  *
- * Call once in the `providers` array of each route that fires toast notifications.
+ * Register this ONCE, at the nearest persistent shell ancestor of all toast-firing
+ * routes (the `dashboard` shell) — never per child route. The `ToastBridgeService`
+ * each call creates watches the shared, global `UIStore.notifications()`, so multiple
+ * route-scoped bridges would each render every notification, duplicating toasts on a
+ * denied parameterized-route deep-link (#471).
  */
 export function provideToast(): EnvironmentProviders {
 	return makeEnvironmentProviders([
