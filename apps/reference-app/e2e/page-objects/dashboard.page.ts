@@ -19,6 +19,10 @@ export class DashboardPage {
 	get openMenuButton(): Locator {
 		return this.page.getByRole('button', { name: 'Open navigation menu' })
 	}
+	/** The header theme toggle, named for the mode it switches TO ('dark' when light, 'light' when dark). */
+	themeToggle(switchesTo: 'dark' | 'light'): Locator {
+		return this.page.getByRole('button', { name: `Switch to ${switchesTo} mode` })
+	}
 	get noAccessTitle(): Locator {
 		// The no-module-access empty state renders <div appAlert> (role="status") with this title;
 		// scoping to role="status" also asserts the ARIA contract and avoids any future text collision.
