@@ -8,3 +8,6 @@
 node_modules
 
 .nx/self-healing
+
+# Playwright e2e generated authenticated storage states (gitignored; session cookies, not source)
+apps/*/e2e/fixtures/states/

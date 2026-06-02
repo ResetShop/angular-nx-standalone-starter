@@ -29,6 +29,7 @@
 		"test:watch": "nx run reference-app:test --watch",
 		"test:ui": "nx run reference-app:test --configuration=ui -- --ui",
 		"test:e2e": "nx run reference-app:e2e",
+		"test:e2e:ui": "nx run reference-app:e2e -- --ui",
 		"generate:app": "nx g @resetshop/generators:app",
 		"drizzle:create-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs generate",
 		"drizzle:push-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push",
