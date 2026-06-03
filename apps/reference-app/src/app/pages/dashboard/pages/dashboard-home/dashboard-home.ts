@@ -21,7 +21,7 @@ import { AuthStore } from '@store/auth/auth.store'
 					<p appAlertDescription>{{ 'DASHBOARD.HOME.NO_ACCESS_MESSAGE' | translate }}</p>
 				</div>
 			}
-			@for (section of navigation.sections(); track section.id) {
+			@for (section of cardSections(); track section.id) {
 				<section>
 					@if (section.name) {
 						<h2 class="text-foreground mb-4 text-lg font-semibold">{{ section.name | translate }}</h2>
@@ -54,6 +54,19 @@ export default class DashboardHome {
 	 * staring at a near-empty dashboard.
 	 */
 	protected readonly hasNoModuleAccess = computed(() => this.authStore.userPermissions().length === 0)
+
+	/**
+	 * Navigation sections for the landing cards, with the self-referential link back to this page
+	 * (`/dashboard`) filtered out — a card on the dashboard that navigates to the dashboard is noise.
+	 * Sections left empty by that filter (the `home` section, whose only item is the dashboard link)
+	 * are dropped so no empty section header renders.
+	 */
+	protected readonly cardSections = computed(() =>
+		this.navigation
+			.sections()
+			.map((section) => ({ ...section, routes: section.routes.filter((route) => route.route !== 'dashboard') }))
+			.filter((section) => section.routes.length > 0),
+	)
 
 	protected getDescription(routeId: string): string {
 		const keyMap: Record<string, TranslationKey> = {
