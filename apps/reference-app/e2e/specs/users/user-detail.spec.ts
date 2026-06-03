@@ -139,8 +139,9 @@ test.describe('User detail — permission gating', () => {
 	test('a no-permission user deep-linking a detail page is redirected with a single deny toast', async ({ page }) => {
 		await page.goto(`/dashboard/users/${requireUserId('E2E_VIEWABLE_USER_ID')}`)
 		await expect(page).toHaveURL('/dashboard')
-		// Redirect is the security-critical assertion. Exactly one toast expected — `getByText` is strict
-		// (fails on >1 match), the regression guard for #471 (a single root ToastBridgeService renders it).
+		// Redirect is the security-critical assertion. The #471 regression guard: a single root
+		// ToastBridgeService renders the deny notification once, so this resolves to exactly one element —
+		// the bug rendered two, which makes `toBeVisible()` throw a Playwright strict-mode violation.
 		await expect(page.getByText("You don't have permission to access that page.")).toBeVisible()
 	})
 })

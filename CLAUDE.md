@@ -526,6 +526,7 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 - Never list `ToastBridgeService` or `NgpToastManager` as a class in any route's `providers` — that mints a route-scoped instance, overriding the root singleton, and resurrects the duplicate-toast bug.
 - Do **not** register `provideToastConfig` (it would have to live at app root for the root-singleton manager to read it, leaking toast config onto every route). Per-toast presentation defaults live in `DEFAULT_TOAST_OPTIONS` (`components/toast/toast.config.ts`) and are spread into `NgpToastManager.show()` by `ToastBridgeService` — that is the one place to tune `placement` / `dismissible`. Container-only settings the manager reads from its config token (`maxToasts`, `gap`, `zIndex`) are **not** expressible per `show()` and use ng-primitives' defaults (`maxToasts` is already 3); changing them is the only thing that would require a root `provideToastConfig`.
 - The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created.
+- As a `providedIn: 'root'` singleton the bridge persists for the session once first activated — see [#480](https://github.com/ResetShop/angular-nx-standalone-starter/issues/480) for the related `forbiddenInterceptor` 403-toast reliability follow-up.
 
 **Current route registrations (`dashboard.routes.ts`):**
 
@@ -536,8 +537,6 @@ Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on construc
 | `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
 | `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                   |
 | `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideToast()` |
-
-> **`provideToast()` goes on each route that fires toasts — it is activation-only, not a per-route instance.** Because `ToastBridgeService`/`NgpToastManager` are root singletons and `provideToast()` only eagerly `inject()`s the bridge, every calling route shares the one root instance, so a notification renders exactly once no matter how many toast routes are live (the fix for the [#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471) duplicate, which was caused by `provideToast()` previously re-providing the manager/bridge as route-scoped classes). The shell and non-toast routes carry no toast providers. Note: as a root singleton, the bridge persists once first activated — see [#480](https://github.com/ResetShop/angular-nx-standalone-starter/issues/480) for the related `forbiddenInterceptor` 403-toast reliability follow-up.
 
 ---
 

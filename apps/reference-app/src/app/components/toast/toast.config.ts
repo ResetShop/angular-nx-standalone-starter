@@ -10,7 +10,7 @@ import type { NgpToastOptions } from 'ng-primitives/toast'
  * ng-primitives' defaults (`maxToasts` is 3, matching this app's intent). This is the single place to tune
  * toast presentation. `duration` is intentionally omitted: it is resolved per notification by the bridge.
  */
-export const DEFAULT_TOAST_OPTIONS: Pick<NgpToastOptions, 'placement' | 'dismissible'> = {
+export const DEFAULT_TOAST_OPTIONS: Required<Pick<NgpToastOptions, 'placement' | 'dismissible'>> = {
 	placement: 'bottom-center',
 	dismissible: true,
 }

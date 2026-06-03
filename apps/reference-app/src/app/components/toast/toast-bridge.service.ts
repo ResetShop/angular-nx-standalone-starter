@@ -26,7 +26,6 @@ export class ToastBridgeService {
 
 		for (const notification of notifications) {
 			if (!this.activeToasts.has(notification.id)) {
-				// Presentation defaults passed per-show; duration is resolved per notification.
 				const ref = this.toastManager.show(ToastNotification, {
 					...DEFAULT_TOAST_OPTIONS,
 					context: notification,
