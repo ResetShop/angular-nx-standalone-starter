@@ -27,7 +27,7 @@ describe('Brand', () => {
 		expect(link).toBeInTheDocument()
 	})
 
-	it('should have navigation link to welcome page', async () => {
+	it('should link to the dashboard root', async () => {
 		await render(Brand, {
 			providers: defaultProviders(),
 		})

@@ -196,11 +196,9 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			BREADCRUMB: 'Dashboard',
 			SECTIONS: { SETTINGS: 'Settings', ADMIN: 'Admin' },
 			HOME: {
-				NAV: 'Home',
 				NO_ACCESS_TITLE: 'No access',
 				NO_ACCESS_MESSAGE: 'Contact admin',
 				DESCRIPTIONS: {
-					WELCOME: 'Welcome',
 					SETTINGS: 'Settings',
 					HEALTH: 'Health',
 					USERS: 'Users',
@@ -430,11 +428,9 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			BREADCRUMB: 'Panel',
 			SECTIONS: { SETTINGS: 'Ajustes', ADMIN: 'Admin' },
 			HOME: {
-				NAV: 'Inicio',
 				NO_ACCESS_TITLE: 'Sin acceso',
 				NO_ACCESS_MESSAGE: 'Contacta al admin',
 				DESCRIPTIONS: {
-					WELCOME: 'Bienvenido',
 					SETTINGS: 'Ajustes',
 					HEALTH: 'Salud',
 					USERS: 'Usuarios',

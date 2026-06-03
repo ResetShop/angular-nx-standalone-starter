@@ -12,13 +12,6 @@ import { Breadcrumb } from '@components/breadcrumb/breadcrumb'
 export class RootPageComponent {}
 
 @Component({
-	selector: 'app-welcome-page',
-	standalone: true,
-	template: '<div>Welcome Page</div>',
-})
-export class WelcomePageComponent {}
-
-@Component({
 	selector: 'app-detail-page',
 	standalone: true,
 	template: '<div>Detail Page</div>',

@@ -48,7 +48,7 @@ export default class DashboardHome {
 
 	/**
 	 * True when the current user holds zero permissions — they can reach the
-	 * unguarded cards (Welcome / Settings / Health) but no admin module is
+	 * unguarded cards (Settings / Health) but no admin module is
 	 * accessible to them. Triggers an explanatory empty-state alert at the top
 	 * of the page so the user knows to contact their administrator instead of
 	 * staring at a near-empty dashboard.
@@ -57,7 +57,6 @@ export default class DashboardHome {
 
 	protected getDescription(routeId: string): string {
 		const keyMap: Record<string, TranslationKey> = {
-			welcome: 'DASHBOARD.HOME.DESCRIPTIONS.WELCOME',
 			settings: 'DASHBOARD.HOME.DESCRIPTIONS.SETTINGS',
 			health: 'DASHBOARD.HOME.DESCRIPTIONS.HEALTH',
 			users: 'DASHBOARD.HOME.DESCRIPTIONS.USERS',
