@@ -22,3 +22,27 @@ test.describe('Health', () => {
 		await expect(health.healthyBadge.nth(1)).toBeVisible()
 	})
 })
+
+// #480: /dashboard/health never calls provideToast(), so the root toast bridge is dormant on a cold load.
+// A 403 here must still render the forbidden toast — the interceptor activates the bridge on demand.
+test.describe('Health — 403 renders the forbidden toast on a non-toast route', () => {
+	test.use({ storageState: STORAGE_STATE.admin })
+
+	test('a forbidden API response surfaces a toast even with no prior toast-route navigation', async ({ page }) => {
+		await page.route('**/api/health/v1', async (route) => {
+			if (route.request().method() === 'GET') {
+				await route.fulfill({
+					status: 403,
+					contentType: 'application/json',
+					body: JSON.stringify({ message: 'Forbidden' }),
+				})
+				return
+			}
+			await route.continue()
+		})
+
+		await page.goto('/dashboard/health')
+
+		await expect(page.getByText("You don't have permission to perform this action")).toBeVisible()
+	})
+})
