@@ -5,6 +5,7 @@ import { UIStore } from '@store/ui/ui.store'
 import type { NgpToastRef } from 'ng-primitives/toast'
 import { NgpToastManager } from 'ng-primitives/toast'
 import { ToastNotification } from './toast-notification'
+import { DEFAULT_TOAST_OPTIONS } from './toast.config'
 
 /**
  * Bridges UIStore notification state to the ng-primitives toast system.
@@ -37,14 +38,11 @@ export class ToastBridgeService {
 
 		for (const notification of notifications) {
 			if (!this.activeToasts.has(notification.id)) {
-				// Presentation options are passed per-show, so no DI-provided NgpToastConfig has to live
-				// anywhere globally (placement would otherwise default to 'top-end'). Container-level settings
-				// not expressible per-show (maxToasts, gap, zIndex) use ng-primitives' defaults — maxToasts is
-				// already 3, which matches this app's intent.
+				// Presentation defaults come from DEFAULT_TOAST_OPTIONS (our own config, passed per-show), so no
+				// DI-provided NgpToastConfig has to live anywhere globally. duration is resolved per notification.
 				const ref = this.toastManager.show(ToastNotification, {
+					...DEFAULT_TOAST_OPTIONS,
 					context: notification,
-					placement: 'bottom-center',
-					dismissible: true,
 					duration: parseDurationToMs(notification.duration ?? DEFAULT_NOTIFICATION_DURATION),
 				})
 				this.activeToasts.set(notification.id, ref)
