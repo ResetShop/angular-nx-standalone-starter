@@ -6,6 +6,7 @@ import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn, spyOn, type MockFn } from '@resetshop/util/test-utils'
 import { UIStore } from '@store/ui/ui.store'
 import { NotificationType, type UINotification } from '@store/ui/ui.types'
+import { NgpToastManager } from 'ng-primitives/toast'
 import { forbiddenInterceptor } from './forbidden.interceptor'
 
 type UIStoreMock = {
@@ -151,6 +152,57 @@ describe('forbiddenInterceptor', () => {
 			httpMock.expectOne('/api/roles').flush(null, { status: 403, statusText: 'Forbidden' })
 
 			expect(uiStoreMock.showNotification.calls).toHaveLength(2)
+		})
+	})
+
+	// #480: a 403 can fire on a route that never called provideToast(), so the lazily-instantiated root
+	// ToastBridgeService is dormant and the notification never renders. The interceptor activates the bridge
+	// on demand. Here we wire the REAL bridge + REAL UIStore + a mock NgpToastManager and assert the toast
+	// actually renders (manager.show is called) on a 403 — and is NOT activated for a non-403 error.
+	describe('toast bridge activation (browser)', () => {
+		let http: HttpClient
+		let httpMock: HttpTestingController
+		let showMock: MockFn
+
+		beforeEach(() => {
+			clearAllMocks()
+			showMock = fn()
+			showMock.mockReturnValue({ dismiss: fn() })
+
+			TestBed.configureTestingModule({
+				providers: [
+					provideHttpClient(withInterceptors([forbiddenInterceptor])),
+					provideHttpClientTesting(),
+					{ provide: PLATFORM_ID, useValue: 'browser' },
+					{ provide: Translation, useValue: createTranslationMock() },
+					// Real UIStore + real ToastBridgeService (both providedIn: 'root'); only the renderer is mocked.
+					{ provide: NgpToastManager, useValue: { show: showMock } },
+				],
+			})
+
+			http = TestBed.inject(HttpClient)
+			httpMock = TestBed.inject(HttpTestingController)
+			spyOn(console, 'error')
+		})
+
+		afterEach(() => {
+			httpMock.verify()
+		})
+
+		it('activates the root bridge so a 403 renders a toast with no prior provideToast()', () => {
+			http.get('/api/users').subscribe({ error: () => undefined })
+			httpMock.expectOne('/api/users').flush(null, { status: 403, statusText: 'Forbidden' })
+			TestBed.tick()
+
+			expect(showMock.calls).toHaveLength(1)
+		})
+
+		it('does not activate the bridge or render for a non-403 error', () => {
+			http.get('/api/users').subscribe({ error: () => undefined })
+			httpMock.expectOne('/api/users').flush(null, { status: 500, statusText: 'Server Error' })
+			TestBed.tick()
+
+			expect(showMock.calls).toHaveLength(0)
 		})
 	})
 
