@@ -5,17 +5,14 @@ import { UIStore } from '@store/ui/ui.store'
 import type { NgpToastRef } from 'ng-primitives/toast'
 import { NgpToastManager } from 'ng-primitives/toast'
 import { ToastNotification } from './toast-notification'
+import { DEFAULT_TOAST_OPTIONS } from './toast.config'
 
 /**
- * Bridges UIStore notification state to the ng-primitives toast system.
+ * Bridges `UIStore` notifications to the ng-primitives toast system: watches `UIStore.notifications()`
+ * and shows/dismisses toasts via `NgpToastManager` to match.
  *
- * Watches `UIStore.notifications()` via `effect()` and diffs against a local
- * map of active toasts. New notifications trigger `NgpToastManager.show()`,
- * removed notifications trigger `ref.dismiss()`.
- *
- * Declared with `providedIn: 'root'` (singleton). Eagerly instantiated at
- * route activation time via `provideEnvironmentInitializer(() => inject(ToastBridgeService))`
- * on each route that fires toast notifications (see `dashboard.routes.ts`).
+ * Root singleton — do not list it in any route's `providers`; a route-scoped copy would render every
+ * notification a second time. Routes opt into rendering via `provideToast()`.
  */
 @Injectable({ providedIn: 'root' })
 export class ToastBridgeService {
@@ -30,6 +27,7 @@ export class ToastBridgeService {
 		for (const notification of notifications) {
 			if (!this.activeToasts.has(notification.id)) {
 				const ref = this.toastManager.show(ToastNotification, {
+					...DEFAULT_TOAST_OPTIONS,
 					context: notification,
 					duration: parseDurationToMs(notification.duration ?? DEFAULT_NOTIFICATION_DURATION),
 				})

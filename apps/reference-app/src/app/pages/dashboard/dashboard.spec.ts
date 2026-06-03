@@ -2,7 +2,6 @@ import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
-import { ToastBridgeService } from '@components/toast/toast-bridge.service'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
@@ -16,7 +15,6 @@ import { UIStore } from '@store/ui/ui.store'
 import type { UINotification } from '@store/ui/ui.types'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
-import { NgpToastManager } from 'ng-primitives/toast'
 import Dashboard from './dashboard'
 
 describe('Dashboard', () => {
@@ -50,8 +48,6 @@ describe('Dashboard', () => {
 		provideAuthMock(),
 		NavigationState,
 		{ provide: UIStore, useValue: mockUIStore },
-		{ provide: NgpToastManager, useValue: { show: () => ({ dismiss: () => Promise.resolve() }) } },
-		ToastBridgeService,
 		provideTranslationMock(),
 	]
 

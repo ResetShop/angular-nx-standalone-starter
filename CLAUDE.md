@@ -501,32 +501,32 @@ Domain stores keep `providedIn: 'root'` for tree-shaking, but must be **explicit
 
 Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on constructor side effects (`effect()`) that must be active before the route's components fire notifications. Because `providedIn: 'root'` services are instantiated lazily on first injection, a service that is never injected by any component stays dormant. Use `provideEnvironmentInitializer(() => inject(Service))` in the route's `providers` array to force instantiation when the route activates.
 
+`provideToast()` is the canonical example. `ToastBridgeService` and `NgpToastManager` are both `providedIn: 'root'` singletons (the manager renders into `document.body`, so where it is provided is irrelevant), and `ToastBridgeService` passes its presentation options per `show()` — so **no `NgpToastConfig` is registered anywhere**, and nothing toast-related is forced onto routes that never show toasts. `provideToast()` therefore provisions **nothing new** — it is exactly `provideEnvironmentInitializer(() => inject(ToastBridgeService))`, which eagerly instantiates the single root bridge so its `effect()` is live for that route. The `inject()` resolves up to the one root instance (no route re-provides it), so every route that calls `provideToast()` shares the same bridge and a notification renders exactly once. Put it on each route that fires toasts; routes that fire none add nothing.
+
 ```typescript
-// ✅ Correct — eagerly instantiates the root singleton at route activation
+// ✅ Correct — provideToast() on each route that fires toasts; it only activates the single root-singleton
+// ToastBridgeService (no new instance). Routes that fire no toasts (settings, health, …) add nothing.
 {
-  path: 'users',
-  providers: [
-    provideUsers(), provideRoles(), UsersStore, RolesStore,
-    provideEnvironmentInitializer(() => inject(ToastBridgeService)),
-  ],
+  path: 'users/:id',
+  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
 }
 
-// ❌ Incorrect — re-provides the service, creating a second instance
+// ❌ Incorrect — listing NgpToastManager / ToastBridgeService as classes in a route's providers mints a
+// route-scoped instance that overrides the root singleton; multiple live bridges each render the SHARED
+// UIStore notifications, so a denied deep-link of a parameterized route duplicates the deny toast (#471)
 {
-  path: 'users',
-  providers: [
-    provideUsers(), provideRoles(), UsersStore, RolesStore,
-    ToastBridgeService, // duplicates the root singleton!
-    provideEnvironmentInitializer(() => inject(ToastBridgeService)),
-  ],
+  path: 'users/:id',
+  providers: [provideUsers(), NgpToastManager, ToastBridgeService /* ← wrong */],
 }
 ```
 
 **Rules:**
 
-- Only add `provideEnvironmentInitializer` on routes that actually use the service's side effects (e.g., routes with mutation toasts need `ToastBridgeService`)
-- Never list the service class itself in the route `providers` alongside the initializer — that creates a second instance and duplicates side effects
-- The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created
+- Add `provideToast()` to each route that fires toasts. It is activation-only (it just eagerly injects the root `ToastBridgeService`), so calling it on many routes still yields **one** shared bridge — no duplication ([#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471)).
+- Never list `ToastBridgeService` or `NgpToastManager` as a class in any route's `providers` — that mints a route-scoped instance, overriding the root singleton, and resurrects the duplicate-toast bug.
+- Do **not** register `provideToastConfig` (it would have to live at app root for the root-singleton manager to read it, leaking toast config onto every route). Per-toast presentation defaults live in `DEFAULT_TOAST_OPTIONS` (`components/toast/toast.config.ts`) and are spread into `NgpToastManager.show()` by `ToastBridgeService` — that is the one place to tune `placement` / `dismissible`. Container-only settings the manager reads from its config token (`maxToasts`, `gap`, `zIndex`) are **not** expressible per `show()` and use ng-primitives' defaults (`maxToasts` is already 3); changing them is the only thing that would require a root `provideToastConfig`.
+- The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created.
+- As a `providedIn: 'root'` singleton the bridge persists for the session once first activated — see [#480](https://github.com/ResetShop/angular-nx-standalone-starter/issues/480) for the related `forbiddenInterceptor` 403-toast reliability follow-up.
 
 **Current route registrations (`dashboard.routes.ts`):**
 

@@ -4,10 +4,10 @@ import { parseDurationToMs } from '@resetshop/util'
 import { DEFAULT_NOTIFICATION_DURATION } from '@store/ui/ui.constants'
 import type { NotificationType } from '@store/ui/ui.types'
 import type { Meta, StoryObj } from '@storybook/angular'
-import { applicationConfig } from '@storybook/angular'
 import type { NgpToastOptions } from 'ng-primitives/toast'
-import { NgpToastManager, provideToastConfig } from 'ng-primitives/toast'
+import { NgpToastManager } from 'ng-primitives/toast'
 import { ToastNotification } from './toast-notification'
+import { DEFAULT_TOAST_OPTIONS } from './toast.config'
 
 type ToastPlacement = NonNullable<NgpToastOptions['placement']>
 
@@ -41,6 +41,7 @@ class ToastStory {
 		const notification = { id, type, message }
 
 		this.toastManager.show(ToastNotification, {
+			...DEFAULT_TOAST_OPTIONS,
 			context: notification,
 			placement: this.placement(),
 			duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
@@ -54,20 +55,6 @@ const meta: Meta<ToastStory> = {
 	component: ToastStory,
 	title: 'Components/Toast Notification',
 	tags: ['autodocs'],
-	decorators: [
-		applicationConfig({
-			providers: [
-				...provideToastConfig({
-					placement: 'bottom-center',
-					duration: parseDurationToMs(DEFAULT_NOTIFICATION_DURATION),
-					dismissible: true,
-					maxToasts: 3,
-					gap: 16,
-					zIndex: 9999,
-				}),
-			],
-		}),
-	],
 	argTypes: {
 		placement: {
 			control: 'select',
