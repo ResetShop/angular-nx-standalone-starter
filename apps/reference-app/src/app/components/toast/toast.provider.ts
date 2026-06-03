@@ -3,21 +3,8 @@ import { inject, makeEnvironmentProviders, provideEnvironmentInitializer } from 
 import { ToastBridgeService } from './toast-bridge.service'
 
 /**
- * Activates toast rendering for a route that fires toast notifications.
- *
- * `NgpToastManager` and `ToastBridgeService` are both `providedIn: 'root'` singletons
- * (the manager renders into `document.body`, so its provision location is irrelevant), and
- * `ToastBridgeService` passes its presentation options per `show()` — so there is no
- * `NgpToastConfig` registered anywhere (nothing toast-related is forced onto routes that
- * never show toasts). This function therefore provisions **nothing new** — it only eagerly
- * `inject()`s the single root `ToastBridgeService` so its `effect()` is live for this route.
- * The injection resolves up to the one root instance (no route re-provides it), so every
- * route that calls this shares the same bridge and a notification renders exactly once.
- *
- * Add it to the `providers` of each route that fires toasts — never list
- * `NgpToastManager`/`ToastBridgeService` as classes in a route's `providers` (that would
- * mint a route-scoped instance; multiple live instances each render every notification,
- * the #471 duplicate-toast bug). Routes that fire no toasts add nothing.
+ * Activates toast rendering for a route by eagerly instantiating the root-singleton `ToastBridgeService`
+ * so its `effect()` is live while the route is active. Add it to the `providers` of routes that show toasts.
  */
 export function provideToast(): EnvironmentProviders {
 	return makeEnvironmentProviders([provideEnvironmentInitializer(() => inject(ToastBridgeService))])

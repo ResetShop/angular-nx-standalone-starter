@@ -8,23 +8,11 @@ import { ToastNotification } from './toast-notification'
 import { DEFAULT_TOAST_OPTIONS } from './toast.config'
 
 /**
- * Bridges UIStore notification state to the ng-primitives toast system.
+ * Bridges `UIStore` notifications to the ng-primitives toast system: watches `UIStore.notifications()`
+ * and shows/dismisses toasts via `NgpToastManager` to match.
  *
- * Watches `UIStore.notifications()` via `effect()` and diffs against a local
- * map of active toasts. New notifications trigger `NgpToastManager.show()`,
- * removed notifications trigger `ref.dismiss()`.
- *
- * Because it watches the shared, global `UIStore.notifications()`, there must be
- * exactly ONE live instance — otherwise every instance renders every notification
- * (the #471 duplicate-toast root cause). It is a `providedIn: 'root'` singleton and must
- * NEVER be listed as a class in any route's `providers` (that mints a route-scoped
- * instance and resurrects the duplicate). Routes that fire toasts opt in via
- * `provideToast()`, which only `provideEnvironmentInitializer(() => inject(this))` — i.e.
- * it eagerly instantiates the single root instance so the `effect()` is live, without
- * creating a new one. `NgpToastManager` is likewise a root singleton (it renders into
- * `document.body`, so its provision location is irrelevant). No `NgpToastConfig` is
- * provided anywhere — this bridge passes its presentation options per `show()` (see below),
- * so there is no app-wide toast config to leak onto routes that never show toasts.
+ * Root singleton — do not list it in any route's `providers`; a route-scoped copy would render every
+ * notification a second time. Routes opt into rendering via `provideToast()`.
  */
 @Injectable({ providedIn: 'root' })
 export class ToastBridgeService {
@@ -38,8 +26,7 @@ export class ToastBridgeService {
 
 		for (const notification of notifications) {
 			if (!this.activeToasts.has(notification.id)) {
-				// Presentation defaults come from DEFAULT_TOAST_OPTIONS (our own config, passed per-show), so no
-				// DI-provided NgpToastConfig has to live anywhere globally. duration is resolved per notification.
+				// Presentation defaults passed per-show; duration is resolved per notification.
 				const ref = this.toastManager.show(ToastNotification, {
 					...DEFAULT_TOAST_OPTIONS,
 					context: notification,
