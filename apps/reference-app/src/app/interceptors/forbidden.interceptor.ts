@@ -38,8 +38,8 @@ export const forbiddenInterceptor: HttpInterceptorFn = (req, next) => {
 	return next(req).pipe(
 		catchError((error: HttpErrorResponse) => {
 			if (error.status === 403) {
-				// Activate the root toast bridge on demand so the toast renders even on routes that never
-				// call provideToast() (the bridge is otherwise lazily instantiated — #480).
+				// Side-effect only: instantiating the root bridge makes its effect() live so the toast renders
+				// even on routes that never call provideToast() (the bridge is otherwise lazily created — #480).
 				injector.get(ToastBridgeService)
 				loggerService.error('ForbiddenInterceptor', `403 Forbidden: ${req.method} ${req.url}`)
 				uiStore.showNotification({

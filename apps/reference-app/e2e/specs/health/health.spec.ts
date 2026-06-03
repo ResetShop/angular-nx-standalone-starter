@@ -25,7 +25,7 @@ test.describe('Health', () => {
 
 // #480: /dashboard/health never calls provideToast(), so the root toast bridge is dormant on a cold load.
 // A 403 here must still render the forbidden toast — the interceptor activates the bridge on demand.
-test.describe('Health — 403 renders the forbidden toast on a non-toast route', () => {
+test.describe('Health — forbidden API response surfaces a toast', () => {
 	test.use({ storageState: STORAGE_STATE.admin })
 
 	test('a forbidden API response surfaces a toast even with no prior toast-route navigation', async ({ page }) => {
@@ -43,6 +43,8 @@ test.describe('Health — 403 renders the forbidden toast on a non-toast route',
 
 		await page.goto('/dashboard/health')
 
-		await expect(page.getByText("You don't have permission to perform this action")).toBeVisible()
+		// The toast appears as soon as the 403 lands — well within the 5s auto-dismiss window, and Playwright's
+		// 15s expect.timeout is the ceiling. `exact` matches the toast-message locator pattern used elsewhere.
+		await expect(page.getByText("You don't have permission to perform this action", { exact: true })).toBeVisible()
 	})
 })

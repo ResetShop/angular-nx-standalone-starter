@@ -182,7 +182,7 @@ describe('forbiddenInterceptor', () => {
 
 			http = TestBed.inject(HttpClient)
 			httpMock = TestBed.inject(HttpTestingController)
-			spyOn(console, 'error')
+			spyOn(console, 'error') // mute the interceptor's 403 log; the log itself is asserted in the browser block
 		})
 
 		afterEach(() => {
