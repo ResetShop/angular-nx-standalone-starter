@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
-import { featherActivity, featherHome } from '@ng-icons/feather-icons'
+import { featherActivity } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
 import type { BreadcrumbItem, NavigationSection } from '@resetshop/angular-core/interfaces/navigation'
@@ -39,7 +39,6 @@ describe('Dashboard', () => {
 	const defaultProviders = () => [
 		provideRouter([
 			{ path: 'auth/login', component: Dashboard },
-			{ path: 'welcome', component: Dashboard },
 			{ path: 'health', component: Dashboard },
 		]),
 		provideMockTheme(false),
@@ -66,12 +65,6 @@ describe('Dashboard', () => {
 		id: 'settings',
 		name: 'Ajustes y mantenimiento',
 		routes: [
-			{
-				id: 'welcome',
-				name: 'Configuración inicial',
-				route: 'welcome',
-				icon: { featherHome: featherHome },
-			},
 			{
 				id: 'health',
 				name: 'Salud',

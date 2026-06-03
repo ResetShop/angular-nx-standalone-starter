@@ -49,7 +49,6 @@ describe('Sidebar', () => {
 	const defaultProviders = () => [
 		provideRouter([
 			{ path: 'auth/login', component: Sidebar },
-			{ path: 'welcome', component: Sidebar },
 			{ path: 'health', component: Sidebar },
 			{ path: 'admin/users', component: Sidebar },
 			{ path: 'admin/settings', component: Sidebar },
@@ -74,12 +73,6 @@ describe('Sidebar', () => {
 		id: 'settings',
 		name: 'Ajustes y mantenimiento',
 		routes: [
-			{
-				id: 'welcome',
-				name: 'Configuración inicial',
-				route: 'welcome',
-				icon: { featherHome: featherHome },
-			},
 			{
 				id: 'health',
 				name: 'Salud',
@@ -133,9 +126,6 @@ describe('Sidebar', () => {
 
 		const healthLink = screen.getByRole('link', { name: /salud/i })
 		expect(healthLink).toBeInTheDocument()
-
-		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i })
-		expect(welcomeLink).toBeInTheDocument()
 	})
 
 	it('should render sign out button with link variant styling', async () => {
@@ -155,9 +145,6 @@ describe('Sidebar', () => {
 
 		const healthLink = screen.getByRole('link', { name: /salud/i })
 		expect(healthLink).toHaveAttribute('href', '/health')
-
-		const welcomeLink = screen.getByRole('link', { name: /configuración inicial/i })
-		expect(welcomeLink).toHaveAttribute('href', '/welcome')
 	})
 
 	it('should route to login page on sign out', async () => {
