@@ -34,12 +34,6 @@ export default [
 				title: 'HEALTH.NAV',
 				loadComponent: () => import('./pages/health/health'),
 			},
-			// TODO: Remove access to this route once the project setup is completed
-			{
-				path: 'welcome',
-				title: 'DASHBOARD.HOME.NAV',
-				loadComponent: () => import('./pages/welcome/welcome'),
-			},
 			{
 				path: 'users',
 				title: 'USERS.PAGE.TITLE',

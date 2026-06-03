@@ -1,4 +1,4 @@
-import { featherActivity, featherHome, featherSettings } from '@ng-icons/feather-icons'
+import { featherActivity, featherSettings } from '@ng-icons/feather-icons'
 import type { NavigationConfig } from '@resetshop/angular-core/interfaces/navigation'
 import { authorizationNavigation } from './authorization/authorization.navigation'
 import { usersNavigation } from './users/users.navigation'
@@ -7,10 +7,7 @@ export const dashboardNavigationConfig: NavigationConfig = {
 	sections: [
 		{
 			id: 'home',
-			routes: [
-				{ id: 'welcome', name: 'DASHBOARD.HOME.NAV', route: 'dashboard/welcome', icon: { featherHome } },
-				{ id: 'settings', name: 'SETTINGS.NAV', route: 'dashboard/settings', icon: { featherSettings } },
-			],
+			routes: [{ id: 'settings', name: 'SETTINGS.NAV', route: 'dashboard/settings', icon: { featherSettings } }],
 		},
 		{
 			id: 'settings',
