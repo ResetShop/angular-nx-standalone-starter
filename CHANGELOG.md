@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-06-04
+
+First fully-featured release of the starter under the fork-distribution model — the consolidation of everything accumulated since `1.0.0-beta.3`. Closes the 1.0.0 milestone. Forks should read this section's `Migration:` notes before merging.
+
 ### Added
 
 - **End-to-end Health-page coverage — final slice of the [#261](https://github.com/ResetShop/angular-nx-standalone-starter/issues/261) e2e epic (stacked on #465).** New `apps/reference-app/e2e/specs/health/health.spec.ts` + `page-objects/health.page.ts` covering `/dashboard/health`: the page renders the 'Application Health Checker' heading, the 'Checks' / 'Database' sections, and the status from the live `GET /api/health/v1` — with the overall status and the database check both reporting `healthy` against the seeded test DB. Read-only (no mocks); the route has no permission guard, so no deny case. Completes the e2e epic (#459–#466). Reuses the #459 harness; no production code changed. Runs via `npm run test:e2e` (outside `npm run ci`). ([#466](https://github.com/ResetShop/angular-nx-standalone-starter/issues/466))
@@ -188,13 +192,12 @@ This is the first tagged version of the starter under the fork-distribution mode
 - **`apps/reference-app` e2e test coverage** — Playwright config exists but no specs. ([#261](https://github.com/ResetShop/angular-nx-standalone-starter/issues/261))
 
 <!--
-  Link references below resolve once the corresponding git tags are pushed
-  upstream. Until then they 404; do not click them blindly. They are kept
-  here so the markdown anchor format is established for future versions.
+  Link references. The v1.0.0 tag is created on main after the #485 PR merges,
+  at which point the [1.0.0] link below resolves to its GitHub release.
+  The beta tags (beta.0–beta.3) were never pushed upstream; the
+  ## [1.0.0-beta.N] section headings above are historical documentation only
+  and intentionally carry no resolvable tag links.
 -->
 
-[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.3...HEAD
-[1.0.0-beta.3]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.2...v1.0.0-beta.3
-[1.0.0-beta.2]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.1...v1.0.0-beta.2
-[1.0.0-beta.1]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.0...v1.0.0-beta.1
-[1.0.0-beta.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0-beta.0
+[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0
