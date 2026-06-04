@@ -2,9 +2,13 @@
 
 All notable changes to this starter are documented here. Forks should read this file before every upstream merge — it is the single source of truth for what changed upstream and whether any of those changes affect fork-owned code or require migration work.
 
-The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Versioning cadence: **every fork-visible breaking change cuts a new version**; non-breaking changes accumulate under `## [Unreleased]` until the next breaking change forces a new release. A "fork-visible breaking change" is anything that requires a fork to take action during a merge — removed files, renamed APIs, changed schemas, restructured directories, or modified contracts. Pre-1.0 versions use the `1.0.0-beta.N` numbering convention while the fork-distribution model is being stabilized.
+The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). Versioning cadence: **every fork-visible breaking change cuts a new version**; non-breaking changes accumulate under `## [Unreleased]` until the next breaking change forces a new release. A "fork-visible breaking change" is anything that requires a fork to take action during a merge — removed files, renamed APIs, changed schemas, restructured directories, or modified contracts. Prior to 1.0.0, versions followed a `1.0.0-beta.N` naming convention while the fork-distribution model was being stabilized; all releases from 1.0.0 onward follow semantic versioning.
 
 ## [Unreleased]
+
+## [1.0.0] — 2026-06-04
+
+First fully-featured release of the starter under the fork-distribution model — the consolidation of everything accumulated since `1.0.0-beta.3`. Closes the 1.0.0 milestone. Forks should read this section's `Migration:` notes before merging.
 
 ### Added
 
@@ -103,7 +107,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - **`apps/reference-app/src/contracts/auth/auth.schemas.ts`** — `meResponseSchema.email` was `z.string()` while `authUserSchema.email` was `z.email()`. Collapsing `meResponseSchema` into `authUserSchema` (see Changed entry above) tightens email validation on `/api/auth/me` to match `/api/auth/login`. ([#322](https://github.com/ResetShop/angular-nx-standalone-starter/issues/322))
 - **Sidebar nav flicker during logout** — `provideAuth()` (`apps/reference-app/src/app/providers/auth/auth.provider.ts`) now accepts opt-in features in the `provideRouter`/`provideHttpClient` style. The new `withNavigationPermissionCheck()` feature wires the navigation library's `NAVIGATION_PERMISSION_CHECK` token through `AuthStore.currentUser`, and **returns `true` for any permission when no user is logged in**. The previous inline factory in `app.config.ts` re-evaluated `Navigation.sections` to a permission-stripped list the instant `authStore.logout()` cleared `currentUser`, producing a one-frame visible flicker before the route deactivated and the sidebar unmounted. Skipping the filter when no user is logged in eliminates the recomputation; route-level access is still enforced by `permissionGuard`, so this carries no security impact. **Migration for forks:** if your `app.config.ts` calls `provideAuth()` and you want the navigation permission check, change it to `provideAuth(withNavigationPermissionCheck())` and remove any inline `NAVIGATION_PERMISSION_CHECK` provider you may have copied. `provideAuth()` with no features is still valid and registers only the `AuthApi` token.
 
-## [1.0.0-beta.3] — 2026-04-07
+## 1.0.0-beta.3 — 2026-04-07
 
 Final Epic 2 cleanup. Closes the milestone (`Monorepo restructure + fork distribution`).
 
@@ -119,7 +123,7 @@ Final Epic 2 cleanup. Closes the milestone (`Monorepo restructure + fork distrib
 - **`apps/reference-app/project.json`** `serve-static` target — `staticFilePath` was `"dist/app/browser"` (the old single-app output dir). Build's `outputPath` is `"dist/reference-app"`, so the correct serve path is `"dist/reference-app/browser"`. The target had been silently serving from a non-existent directory.
 - **`apps/reference-app/src/api/utils/password.ts`** comment — said `"copied to dist/app/server/wordlists/"`. Updated to `dist/reference-app/server/wordlists/`. Runtime was unaffected (the code uses `import.meta.dirname`), but the comment misled developers debugging wordlist loading.
 
-## [1.0.0-beta.2] — 2026-04-07
+## 1.0.0-beta.2 — 2026-04-07
 
 Adds the upstream CI guard layer that protects the starter contract on incoming PRs.
 
@@ -135,7 +139,7 @@ Adds the upstream CI guard layer that protects the starter contract on incoming 
 
 - **`docs/forking.md`** — §9 (CI guards) converted from planned to active tense; §5 (conflict resolution) forward reference to PR 2.4 resolved.
 
-## [1.0.0-beta.1] — 2026-04-07
+## 1.0.0-beta.1 — 2026-04-07
 
 Adds the starter/app boundary enforcement layer on top of the structural restructure shipped in `1.0.0-beta.0`.
 
@@ -153,7 +157,7 @@ Adds the starter/app boundary enforcement layer on top of the structural restruc
 
 - **`nx.json` `defaultProject`** — relied on by direct `nx` CLI calls which are forbidden by CLAUDE.md's command policy. Removing it eliminates a fork-merge conflict surface and forces explicit project naming in every command.
 
-## [1.0.0-beta.0] — 2026-04-06
+## 1.0.0-beta.0 — 2026-04-06
 
 This is the first tagged version of the starter under the fork-distribution model. Forks created after this version should track the changelog entries above as the canonical record of what has changed since their initial fork point.
 
@@ -188,13 +192,11 @@ This is the first tagged version of the starter under the fork-distribution mode
 - **`apps/reference-app` e2e test coverage** — Playwright config exists but no specs. ([#261](https://github.com/ResetShop/angular-nx-standalone-starter/issues/261))
 
 <!--
-  Link references below resolve once the corresponding git tags are pushed
-  upstream. Until then they 404; do not click them blindly. They are kept
-  here so the markdown anchor format is established for future versions.
+  Link references. The v1.0.0 tag is created on main after the #485 PR merges,
+  at which point the [1.0.0] link below resolves to its GitHub release.
+  The beta releases (1.0.0-beta.0–beta.3) were never tagged upstream, so their
+  section headings above are plain text and have no link references here.
 -->
 
-[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.3...HEAD
-[1.0.0-beta.3]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.2...v1.0.0-beta.3
-[1.0.0-beta.2]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.1...v1.0.0-beta.2
-[1.0.0-beta.1]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0-beta.0...v1.0.0-beta.1
-[1.0.0-beta.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0-beta.0
+[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0
