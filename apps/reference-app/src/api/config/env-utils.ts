@@ -1,8 +1,9 @@
 /**
  * Factory and shared helpers for the domain-scoped env sub-schemas.
  *
- * Every sub-schema module under this directory (`db.env.ts`, `auth.env.ts`,
- * `email.env.ts`, `http.env.ts`, `app.env.ts`, `cron.env.ts`) calls
+ * Every sub-schema module under this directory (`db.env.ts`, `email.env.ts`,
+ * `http.env.ts`, `app.env.ts`, `cron.env.ts`, `token.env.ts`, `password.env.ts`,
+ * `security.env.ts`) calls
  * `createEnvHandler()` with its Zod schema, a domain name, and an optional
  * test-defaults object. The factory returns the four symbols each module
  * re-exports under domain-specific names:
