@@ -317,3 +317,9 @@ license details.
 | Spanish password word list | [Dadoware Bonito ES](https://github.com/mir123/dadoware-bonito-es)                           | MIT          |
 
 Full details: [`src/api/utils/wordlists/README.md`](./src/api/utils/wordlists/README.md)
+
+---
+
+## License
+
+Licensed under the **Apache License, Version 2.0** — see [`LICENSE.md`](./LICENSE.md) and [`NOTICE.md`](./NOTICE.md). The third-party data assets listed above retain their own licenses (CC BY 3.0 US, MIT), which are compatible with Apache-2.0.
