@@ -52,6 +52,7 @@ describe('parsePasswordEnv', () => {
 
 describe('seedPasswordEnv / resetPasswordEnv / passwordEnv proxy', () => {
 	beforeEach(() => {
+		clearAllMocks()
 		resetPasswordEnv()
 	})
 

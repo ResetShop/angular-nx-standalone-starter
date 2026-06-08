@@ -60,7 +60,7 @@ export const resetDbEnv = handler.reset
 | `PASETO_ACCESS_TOKEN_EXPIRY`             | `token`    | optional    | `'15m'`                 | Duration string. See `src/utils/duration.ts` for the parser.                                                                                                                                                                                                                           |
 | `PASETO_REFRESH_TOKEN_EXPIRY`            | `token`    | optional    | `'7d'`                  | Duration string.                                                                                                                                                                                                                                                                       |
 | `PASETO_CLOCK_TOLERANCE`                 | `token`    | optional    | `'1m'`                  | Duration string. Tolerance applied to `nbf`/`exp` claim validation.                                                                                                                                                                                                                    |
-| `COOKIE_SECURE`                          | `token`    | optional    | `'false'`               | Set to `'true'` in any environment served over HTTPS.                                                                                                                                                                                                                                  |
+| `COOKIE_SECURE`                          | `token`    | optional    | `true`                  | Boolean. Defaults to `true` when unset (only the literal string `'false'` disables it). Set `COOKIE_SECURE=false` only for local dev over HTTP.                                                                                                                                        |
 | `AUTH_MAX_FAILED_ATTEMPTS`               | `security` | optional    | `5`                     | Integer. Number of failed login attempts before lockout.                                                                                                                                                                                                                               |
 | `AUTH_LOCKOUT_DURATION`                  | `security` | optional    | `'15m'`                 | Duration string.                                                                                                                                                                                                                                                                       |
 | `AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW` | `security` | optional    | `'15m'`                 | Duration string. Rate-limit window for `POST /api/auth/change-password`. Falls back to default on an invalid duration.                                                                                                                                                                 |
@@ -161,6 +161,20 @@ describe('TokenService', () => {
 	beforeEach(() => {
 		resetTokenEnv()
 		seedTokenEnv({ PASETO_SECRET_KEY: '0'.repeat(64), PASETO_ISSUER: 'test' })
+	})
+	// ...
+})
+```
+
+Schemas with no required fields seed just as easily — e.g. password-hashing tests lower the bcrypt cost:
+
+```ts
+import { seedPasswordEnv, resetPasswordEnv } from '@config/password.env'
+
+describe('createPasswordHasher', () => {
+	beforeEach(() => {
+		resetPasswordEnv()
+		seedPasswordEnv({ BCRYPT_COST: '1' }) // keep hashing cheap in tests
 	})
 	// ...
 })

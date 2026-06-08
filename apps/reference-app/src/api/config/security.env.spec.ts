@@ -102,6 +102,7 @@ describe('parseSecurityEnv', () => {
 
 describe('seedSecurityEnv / resetSecurityEnv / securityEnv proxy', () => {
 	beforeEach(() => {
+		clearAllMocks()
 		resetSecurityEnv()
 	})
 
@@ -119,6 +120,11 @@ describe('seedSecurityEnv / resetSecurityEnv / securityEnv proxy', () => {
 	it('seedSecurityEnv applies overrides', () => {
 		seedSecurityEnv({ AUTH_LOCKOUT_DURATION: '30m' })
 		expect(securityEnv.AUTH_LOCKOUT_DURATION).toBe('30m')
+	})
+
+	it('seedSecurityEnv applies a rate-limit override through the proxy', () => {
+		seedSecurityEnv({ AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX: '10' })
+		expect(securityEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX).toBe(10)
 	})
 
 	it('securityEnv returns the same cached value across repeated property reads', () => {

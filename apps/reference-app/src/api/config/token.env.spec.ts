@@ -120,6 +120,7 @@ describe('parseTokenEnv', () => {
 
 describe('seedTokenEnv / resetTokenEnv / tokenEnv proxy', () => {
 	beforeEach(() => {
+		clearAllMocks()
 		resetTokenEnv()
 	})
 
@@ -139,6 +140,11 @@ describe('seedTokenEnv / resetTokenEnv / tokenEnv proxy', () => {
 		expect(tokenEnv.COOKIE_SECURE).toBe(false)
 		// Defaults still apply for unspecified fields
 		expect(tokenEnv.PASETO_ISSUER).toBe('test-issuer')
+	})
+
+	it('seedTokenEnv applies an expiry override through the proxy', () => {
+		seedTokenEnv({ PASETO_ACCESS_TOKEN_EXPIRY: '30m' })
+		expect(tokenEnv.PASETO_ACCESS_TOKEN_EXPIRY).toBe('30m')
 	})
 
 	it('tokenEnv returns the same cached value across repeated property reads', () => {
