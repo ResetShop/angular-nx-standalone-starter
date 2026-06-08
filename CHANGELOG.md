@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Added
+
+- **`LICENSE.md` and `NOTICE.md` files — Apache-2.0 adoption ([#490](https://github.com/ResetShop/angular-nx-standalone-starter/issues/490)).** Root `LICENSE.md` contains the verbatim Apache License 2.0 text (authored as a Markdown file). Root `NOTICE.md` carries the copyright attribution (`Copyright 2026 ResetShop`) required by Apache-2.0 section 4(d). Both are added to `.prettierignore` so the pre-commit Prettier hook never reflows the canonical license text. No per-file source headers are added — `LICENSE.md`, `NOTICE.md`, and SPDX `license` fields in every `package.json` together provide sufficient, machine-readable Apache-2.0 attribution. The repo previously shipped no license file, so the default was _all rights reserved_; this is the first change of the [#488](https://github.com/ResetShop/angular-nx-standalone-starter/issues/488) public-readiness epic (B1). ([#490](https://github.com/ResetShop/angular-nx-standalone-starter/issues/490))
+
+### Changed
+
+- **`package.json` `license` fields set to `"Apache-2.0"` across root and all five `packages/*` ([#490](https://github.com/ResetShop/angular-nx-standalone-starter/issues/490)).** Root `package.json` corrects the previous invalid, non-SPDX `"CC-BY-SA 4.0"` value (a content license CC recommends against for code). `packages/angular-core`, `packages/generators`, `packages/hono-core`, `packages/ui`, and `packages/util` gain the `license` field for the first time. **Fork migration:** forks publishing their own packages should set their `package.json` `license` fields to whichever license applies to their fork-owned code; forks redistributing the unmodified starter inherit the Apache-2.0 section 4(d) obligation to include the `NOTICE.md` attribution. ([#490](https://github.com/ResetShop/angular-nx-standalone-starter/issues/490))
+
 ## [1.0.0] — 2026-06-04
 
 First fully-featured release of the starter under the fork-distribution model — the consolidation of everything accumulated since `1.0.0-beta.3`. Closes the 1.0.0 milestone. Forks should read this section's `Migration:` notes before merging.
