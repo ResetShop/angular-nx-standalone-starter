@@ -35,9 +35,10 @@ import type { Cradle } from './container.types'
 function registerValues(c: AwilixContainer<Cradle>): void {
 	c.register({
 		// Wrapped in arrows so Awilix does not pass the cradle proxy as the factory's first
-		// argument — createAuthConfig/createPasetoConfig take an optional AuthEnv source that
-		// must default to the authEnv proxy, not the cradle. createDrizzlePgConnector takes no
-		// args; it is wrapped too for uniformity.
+		// argument — createAuthConfig takes optional token/security/cron env sources and
+		// createPasetoConfig an optional token source, all of which must default to their
+		// respective env proxies, not the cradle. createDrizzlePgConnector takes no args; it
+		// is wrapped too for uniformity.
 		db: asFunction(() => createDrizzlePgConnector()).singleton(),
 		authConfig: asFunction(() => createAuthConfig()).singleton(),
 		pasetoConfig: asFunction(() => createPasetoConfig()).singleton(),

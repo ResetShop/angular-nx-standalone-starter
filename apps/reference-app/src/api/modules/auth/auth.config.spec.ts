@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { parseAuthEnv } from '../../config/auth.env'
+import { parseCronEnv } from '../../config/cron.env'
+import { parseSecurityEnv } from '../../config/security.env'
+import { parseTokenEnv } from '../../config/token.env'
 import {
 	DEFAULT_ACCESS_TOKEN_EXPIRY,
 	DEFAULT_LOCKOUT_DURATION,
@@ -8,12 +10,44 @@ import {
 } from '../../constants/auth.constants'
 import { createAuthConfig } from './auth.config'
 
+// AuthConfig now aggregates three sub-schemas (token / security / cron) after the
+// #497 dissolution of auth.env.ts. Route each flat override to the schema that owns it.
+const TOKEN_KEYS = new Set([
+	'PASETO_SECRET_KEY',
+	'PASETO_ISSUER',
+	'PASETO_ACCESS_TOKEN_EXPIRY',
+	'PASETO_REFRESH_TOKEN_EXPIRY',
+	'PASETO_CLOCK_TOLERANCE',
+	'COOKIE_SECURE',
+])
+const SECURITY_KEYS = new Set([
+	'AUTH_MAX_FAILED_ATTEMPTS',
+	'AUTH_LOCKOUT_DURATION',
+	'AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW',
+	'AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX',
+])
+
 describe('createAuthConfig', () => {
-	// Builds a typed AuthEnv source from raw env-style overrides (no process.env mutation).
-	// PASETO_SECRET_KEY / PASETO_ISSUER are required by the schema, so they are always supplied.
+	// Builds a typed AuthConfig from raw env-style overrides (no process.env mutation).
+	// PASETO_SECRET_KEY / PASETO_ISSUER are required by the token schema, so they are always supplied.
+	// Unknown keys (e.g. CRON_SECRET) route to the cron schema.
 	function config(overrides: NodeJS.ProcessEnv = {}) {
+		const tokenOverrides: NodeJS.ProcessEnv = {}
+		const securityOverrides: NodeJS.ProcessEnv = {}
+		const cronOverrides: NodeJS.ProcessEnv = {}
+		for (const [key, value] of Object.entries(overrides)) {
+			if (TOKEN_KEYS.has(key)) tokenOverrides[key] = value
+			else if (SECURITY_KEYS.has(key)) securityOverrides[key] = value
+			else cronOverrides[key] = value
+		}
 		return createAuthConfig(
-			parseAuthEnv({ PASETO_SECRET_KEY: '0123456789abcdef'.repeat(4), PASETO_ISSUER: 'test-issuer', ...overrides }),
+			parseTokenEnv({
+				PASETO_SECRET_KEY: '0123456789abcdef'.repeat(4),
+				PASETO_ISSUER: 'test-issuer',
+				...tokenOverrides,
+			}),
+			parseSecurityEnv(securityOverrides),
+			parseCronEnv(cronOverrides),
 		)
 	}
 

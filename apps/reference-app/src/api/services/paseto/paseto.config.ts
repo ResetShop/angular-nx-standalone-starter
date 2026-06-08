@@ -1,4 +1,4 @@
-import { authEnv, type AuthEnv } from '../../config/auth.env'
+import { type TokenEnv, tokenEnv } from '../../config/token.env'
 
 /**
  * Typed PASETO configuration consumed by {@link PasetoService}.
@@ -17,15 +17,15 @@ export interface PasetoConfig {
 }
 
 /**
- * Maps the validated `authEnv` fields onto the typed {@link PasetoConfig} shape.
+ * Maps the validated `tokenEnv` fields onto the typed {@link PasetoConfig} shape.
  *
- * The optional `source` parameter (defaulting to the lazy `authEnv` proxy) lets
- * specs drive the mapping from a `parseAuthEnv({...})` result without env
+ * The optional `source` parameter (defaulting to the lazy `tokenEnv` proxy) lets
+ * specs drive the mapping from a `parseTokenEnv({...})` result without env
  * mutation, mirroring the `createAuthConfig` pattern. All five fields have
  * schema-level defaults or are required, so they are `string` after parsing —
  * no `??` fallback is needed here.
  */
-export function createPasetoConfig(source: AuthEnv = authEnv): PasetoConfig {
+export function createPasetoConfig(source: TokenEnv = tokenEnv): PasetoConfig {
 	return Object.freeze({
 		secretKey: source.PASETO_SECRET_KEY,
 		issuer: source.PASETO_ISSUER,

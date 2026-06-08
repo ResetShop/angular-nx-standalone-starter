@@ -1,7 +1,7 @@
 import { logger, parseDurationToMs } from '@resetshop/util'
 import type { Context } from 'hono'
 import { rateLimiter } from 'hono-rate-limiter'
-import { authEnv } from '../config/auth.env'
+import { securityEnv } from '../config/security.env'
 import {
 	FORGOT_PASSWORD_RATE_LIMIT_MAX,
 	FORGOT_PASSWORD_RATE_LIMIT_WINDOW,
@@ -54,19 +54,19 @@ export const refreshRateLimiter = rateLimiter({
  * Rate limiter for POST /api/auth/change-password — defaults to 5 attempts per 15 minutes per IP.
  * Window and limit are overridable via AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW / _MAX.
  *
- * Built lazily on the first request rather than at module-eval, because the underlying `authEnv`
- * read parses the whole auth schema (requiring PASETO_SECRET_KEY / PASETO_ISSUER) and would
- * `process.exit(1)` when this module is imported in an env-less context — notably the Angular SSR
- * route-extraction / prerender worker, which imports the server bundle with no env vars set. This
- * mirrors the deferred `cors()` middleware in `server.ts`. The other limiters above read only
- * compile-time constants, so they stay eager.
+ * Built lazily on the first request rather than at module-eval. Since #497 the values come from
+ * `securityEnv`, which has no required fields and so would not `process.exit(1)` on its own — but
+ * the lazy pattern is retained as a defensive guard: importing this module (which the Angular SSR
+ * route-extraction / prerender worker does, with no env vars set) must never eagerly read an env
+ * proxy. This mirrors the deferred `cors()` middleware in `server.ts`. The other limiters above
+ * read only compile-time constants, so they stay eager.
  */
 let changePasswordRateLimiterImpl: ReturnType<typeof rateLimiter> | null = null
 export const changePasswordRateLimiter: ReturnType<typeof rateLimiter> = (c, next) => {
 	if (changePasswordRateLimiterImpl === null) {
 		changePasswordRateLimiterImpl = rateLimiter({
-			windowMs: parseDurationToMs(authEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW),
-			limit: authEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX,
+			windowMs: parseDurationToMs(securityEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW),
+			limit: securityEnv.AUTH_CHANGE_PASSWORD_RATE_LIMIT_MAX,
 			standardHeaders: 'draft-7',
 			keyGenerator: getClientIp,
 			handler: createRateLimitHandler('/api/auth/change-password'),
