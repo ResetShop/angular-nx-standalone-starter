@@ -131,11 +131,16 @@ Present this message:
      ## Summary
      <1-3 bullet points>
 
+     Closes #<issue>.
+
      ## Test plan
      [Bulleted checklist of testing done]
 
      🤖 Generated with [Claude Code](https://claude.com/claude-code)
      ```
+
+   - **The PR MUST link its originating issue (hard constraint).** Because `/issue-workflow` always starts from a real issue, the PR body MUST contain a GitHub closing keyword — `Closes #<issue>` (or `Fixes #<issue>` / `Resolves #<issue>`) — referencing that issue's number. This creates the GitHub issue↔PR link and auto-closes the issue on merge. The bare `[#<issue>]` prefix in the title does **not** create this link; the closing keyword in the body is required. Place it on its own line right after the Summary bullets, as shown above.
+   - If the issue is a **child of an epic**, additionally reference the epic without a closing keyword (e.g., a `Part of #<epic>.` line) so the epic is cross-linked but not auto-closed.
 
 3. Present the PR URL to the user.
 4. Scan the session for items that went **out of scope** (fixes, discoveries, enhancements beyond the original issue). If any exist:
@@ -181,6 +186,7 @@ These are hard constraints active throughout the entire workflow:
 - Never prefix git commands with `cd` — the working directory is already at project root.
 - Never open the PR before `npm run ci` passes and the `code-reviewer` agent has run.
 - Never open the PR without a `CHANGELOG.md` entry under `## [Unreleased]` for the issue (see Phase 3 step 4 and the Phase 6 CHANGELOG gate), unless the rare fork-invisible exemption was explicitly declared to the user.
+- Never open the PR without a GitHub closing keyword (`Closes #<issue>`) linking the originating issue in the PR body (see Phase 6 step 2). The title's `[#<issue>]` prefix does not create the link; the body keyword is mandatory and has no exemption — the workflow always originates from a real issue.
 - Never skip the Plan phase — even trivial changes benefit from a brief plan documenting scope and rationale.
 - Never use HEREDOC (`$(cat <<'EOF'...)`) substitution in commit messages.
 - All `.claude/references/coding-agent-policies.md` rules apply throughout:
