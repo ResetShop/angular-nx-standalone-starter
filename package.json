@@ -2,7 +2,7 @@
 	"name": "@app/source",
 	"type": "module",
 	"version": "1.0.0",
-	"license": "CC-BY-SA 4.0",
+	"license": "Apache-2.0",
 	"imports": {
 		"#tailwind-theme": "./tailwind.config.css"
 	},

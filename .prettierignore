@@ -11,3 +11,7 @@ node_modules
 
 # Playwright e2e generated authenticated storage states (gitignored; session cookies, not source)
 apps/*/e2e/fixtures/states/
+
+# Verbatim license text — must not be reflowed by Prettier (Apache-2.0 canonical text + NOTICE)
+LICENSE.md
+NOTICE.md
