@@ -10,13 +10,12 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
  * env proxy at module-evaluation time. The Angular SSR route-extraction / prerender worker imports
  * the server bundle (which pulls in this module) in an env-less context; an eager required-env read
  * there `process.exit(1)`s the worker — breaking `npm run build`. `changePasswordRateLimiter` is
- * built lazily on first request to avoid exactly that (regression guard for #450).
+ * built lazily on first request to avoid exactly that.
  *
- * Since #497 the limiter reads `securityEnv` (no required fields), so an eager read could no longer
- * FATAL on its own — but the lazy pattern is retained defensively and this spec keeps the contract
- * honest: the module must still import cleanly with no env vars set. The dynamic import inside the
- * test is the first load of the module in this isolated worker, reproducing a genuine module-eval
- * with the PASETO vars unset.
+ * The limiter reads `securityEnv` (no required fields), so an eager read could not FATAL on its own —
+ * but the lazy pattern is retained defensively and this spec keeps the contract honest: the module
+ * must import cleanly with no env vars set. The dynamic import inside the test is the first load of
+ * the module in this isolated worker, reproducing a genuine module-eval with the PASETO vars unset.
  */
 describe('rate-limit.middleware module-eval env safety', () => {
 	let originalKey: string | undefined

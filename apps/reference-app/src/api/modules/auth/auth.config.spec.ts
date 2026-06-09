@@ -11,11 +11,10 @@ import {
 import { createAuthConfig } from './auth.config'
 
 describe('createAuthConfig', () => {
-	// AuthConfig aggregates three sub-schemas (token / security / cron) after the #497 dissolution of
-	// auth.env.ts. Build a typed AuthConfig from raw env-style overrides (no process.env mutation),
-	// routing each flat override to the schema that owns it. PASETO_SECRET_KEY / PASETO_ISSUER are
-	// required by the token schema, so they are always supplied; unknown keys (e.g. CRON_SECRET) route
-	// to the cron schema.
+	// AuthConfig aggregates three sub-schemas (token / security / cron). Build a typed AuthConfig from
+	// raw env-style overrides (no process.env mutation), routing each flat override to the schema that
+	// owns it. PASETO_SECRET_KEY / PASETO_ISSUER are required by the token schema, so they are always
+	// supplied; unknown keys (e.g. CRON_SECRET) route to the cron schema.
 	function config(overrides: NodeJS.ProcessEnv = {}) {
 		const tokenKeys = new Set([
 			'PASETO_SECRET_KEY',

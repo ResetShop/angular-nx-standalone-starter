@@ -109,9 +109,9 @@ describe('parseTokenEnv', () => {
 	describe('required-field ownership (token is the only schema with required fields)', () => {
 		// Counterpart to the decoupling guards in password.env.spec.ts and
 		// security.env.spec.ts: the PASETO required fields live HERE and nowhere
-		// else, so parsing token config with no env throws. This is what makes the
+		// else, so parsing token config with no env throws. That is what keeps the
 		// peripheral schemas (password/security/cron) safe to read without PASETO
-		// keys set — the regression that motivated #497.
+		// keys set.
 		it('throws when parsed with an empty env (PASETO fields are required)', () => {
 			expect(() => parseTokenEnv({})).toThrow()
 		})

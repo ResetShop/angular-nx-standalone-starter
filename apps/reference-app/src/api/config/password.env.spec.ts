@@ -30,10 +30,9 @@ describe('parsePasswordEnv', () => {
 		})
 	})
 
-	describe('decoupling from the token schema (#497 / #491)', () => {
-		// The whole point of splitting BCRYPT_COST out of auth.env.ts: parsing
-		// password config must NOT require any PASETO field. A seed-only process
-		// with no PASETO keys set must be able to read passwordEnv.BCRYPT_COST
+	describe('decoupling from the token schema', () => {
+		// Parsing password config must NOT require any PASETO field. A seed-only
+		// process with no PASETO keys set must be able to read passwordEnv.BCRYPT_COST
 		// without the env handler FATAL-exiting. Parsing with an env that has no
 		// PASETO_* keys proves the schema carries no token dependency.
 		it('parses successfully with no PASETO keys present', () => {

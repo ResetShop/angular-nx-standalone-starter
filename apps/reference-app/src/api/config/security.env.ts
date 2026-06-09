@@ -6,7 +6,7 @@
  * (`AUTH_CHANGE_PASSWORD_RATE_LIMIT_WINDOW` / `_MAX`). All fields are optional
  * with safe defaults, so `parseSecurityEnv({})` succeeds — this schema has no
  * required fields and is therefore importable in any context without triggering
- * a FATAL. Split out of the former `auth.env.ts` (see #497).
+ * a FATAL.
  *
  * Consumers must import `securityEnv` (or `parseSecurityEnv` / `seedSecurityEnv`
  * for tests). Direct `process.env[...]` access is ESLint-forbidden everywhere

@@ -29,8 +29,7 @@ export function buildBaseCookieOptions(authConfig: AuthConfig) {
 /**
  * Aggregates the validated `tokenEnv`, `securityEnv`, and `cronEnv` fields onto the typed
  * {@link AuthConfig} shape. `AuthConfig` is a cross-cutting domain object: its fields are sourced
- * from three sub-schemas since `auth.env.ts` was dissolved in #497 (cookie/expiry → token, lockout
- * → security, cron secret → cron).
+ * from three sub-schemas (cookie/expiry → token, lockout → security, cron secret → cron).
  *
  * The three optional `*Source` parameters (each defaulting to its lazy proxy) let specs drive the
  * mapping from `parse<Domain>Env({...})` results without env mutation. All fields are already at

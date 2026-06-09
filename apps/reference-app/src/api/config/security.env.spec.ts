@@ -78,7 +78,7 @@ describe('parseSecurityEnv', () => {
 		})
 	})
 
-	describe('decoupling from the token schema (#497)', () => {
+	describe('decoupling from the token schema', () => {
 		// security config carries no required field, so it parses cleanly with no
 		// PASETO keys present — the SSR prerender worker and the seed script can
 		// read securityEnv without the env handler FATAL-exiting.

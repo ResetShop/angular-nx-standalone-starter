@@ -2,11 +2,10 @@
  * Password-hashing env sub-schema.
  *
  * Contains only `BCRYPT_COST` — the bcrypt work factor used by
- * `createPasswordHasher()`. Split out of the former `auth.env.ts` (see #497) so
- * that contexts needing only hashing config (e.g. the database seed script) can
- * import `passwordEnv` without triggering PASETO key validation, which would
- * otherwise `process.exit(1)` whenever `PASETO_SECRET_KEY` / `PASETO_ISSUER` are
- * unset.
+ * `createPasswordHasher()`. Kept separate from the token config so that contexts
+ * needing only hashing config (e.g. the database seed script) can import
+ * `passwordEnv` without triggering PASETO key validation, which would otherwise
+ * `process.exit(1)` whenever `PASETO_SECRET_KEY` / `PASETO_ISSUER` are unset.
  *
  * Consumers must import `passwordEnv` (or `parsePasswordEnv` / `seedPasswordEnv`
  * for tests). Direct `process.env[...]` access is ESLint-forbidden everywhere

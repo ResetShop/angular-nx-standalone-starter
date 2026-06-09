@@ -8,9 +8,6 @@
  * them here means contexts that need only hashing, lockout, or cron config (e.g.
  * the seed script, the SSR prerender worker) never trigger PASETO validation.
  *
- * Replaces the former `auth.env.ts`, which bundled token, password-hashing,
- * lockout, and cron concerns behind these two required fields (see #497).
- *
  * Consumers must import `tokenEnv` (or `parseTokenEnv` / `seedTokenEnv` for tests).
  * Direct `process.env[...]` access is ESLint-forbidden everywhere except files
  * matching `*.env.ts`.
