@@ -177,13 +177,13 @@ The starter supports both MySQL and PostgreSQL via Drizzle ORM. Choose one based
    npm install drizzle-orm drizzle-kit postgres
    ```
 
-2. **Configure Drizzle:**
-   - Edit `drizzle.config.ts:5,10` to set dialect and credentials programmatically
-   - Current implementation has hardcoded values that need to be made dynamic
+2. **Configure Drizzle (PostgreSQL is the default — no change needed):**
+   - PostgreSQL is already wired up: `drizzle.config.ts` (repo root) uses `dialect: 'postgresql'` and reads the connection string from `dbEnv.PG_CONNECTION_STRING` — env-driven, nothing hardcoded.
+   - **For MySQL instead:** in `drizzle.config.ts`, uncomment the `dialect: 'mysql'` line and the `url: dbEnv.MYSQL_CONNECTION_STRING` line, commenting out their PostgreSQL counterparts (`dialect: 'postgresql'` / `url: dbEnv.PG_CONNECTION_STRING`).
 
-3. **Uncomment Database Connector:**
-   - For MySQL: Uncomment code in `packages/hono-core/src/lib/drizzle-mysql-connector.ts:1-2`
-   - For PostgreSQL: Uncomment code in `apps/reference-app/src/api/helpers/drizzle-postgres-connector.ts:1-2`
+3. **Uncomment the database connector (MySQL only):**
+   - PostgreSQL needs no action — `drizzle-postgres-connector.ts` is already active.
+   - **For MySQL:** uncomment the connector in `packages/hono-core/src/lib/drizzle-mysql-connector.ts` (look for the `TODO` comment at the top).
 
 4. **Declare the connection string in the env contract:**
    - Add the connection-string field (e.g. `MYSQL_CONNECTION_STRING`) to the `db` env sub-schema (`apps/reference-app/src/api/config/db.env.ts`) and consume it as `dbEnv.<VAR>`
@@ -205,7 +205,7 @@ Integrate Sanity.io headless CMS for content management.
    ```
 
 2. **Uncomment Sanity Connector:**
-   - File: `packages/hono-core/src/lib/sanity-connector.ts:1-2`
+   - File: `packages/hono-core/src/lib/sanity-connector.ts` (look for the `TODO` comment at the top)
    - Uncomment the connector implementation
 
 3. **Enable Sanity in the connector template:**
@@ -227,10 +227,10 @@ Enable analytics tracking with Microsoft Clarity.
    ```
 
 2. **Uncomment Clarity Connector:**
-   - File: `packages/hono-core/src/lib/clarity-connector.ts:1-2`
+   - File: `packages/hono-core/src/lib/clarity-connector.ts` (look for the `TODO` comment at the top)
 
 3. **Enable in Analytics Provider:**
-   - Uncomment Clarity setup in `apps/reference-app/src/app/providers/analytics/analytics.ts:22`
+   - Uncomment the Clarity setup in `apps/reference-app/src/app/providers/analytics/analytics.ts` (look for the `// TODO: Uncomment if you're using Clarity analytics` comment inside `Analytics.init()`)
 
 4. **Enable the backend Clarity connector (optional):**
    - Uncomment `packages/hono-core/src/lib/clarity-connector.ts` and add `CLARITY_TOKEN` (and any other `CLARITY_*` fields) to the `app` env sub-schema (`apps/reference-app/src/api/config/app.env.ts`), consuming them as `appEnv.CLARITY_*`
@@ -244,16 +244,16 @@ Enable analytics tracking with Microsoft Clarity.
 
 If you need to add static assets for Storybook:
 
-- **File**: `.storybook/main.ts:21`
-- **Action**: Add your project assets directory to the Storybook configuration
+- **File**: `.storybook/main.ts`
+- **Action**: Add a `staticDirs` entry to the exported `config` object (at the same level as the `stories` array), e.g. `staticDirs: ['../apps/reference-app/src/assets']`
 - **Example**: Add paths to image folders, fonts, or other static resources needed in Storybook stories
 
 ##### Custom Angular Providers
 
 For adding custom dependency injection providers:
 
-- **File**: `apps/reference-app/src/app/app.config.ts:45`
-- **Action**: Add your custom provider functions to the application configuration
+- **File**: `apps/reference-app/src/app/app.config.ts`
+- **Action**: Add your provider to `appConfig.providers` — look for the `// Custom providers` comment block
 - **Use Case**: Custom services, HTTP interceptors, or third-party library providers
 
 ---
@@ -291,18 +291,14 @@ For deeper guidance — exact files produced by each generator, known limitation
 
 ### Post-Setup Steps **[Required]**
 
-#### Remove Configuration Routes
-
 After completing your setup:
 
-1. **Remove Setup Route:**
-   - File: `apps/reference-app/src/app/pages/dashboard/dashboard.routes.ts:15`
-   - Remove the welcome/configuration route intended for initial setup only
+1. **Resolve setup TODOs:**
+   - Search the codebase for the remaining setup `TODO` comments (see "Search for the TODOs!" at the top of this guide) and resolve any that apply to your project.
 
 2. **Verify Application:**
    - Run `npm run dev` to start the development server
    - Ensure all configured features work correctly
-   - Test that removed routes no longer appear
 
 ---
 
@@ -316,7 +312,7 @@ license details.
 | English password word list | [EFF Large Wordlist](https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases) | CC BY 3.0 US |
 | Spanish password word list | [Dadoware Bonito ES](https://github.com/mir123/dadoware-bonito-es)                           | MIT          |
 
-Full details: [`src/api/utils/wordlists/README.md`](./src/api/utils/wordlists/README.md)
+Full details: [`apps/reference-app/src/api/utils/wordlists/README.md`](./apps/reference-app/src/api/utils/wordlists/README.md)
 
 ---
 
