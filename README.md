@@ -179,7 +179,7 @@ The starter supports both MySQL and PostgreSQL via Drizzle ORM. Choose one based
 
 2. **Configure Drizzle (PostgreSQL is the default — no change needed):**
    - PostgreSQL is already wired up: `drizzle.config.ts` (repo root) uses `dialect: 'postgresql'` and reads the connection string from `dbEnv.PG_CONNECTION_STRING` — env-driven, nothing hardcoded.
-   - **For MySQL instead:** in `drizzle.config.ts`, switch dialects at the two `// TODO` comments — uncomment the `dialect: 'mysql'` line and the `url: dbEnv.MYSQL_CONNECTION_STRING` line, commenting out their PostgreSQL counterparts.
+   - **For MySQL instead:** in `drizzle.config.ts`, uncomment the `dialect: 'mysql'` line and the `url: dbEnv.MYSQL_CONNECTION_STRING` line, commenting out their PostgreSQL counterparts (`dialect: 'postgresql'` / `url: dbEnv.PG_CONNECTION_STRING`).
 
 3. **Uncomment the database connector (MySQL only):**
    - PostgreSQL needs no action — `drizzle-postgres-connector.ts` is already active.
@@ -230,7 +230,7 @@ Enable analytics tracking with Microsoft Clarity.
    - File: `packages/hono-core/src/lib/clarity-connector.ts` (look for the `TODO` comment at the top)
 
 3. **Enable in Analytics Provider:**
-   - Uncomment the Clarity setup in `apps/reference-app/src/app/providers/analytics/analytics.ts` (look for the `TODO` comment inside `Analytics.init()`)
+   - Uncomment the Clarity setup in `apps/reference-app/src/app/providers/analytics/analytics.ts` (look for the `// TODO: Uncomment if you're using Clarity analytics` comment inside `Analytics.init()`)
 
 4. **Enable the backend Clarity connector (optional):**
    - Uncomment `packages/hono-core/src/lib/clarity-connector.ts` and add `CLARITY_TOKEN` (and any other `CLARITY_*` fields) to the `app` env sub-schema (`apps/reference-app/src/api/config/app.env.ts`), consuming them as `appEnv.CLARITY_*`
@@ -245,7 +245,7 @@ Enable analytics tracking with Microsoft Clarity.
 If you need to add static assets for Storybook:
 
 - **File**: `.storybook/main.ts`
-- **Action**: Add a `staticDirs` entry to the exported `config` object (at the same level as the `stories` array)
+- **Action**: Add a `staticDirs` entry to the exported `config` object (at the same level as the `stories` array), e.g. `staticDirs: ['../apps/reference-app/src/assets']`
 - **Example**: Add paths to image folders, fonts, or other static resources needed in Storybook stories
 
 ##### Custom Angular Providers
