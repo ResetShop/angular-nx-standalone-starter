@@ -51,6 +51,28 @@ describe('resolveSeedAdminCredentials', () => {
 
 			expect(promptFn.calls).toHaveLength(0)
 		})
+
+		it('accepts a password at the minimum length boundary (12 chars)', async () => {
+			const password = 'x'.repeat(12)
+			const result = await resolveSeedAdminCredentials({
+				envInput: { email: VALID_EMAIL, password, firstName: undefined, lastName: undefined },
+				isInteractive: false,
+				promptFn: fn<[], Promise<SeedAdminCredentials>>().mockResolvedValue(promptResult()),
+			})
+
+			expect(result.password).toBe(password)
+		})
+
+		it('accepts a password at the maximum length boundary (128 chars)', async () => {
+			const password = 'x'.repeat(128)
+			const result = await resolveSeedAdminCredentials({
+				envInput: { email: VALID_EMAIL, password, firstName: undefined, lastName: undefined },
+				isInteractive: false,
+				promptFn: fn<[], Promise<SeedAdminCredentials>>().mockResolvedValue(promptResult()),
+			})
+
+			expect(result.password).toBe(password)
+		})
 	})
 
 	describe('env path — validation failures', () => {
@@ -87,6 +109,18 @@ describe('resolveSeedAdminCredentials', () => {
 
 			expect(result).toEqual(promptResult())
 			expect(promptFn.calls).toHaveLength(1)
+		})
+
+		it('propagates an error thrown by promptFn', async () => {
+			const promptFn = fn<[], Promise<SeedAdminCredentials>>().mockRejectedValue(new Error('prompt aborted'))
+
+			await expect(
+				resolveSeedAdminCredentials({
+					envInput: { email: undefined, password: undefined, firstName: undefined, lastName: undefined },
+					isInteractive: true,
+					promptFn,
+				}),
+			).rejects.toThrow('prompt aborted')
 		})
 	})
 

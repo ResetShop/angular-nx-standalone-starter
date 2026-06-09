@@ -84,6 +84,8 @@ function ask(rl: Interface, query: string): Promise<string> {
 
 /** Prompts without echoing the typed characters (for the password). */
 function askMasked(rl: Interface, query: string): Promise<string> {
+	// `_writeToOutput` is readline's internal echo hook — the only way to suppress keystroke echo
+	// without switching stdin to raw mode. Stable across Node 18–22; re-validate on major Node upgrades.
 	const writable = rl as unknown as { _writeToOutput(text: string): void; output: NodeJS.WritableStream }
 	const original = writable._writeToOutput.bind(writable)
 	let masking = false
@@ -108,10 +110,11 @@ async function promptValid(
 	masked: boolean,
 	isValid: (value: string) => boolean,
 ): Promise<string> {
-	const value = (masked ? await askMasked(rl, query) : await ask(rl, query)).trim()
-	if (isValid(value)) return value
-	process.stdout.write('Invalid value, please try again.\n')
-	return promptValid(rl, query, masked, isValid)
+	for (;;) {
+		const value = (masked ? await askMasked(rl, query) : await ask(rl, query)).trim()
+		if (isValid(value)) return value
+		process.stdout.write('Invalid value, please try again.\n')
+	}
 }
 
 export function createDefaultPromptFn(): () => Promise<SeedAdminCredentials> {
