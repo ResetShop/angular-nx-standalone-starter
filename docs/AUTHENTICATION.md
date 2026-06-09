@@ -192,7 +192,7 @@ if (authStore.isTokenRefreshing()) {
 
 ## Environment Variables
 
-> **Source of truth:** [`docs/environment-variables.md`](environment-variables.md) documents every backend variable, the sub-schema that owns it, and the four supported delivery mechanisms (out-of-tree env file + Node `--env-file`, IDE run config, shell export, direnv). The auth-relevant subset below is consumed **exclusively through the typed `@config/*` proxies** — `authEnv` (`PASETO_*`, `COOKIE_SECURE`, `AUTH_*`, `CRON_SECRET`), `httpEnv` (`CORS_*`, `IS_SERVERLESS`), and `cronEnv` (`TOKEN_CLEANUP_*`). Direct `process.env[...]` access is forbidden outside the sub-schema files; never read these via `process.env`. There is no `.env*` file in the working tree.
+> **Source of truth:** [`docs/environment-variables.md`](environment-variables.md) documents every backend variable, the sub-schema that owns it, and the four supported delivery mechanisms (out-of-tree env file + Node `--env-file`, IDE run config, shell export, direnv). The auth-relevant subset below is consumed **exclusively through the typed `@config/*` proxies** — `tokenEnv` (`PASETO_*`, `COOKIE_SECURE`), `securityEnv` (`AUTH_*`), `httpEnv` (`CORS_*`, `IS_SERVERLESS`), and `cronEnv` (`CRON_SECRET`, `TOKEN_CLEANUP_*`). Direct `process.env[...]` access is forbidden outside the sub-schema files; never read these via `process.env`. There is no `.env*` file in the working tree.
 
 | Variable                      | Required | Default                 | Description                                              |
 | ----------------------------- | -------- | ----------------------- | -------------------------------------------------------- |
@@ -582,10 +582,10 @@ If OPTIONS requests are failing:
 
 ## Troubleshooting
 
-### `FATAL: Environment validation failed (auth domain)` / "PASETO_SECRET_KEY not configured"
+### `FATAL: Environment validation failed (token domain)` / "PASETO_SECRET_KEY not configured"
 
-A missing or malformed `PASETO_SECRET_KEY` (or `PASETO_ISSUER`) makes the `authEnv` proxy print a
-formatted `FATAL: Environment validation failed (auth domain)` message and `process.exit(1)` on first
+A missing or malformed `PASETO_SECRET_KEY` (or `PASETO_ISSUER`) makes the `tokenEnv` proxy print a
+formatted `FATAL: Environment validation failed (token domain)` message and `process.exit(1)` on first
 access (e.g. at server startup via `container.verify()`). Deliver a valid 32-byte hex key via one of
 the mechanisms in [`docs/environment-variables.md`](environment-variables.md) — do **not** create a
 `.env` file in the working tree. For a quick shell session:

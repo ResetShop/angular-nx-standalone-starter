@@ -1,7 +1,7 @@
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { compare, hash } from 'bcryptjs'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { resetAuthEnv, seedAuthEnv } from '../../config/auth.env'
+import { resetPasswordEnv, seedPasswordEnv } from '../../config/password.env'
 import { createPasswordHasher, createPasswordVerifier } from './password-hasher'
 
 describe('createPasswordHasher', () => {
@@ -9,8 +9,8 @@ describe('createPasswordHasher', () => {
 		clearAllMocks()
 		// Keep hashing cheap for the common-case tests; the default-cost
 		// branch is exercised explicitly by the dedicated test below.
-		resetAuthEnv()
-		seedAuthEnv({ BCRYPT_COST: '1' })
+		resetPasswordEnv()
+		seedPasswordEnv({ BCRYPT_COST: '1' })
 	})
 
 	it('returns a hasher function', () => {
@@ -38,7 +38,7 @@ describe('createPasswordHasher', () => {
 		// Factory is created while the cost is 1...
 		const hashPassword = createPasswordHasher()
 		// ...but the cost is raised before the hash actually runs.
-		seedAuthEnv({ BCRYPT_COST: '4' })
+		seedPasswordEnv({ BCRYPT_COST: '4' })
 
 		const hashed = await hashPassword('late-bound-cost')
 
@@ -46,7 +46,7 @@ describe('createPasswordHasher', () => {
 	})
 
 	it('defaults to cost 12 when BCRYPT_COST is unset', async () => {
-		resetAuthEnv()
+		resetPasswordEnv()
 		const hashPassword = createPasswordHasher()
 
 		// Deliberately hashes at the production cost (12) — the bcrypt output

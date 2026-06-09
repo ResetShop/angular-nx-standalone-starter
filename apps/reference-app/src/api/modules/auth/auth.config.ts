@@ -1,4 +1,6 @@
-import { authEnv, type AuthEnv } from '../../config/auth.env'
+import { type CronEnv, cronEnv } from '../../config/cron.env'
+import { type SecurityEnv, securityEnv } from '../../config/security.env'
+import { type TokenEnv, tokenEnv } from '../../config/token.env'
 
 export interface AuthConfig {
 	/** Whether cookies require HTTPS. Defaults to true; set COOKIE_SECURE=false only for local dev. */
@@ -25,20 +27,26 @@ export function buildBaseCookieOptions(authConfig: AuthConfig) {
 }
 
 /**
- * Maps the validated `authEnv` fields onto the typed {@link AuthConfig} shape.
+ * Aggregates the validated `tokenEnv`, `securityEnv`, and `cronEnv` fields onto the typed
+ * {@link AuthConfig} shape. `AuthConfig` is a cross-cutting domain object: its fields are sourced
+ * from three sub-schemas (cookie/expiry → token, lockout → security, cron secret → cron).
  *
- * The optional `source` parameter (defaulting to the lazy `authEnv` proxy) lets specs drive the
- * mapping from a `parseAuthEnv({...})` result without env mutation. All fields are already at
+ * The three optional `*Source` parameters (each defaulting to its lazy proxy) let specs drive the
+ * mapping from `parse<Domain>Env({...})` results without env mutation. All fields are already at
  * their final types after Zod parsing (booleans, numbers, validated duration strings), so no
  * per-field coercion is needed here.
  */
-export function createAuthConfig(source: AuthEnv = authEnv): AuthConfig {
+export function createAuthConfig(
+	tokenSource: TokenEnv = tokenEnv,
+	securitySource: SecurityEnv = securityEnv,
+	cronSource: CronEnv = cronEnv,
+): AuthConfig {
 	return Object.freeze({
-		cookieSecure: source.COOKIE_SECURE,
-		accessTokenExpiry: source.PASETO_ACCESS_TOKEN_EXPIRY,
-		refreshTokenExpiry: source.PASETO_REFRESH_TOKEN_EXPIRY,
-		maxFailedAttempts: source.AUTH_MAX_FAILED_ATTEMPTS,
-		lockoutDuration: source.AUTH_LOCKOUT_DURATION,
-		cronSecret: source.CRON_SECRET,
+		cookieSecure: tokenSource.COOKIE_SECURE,
+		accessTokenExpiry: tokenSource.PASETO_ACCESS_TOKEN_EXPIRY,
+		refreshTokenExpiry: tokenSource.PASETO_REFRESH_TOKEN_EXPIRY,
+		maxFailedAttempts: securitySource.AUTH_MAX_FAILED_ATTEMPTS,
+		lockoutDuration: securitySource.AUTH_LOCKOUT_DURATION,
+		cronSecret: cronSource.CRON_SECRET,
 	})
 }

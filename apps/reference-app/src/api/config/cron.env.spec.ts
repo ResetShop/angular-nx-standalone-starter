@@ -27,6 +27,16 @@ describe('parseCronEnv', () => {
 		})
 	})
 
+	describe('CRON_SECRET', () => {
+		it('is undefined when unset', () => {
+			expect(parseCronEnv({}).CRON_SECRET).toBeUndefined()
+		})
+
+		it('passes through when set', () => {
+			expect(parseCronEnv({ CRON_SECRET: 'a'.repeat(32) }).CRON_SECRET).toBe('a'.repeat(32))
+		})
+	})
+
 	describe('CronEnv type', () => {
 		it('is assignable from a parseCronEnv result', () => {
 			const result: CronEnv = parseCronEnv({})

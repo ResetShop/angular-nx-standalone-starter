@@ -12,7 +12,7 @@ const SUITE_TOKEN_FAMILY = 'cleanup-tokens-integration'
 
 // 40 chars — comfortably above MIN_CRON_SECRET_LENGTH (32).
 // Must match the CRON_SECRET set in integration setup (env-helpers.ts configureEnvVars),
-// which the change-password rate limiter's module-load authEnv read locks in before any test runs.
+// which the cronEnv proxy's cached snapshot locks in on first access before any test runs.
 const TEST_CRON_SECRET = 'integration-cron-secret-0123456789abcdef'
 
 describe('GET /api/auth/cleanup-tokens', () => {

@@ -1,5 +1,4 @@
 import { parseDurationToMs } from '@resetshop/util'
-import { authEnv } from './config/auth.env'
 import { cronEnv } from './config/cron.env'
 import { isServerless } from './config/http.env'
 import { MIN_CRON_SECRET_LENGTH } from './constants/auth.constants'
@@ -34,7 +33,7 @@ export function tryParseEnvIntervalMs(
  * Only logs once to avoid spam.
  */
 function validateCronSecret(): void {
-	const cronSecret = authEnv.CRON_SECRET
+	const cronSecret = cronEnv.CRON_SECRET
 	if (cronSecret && cronSecret.length < MIN_CRON_SECRET_LENGTH) {
 		console.warn(
 			`[CronJobs] WARNING: CRON_SECRET is too short (${cronSecret.length} chars). Minimum ${MIN_CRON_SECRET_LENGTH} characters required for secure authentication.`,

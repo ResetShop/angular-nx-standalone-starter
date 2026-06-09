@@ -1,14 +1,14 @@
 import { compare, hash } from 'bcryptjs'
-import { authEnv } from '../../config/auth.env'
+import { passwordEnv } from '../../config/password.env'
 
 /**
  * Returns the number of bcrypt salt rounds.
- * Reads BCRYPT_COST via the authEnv proxy at call time (not module load time) so the
+ * Reads BCRYPT_COST via the passwordEnv proxy at call time (not module load time) so the
  * integration test harness can lower the cost to 1 before any hashing occurs.
  * Default: 12 (production). Override: BCRYPT_COST=1 (tests).
  */
 function getBcryptSaltRounds(): number {
-	return authEnv.BCRYPT_COST
+	return passwordEnv.BCRYPT_COST
 }
 
 /**
