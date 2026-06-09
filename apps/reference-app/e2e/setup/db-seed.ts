@@ -1,20 +1,15 @@
 /**
- * Seeds the three e2e fixture users directly via Drizzle. Runs inside Playwright's globalSetup, which
+ * Seeds the e2e fixture users directly via Drizzle. Runs inside Playwright's globalSetup, which
  * resolves workspace path aliases (`@resetshop/*`, `@config/*`, `@schema/*`) unreliably — so everything
  * here uses relative imports only.
  *
- * Passwords are hashed with bcryptjs directly rather than via the app's `createPasswordHasher` to keep
- * this loader free of the app's module-alias graph, which Playwright's globalSetup resolves unreliably
- * (see the relative-imports note above). Since #497 the hasher reads only `passwordEnv.BCRYPT_COST` and
- * no longer couples to PASETO validation, but direct hashing is retained for loader simplicity. bcrypt
- * embeds the cost in the hash, so a cost-1 hash verifies identically against the app's production
- * verifier (`createPasswordVerifier`); there is no correctness difference.
- *
- * All three users share the same password (INTEGRATION_TEST_ADMIN_PASSWORD).
+ * Hashing goes through the app's `createPasswordHasher()`, which reads the bcrypt cost from
+ * `passwordEnv.BCRYPT_COST` (set to `1` by `configureE2eEnvVars` before this runs). All fixture users
+ * share the same password (INTEGRATION_TEST_ADMIN_PASSWORD).
  */
-import bcrypt from 'bcryptjs'
 import { inArray } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
+import { createPasswordHasher } from '../../src/api/services/password/password-hasher'
 import { PERMISSIONS_SEED_DATA } from '../../src/contracts/permission/permission.constants'
 import { authentication } from '../../src/db/schema/authentication'
 import { permission } from '../../src/db/schema/permission'
@@ -62,7 +57,7 @@ export function adminPassword(): string {
 export async function seedE2eUsers(connectionString: string, password: string): Promise<SeededIds> {
 	const db = drizzle(connectionString)
 	try {
-		const passwordHash = bcrypt.hashSync(password, 1)
+		const passwordHash = await createPasswordHasher()(password)
 		const adminRoleId = await seedAdminRoleWithPermissions(db)
 		const restrictedRoleId = await seedRole(db, 'Restricted', 'restricted', 'Role with no permissions', true)
 
