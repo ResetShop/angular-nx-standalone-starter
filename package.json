@@ -10,7 +10,7 @@
 		"node": "^20.19.0 || ^22.19.0"
 	},
 	"scripts": {
-		"postinstall": "node scripts/setup-skills.mjs && npm run drizzle:push-migrations && npm run drizzle:seed",
+		"postinstall": "node scripts/setup-skills.mjs",
 		"serve:ssr": "node dist/reference-app/server/server.mjs",
 		"prepare": "husky",
 		"format": "prettier --write --cache .",

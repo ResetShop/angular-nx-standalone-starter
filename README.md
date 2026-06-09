@@ -66,11 +66,11 @@ This project requires:
 git clone <repository-url>
 cd angular-nx-standalone-starter
 
-# Install dependencies (automatically runs config and database setup)
+# Install dependencies and set up Claude Code skills
 npm install
 ```
 
-Note: The `npm install` command automatically runs database migrations and seed via the postinstall hook.
+Note: `npm install` installs packages and sets up Claude Code skills only — it does **not** touch the database. After configuring your environment variables (see [`docs/environment-variables.md`](./docs/environment-variables.md)), run `npm run drizzle:push-migrations` then `npm run drizzle:seed` to apply the schema and seed the initial admin account.
 
 #### 2. Environment Variables Configuration **[Required]**
 

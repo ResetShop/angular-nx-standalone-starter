@@ -42,6 +42,32 @@ describe('parseAppEnv', () => {
 		})
 	})
 
+	describe('SEED_ADMIN_*', () => {
+		it('SEED_ADMIN_EMAIL is undefined when unset', () => {
+			expect(parseAppEnv({}).SEED_ADMIN_EMAIL).toBeUndefined()
+		})
+
+		it('SEED_ADMIN_EMAIL passes through when set', () => {
+			expect(parseAppEnv({ SEED_ADMIN_EMAIL: 'admin@example.com' }).SEED_ADMIN_EMAIL).toBe('admin@example.com')
+		})
+
+		it('SEED_ADMIN_PASSWORD is undefined when unset', () => {
+			expect(parseAppEnv({}).SEED_ADMIN_PASSWORD).toBeUndefined()
+		})
+
+		it('SEED_ADMIN_PASSWORD passes through when set', () => {
+			expect(parseAppEnv({ SEED_ADMIN_PASSWORD: 'MySecretPass123' }).SEED_ADMIN_PASSWORD).toBe('MySecretPass123')
+		})
+
+		it('SEED_ADMIN_FIRST_NAME is undefined when unset', () => {
+			expect(parseAppEnv({}).SEED_ADMIN_FIRST_NAME).toBeUndefined()
+		})
+
+		it('SEED_ADMIN_LAST_NAME is undefined when unset', () => {
+			expect(parseAppEnv({}).SEED_ADMIN_LAST_NAME).toBeUndefined()
+		})
+	})
+
 	describe('AppEnv type', () => {
 		it('is assignable from a parseAppEnv result', () => {
 			const result: AppEnv = parseAppEnv({})

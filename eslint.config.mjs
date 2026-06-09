@@ -289,9 +289,15 @@ export default [
 		//     which parse process.env once per domain behind the lazy proxy, plus their specs.
 		//   - test-setup.ts : pre-seeds env values before any production module loads.
 		//   - api/integration/** : integration setup helpers and specs that drive test fixtures via env.
+		//   - db/** : entry-point scripts (e.g. seed.ts) that read CI/TTY signals before the app boots.
 		// These keep the common + vi restrictions; only the process.env restriction is lifted.
 		name: 'no-process-env-allowlist',
-		files: ['apps/**/src/api/config/**/*.ts', 'apps/**/src/test-setup.ts', 'apps/**/src/api/integration/**/*.ts'],
+		files: [
+			'apps/**/src/api/config/**/*.ts',
+			'apps/**/src/test-setup.ts',
+			'apps/**/src/api/integration/**/*.ts',
+			'apps/**/src/db/**/*.ts',
+		],
 		rules: {
 			'no-restricted-syntax': ['error', ...commonRestrictedSyntax, ...viRestrictedSyntax],
 		},
