@@ -1,8 +1,6 @@
 import { eq, inArray } from 'drizzle-orm'
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
 import { appEnv } from '../api/config/app.env'
-import { dbEnv } from '../api/config/db.env'
+import { createDrizzlePgConnector, type DrizzleTransaction } from '../api/helpers/drizzle-postgres-connector'
 import { createPasswordHasher } from '../api/services/password/password-hasher'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
 import { authentication } from './schema/authentication'
@@ -11,14 +9,6 @@ import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 import { createDefaultPromptFn, resolveSeedAdminCredentials, type SeedAdminCredentials } from './seed-admin-credentials'
 
-const pool = new Pool({
-	connectionString: dbEnv.PG_CONNECTION_STRING,
-})
-
-const db = drizzle(pool)
-
-type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
-
 /**
  * Creates the admin user and its authentication record, or returns the existing user's id.
  *
@@ -26,7 +16,7 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
  * the supplied credentials are ignored. The password is hashed (via the app's `createPasswordHasher`,
  * cost from `passwordEnv.BCRYPT_COST`) only on first creation.
  */
-async function seedAdminUser(tx: Tx, credentials: SeedAdminCredentials): Promise<number> {
+async function seedAdminUser(tx: DrizzleTransaction, credentials: SeedAdminCredentials): Promise<number> {
 	const existing = await tx.select({ id: user.id }).from(user).where(eq(user.email, credentials.email))
 	if (existing.length > 0) {
 		console.log('✅ Admin user already exists — skipping credential setup')
@@ -51,7 +41,7 @@ async function seedAdminUser(tx: Tx, credentials: SeedAdminCredentials): Promise
 }
 
 /** Creates the Administrator role, or returns the existing role's id. */
-async function seedAdminRole(tx: Tx): Promise<number> {
+async function seedAdminRole(tx: DrizzleTransaction): Promise<number> {
 	const existing = await tx.select({ id: role.id }).from(role).where(eq(role.code, 'admin'))
 	if (existing.length > 0) {
 		console.log('✅ Administrator role already exists')
@@ -75,7 +65,7 @@ async function seedAdminRole(tx: Tx): Promise<number> {
 }
 
 /** Inserts the permission catalogue and grants every permission to the Administrator role. */
-async function seedPermissions(tx: Tx, adminRoleId: number): Promise<void> {
+async function seedPermissions(tx: DrizzleTransaction, adminRoleId: number): Promise<void> {
 	await tx
 		.insert(permission)
 		.values([...PERMISSIONS_SEED_DATA])
@@ -97,7 +87,7 @@ async function seedPermissions(tx: Tx, adminRoleId: number): Promise<void> {
 }
 
 /** Runs the full bootstrap inside a transaction: admin user, role, role assignment, permissions. */
-async function runSeedTransaction(tx: Tx, credentials: SeedAdminCredentials): Promise<void> {
+async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdminCredentials): Promise<void> {
 	const adminUserId = await seedAdminUser(tx, credentials)
 	const adminRoleId = await seedAdminRole(tx)
 	await tx.insert(userRole).values({ userId: adminUserId, roleId: adminRoleId }).onConflictDoNothing()
@@ -114,6 +104,7 @@ async function runSeedTransaction(tx: Tx, credentials: SeedAdminCredentials): Pr
  * use `npm run sync:permissions` instead (see `src/db/sync-permissions.ts`).
  */
 async function seed(): Promise<void> {
+	const db = createDrizzlePgConnector()
 	try {
 		console.log('🌱 Starting database seed...')
 		const isInteractive = !process.env['CI'] && Boolean(process.stdin.isTTY)
@@ -131,11 +122,14 @@ async function seed(): Promise<void> {
 		await db.transaction((tx) => runSeedTransaction(tx, credentials))
 
 		console.log('✅ Database seed completed successfully')
-		process.exit(0)
-	} catch (error) {
-		console.error('❌ Seed failed:', error)
-		process.exit(1)
+	} finally {
+		await db.$client.end()
 	}
 }
 
-void seed()
+seed()
+	.then(() => process.exit(0))
+	.catch((error) => {
+		console.error('❌ Seed failed:', error)
+		process.exit(1)
+	})

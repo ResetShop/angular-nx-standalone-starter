@@ -1,6 +1,4 @@
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
-import { dbEnv } from '../api/config/db.env'
+import { createDrizzlePgConnector } from '../api/helpers/drizzle-postgres-connector'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
 import { permission } from './schema/permission'
 
@@ -27,8 +25,7 @@ function computeOrphaned(existingNames: Set<string>) {
 }
 
 async function syncPermissions(): Promise<void> {
-	const pool = new Pool({ connectionString: dbEnv.PG_CONNECTION_STRING })
-	const db = drizzle(pool)
+	const db = createDrizzlePgConnector()
 
 	try {
 		console.log('[sync-permissions] Querying existing permissions...')
@@ -56,13 +53,14 @@ async function syncPermissions(): Promise<void> {
 		}
 
 		console.log(`[sync-permissions] Done. ${existingNames.size + missing.length} total, ${orphaned.length} orphaned.`)
-		process.exit(0)
-	} catch (error) {
-		console.error('[sync-permissions] Failed:', error)
-		process.exit(1)
 	} finally {
-		await pool.end()
+		await db.$client.end()
 	}
 }
 
-void syncPermissions()
+syncPermissions()
+	.then(() => process.exit(0))
+	.catch((error) => {
+		console.error('[sync-permissions] Failed:', error)
+		process.exit(1)
+	})
