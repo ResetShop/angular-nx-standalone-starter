@@ -52,6 +52,8 @@ you don't need to push a new commit):
 - `skip-changelog` — for typo fixes, comment-only edits, or internal refactors with no fork-visible impact.
 - `allow-app-change` — for a PR that legitimately modifies a path under `apps/` other than `apps/reference-app`.
 
+Note: the root community-health files (this `CONTRIBUTING.md`, `SECURITY.md`, and `CODE_OF_CONDUCT.md`) are **not** matched by the `changelog-guard` regex, so changes to them won't be flagged automatically — please add a CHANGELOG entry voluntarily when a change to them is fork-visible (e.g. a policy change).
+
 ## CI gate
 
 `npm run ci` must pass with exit code `0` before a PR is opened. All task execution goes through

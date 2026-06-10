@@ -36,7 +36,7 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at GitHub Private Vulnerability Reporting (https://github.com/ResetShop/angular-nx-standalone-starter/security/advisories/new) or by contacting a maintainer. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement by contacting a ResetShop organization owner directly. For reports that are sensitive or need a confidential channel, you may use GitHub Private Vulnerability Reporting (https://github.com/ResetShop/angular-nx-standalone-starter/security/advisories/new). All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the reporter of any incident.
 

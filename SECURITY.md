@@ -33,8 +33,8 @@ This keeps the report confidential until a fix is available.
 ## Response Expectations
 
 This is an open-source project maintained on a best-effort basis — no formal SLA is committed. We
-will make a best effort to acknowledge your report within a few business days and to keep you updated
-as we investigate and remediate.
+aim to acknowledge your report within **7 business days** and to keep you updated as we investigate
+and remediate, but cannot guarantee specific timelines given maintainer capacity.
 
 ## Out of Scope
 
