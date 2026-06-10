@@ -3,7 +3,7 @@
 	"type": "module",
 	"version": "1.0.0",
 	"license": "Apache-2.0",
-	"description": "Fork-ready Nx monorepo starter: an SSR-ready Angular 17+ frontend and a Hono backend API, with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO auth + RBAC.",
+	"description": "Fork-ready Nx monorepo starter: an SSR-ready Angular 21+ frontend and a Hono backend API, with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO auth + RBAC.",
 	"author": {
 		"name": "ResetShop",
 		"url": "https://github.com/ResetShop"
