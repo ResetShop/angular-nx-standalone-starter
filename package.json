@@ -3,6 +3,33 @@
 	"type": "module",
 	"version": "1.0.0",
 	"license": "Apache-2.0",
+	"description": "Fork-ready Nx monorepo starter: an SSR-ready Angular 21+ frontend and a Hono backend API, with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO auth + RBAC.",
+	"author": {
+		"name": "ResetShop",
+		"url": "https://github.com/ResetShop"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ResetShop/angular-nx-standalone-starter.git"
+	},
+	"homepage": "https://github.com/ResetShop/angular-nx-standalone-starter#readme",
+	"bugs": {
+		"url": "https://github.com/ResetShop/angular-nx-standalone-starter/issues"
+	},
+	"keywords": [
+		"angular",
+		"nx",
+		"monorepo",
+		"hono",
+		"ssr",
+		"typescript",
+		"drizzle",
+		"postgres",
+		"ngrx",
+		"paseto",
+		"starter",
+		"template"
+	],
 	"imports": {
 		"#tailwind-theme": "./tailwind.config.css"
 	},

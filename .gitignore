@@ -40,6 +40,8 @@ npm-debug.log
 yarn-error.log
 testem.log
 tailwindcss-*.log
+# Catch-all for stray log files (e.g. shell-error artifacts) — no .log should be tracked
+*.log
 /typings
 
 # System Files
