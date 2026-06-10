@@ -1,4 +1,4 @@
-import { parseDurationToMs } from '@resetshop/util'
+import { parseDurationToMs, type Logger } from '@resetshop/util'
 import { sql } from 'drizzle-orm'
 import type { DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector'
 import { describeDbError } from './describe-db-error'
@@ -7,6 +7,7 @@ import type { DatabaseCheck, HealthCheckResponse } from './interfaces'
 
 interface HealthServiceDeps {
 	db: DrizzlePgConnector
+	logger: Logger
 }
 
 /**
@@ -15,9 +16,11 @@ interface HealthServiceDeps {
  */
 export class HealthService {
 	private db: DrizzlePgConnector
+	private logger: Logger
 
-	constructor({ db }: HealthServiceDeps) {
+	constructor({ db, logger }: HealthServiceDeps) {
 		this.db = db
+		this.logger = logger
 	}
 
 	/**
@@ -56,10 +59,14 @@ export class HealthService {
 			}
 		} catch (error) {
 			const responseTimeMs = Date.now() - start
+			// Full diagnostic (cause chain, SQLSTATE/socket codes, hint) goes to the log only.
+			// The public /health response keeps a generic message so internal DB topology
+			// (host, port, user, SQLSTATE) is never exposed on the unauthenticated endpoint.
+			this.logger.error('Database', `Health check failed: ${describeDbError(error)}`)
 			return {
 				status: HealthStatus.UNHEALTHY,
 				responseTimeMs: responseTimeMs > 0 ? responseTimeMs : null,
-				error: describeDbError(error),
+				error: error instanceof Error ? error.message : 'Unknown error',
 			}
 		}
 	}

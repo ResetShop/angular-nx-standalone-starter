@@ -7,10 +7,14 @@ import { HealthService } from './health.service'
 describe('HealthService', () => {
 	let healthService: HealthService
 	const mockExecute = fn<[unknown], Promise<unknown>>()
+	const loggerError = fn<[string, string], void>()
 
 	beforeEach(() => {
 		clearAllMocks()
-		healthService = new HealthService({ db: { execute: mockExecute } as never })
+		healthService = new HealthService({
+			db: { execute: mockExecute } as never,
+			logger: { error: loggerError } as never,
+		})
 	})
 
 	afterEach(() => {
@@ -37,6 +41,23 @@ describe('HealthService', () => {
 			expect(result.status).toBe(HealthStatus.UNHEALTHY)
 			expect(result.checks.database.status).toBe(HealthStatus.UNHEALTHY)
 			expect(result.checks.database).toHaveProperty('error', 'Connection refused')
+		})
+
+		it('logs the underlying cause and SQLSTATE while keeping the public response generic', async () => {
+			const cause = Object.assign(new Error('password authentication failed for user "postgres.abc"'), {
+				code: '28P01',
+			})
+			mockExecute.mockRejectedValue(Object.assign(new Error('Failed query: SELECT 1'), { cause }))
+
+			const result = await healthService.checkHealth()
+
+			// Public response keeps the generic driver message — no SQLSTATE/host/user leak.
+			expect(result.checks.database).toHaveProperty('error', 'Failed query: SELECT 1')
+			// The rich diagnostic (cause + code) is logged for the operator instead.
+			expect(loggerError).toHaveBeenCalledWith(
+				'Database',
+				expect.stringMatching(/password authentication failed[\s\S]*28P01/),
+			)
 		})
 
 		it('should return unhealthy status with timeout error when database hangs', async () => {
