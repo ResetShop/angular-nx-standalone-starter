@@ -1,0 +1,116 @@
+name: Close External PRs
+
+# Enforces the contribution policy: issues are welcome from anyone, but pull
+# requests are accepted from ResetShop org members only. PRs opened by a
+# non-member are commented on and closed automatically.
+#
+# SECURITY — pull_request_target safety constraints:
+#   This trigger runs in the BASE repo context with write access and secrets.
+#   A malicious fork PR could exfiltrate those secrets if its code were checked
+#   out and executed. This workflow MUST therefore:
+#     - NEVER use actions/checkout (no checkout step of any kind)
+#     - NEVER execute PR-branch code (no npm, no scripts, no reads of PR files)
+#     - read ONLY github.event.pull_request.user.login (trusted GitHub metadata,
+#       not controllable by the PR author) and call the REST API.
+#   Keep this job to the single github-script step below.
+#
+#   The github-script action is pinned to a full commit SHA (not a floating tag)
+#   because this workflow handles a secret on pull_request_target — a mutated tag
+#   could exfiltrate ORG_READ_TOKEN. (Other workflows in this repo pin version
+#   tags; this stricter pin is intentional for the secret-bearing trigger.)
+#
+# ORG_READ_TOKEN secret required:
+#   The default GITHUB_TOKEN can see only PUBLIC org membership; a member with
+#   private membership returns 404 and would be wrongly classified as external.
+#   Provide ORG_READ_TOKEN — a classic PAT with read:org scope, owned by a
+#   ResetShop member — as a repo/org secret. The script FAILS SAFE in every
+#   degraded-token case:
+#     - secret MISSING  → the explicit guard calls core.setFailed and exits
+#       before any API call (never runs the check with the default token).
+#     - secret EXPIRED  → the 401 is caught and the PR is left open (warning).
+#   In neither case is a PR closed on uncertain membership.
+#
+# Does NOT run on forks (gated by the if: expression below). Forks wanting their
+# own enforcement must change the org name and the if: condition, or delete this file.
+
+on:
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  close-external-prs:
+    name: Close PRs from non-ResetShop members
+    runs-on: ubuntu-latest
+    if: github.repository == 'ResetShop/angular-nx-standalone-starter'
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check author membership and close non-members
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          ORG_READ_TOKEN: ${{ secrets.ORG_READ_TOKEN }}
+        with:
+          github-token: ${{ secrets.ORG_READ_TOKEN }}
+          script: |
+            // Fail safe when the secret is absent: an empty github-token makes
+            // github-script fall back to GITHUB_TOKEN, which cannot see private
+            // org membership and would 404 (and wrongly close) real members.
+            // Abort before any API call rather than mis-classify.
+            if (!process.env.ORG_READ_TOKEN) {
+              core.setFailed('ORG_READ_TOKEN is not set — refusing to run the membership check with the default token.')
+              return
+            }
+
+            const actor = context.payload.pull_request.user.login
+            const prNumber = context.payload.pull_request.number
+            const org = 'ResetShop' // forks: change this (and the job-level if: condition)
+
+            // Skip automation accounts — every GitHub App bot uses the [bot]
+            // suffix (e.g. dependabot[bot], github-actions[bot], renovate[bot]).
+            if (actor.endsWith('[bot]')) {
+              core.info(`Skipping bot actor: ${actor}`)
+              return
+            }
+
+            let isMember = false
+            try {
+              // Octokit auto-follows the redirect, so a confirmed member resolves to 204.
+              const response = await github.rest.orgs.checkMembershipForUser({ org, username: actor })
+              isMember = response.status === 204
+            } catch (err) {
+              if (err.status === 404) {
+                isMember = false // confirmed non-member
+              } else {
+                // 401 (expired ORG_READ_TOKEN), network, or any unexpected status:
+                // fail safe — never close when membership is uncertain.
+                core.warning(
+                  `Membership check failed for ${actor} (status ${err.status}): ${err.message}. Leaving PR open.`,
+                )
+                return
+              }
+            }
+
+            if (isMember) {
+              core.info(`${actor} is a ResetShop member — no action taken.`)
+              return
+            }
+
+            core.info(`${actor} is not a ResetShop member — commenting and closing PR #${prNumber}.`)
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body:
+                'Thank you for this pull request.\n\n' +
+                '**This repository accepts pull requests from ' +
+                '[ResetShop](https://github.com/ResetShop) org members only** ' +
+                '(issues, however, are welcome from anyone). See ' +
+                '[CONTRIBUTING.md](https://github.com/ResetShop/angular-nx-standalone-starter/blob/main/CONTRIBUTING.md).\n\n' +
+                'If you believe you should have access, please contact a maintainer. Closing this PR.',
+            })
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              state: 'closed',
+            })
