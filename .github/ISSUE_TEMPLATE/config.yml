@@ -1,0 +1,12 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/ResetShop/angular-nx-standalone-starter/security/advisories/new
+    about: >-
+      Please report vulnerabilities privately via GitHub Private Vulnerability Reporting —
+      never in a public issue. See SECURITY.md.
+  - name: Contribution policy
+    url: https://github.com/ResetShop/angular-nx-standalone-starter/blob/main/CONTRIBUTING.md
+    about: >-
+      Issues are welcome from anyone; pull requests are accepted from ResetShop org members
+      only. See CONTRIBUTING.md.
