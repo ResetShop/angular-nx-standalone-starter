@@ -67,7 +67,7 @@ This guide covers all the setup steps needed to configure this starter repositor
 
 This project requires:
 
-- **Node.js**: `^20.19.0` or `^22.12.0`
+- **Node.js**: `^20.19.0` or `^22.19.0` (matches the `engines` field in `package.json`)
 - **npm**: Package manager
 
 **Installation Steps:**
