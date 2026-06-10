@@ -1,5 +1,10 @@
 # Reset Dev: Repo Starter
 
+> [!NOTE]
+> This repository is public for transparency and reuse under Apache-2.0.
+> **Issues are welcome from anyone; pull requests are accepted from [ResetShop](https://github.com/ResetShop) org members only.**
+> See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+
 ## How to use this repo
 
 This repository is a starter project for an SSR-ready Angular application, which uses Hono for its backend web API.
