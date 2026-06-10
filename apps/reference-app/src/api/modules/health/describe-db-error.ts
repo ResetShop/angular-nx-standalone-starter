@@ -35,9 +35,10 @@ function readField(source: object, field: string): string | undefined {
 
 function describeLevel(error: unknown): string {
 	if (!(error instanceof Error)) return typeof error === 'string' ? error : 'Unknown error'
-	const fields = DIAGNOSTIC_FIELDS.map((field) => [field, readField(error, field)] as const).filter(
-		(entry): entry is readonly [string, string] => entry[1] !== undefined,
-	)
+	const fields = DIAGNOSTIC_FIELDS.map((field): [string, string | undefined] => [
+		field,
+		readField(error, field),
+	]).filter((entry): entry is [string, string] => entry[1] !== undefined)
 	const suffix = fields.length > 0 ? ` (${fields.map(([field, value]) => `${field}=${value}`).join(', ')})` : ''
 	return `${error.message}${suffix}`
 }
