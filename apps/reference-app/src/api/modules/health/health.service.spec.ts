@@ -54,10 +54,11 @@ describe('HealthService', () => {
 			// Public response keeps the generic driver message — no SQLSTATE/host/user leak.
 			expect(result.checks.database).toHaveProperty('error', 'Failed query: SELECT 1')
 			// The rich diagnostic (cause + code) is logged for the operator instead.
-			expect(loggerError).toHaveBeenCalledWith(
-				'Database',
-				expect.stringMatching(/password authentication failed[\s\S]*28P01/),
-			)
+			expect(loggerError.calls).toHaveLength(1)
+			const [context, message] = loggerError.calls[0]
+			expect(context).toBe('Database')
+			expect(message).toContain('password authentication failed')
+			expect(message).toContain('28P01')
 		})
 
 		it('should return unhealthy status with timeout error when database hangs', async () => {
