@@ -1,6 +1,5 @@
 /**
  * Types and utility functions for managing data from Microsoft Clarity Export API
- * @author Ramiro Olivencia <ramiro@olivencia.com.ar>
  */
 
 // Base interfaces for representing metrics information
