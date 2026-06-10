@@ -9,8 +9,6 @@ import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 import { createDefaultPromptFn, resolveSeedAdminCredentials, type SeedAdminCredentials } from './seed-admin-credentials'
 
-const db = createDrizzlePgConnector()
-
 /**
  * Creates the admin user and its authentication record, or returns the existing user's id.
  *
@@ -106,6 +104,7 @@ async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdmin
  * use `npm run sync:permissions` instead (see `src/db/sync-permissions.ts`).
  */
 async function seed(): Promise<void> {
+	const db = createDrizzlePgConnector()
 	try {
 		console.log('🌱 Starting database seed...')
 		const isInteractive = !process.env['CI'] && Boolean(process.stdin.isTTY)
@@ -123,11 +122,14 @@ async function seed(): Promise<void> {
 		await db.transaction((tx) => runSeedTransaction(tx, credentials))
 
 		console.log('✅ Database seed completed successfully')
-		process.exit(0)
-	} catch (error) {
-		console.error('❌ Seed failed:', error)
-		process.exit(1)
+	} finally {
+		await db.$client.end()
 	}
 }
 
-void seed()
+seed()
+	.then(() => process.exit(0))
+	.catch((error) => {
+		console.error('❌ Seed failed:', error)
+		process.exit(1)
+	})

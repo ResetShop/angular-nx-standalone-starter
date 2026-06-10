@@ -53,13 +53,14 @@ async function syncPermissions(): Promise<void> {
 		}
 
 		console.log(`[sync-permissions] Done. ${existingNames.size + missing.length} total, ${orphaned.length} orphaned.`)
-		process.exit(0)
-	} catch (error) {
-		console.error('[sync-permissions] Failed:', error)
-		process.exit(1)
 	} finally {
 		await db.$client.end()
 	}
 }
 
-void syncPermissions()
+syncPermissions()
+	.then(() => process.exit(0))
+	.catch((error) => {
+		console.error('[sync-permissions] Failed:', error)
+		process.exit(1)
+	})
