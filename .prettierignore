@@ -15,3 +15,6 @@ apps/*/e2e/fixtures/states/
 # Verbatim license text — must not be reflowed by Prettier (Apache-2.0 canonical text + NOTICE)
 LICENSE.md
 NOTICE.md
+
+# Contributor Covenant — verbatim canonical text, must not be reflowed by Prettier
+CODE_OF_CONDUCT.md
