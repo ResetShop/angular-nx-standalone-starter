@@ -1,6 +1,7 @@
 import { parseDurationToMs } from '@resetshop/util'
 import { sql } from 'drizzle-orm'
 import type { DrizzlePgConnector } from '../../helpers/drizzle-postgres-connector'
+import { describeDbError } from './describe-db-error'
 import { HEALTH_CHECK_TIMEOUT, HealthStatus } from './health.constants'
 import type { DatabaseCheck, HealthCheckResponse } from './interfaces'
 
@@ -58,7 +59,7 @@ export class HealthService {
 			return {
 				status: HealthStatus.UNHEALTHY,
 				responseTimeMs: responseTimeMs > 0 ? responseTimeMs : null,
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: describeDbError(error),
 			}
 		}
 	}
