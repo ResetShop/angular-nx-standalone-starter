@@ -1,0 +1,10 @@
+# Code review routing for the upstream repository.
+#
+# A review from any one listed owner satisfies a "Require review from Code Owners"
+# branch-protection rule on `main` (enabling that rule is a GitHub-settings step).
+#
+# Adjust this list or convert it to an org team (e.g. `@ResetShop/maintainers`) as the
+# team grows; add `@reset-shop` if that account performs reviews. Forks should replace
+# the owners with their own maintainers (or delete this file).
+
+* @juanblas09 @rolivencia @Lautar06 @szambon23
