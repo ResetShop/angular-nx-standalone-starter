@@ -155,6 +155,29 @@ class DependencyContainer implements Container {
 	}
 
 	/**
+	 * Closes the database connection pool if it was ever resolved.
+	 * Called from integration-test teardown (after the last test file completes) so the
+	 * Vitest worker can exit cleanly instead of lingering on the pool's open idle TCP
+	 * sockets — the source of the orphaned, memory-retaining node process.
+	 *
+	 * No-op when the Awilix container was never initialized (e.g. unit-test files that
+	 * only use the mock container). Always operates on the real container, never the
+	 * delegate: a delegate (InMemoryContainer) holds mocks, not a real pool, so there is
+	 * nothing to close there. If the container was initialized but `db` was never resolved
+	 * (e.g. a suite whose setup threw before any handler ran), reading `cradle.db` here
+	 * lazily builds the pool; calling `end()` on a never-connected pool is a harmless no-op.
+	 * Swallows errors so a double teardown (the pool already ended) stays idempotent.
+	 */
+	public async teardownDb(): Promise<void> {
+		if (!this.awilix) return
+		try {
+			await this.awilix.cradle.db.$client.end()
+		} catch {
+			// Pool may already be ended — idempotent teardown, safe to ignore.
+		}
+	}
+
+	/**
 	 * Replaces the active container with a delegate (e.g. InMemoryContainer for tests).
 	 * While a delegate is active, cradle and resolve() forward to it.
 	 */
