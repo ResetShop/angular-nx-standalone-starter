@@ -12,14 +12,11 @@ export default defineConfig({
 		setupFiles: ['src/test-setup.ts'],
 		include: ['src/**/*.{test,spec}.ts', 'tools/**/*.spec.js'],
 		exclude: ['node_modules', 'dist', '.nx', 'coverage', '**/node_modules/**', '**/dist/**', 'src/api/integration/**'],
-		// Cap concurrent fork workers to bound peak memory of the unit-test run (CI runners
-		// otherwise spin up CPUs-1 workers). `forks` is already Vitest's default pool.
+		// Cap concurrent workers to bound peak memory of the unit-test run (CI runners
+		// otherwise spin up CPUs-1 workers). `forks` is already Vitest's default pool;
+		// `maxWorkers` is the Vitest 4 replacement for the removed `poolOptions.forks.maxForks`.
 		pool: 'forks',
-		poolOptions: {
-			forks: {
-				maxForks: 2,
-			},
-		},
+		maxWorkers: 2,
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
