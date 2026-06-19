@@ -18,27 +18,12 @@ interface DbErrorInfo {
 	message: string
 }
 
-const MAX_CAUSE_DEPTH = 8
-
-// SQLSTATE / Node-errno → actionable hint. Keyed by the driver's own `code` field.
-const HINT_BY_CODE: Readonly<Record<string, string>> = {
-	'28P01': 'authentication failed — verify the DB password; rotated credentials must be updated in the deploy host env',
-	'28000': 'authentication failed — verify the DB password; rotated credentials must be updated in the deploy host env',
-	'3D000': 'database does not exist — check the database name in the connection string',
-	ECONNREFUSED:
-		'connection refused — if the host is localhost, PG_CONNECTION_STRING is likely unset or misnamed in the deploy environment',
-	ENOTFOUND: 'host not found / DNS failure — verify the DB host (for Supabase, use the IPv4 pooler host)',
-	EAI_AGAIN: 'host not found / DNS failure — verify the DB host (for Supabase, use the IPv4 pooler host)',
-	ETIMEDOUT:
-		'connection timed out — host unreachable; for Supabase use the IPv4 pooler and confirm the project is not paused',
-}
-
-const TLS_HINT = 'TLS/SSL handshake failed — try appending ?sslmode=require to the connection string'
-
 /** Folds one error node's non-sensitive fields into the accumulator, preferring the code-bearing node. */
 function applyNode(node: Record<string, unknown>, info: DbErrorInfo): void {
 	const message = typeof node['message'] === 'string' ? node['message'] : null
 	if (message && info.message === 'Unknown error') info.message = message
+	// First code on the chain wins: the outermost driver error (Drizzle → pg) carries the
+	// SQLSTATE/errno we want to report; deeper nodes are lower-level wrappers. Don't override it.
 	if (info.code || typeof node['code'] !== 'string') return
 
 	info.code = node['code']
@@ -49,6 +34,7 @@ function applyNode(node: Record<string, unknown>, info: DbErrorInfo): void {
 
 /** Walks the `cause` chain (depth-capped, cycle-guarded) collecting the most specific diagnostics. */
 function extractDbErrorInfo(error: unknown): DbErrorInfo {
+	const MAX_CAUSE_DEPTH = 8
 	const info: DbErrorInfo = { code: null, address: null, port: null, message: 'Unknown error' }
 	const seen = new Set<unknown>()
 	let current = error
@@ -71,8 +57,24 @@ function looksLikeTlsError(code: string | null, message: string): boolean {
 }
 
 function hintFor(code: string | null, message: string): string | null {
-	if (code && HINT_BY_CODE[code]) return HINT_BY_CODE[code]
-	if (looksLikeTlsError(code, message)) return TLS_HINT
+	// SQLSTATE / Node-errno → actionable hint, keyed by the driver's own `code` field.
+	const hintByCode: Readonly<Record<string, string>> = {
+		'28P01':
+			'authentication failed — verify the DB password; rotated credentials must be updated in the deploy host env',
+		'28000':
+			'authentication failed — verify the DB password; rotated credentials must be updated in the deploy host env',
+		'3D000': 'database does not exist — check the database name in the connection string',
+		ECONNREFUSED:
+			'connection refused — if the host is localhost, PG_CONNECTION_STRING is likely unset or misnamed in the deploy environment',
+		ENOTFOUND: 'host not found / DNS failure — verify the DB host (for Supabase, use the IPv4 pooler host)',
+		EAI_AGAIN: 'host not found / DNS failure — verify the DB host (for Supabase, use the IPv4 pooler host)',
+		ETIMEDOUT:
+			'connection timed out — host unreachable; for Supabase use the IPv4 pooler and confirm the project is not paused',
+	}
+
+	if (code && hintByCode[code]) return hintByCode[code]
+	if (looksLikeTlsError(code, message))
+		return 'TLS/SSL handshake failed — try appending ?sslmode=require to the connection string'
 	return null
 }
 
