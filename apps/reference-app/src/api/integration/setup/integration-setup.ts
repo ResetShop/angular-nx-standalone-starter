@@ -28,8 +28,13 @@ extendZodWithOpenApi(z)
 // (`closeTestDb`) is re-created per file via `getTestDb`; the app pool is re-created per file
 // on the first handler call.
 afterAll(async () => {
-	const { closeTestDb } = await import('./db-helpers')
-	await closeTestDb()
-	const { container } = await import('../../container/container')
-	await container.teardownDb()
+	try {
+		const { closeTestDb } = await import('./db-helpers')
+		await closeTestDb()
+	} finally {
+		// Run in finally so the app pool is closed even if closeTestDb() throws — otherwise the
+		// pool this PR exists to close would leak on a test-helper teardown failure.
+		const { container } = await import('../../container/container')
+		await container.teardownDb()
+	}
 })

@@ -162,8 +162,11 @@ class DependencyContainer implements Container {
 	 *
 	 * No-op when the Awilix container was never initialized (e.g. unit-test files that
 	 * only use the mock container). Always operates on the real container, never the
-	 * delegate — the real pool is what leaks. Swallows errors so a double teardown (the
-	 * pool already ended) stays idempotent.
+	 * delegate: a delegate (InMemoryContainer) holds mocks, not a real pool, so there is
+	 * nothing to close there. If the container was initialized but `db` was never resolved
+	 * (e.g. a suite whose setup threw before any handler ran), reading `cradle.db` here
+	 * lazily builds the pool; calling `end()` on a never-connected pool is a harmless no-op.
+	 * Swallows errors so a double teardown (the pool already ended) stays idempotent.
 	 */
 	public async teardownDb(): Promise<void> {
 		if (!this.awilix) return

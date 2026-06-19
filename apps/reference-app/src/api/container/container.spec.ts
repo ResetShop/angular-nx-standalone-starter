@@ -186,15 +186,20 @@ describe('DI Container', () => {
 	})
 
 	describe('container.teardownDb', () => {
-		it('closes the resolved database pool and resolves without throwing', async () => {
-			// Resolve the db singleton so there is a (lazily built, never-connected) pool to close.
-			expect(container.cradle.db).toBeDefined()
-			await expect(container.teardownDb()).resolves.toBeUndefined()
+		it('closes the resolved database pool by ending its client', async () => {
+			const pool = container.cradle.db.$client
+			const endSpy = fn().mockResolvedValue(undefined)
+			pool.end = endSpy as unknown as typeof pool.end
+
+			await container.teardownDb()
+
+			expect(endSpy.calls).toHaveLength(1)
 		})
 
-		it('is idempotent — a second teardown swallows the already-ended pool error', async () => {
-			expect(container.cradle.db).toBeDefined()
-			await container.teardownDb()
+		it('swallows a pool-close error so teardown stays idempotent', async () => {
+			const pool = container.cradle.db.$client
+			pool.end = fn().mockRejectedValue(new Error('Called end on pool more than once')) as unknown as typeof pool.end
+
 			await expect(container.teardownDb()).resolves.toBeUndefined()
 		})
 	})
