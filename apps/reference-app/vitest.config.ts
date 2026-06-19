@@ -15,8 +15,10 @@ export default defineConfig({
 		// Cap concurrent workers to bound peak memory of the unit-test run (CI runners
 		// otherwise spin up CPUs-1 workers). `forks` is already Vitest's default pool;
 		// `maxWorkers` is the Vitest 4 replacement for the removed `poolOptions.forks.maxForks`.
+		// Override with VITEST_MAX_WORKERS (e.g. = core count) to trade memory for speed on a
+		// workstation; see docs/environment-variables.md → Test-Time Behavior.
 		pool: 'forks',
-		maxWorkers: 2,
+		maxWorkers: Number(process.env['VITEST_MAX_WORKERS']) || 2,
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
