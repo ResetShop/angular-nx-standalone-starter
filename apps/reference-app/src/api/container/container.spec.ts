@@ -184,4 +184,18 @@ describe('DI Container', () => {
 			expect(container.cradle.authService).toBeInstanceOf(AuthService)
 		})
 	})
+
+	describe('container.teardownDb', () => {
+		it('closes the resolved database pool and resolves without throwing', async () => {
+			// Resolve the db singleton so there is a (lazily built, never-connected) pool to close.
+			expect(container.cradle.db).toBeDefined()
+			await expect(container.teardownDb()).resolves.toBeUndefined()
+		})
+
+		it('is idempotent — a second teardown swallows the already-ended pool error', async () => {
+			expect(container.cradle.db).toBeDefined()
+			await container.teardownDb()
+			await expect(container.teardownDb()).resolves.toBeUndefined()
+		})
+	})
 })
