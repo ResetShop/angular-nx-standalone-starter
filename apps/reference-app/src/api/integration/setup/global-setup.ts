@@ -93,16 +93,20 @@ export async function setup(): Promise<void> {
 }
 
 export async function teardown(): Promise<void> {
-	if (!process.env['PG_TEST_CONNECTION_STRING']) return
-
-	console.log('[Integration] Cleaning up test database...')
-	const { getTestDb, closeTestDb, truncateAllTables } = await import('./db-helpers')
-	const db = getTestDb()
-	await truncateAllTables(db)
-	await closeTestDb()
-	console.log('[Integration] Test database cleaned up.')
-
-	if (usedEmbeddedPg) {
-		await stopEmbeddedPostgres()
+	try {
+		if (process.env['PG_TEST_CONNECTION_STRING']) {
+			console.log('[Integration] Cleaning up test database...')
+			const { getTestDb, closeTestDb, truncateAllTables } = await import('./db-helpers')
+			const db = getTestDb()
+			await truncateAllTables(db)
+			await closeTestDb()
+			console.log('[Integration] Test database cleaned up.')
+		}
+	} finally {
+		// Always stop the embedded cluster if we started it, even if truncation threw —
+		// otherwise the Postgres process and its data directory would leak.
+		if (usedEmbeddedPg) {
+			await stopEmbeddedPostgres()
+		}
 	}
 }

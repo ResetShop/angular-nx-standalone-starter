@@ -184,4 +184,23 @@ describe('DI Container', () => {
 			expect(container.cradle.authService).toBeInstanceOf(AuthService)
 		})
 	})
+
+	describe('container.teardownDb', () => {
+		it('closes the resolved database pool by ending its client', async () => {
+			const pool = container.cradle.db.$client
+			const endSpy = fn().mockResolvedValue(undefined)
+			pool.end = endSpy as unknown as typeof pool.end
+
+			await container.teardownDb()
+
+			expect(endSpy.calls).toHaveLength(1)
+		})
+
+		it('swallows a pool-close error so teardown stays idempotent', async () => {
+			const pool = container.cradle.db.$client
+			pool.end = fn().mockRejectedValue(new Error('Called end on pool more than once')) as unknown as typeof pool.end
+
+			await expect(container.teardownDb()).resolves.toBeUndefined()
+		})
+	})
 })

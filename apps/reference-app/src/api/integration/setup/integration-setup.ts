@@ -19,12 +19,22 @@ configureEnvVars(getTestConnectionString())
 // Safe to call here because setupFiles execute completely before test file imports.
 extendZodWithOpenApi(z)
 
-// Close test-helper DB pool after each test file so connections don't leak.
-// The app's drizzlePgConnector pool is NOT closed here — ending it mid-run
-// can cause subsequent queries to silently return empty results instead of
-// throwing, because node-postgres marks the Pool as ended. The process exit
-// handles final cleanup automatically.
+// Close both DB pools after each test file so connections don't leak and the worker
+// process can exit cleanly. Under Vitest's default isolation, each test file runs with a
+// fresh module graph — its own `container` singleton and its own app pool — so closing the
+// app pool here targets that file's pool, never a pool shared with a later file. Leaving it
+// open kept its idle TCP sockets alive across the run, which prevented the worker from
+// exiting and left an orphaned, memory-retaining node process behind. The test-helper pool
+// (`closeTestDb`) is re-created per file via `getTestDb`; the app pool is re-created per file
+// on the first handler call.
 afterAll(async () => {
-	const { closeTestDb } = await import('./db-helpers')
-	await closeTestDb()
+	try {
+		const { closeTestDb } = await import('./db-helpers')
+		await closeTestDb()
+	} finally {
+		// Run in finally so the app pool is closed even if closeTestDb() throws — otherwise the
+		// pool this PR exists to close would leak on a test-helper teardown failure.
+		const { container } = await import('../../container/container')
+		await container.teardownDb()
+	}
 })

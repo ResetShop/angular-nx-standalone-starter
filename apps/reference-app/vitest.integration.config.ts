@@ -18,6 +18,9 @@ export default defineConfig({
 		include: ['apps/reference-app/src/api/integration/**/*.integration.spec.ts'],
 		exclude: ['node_modules', 'dist', '.nx', 'coverage'],
 		testTimeout: 30_000,
+		// Give the worker's afterAll (which drains both DB pools) room to finish before
+		// Vitest force-exits, so the worker can shut down its sockets cleanly.
+		teardownTimeout: 30_000,
 		fileParallelism: false,
 	},
 })

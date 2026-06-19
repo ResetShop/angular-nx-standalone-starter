@@ -190,6 +190,16 @@ Each sub-schema is instantiated with a `testDefaults` object that minimally sati
 
 The test-setup files (`apps/**/src/test-setup.ts` and `apps/**/src/api/integration/setup/**`) are the only non-`@config` files allowed to touch `process.env` directly — they bootstrap baseline values for tests that don't seed explicitly.
 
+### Test-runner tuning (not part of the env contract)
+
+A few variables tune the **test runner itself** rather than the application, so they live outside the eight Zod sub-schemas and are read directly in the (un-linted) Vitest/Playwright config files at the project root:
+
+| Variable             | Read in                               | Default | Purpose                                                                                                                |
+| -------------------- | ------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `VITEST_MAX_WORKERS` | `apps/reference-app/vitest.config.ts` | `2`     | Caps concurrent unit-test fork workers to bound peak memory. Raise it (e.g. to your core count) for faster local runs. |
+
+These are optional developer conveniences with safe defaults — leaving them unset is fully supported. They are intentionally **not** added to the Variable Index above (that table is exclusively the backend runtime contract).
+
 ---
 
 ## Adding or Changing a Variable
