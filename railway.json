@@ -5,7 +5,7 @@
 		"buildCommand": "npm run build"
 	},
 	"deploy": {
-		"startCommand": "npm run serve:ssr",
+		"startCommand": "node dist/app/server.mjs",
 		"healthcheckPath": "/api/health/v1",
 		"healthcheckTimeout": 300,
 		"restartPolicyType": "ON_FAILURE",
