@@ -31,12 +31,13 @@ import { UIStore } from '@store/ui/ui.store'
 			'uiStore.isSidebarCollapsed() ? "var(--sidebar-width-collapsed)" : "var(--sidebar-width)"',
 	},
 	styles: `
+		@reference "#tailwind-theme";
+
 		main {
 			overflow: auto;
 		}
 
 		:host {
-			@reference "#tailwind-theme";
 			--sidebar-width: 240px;
 			--sidebar-width-collapsed: 64px;
 			--sidebar-width-mobile: min(280px, 80vw);
