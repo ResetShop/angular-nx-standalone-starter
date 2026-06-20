@@ -1,4 +1,5 @@
 import type { OpenAPIHono } from '@hono/zod-openapi'
+import { appEnv } from '../../config/app.env'
 import { getRestrictedUserCredentials } from './db-helpers'
 
 interface ParsedCookies {
@@ -61,7 +62,7 @@ export async function loginAs(
  * Password is read from INTEGRATION_TEST_ADMIN_PASSWORD env var (default: admin123).
  */
 export async function loginAsAdmin(app: OpenAPIHono): Promise<ParsedCookies> {
-	const adminPassword = process.env['INTEGRATION_TEST_ADMIN_PASSWORD']
+	const adminPassword = appEnv.INTEGRATION_TEST_ADMIN_PASSWORD
 	if (!adminPassword) {
 		throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD environment variable is required.')
 	}

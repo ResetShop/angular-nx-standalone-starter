@@ -105,7 +105,7 @@ const processEnvRestrictedSyntax = [
 	{
 		selector: "MemberExpression[object.name='process'][property.name='env']",
 		message:
-			"Direct process.env access is forbidden. Import the typed value from '@config/<domain>.env' (e.g. dbEnv.PG_CONNECTION_STRING, authEnv.PASETO_SECRET_KEY). The allowlist lives in eslint.config.mjs.",
+			"Direct process.env access is forbidden. Import the typed value from '@config/<domain>.env' (e.g. dbEnv.PG_CONNECTION_STRING, tokenEnv.PASETO_SECRET_KEY). The allowlist lives in eslint.config.mjs.",
 	},
 ]
 
@@ -284,19 +284,31 @@ export default [
 		},
 	},
 	{
-		// process.env allowlist — the only files that may read process.env directly:
-		//   - api/config/** : the env sub-schemas and the createEnvHandler factory (env-utils.ts),
-		//     which parse process.env once per domain behind the lazy proxy, plus their specs.
-		//   - test-setup.ts : pre-seeds env values before any production module loads.
-		//   - api/integration/** : integration setup helpers and specs that drive test fixtures via env.
-		//   - db/** : entry-point scripts (e.g. seed.ts) that read CI/TTY signals before the app boots.
+		// Explicit per-file allowlist for direct process.env access. Each file has exactly one reason to
+		// read or write process.env; every other file must go through the typed domain proxies (dbEnv,
+		// tokenEnv, …) or their seed APIs. No directory wildcards — `**` is only a multi-app path prefix.
+		//
+		//   env-utils.ts      — the lazy-init proxy factory; parses process.env on first property access.
+		//   env-utils.spec.ts — tests the factory's FATAL process.exit contract.
+		//   runtime.ts        — isInteractive(): reads CI + stdin.isTTY to detect an interactive terminal.
+		//   runtime.spec.ts   — tests isInteractive() by setting process.env['CI'] directly.
+		//   test-setup.ts     — pre-seeds env values before any production module loads.
+		//   global-setup.ts   — writes PG_TEST_CONNECTION_STRING into process.env for inheritance by
+		//                       worker child processes; in-memory seedXEnv() caches do not cross processes.
+		//   env-helpers.ts    — the integration .env delivery boundary (loadEnvFile) and operator
+		//                       PASETO-key read preferred over the test fallback.
+		//   seed.ts           — sanctioned DB seed entry-point script.
 		// These keep the common + vi restrictions; only the process.env restriction is lifted.
 		name: 'no-process-env-allowlist',
 		files: [
-			'apps/**/src/api/config/**/*.ts',
+			'apps/**/src/api/config/env-utils.ts',
+			'apps/**/src/api/config/env-utils.spec.ts',
+			'apps/**/src/api/config/runtime.ts',
+			'apps/**/src/api/config/runtime.spec.ts',
 			'apps/**/src/test-setup.ts',
-			'apps/**/src/api/integration/**/*.ts',
-			'apps/**/src/db/**/*.ts',
+			'apps/**/src/api/integration/setup/global-setup.ts',
+			'apps/**/src/api/integration/setup/env-helpers.ts',
+			'apps/**/src/db/seed.ts',
 		],
 		rules: {
 			'no-restricted-syntax': ['error', ...commonRestrictedSyntax, ...viRestrictedSyntax],
