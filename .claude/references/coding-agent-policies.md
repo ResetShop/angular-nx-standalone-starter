@@ -171,7 +171,7 @@ Agents writing implementation comments tend to explain **their own change in con
 
 ### Enforcement
 
-`scripts/check-no-issue-refs-in-comments.mjs` scans every `.ts` file under `apps/` and `packages/` and fails on any `#<n>` token appearing in a `//` or block-comment line. It runs in the pre-commit hook and in both `npm run ci` and `npm run ci:verify`. A violation fails the build.
+`scripts/check-no-issue-refs-in-comments.mjs` scans every `.ts` and generator `.ts.template` file under `apps/` and `packages/` and fails on any `#<n>` token (any length — a fork's single- or double-digit issue numbers are caught too) appearing in a `//` line comment or a `/* … */` block comment. It runs in the pre-commit hook and in both `npm run ci` and `npm run ci:verify`. A violation fails the build.
 
 ---
 
