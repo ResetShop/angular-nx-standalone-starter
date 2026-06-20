@@ -7,6 +7,8 @@ import { role, rolePermission, rolePermissionRelations, roleRelations } from '@s
 import { user, userRelations, userRole, userRoleRelations } from '@schema/user'
 import { eq, inArray, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
+import { appEnv } from '../../config/app.env'
+import { dbEnv } from '../../config/db.env'
 import { createPasswordHasher } from '../../services/password/password-hasher'
 
 const schema = {
@@ -32,7 +34,7 @@ type TestDb = ReturnType<typeof drizzle<typeof schema>>
 let testDb: TestDb | null = null
 
 function getAdminPassword(): string {
-	const password = process.env['INTEGRATION_TEST_ADMIN_PASSWORD']
+	const password = appEnv.INTEGRATION_TEST_ADMIN_PASSWORD
 	if (!password) {
 		throw new Error('INTEGRATION_TEST_ADMIN_PASSWORD environment variable is required.')
 	}
@@ -51,7 +53,7 @@ async function getAdminPasswordHash(): Promise<string> {
  */
 export function getTestDb(): TestDb {
 	if (!testDb) {
-		const connectionString = process.env['PG_TEST_CONNECTION_STRING']
+		const connectionString = dbEnv.PG_TEST_CONNECTION_STRING
 		if (!connectionString) {
 			throw new Error('PG_TEST_CONNECTION_STRING environment variable is required.')
 		}
