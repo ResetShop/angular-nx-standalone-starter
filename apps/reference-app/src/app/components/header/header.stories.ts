@@ -112,7 +112,7 @@ export const Default: Story = {
 	],
 	render: () => ({
 		template: `
-			<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
+			<header class="border-border bg-background border-b p-4">
 				<div appHeader></div>
 			</header>`,
 	}),
@@ -133,7 +133,7 @@ export const SingleLevelBreadcrumb: Story = {
 	],
 	render: () => ({
 		template: `
-			<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
+			<header class="border-border bg-background border-b p-4">
 				<div appHeader></div>
 			</header>`,
 	}),
@@ -158,7 +158,7 @@ export const MultiLevelBreadcrumb: Story = {
 	],
 	render: () => ({
 		template: `
-			<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
+			<header class="border-border bg-background border-b p-4">
 				<div appHeader></div>
 			</header>`,
 	}),
@@ -188,7 +188,7 @@ export const InDashboardLayout: Story = {
 							<p class="text-xs text-gray-500 dark:text-gray-400">Sidebar</p>
 						</div>
 					</aside>
-					<nav class="border-b border-gray-200 p-2 dark:border-gray-800 dark:bg-black/95">
+					<nav class="border-border bg-background border-b p-2">
 						<header appHeader></header>
 					</nav>
 					<main class="bg-white p-4 dark:bg-black/95">
@@ -220,7 +220,7 @@ export const DeeplyNestedBreadcrumb: Story = {
 	],
 	render: () => ({
 		template: `
-				<header class="border-b border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black/95">
+				<header class="border-border bg-background border-b p-4">
 					<div appHeader></div>
 				</header>
 			`,
@@ -253,7 +253,7 @@ export const MobileViewport: Story = {
 	},
 	render: () => ({
 		template: `
-			<header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-black/95">
+			<header class="border-border bg-background border-b">
 				<div appHeader></div>
 			</header>`,
 	}),
@@ -281,7 +281,7 @@ export const ResponsiveDashboardLayout: Story = {
 					<div>
 						<p class="mb-2 text-xs font-semibold text-gray-600 dark:text-gray-400">Desktop (1920px)</p>
 						<div style="max-width: 100%;" class="border border-gray-200 dark:border-gray-800">
-							<header class="border-b border-gray-200 p-4 dark:border-gray-800 dark:bg-black/95">
+							<header class="border-border bg-background border-b p-4">
 								<div appHeader></div>
 							</header>
 						</div>
@@ -289,7 +289,7 @@ export const ResponsiveDashboardLayout: Story = {
 					<div>
 						<p class="mb-2 text-xs font-semibold text-gray-600 dark:text-gray-400">Tablet (768px)</p>
 						<div style="max-width: 768px;" class="border border-gray-200 dark:border-gray-800">
-							<header class="border-b border-gray-200 p-3 dark:border-gray-800 dark:bg-black/95">
+							<header class="border-border bg-background border-b p-3">
 								<div appHeader></div>
 							</header>
 						</div>
@@ -297,7 +297,7 @@ export const ResponsiveDashboardLayout: Story = {
 					<div>
 						<p class="mb-2 text-xs font-semibold text-gray-600 dark:text-gray-400">Mobile (375px)</p>
 						<div style="max-width: 375px;" class="border border-gray-200 dark:border-gray-800">
-							<header class="border-b border-gray-200 p-2 dark:border-gray-800 dark:bg-black/95">
+							<header class="border-border bg-background border-b p-2">
 								<div appHeader></div>
 							</header>
 						</div>
