@@ -36,7 +36,7 @@ import { UIStore } from '@store/ui/ui.store'
 		}
 
 		:host {
-			@reference "tailwindcss";
+			@reference "#tailwind-theme";
 			--sidebar-width: 240px;
 			--sidebar-width-collapsed: 64px;
 			--sidebar-width-mobile: min(280px, 80vw);
