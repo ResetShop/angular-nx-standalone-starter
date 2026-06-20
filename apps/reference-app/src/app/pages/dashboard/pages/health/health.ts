@@ -25,7 +25,7 @@ interface HealthApiResponse {
 	imports: [Alert, AlertDescription, AlertTitle, DatePipe, Badge, TranslatePipe],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
-		<div class="rounded-md border-1 border-gray-200 p-5">
+		<div class="border-border rounded-md border p-5">
 			<header class="mb-2">
 				<h1 class="text-lg font-bold">{{ 'HEALTH.TITLE' | translate }}</h1>
 			</header>
@@ -37,7 +37,7 @@ interface HealthApiResponse {
 					<p appAlertDescription>{{ healthResource.error()?.message }}</p>
 				</div>
 			} @else if (healthResource.value(); as data) {
-				<div class="mb-4 rounded-sm bg-gray-100 p-4">
+				<div class="bg-muted mb-4 rounded-sm p-4">
 					<p class="mb-2 flex items-center gap-1">
 						<strong>{{ 'HEALTH.STATUS_LABEL' | translate }}</strong>
 						<span [variant]="data.status === 'healthy' ? 'default' : 'destructive'" appBadge>
@@ -50,7 +50,7 @@ interface HealthApiResponse {
 					</p>
 				</div>
 				<h2 class="mb-2 text-base font-semibold">{{ 'HEALTH.CHECKS_HEADER' | translate }}</h2>
-				<div class="rounded-sm bg-gray-100 p-4">
+				<div class="bg-muted rounded-sm p-4">
 					<h3 class="mb-2 font-medium">{{ 'HEALTH.DATABASE.HEADER' | translate }}</h3>
 					<p class="mb-2 flex items-center gap-1">
 						<strong>{{ 'HEALTH.DATABASE.STATUS' | translate }}</strong>
