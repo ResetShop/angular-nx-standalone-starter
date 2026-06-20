@@ -1,4 +1,4 @@
-@reference "#tailwind-theme";
+@reference "tailwindcss";
 
 /*
  * Accessibility utilities. See .claude/references/accessibility.md for usage,
