@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular
 @Component({
 	selector: 'app-immersive-panel',
 	imports: [NgTemplateOutlet],
+	host: { class: 'block h-full' },
 	template: `
 		<div
 			class="bg-card text-card-foreground sm:border-border flex h-full flex-col sm:gap-4 sm:rounded-xl sm:border sm:p-4 sm:shadow-2xs md:p-5"
@@ -33,12 +34,6 @@ import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular
 				</div>
 			}
 		</div>
-	`,
-	styles: `
-		@reference "#tailwind-theme";
-		:host {
-			@apply block h-full;
-		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })

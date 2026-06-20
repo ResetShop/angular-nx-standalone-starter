@@ -18,6 +18,7 @@ interface ResetPasswordConfirmForm {
 
 @Component({
 	selector: 'app-reset-password-confirm-page',
+	host: { class: 'bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95' },
 	imports: [Alert, AlertDescription, ImmersivePanel, Button, FormField, SignalFormField, TranslatePipe],
 	template: `
 		<form (submit)="onSubmit($event)" aria-labelledby="reset-password-confirm-heading" class="w-full px-8 sm:w-[420px]">
@@ -74,12 +75,6 @@ interface ResetPasswordConfirmForm {
 		</form>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	styles: `
-		@reference "#tailwind-theme";
-		:host {
-			@apply bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95;
-		}
-	`,
 })
 export default class ResetPasswordConfirm {
 	protected readonly authStore = inject(AuthStore)

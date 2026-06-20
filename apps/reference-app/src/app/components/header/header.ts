@@ -11,6 +11,7 @@ import { Breadcrumb } from '../breadcrumb/breadcrumb'
 	selector: '[appHeader]',
 	imports: [Breadcrumb, ThemeToggle, Button, NgIcon],
 	viewProviders: [provideIcons({ featherMenu })],
+	host: { class: 'flex h-full items-center px-2 sm:px-4 dark:text-gray-50' },
 	template: `
 		<div class="flex w-full items-center justify-between">
 			<div class="flex items-center gap-2">
@@ -28,12 +29,6 @@ import { Breadcrumb } from '../breadcrumb/breadcrumb'
 			</div>
 			<app-theme-toggle />
 		</div>
-	`,
-	styles: `
-		:host {
-			@reference "tailwindcss";
-			@apply flex h-full items-center px-2 sm:px-4 dark:text-gray-50;
-		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 })

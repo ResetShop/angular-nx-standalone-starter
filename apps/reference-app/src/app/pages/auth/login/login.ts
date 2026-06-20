@@ -21,6 +21,7 @@ import { createCountdown, formatCountdown } from '../countdown'
 
 @Component({
 	selector: 'app-login-page',
+	host: { class: 'bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95' },
 	imports: [
 		Alert,
 		AlertDescription,
@@ -86,12 +87,6 @@ import { createCountdown, formatCountdown } from '../countdown'
 		</form>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	styles: `
-		@reference "#tailwind-theme";
-		:host {
-			@apply bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95;
-		}
-	`,
 })
 export default class Login {
 	private readonly authStore = inject(AuthStore)

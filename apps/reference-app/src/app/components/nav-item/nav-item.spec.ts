@@ -42,6 +42,24 @@ describe('NavItem', () => {
 		expect(screen.getByRole('link', { name: /test route/i })).toBeInTheDocument()
 	})
 
+	it('applies the static utility classes to the host element', async () => {
+		// Rendered on its production host element (`<li appNavItem>`) so the host carries the
+		// `host: { class: 'cursor-pointer text-sm' }` binding — the utilities migrated out of the
+		// former `:host { @apply … }` block.
+		await render('<ul><li appNavItem [item]="item"></li></ul>', {
+			imports: [NavItem],
+			componentProperties: { item: mockRoute },
+			providers: [
+				provideRouter([]),
+				provideIcons({ featherHome, featherActivity, featherChevronRight }),
+				NavigationState,
+				provideTranslationMock(),
+			],
+		})
+
+		expect(screen.getByRole('listitem')).toHaveClass('cursor-pointer', 'text-sm')
+	})
+
 	it('should render the navigation item name', async () => {
 		await render(NavItem, {
 			inputs: { item: mockRoute },

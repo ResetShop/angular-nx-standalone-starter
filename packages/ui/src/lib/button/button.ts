@@ -19,7 +19,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 		'[attr.type]': 'type()',
 	},
 	styles: `
-		@reference "tailwindcss";
+		@reference "#tailwind-theme";
 
 		.btn-label {
 			display: inline-flex;
