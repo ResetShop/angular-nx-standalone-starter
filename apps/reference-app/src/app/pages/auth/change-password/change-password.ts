@@ -14,6 +14,7 @@ import type { ChangePasswordForm } from '../../../interfaces/auth'
 
 @Component({
 	selector: 'app-change-password-page',
+	host: { class: 'bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95' },
 	imports: [Alert, AlertDescription, ImmersivePanel, Button, FormField, SignalFormField, TranslatePipe],
 	template: `
 		<form (submit)="onSubmit($event)" aria-labelledby="change-password-heading" class="w-full px-8 sm:w-[420px]">
@@ -56,12 +57,6 @@ import type { ChangePasswordForm } from '../../../interfaces/auth'
 		</form>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	styles: `
-		@reference "#tailwind-theme";
-		:host {
-			@apply bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95;
-		}
-	`,
 })
 export default class ChangePassword {
 	private readonly authStore = inject(AuthStore)

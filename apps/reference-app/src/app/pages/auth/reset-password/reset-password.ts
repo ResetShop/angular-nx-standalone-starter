@@ -16,6 +16,7 @@ interface ResetPasswordForm {
 
 @Component({
 	selector: 'app-reset-password-page',
+	host: { class: 'bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95' },
 	imports: [ImmersivePanel, Button, NgOptimizedImage, RouterLink, FormField, SignalFormField, TranslatePipe],
 	template: `
 		<form (submit)="onSubmit($event)" aria-labelledby="reset-password-heading" class="w-full px-8 sm:w-[420px]">
@@ -66,12 +67,6 @@ interface ResetPasswordForm {
 		</form>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
-	styles: `
-		@reference "#tailwind-theme";
-		:host {
-			@apply bg-card flex h-svh w-svw items-center justify-center sm:bg-black/95;
-		}
-	`,
 })
 export default class ResetPassword {
 	private readonly router = inject(Router)
