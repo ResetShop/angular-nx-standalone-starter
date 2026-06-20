@@ -209,9 +209,10 @@ export class UserManagementService {
 		}
 
 		// Replace the user's roles when a set is provided (full-set replace; the repo records only the
-		// added/removed roles in the audit history). NOTE: profile and roles are persisted in separate
-		// transactions — in practice each edit surface sends one or the other. Folding them into a single
-		// atomic payload would require consolidating these two update paths.
+		// added/removed roles in the audit history). The profile fields (email/first/last name) above and
+		// the role set here are persisted in separate transactions, so a combined edit is not atomic. That
+		// is acceptable because each edit surface sends only profile changes or only role changes, never
+		// both — a single atomic payload would only be needed if one surface edited both at once.
 		if (params.roleIds !== undefined) {
 			await this.userRoleRepository.replaceUserRoles(id, params.roleIds, actorId)
 		}
