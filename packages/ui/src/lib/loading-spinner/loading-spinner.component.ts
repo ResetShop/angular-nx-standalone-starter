@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 @Component({
 	selector: 'app-loading-spinner',
 	standalone: true,
+	host: { class: 'fixed inset-0 z-50 flex items-center justify-center bg-black/95' },
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<dialog open class="align-self-center flex justify-self-center bg-transparent">
@@ -20,11 +21,6 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core'
 		</dialog>
 	`,
 	styles: `
-		@reference "tailwindcss";
-		:host {
-			@apply fixed inset-0 z-50 flex items-center justify-center bg-black/95;
-		}
-
 		.spinner-ring {
 			position: absolute;
 			width: 100%;
