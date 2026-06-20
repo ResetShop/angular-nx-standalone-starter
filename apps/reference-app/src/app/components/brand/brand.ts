@@ -7,6 +7,7 @@ import { Button } from '@resetshop/ui/button/button'
 @Component({
 	selector: 'app-brand',
 	imports: [Button, NgIcon, RouterLink],
+	host: { class: 'flex items-center p-2' },
 	template: `
 		<!--	TODO: Replace with the navigation to your home page / initial page -->
 		<a
@@ -22,12 +23,6 @@ import { Button } from '@resetshop/ui/button/button'
 				<span class="min-w-0 truncate">Reset Starter Repo</span>
 			}
 		</a>
-	`,
-	styles: `
-		:host {
-			@reference "tailwindcss";
-			@apply flex items-center p-2;
-		}
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	viewProviders: [provideIcons({ featherRefreshCw })],
