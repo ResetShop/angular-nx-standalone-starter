@@ -1,7 +1,7 @@
 import type { HttpEvent, HttpInterceptorFn } from '@angular/common/http'
 import { HttpErrorResponse, HttpResponse, provideHttpClient, withInterceptors } from '@angular/common/http'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import type { Meta, StoryObj } from '@storybook/angular'
+import type { Decorator, Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig } from '@storybook/angular'
 import { NEVER, type Observable, of, throwError } from 'rxjs'
 import Health from './health'
@@ -33,7 +33,7 @@ function healthInterceptor(response: Observable<HttpEvent<unknown>>): HttpInterc
 	return (req, next) => (req.url === HEALTH_ENDPOINT ? response : next(req))
 }
 
-function storyDecorators(response: Observable<HttpEvent<unknown>>) {
+function storyDecorators(response: Observable<HttpEvent<unknown>>): Decorator[] {
 	return [
 		applicationConfig({
 			providers: [provideTranslationMock(), provideHttpClient(withInterceptors([healthInterceptor(response)]))],
@@ -41,6 +41,7 @@ function storyDecorators(response: Observable<HttpEvent<unknown>>) {
 	]
 }
 
+// Health has no public inputs; it fetches data internally via rxResource, so there is no argTypes block.
 const meta: Meta<Health> = {
 	component: Health,
 	title: 'Pages/Dashboard/Health',
