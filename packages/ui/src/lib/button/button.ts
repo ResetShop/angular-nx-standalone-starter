@@ -19,8 +19,6 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 		'[attr.type]': 'type()',
 	},
 	styles: `
-		@reference "#tailwind-theme";
-
 		.btn-label {
 			display: inline-flex;
 			align-items: center;

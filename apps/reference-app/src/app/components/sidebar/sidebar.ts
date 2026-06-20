@@ -72,8 +72,6 @@ import { map } from 'rxjs'
 		</div>
 	`,
 	styles: `
-		@reference "#tailwind-theme";
-
 		:host {
 			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_64px] overflow-hidden transition-[width] duration-200;
 

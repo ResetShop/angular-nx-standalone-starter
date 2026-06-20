@@ -31,8 +31,6 @@ import { UIStore } from '@store/ui/ui.store'
 			'uiStore.isSidebarCollapsed() ? "var(--sidebar-width-collapsed)" : "var(--sidebar-width)"',
 	},
 	styles: `
-		@reference "#tailwind-theme";
-
 		main {
 			overflow: auto;
 		}
