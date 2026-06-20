@@ -75,6 +75,8 @@ export async function setup(): Promise<void> {
 	// No-Docker local path: spawn a real Postgres 17 cluster on a free port
 	// when no connection string is provided. CI sets PG_TEST_CONNECTION_STRING
 	// to its postgres:17 service container, so this branch is skipped there.
+	// This must write to process.env (not seedDbEnv) — Vitest worker child processes
+	// inherit it via the OS environment; in-memory seedXEnv() caches do not cross processes.
 	if (!process.env['PG_TEST_CONNECTION_STRING']) {
 		process.env['PG_TEST_CONNECTION_STRING'] = await startEmbeddedPostgres()
 		usedEmbeddedPg = true

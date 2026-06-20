@@ -105,7 +105,7 @@ const processEnvRestrictedSyntax = [
 	{
 		selector: "MemberExpression[object.name='process'][property.name='env']",
 		message:
-			"Direct process.env access is forbidden. Import the typed value from '@config/<domain>.env' (e.g. dbEnv.PG_CONNECTION_STRING, authEnv.PASETO_SECRET_KEY). The allowlist lives in eslint.config.mjs.",
+			"Direct process.env access is forbidden. Import the typed value from '@config/<domain>.env' (e.g. dbEnv.PG_CONNECTION_STRING, tokenEnv.PASETO_SECRET_KEY). The allowlist lives in eslint.config.mjs.",
 	},
 ]
 

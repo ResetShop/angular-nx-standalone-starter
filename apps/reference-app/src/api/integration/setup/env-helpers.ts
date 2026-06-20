@@ -69,6 +69,8 @@ export function configureEnvVars(testConnectionString: string): void {
 	})
 
 	seedTokenEnv({
+		// Prefer an operator-supplied PASETO key/issuer (delivered via loadEnvFile or the shell) over
+		// the predictable test fallback — read raw here because this seeds the cache rather than reading it.
 		PASETO_SECRET_KEY: process.env['PASETO_SECRET_KEY'] ?? 'a'.repeat(64),
 		PASETO_ISSUER: process.env['PASETO_ISSUER'] ?? 'integration-test',
 		PASETO_ACCESS_TOKEN_EXPIRY: '5m',
