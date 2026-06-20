@@ -1,5 +1,6 @@
 import { eq, inArray } from 'drizzle-orm'
 import { appEnv } from '../api/config/app.env'
+import { isInteractive } from '../api/config/runtime'
 import { createDrizzlePgConnector, type DrizzleTransaction } from '../api/helpers/drizzle-postgres-connector'
 import { createPasswordHasher } from '../api/services/password/password-hasher'
 import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
@@ -107,7 +108,7 @@ async function seed(): Promise<void> {
 	const db = createDrizzlePgConnector()
 	try {
 		console.log('🌱 Starting database seed...')
-		const isInteractive = !process.env['CI'] && Boolean(process.stdin.isTTY)
+		const interactive = isInteractive()
 		const credentials = await resolveSeedAdminCredentials({
 			envInput: {
 				email: appEnv.SEED_ADMIN_EMAIL,
@@ -115,7 +116,7 @@ async function seed(): Promise<void> {
 				firstName: appEnv.SEED_ADMIN_FIRST_NAME,
 				lastName: appEnv.SEED_ADMIN_LAST_NAME,
 			},
-			isInteractive,
+			isInteractive: interactive,
 			promptFn: createDefaultPromptFn(),
 		})
 
