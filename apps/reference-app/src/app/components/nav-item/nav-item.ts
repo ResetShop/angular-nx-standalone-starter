@@ -9,12 +9,9 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink, RouterLinkActive, TranslatePipe],
-	host: { '[class.collapsed]': 'collapsed()' },
+	host: { class: 'cursor-pointer text-sm', '[class.collapsed]': 'collapsed()' },
 	styles: `
-		@reference "tailwindcss";
-		:host {
-			@apply cursor-pointer text-sm;
-		}
+		@reference "#tailwind-theme";
 
 		:host(.collapsed) {
 			@apply flex h-12 items-center justify-center;
