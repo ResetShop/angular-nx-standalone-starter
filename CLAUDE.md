@@ -145,7 +145,7 @@ Code comments document the **present-state intent and rationale** of the code �
 
 **Forbidden in `.ts`, `.spec.ts`, `.stories.ts`, and generator template files:**
 
-- **Issue/PR number tokens** (`#499`, `(see #468)`, `regression guard for #471`). The migration record belongs in `CHANGELOG.md` and the PR; the "when/who" belongs in `git log` / `git blame`.
+- **Issue/PR number tokens** (`#499`, `(see #468)`, `regression guard for #471`). The change-narrative — why it changed, what it replaced, the issue/PR cross-references — belongs in the **PR description and its issue thread** (with `CHANGELOG.md` carrying the fork-facing summary and `git log` / `git blame` the "when/who"). A comment documents the present invariant; **PRs and issues are the canonical home for the change-narrative.**
 - **Before/after-issue framing** (`Since #497 the hasher reads…`, `Pre-#331 this was camelCase`, `#480 removed the unreachable link`). Write the invariant, not the diff against a past state that no longer exists in the tree.
 - **"Formerly X" / "moved here from" framing** (`moved here from the former auth.env.ts`). Describe what the code is now, not what it used to be.
 

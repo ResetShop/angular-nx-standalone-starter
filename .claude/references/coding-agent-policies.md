@@ -144,7 +144,16 @@ When writing or modifying a code comment in a `.ts`, `.spec.ts`, `.stories.ts`, 
 - **Before/after-issue framing** — `Since #497 the hasher reads…`, `Pre-#331 this was camelCase`, `#480 removed the unreachable link`, `out of scope for #317`.
 - **"Formerly X" / "moved here from" framing** — `moved here from the former auth.env.ts`, `was previously a single Pool()`.
 
-Comments must describe the **present state and rationale** — what the code does and why it must be this way now. The canonical home for the migration record is `CHANGELOG.md` and the PR description; the "when/who" is `git log` / `git blame`.
+Comments must describe the **present state and rationale** — what the code does and why it must be this way now.
+
+### Where the change-narrative lives
+
+A code comment and the change-narrative are complementary and must never be conflated:
+
+- A **code comment** documents the *present invariant* — what the code does and why it must be this way now.
+- A **PR description and its issue thread** document the *change that produced it* — why it changed, what it replaced, the before/after story, and the issue/PR cross-references.
+
+**PRs and issues are the canonical home for that change-narrative documentation.** When you are tempted to record *why a change was made* or *what it used to be*, that belongs in the PR description and the issue thread — with `CHANGELOG.md` carrying the fork-facing summary and `git log` / `git blame` the "when/who" — **never** inline in a code comment. Pushing change-history into a comment both rots the comment (the "before" no longer exists in the tree) and hides the narrative from where reviewers and forks actually look for it.
 
 ### Why (agent-specific failure mode)
 
@@ -166,4 +175,4 @@ Agents writing implementation comments tend to explain **their own change in con
 
 ---
 
-_Last updated: 2026-06-20. Section 6 (code comment quality) added. Initial version created as part of milestone #3 (Monorepo restructure + fork distribution)._
+_Last updated: 2026-06-20. Section 6 (code comment quality) added, including the "Where the change-narrative lives" rule naming PRs and issues as the canonical home for change-narrative documentation. Initial version created as part of milestone #3 (Monorepo restructure + fork distribution)._
