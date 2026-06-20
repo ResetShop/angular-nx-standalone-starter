@@ -1,5 +1,3 @@
-const THEME_ENTRY_SUFFIXES = ['tailwind.config.css', 'accessibility.css']
-
 /**
  * PostCSS plugin that auto-injects `@reference "#tailwind-theme"` at the top of every component
  * stylesheet, so `@apply` resolves against the theme without the directive having to live in source.
@@ -19,9 +17,15 @@ const THEME_ENTRY_SUFFIXES = ['tailwind.config.css', 'accessibility.css']
 const plugin = () => ({
 	postcssPlugin: 'postcss-inject-tailwind-reference',
 	Once(root, { postcss, result }) {
-		const from = result.opts.from ?? ''
-		if (THEME_ENTRY_SUFFIXES.some((suffix) => from.endsWith(suffix))) return
+		// Theme-entry files compose the theme itself and must reference `tailwindcss` directly;
+		// injecting the `#tailwind-theme` alias into them would be a circular reference. Match on a
+		// normalized path (specific to the theme dir / repo root) so the separator does not matter.
+		const from = (result.opts.from ?? '').replace(/\\/g, '/')
+		const themeEntrySuffixes = ['/tailwind.config.css', '/theme/accessibility.css']
+		if (themeEntrySuffixes.some((suffix) => from.endsWith(suffix))) return
 
+		// Idempotent: leave any stylesheet that already declares an `@reference` untouched. This both
+		// avoids re-injecting our directive on watch-mode rebuilds and respects a hand-written one.
 		for (const node of root.nodes) {
 			if (node.type === 'atrule' && node.name === 'reference') return
 		}

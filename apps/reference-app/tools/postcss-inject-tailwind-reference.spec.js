@@ -1,5 +1,6 @@
 import postcss from 'postcss'
 import { describe, expect, it } from 'vitest'
+// Repo-root plugin; `../../..` is intentional — tools/ sits three levels below the repo root.
 import plugin from '../../../postcss-inject-tailwind-reference.js'
 
 function run(css, from) {
@@ -14,6 +15,10 @@ describe('postcss-inject-tailwind-reference', () => {
 
 	it('injects into an empty stylesheet', () => {
 		expect(run('', 'foo.css')).toContain('@reference "#tailwind-theme"')
+	})
+
+	it('injects when the source path is undefined', () => {
+		expect(run('.x { @apply flex; }', undefined)).toContain('@reference "#tailwind-theme"')
 	})
 
 	it('places the injected @reference as the first node', () => {
