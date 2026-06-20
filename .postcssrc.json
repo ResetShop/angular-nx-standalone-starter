@@ -1,5 +1,6 @@
 {
 	"plugins": {
+		"./postcss-inject-tailwind-reference.js": {},
 		"@tailwindcss/postcss": {}
 	}
 }
