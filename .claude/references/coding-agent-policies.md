@@ -150,10 +150,10 @@ Comments must describe the **present state and rationale** — what the code doe
 
 A code comment and the change-narrative are complementary and must never be conflated:
 
-- A **code comment** documents the *present invariant* — what the code does and why it must be this way now.
-- A **PR description and its issue thread** document the *change that produced it* — why it changed, what it replaced, the before/after story, and the issue/PR cross-references.
+- A **code comment** documents the _present invariant_ — what the code does and why it must be this way now.
+- A **PR description and its issue thread** document the _change that produced it_ — why it changed, what it replaced, the before/after story, and the issue/PR cross-references.
 
-**PRs and issues are the canonical home for that change-narrative documentation.** When you are tempted to record *why a change was made* or *what it used to be*, that belongs in the PR description and the issue thread — with `CHANGELOG.md` carrying the fork-facing summary and `git log` / `git blame` the "when/who" — **never** inline in a code comment. Pushing change-history into a comment both rots the comment (the "before" no longer exists in the tree) and hides the narrative from where reviewers and forks actually look for it.
+**PRs and issues are the canonical home for that change-narrative documentation.** When you are tempted to record _why a change was made_ or _what it used to be_, that belongs in the PR description and the issue thread — with `CHANGELOG.md` carrying the fork-facing summary and `git log` / `git blame` the "when/who" — **never** inline in a code comment. Pushing change-history into a comment both rots the comment (the "before" no longer exists in the tree) and hides the narrative from where reviewers and forks actually look for it.
 
 ### Why (agent-specific failure mode)
 
