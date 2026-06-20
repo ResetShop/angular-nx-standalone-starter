@@ -134,4 +134,36 @@ Propose changes by commenting on issue [#262](https://github.com/ResetShop/angul
 
 ---
 
-_Last updated: 2026-04-06. Initial version created as part of milestone #3 (Monorepo restructure + fork distribution)._
+## Section 6 — Code comment quality
+
+### Rule
+
+When writing or modifying a code comment in a `.ts`, `.spec.ts`, `.stories.ts`, or generator template file, **never** introduce:
+
+- An **issue or PR number token** — `#499`, `(see #468)`, `regression guard for #471`, `tracked as the follow-up (#453)`.
+- **Before/after-issue framing** — `Since #497 the hasher reads…`, `Pre-#331 this was camelCase`, `#480 removed the unreachable link`, `out of scope for #317`.
+- **"Formerly X" / "moved here from" framing** — `moved here from the former auth.env.ts`, `was previously a single Pool()`.
+
+Comments must describe the **present state and rationale** — what the code does and why it must be this way now. The canonical home for the migration record is `CHANGELOG.md` and the PR description; the "when/who" is `git log` / `git blame`.
+
+### Why (agent-specific failure mode)
+
+Agents writing implementation comments tend to explain **their own change in context** — "since #497 the hasher reads from `passwordEnv`", "this replaces the former monolithic env" — because that is the framing in which the agent is operating at authoring time. That framing is invisible-but-correct to the agent in the moment and meaningless to the next reader, who sees only the present tree. This is exactly the pattern the rule prevents: write the invariant the code upholds, not the diff that produced it.
+
+### How to apply
+
+- Replace `// regression guard for #471` with a plain-English statement of the invariant being guarded (e.g. `// The root ToastBridgeService is a singleton — exactly one instance renders the deny notification`).
+- If you are tempted to cite an issue so the reader "can get the context", that context belongs in the PR description or `CHANGELOG.md` entry — put it there instead.
+
+### Exemptions
+
+- `CHANGELOG.md` entries **should** cite issues — that is their purpose.
+- `docs/`, `README.md`, `CLAUDE.md`, and `.claude/references/` files may use **hyperlinked** issue references as durable cross-references (this document's own `[#262](…)` amendment-tracking links are an example). Bare `#<n>` tokens in prose are still discouraged in favor of durable descriptions.
+
+### Enforcement
+
+`scripts/check-no-issue-refs-in-comments.mjs` scans every `.ts` file under `apps/` and `packages/` and fails on any `#<n>` token appearing in a `//` or block-comment line. It runs in the pre-commit hook and in both `npm run ci` and `npm run ci:verify`. A violation fails the build.
+
+---
+
+_Last updated: 2026-06-20. Section 6 (code comment quality) added. Initial version created as part of milestone #3 (Monorepo restructure + fork distribution)._
