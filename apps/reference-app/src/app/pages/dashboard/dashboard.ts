@@ -19,7 +19,7 @@ import { UIStore } from '@store/ui/ui.store'
 				data-testid="sidebar-backdrop"
 			></div>
 		}
-		<header class="border-b-1 border-gray-200 p-4 dark:border-white/10 dark:bg-black/95" appHeader></header>
+		<header class="border-border bg-background border-b-1 p-4" appHeader></header>
 		<main class="bg-white p-2 sm:p-4 dark:bg-black/95">
 			<app-loading-shell [loading]="uiStore.isGlobalLoading()">
 				<router-outlet />
