@@ -136,10 +136,9 @@ describe('UsersList', () => {
 	})
 
 	describe('drawer responsive width classes', () => {
-		// Regression guard for sub-issue #344 item 8. The CRUD drawer overrides went from
-		// `class="lg:w-lg"` (panel pins to 512 px from `lg:` up) to `class="w-full sm:w-lg"`
-		// (panel pins to 512 px from `sm:` up, full-width below `sm:`). The consumer class is
-		// merged into `<dialog>` via the DrawerPanel directive's `panelClasses` computed.
+		// Regression guard for the CRUD drawer responsive width classes. The panel must be full-width
+		// below the `sm:` breakpoint and pinned to 512 px from `sm:` up (`w-full sm:w-lg`). The consumer
+		// class is merged into `<dialog>` via the DrawerPanel directive's `panelClasses` computed.
 
 		it('should apply w-full sm:w-lg to the Create User drawer dialog', async () => {
 			await renderComponent()

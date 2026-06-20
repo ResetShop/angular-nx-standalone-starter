@@ -155,7 +155,7 @@ describe('forbiddenInterceptor', () => {
 		})
 	})
 
-	// #480: a 403 can fire on a route that never called provideToast(), so the lazily-instantiated root
+	// A 403 can fire on a route that never called provideToast(), so the lazily-instantiated root
 	// ToastBridgeService is dormant and the notification never renders. The interceptor activates the bridge
 	// on demand. Here we wire the REAL bridge + REAL UIStore + a mock NgpToastManager and assert the toast
 	// actually renders (manager.show is called) on a 403 — and is NOT activated for a non-403 error.

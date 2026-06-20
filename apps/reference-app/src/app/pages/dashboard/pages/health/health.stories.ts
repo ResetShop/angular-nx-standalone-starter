@@ -52,7 +52,7 @@ const meta: Meta<Health> = {
 				component: `
 The Application Health Checker page mounted in the dashboard. It fetches \`${HEALTH_ENDPOINT}\` and renders the overall status panel and the per-service (database) checks panel.
 
-Both inner panels use the \`bg-muted\` token and the outer box uses \`border-border\`, so they adapt to light and dark mode. Switch the toolbar background to **dark** to verify the panels render correctly against the dark theme (regression guard for [#513](https://github.com/ResetShop/angular-nx-standalone-starter/issues/513)).
+Both inner panels use the \`bg-muted\` token and the outer box uses \`border-border\`, so they adapt to light and dark mode. Switch the toolbar background to **dark** to verify the panels render correctly against the dark theme.
 				`,
 			},
 			canvas: {

@@ -113,8 +113,8 @@ describe('page generator', () => {
 		// the rest of the workspace's file naming conventions:
 		// - Outer dir: `joinPathFragments(directory, n.fileName)` → kebab-case.
 		// - Inner `__name__-list/` template-dir placeholder: also kebab-case via
-		//   `name: n.fileName` in `page/index.ts`. (Pre-#331 this was camelCase
-		//   because `name` was set to `n.propertyName`.)
+		//   `name: n.fileName` in `page/index.ts` (the `name` key drives the
+		//   template-dir placeholder, so it must be the kebab-case `fileName`).
 		// Inside the template, `<%= className %>` and `<%= fileName %>` continue
 		// to resolve correctly because they're independent of the `name` key.
 		await pageGenerator(tree, {
@@ -142,10 +142,9 @@ describe('page generator', () => {
 		// — a literal two-level walk-up from the page directory. That works for
 		// the default `src/app/pages/dashboard` (whose `../../` is `src/app/`),
 		// but for a shallower `src/app/admin` the two levels resolve to `src/`.
-		// This is a real generator coupling to the default directory depth.
-		// Refactoring is out of scope for #317; the test asserts actual emitted
-		// output to lock in the current behaviour and surface the regression
-		// risk if anyone changes the path math.
+		// This is a real generator coupling to the default directory depth. The
+		// test asserts actual emitted output to lock in the current behaviour and
+		// surface the regression risk if anyone changes the path math.
 		await pageGenerator(tree, {
 			name: 'product',
 			directory: 'src/app/admin',

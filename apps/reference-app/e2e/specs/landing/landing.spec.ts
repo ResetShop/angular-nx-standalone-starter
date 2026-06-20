@@ -38,7 +38,7 @@ test.describe('Landing page (anonymous)', () => {
 
 	test('the header has no "Go to dashboard" link', async () => {
 		// The landing header is stateless by design — the public route runs no session validation, so it
-		// never surfaces a dashboard shortcut (see #468). Guarded here against accidental reintroduction.
+		// never surfaces a dashboard shortcut. Guarded here against accidental reintroduction.
 		await expect(landing.dashboardLink).toHaveCount(0)
 	})
 })
@@ -59,7 +59,7 @@ test.describe('Landing page (authenticated cold load)', () => {
 
 	test('the header has no "Go to dashboard" link even with a session cookie', async () => {
 		// The public landing route runs no session validation by design, so the header is stateless and shows
-		// no dashboard shortcut regardless of an existing session cookie (#468 removed the unreachable link).
+		// no dashboard shortcut regardless of an existing session cookie (it carries no authenticated state).
 		await expect(landing.dashboardLink).toHaveCount(0)
 	})
 })
