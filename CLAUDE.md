@@ -1002,7 +1002,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
 **Why eight modules instead of one:** the original monolithic `env.ts` mixed unrelated concerns (DB strings, PASETO keys, SMTP settings, cron schedules) in a single Zod object, which forced consumers to import a giant type even when they only needed `PORT`. The multi-module split aligns the schema with the bounded contexts that consume it — token config (`token`) holds the only required fields (`PASETO_SECRET_KEY` / `PASETO_ISSUER`), kept separate from password-hashing (`password`), lockout/rate-limit (`security`), and cron (`cron`) config, so a hashing- or lockout-only consumer never triggers PASETO validation; the shared lazy-init / cache / seed / reset behavior lives once in `createEnvHandler` (see `env-utils.ts`) so each sub-schema is a ~30-line declaration of fields + a one-line factory call.
 
-**The repo's non-contract:** how each developer delivers values to `process.env` before `node` starts is left to them. The four supported delivery mechanisms — out-of-tree env file + Node `--env-file`, IDE run configuration, shell session export, and `direnv` — are documented in [`docs/environment-variables.md`](docs/environment-variables.md). **No `.env*` file may exist in the working tree;** `scripts/check-no-env-files.mjs` fails the pre-commit hook and the `npm run ci` script if one appears. This is the structural defense against agents opportunistically reading `.env*` files; the `.claude/settings.json` deny rules add a second layer that blocks AI agents from reading, writing, editing, or shell-creating `.env*` files.
+**The repo's non-contract:** how each developer delivers values to `process.env` before `node` starts is left to them. The four supported delivery mechanisms — out-of-tree env file + Node `--env-file`, IDE run configuration, shell session export, and `direnv` — are documented in [`docs/environment-variables.md`](docs/environment-variables.md). **No `.env*` file may exist in the working tree;** `scripts/check-no-env-files.mjs` runs from the pre-commit hook and from the `check` Nx target (part of both `npm run ci` and `npm run ci:verify`), failing if one appears. This is the structural defense against agents opportunistically reading `.env*` files; the `.claude/settings.json` deny rules add a second layer that blocks AI agents from reading, writing, editing, or shell-creating `.env*` files.
 
 **Adding or changing a variable:**
 
@@ -1226,7 +1226,7 @@ This is a mandatory step in the workflow:
 
 #### Two verification paths: cold `ci` vs cache-aware `ci:verify`
 
-There are two CI scripts. They run the **same** tasks (`stylelint`, `lint`, `typecheck`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
+There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `lint`, `typecheck`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
 
 | Script              | Cache                                                              | Use for                                                                                                                                                                                                       |
 | ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1243,6 +1243,7 @@ The `npm run ci` command runs CI checks in two parallel batches via `nx run-many
 
 **Batch 1 (fast checks, parallel):**
 
+- `check` — repo-wide guards run as one `nx:run-commands` target on `@app/source`: no `.env*` files (`check-no-env-files.mjs`), no issue refs in code comments (`check-no-issue-refs-in-comments.mjs`), and prettier formatting (`prettier --check`). Adding a future repo-wide guard means adding one command to this target — the `ci`/`ci:verify` scripts do not change. `cache: false` (these guards inspect working-tree state, so they always run).
 - `stylelint` — CSS/style linting
 - `lint` — TypeScript/ESLint linting
 - `typecheck` — Type-check spec files (`tsc --noEmit`)
@@ -1335,4 +1336,4 @@ The code-reviewer agent checks:
 
 ---
 
-_Last updated: 2026-03-03_
+_Last updated: 2026-06-21_
