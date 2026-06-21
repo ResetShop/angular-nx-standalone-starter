@@ -13,8 +13,13 @@ describe('postcss-inject-tailwind-reference', () => {
 		expect(out).toContain('@reference "#tailwind-theme"')
 	})
 
-	it('injects into an empty stylesheet', () => {
-		expect(run('', 'foo.css')).toContain('@reference "#tailwind-theme"')
+	it('does not inject into a stylesheet that has no @apply', () => {
+		expect(run('#body { overflow: hidden; }', 'foo.css')).not.toContain('@reference')
+	})
+
+	it('does not inject into a global @import entry (no @apply) — must not suppress emitted @theme tokens', () => {
+		const out = run('@import "./fonts.css";\n@import "../../../tailwind.config.css";\n#body {}', 'styles.css')
+		expect(out).not.toContain('@reference')
 	})
 
 	it('injects when the source path is undefined', () => {
