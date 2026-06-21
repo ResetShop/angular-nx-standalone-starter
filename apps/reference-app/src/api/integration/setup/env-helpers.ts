@@ -4,10 +4,19 @@
  */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { seedCronEnv } from '../../config/cron.env'
+import { seedDbEnv } from '../../config/db.env'
+import { seedEmailEnv } from '../../config/email.env'
+import { seedPasswordEnv } from '../../config/password.env'
+import { seedTokenEnv } from '../../config/token.env'
 
 /**
  * Parses a .env file and sets any missing keys on process.env.
  * Silently skips if the file is not found.
+ *
+ * This is the integration suite's single sanctioned .env delivery boundary: it writes arbitrary
+ * keys into process.env so the domain proxies can read them. Per-domain consumption still happens
+ * through those proxies, not here.
  */
 export function loadEnvFile(): void {
 	try {
@@ -30,6 +39,10 @@ export function loadEnvFile(): void {
 }
 
 export function getTestConnectionString(): string {
+	// Read raw from process.env — not via dbEnv — because this runs before configureEnvVars seeds the
+	// caches, and the dbEnv proxy parses its whole schema on first access (which requires
+	// PG_CONNECTION_STRING, not yet seeded). This file is the env-delivery boundary, so a raw read is
+	// appropriate here.
 	const testConnectionString = process.env['PG_TEST_CONNECTION_STRING']
 	if (!testConnectionString) {
 		throw new Error(
@@ -40,24 +53,33 @@ export function getTestConnectionString(): string {
 	return testConnectionString
 }
 
+/**
+ * Seeds the domain env caches with integration-test fixtures (cheap bcrypt, no-op email, a
+ * predictable PASETO key, short token expiries, an insecure cookie flag, a fixed cron secret) via
+ * each schema's `seed*Env` API — the same Zod parse the proxies run, so types/defaults are identical.
+ *
+ * An operator-supplied PASETO key/issuer (from process.env, delivered via loadEnvFile or the shell)
+ * is preferred over the test fallback. Seeding happens before any test request, so every proxy cache
+ * is primed before its first handler access in a test.
+ */
 export function configureEnvVars(testConnectionString: string): void {
-	process.env['PG_CONNECTION_STRING'] = testConnectionString
+	seedDbEnv({
+		PG_CONNECTION_STRING: testConnectionString,
+		PG_TEST_CONNECTION_STRING: testConnectionString,
+	})
 
-	// Test-only predictable key — PASETO_SECRET_KEY should always be set in .env for non-ephemeral environments
-	if (!process.env['PASETO_SECRET_KEY']) {
-		process.env['PASETO_SECRET_KEY'] = 'a'.repeat(64)
-	}
-	if (!process.env['PASETO_ISSUER']) {
-		process.env['PASETO_ISSUER'] = 'integration-test'
-	}
-	process.env['PASETO_ACCESS_TOKEN_EXPIRY'] = '5m'
-	process.env['PASETO_REFRESH_TOKEN_EXPIRY'] = '10m'
-	process.env['COOKIE_SECURE'] = 'false'
-	process.env['EMAIL_PROVIDER'] = 'noop'
-	process.env['BCRYPT_COST'] = '1'
-	// Set here (in the setup file, before any test request) so it is present in process.env when the
-	// cronEnv proxy is first parsed — which happens on first cradle/handler access during a test, and
-	// caches the cron snapshot for the worker. A per-spec late write could miss that first read.
+	seedTokenEnv({
+		// Prefer an operator-supplied PASETO key/issuer (delivered via loadEnvFile or the shell) over
+		// the predictable test fallback — read raw here because this seeds the cache rather than reading it.
+		PASETO_SECRET_KEY: process.env['PASETO_SECRET_KEY'] ?? 'a'.repeat(64),
+		PASETO_ISSUER: process.env['PASETO_ISSUER'] ?? 'integration-test',
+		PASETO_ACCESS_TOKEN_EXPIRY: '5m',
+		PASETO_REFRESH_TOKEN_EXPIRY: '10m',
+		COOKIE_SECURE: 'false',
+	})
+
+	seedEmailEnv({ EMAIL_PROVIDER: 'noop' })
+	seedPasswordEnv({ BCRYPT_COST: '1' })
 	// Keep in sync with TEST_CRON_SECRET in cleanup-tokens.integration.spec.ts.
-	process.env['CRON_SECRET'] = 'integration-cron-secret-0123456789abcdef'
+	seedCronEnv({ CRON_SECRET: 'integration-cron-secret-0123456789abcdef' })
 }

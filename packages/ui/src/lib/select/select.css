@@ -1,5 +1,3 @@
-@reference "#tailwind-theme";
-
 :host {
 	@apply block;
 }

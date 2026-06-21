@@ -13,8 +13,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 <% } -%>
 <% if (inlineStyle) { -%>
 	styles: `
-		@reference "#tailwind-theme";
-
 		/* TODO: Add component styles */
 	`,
 <% } else { -%>

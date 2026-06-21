@@ -32,7 +32,7 @@ describe('ui-component generator', () => {
 		expect(componentTs).toContain(`selector: 'app-tooltip'`)
 		expect(componentTs).toContain('export class Tooltip {}')
 		expect(componentTs).toContain('ChangeDetectionStrategy.OnPush')
-		expect(componentTs).toContain('@reference "#tailwind-theme"')
+		expect(componentTs).toContain('/* TODO: Add component styles */')
 		expect(componentTs).toContain('standalone: true')
 		expect(componentTs).not.toContain('<%=')
 	})
@@ -160,7 +160,7 @@ describe('ui-component generator', () => {
 
 			expect(tree.exists(`${DEFAULT_DIR}/tooltip/tooltip.css`)).toBe(true)
 			const cssBody = tree.read(`${DEFAULT_DIR}/tooltip/tooltip.css`)?.toString('utf-8') ?? ''
-			expect(cssBody).toContain('@reference "#tailwind-theme"')
+			expect(cssBody).toContain('/* TODO: Add component styles */')
 		})
 
 		it('emits both sidecar files when both flags are false', async () => {
