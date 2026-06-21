@@ -20,7 +20,11 @@
 			"!{projectRoot}/.storybook/**/*",
 			"!{projectRoot}/tsconfig.storybook.json"
 		],
-		"sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
+		"sharedGlobals": [
+			"{workspaceRoot}/.github/workflows/ci.yml",
+			"{workspaceRoot}/.postcssrc.json",
+			"{workspaceRoot}/postcss-inject-tailwind-reference.js"
+		]
 	},
 	"nxCloudId": "6a17a0e34cc7a0ffaeec195e",
 	"targetDefaults": {
