@@ -12,7 +12,7 @@ interface UiComponentGeneratorSchema {
 const UI_INDEX_PATH = 'packages/ui/src/index.ts'
 
 const EXTERNAL_TEMPLATE_BODY = `<!-- TODO: Replace with the component template -->\n`
-const EXTERNAL_STYLE_BODY = `@reference "#tailwind-theme";\n\n/* TODO: Add component styles */\n`
+const EXTERNAL_STYLE_BODY = `/* TODO: Add component styles */\n`
 
 export default async function uiComponentGenerator(tree: Tree, schema: UiComponentGeneratorSchema) {
 	const n = names(schema.name)

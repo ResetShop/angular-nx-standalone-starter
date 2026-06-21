@@ -11,8 +11,6 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 	imports: [NgIcon, RouterLink, RouterLinkActive, TranslatePipe],
 	host: { class: 'cursor-pointer text-sm', '[class.collapsed]': 'collapsed()' },
 	styles: `
-		@reference "#tailwind-theme";
-
 		:host(.collapsed) {
 			@apply flex h-12 items-center justify-center;
 		}

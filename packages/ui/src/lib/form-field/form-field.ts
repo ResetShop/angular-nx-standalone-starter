@@ -72,8 +72,6 @@ import { FormFieldCustomControl } from './form-field-custom-control'
 		}
 	`,
 	styles: `
-		@reference "#tailwind-theme";
-
 		:host ::ng-deep input:not([type='checkbox']),
 		:host ::ng-deep select,
 		:host ::ng-deep textarea {
