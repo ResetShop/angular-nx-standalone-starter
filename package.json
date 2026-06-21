@@ -42,8 +42,8 @@
 		"prepare": "husky",
 		"format": "prettier --write --cache .",
 		"format:check": "prettier --check --cache .",
-		"ci": "node scripts/check-no-env-files.mjs && node scripts/check-no-issue-refs-in-comments.mjs && prettier --check --cache . && nx run-many -t stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache --maxParallel=3",
-		"ci:verify": "node scripts/check-no-env-files.mjs && node scripts/check-no-issue-refs-in-comments.mjs && prettier --check --cache . && nx run-many -t stylelint lint typecheck && nx run-many -t test test-integration build build-storybook --maxParallel=3",
+		"ci": "nx run-many -t check stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache --maxParallel=3",
+		"ci:verify": "nx run-many -t check stylelint lint typecheck && nx run-many -t test test-integration build build-storybook --maxParallel=3",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app",
 		"storybook": "nx run reference-app:storybook",
@@ -185,6 +185,18 @@
 		"targets": {
 			"lint": {
 				"command": "echo 'No-op: Nx infers this target from the root eslint.config.mjs via @nx/eslint/plugin. Each project runs its own lint target. See issue #374.'"
+			},
+			"check": {
+				"executor": "nx:run-commands",
+				"cache": false,
+				"options": {
+					"parallel": false,
+					"commands": [
+						"node scripts/check-no-env-files.mjs",
+						"node scripts/check-no-issue-refs-in-comments.mjs",
+						"prettier --check --cache ."
+					]
+				}
 			}
 		}
 	}
