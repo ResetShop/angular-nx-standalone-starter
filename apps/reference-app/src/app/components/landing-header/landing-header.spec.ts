@@ -32,7 +32,7 @@ describe('LandingHeader', () => {
 	})
 
 	// The public landing route runs no session validation, so an authenticated shortcut here would be dead
-	// code (see #468). The rationale is in the test name so it surfaces in CI output, not just this comment.
+	// code. The rationale is in the test name so it surfaces in CI output, not just this comment.
 	it('never renders a dashboard link (stateless by design)', async () => {
 		await renderHeader()
 

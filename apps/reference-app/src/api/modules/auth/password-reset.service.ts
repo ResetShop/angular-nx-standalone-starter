@@ -26,7 +26,8 @@ interface PasswordResetServiceDeps {
 /**
  * Owns the unauthenticated self-service password-reset flow: issuing single-use, time-limited reset
  * tokens by email and consuming them to set a new password. Kept separate from AuthService (which
- * orchestrates authenticated flows) per the focused-collaborator model established in #420.
+ * orchestrates authenticated flows) — keeping unauthenticated self-service flows apart from
+ * authenticated session management is a deliberate single-responsibility boundary.
  */
 export class PasswordResetService implements IPasswordResetService {
 	private readonly userRepository: UserRepository

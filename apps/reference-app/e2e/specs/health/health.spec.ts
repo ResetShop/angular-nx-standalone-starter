@@ -23,7 +23,7 @@ test.describe('Health', () => {
 	})
 })
 
-// #480: /dashboard/health never calls provideToast(), so the root toast bridge is dormant on a cold load.
+// /dashboard/health never calls provideToast(), so the root toast bridge is dormant on a cold load.
 // A 403 here must still render the forbidden toast — the interceptor activates the bridge on demand.
 test.describe('Health — forbidden API response surfaces a toast', () => {
 	test.use({ storageState: STORAGE_STATE.admin })

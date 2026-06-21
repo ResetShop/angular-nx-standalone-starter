@@ -3,6 +3,10 @@ echo "--- Checking for forbidden .env* files ---"
 node scripts/check-no-env-files.mjs || exit 1
 
 echo ""
+echo "--- Checking for issue-number references in code comments ---"
+node scripts/check-no-issue-refs-in-comments.mjs || exit 1
+
+echo ""
 echo "--- Formatting Code ---"
 echo ""
 npx pretty-quick --staged

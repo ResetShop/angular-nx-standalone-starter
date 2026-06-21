@@ -14,7 +14,7 @@ import { catchError, throwError } from 'rxjs'
  * The root `ToastBridgeService` (the renderer) is lazily instantiated and only comes alive once a route
  * calls `provideToast()`. A 403 can occur on a route that never does (settings/health, an auth page), so
  * this interceptor activates the bridge on demand (`injector.get(ToastBridgeService)`) when a 403 fires —
- * without it the notification would sit in `UIStore` unrendered (#480). A 403 is meaningful feedback
+ * without it the notification would sit in `UIStore` unrendered. A 403 is meaningful feedback
  * wherever it happens, so the toast is shown on every page by design.
  *
  * - Does NOT redirect — the user stays on the current page
@@ -39,7 +39,7 @@ export const forbiddenInterceptor: HttpInterceptorFn = (req, next) => {
 		catchError((error: HttpErrorResponse) => {
 			if (error.status === 403) {
 				// Side-effect only: instantiating the root bridge makes its effect() live so the toast renders
-				// even on routes that never call provideToast() (the bridge is otherwise lazily created — #480).
+				// even on routes that never call provideToast() (the bridge is otherwise lazily instantiated on first use).
 				injector.get(ToastBridgeService)
 				loggerService.error('ForbiddenInterceptor', `403 Forbidden: ${req.method} ${req.url}`)
 				uiStore.showNotification({
