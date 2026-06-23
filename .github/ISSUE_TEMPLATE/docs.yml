@@ -1,0 +1,22 @@
+name: 📝 Documentation
+description: Report a documentation gap, error, or improvement.
+labels: ['📝 documentation', '✍️ draft']
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the documentation gap, error, or improvement. Which file or section is affected (e.g., CLAUDE.md, docs/environment-variables.md, the generators reference, a Bruno .bru file, README.md)?
+      placeholder: 'For example: "The environment-variables doc is missing the new ''...'' variable", "The generators reference describes a removed flag", etc.'
+    validations:
+      required: true
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources
+      description: A list of one or more resources that would inform the documentation update.
+      placeholder: |
+        * [Relevant source file or PR](https://example.com)
+        * [External docs or example](https://example.com)
+    validations:
+      required: false

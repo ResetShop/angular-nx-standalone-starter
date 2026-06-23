@@ -1,0 +1,22 @@
+name: 🛠️ Tooling change
+description: Propose adding or changing a library, dependency, or tool in the project.
+labels: ['🛠️ tooling', '✍️ draft']
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the tooling change, upgrade, or improvement, and why it is needed. Include which tool is affected (e.g., Nx, ESLint, Prettier, Vitest, Playwright, Angular CLI, Drizzle Kit).
+      placeholder: 'For example: "Add support for ''...'' in order to achieve ''...''."'
+    validations:
+      required: true
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources
+      description: A list of resources and information related to the tool.
+      placeholder: |
+        * [Tool / package](https://www.npmjs.com/package/example)
+        * [Changelog or migration guide](https://example.com)
+    validations:
+      required: false

@@ -1,0 +1,22 @@
+name: 🎨 UI/UX improvement
+description: Propose improvements to the design and usability of the platform.
+labels: ['🎨 ui-ux', '✍️ draft']
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the UI/UX issue or design task in as much detail as possible. Include which component, page, or interaction is affected (e.g., the data table, the create drawer, the sidebar navigation, the form-field component).
+      placeholder: 'For example: "Redesign the data-table empty state", "Improve the sidebar navigation on mobile", "Improve the form validation feedback", etc.'
+    validations:
+      required: true
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources
+      description: A list of one or more resources related to the proposal. Wireframes, prototypes, links, or screenshots are encouraged for this type of issue.
+      placeholder: |
+        * [Link to wireframes or Figma prototype](https://example.com)
+        * [Screenshot of the current vs. desired state](https://example.com)
+    validations:
+      required: false

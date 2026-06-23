@@ -1,0 +1,71 @@
+name: 🦟 Bug report
+description: Report a problem to help improve the starter.
+labels: ['🦟 bug']
+body:
+  - type: checkboxes
+    id: existing-issue
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search the existing issues before opening a new one.
+      options:
+        - label: I have searched the existing issues and confirmed this has not been reported yet.
+          required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of the stack does this bug affect? Leave as-is if you are unsure.
+      options:
+        - Frontend (Angular / NgRx)
+        - Backend API (Hono / Drizzle / Zod)
+        - Nx Generators
+        - Tooling / CI
+        - Documentation
+        - Other
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: 'For example: "When I do ''...'' then ''...'' happens."'
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The steps needed to reproduce the problem.
+      placeholder: |
+        1. Go to '...' (which Angular route, API endpoint, or generator command)
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See the error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: 'For example: "''...'' should have happened instead."'
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or logs
+      description: If applicable, add screenshots, terminal output, or browser console errors to help explain the problem.
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Any other context about the problem.
+      placeholder: |
+        - OS, Node version, browser, Angular version, etc.
+        - Have you found a workaround or any resource that could help resolve it?
+    validations:
+      required: false

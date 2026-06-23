@@ -1,0 +1,47 @@
+name: 🏎️ Feature request
+description: Propose a new feature or requirement for the starter.
+labels: ['🏎️ enhancement', '✍️ draft']
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of the stack would this feature touch? Leave as-is if you are unsure.
+      options:
+        - Frontend (Angular / NgRx)
+        - Backend API (Hono / Drizzle / Zod)
+        - Nx Generators
+        - Tooling / CI
+        - Documentation
+        - Other
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the feature or enhancement. Include the problem it solves or the need it addresses.
+      placeholder: 'For example: "Add support for ''...'' in order to achieve ''...''."'
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: The conditions that must be met for this to be considered complete.
+      placeholder: |
+        For example:
+        - The generator emits a matching `.spec.ts` file.
+        - The endpoint returns 422 for invalid payloads.
+    validations:
+      required: false
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources
+      description: An optional list of resources to guide the implementation.
+      placeholder: |
+        * [Relevant doc or RFC](https://example.com)
+        * [Library or prior art](https://example.com)
+    validations:
+      required: false
