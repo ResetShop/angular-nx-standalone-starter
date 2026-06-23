@@ -63,7 +63,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run Tests
-        run: npx nx run-many -t test
+        run: bash .github/scripts/nx-run.sh nx run-many -t test
 
   typecheck:
     needs: setup
@@ -81,7 +81,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run typecheck
-        run: npx nx run-many -t typecheck
+        run: bash .github/scripts/nx-run.sh nx run-many -t typecheck
 
   lint:
     needs: setup
@@ -99,7 +99,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run Linter
-        run: npx nx run-many -t lint
+        run: bash .github/scripts/nx-run.sh nx run-many -t lint
 
   stylelint:
     needs: setup
@@ -117,7 +117,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run stylelint
-        run: npx nx stylelint reference-app
+        run: bash .github/scripts/nx-run.sh nx stylelint reference-app
 
   test-integration:
     needs: setup
@@ -149,7 +149,7 @@ jobs:
           node-version: '22.20'
 
       - name: Run integration tests
-        run: npm run test:integration
+        run: bash .github/scripts/nx-run.sh nx test-integration reference-app --skip-nx-cache
         env:
           # PG_TEST_CONNECTION_STRING is a repo Variable — it points at the in-job
           # postgres:17 service container above (localhost, no real credential).
@@ -194,7 +194,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: npx nx run reference-app:e2e --skip-nx-cache
+        run: bash .github/scripts/nx-run.sh nx run reference-app:e2e --skip-nx-cache
         env:
           # The Playwright globalSetup seeds this postgres:17 service (same pattern as test-integration).
           # PG_TEST_CONNECTION_STRING is a repo Variable (localhost service, no real credential);
@@ -228,7 +228,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run build
-        run: npx nx run reference-app:build:production
+        run: bash .github/scripts/nx-run.sh nx run reference-app:build:production
 
   storybook:
     needs: setup
@@ -246,4 +246,4 @@ jobs:
           node-version: '22.20'
 
       - name: Run Storybook build
-        run: npx nx run reference-app:build-storybook
+        run: bash .github/scripts/nx-run.sh nx run reference-app:build-storybook
