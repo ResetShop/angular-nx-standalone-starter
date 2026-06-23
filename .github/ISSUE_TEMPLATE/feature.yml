@@ -34,7 +34,7 @@ body:
         - The generator emits a matching `.spec.ts` file.
         - The endpoint returns 422 for invalid payloads.
     validations:
-      required: false
+      required: true
   - type: textarea
     id: resources
     attributes:
