@@ -1,0 +1,22 @@
+name: 💼 Development process
+description: Propose improvements to the management or development process of the project.
+labels: ['💼 management', '✍️ draft']
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the process improvement, policy change, or project management task. Explain why it is needed and what aspect of the development workflow it improves.
+      placeholder: 'For example: "Add a new label to identify ''...'' issues", "Change the issue versioning workflow", "Adjust the development methodology", etc.'
+    validations:
+      required: true
+  - type: textarea
+    id: resources
+    attributes:
+      label: Resources
+      description: A list of one or more resources related to the proposed improvements.
+      placeholder: |
+        * [Article on improving an open-source development process](https://example.com)
+        * [Article on optimizing issue triage](https://example.com)
+    validations:
+      required: false

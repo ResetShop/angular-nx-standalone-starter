@@ -12,6 +12,7 @@
 ## Summary
 
 <!-- 1–3 sentences describing what this PR does and why. -->
+<!-- Add `Closes #<issue-number>` on a line by itself so GitHub links and auto-closes the issue on merge. -->
 
 ## Test plan
 
