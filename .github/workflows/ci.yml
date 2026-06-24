@@ -119,6 +119,33 @@ jobs:
       - name: Run stylelint
         run: bash .github/scripts/nx-run.sh nx stylelint reference-app
 
+  check:
+    needs: setup
+    runs-on: ubuntu-latest
+    # The `check` target is `cache: false`, so it gains nothing from Nx Cloud. Running it with
+    # NX_NO_CLOUD=true skips the cloud-authorization step, so these repo-wide guards keep enforcing
+    # even when the Nx Cloud org is unavailable or over its plan quota (an over-quota org otherwise
+    # makes `nx` hard-exit before the target runs). A safety guard must never be gated on cloud billing.
+    env:
+      NX_NO_CLOUD: 'true'
+    steps:
+      - name: Restore repository
+        uses: actions/cache@v4.2.3
+        with:
+          path: .
+          key: repo-${{ github.sha }}
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: '22.20'
+
+      # Repo-wide guards (no `.env*` files, no issue refs in code comments, prettier formatting).
+      # The `check` target is `cache: false`, so it always runs — closing the gap where a
+      # `--no-verify` push would otherwise skip the pre-commit guards entirely.
+      - name: Run repo-wide guards
+        run: npx nx run @app/source:check
+
   test-integration:
     needs: setup
     runs-on: ubuntu-latest
