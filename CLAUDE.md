@@ -1243,7 +1243,7 @@ The `npm run ci` command runs CI checks in two parallel batches via `nx run-many
 
 **Batch 1 (fast checks, parallel):**
 
-- `check` — repo-wide guards run as one `nx:run-commands` target on `@app/source`: no `.env*` files (`check-no-env-files.mjs`), no issue refs in code comments (`check-no-issue-refs-in-comments.mjs`), and prettier formatting (`prettier --check`). Adding a future repo-wide guard means adding one command to this target — the `ci`/`ci:verify` scripts do not change. `cache: false` (these guards inspect working-tree state, so they always run).
+- `check` — repo-wide guards run as one `nx:run-commands` target on `@app/source`: no `.env*` files (`check-no-env-files.mjs`), no issue refs in code comments (`check-no-issue-refs-in-comments.mjs`), and prettier formatting (`prettier --check`). The three commands run sequentially inside the target (`parallel: false` — the first failure short-circuits, matching the old `&&` chain). Adding a future repo-wide guard means adding one command to this target — the `ci`/`ci:verify` scripts do not change. `cache: false` (these guards inspect working-tree state, so they always run). Also enforced remotely by the `check` job in `.github/workflows/ci.yml`, so a `--no-verify` push cannot skip the guards.
 - `stylelint` — CSS/style linting
 - `lint` — TypeScript/ESLint linting
 - `typecheck` — Type-check spec files (`tsc --noEmit`)
