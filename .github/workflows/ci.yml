@@ -122,6 +122,12 @@ jobs:
   check:
     needs: setup
     runs-on: ubuntu-latest
+    # The `check` target is `cache: false`, so it gains nothing from Nx Cloud. Running it with
+    # NX_NO_CLOUD=true skips the cloud-authorization step, so these repo-wide guards keep enforcing
+    # even when the Nx Cloud org is unavailable or over its plan quota (an over-quota org otherwise
+    # makes `nx` hard-exit before the target runs). A safety guard must never be gated on cloud billing.
+    env:
+      NX_NO_CLOUD: 'true'
     steps:
       - name: Restore repository
         uses: actions/cache@v4.2.3
