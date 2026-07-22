@@ -34,7 +34,7 @@
 		"#tailwind-theme": "./tailwind.config.css"
 	},
 	"engines": {
-		"node": "^24.0.0"
+		"node": "^24.13.0"
 	},
 	"scripts": {
 		"postinstall": "node scripts/setup-skills.mjs",
