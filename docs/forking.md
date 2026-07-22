@@ -74,6 +74,27 @@ npm run ci
 
 If `npm run ci` fails on a clean fork, file an issue upstream — it should always pass on the canonical baseline.
 
+### Private mirror setup
+
+GitHub cannot make a fork of a public repository private — fork visibility is immutable. When a downstream project must stay private (e.g. client work), use a **private mirror** instead of a GitHub fork: a bare clone pushed with `git push --mirror` into a new private repository, plus an `upstream` remote (push URL disabled) pointing back at the public starter. The full git history is shared, so upstream merges behave exactly like a fork's ([§5](#5-pulling-upstream-updates)); only GitHub cosmetics (the fork badge, cross-repo PRs, one-click sync) are lost.
+
+From an existing starter checkout, at the repo root:
+
+```bash
+npm run fork:init -- --repo=<org>/<name> [--app-name="Display Name"]
+```
+
+The script automates the one-time setup:
+
+- Preflight: `git`/`gh` available, `gh` authenticated, target repo does not already exist.
+- Creates the private repository (`gh repo create <org>/<name> --private`).
+- Mirror-pushes the full history from this checkout's `origin` — never the local working tree, so local WIP branches never leak into the mirror.
+- Clones the mirror into a sibling directory and wires the `upstream` remote with its push URL disabled (no accidental pushes to the public starter).
+- Strips `nxCloudId` from the mirror's `nx.json` in its own commit — a private client repo must not report into the public starter's Nx Cloud workspace.
+- Optionally scaffolds a first app via `npm run generate:app` when `--app-name` is given.
+
+The script prints the remaining manual steps when it finishes. From then on the mirror pulls upstream updates exactly like any fork — see [§5](#5-pulling-upstream-updates).
+
 ---
 
 ## 4. Creating a new app
@@ -105,6 +126,8 @@ After generation, `apps/my-app/` is yours. Modify it freely.
 ---
 
 ## 5. Pulling upstream updates
+
+> **Scripted:** `npm run upstream:pull` runs the steps below automatically — fetch, a CHANGELOG-delta preview ([§6](#6-the-changelog-contract)) with a confirmation pause when the delta contains a `### Removed` heading or a "breaking"/"migration" mention (`--yes` skips the pause), a regular merge of `upstream/main`, auto-resolution of lockfile-only conflicts, and a final `npm run ci:verify`. The manual steps below remain the reference for what the script does and for resolving the conflicts it stops on.
 
 ```bash
 git fetch upstream
