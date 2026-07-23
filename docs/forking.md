@@ -162,7 +162,7 @@ Merged lockfiles are syntactically opaque and rarely correct; starting from scra
 
 Hand-resolve. These files rarely change upstream, and when they do the change is usually a small targeted addition (a new path alias, a new ESLint rule, a new target default). Accept upstream's change and re-apply any fork additions on top.
 
-**`nx.json` `defaultBase`:** the upstream value is `"main"`. If your fork's primary branch is named differently (`master`, `develop`, etc.), update this value once after forking to match — `nx affected` and Nx Cloud CIPE diffs depend on it.
+**`nx.json` `defaultBase`:** the upstream value is `"main"`. If your fork's primary branch is named differently (`master`, `develop`, etc.), update this value once after forking to match — `nx affected` depends on it.
 
 **`tsconfig.base.json` path aliases convention:** keep all starter `@<scope>/*` aliases grouped at the top of `compilerOptions.paths`. The starter block is ordered by package dependency layering (`util` → `ui` → `angular-core` → `hono-core`), **not alphabetically**, and must not be resorted by fork maintainers during merge resolution — resorting creates an unnecessary diff conflict on every upstream merge. Forks add their own app-scoped aliases (e.g. `@<your-app>/*`) **below** the starter block, alphabetized within that fork section.
 
