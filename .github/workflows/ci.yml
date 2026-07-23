@@ -3,10 +3,11 @@ name: CI
 on:
   pull_request:
 
-# Inherited by every job so Nx tasks can read/write the Nx Cloud remote cache.
-# The cacheable jobs below drop `--skip-nx-cache`; `e2e` stays cold by design.
+# This workspace does not use Nx Cloud — no nxCloudId in nx.json, no token
+# referenced anywhere in this workflow. NX_NO_CLOUD is set defensively so a
+# stray NX_CLOUD_ACCESS_TOKEN in the runner environment can never activate it.
 env:
-  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+  NX_NO_CLOUD: 'true'
 
 jobs:
   setup:
@@ -63,7 +64,7 @@ jobs:
           node-version: '24.18'
 
       - name: Run Tests
-        run: bash .github/scripts/nx-run.sh nx run-many -t test
+        run: npx nx run-many -t test
 
   typecheck:
     needs: setup
@@ -81,7 +82,7 @@ jobs:
           node-version: '24.18'
 
       - name: Run typecheck
-        run: bash .github/scripts/nx-run.sh nx run-many -t typecheck
+        run: npx nx run-many -t typecheck
 
   lint:
     needs: setup
@@ -99,7 +100,7 @@ jobs:
           node-version: '24.18'
 
       - name: Run Linter
-        run: bash .github/scripts/nx-run.sh nx run-many -t lint
+        run: npx nx run-many -t lint
 
   stylelint:
     needs: setup
@@ -117,17 +118,11 @@ jobs:
           node-version: '24.18'
 
       - name: Run stylelint
-        run: bash .github/scripts/nx-run.sh nx stylelint reference-app
+        run: npx nx stylelint reference-app
 
   check:
     needs: setup
     runs-on: ubuntu-latest
-    # The `check` target is `cache: false`, so it gains nothing from Nx Cloud. Running it with
-    # NX_NO_CLOUD=true skips the cloud-authorization step, so these repo-wide guards keep enforcing
-    # even when the Nx Cloud org is unavailable or over its plan quota (an over-quota org otherwise
-    # makes `nx` hard-exit before the target runs). A safety guard must never be gated on cloud billing.
-    env:
-      NX_NO_CLOUD: 'true'
     steps:
       - name: Restore repository
         uses: actions/cache@v4.2.3
@@ -176,7 +171,7 @@ jobs:
           node-version: '24.18'
 
       - name: Run integration tests
-        run: bash .github/scripts/nx-run.sh nx test-integration reference-app --skip-nx-cache
+        run: npx nx test-integration reference-app --skip-nx-cache
         env:
           # PG_TEST_CONNECTION_STRING is a repo Variable — it points at the in-job
           # postgres:17 service container above (localhost, no real credential).
@@ -221,7 +216,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: bash .github/scripts/nx-run.sh nx run reference-app:e2e --skip-nx-cache
+        run: npx nx run reference-app:e2e --skip-nx-cache
         env:
           # The Playwright globalSetup seeds this postgres:17 service (same pattern as test-integration).
           # PG_TEST_CONNECTION_STRING is a repo Variable (localhost service, no real credential);
@@ -255,7 +250,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run build
-        run: bash .github/scripts/nx-run.sh nx run reference-app:build:production
+        run: npx nx run reference-app:build:production
 
   storybook:
     needs: setup
@@ -273,4 +268,4 @@ jobs:
           node-version: '24.18'
 
       - name: Run Storybook build
-        run: bash .github/scripts/nx-run.sh nx run reference-app:build-storybook
+        run: npx nx run reference-app:build-storybook
