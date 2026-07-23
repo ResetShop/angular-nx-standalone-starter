@@ -1,4 +1,5 @@
-import { buildMirrorRemoteUrls, parseForkInitArgs, UPSTREAM_REPO_URL } from './fork-init.helpers.mjs'
+import { buildMirrorRemoteUrls, parseForkInitArgs } from './fork-init.helpers.mjs'
+import { UPSTREAM_REPO_URL } from './repo.constants.mjs'
 
 describe('parseForkInitArgs', () => {
 	it('parses --repo=<org>/<name> into org and name', () => {

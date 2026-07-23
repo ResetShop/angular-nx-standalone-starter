@@ -5,13 +5,7 @@
  * without faking `git`/`gh` — the entry script owns all orchestration and stays
  * a thin wrapper around these decisions.
  */
-
-/**
- * Canonical clone URL of the public starter. Every private mirror's `upstream`
- * remote points here (with its push URL disabled); `upstream-pull.mjs` uses the
- * same constant to self-heal a missing remote.
- */
-export const UPSTREAM_REPO_URL = 'https://github.com/ResetShop/angular-nx-standalone-starter.git'
+import { UPSTREAM_REPO_URL } from './repo.constants.mjs'
 
 /**
  * Parses fork-init CLI arguments.

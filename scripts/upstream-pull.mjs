@@ -21,7 +21,7 @@
 import { execSync } from 'node:child_process'
 import { rmSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'
-import { UPSTREAM_REPO_URL } from './lib/fork-init.helpers.mjs'
+import { UPSTREAM_REPO_URL } from './lib/repo.constants.mjs'
 import {
 	buildConflictGuidance,
 	detectChangelogWarnings,
