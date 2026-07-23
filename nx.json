@@ -26,7 +26,6 @@
 			"{workspaceRoot}/postcss-inject-tailwind-reference.js"
 		]
 	},
-	"nxCloudId": "6a17a0e34cc7a0ffaeec195e",
 	"targetDefaults": {
 		"@angular/build:application": {
 			"cache": true,
