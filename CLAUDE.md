@@ -40,26 +40,26 @@
 
 Use `npm` for all package management and script execution:
 
-| Command                    | Description                                                                              |
-| -------------------------- | ---------------------------------------------------------------------------------------- |
-| `npm install`              | Install dependencies                                                                     |
-| `npm run ci`               | Run all CI checks **cold** (`--skip-nx-cache`) — authoritative final gate                |
-| `npm run ci:verify`        | Run all CI checks **cache-aware** (Nx local/remote cache) — intermediate/inner-loop runs |
-| `npm run build`            | Build the project                                                                        |
-| `npm run dev`              | Start development server                                                                 |
-| `npm run format`           | Format all files with Prettier                                                           |
-| `npm run format:check`     | Check formatting without writing                                                         |
-| `npm run lint`             | Run linting                                                                              |
-| `npm run storybook`        | Run storybook dev server                                                                 |
-| `npm run storybook:build`  | Build storybook                                                                          |
-| `npm run stylelint`        | Run stylelint                                                                            |
-| `npm run typecheck`        | Type-check spec files (tsc --noEmit)                                                     |
-| `npm run test`             | Run all unit tests                                                                       |
-| `npm run test:integration` | Run backend integration tests (requires DB)                                              |
-| `npm run test:e2e`         | Run all end-to-end tests                                                                 |
-| `npm install <pkg>`        | Add a dependency                                                                         |
-| `npm install -D <pkg>`     | Add a dev dependency                                                                     |
-| `npm install -g <pkg>`     | Add a global dependency                                                                  |
+| Command                    | Description                                                                       |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `npm install`              | Install dependencies                                                              |
+| `npm run ci`               | Run all CI checks **cold** (`--skip-nx-cache`) — authoritative final gate         |
+| `npm run ci:verify`        | Run all CI checks **cache-aware** (Nx local cache) — intermediate/inner-loop runs |
+| `npm run build`            | Build the project                                                                 |
+| `npm run dev`              | Start development server                                                          |
+| `npm run format`           | Format all files with Prettier                                                    |
+| `npm run format:check`     | Check formatting without writing                                                  |
+| `npm run lint`             | Run linting                                                                       |
+| `npm run storybook`        | Run storybook dev server                                                          |
+| `npm run storybook:build`  | Build storybook                                                                   |
+| `npm run stylelint`        | Run stylelint                                                                     |
+| `npm run typecheck`        | Type-check spec files (tsc --noEmit)                                              |
+| `npm run test`             | Run all unit tests                                                                |
+| `npm run test:integration` | Run backend integration tests (requires DB)                                       |
+| `npm run test:e2e`         | Run all end-to-end tests                                                          |
+| `npm install <pkg>`        | Add a dependency                                                                  |
+| `npm install -D <pkg>`     | Add a dev dependency                                                              |
+| `npm install -g <pkg>`     | Add a global dependency                                                           |
 
 #### CRITICAL: Command Execution Policy
 
@@ -1237,7 +1237,7 @@ There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `li
 
 > **Permission note:** `npm run ci:verify` is already authorized by the pre-existing `Bash(npm run ci:*)` allow-rule in `.claude/settings.local.json` — the glob matches because `ci:verify` begins with the `ci:` prefix — so no new allow-rule is required.
 
-> **Remote cache:** `ci:verify` rides the Nx **local** cache today. It also rides the Nx Cloud **remote** cache (restoring task outputs across fresh containers, sessions, and CI) once the workspace is claimed and an `NX_CLOUD_ACCESS_TOKEN` is provisioned — see [`docs/NX_CLOUD.md`](docs/NX_CLOUD.md) for the setup runbook and current status.
+> **Local cache only:** `ci:verify` rides the Nx **local** cache. This workspace does not use Nx Cloud — see [`docs/NX_CLOUD.md`](docs/NX_CLOUD.md) for the rationale.
 
 The `npm run ci` command runs CI checks in two parallel batches via `nx run-many`:
 
