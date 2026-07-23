@@ -20,7 +20,11 @@ export const UPSTREAM_REPO_URL = 'https://github.com/ResetShop/angular-nx-standa
  * Optional: `--app-name=<Display Name>` — human-readable name passed through to
  * `npm run generate:app`; `undefined` when omitted.
  *
- * Throws a descriptive Error on a missing or malformed `--repo` value.
+ * Throws a descriptive Error on a missing or malformed `--repo` value and on an
+ * `--app-name` value outside the safe character set. Both values are later
+ * interpolated into shell command strings by the entry script, so the
+ * allowlists double as shell-quoting safety: every permitted character is inert
+ * inside a double-quoted argument on both cmd.exe and POSIX shells.
  */
 export function parseForkInitArgs(argv) {
 	const repo = readArgValue(argv, '--repo')
@@ -31,7 +35,13 @@ export function parseForkInitArgs(argv) {
 		throw new Error(`Malformed --repo value "${repo}" — expected <org>/<name> (e.g. my-org/my-private-app)`)
 	}
 	const [org, name] = repo.split('/')
-	return { org, name, appName: readArgValue(argv, '--app-name') }
+	const appName = readArgValue(argv, '--app-name')
+	if (appName !== undefined && !/^[A-Za-z0-9][A-Za-z0-9 ._-]*$/.test(appName)) {
+		throw new Error(
+			`Malformed --app-name value "${appName}" — allowed: letters, digits, spaces, dots, hyphens, underscores (must start with a letter or digit)`,
+		)
+	}
+	return { org, name, appName }
 }
 
 /**
@@ -47,12 +57,15 @@ export function buildMirrorRemoteUrls(org, name) {
 
 /**
  * Reads a single `--flag=value` or `--flag value` argument. Returns `undefined`
- * when the flag is absent or has no value.
+ * when the flag is absent or has no value. A following `--`-prefixed token is
+ * another flag, not a value — treating it as missing surfaces the accurate
+ * "missing argument" error instead of a misleading "malformed value" one.
  */
 function readArgValue(argv, flag) {
 	for (let i = 0; i < argv.length; i++) {
 		if (argv[i] === flag) {
-			return argv[i + 1]
+			const next = argv[i + 1]
+			return next !== undefined && next.startsWith('--') ? undefined : next
 		}
 		if (argv[i].startsWith(`${flag}=`)) {
 			return argv[i].slice(flag.length + 1)

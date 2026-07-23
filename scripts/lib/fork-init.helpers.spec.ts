@@ -58,6 +58,31 @@ describe('parseForkInitArgs', () => {
 			'Malformed --repo value "my-org/team/my-app"',
 		)
 	})
+
+	it('reports --repo as missing when its value is another flag', () => {
+		expect(() => parseForkInitArgs(['--repo', '--app-name=My App'])).toThrow(
+			'Missing required --repo=<org>/<name> argument',
+		)
+	})
+
+	it('throws when --app-name contains a double quote', () => {
+		expect(() => parseForkInitArgs(['--repo=my-org/my-app', '--app-name=Client "Big" App'])).toThrow(
+			'Malformed --app-name value',
+		)
+	})
+
+	it('throws when --app-name contains shell metacharacters', () => {
+		expect(() => parseForkInitArgs(['--repo=my-org/my-app', '--app-name=App & More'])).toThrow(
+			'Malformed --app-name value',
+		)
+		expect(() => parseForkInitArgs(['--repo=my-org/my-app', '--app-name=100% App'])).toThrow(
+			'Malformed --app-name value',
+		)
+	})
+
+	it('throws when --app-name is empty', () => {
+		expect(() => parseForkInitArgs(['--repo=my-org/my-app', '--app-name='])).toThrow('Malformed --app-name value')
+	})
 })
 
 describe('buildMirrorRemoteUrls', () => {
