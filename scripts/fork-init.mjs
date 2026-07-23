@@ -113,7 +113,11 @@ function mirrorPushToNewRepo(mirrorRepoUrl) {
 
 function cloneAndWireRemotes(mirrorRepoUrl, upstreamRepoUrl, mirrorDir) {
 	console.log('\n--- Cloning the mirror and wiring remotes ---')
-	runInherit(`git clone ${mirrorRepoUrl} "${mirrorDir}"`)
+	// Pin core.autocrlf=false for this clone: the repo's blobs are LF and the
+	// prettier `check` target demands LF, so a Windows global of autocrlf=true
+	// would check out CRLF and fail CI on every file. Linux never converts, so
+	// this is inert there and load-bearing only on Windows.
+	runInherit(`git clone --config core.autocrlf=false ${mirrorRepoUrl} "${mirrorDir}"`)
 	runInherit(`git remote add upstream ${upstreamRepoUrl}`, { cwd: mirrorDir })
 	// A disabled push URL makes `git push upstream` fail loudly — the public
 	// starter must never receive pushes from a private mirror by accident.
