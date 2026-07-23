@@ -106,4 +106,11 @@ describe('buildConflictGuidance', () => {
 		const guidance = buildConflictGuidance(['package.json', 'nx.json', 'other.ts'])
 		expect(guidance.split('\n')).toHaveLength(3)
 	})
+
+	it('renders the lockfile guidance alongside other files when it is not the sole conflict', () => {
+		const guidance = buildConflictGuidance(['package-lock.json', 'nx.json'])
+		expect(guidance).toContain('package-lock.json: delete and regenerate')
+		expect(guidance).toContain('nx.json: accept the upstream change')
+		expect(guidance.split('\n')).toHaveLength(2)
+	})
 })
