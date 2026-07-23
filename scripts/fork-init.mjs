@@ -46,7 +46,18 @@ function fail(message) {
 	process.exit(1)
 }
 
-function runPreflightChecks(org, name) {
+// Every precondition — including the purely local clone-directory collision —
+// is verified here, before any remote side effect: failing after the private
+// repo is created and pushed would leave an orphaned, already-populated repo.
+function runPreflightChecks(org, name, mirrorDir) {
+	assertToolingAvailable()
+	assertTargetRepoAbsent(org, name)
+	if (existsSync(mirrorDir)) {
+		fail(`Target clone directory already exists: ${mirrorDir}`)
+	}
+}
+
+function assertToolingAvailable() {
 	try {
 		run('git --version')
 	} catch {
@@ -62,15 +73,22 @@ function runPreflightChecks(org, name) {
 	} catch {
 		fail('gh is not authenticated — run `gh auth login` first')
 	}
-	let repoExists = true
+}
+
+function assertTargetRepoAbsent(org, name) {
 	try {
 		run(`gh repo view ${org}/${name}`)
-	} catch {
-		repoExists = false
+	} catch (error) {
+		const stderr = typeof error.stderr === 'string' ? error.stderr : ''
+		// Only a definitive "repository not found" clears the check — any other
+		// failure (network, API, auth edge case) must not fall through to
+		// `gh repo create` masquerading as "the repo does not exist".
+		if (/could not resolve to a repository|http 404|not found/i.test(stderr)) {
+			return
+		}
+		fail(`Could not verify whether ${org}/${name} exists (gh repo view failed):\n${stderr.trim()}`)
 	}
-	if (repoExists) {
-		fail(`Repository ${org}/${name} already exists — fork-init only creates brand-new mirrors`)
-	}
+	fail(`Repository ${org}/${name} already exists — fork-init only creates brand-new mirrors`)
 }
 
 function createPrivateRepo(org, name) {
@@ -93,18 +111,13 @@ function mirrorPushToNewRepo(mirrorRepoUrl) {
 	}
 }
 
-function cloneAndWireRemotes(mirrorRepoUrl, upstreamRepoUrl, name) {
+function cloneAndWireRemotes(mirrorRepoUrl, upstreamRepoUrl, mirrorDir) {
 	console.log('\n--- Cloning the mirror and wiring remotes ---')
-	const mirrorDir = resolve(process.cwd(), '..', name)
-	if (existsSync(mirrorDir)) {
-		fail(`Target clone directory already exists: ${mirrorDir}`)
-	}
 	runInherit(`git clone ${mirrorRepoUrl} "${mirrorDir}"`)
 	runInherit(`git remote add upstream ${upstreamRepoUrl}`, { cwd: mirrorDir })
 	// A disabled push URL makes `git push upstream` fail loudly — the public
 	// starter must never receive pushes from a private mirror by accident.
 	runInherit('git remote set-url --push upstream DISABLED', { cwd: mirrorDir })
-	return mirrorDir
 }
 
 function stripNxCloudId(mirrorDir) {
@@ -161,10 +174,11 @@ function main() {
 	}
 	const { org, name, appName } = args
 	const { mirrorRepoUrl, upstreamRepoUrl } = buildMirrorRemoteUrls(org, name)
-	runPreflightChecks(org, name)
+	const mirrorDir = resolve(process.cwd(), '..', name)
+	runPreflightChecks(org, name, mirrorDir)
 	createPrivateRepo(org, name)
 	mirrorPushToNewRepo(mirrorRepoUrl)
-	const mirrorDir = cloneAndWireRemotes(mirrorRepoUrl, upstreamRepoUrl, name)
+	cloneAndWireRemotes(mirrorRepoUrl, upstreamRepoUrl, mirrorDir)
 	stripNxCloudId(mirrorDir)
 	scaffoldOptionalApp(mirrorDir, appName)
 	printNextSteps(mirrorDir, appName)
