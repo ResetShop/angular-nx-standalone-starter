@@ -1,4 +1,4 @@
-import { join, resolve } from 'node:path'
+import { join, resolve, sep } from 'node:path'
 
 import { getContentType, resolveRequestedFilePath } from './serve-storybook.helpers.mjs'
 
@@ -52,6 +52,19 @@ describe('resolveRequestedFilePath', () => {
 	it('rejects encoded traversal and malformed encoding', () => {
 		expect(resolveRequestedFilePath(root, '/..%2f..%2fetc%2fpasswd')).toBeNull()
 		expect(resolveRequestedFilePath(root, '/%ZZ')).toBeNull()
+	})
+
+	// The security invariant is "never escapes root": every result is either null
+	// or a path contained under root — asserted here for the trickier vectors.
+	const staysContained = (result: string | null) => result === null || result.startsWith(root + sep)
+
+	it('never escapes root for a drive-letter absolute request', () => {
+		expect(staysContained(resolveRequestedFilePath(root, '/C:/Windows/win.ini'))).toBe(true)
+	})
+
+	it('never escapes root for encoded-backslash traversal', () => {
+		expect(staysContained(resolveRequestedFilePath(root, '/..%5c..%5csecret'))).toBe(true)
+		expect(staysContained(resolveRequestedFilePath(root, '/..%5C..%5Csecret'))).toBe(true)
 	})
 
 	it('allows a traversal that stays within root after normalization', () => {
