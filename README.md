@@ -65,6 +65,7 @@ This repo is designed to be **forked** (or [privately mirrored](#getting-started
 ## Live demo
 
 - App: https://angular-nx-standalone-starter-production.up.railway.app/
+- Storybook: https://angular-nx-standalone-starter-production-b5b1.up.railway.app/
 
 ## Project Setup Guide
 
