@@ -1,7 +1,7 @@
 {
 	"name": "@app/source",
 	"type": "module",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"license": "Apache-2.0",
 	"description": "Fork-ready Nx monorepo starter: an SSR-ready Angular 21+ frontend and a Hono backend API, with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO auth + RBAC.",
 	"author": {
@@ -48,6 +48,7 @@
 		"build": "nx build reference-app --skip-nx-cache",
 		"storybook": "nx run reference-app:storybook",
 		"storybook:build": "nx run reference-app:build-storybook",
+		"storybook:serve": "node scripts/serve-storybook.mjs",
 		"lint": "nx run-many -t lint --skip-nx-cache",
 		"stylelint": "nx stylelint reference-app --skip-nx-cache",
 		"typecheck": "nx run-many -t typecheck --skip-nx-cache",
