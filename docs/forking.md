@@ -27,6 +27,8 @@ This starter uses a **fork + upstream-remote** distribution model instead of pub
 - **Tighter feedback loops** during the prototype phase. Package boundaries can still move; publishing pins them prematurely.
 - **No registry / versioning overhead** for downstream consumers — `git merge upstream/main` is the only update mechanism.
 
+**Which upstream branch to track:** always `upstream/main`, and only `upstream/main`. Upstream develops on `develop` (its integration branch and GitHub default) and promotes to `main` exclusively through an automated release PR — so `main` only ever advances one released, tagged, CHANGELOG-documented version at a time. `develop` is upstream-internal: never merge from it, and don't rely on its state — it carries no CHANGELOG or tag guarantees. Forks are not required to reproduce the two-branch model; a single-branch fork merging `upstream/main` is fully supported. See [`docs/release-process.md`](release-process.md) for how upstream cuts releases.
+
 The model works because the repository is structured so that **starter-owned** files and **app-owned** files live in disjoint directory trees. When upstream lands a change to `packages/angular-core`, your fork's `apps/<your-app>` directory is untouched, and the merge is conflict-free for that area (provided you import via package aliases, not relative paths into `packages/*`). Conflicts only happen in genuinely-shared root config files (`package.json`, `tsconfig.base.json`, `nx.json`, the lockfile), and even there the conventions documented in [§5](#5-pulling-upstream-updates) keep them mechanical.
 
 ---
@@ -162,7 +164,7 @@ Merged lockfiles are syntactically opaque and rarely correct; starting from scra
 
 Hand-resolve. These files rarely change upstream, and when they do the change is usually a small targeted addition (a new path alias, a new ESLint rule, a new target default). Accept upstream's change and re-apply any fork additions on top.
 
-**`nx.json` `defaultBase`:** the upstream value is `"main"`. If your fork's primary branch is named differently (`master`, `develop`, etc.), update this value once after forking to match — `nx affected` depends on it.
+**`nx.json` `defaultBase`:** the upstream value is `"develop"` (upstream's integration branch). Update this value once after forking to match **your fork's own primary branch** (`main`, `master`, or whatever you named it) — `nx affected` depends on it. This is a permanent, deliberate divergence for single-branch forks; re-accepting upstream's `"develop"` during a merge would break `nx affected` on your fork.
 
 **`tsconfig.base.json` path aliases convention:** keep all starter `@<scope>/*` aliases grouped at the top of `compilerOptions.paths`. The starter block is ordered by package dependency layering (`util` → `ui` → `angular-core` → `hono-core`), **not alphabetically**, and must not be resorted by fork maintainers during merge resolution — resorting creates an unnecessary diff conflict on every upstream merge. Forks add their own app-scoped aliases (e.g. `@<your-app>/*`) **below** the starter block, alphabetized within that fork section.
 

@@ -1044,6 +1044,8 @@ For values that need to be mockable in tests (e.g. `CRON_SECRET` in the cleanup-
 [#87] - Add user authentication
 ```
 
+**Branch model:** day-to-day feature branches are created from `develop` (the integration branch and GitHub default) and PRs target `develop`. `main` is the protected, release-only branch — it advances exclusively via the automated `develop → main` release PR created by `prepare-release-pr.yml`, and merging that PR triggers `release.yml` (tag + GitHub Release). Hotfixes are the one exception: they branch off `main` directly, PR back to `main` (with a version bump), and are back-merged `main → develop` afterwards. Releases are prepared with the `/release-workflow` skill. Full mechanics: [`docs/release-process.md`](docs/release-process.md).
+
 ### Agent Orchestration
 
 Use the Task tool to delegate to specialized agents at each development phase:

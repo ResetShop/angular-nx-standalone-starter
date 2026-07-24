@@ -2,6 +2,16 @@ name: CI
 
 on:
   pull_request:
+  # Push to develop: runs CI on every merge and, above all, saves the Nx cache
+  # on the default branch — restorable by every PR from its first push.
+  push:
+    branches: [develop]
+  # Manual runs, and the release pipeline's CI signal: the develop → main
+  # release PR is created by GITHUB_TOKEN, which by GitHub's anti-recursion
+  # rule does not fire `on: pull_request`; `workflow_dispatch` is the
+  # exception the token CAN trigger, so prepare-release-pr.yml dispatches
+  # this workflow against develop to get real status for what ships.
+  workflow_dispatch:
 
 # This workspace does not use Nx Cloud — no nxCloudId in nx.json, no token
 # referenced anywhere in this workflow. NX_NO_CLOUD is set defensively so a

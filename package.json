@@ -1,7 +1,7 @@
 {
 	"name": "@app/source",
 	"type": "module",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"license": "Apache-2.0",
 	"description": "Fork-ready Nx monorepo starter: an SSR-ready Angular 21+ frontend and a Hono backend API, with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO auth + RBAC.",
 	"author": {
