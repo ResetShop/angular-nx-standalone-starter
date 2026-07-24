@@ -58,7 +58,6 @@
 		"test:e2e": "nx run reference-app:e2e",
 		"test:e2e:ui": "nx run reference-app:e2e -- --ui",
 		"generate:app": "nx g @resetshop/generators:app",
-		"fork:init": "node scripts/fork-init.mjs",
 		"upstream:pull": "node scripts/upstream-pull.mjs",
 		"drizzle:create-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs generate",
 		"drizzle:push-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push",
