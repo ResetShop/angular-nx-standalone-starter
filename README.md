@@ -11,6 +11,45 @@ A fork-ready **Nx monorepo starter**: an SSR-ready Angular 17+ frontend and a Ho
 > **Issues are welcome from anyone; pull requests are accepted from [ResetShop](https://github.com/ResetShop) org members only.**
 > See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
+## Getting started
+
+**Prerequisites:** Node.js `^24.18.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required).
+
+**1. Create your project** — pick the path that fits:
+
+- **Public fork** (open source) — fork on GitHub, then:
+
+  ```bash
+  git clone https://github.com/<your-org>/<your-fork>.git && cd <your-fork>
+  git remote add upstream https://github.com/ResetShop/angular-nx-standalone-starter.git
+  ```
+
+- **Private mirror** (client work — GitHub cannot make a fork of a public repo private) — one command, no checkout needed:
+
+  ```bash
+  npx github:ResetShop/fork-init --repo=<org>/<name> && cd <name>
+  ```
+
+  It creates the private repo, mirror-pushes the full history, and wires the `upstream` remote ([what it does](docs/forking.md#private-mirror-setup)).
+
+**2. Install, run, and verify:**
+
+```bash
+npm install
+npm run dev     # SSR dev server
+npm run ci      # lint, typecheck, tests, build
+```
+
+**3. Create your first app** from the canonical template (never hand-copy `apps/reference-app`):
+
+```bash
+npm run generate:app -- --name="My App"
+```
+
+**4. Stay current** with upstream improvements: `npm run upstream:pull` (private mirror) or `git fetch upstream && git merge upstream/main` (fork).
+
+Full details — ownership boundaries, conflict resolution, env vars, database — are in [`docs/forking.md`](docs/forking.md) and the [Project Setup Guide](#project-setup-guide) below.
+
 ## How to use this repo
 
 This repository is a starter project for an SSR-ready Angular application, which uses Hono for its backend web API.
@@ -19,23 +58,7 @@ Search for the TODOs! They indicate places where you'll need to update fields to
 
 ### Forking workflow
 
-This repo is designed to be **forked**, not consumed as a published package set. Starter code lives in `packages/*`, `apps/reference-app`, and root config; your apps live in `apps/<name>` and are created via the schematic — never by hand-copying `apps/reference-app`.
-
-```bash
-# 1. Fork on GitHub, then clone your fork locally
-git clone https://github.com/<your-org>/<your-fork>.git
-cd <your-fork>
-git remote add upstream https://github.com/ResetShop/angular-nx-standalone-starter.git
-npm install
-
-# 2. Create your first app from the canonical reference template.
-# `--name` is required; omitting it triggers an interactive prompt.
-npm run generate:app -- --name="My App"
-
-# 3. Pull upstream improvements at any time
-git fetch upstream
-git merge upstream/main
-```
+This repo is designed to be **forked** (or [privately mirrored](#getting-started)), not consumed as a published package set. Starter code lives in `packages/*`, `apps/reference-app`, and root config; your apps live in `apps/<name>` and are created via the schematic — never by hand-copying `apps/reference-app`. The quickstart commands are under [Getting started](#getting-started) above.
 
 `apps/reference-app` is **upstream-owned** and must never be modified in a fork. See [`docs/forking.md`](docs/forking.md) for the full workflow, ownership boundaries, conflict resolution, and the changelog contract.
 
