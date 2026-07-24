@@ -48,6 +48,7 @@
 		"build": "nx build reference-app --skip-nx-cache",
 		"storybook": "nx run reference-app:storybook",
 		"storybook:build": "nx run reference-app:build-storybook",
+		"storybook:serve": "node scripts/serve-storybook.mjs",
 		"lint": "nx run-many -t lint --skip-nx-cache",
 		"stylelint": "nx stylelint reference-app --skip-nx-cache",
 		"typecheck": "nx run-many -t typecheck --skip-nx-cache",
