@@ -6,36 +6,35 @@
  * orchestration and stays a thin wrapper around these decisions.
  */
 
-import { join, normalize, sep } from 'node:path'
-
-const CONTENT_TYPES = {
-	'.html': 'text/html; charset=utf-8',
-	'.js': 'text/javascript; charset=utf-8',
-	'.mjs': 'text/javascript; charset=utf-8',
-	'.css': 'text/css; charset=utf-8',
-	'.json': 'application/json; charset=utf-8',
-	'.map': 'application/json; charset=utf-8',
-	'.svg': 'image/svg+xml',
-	'.png': 'image/png',
-	'.jpg': 'image/jpeg',
-	'.jpeg': 'image/jpeg',
-	'.gif': 'image/gif',
-	'.ico': 'image/x-icon',
-	'.woff': 'font/woff',
-	'.woff2': 'font/woff2',
-	'.ttf': 'font/ttf',
-	'.webmanifest': 'application/manifest+json',
-	'.txt': 'text/plain; charset=utf-8',
-}
+import { join, sep } from 'node:path'
 
 /**
  * Maps a file path's extension to a Content-Type, defaulting to
  * `application/octet-stream` for anything unrecognized.
  */
 export function getContentType(filePath) {
+	const contentTypes = {
+		'.html': 'text/html; charset=utf-8',
+		'.js': 'text/javascript; charset=utf-8',
+		'.mjs': 'text/javascript; charset=utf-8',
+		'.css': 'text/css; charset=utf-8',
+		'.json': 'application/json; charset=utf-8',
+		'.map': 'application/json; charset=utf-8',
+		'.svg': 'image/svg+xml',
+		'.png': 'image/png',
+		'.jpg': 'image/jpeg',
+		'.jpeg': 'image/jpeg',
+		'.gif': 'image/gif',
+		'.ico': 'image/x-icon',
+		'.woff': 'font/woff',
+		'.woff2': 'font/woff2',
+		'.ttf': 'font/ttf',
+		'.webmanifest': 'application/manifest+json',
+		'.txt': 'text/plain; charset=utf-8',
+	}
 	const dot = filePath.lastIndexOf('.')
 	const ext = dot === -1 ? '' : filePath.slice(dot).toLowerCase()
-	return CONTENT_TYPES[ext] ?? 'application/octet-stream'
+	return contentTypes[ext] ?? 'application/octet-stream'
 }
 
 /**
@@ -56,7 +55,9 @@ export function resolveRequestedFilePath(rootDir, requestPath) {
 		return null
 	}
 	const relativePath = decoded === '/' || decoded === '' ? 'index.html' : decoded.replace(/^\/+/, '')
-	const resolved = normalize(join(rootDir, relativePath))
+	// `join` already normalizes (collapses `.`/`..` and duplicate separators),
+	// so the containment check below runs on the canonical path.
+	const resolved = join(rootDir, relativePath)
 	const rootWithSep = rootDir.endsWith(sep) ? rootDir : rootDir + sep
 	if (resolved !== rootDir && !resolved.startsWith(rootWithSep)) {
 		return null
