@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-07-24
+
 ### Added
 
 - **Storybook can be self-hosted on Railway via a zero-dependency static server ([#547](https://github.com/ResetShop/angular-nx-standalone-starter/issues/547)).** `npm run storybook:build` emits a fully static bundle to `dist/storybook/app`; a new `scripts/serve-storybook.mjs` serves it over `node:http` bound to `$PORT` / `0.0.0.0`, with its path-resolution and MIME logic extracted to `scripts/lib/serve-storybook.helpers.mjs` (unit-tested: MIME mapping, path-traversal rejection, query-string stripping, and the SPA `index.html` fallback). The server uses only Node built-ins, so it is immune to production dependency pruning on a deploy image — no `serve`/`http-server` dependency is added. A new `storybook:serve` npm script wraps it, and `railway.storybook.json` (config-as-code mirroring `railway.json`) codifies a second Railway service: `npm run storybook:build` to build, `npm run storybook:serve` to serve, healthcheck `/`. Provisioning that service on a dedicated Railway subdomain, and restoring the README live-demo link to it, are manual dashboard steps outside this change. **Fork migration:** none required — forks not using Railway can ignore `railway.storybook.json`; forks that do inherit the static server and can point a second service at it. ([#547](https://github.com/ResetShop/angular-nx-standalone-starter/issues/547))
@@ -32,6 +34,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 ### Fixed
 
 - **Health view panels now render correctly in dark mode ([#513](https://github.com/ResetShop/angular-nx-standalone-starter/issues/513)).** The Application Health Checker page (`apps/reference-app/src/app/pages/dashboard/pages/health/health.ts`) hardcoded light-only Tailwind palette classes in its template — `border-gray-200` on the outer box and `bg-gray-100` on the overall-status and database-checks panels — so the two inner panels stayed near-white and the border invisible against the dark theme. They now use the project's semantic theme tokens `border-border` and `bg-muted` (the same tokens every other card uses), which carry distinct light/dark values, so both panels adapt to the active theme. The stray `border-1` was normalized to the canonical `border` shorthand at the same time. A new `health.stories.ts` (Loading / Healthy / Unhealthy / ApiError stories, HTTP mocked via `withInterceptors`) is added as the visual-regression guard — toggling the Storybook background to dark exercises the panels against the dark theme. No API, schema, or behavior change. ([#513](https://github.com/ResetShop/angular-nx-standalone-starter/issues/513))
+- **Startup DB health-check deploy failure traced to and resolved via deployment configuration ([#511](https://github.com/ResetShop/angular-nx-standalone-starter/issues/511)).** A Railway↔Supabase deploy failed at startup with an undiagnosable `Failed query: SELECT 1` restart loop. The root cause was a database-connection configuration problem in the deploy environment, not a code defect, and correcting that configuration resolved it. The originally-scoped code enhancement — unwinding the Drizzle `error.cause` chain to surface SQLSTATE / socket codes and actionable hints in the health-check message — proved unnecessary and did not ship, so there is **no code, API, or schema change in the repository** for this issue. **Fork migration:** none required. ([#511](https://github.com/ResetShop/angular-nx-standalone-starter/issues/511))
 
 ## [1.0.1] — 2026-06-19
 
@@ -263,6 +266,7 @@ This is the first tagged version of the starter under the fork-distribution mode
   section headings above are plain text and have no link references here.
 -->
 
-[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.2
 [1.0.1]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0
