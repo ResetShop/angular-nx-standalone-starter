@@ -78,22 +78,15 @@ If `npm run ci` fails on a clean fork, file an issue upstream — it should alwa
 
 GitHub cannot make a fork of a public repository private — fork visibility is immutable. When a downstream project must stay private (e.g. client work), use a **private mirror** instead of a GitHub fork: a bare clone pushed with `git push --mirror` into a new private repository, plus an `upstream` remote (push URL disabled) pointing back at the public starter. The full git history is shared, so upstream merges behave exactly like a fork's ([§5](#5-pulling-upstream-updates)); only GitHub cosmetics (the fork badge, cross-repo PRs, one-click sync) are lost.
 
-From an existing starter checkout, at the repo root:
+Creating the mirror is a one-time step handled by the standalone [`fork-init`](https://github.com/ResetShop/fork-init) tool, which is **npx-runnable and needs no starter checkout** (`git` and an authenticated `gh` are the only requirements):
 
 ```bash
-npm run fork:init -- --repo=<org>/<name> [--app-name="Display Name"]
+npx github:ResetShop/fork-init --repo=<org>/<name> [--app-name="Display Name"]
 ```
 
-The script automates the one-time setup:
+It automates the one-time setup: preflight (`git`/`gh` available, `gh` authenticated, target repo absent, target directory free), `gh repo create <org>/<name> --private`, a bare-clone `git push --mirror` sourced from the canonical public starter, cloning the mirror into `./<name>` with the `upstream` remote wired and its push URL disabled, stripping any `nxCloudId` from the mirror's `nx.json`, and an optional `npm run generate:app` scaffold when `--app-name` is given. Pass `--dry-run` to preview every command with no side effects. See the [`fork-init` README](https://github.com/ResetShop/fork-init#readme) for full options.
 
-- Preflight: `git`/`gh` available, `gh` authenticated, target repo does not already exist.
-- Creates the private repository (`gh repo create <org>/<name> --private`).
-- Mirror-pushes the full history from this checkout's `origin` — never the local working tree, so local WIP branches never leak into the mirror.
-- Clones the mirror into a sibling directory and wires the `upstream` remote with its push URL disabled (no accidental pushes to the public starter).
-- Strips `nxCloudId` from the mirror's `nx.json` in its own commit — a private client repo must not report into the public starter's Nx Cloud workspace.
-- Optionally scaffolds a first app via `npm run generate:app` when `--app-name` is given.
-
-The script prints the remaining manual steps when it finishes. From then on the mirror pulls upstream updates exactly like any fork — see [§5](#5-pulling-upstream-updates).
+From then on the mirror pulls upstream updates exactly like any fork — via `npm run upstream:pull`, which ships **in the mirror** (see [§5](#5-pulling-upstream-updates)).
 
 ---
 
