@@ -19,6 +19,13 @@ on:
 permissions:
   contents: write
 
+# Serialize releases: main advances only via the one automated release PR, so
+# a race is theoretical — but if two pushes to main ever overlap, queue them
+# (never cancel a half-finished tag/release).
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Create tag and GitHub Release

@@ -201,10 +201,15 @@ jobs:
         # dispatched explicitly against develop instead (workflow_dispatch is
         # the exception the token CAN trigger) so the release has CI signal
         # for exactly what ships.
-        if: steps.resolve.outputs.skip != 'true' && steps.milestone.outputs.ready == 'true' && inputs.dry_run != true
+        if: steps.resolve.outputs.skip != 'true' && steps.milestone.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            echo "dry_run=true: would dispatch ci.yml against develop."
+            exit 0
+          fi
           gh workflow run ci.yml --ref develop
           echo "CI (ci.yml) dispatched against develop."
