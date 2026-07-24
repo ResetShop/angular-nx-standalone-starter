@@ -1026,21 +1026,21 @@ For values that need to be mockable in tests (e.g. `CRON_SECRET` in the cleanup-
 
 ```
 # Examples
-144-remove-vercel-specific-configuration
+203-fix-pagination-off-by-one-error
 87-add-user-authentication
 ```
 
 **Commit messages:** `[#<issue_number>] - <title>`
 
 ```
-[#144] - Remove vercel.json and API redirect entry point
+[#203] - Fix off-by-one error in pagination component
 [#87] - Add login form component
 ```
 
 **PR titles:** `[#<issue_number>] - <title>`
 
 ```
-[#144] - Remove Vercel-specific configuration
+[#203] - Fix pagination off-by-one error
 [#87] - Add user authentication
 ```
 

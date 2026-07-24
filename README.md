@@ -64,8 +64,7 @@ This repo is designed to be **forked** (or [privately mirrored](#getting-started
 
 ## Live demo
 
-- App: https://angular-nx-standalone-starter.vercel.app/
-- Storybook: https://angular-nx-standalone-starter-story.vercel.app/
+- App: https://angular-nx-standalone-starter-production.up.railway.app/
 
 ## Project Setup Guide
 
@@ -166,7 +165,7 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
 - **`TOKEN_CLEANUP_INTERVAL`**: Expired token cleanup interval as a duration string (default: `24h`)
   - Background job that removes expired refresh tokens from the database
   - Valid range: `1m` to `7d` (inclusive)
-  - Skipped on Vercel (use Vercel Cron Jobs instead)
+  - Skipped on serverless platforms (use an external scheduler to call the cleanup endpoint instead)
 - **`TOKEN_CLEANUP_BATCH_SIZE`**: Number of tokens to delete per batch (default: 1000)
   - Valid range: 100 to 10000
   - Higher values = faster cleanup but longer transactions
@@ -174,9 +173,9 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
   - Valid range: 10 to 1000
   - Limits cleanup to batch_size × max_batches tokens per run (default: 100k)
   - Prevents indefinite execution on large backlogs
-- **`CRON_SECRET`**: Secret for Vercel Cron Jobs to authenticate cleanup requests (minimum 32 characters)
+- **`CRON_SECRET`**: Secret for an external cron/scheduler to authenticate cleanup requests (minimum 32 characters)
   - Generate with: `openssl rand -hex 32`
-  - Required when using Vercel Cron Jobs
+  - Required when triggering cleanup via an external scheduler
 
 **Documentation:**
 
