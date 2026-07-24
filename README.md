@@ -64,8 +64,7 @@ This repo is designed to be **forked** (or [privately mirrored](#getting-started
 
 ## Live demo
 
-- App: https://angular-nx-standalone-starter.vercel.app/
-- Storybook: https://angular-nx-standalone-starter-story.vercel.app/
+- App: https://angular-nx-standalone-starter-production.up.railway.app/
 
 ## Project Setup Guide
 
