@@ -1,13 +1,5 @@
 import { NgComponentOutlet } from '@angular/common'
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	createEnvironmentInjector,
-	EnvironmentInjector,
-	inject,
-	input,
-} from '@angular/core'
+import { Component, computed, createEnvironmentInjector, EnvironmentInjector, inject, input } from '@angular/core'
 import NavItem from '@components/nav-item/nav-item'
 import { provideIcons } from '@ng-icons/core'
 import { featherChevronRight } from '@ng-icons/feather-icons'
@@ -41,7 +33,6 @@ import { NavigationSection } from '@resetshop/angular-core/interfaces/navigation
 		</ul>
 	`,
 	styles: ``,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavSection {
 	protected readonly NavItem = NavItem

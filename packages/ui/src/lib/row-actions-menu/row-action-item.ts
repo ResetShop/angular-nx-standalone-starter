@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
+import { Component, computed, input } from '@angular/core'
 import { NgIcon } from '@ng-icons/core'
 import { NgpMenuItem } from 'ng-primitives/menu'
 
@@ -63,7 +63,6 @@ export interface RowAction {
 			{{ action().label }}
 		</button>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RowActionItem {
 	public readonly action = input.required<RowAction>()

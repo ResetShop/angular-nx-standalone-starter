@@ -146,7 +146,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 - **Invocation:** `nx g @resetshop/generators:ui-component tooltip`.
 - **Inputs:** `name` (required), `directory` (default `packages/ui/src/lib`), `exportFromIndex` (boolean, default `true`), `inlineTemplate` (boolean, default `true`), `inlineStyle` (boolean, default `true`).
 - **Output:** three files at `<directory>/<kebab-case>/` (plus optional sidecars — see below):
-  - `<kebab-case>.ts` — `@Component` standalone scaffold with `ChangeDetectionStrategy.OnPush` and an `app-` element selector. Uses an inline `template:` and inline `styles:` block by default; when either of the flags below is `false`, the corresponding sidecar file is emitted and the decorator points at `templateUrl`/`styleUrl` instead.
+  - `<kebab-case>.ts` — `@Component` standalone scaffold with an `app-` element selector (change detection is left at Angular 22's OnPush default — no explicit `changeDetection` is emitted). Uses an inline `template:` and inline `styles:` block by default; when either of the flags below is `false`, the corresponding sidecar file is emitted and the decorator points at `templateUrl`/`styleUrl` instead.
   - `<kebab-case>.spec.ts` — Angular Testing Library `render` scaffold with `clearAllMocks()` from `@resetshop/util/test-utils` in `beforeEach`.
   - `<kebab-case>.stories.ts` — Storybook meta with `tags: ['autodocs']` and `parameters.docs.canvas.sourceState: 'shown'` (enforced project-wide by the `custom-storybook/storybook-source-state` ESLint rule).
 - **Template/style sidecars:**

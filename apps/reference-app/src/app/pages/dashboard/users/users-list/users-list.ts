@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	signal,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { Router } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
@@ -141,7 +132,6 @@ import { UserCard } from './user-card'
 			#resetPasswordDialog
 		/>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class UsersList {
 	protected readonly store = inject(UsersStore)
