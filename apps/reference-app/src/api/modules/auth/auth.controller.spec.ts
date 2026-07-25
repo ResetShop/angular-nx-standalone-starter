@@ -14,7 +14,7 @@ describe('Auth Controller - /me endpoint', () => {
 	app.use('/auth/*', async (c, next) => {
 		const authHeader = c.req.header('Authorization')
 		if (authHeader?.startsWith('Bearer valid-token')) {
-			;(c as AuthenticatedContext).user = {
+			;(c as unknown as AuthenticatedContext).user = {
 				sub: '1',
 				email: 'test@example.com',
 				firstName: 'John',

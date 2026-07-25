@@ -43,7 +43,7 @@ async function ensurePermissionsLoaded(c: AuthenticatedContext): Promise<string[
 	}
 
 	const { userRoleService } = container.cradle
-	const permissions = await userRoleService.getUserPermissions(Number(c.user.sub))
+	const permissions = await userRoleService.getUserPermissions(Number(c.user!.sub))
 	c.permissions = permissions.map((p) => p.name)
 	return c.permissions
 }

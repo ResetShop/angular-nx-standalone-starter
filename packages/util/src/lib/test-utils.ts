@@ -113,7 +113,7 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 		viFn.mockClear()
 	}
 
-	mockRegistry.add(mockFn as MockFn)
+	mockRegistry.add(mockFn as unknown as MockFn)
 	return mockFn
 }
 

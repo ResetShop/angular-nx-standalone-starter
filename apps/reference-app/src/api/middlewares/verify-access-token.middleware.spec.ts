@@ -29,7 +29,7 @@ describe('verifyAccessToken middleware', () => {
 		app = new Hono()
 		app.use('/protected/*', verifyAccessToken)
 		app.get('/protected/resource', (c) => {
-			const user = (c as AuthenticatedContext).user
+			const user = (c as unknown as AuthenticatedContext).user
 			return c.json({ user })
 		})
 

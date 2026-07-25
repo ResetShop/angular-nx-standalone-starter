@@ -137,7 +137,7 @@ describe('User Management Controller', () => {
 
 		app = new Hono()
 		app.use('*', async (c, next) => {
-			;(c as AuthenticatedContext).user = {
+			;(c as unknown as AuthenticatedContext).user = {
 				sub: String(ADMIN_USER_ID),
 				email: 'admin@example.com',
 				firstName: 'Admin',

@@ -80,6 +80,8 @@ describe('Auth Mapper', () => {
 						name: 'Administrator',
 						description: null,
 						removable: true,
+						createdAt: null,
+						updatedAt: null,
 						permissions: [
 							{ id: 1, name: 'Read Users', description: null, module: 'admin', resource: 'users', action: 'read' },
 						],

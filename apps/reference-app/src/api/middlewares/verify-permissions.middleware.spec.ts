@@ -109,7 +109,12 @@ describe('Permissions Middleware', () => {
 			const app = new Hono()
 			// Simulate authenticated user
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				;(c as unknown as AuthenticatedContext).user = {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}
 				await next()
 			})
 			app.use('*', requirePermission(permission('admin:users:create')))
@@ -127,7 +132,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				;(c as unknown as AuthenticatedContext).user = {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}
 				await next()
 			})
 			app.use('*', requirePermission(permission('admin:users:create')))
@@ -145,7 +155,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				;(c as unknown as AuthenticatedContext).user = {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}
 				await next()
 			})
 			app.use('*', requirePermission(permission('admin:users:create')))
@@ -163,7 +178,7 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = {
+				;(c as unknown as AuthenticatedContext).user = {
 					sub: '999',
 					email: 'test@example.com',
 					firstName: 'Test',
@@ -198,7 +213,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				;(c as unknown as AuthenticatedContext).user = {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}
 				await next()
 			})
 			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]))
@@ -214,7 +234,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				;(c as unknown as AuthenticatedContext).user = {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}
 				await next()
 			})
 			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]))
@@ -242,7 +267,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				;(c as unknown as AuthenticatedContext).user = {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}
 				await next()
 			})
 			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]))
@@ -258,7 +288,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				;(c as unknown as AuthenticatedContext).user = {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				}
 				await next()
 			})
 			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]))

@@ -63,7 +63,7 @@ registerRoute(app, getUserPermissionsRoute, async (c) => {
  */
 registerRoute(app, assignRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user!.sub)
 	const userId = Number(c.req.param('userId'))
 	const { roleId }: AssignRoleToUserRequest = c.req.valid('json')
 
@@ -93,7 +93,7 @@ registerRoute(app, assignRoleRoute, async (c) => {
  */
 registerRoute(app, replaceUserRolesRoute, async (c) => {
 	const { userRoleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user!.sub)
 	const userId = Number(c.req.param('userId'))
 	const { roleIds }: ReplaceUserRolesRequest = c.req.valid('json')
 
@@ -128,7 +128,7 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
  */
 registerRoute(app, removeRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user!.sub)
 	const userId = Number(c.req.param('userId'))
 	const roleId = Number(c.req.param('roleId'))
 

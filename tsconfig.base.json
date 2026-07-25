@@ -18,7 +18,7 @@
 			"@resetshop/hono-core": ["packages/hono-core/src/index.ts"],
 			"@resetshop/hono-core/*": ["packages/hono-core/src/lib/*"]
 		},
-		"strict": false,
+		"strict": true,
 		"noUncheckedSideEffectImports": false,
 		"types": ["*"],
 		"esModuleInterop": false,

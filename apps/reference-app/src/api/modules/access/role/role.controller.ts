@@ -59,7 +59,7 @@ registerRoute(app, getRoleRoute, async (c) => {
  */
 registerRoute(app, createRoleRoute, async (c) => {
 	const { roleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user!.sub)
 	const body: CreateRoleRequest = c.req.valid('json')
 
 	try {
@@ -82,7 +82,7 @@ registerRoute(app, createRoleRoute, async (c) => {
  */
 registerRoute(app, updateRoleRoute, async (c) => {
 	const { roleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user!.sub)
 	const id = Number(c.req.param('id'))
 	const body: UpdateRoleRequest = c.req.valid('json')
 
@@ -113,7 +113,7 @@ registerRoute(app, updateRoleRoute, async (c) => {
  */
 registerRoute(app, deleteRoleRoute, async (c) => {
 	const { roleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user!.sub)
 	const id = Number(c.req.param('id'))
 
 	try {
@@ -164,7 +164,7 @@ registerRoute(app, assignPermissionsRoute, async (c) => {
 	const { roleService } = container.cradle
 	const id = Number(c.req.param('id'))
 	const { permissionIds }: AssignPermissionsRequest = c.req.valid('json')
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number((c as AuthenticatedContext).user!.sub)
 
 	try {
 		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
