@@ -17,7 +17,12 @@
 			"@resetshop/angular-core/*": ["packages/angular-core/src/lib/*"],
 			"@resetshop/hono-core": ["packages/hono-core/src/index.ts"],
 			"@resetshop/hono-core/*": ["packages/hono-core/src/lib/*"]
-		}
+		},
+		"strict": false,
+		"noUncheckedSideEffectImports": false,
+		"types": ["*"],
+		"esModuleInterop": false,
+		"ignoreDeprecations": "6.0"
 	},
 	"angularCompilerOptions": {
 		"enableI18nLegacyMessageIdFormat": false,

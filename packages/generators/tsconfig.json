@@ -3,8 +3,17 @@
 	"compilerOptions": {
 		"module": "ESNext",
 		"moduleResolution": "bundler",
-		"types": ["node"]
+		"types": ["node"],
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["src/**/*.ts"],
-	"exclude": ["**/*.spec.ts", "**/*.test.ts", "vitest.config.ts"]
+	"exclude": ["**/*.spec.ts", "**/*.test.ts", "vitest.config.ts"],
+	"angularCompilerOptions": {
+		"extendedDiagnostics": {
+			"checks": {
+				"nullishCoalescingNotNullable": "suppress",
+				"optionalChainNotNullable": "suppress"
+			}
+		}
+	}
 }

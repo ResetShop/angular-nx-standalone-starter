@@ -7,6 +7,7 @@ import {
 	inject,
 	input,
 	model,
+	output,
 } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -62,7 +63,8 @@ export class Select extends FormFieldCustomControl implements FormValueControl<s
 	public readonly value = model<string>('')
 	public readonly placeholder = input<string>('')
 	public readonly isDisabled = input<boolean>(false)
-	public readonly touched = model<boolean>(false)
+	public readonly touched = input<boolean>(false)
+	public readonly touch = output<void>()
 
 	protected readonly selectedLabel = computed(() => {
 		const current = this.value()
@@ -76,7 +78,7 @@ export class Select extends FormFieldCustomControl implements FormValueControl<s
 
 	protected onOpenChange(open: boolean): void {
 		if (!open) {
-			this.touched.set(true)
+			this.touch.emit()
 		}
 	}
 
@@ -85,7 +87,7 @@ export class Select extends FormFieldCustomControl implements FormValueControl<s
 		// after focusout fires, so we can verify focus truly left the component.
 		setTimeout(() => {
 			if (!this.host.contains(document.activeElement)) {
-				this.touched.set(true)
+				this.touch.emit()
 			}
 		})
 	}

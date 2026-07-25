@@ -1,4 +1,4 @@
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http'
+import { provideHttpClient, withInterceptors } from '@angular/common/http'
 import {
 	ApplicationConfig,
 	inject,
@@ -7,7 +7,7 @@ import {
 	provideZonelessChangeDetection,
 } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser'
+import { provideClientHydration, withEventReplay, withNoIncrementalHydration } from '@angular/platform-browser'
 import {
 	provideRouter,
 	TitleStrategy,
@@ -43,11 +43,11 @@ function initializeAnalytics() {
 
 export const appConfig: ApplicationConfig = {
 	providers: [
-		provideClientHydration(withEventReplay()),
+		provideClientHydration(withEventReplay(), withNoIncrementalHydration()),
 		provideBrowserGlobalErrorListeners(),
 		provideZonelessChangeDetection(),
 		provideRouter(appRoutes, withViewTransitions(), withExperimentalAutoCleanupInjectors()),
-		provideHttpClient(withFetch(), withInterceptors([authInterceptor, tokenRefreshInterceptor, forbiddenInterceptor])),
+		provideHttpClient(withInterceptors([authInterceptor, tokenRefreshInterceptor, forbiddenInterceptor])),
 
 		// Initializers
 		provideAppInitializer(initializeAnalytics()),
