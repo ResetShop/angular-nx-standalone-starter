@@ -7,7 +7,7 @@ import {
 	provideZonelessChangeDetection,
 } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
-import { provideClientHydration, withEventReplay, withNoIncrementalHydration } from '@angular/platform-browser'
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser'
 import {
 	provideRouter,
 	TitleStrategy,
@@ -43,7 +43,7 @@ function initializeAnalytics() {
 
 export const appConfig: ApplicationConfig = {
 	providers: [
-		provideClientHydration(withEventReplay(), withNoIncrementalHydration()),
+		provideClientHydration(withEventReplay()),
 		provideBrowserGlobalErrorListeners(),
 		provideZonelessChangeDetection(),
 		provideRouter(appRoutes, withViewTransitions(), withExperimentalAutoCleanupInjectors()),
