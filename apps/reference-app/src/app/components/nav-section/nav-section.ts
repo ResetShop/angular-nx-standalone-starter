@@ -18,10 +18,11 @@ import { NavigationSection } from '@resetshop/angular-core/interfaces/navigation
 	selector: 'app-nav-section',
 	imports: [NgComponentOutlet, TranslatePipe],
 	template: `
-		@if (showTitle() && section().name) {
+		@let sectionName = section().name;
+		@if (showTitle() && sectionName) {
 			@if (!collapsed()) {
 				<div class="flex h-8 items-center px-2 text-xs font-medium text-wrap text-black/70 dark:text-white/70">
-					{{ section().name | translate }}
+					{{ sectionName | translate }}
 				</div>
 			}
 		}
