@@ -122,7 +122,7 @@ During SSR, `HttpClient` does not automatically include browser cookies. The `ss
 
 ## Backend Middleware
 
-The `verifyAccessToken` middleware runs on all `/api/*` routes except public endpoints (configured via `PUBLIC_AUTH_ROUTES` in `routes.ts`). It reads the `access_token` HttpOnly cookie via `getCookie(c, 'access_token')` and verifies it as a PASETO token. On success, it attaches the decoded user payload to the Hono context as `AuthenticatedContext`. On failure, it returns 401.
+The `verifyAccessToken` middleware runs on all `/api/*` routes except public endpoints (configured via `PUBLIC_AUTH_ROUTES` in `routes.ts`). It reads the `access_token` HttpOnly cookie via `getCookie(c, 'access_token')` and verifies it as a PASETO token. On success, it attaches the decoded user payload to the Hono context as `AuthenticatedContext`. On failure, it returns 401. Handlers read that payload through the exported `getAuthenticatedUser(c)` accessor, which narrows away the optional `user` field and throws a 401 `HTTPException` on the otherwise-unreachable absent-user path — reaching into the context with a bare `(c as AuthenticatedContext).user` cast is not the sanctioned pattern.
 
 The OpenAPIHono security scheme (`pasetoCookie`) is registered in `server.ts` via `app.openAPIRegistry.registerComponent()` and applied as a global default in `app.doc()`. Public routes opt out with `security: []` in their `createRoute()` definition. See `.claude/references/backend-api.md` for the full security convention.
 
