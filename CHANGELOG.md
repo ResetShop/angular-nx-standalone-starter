@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Domain-specific `403` descriptions are no longer overwritten by the generic one in the generated OpenAPI document ([#555](https://github.com/ResetShop/angular-nx-standalone-starter/issues/555)).** Three route definitions declared a domain-specific `403` **before** spreading `...commonResponses`, which also defines a `403`. Because a later key wins in an object literal, the specific description was silently replaced by the generic `Forbidden - insufficient permissions` in `/api/openapi.json`: `deleteRoleRoute` lost `Role is not removable`, `assignPermissionsRoute` lost `Self-lockout: removing your own admin permission is not allowed`, and `updateUserStatusRoute` lost `Cannot change status of own account`. Each domain-specific `403` now sits after the spread, and new `role.routes.spec.ts` / `user-management.routes.spec.ts` pin the surviving descriptions so the ordering cannot regress. Runtime behaviour is unchanged — only the generated specification was wrong — so the Bruno collection, which asserts on status codes, needed no update. **Fork migration:** none required; forks that added their own routes should check whether any of them declare a response code before spreading `commonResponses`. ([#555](https://github.com/ResetShop/angular-nx-standalone-starter/issues/555))
+
 ## [1.0.2] — 2026-07-24
 
 ### Added
