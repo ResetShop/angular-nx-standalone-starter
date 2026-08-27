@@ -229,7 +229,7 @@ export default app
 | `c.req.valid('json')` with type annotation  | Parse validated request body              |
 | `c.req.valid('query')` with type annotation | Parse validated query parameters          |
 | `c.req.valid('param')` with type annotation | Parse validated path parameters           |
-| `(c as AuthenticatedContext).user`          | Access authenticated user from middleware |
+| `getAuthenticatedUser(c)`                   | Access authenticated user from middleware |
 | `c.json<ResponseType>(data, statusCode)`    | Type-safe JSON response                   |
 
 **Type annotations on `c.req.valid()`:**
