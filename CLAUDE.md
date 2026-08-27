@@ -29,7 +29,7 @@
 
 | Aspect               | Value                               |
 | -------------------- | ----------------------------------- |
-| **Framework**        | Angular 17+ (standalone components) |
+| **Framework**        | Angular 22+ (standalone components) |
 | **Language**         | TypeScript (strict mode)            |
 | **Monorepo Tool**    | Nx                                  |
 | **Package Manager**  | npm                                 |
