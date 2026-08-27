@@ -140,13 +140,13 @@ PASETO was chosen over JWT for the following reasons:
 
 ### Cookie Security
 
-| Attribute  | Value           | Purpose                                     |
-| ---------- | --------------- | ------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `httpOnly` | `true`          | Prevents JavaScript access (XSS protection) |
-| `secure`   | `COOKIE_SECURE` | No                                          | "true" | Controls the `secure` flag on cookies. **MUST be "true" in production** (requires HTTPS). Only set to "false" for local HTTP development. |
-| `sameSite` | `Strict`        | CSRF protection                             |
-| `path`     | `/`             | Available site-wide                         |
-| `maxAge`   | 7 days          | Matches refresh token expiry                |
+| Attribute  | Value                             | Purpose                                                                                |
+| ---------- | --------------------------------- | -------------------------------------------------------------------------------------- |
+| `httpOnly` | `true`                            | Prevents JavaScript access (XSS protection)                                            |
+| `secure`   | `COOKIE_SECURE` (defaults `true`) | Restricts cookies to HTTPS. Set `COOKIE_SECURE=false` only for local HTTP development. |
+| `sameSite` | `Strict`                          | CSRF protection                                                                        |
+| `path`     | `/`                               | Available site-wide                                                                    |
+| `maxAge`   | 7 days                            | Matches refresh token expiry                                                           |
 
 ### Account Protection
 
