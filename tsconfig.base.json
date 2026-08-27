@@ -8,6 +8,7 @@
 		"baseUrl": ".",
 		"isolatedModules": true,
 		"skipLibCheck": true,
+		"strict": true,
 		"paths": {
 			"@resetshop/util": ["packages/util/src/index.ts"],
 			"@resetshop/util/test-utils": ["packages/util/src/lib/test-utils.ts"],
