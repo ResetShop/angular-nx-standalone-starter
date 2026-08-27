@@ -1,14 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	ElementRef,
-	forwardRef,
-	inject,
-	input,
-	model,
-	output,
-} from '@angular/core'
+import { Component, computed, ElementRef, forwardRef, inject, input, model, output } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronDown } from '@ng-icons/feather-icons'
@@ -54,7 +44,6 @@ import type { SelectOption } from './select-option'
 		</div>
 	`,
 	styleUrl: './select.css',
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Select extends FormFieldCustomControl implements FormValueControl<string> {
 	private readonly host = inject(ElementRef).nativeElement as HTMLElement

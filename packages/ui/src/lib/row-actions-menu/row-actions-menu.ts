@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
+import { Component, computed, input } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherMoreVertical } from '@ng-icons/feather-icons'
 import { NgpMenu, NgpMenuTrigger } from 'ng-primitives/menu'
@@ -84,7 +84,6 @@ export type RowActionsInput = readonly RowAction[] | readonly (readonly RowActio
 			</ng-template>
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RowActionsMenu {
 	public readonly actions = input.required<RowActionsInput>()

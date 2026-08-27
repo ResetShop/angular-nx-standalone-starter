@@ -269,6 +269,13 @@ export default [
 				...commonRestrictedSyntax,
 				...viRestrictedSyntax,
 				...processEnvRestrictedSyntax,
+				{
+					// Angular 22 uses OnPush change detection by default, so an explicit
+					// `changeDetection: ChangeDetectionStrategy.OnPush` is redundant. Omit it.
+					selector: 'Property[key.name="changeDetection"] > MemberExpression[property.name="OnPush"]',
+					message:
+						'Angular 22 enables OnPush change detection by default — remove the redundant explicit `changeDetection: ChangeDetectionStrategy.OnPush`.',
+				},
 			],
 			'@stylistic/js/no-extra-semi': 'off',
 			'vitest/no-focused-tests': 'error',

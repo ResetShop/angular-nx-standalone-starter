@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { Component, input } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherRefreshCw } from '@ng-icons/feather-icons'
@@ -24,7 +24,6 @@ import { Button } from '@resetshop/ui/button/button'
 			}
 		</a>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	viewProviders: [provideIcons({ featherRefreshCw })],
 })
 export class Brand {

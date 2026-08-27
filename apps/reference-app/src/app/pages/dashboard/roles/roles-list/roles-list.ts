@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	signal,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
@@ -129,7 +120,6 @@ import { RoleCard } from './role-card'
 			confirmVariant="destructive"
 		/>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore)

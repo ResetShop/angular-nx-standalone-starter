@@ -1,6 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common'
 import {
-	ChangeDetectionStrategy,
 	Component,
 	computed,
 	contentChild,
@@ -80,7 +79,6 @@ const TAB_BLEED_SPACER_CLASSES: Record<DataTableTabBleed, string> = Object.freez
 			display: block;
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataTable<T> {
 	private readonly translation = inject(Translation)
