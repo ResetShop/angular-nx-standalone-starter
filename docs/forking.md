@@ -219,6 +219,8 @@ A PR template at `.github/pull_request_template.md` reminds contributors of both
 
 These guards do not run on forks, so your fork's PRs are unaffected. They exist solely to keep the upstream contract honest.
 
+**Repository rulesets are likewise not inherited.** Branch and tag protection live in GitHub repository settings, not in the tree, so nothing about them travels with a fork or a `--mirror` push. If you want the same guarantees your fork must configure its own — see [`docs/release-process.md`](release-process.md) §6 for the settings upstream depends on, including the `v*` tag ruleset specification you can adapt to your own tag prefix and branch names.
+
 ---
 
 _See also: [`CLAUDE.md`](../CLAUDE.md) for developer conventions, and [`CHANGELOG.md`](../CHANGELOG.md) for what's changed upstream._
