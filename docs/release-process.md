@@ -81,3 +81,36 @@ Maintained in GitHub settings (not in-repo); re-verify after any settings change
 - `develop` is the repository **default branch** (PRs auto-target it; Nx cache warms on it via `ci.yml`'s `push: [develop]` trigger).
 - `main` is **branch-protected**: PRs required, review required, status checks recommended. Protection blocks merging, not PR creation — the automation only ever creates PRs.
 - **Railway** must deploy the explicit `main` branch — not "the default branch" — otherwise flipping the default to `develop` would point production at unreleased code.
+- **`v*` tags are protected by a repository ruleset** (`target: tag`, pattern `refs/tags/v*`, restricting creation, update, and deletion). Only the `GitHub Actions` app — a bypass actor, so `release.yml`'s `gh release create` can still mint the tag — and repo/org admins, for manual recovery, may create, move, or delete a matching tag. The restriction applies to the already-published `v1.0.0`–`v1.0.2` as well, since a ruleset matches by pattern rather than by creation date.
+
+  The ruleset is landed in `evaluate` enforcement first and promoted to `active` only once a real release's tag push has been confirmed bypassed:
+
+  ```bash
+  # After a release ships, confirm the workflow's tag push was allowed through:
+  gh api repos/ResetShop/angular-nx-standalone-starter/rulesets/rule-suites \
+    --jq '.[] | select(.ref == "refs/tags/v<version>") | {ref, result, actor_name}'
+  # Expect: "result": "bypass". Then promote:
+  gh api --method PATCH repos/ResetShop/angular-nx-standalone-starter/rulesets/<id> -f enforcement=active
+  ```
+
+  **`workflow_dispatch` with `dry_run: true` cannot verify this** — that branch returns before `gh release create` runs, so it never pushes a tag and never exercises the rule. Only a real release does.
+
+  Creating the ruleset (Settings → Rules → Rulesets → New tag ruleset, or the API call below). `15368` is the global `GitHub Actions` app id, confirmed via `gh api apps/github-actions`:
+
+  ```bash
+  gh api repos/ResetShop/angular-nx-standalone-starter/rulesets --method POST --input - <<'JSON'
+  {
+    "name": "protect release tags",
+    "target": "tag",
+    "enforcement": "evaluate",
+    "conditions": { "ref_name": { "include": ["refs/tags/v*"], "exclude": [] } },
+    "rules": [{ "type": "creation" }, { "type": "update" }, { "type": "deletion" }],
+    "bypass_actors": [
+      { "actor_id": 15368, "actor_type": "Integration", "bypass_mode": "always" },
+      { "actor_id": null, "actor_type": "OrganizationAdmin", "bypass_mode": "always" }
+    ]
+  }
+  JSON
+  ```
+
+  **Not inherited by forks or private mirrors.** Rulesets are repository settings, so a fork or mirror wanting the same guarantee must create its own (adjusted to its own tag prefix and branch names); `fork-init` does not provision it.
