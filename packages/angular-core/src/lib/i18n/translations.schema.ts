@@ -223,6 +223,14 @@ export interface TranslationSchema {
 				DESCRIPTION: string
 			}
 		}
+		/**
+		 * Localized display text for each entry of the permission catalogue, keyed by the
+		 * full `module:resource:action` permission identifier. The catalogue itself is owned
+		 * by the app (`PERMISSION_DEFINITIONS`), whose English `description` is what seeds the
+		 * database; this map is the text the Permissions page actually renders. Every
+		 * identifier in the catalogue must have an entry here in every language file.
+		 */
+		DESCRIPTIONS: Record<string, string>
 		ERRORS: {
 			ACCESS_DENIED: string
 		}

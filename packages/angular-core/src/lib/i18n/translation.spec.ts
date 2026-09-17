@@ -174,6 +174,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				CAPTION: 'Permissions',
 				HEADER: { RESOURCE: 'Resource', ACTION: 'Action', IDENTIFIER: 'Id', DESCRIPTION: 'Desc' },
 			},
+			DESCRIPTIONS: { 'admin:users:read': 'View user details' },
 			ERRORS: { ACCESS_DENIED: 'Denied' },
 		},
 		SETTINGS: {
@@ -406,6 +407,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				CAPTION: 'Permisos',
 				HEADER: { RESOURCE: 'Recurso', ACTION: 'Acción', IDENTIFIER: 'Id', DESCRIPTION: 'Desc' },
 			},
+			DESCRIPTIONS: { 'admin:users:read': 'Ver detalles de usuario' },
 			ERRORS: { ACCESS_DENIED: 'Denegado' },
 		},
 		SETTINGS: {
