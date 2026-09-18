@@ -1,6 +1,6 @@
 import { PermissionName } from '@contracts/permission/permission.constants'
 import { logger } from '@resetshop/util'
-import { Next } from 'hono'
+import type { Context, Next } from 'hono'
 import { container } from '../container/container'
 import { type AuthenticatedContext, getAuthenticatedUser } from './verify-access-token.middleware'
 
@@ -58,8 +58,8 @@ async function ensurePermissionsLoaded(c: AuthenticatedContext): Promise<string[
  * @returns Whether the authenticated user holds the permission
  * @throws Error if permission fetch fails (database errors, etc.)
  */
-export async function hasPermission(c: AuthenticatedContext, permissionName: PermissionName): Promise<boolean> {
-	const permissions = await ensurePermissionsLoaded(c)
+export async function hasPermission(c: Context, permissionName: PermissionName): Promise<boolean> {
+	const permissions = await ensurePermissionsLoaded(c as AuthenticatedContext)
 	return permissions.includes(permissionName)
 }
 
