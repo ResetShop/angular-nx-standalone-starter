@@ -1,13 +1,16 @@
 import { Component, computed, effect, inject, untracked } from '@angular/core'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
+import { HasPermissionDirective } from '@directives/has-permission.directive'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherArrowLeft } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
+import { Button } from '@resetshop/ui/button/button'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import { UserStatusBadge } from '../user-status-badge/user-status-badge'
+import { EditUserDrawer } from './edit-user-drawer'
 import { UserAccountActions } from './user-account-actions'
 import { UserDangerZone } from './user-danger-zone'
 import { UserProfileSection } from './user-profile-section'
@@ -25,6 +28,9 @@ import { UserRolesSection } from './user-roles-section'
 		UserAccountActions,
 		UserDangerZone,
 		UserStatusBadge,
+		EditUserDrawer,
+		Button,
+		HasPermissionDirective,
 		TranslatePipe,
 	],
 	viewProviders: [provideIcons({ featherArrowLeft })],
@@ -40,14 +46,18 @@ import { UserRolesSection } from './user-roles-section'
 		<app-page-shell [title]="pageTitle()" [loading]="store.isLoadingDetail()" [error]="store.readError().detail">
 			<section class="flex flex-col gap-4">
 				@if (store.selectedUser(); as user) {
-					<div class="flex items-center gap-3">
+					<div class="flex items-center justify-between gap-3">
 						<app-user-status-badge [status]="user.status" />
+						<button (click)="editDrawer.open()" *hasPermission="'admin:users:update'" appButton data-touch-target>
+							{{ 'USERS.DETAIL.EDIT.BUTTON' | translate }}
+						</button>
 					</div>
 
 					<app-user-profile-section [user]="user" />
 					<app-user-roles-section [user]="user" />
 					<app-user-account-actions [user]="user" />
 					<app-user-danger-zone (deleteConfirmed)="onDeleteConfirmed(user.id)" [user]="user" />
+					<app-edit-user-drawer [user]="user" #editDrawer />
 				}
 			</section>
 		</app-page-shell>
