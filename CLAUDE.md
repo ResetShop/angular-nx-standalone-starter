@@ -501,72 +501,13 @@ let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
 | `PermissionsStore` | `src/app/store/permissions/permissions.store.ts` |
 | `UIStore`          | `src/app/store/ui/ui.store.ts`                   |
 
-**Route-level store registration:**
+**Route-level registration and DI lifetimes:**
 
-Domain stores keep `providedIn: 'root'` for tree-shaking, but must be **explicitly provided** at the route level alongside their API token dependencies. `providedIn: 'root'` is a default — when you explicitly provide a `providedIn: 'root'` service in a route's `providers` array, Angular creates it in that route's `EnvironmentInjector` instead of the root injector. All `inject()` calls inside the store factory then resolve from that route's injector, where the API tokens are available.
+Domain stores keep `providedIn: 'root'` for tree-shaking but are **route-scoped instances**: every route that uses a domain store lists both its `provideX()` API providers and the store class in its `providers` array (e.g. `providers: [provideUsers(), provideRoles(), UsersStore, RolesStore]`). `AuthStore` and `UIStore` are the exceptions — genuine root singletons whose dependencies are provided in `app.config.ts`.
 
-```typescript
-// ✅ Correct — store and API token co-provided at the route level
-{
-  path: 'users',
-  loadComponent: () => import('./users/users-list/users-list'),
-  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
-}
+Root singletons with constructor side effects (e.g. `ToastBridgeService`) are the opposite case: **never** list them in a route's `providers` (a bare class mints a new route-scoped instance); activate the single root instance per route instead — `provideToast()` is exactly `provideEnvironmentInitializer(() => inject(ToastBridgeService))`, added to each route that fires toasts. Singleton-ness comes from `providedIn: 'root'` + never re-providing; `provideEnvironmentInitializer` only activates.
 
-// ❌ Incorrect — store not listed, relies on root injector where API token is missing
-{
-  path: 'users',
-  loadComponent: () => import('./users/users-list/users-list'),
-  providers: [provideUsers(), provideRoles()],
-}
-```
-
-**Rules:**
-
-- Every route that uses a domain store must list both `provideX()` and the store in its `providers` array
-- `AuthStore` and `UIStore` are exceptions — their dependencies (`AuthApi`) are provided at root in `app.config.ts`, so they don't need route-level registration
-- Never remove `providedIn: 'root'` from stores — it enables tree-shaking and serves as a fallback when no explicit provider is given
-
-**Eager instantiation of root singletons at route level:**
-
-Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on constructor side effects (`effect()`) that must be active before the route's components fire notifications. Because `providedIn: 'root'` services are instantiated lazily on first injection, a service that is never injected by any component stays dormant. Use `provideEnvironmentInitializer(() => inject(Service))` in the route's `providers` array to force instantiation when the route activates.
-
-`provideToast()` is the canonical example. `ToastBridgeService` and `NgpToastManager` are both `providedIn: 'root'` singletons (the manager renders into `document.body`, so where it is provided is irrelevant), and `ToastBridgeService` passes its presentation options per `show()` — so **no `NgpToastConfig` is registered anywhere**, and nothing toast-related is forced onto routes that never show toasts. `provideToast()` therefore provisions **nothing new** — it is exactly `provideEnvironmentInitializer(() => inject(ToastBridgeService))`, which eagerly instantiates the single root bridge so its `effect()` is live for that route. The `inject()` resolves up to the one root instance (no route re-provides it), so every route that calls `provideToast()` shares the same bridge and a notification renders exactly once. Put it on each route that fires toasts; routes that fire none add nothing.
-
-```typescript
-// ✅ Correct — provideToast() on each route that fires toasts; it only activates the single root-singleton
-// ToastBridgeService (no new instance). Routes that fire no toasts (settings, health, …) add nothing.
-{
-  path: 'users/:id',
-  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
-}
-
-// ❌ Incorrect — listing NgpToastManager / ToastBridgeService as classes in a route's providers mints a
-// route-scoped instance that overrides the root singleton; multiple live bridges each render the SHARED
-// UIStore notifications, so a denied deep-link of a parameterized route duplicates the deny toast (#471)
-{
-  path: 'users/:id',
-  providers: [provideUsers(), NgpToastManager, ToastBridgeService /* ← wrong */],
-}
-```
-
-**Rules:**
-
-- Add `provideToast()` to each route that fires toasts. It is activation-only (it just eagerly injects the root `ToastBridgeService`), so calling it on many routes still yields **one** shared bridge — no duplication ([#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471)).
-- Never list `ToastBridgeService` or `NgpToastManager` as a class in any route's `providers` — that mints a route-scoped instance, overriding the root singleton, and resurrects the duplicate-toast bug.
-- Do **not** register `provideToastConfig` (it would have to live at app root for the root-singleton manager to read it, leaking toast config onto every route). Per-toast presentation defaults live in `DEFAULT_TOAST_OPTIONS` (`components/toast/toast.config.ts`) and are spread into `NgpToastManager.show()` by `ToastBridgeService` — that is the one place to tune `placement` / `dismissible`. Container-only settings the manager reads from its config token (`maxToasts`, `gap`, `zIndex`) are **not** expressible per `show()` and use ng-primitives' defaults (`maxToasts` is already 3); changing them is the only thing that would require a root `provideToastConfig`.
-- The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created.
-- As a `providedIn: 'root'` singleton the bridge persists for the session once first activated. A toast can also be fired from a route that never calls `provideToast()` — a 403 handled by `forbiddenInterceptor` on any page. The interceptor activates the bridge on demand (`injector.get(ToastBridgeService)` inside its 403 branch) so the toast renders anywhere, without keeping the bridge always-on app-wide ([#480](https://github.com/ResetShop/angular-nx-standalone-starter/issues/480)).
-
-**Current route registrations (`dashboard.routes.ts`):**
-
-| Route                       | Providers                                                                                    |
-| --------------------------- | -------------------------------------------------------------------------------------------- |
-| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                  |
-| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                   |
-| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideToast()` |
+> Full guidance — the singleton-vs-activation distinction, both patterns and their scope limit, provider recipes, the toast/`forbiddenInterceptor` case studies, and the current `dashboard.routes.ts` registrations table: see [`.claude/references/angular-di.md`](.claude/references/angular-di.md).
 
 ---
 
@@ -888,68 +829,9 @@ interface UserProjection {
 
 ### Frontend API Provider Pattern
 
-API tokens are plain `InjectionToken` instances with **no** `providedIn` / `factory`. The wiring happens exclusively through `provideX()` functions that return `EnvironmentProviders` via `makeEnvironmentProviders()`, preventing component-level registration.
+API tokens are plain `InjectionToken`s with **no** `providedIn` / `factory`, wired exclusively through `provideX()` functions that return `EnvironmentProviders` via `makeEnvironmentProviders()` (`provideAuth()` at root in `app.config.ts`; domain providers at route level). `Http*Api` implementations keep `@Injectable({ providedIn: 'root' })`; mock provider functions (`provideXMock()`) mirror the same shape. Components never import API tokens directly (ESLint `no-restricted-imports`) — they inject via stores or guards.
 
-```typescript
-// 1. Interface + token (e.g., auth.interface.ts) — no factory, no providedIn
-export interface AuthApi {
-	login(params: LoginRequest): Observable<LoginResponse>
-	// ...
-}
-export const AuthApi = new InjectionToken<AuthApi>('AuthApi')
-
-// 2. HTTP implementation (e.g., auth.ts) — providedIn: 'root' for tree-shaking
-@Injectable({ providedIn: 'root' })
-export class HttpAuthApi implements AuthApi { ... }
-
-// 3. Provider function (e.g., auth.provider.ts) — environment-only registration
-export function provideAuth() {
-	return makeEnvironmentProviders([{ provide: AuthApi, useExisting: HttpAuthApi }])
-}
-
-// 4a. Root registration (app.config.ts) — auth only, called once at bootstrap
-providers: [provideAuth()]
-
-// 4b. Route-level registration (dashboard.routes.ts) — domain providers co-located with their stores
-{ path: 'users', providers: [provideUsers(), provideRoles(), UsersStore, RolesStore] }
-
-// 5. Consumer (e.g., auth.store.ts)
-const authApi = inject(AuthApi) // resolves via provideAuth() registration
-
-// 6. Mock provider function (e.g., auth.mock.ts) — same EnvironmentProviders pattern
-export function provideAuthMock(api: InMemoryAuthApi = new InMemoryAuthApi()) {
-	return makeEnvironmentProviders([{ provide: AuthApi, useValue: api }])
-}
-
-// 7. Test usage
-providers: [provideAuthMock()]
-```
-
-**Rules:**
-
-- `InjectionToken` declarations must **not** include `providedIn` or `factory` — use `provideX()` instead
-- `Http*Api` classes keep `@Injectable({ providedIn: 'root' })` for tree-shaking
-- Provider functions return `EnvironmentProviders` (never `Provider[]`) to enforce environment-only registration
-- Mock provider functions follow the same `makeEnvironmentProviders` pattern
-- ESLint `no-restricted-imports` blocks direct API token imports in `src/app/pages/` and `src/app/components/` — components must inject via stores or guards
-
-**Existing provider functions:**
-
-| Function               | File                                  | Registers                               | Scope                         |
-| ---------------------- | ------------------------------------- | --------------------------------------- | ----------------------------- |
-| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               | Root (`app.config.ts`)        |
-| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             | Route (`dashboard.routes.ts`) |
-| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             | Route (`dashboard.routes.ts`) |
-| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` | Route (`dashboard.routes.ts`) |
-
-**Mock provider functions:**
-
-| Function                   | File                              |
-| -------------------------- | --------------------------------- |
-| `provideAuthMock()`        | `auth/auth.mock.ts`               |
-| `provideUsersMock()`       | `users/users.mock.ts`             |
-| `provideRolesMock()`       | `roles/roles.mock.ts`             |
-| `providePermissionsMock()` | `permissions/permissions.mock.ts` |
+> Full pattern, rules, and the existing provider / mock provider function tables: see [`.claude/references/angular-di.md`](.claude/references/angular-di.md) → "Frontend API Provider Pattern".
 
 ---
 
@@ -1161,7 +1043,7 @@ Both planning agents share the **same** gated domain set — `auth`, `backend-ap
 
 ### FormField Component
 
-`src/app/components/form-field/form-field.ts` — A wrapper component for standardized form inputs with signal forms integration. It provides label rendering, required indicator (auto-detected via `REQUIRED` metadata or manually overridden), hint text, translated validation error display, and error border styling via `aria-invalid`.
+`packages/ui/src/lib/form-field/form-field.ts` — A wrapper component for standardized form inputs with signal forms integration. It provides label rendering, required indicator (auto-detected via `REQUIRED` metadata or manually overridden), hint text, translated validation error display, and error border styling via `aria-invalid`.
 
 **Supported form control elements:** `input`, `select`, `textarea`, or any component providing `FormFieldCustomControl`
 
@@ -1175,32 +1057,18 @@ The component enforces three runtime constraints via `effect()`:
 
 **Custom component support:** Components that are not native form controls can be wrapped in `<app-form-field>` by:
 
-1. Extending `FormFieldCustomControl` (from `@components/form-field/form-field-custom-control`)
-2. Providing the token: `providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => MyComponent) }]`
+1. Extending `FormFieldCustomControl` (from `@resetshop/ui/form-field/form-field-custom-control`)
+2. Registering under that token with `useExisting`: `providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => MyComponent) }]`
 3. Using the `ariaInvalid` signal (set by FormField) to apply conditional invalid styling
 
-```typescript
-// ✅ Custom component integration
-@Component({
-  providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => PermissionSelector) }],
-})
-export class PermissionSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
-  // ariaInvalid signal is inherited — use it for conditional border styling
-}
+`PermissionSelector` is the reference implementation. Why this is `useExisting` (alias to the rendered instance) and never `useClass`, and why `forwardRef` is needed: see [`.claude/references/angular-di.md`](.claude/references/angular-di.md) → "`useExisting` — two tokens, one instance".
 
-// Usage in template:
-<app-form-field label="Permissions">
-  <app-permission-selector [formField]="roleForm.permissionIds" [groups]="groups()" />
-</app-form-field>
-```
+**When adding a new native form control element type**, update this location in `form-field.ts`:
 
-**When adding a new native form control element type**, update these locations in `form-field.ts`:
-
-| What to update                                         | Purpose                                           |
-| ------------------------------------------------------ | ------------------------------------------------- |
-| `private readonly supportedControls` class field       | Runtime validation of projected content           |
-| `querySelector` selector in `afterRenderEffect()` body | `aria-invalid` attribute management               |
-| `::ng-deep [aria-invalid='true']` style                | No change needed — targets attribute, not element |
+| What to update                                         | Purpose                                                                                                |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `private readonly supportedNativeControls` class field | Selector string used both for runtime validation of projected content and for `id`/`aria-invalid` sync |
+| `::ng-deep [aria-invalid='true']` style                | No change needed — targets attribute, not element                                                      |
 
 ---
 
