@@ -181,7 +181,7 @@ These are lightweight, UI-only concerns with no API dependencies. Converting the
 
 3. **Create the store** — `<domain>.store.ts`:
    - Follow the 6-block builder structure (see [Store Patterns](#api-backed-stores-users-roles-permissions))
-   - Use `{ providedIn: 'root' }` for app-wide singletons
+   - Use `{ providedIn: 'root' }` (tree-shaking default); domain stores are then **co-provided at route level** with their `provideX()` API providers, making them route-scoped instances — see [`.claude/references/angular-di.md`](../.claude/references/angular-di.md)
    - Use `rxMethod` for all API calls — never `firstValueFrom` or `async/await`
    - Add `patchReadError` / `patchMutationError` helper functions
    - Log errors with `loggerService.error('StoreName', 'methodName failed', err)` via `inject(Logger)` from `@providers/logger/logger.token`

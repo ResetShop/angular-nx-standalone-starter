@@ -1,4 +1,4 @@
-<!-- Source: CLAUDE.md | Last updated: 2026-05-08 -->
+<!-- Source: CLAUDE.md | Last updated: 2026-09-18 -->
 
 # Generators Reference
 
@@ -109,6 +109,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
   - `<kebab-case>.mock.ts` — `InMemory<Class>Api implements <Class>Api` + `provide<Class>Mock()`
   - `<kebab-case>.provider.ts` — `provide<Class>()` returning `EnvironmentProviders` via `makeEnvironmentProviders`
 - **Don't forget:** the methods on the interface and on `Http<Class>Api` / `InMemory<Class>Api` are TODO stubs. The generator's job is the boilerplate (token + provider function + mock skeleton); method bodies are application work.
+- **DI rationale:** why the token has no `providedIn`/`factory`, why `provide<Class>()` returns `EnvironmentProviders`, and where to register it (root vs. route, co-provided with its store) — see [`angular-di.md`](angular-di.md) → "Frontend API Provider Pattern" and "Pattern 1 — Route-Scoped Feature Providers".
 - **Spec:** `packages/generators/src/generators/api-provider/index.spec.ts`.
 
 ### `store`
