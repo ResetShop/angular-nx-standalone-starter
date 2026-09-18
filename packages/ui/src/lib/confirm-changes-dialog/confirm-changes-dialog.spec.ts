@@ -79,14 +79,14 @@ describe('ConfirmChangesDialog', () => {
 	})
 
 	it('should use the provided screen-reader labels', async () => {
-		const view = await render(
+		await render(
 			`<app-confirm-changes-dialog [changes]="changes" beforeLabel="Antes" afterLabel="Después" #dialog />
 			<button (click)="dialog.show()">Open</button>`,
 			{ imports: [ConfirmChangesDialog], componentProperties: { changes: [changes[0]] } },
 		)
-		await userEvent.click(view.getByRole('button', { name: 'Open' }))
+		await userEvent.click(screen.getByRole('button', { name: 'Open' }))
 
-		const definition = view.getByRole('definition')
+		const definition = screen.getByRole('definition')
 		expect(definition).toHaveTextContent('Antes: Ada')
 		expect(definition).toHaveTextContent('Después: Grace')
 	})
