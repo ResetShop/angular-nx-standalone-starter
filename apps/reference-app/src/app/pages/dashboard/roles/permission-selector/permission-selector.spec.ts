@@ -1,4 +1,4 @@
-import { mockTranslation } from '@providers/i18n/translation.mock'
+import { mockTranslation, type TranslationStub } from '@providers/i18n/translation.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
@@ -52,10 +52,7 @@ describe('PermissionSelector', () => {
 		clearAllMocks()
 	})
 
-	async function renderComponent(
-		value: number[] = [],
-		translation: { instant: (key: string, fallback?: string) => string } = mockTranslation,
-	) {
+	async function renderComponent(value: number[] = [], translation: TranslationStub = mockTranslation) {
 		return render(PermissionSelector, {
 			inputs: {
 				groups: createMockGroups(),

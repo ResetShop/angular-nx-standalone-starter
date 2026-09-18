@@ -1,6 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { TestBed } from '@angular/core/testing'
-import { MOCK_TRANSLATIONS, mockTranslation } from '@providers/i18n/translation.mock'
+import { MOCK_TRANSLATIONS, mockTranslation, type TranslationStub } from '@providers/i18n/translation.mock'
 import { PermissionsApi } from '@providers/permissions/permissions.interface'
 import { createMockPermissionData } from '@providers/permissions/permissions.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
@@ -41,9 +41,7 @@ describe('PermissionsList', () => {
 		useRealTimers()
 	})
 
-	async function renderComponent(
-		translation: { instant: (key: string, fallback?: string) => string } = mockTranslation,
-	) {
+	async function renderComponent(translation: TranslationStub = mockTranslation) {
 		const view = await render(PermissionsList, {
 			providers: [
 				{ provide: PermissionsApi, useValue: permissionsApiMock },

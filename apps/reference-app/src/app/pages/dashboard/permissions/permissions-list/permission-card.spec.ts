@@ -1,6 +1,6 @@
 import type { PermissionData } from '@contracts/role/role.types'
 import { mapPermission } from '@domain/access/role.mapper'
-import { mockTranslation } from '@providers/i18n/translation.mock'
+import { mockTranslation, type TranslationStub } from '@providers/i18n/translation.mock'
 import { createMockPermissionData } from '@providers/permissions/permissions.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
@@ -12,10 +12,7 @@ describe('PermissionCard', () => {
 		clearAllMocks()
 	})
 
-	async function renderCard(
-		overrides: Partial<PermissionData> = {},
-		translation: { instant: (key: string, fallback?: string) => string } = mockTranslation,
-	) {
+	async function renderCard(overrides: Partial<PermissionData> = {}, translation: TranslationStub = mockTranslation) {
 		return render(PermissionCard, {
 			inputs: { permission: mapPermission(createMockPermissionData(overrides)) },
 			providers: [{ provide: Translation, useValue: translation }],
