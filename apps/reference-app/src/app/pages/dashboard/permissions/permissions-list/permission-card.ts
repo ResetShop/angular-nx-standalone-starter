@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core'
-import { permissionDescriptionKey } from '@domain/access/permission-description-key'
 import type { IPermission } from '@domain/access/permission.interface'
+import { permissionDescriptionKey } from '@providers/i18n/permission-description-key'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
 

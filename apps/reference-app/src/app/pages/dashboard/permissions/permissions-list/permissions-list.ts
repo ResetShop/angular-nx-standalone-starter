@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
-import { permissionDescriptionKey } from '@domain/access/permission-description-key'
 import type { IPermission } from '@domain/access/permission.interface'
+import { permissionDescriptionKey } from '@providers/i18n/permission-description-key'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
