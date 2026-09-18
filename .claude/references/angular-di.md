@@ -197,8 +197,14 @@ export const AuthApi = new InjectionToken<AuthApi>('AuthApi')
 export class HttpAuthApi implements AuthApi { ... }
 
 // 3. Provider function (e.g., auth.provider.ts) — environment-only registration
-export function provideAuth() {
-	return makeEnvironmentProviders([{ provide: AuthApi, useExisting: HttpAuthApi }])
+//    provideAuth() also accepts opt-in features (e.g. withNavigationPermissionCheck()) whose providers it spreads in;
+//    single-token providers such as provideUsers() take no arguments
+export function provideAuth(...features: AuthFeature[]): EnvironmentProviders {
+	return makeEnvironmentProviders([
+		{ provide: AuthApi, useExisting: HttpAuthApi },
+		// ...
+		...features.flatMap((feature) => feature.providers),
+	])
 }
 
 // 4a. Root registration (app.config.ts) — auth only, called once at bootstrap
