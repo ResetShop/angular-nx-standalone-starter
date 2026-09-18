@@ -282,6 +282,9 @@ export interface TranslationSchema {
 				AUTHORIZATION: string
 			}
 		}
+		USERS: {
+			NAV: string
+		}
 		AUTHORIZATION: {
 			NAV: string
 			TITLE: string

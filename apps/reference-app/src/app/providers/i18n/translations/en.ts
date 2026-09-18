@@ -285,6 +285,9 @@ const en: TranslationSchema = {
 				AUTHORIZATION: 'Manage roles and permissions that control access to the platform.',
 			},
 		},
+		USERS: {
+			NAV: 'Users',
+		},
 		AUTHORIZATION: {
 			NAV: 'Authorization',
 			TITLE: 'Authorization',
