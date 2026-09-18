@@ -1,4 +1,4 @@
-<!-- Source: CLAUDE.md | Last updated: 2026-02-09 -->
+<!-- Source: CLAUDE.md | Last updated: 2026-09-18 -->
 
 # Testing Examples & Mock Infrastructure
 
@@ -179,6 +179,8 @@ Each frontend API service has a co-located `*.mock.ts` file providing:
 2. **Pre-built data lists** — `MOCK_USERS`, `MOCK_ROLES`, `MOCK_PERMISSIONS` constants for pagination testing
 3. **`InMemory*Api` classes** — Stateful test doubles implementing the API interface with `Map` storage
 4. **`provideXMock()` functions** — `EnvironmentProviders` wrappers for test registration
+
+`provideXMock()` mirrors its production `provideX()` shape (`makeEnvironmentProviders`), swapping the `Http*Api` alias for a caller-supplied `InMemory*Api` via `useValue` so the test holds the exact instance the code under test receives. For the provider-function pattern and DI rationale, see [`angular-di.md`](angular-di.md) → "Frontend API Provider Pattern".
 
 | Mock File                         | Factory Functions                                         | InMemory Class           | Data List               |
 | --------------------------------- | --------------------------------------------------------- | ------------------------ | ----------------------- |

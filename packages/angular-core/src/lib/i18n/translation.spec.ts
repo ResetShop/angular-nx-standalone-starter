@@ -206,6 +206,9 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					AUTHORIZATION: 'Auth',
 				},
 			},
+			USERS: {
+				NAV: 'Users',
+			},
 			AUTHORIZATION: {
 				NAV: 'Auth',
 				TITLE: 'Auth',
@@ -438,6 +441,9 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					USERS: 'Usuarios',
 					AUTHORIZATION: 'Auth',
 				},
+			},
+			USERS: {
+				NAV: 'Users',
 			},
 			AUTHORIZATION: {
 				NAV: 'Auth',
