@@ -223,6 +223,21 @@ export interface TranslationSchema {
 				DESCRIPTION: string
 			}
 		}
+		/**
+		 * Localized display text for each entry of the permission catalogue, keyed by the
+		 * full `module:resource:action` permission identifier. The catalogue itself is owned
+		 * by the app (`PERMISSION_DEFINITIONS`), whose English `description` is what seeds the
+		 * database; this map is the text the Permissions page actually renders. Every
+		 * identifier in the catalogue must have an entry here in every language file.
+		 *
+		 * This is the schema's only dynamically-keyed leaf. Every other key is a literal, so
+		 * `TranslationKey` resolves it to the template-literal member
+		 * `PERMISSIONS.DESCRIPTIONS.${string}` rather than to a union of exact keys — a key
+		 * built from an identifier is assignable without a cast, but a typo in one is not
+		 * caught by the compiler. A coverage spec in the app enforces the catalogue↔key parity
+		 * that the type system cannot. Weigh that trade-off before adding a second such map.
+		 */
+		DESCRIPTIONS: Record<string, string>
 		ERRORS: {
 			ACCESS_DENIED: string
 		}
