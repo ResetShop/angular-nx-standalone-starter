@@ -52,7 +52,8 @@ export interface CreateUserParams {
 }
 
 /**
- * Parameters for updating an existing user
+ * Parameters for updating an existing user. Every field is optional; only the provided concerns
+ * (profile fields, role set, status) are written, all inside one transaction.
  */
 export interface UpdateUserParams {
 	email?: string
@@ -60,6 +61,8 @@ export interface UpdateUserParams {
 	lastName?: string
 	/** Full replacement set of role ids. When provided, the user's roles are replaced with this set. */
 	roleIds?: number[]
+	/** Target account status. When provided, the change goes through the status-transition rules. */
+	status?: UserStatus
 }
 
 /**
@@ -113,12 +116,12 @@ export interface UserManagementRepository {
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>
 	findByEmail(email: string): Promise<UserData | null>
 	create(params: CreateUserIdentityParams, tx?: DrizzleTransaction): Promise<ManagedUserData>
-	update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null>
-	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>
+	update(id: number, params: UpdateUserParams, actorId: number, tx?: DrizzleTransaction): Promise<UserData | null>
+	updateStatus(id: number, params: UpdateUserStatusParams, tx?: DrizzleTransaction): Promise<ManagedUserData | null>
 	softDelete(id: number, changedBy: number): Promise<boolean>
 	/**
-	 * Runs a callback inside a transaction, exposing the transaction handle so the
-	 * service can compose the user insert and the auth-row insert atomically.
+	 * Runs a callback inside a transaction, exposing the transaction handle so the service can
+	 * compose writes owned by different contexts (identity, credentials, roles, status) atomically.
 	 */
 	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
