@@ -49,6 +49,21 @@ async function ensurePermissionsLoaded(c: AuthenticatedContext): Promise<string[
 }
 
 /**
+ * Checks a permission from inside a handler, reusing the request-level permission cache.
+ * Use it when a permission is required only for part of a request (e.g. one optional body field) —
+ * whole-route requirements belong in `requirePermission` on the route's `middleware`.
+ *
+ * @param c - The authenticated context
+ * @param permissionName - The permission name to check
+ * @returns Whether the authenticated user holds the permission
+ * @throws Error if permission fetch fails (database errors, etc.)
+ */
+export async function hasPermission(c: AuthenticatedContext, permissionName: PermissionName): Promise<boolean> {
+	const permissions = await ensurePermissionsLoaded(c)
+	return permissions.includes(permissionName)
+}
+
+/**
  * Middleware factory that creates a permission check middleware.
  * Verifies the authenticated user has the specified permission.
  *
