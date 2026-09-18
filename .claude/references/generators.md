@@ -66,7 +66,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
   - `apps/reference-app/src/app/store/product/{*.store.ts, *.store.spec.ts, *.types.ts}` (store)
   - `apps/reference-app/src/app/pages/dashboard/product/product-list/{*.ts, *.spec.ts}` (page, with `withStore=false withApiProvider=false`)
 - **Post-step (the generator logs these as TODOs):**
-  1. Add the route to `<appRoot>/src/app/pages/dashboard/dashboard.routes.ts`
+  1. Add the route to `<appRoot>/src/app/pages/dashboard/dashboard.routes.ts`. Put `provide<Class>()` and `<Class>Store` (plus `provideToast()` if the pages fire toasts) in the `providers` of the section's **parent route**, the lowest route that is a common parent of every page using them, and add the generated list page as its `''` child. Child pages share the parent's instances; never repeat the providers on each page (see [`angular-di.md`](angular-di.md) → "Pattern 1 — Route-Scoped Feature Providers")
   2. Add a navigation entry to the `NavigationConfig`
   3. Register the new schema in the drizzle connector at `apps/reference-app/src/db/schema/all.ts`
 - **Spec:** `packages/generators/src/generators/crud/index.spec.ts`.
@@ -137,7 +137,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 - **Output (`--withApiProvider`):** also runs `api-provider` at `<directory>/../../providers/<kebab-case>/`.
 - **Output (`--withStore`):** also runs `store` at `<directory>/../../store/<kebab-case>/`.
 - **Known limitation — sibling path coupling:** the `../../providers` and `../../store` walk-up segments assume `directory` is exactly `src/app/pages/dashboard` (depth 4). Shallower directories under-walk: e.g. `directory: src/app/admin` produces sibling files at `src/providers/...` and `src/store/...`, NOT `src/app/providers/...`. The locked-in test in `page/index.spec.ts` asserts this behaviour. Stick with the default `directory` unless you also disable the sub-generators.
-- **Don't forget:** the route registration is logged as guidance, not auto-wired. Add the suggested `{ path: '<route>', loadComponent: ... }` entry to `dashboard.routes.ts` by hand after running.
+- **Don't forget:** the route registration is logged as guidance, not auto-wired. Add the suggested `{ path: '<route>', loadComponent: ... }` entry to `dashboard.routes.ts` by hand after running. With `--withStore` / `--withApiProvider`, do not put the generated providers on that page route: register `provide<Class>()` and `<Class>Store` once on the section's **parent route** (creating one if the page is the section's first), and nest the page under it, so every page of the section shares one instance (see [`angular-di.md`](angular-di.md) → "Pattern 1 — Route-Scoped Feature Providers").
 - **Spec:** `packages/generators/src/generators/page/index.spec.ts`.
 
 ### `ui-component`

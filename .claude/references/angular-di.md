@@ -25,33 +25,40 @@ Two **orthogonal** concerns are easy to conflate. Keep them apart:
 
 ## Pattern 1 — Route-Scoped Feature Providers (the norm)
 
-Domain stores and their API tokens are **intentionally route-scoped instances**. They are wired via their `provideX()` environment-provider functions and co-located with their consumers in the route's `providers` array. Do **not** collapse them into root singletons.
+Domain stores and their API tokens are **intentionally route-scoped instances**, provided once per **section** of the route tree. They are wired via their `provideX()` environment-provider functions and listed in the `providers` array of the section's **parent route**, never on the individual pages. Do **not** collapse them into root singletons.
 
 Domain stores keep `providedIn: 'root'` for tree-shaking, but must be **explicitly provided** at the route level alongside their API token dependencies. `providedIn: 'root'` is a default — when a `providedIn: 'root'` service is listed in a route's `providers`, Angular creates it in that route's `EnvironmentInjector` instead of the root injector. Every `inject()` inside the store factory then resolves from that route's injector, where the API tokens are available.
 
+**Pages under one parent share its instance.** A route's `EnvironmentInjector` serves that route **and all of its children**, so every page nested under the parent that lists a provider receives the **same** instance, and moving between those pages keeps it and its state. This is why providers belong on the lowest route that is a common parent of every page using them.
+
 ```typescript
-// ✅ Correct — store and API token co-provided at the route level
+// ✅ Correct — providers listed once on the section's parent route; the list and detail pages share them
 {
   path: 'users',
-  loadComponent: () => import('./users/users-list/users-list'),
-  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
+  title: 'DASHBOARD.USERS.NAV',
+  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
+  children: [
+    { path: '', loadComponent: () => import('./users/users-list/users-list'), /* guard… */ },
+    { path: ':id', loadComponent: () => import('./users/user-detail-page/user-detail-page'), /* guard… */ },
+  ],
 }
 
+// ❌ Incorrect — the same providers repeated on sibling page routes: each page gets its own store instance
+{ path: 'users', loadComponent: …, providers: [provideUsers(), provideRoles(), UsersStore, RolesStore] },
+{ path: 'users/:id', loadComponent: …, providers: [provideUsers(), provideRoles(), UsersStore, RolesStore] },
+
 // ❌ Incorrect — store not listed, so it resolves from the root injector, where the API token is missing
-{
-  path: 'users',
-  loadComponent: () => import('./users/users-list/users-list'),
-  providers: [provideUsers(), provideRoles()],
-}
+{ path: 'users', providers: [provideUsers(), provideRoles()], children: [...] }
 ```
 
 **Rules:**
 
-- Every route that uses a domain store must list both `provideX()` and the store in its `providers` array
+- List a domain store and its `provideX()` API providers **once**, on the lowest route that is a common parent of every page using them; child pages declare no providers of their own for it
+- Pages under one parent share its instance; **sibling** routes never do — see [Sibling injectors](#sibling-injectors-cannot-share-a-route-scoped-instance). A store used by two sibling sections exists once per section (`RolesStore` under both `users` and `authorization`)
+- Permission guards stay on the child pages when each needs a different permission (`authorization/permissions` vs. `authorization/roles`); they can move to the parent when every child requires the same one
 - `AuthStore` and `UIStore` are exceptions — their dependencies (`AuthApi`) are provided at root in `app.config.ts`, so they are genuine root singletons and are never listed in a route's `providers`
 - Never remove `providedIn: 'root'` from stores — it enables tree-shaking and serves as a fallback when no explicit provider is given
-- Sibling routes each get their **own** store instance (`users` and `users/:id` do not share a `UsersStore`) — see [Sibling injectors](#sibling-injectors-cannot-share-a-route-scoped-instance)
-- `app.config.ts` registers `provideRouter(…, withExperimentalAutoCleanupInjectors())`, so a route's `EnvironmentInjector` — and every route-scoped store in it — is destroyed once the route leaves the active tree. Route-scoped state does not survive navigating away
+- `app.config.ts` registers `provideRouter(…, withExperimentalAutoCleanupInjectors())`, so a section's `EnvironmentInjector` — and every store in it — is destroyed once the user leaves the section. Moving between the section's child pages keeps the instances; leaving and re-entering the section creates fresh ones
 
 ---
 
@@ -74,25 +81,27 @@ export function provideToast(): EnvironmentProviders {
 The `inject()` resolves up to the one root instance, so every route that calls `provideToast()` shares the same bridge and a notification renders exactly once.
 
 ```typescript
-// ✅ Correct — provideToast() on each route that fires toasts; it only activates the root-singleton
-// ToastBridgeService (no new instance). Routes that fire no toasts (settings, health, …) add nothing.
+// ✅ Correct — provideToast() on each section that fires toasts; it only activates the root-singleton
+// ToastBridgeService (no new instance). Sections that fire no toasts (settings, health, …) add nothing.
 {
-  path: 'users/:id',
+  path: 'users',
   providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
+  children: [/* '', ':id' */],
 }
 
 // ❌ Incorrect — listing NgpToastManager / ToastBridgeService as classes mints route-scoped instances that
 // shadow the root singletons; several live bridges each render the SHARED UIStore notifications, so a
 // notification (e.g. the deny toast on a denied deep-link of a parameterized route) renders more than once
 {
-  path: 'users/:id',
+  path: 'users',
   providers: [provideUsers(), NgpToastManager, ToastBridgeService /* ← wrong */],
+  children: [/* '', ':id' */],
 }
 ```
 
 **Rules:**
 
-- Add `provideToast()` to each route that fires toasts. It is activation-only, so calling it on many routes still yields **one** shared bridge.
+- Add `provideToast()` to the parent route of each section that fires toasts, next to the section's other providers. It is activation-only, so calling it in many sections still yields **one** shared bridge.
 - Never list `ToastBridgeService` or `NgpToastManager` as a class in any route's `providers` — that mints a route-scoped instance and resurrects the duplicate-toast bug.
 - Do **not** register `provideToastConfig` (it would have to live at app root for the root-singleton manager to read it, leaking toast config onto every route). Per-toast presentation defaults live in `DEFAULT_TOAST_OPTIONS` (`components/toast/toast.config.ts`) and are spread into `NgpToastManager.show()` by `ToastBridgeService` — the one place to tune `placement` / `dismissible`. Container-only settings the manager reads from its config token (`maxToasts`, `gap`, `zIndex`) are **not** expressible per `show()` and use ng-primitives' defaults (`maxToasts` is already 3); changing them is the only thing that would require a root `provideToastConfig`.
 - Once first activated, the bridge persists for the session (it is a root singleton).
@@ -101,19 +110,19 @@ The `inject()` resolves up to the one root instance, so every route that calls `
 
 ### Scope limit
 
-The activation pattern is for **root singletons with side effects only**. It must never be read as "use `provideEnvironmentInitializer` to make route providers singleton" — applying it to stores or API tokens would break the per-route store/API-token model of [Pattern 1](#pattern-1--route-scoped-feature-providers-the-norm).
+The activation pattern is for **root singletons with side effects only**. It must never be read as "use `provideEnvironmentInitializer` to make route providers singleton" — applying it to stores or API tokens would break the per-section store/API-token model of [Pattern 1](#pattern-1--route-scoped-feature-providers-the-norm).
 
 ---
 
 ## Current Route Registrations (`dashboard.routes.ts`)
 
-| Route                       | Providers                                                                                    |
-| --------------------------- | -------------------------------------------------------------------------------------------- |
-| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                  |
-| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                   |
-| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideToast()` |
+| Route                            | Providers                                                                                    |
+| -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `dashboard` (shell)              | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                  |
+| `users` (section parent)         | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
+| ↳ `''`, `':id'`                  | — (share the section's instances)                                                            |
+| `authorization` (section parent) | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideToast()` |
+| ↳ `''`, `permissions`, `roles`   | — (share the section's instances)                                                            |
 
 Update this table whenever a route's `providers` change.
 
@@ -138,7 +147,9 @@ A route with a `providers` array gets its own `EnvironmentInjector`, shared by t
 
 ### Sibling injectors cannot share a route-scoped instance
 
-Two sibling routes each providing `UsersStore` get two instances; neither can see the other's. Sharing comes from a **common ancestor** (root, via `providedIn: 'root'` with no re-provision below) or from **aliasing** (`useExisting`/`useValue`/`useFactory` pointing at an instance resolved elsewhere). Only `useClass`/bare-class registrations mint a per-injector instance.
+Two sibling routes each providing the same store get two instances; neither can see the other's. In this repo, `users` and `authorization` are sibling sections that both list `RolesStore`, so each section has its own. Sharing comes from a **common ancestor** — a parent route that lists the provider once (its child pages all receive that instance), or root via `providedIn: 'root'` with no re-provision below — or from **aliasing** (`useExisting`/`useValue`/`useFactory` pointing at an instance resolved elsewhere). Only `useClass`/bare-class registrations mint a per-injector instance.
+
+Verified against the installed Angular 22 with `withExperimentalAutoCleanupInjectors()`: with a store listed on a parent route, its children `list`, `detail`, and `roles` all received the same instance; navigating to a sibling route outside the parent received a different one; and re-entering the parent after leaving it created a new instance.
 
 ### `useExisting` — two tokens, one instance
 
@@ -210,8 +221,13 @@ export function provideAuth(...features: AuthFeature[]): EnvironmentProviders {
 // 4a. Root registration (app.config.ts) — auth only, called once at bootstrap
 providers: [provideAuth(withNavigationPermissionCheck())]
 
-// 4b. Route-level registration (dashboard.routes.ts) — domain providers co-located with their stores
-{ path: 'users', providers: [provideUsers(), provideRoles(), UsersStore, RolesStore] }
+// 4b. Section-level registration (dashboard.routes.ts) — domain providers listed once on the section's parent
+//     route, co-located with their stores; the child pages ('' and ':id') share them
+{
+	path: 'users',
+	providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
+	children: [/* '', ':id' */],
+}
 
 // 5. Consumer (e.g., auth.store.ts)
 const authApi = inject(AuthApi) // resolves via provideAuth() registration
@@ -237,12 +253,12 @@ providers: [provideAuthMock()]
 
 **Existing provider functions:**
 
-| Function               | File                                  | Registers                               | Scope                         |
-| ---------------------- | ------------------------------------- | --------------------------------------- | ----------------------------- |
-| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               | Root (`app.config.ts`)        |
-| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             | Route (`dashboard.routes.ts`) |
-| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             | Route (`dashboard.routes.ts`) |
-| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` | Route (`dashboard.routes.ts`) |
+| Function               | File                                  | Registers                               | Scope                                                             |
+| ---------------------- | ------------------------------------- | --------------------------------------- | ----------------------------------------------------------------- |
+| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               | Root (`app.config.ts`)                                            |
+| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             | Section parent: `users` (`dashboard.routes.ts`)                   |
+| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             | Section parents: `users`, `authorization` (`dashboard.routes.ts`) |
+| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` | Section parent: `authorization` (`dashboard.routes.ts`)           |
 
 **Mock provider functions:**
 
