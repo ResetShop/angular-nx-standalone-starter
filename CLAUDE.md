@@ -627,6 +627,8 @@ Use queries in this order of preference:
 
 > Backend API Architecture: See `.claude/references/backend-api.md`
 
+> Angular Dependency Injection (singleton vs. activation, route-scoped providers, provider recipes): See `.claude/references/angular-di.md`
+
 ### Component Field Visibility
 
 Component class fields must use `protected` — never leave them implicitly `public`. Angular templates can access `protected` members, so there is no reason to expose fields beyond the component boundary. Fields that are not used in the template should be `private`.
@@ -982,7 +984,7 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 | Agent                    | References Loaded                                                                |
 | ------------------------ | -------------------------------------------------------------------------------- |
-| `code-reviewer`          | **All 13 references — full-load, always** (never conditionally gated; see below) |
+| `code-reviewer`          | **All 14 references — full-load, always** (never conditionally gated; see below) |
 | `plan-writer`            | core + diff-relevant domain refs (conditional; see below) + `CLAUDE.md`          |
 | `architecture-advisor`   | core + diff-relevant domain refs (conditional; see below)                        |
 | `refactoring-specialist` | solid, cupid, guiding-principles, maintainability                                |
@@ -994,7 +996,7 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 #### Conditional Reference Loading (planning agents)
 
-The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 13-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
+The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 14-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
 
 **Core — always loaded by the planning agents (never gated):**
 
@@ -1004,14 +1006,15 @@ The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **c
 
 **Domain — gated by the diff, per this glob→ref map:**
 
-| Diff touches…                                                         | Load reference(s)                       |
-| --------------------------------------------------------------------- | --------------------------------------- |
-| `src/api/**`, `src/db/**`, `src/contracts/**`                         | `backend-api` + `domain-model` + `auth` |
-| `*.guard.ts`, the auth store, `src/api/**/auth`, `src/contracts/auth` | `auth`                                  |
-| generator dirs / generated files, or a scaffolding task               | `generators`                            |
-| `src/app/components/**`, component templates, styles                  | `accessibility`                         |
+| Diff touches…                                                                                                                                         | Load reference(s)                       |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `src/api/**`, `src/db/**`, `src/contracts/**`                                                                                                         | `backend-api` + `domain-model` + `auth` |
+| `*.guard.ts`, the auth store, `src/api/**/auth`, `src/contracts/auth`                                                                                 | `auth`                                  |
+| generator dirs / generated files, or a scaffolding task                                                                                               | `generators`                            |
+| `src/app/components/**`, component templates, styles                                                                                                  | `accessibility`                         |
+| `src/app/**` (routes, stores, providers, interceptors, components), `packages/angular-core/**`, or any `providers` / `inject()` / `provideX()` change | `angular-di`                            |
 
-Both planning agents share the **same** gated domain set — `auth`, `backend-api`, `domain-model`, `generators`, `accessibility` — so this map applies to each uniformly (no per-agent exceptions). `plan-writer` additionally always-loads `CLAUDE.md` as part of its core.
+Both planning agents share the **same** gated domain set — `auth`, `backend-api`, `domain-model`, `generators`, `accessibility`, `angular-di` — so this map applies to each uniformly (no per-agent exceptions). `plan-writer` additionally always-loads `CLAUDE.md` as part of its core.
 
 **Fail open:** on an empty, mixed-layer, or ambiguous diff — or any uncertainty — the planning agent loads **all** of its domain references. Cross-cutting diffs are the norm (the `crud` generator emits DB + API + contracts + provider + store + page at once), so the default under doubt is to load everything.
 
