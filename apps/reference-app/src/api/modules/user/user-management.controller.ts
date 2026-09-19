@@ -124,8 +124,7 @@ registerRoute(app, updateUserRoute, async (c) => {
 	}
 
 	try {
-		const oldStatus = body.status === undefined ? undefined : (await userManagementService.getUser(id)).status
-		const userData = await userManagementService.updateUser(id, body, actorId)
+		const { user, previous } = await userManagementService.updateUser(id, body, actorId)
 		logger.security('user_updated', {
 			userId: id,
 			changes: {
@@ -133,11 +132,11 @@ registerRoute(app, updateUserRoute, async (c) => {
 				firstName: body.firstName,
 				lastName: body.lastName,
 				roleIds: body.roleIds,
-				...(body.status === undefined ? {} : { oldStatus, newStatus: body.status }),
+				...(body.status === undefined ? {} : { oldStatus: previous.status, newStatus: user.status }),
 			},
 			actorId,
 		})
-		return c.json<ManagedUser>(userData)
+		return c.json<ManagedUser>(user)
 	} catch (error) {
 		logUpdateGuardBlock(error, actorId, id)
 		const mapped = resolveErrorStatus(error)
@@ -167,19 +166,17 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
-		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
-		const existingUser = await userManagementService.getUser(id)
-		const userData = await userManagementService.updateUserStatus(id, {
+		const { user, previous } = await userManagementService.updateUserStatus(id, {
 			status: body.status,
 			changedBy: actorId,
 		})
 		logger.security('user_status_changed', {
 			userId: id,
-			oldStatus: existingUser.status,
-			newStatus: body.status,
+			oldStatus: previous.status,
+			newStatus: user.status,
 			actorId,
 		})
-		return c.json<ManagedUser>(userData)
+		return c.json<ManagedUser>(user)
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
 			logger.security('self_lockout_blocked', { actorId, operation: 'user_status_changed', reason: error.message })

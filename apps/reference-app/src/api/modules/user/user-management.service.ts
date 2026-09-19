@@ -15,6 +15,7 @@ import type {
 	UpdateUserStatusParams,
 	UserManagementRepository,
 	UserRoleRepository,
+	UserUpdateResult,
 } from './interfaces'
 
 export const USER_MANAGEMENT_ERRORS = {
@@ -182,12 +183,12 @@ export class UserManagementService {
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
 	 * @param actorId - ID of the user performing the action
-	 * @returns Updated user with roles
+	 * @returns The updated user with roles, and the pre-update snapshot the guards ran against
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
 	 * @throws Error if the actor removes their own admin role, changes their own status, or the transition is invalid
 	 */
-	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData> {
+	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<UserUpdateResult> {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id)
@@ -213,7 +214,7 @@ export class UserManagementService {
 			}
 		})
 
-		return this.getUser(id)
+		return { user: await this.getUser(id), previous: existingUser }
 	}
 
 	/**
@@ -222,10 +223,10 @@ export class UserManagementService {
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Status change parameters (includes changedBy for audit + self-lockout check)
-	 * @returns Updated user with roles
+	 * @returns The updated user with roles, and the pre-update snapshot the guards ran against
 	 * @throws Error if self-lockout or invalid transition
 	 */
-	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
+	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<UserUpdateResult> {
 		// Fast path: a status request always targets a status change, so a self-targeted request is rejected
 		// before the user lookup. assertStatusChangeAllowed repeats this check because it is also the guard
 		// for updateUser, where the self-check only applies once the requested status differs from the current one.
@@ -235,7 +236,7 @@ export class UserManagementService {
 
 		const existingUser = await this.getUser(id)
 		this.assertStatusChangeAllowed(existingUser, params.status, params.changedBy)
-		return this.writeStatusChange(id, params)
+		return { user: await this.writeStatusChange(id, params), previous: existingUser }
 	}
 
 	/**

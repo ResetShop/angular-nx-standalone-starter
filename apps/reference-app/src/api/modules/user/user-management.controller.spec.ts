@@ -11,7 +11,13 @@ import { InMemoryContainer } from '../../container/container.mock'
 import type { PaginatedResponse } from '../../interfaces'
 import { setAuthenticatedUser } from '../../middlewares/verify-access-token.middleware.mock'
 import type { PermissionData, RoleData } from '../access/role/interfaces'
-import type { CreateUserParams, ManagedUserData, UpdateUserParams, UpdateUserStatusParams } from './interfaces'
+import type {
+	CreateUserParams,
+	ManagedUserData,
+	UpdateUserParams,
+	UpdateUserStatusParams,
+	UserUpdateResult,
+} from './interfaces'
 import userManagementController from './user-management.controller'
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
 import { USER_ROLE_ERRORS } from './user-role.errors'
@@ -24,8 +30,8 @@ describe('User Management Controller', () => {
 	>()
 	const mockGetUser = fn<[number], Promise<ManagedUserData>>()
 	const mockCreateUser = fn<[CreateUserParams], Promise<CreateUserResponse>>()
-	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>()
-	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>()
+	const mockUpdateUser = fn<[number, UpdateUserParams, number], Promise<UserUpdateResult>>()
+	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<UserUpdateResult>>()
 	const mockDeleteUser = fn<[number, number], Promise<void>>()
 	const mockResetPassword = fn<[number, number], Promise<{ message: string; sendResetEmail: () => Promise<void> }>>()
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>()
@@ -383,7 +389,7 @@ describe('User Management Controller', () => {
 	describe('PATCH /users/:id', () => {
 		it('should update user details', async () => {
 			const updatedUser = { ...testManagedUser, firstName: 'Updated' }
-			mockUpdateUser.mockResolvedValue(updatedUser)
+			mockUpdateUser.mockResolvedValue({ user: updatedUser, previous: testManagedUser })
 
 			const res = await app.request('/users/1', {
 				method: 'PATCH',
@@ -451,8 +457,10 @@ describe('User Management Controller', () => {
 		})
 
 		it('should apply profile, roles, and status in one service call and audit the status change', async () => {
-			mockGetUser.mockResolvedValue(testManagedUser)
-			mockUpdateUser.mockResolvedValue({ ...testManagedUser, firstName: 'Updated', status: UserStatus.DISABLED })
+			mockUpdateUser.mockResolvedValue({
+				user: { ...testManagedUser, firstName: 'Updated', status: UserStatus.DISABLED },
+				previous: testManagedUser,
+			})
 			const body = { firstName: 'Updated', roleIds: [1], status: UserStatus.DISABLED }
 
 			const res = await app.request('/users/1', {
@@ -481,16 +489,22 @@ describe('User Management Controller', () => {
 			])
 		})
 
-		it('should not prefetch the user when the body carries no status', async () => {
-			mockUpdateUser.mockResolvedValue(testManagedUser)
+		it('should take the audited previous status from the service result instead of a separate read', async () => {
+			mockUpdateUser.mockResolvedValue({
+				user: { ...testManagedUser, status: UserStatus.ACTIVE },
+				previous: { ...testManagedUser, status: UserStatus.DISABLED },
+			})
 
 			await app.request('/users/1', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ firstName: 'Updated' }),
+				body: JSON.stringify({ status: UserStatus.ACTIVE }),
 			})
 
 			expect(mockGetUser.calls).toHaveLength(0)
+			expect(loggerSecuritySpy.calls[0][1]).toMatchObject({
+				changes: { oldStatus: UserStatus.DISABLED, newStatus: UserStatus.ACTIVE },
+			})
 		})
 
 		it('should return 403 for a status change when the actor lacks admin:users:disable', async () => {
@@ -512,7 +526,7 @@ describe('User Management Controller', () => {
 			mockGetUserPermissions.mockResolvedValue(
 				allUserPermissions.filter((p) => p.name !== permission('admin:users:disable')),
 			)
-			mockUpdateUser.mockResolvedValue(testManagedUser)
+			mockUpdateUser.mockResolvedValue({ user: testManagedUser, previous: testManagedUser })
 
 			const res = await app.request('/users/1', {
 				method: 'PATCH',
@@ -524,7 +538,6 @@ describe('User Management Controller', () => {
 		})
 
 		it('should return 403 and audit when changing your own status', async () => {
-			mockGetUser.mockResolvedValue({ ...testManagedUser, id: ADMIN_USER_ID })
 			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT))
 
 			const res = await app.request(`/users/${ADMIN_USER_ID}`, {
@@ -538,7 +551,6 @@ describe('User Management Controller', () => {
 		})
 
 		it('should return 422 for an invalid status transition', async () => {
-			mockGetUser.mockResolvedValue(testManagedUser)
 			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.INVALID_TRANSITION))
 
 			const res = await app.request('/users/1', {
@@ -586,13 +598,9 @@ describe('User Management Controller', () => {
 	})
 
 	describe('PATCH /users/:id/status', () => {
-		beforeEach(() => {
-			mockGetUser.mockResolvedValue(testManagedUser)
-		})
-
 		it('should update user status', async () => {
 			const disabledUser = { ...testManagedUser, status: UserStatus.DISABLED }
-			mockUpdateUserStatus.mockResolvedValue(disabledUser)
+			mockUpdateUserStatus.mockResolvedValue({ user: disabledUser, previous: testManagedUser })
 
 			const res = await app.request('/users/1/status', {
 				method: 'PATCH',
@@ -604,7 +612,12 @@ describe('User Management Controller', () => {
 			const data = await res.json()
 			expect(data.status).toBe(UserStatus.DISABLED)
 			expect(mockUpdateUserStatus.calls[0]).toEqual([1, { status: UserStatus.DISABLED, changedBy: ADMIN_USER_ID }])
-			expect(loggerSecuritySpy.calls[0][0]).toBe('user_status_changed')
+			expect(loggerSecuritySpy.calls[0]).toEqual([
+				'user_status_changed',
+				{ userId: 1, oldStatus: UserStatus.ACTIVE, newStatus: UserStatus.DISABLED, actorId: ADMIN_USER_ID },
+			])
+			// The audited previous status comes from the service result, not a separate read.
+			expect(mockGetUser.calls).toHaveLength(0)
 		})
 
 		it('should return 403 when trying to change own status', async () => {

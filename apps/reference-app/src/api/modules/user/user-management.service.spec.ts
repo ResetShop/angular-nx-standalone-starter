@@ -474,7 +474,8 @@ describe('UserManagementService', () => {
 
 			const result = await service.updateUser(1, { firstName: 'Updated' }, 999)
 
-			expect(result.firstName).toBe('Updated')
+			expect(result.user.firstName).toBe('Updated')
+			expect(result.previous).toEqual(testManagedUser)
 		})
 
 		it('should throw NOT_FOUND when user does not exist', async () => {
@@ -544,7 +545,7 @@ describe('UserManagementService', () => {
 
 			const result = await service.updateUser(1, params, 999)
 
-			expect(result).toEqual(disabledUser)
+			expect(result).toEqual({ user: disabledUser, previous: testManagedUser })
 			expect(transactionCount).toBe(1)
 			expect(mockUpdate.calls).toEqual([[1, params, 999, testTx]])
 			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2], 999, testTx]])
@@ -640,7 +641,8 @@ describe('UserManagementService', () => {
 
 			const result = await service.updateUserStatus(1, { status: UserStatus.DISABLED, changedBy: 999 })
 
-			expect(result.status).toBe(UserStatus.DISABLED)
+			expect(result.previous.status).toBe(UserStatus.ACTIVE)
+			expect(result.user.status).toBe(UserStatus.DISABLED)
 		})
 
 		it('should update status from disabled to active', async () => {
@@ -651,7 +653,8 @@ describe('UserManagementService', () => {
 
 			const result = await service.updateUserStatus(1, { status: UserStatus.ACTIVE, changedBy: 999 })
 
-			expect(result.status).toBe(UserStatus.ACTIVE)
+			expect(result.previous.status).toBe(UserStatus.DISABLED)
+			expect(result.user.status).toBe(UserStatus.ACTIVE)
 		})
 
 		it('should throw SELF_LOCKOUT when changing own status', async () => {
