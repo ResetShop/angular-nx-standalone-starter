@@ -12,15 +12,17 @@ patch {
 
 body:json {
   {
-    "roleIds": [9999]
+    "firstName": "Should Not Persist",
+    "roleIds": [9999],
+    "status": "disabled"
   }
 }
 
 docs {
   # Update User - Invalid Roles
 
-  Demonstrates the error response when replacing a user's roles with role IDs that don't
-  exist in the system (or dropping a non-removable role): the request returns 400.
+  Demonstrates the atomic rollback: an unknown role ID fails the role replacement, so the
+  profile and status changes in the same request are rolled back as well.
 }
 
 assert {
