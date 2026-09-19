@@ -82,13 +82,15 @@ export const createUserResponseSchema = managedUserSchema.extend({
 
 /**
  * Update user request body schema.
- * All fields are optional - only provided fields are updated.
+ * All fields are optional - only provided fields are updated, atomically in one transaction.
+ * `status` only allows non-terminal values — use the DELETE endpoint for deletion.
  */
 export const updateUserRequestSchema = z.object({
 	email: z.email().optional(),
 	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),
+	status: z.enum([UserStatus.ACTIVE, UserStatus.DISABLED]).optional(),
 })
 
 /**

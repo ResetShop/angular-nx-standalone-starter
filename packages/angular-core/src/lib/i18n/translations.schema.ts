@@ -131,16 +131,25 @@ export interface TranslationSchema {
 				FIRST_NAME: string
 				LAST_NAME: string
 				EMAIL: string
-				SAVE: string
-				SUCCESS_TOAST: string
 			}
 			ROLES: {
 				TITLE: string
 				EMPTY: string
-				EDIT_BUTTON: string
+			}
+			EDIT: {
+				BUTTON: string
 				DRAWER_TITLE: string
-				ROLES_LABEL: string
+				STATUS_LABEL: string
+				REVIEW: string
+				NONE: string
 				SUCCESS_TOAST: string
+				CONFIRM_DIALOG: {
+					TITLE: string
+					MESSAGE: string
+					CONFIRM: string
+					BEFORE: string
+					AFTER: string
+				}
 			}
 			ACCOUNT: {
 				TITLE: string

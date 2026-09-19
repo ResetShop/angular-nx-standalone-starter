@@ -7,6 +7,7 @@ export { Badge, type BadgeVariant } from './lib/badge/badge'
 export { Button } from './lib/button/button'
 export { default as Card } from './lib/card/card'
 export { Combobox } from './lib/combobox/combobox'
+export { ConfirmChangesDialog, type ConfirmChangesEntry } from './lib/confirm-changes-dialog/confirm-changes-dialog'
 export { ConfirmDialog } from './lib/confirm-dialog/confirm-dialog'
 export {
 	DataTable,

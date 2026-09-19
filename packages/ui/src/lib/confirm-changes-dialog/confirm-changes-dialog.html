@@ -1,0 +1,27 @@
+<app-confirm-dialog
+	(confirmed)="confirmed.emit()"
+	(cancelled)="cancelled.emit()"
+	[title]="title()"
+	[message]="message()"
+	[confirmText]="confirmText()"
+	[cancelText]="cancelText()"
+>
+	<dl class="mt-4 flex max-h-[50vh] flex-col gap-3 overflow-y-auto text-sm">
+		@for (change of changes(); track change.label) {
+		<div class="rounded-md border border-gray-200 p-3 dark:border-gray-700">
+			<dt class="font-medium text-gray-900 dark:text-white">{{ change.label }}</dt>
+			<dd class="mt-1 flex flex-wrap items-center gap-2">
+				<span class="text-gray-500 line-through dark:text-gray-400">
+					<span class="sr-only">{{ beforeLabel() }}:</span>
+					{{ change.before }}
+				</span>
+				<span aria-hidden="true" class="text-gray-400">→</span>
+				<span class="font-medium text-gray-900 dark:text-white">
+					<span class="sr-only">{{ afterLabel() }}:</span>
+					{{ change.after }}
+				</span>
+			</dd>
+		</div>
+		}
+	</dl>
+</app-confirm-dialog>
