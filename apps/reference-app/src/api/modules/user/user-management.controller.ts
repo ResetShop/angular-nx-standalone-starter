@@ -30,9 +30,11 @@ const ERROR_STATUS_MAP = [
 	[USER_MANAGEMENT_ERRORS.SELF_LOCKOUT, 403],
 	[USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL, 403],
 	[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
+	[USER_ROLE_ERRORS.ROLES_NOT_FOUND, 400],
+	[USER_ROLE_ERRORS.NON_REMOVABLE_ROLES, 400],
 ] as const
 
-function resolveErrorStatus(error: unknown): { message: string; status: 403 | 404 | 409 | 422 } | null {
+function resolveErrorStatus(error: unknown): { message: string; status: 400 | 403 | 404 | 409 | 422 } | null {
 	if (!(error instanceof Error)) return null
 	for (const [prefix, status] of ERROR_STATUS_MAP) {
 		if (error.message.startsWith(prefix)) return { message: error.message, status }
@@ -114,13 +116,13 @@ registerRoute(app, updateUserRoute, async (c) => {
 	const body: UpdateUserRequest = c.req.valid('json')
 
 	try {
-		const userData = await userManagementService.updateUser(id, body, actorId)
+		const { user } = await userManagementService.updateUser(id, body, actorId)
 		logger.security('user_updated', {
 			userId: id,
 			changes: { email: body.email, firstName: body.firstName, lastName: body.lastName, roleIds: body.roleIds },
 			actorId,
 		})
-		return c.json<ManagedUser>(userData)
+		return c.json<ManagedUser>(user)
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL)) {
 			logger.security('self_admin_removal_blocked', { actorId, userId: id, reason: error.message })
@@ -142,19 +144,17 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
-		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
-		const existingUser = await userManagementService.getUser(id)
-		const userData = await userManagementService.updateUserStatus(id, {
+		const { user, previous } = await userManagementService.updateUserStatus(id, {
 			status: body.status,
 			changedBy: actorId,
 		})
 		logger.security('user_status_changed', {
 			userId: id,
-			oldStatus: existingUser.status,
-			newStatus: body.status,
+			oldStatus: previous.status,
+			newStatus: user.status,
 			actorId,
 		})
-		return c.json<ManagedUser>(userData)
+		return c.json<ManagedUser>(user)
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
 			logger.security('self_lockout_blocked', { actorId, operation: 'user_status_changed', reason: error.message })

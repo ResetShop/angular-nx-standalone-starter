@@ -101,7 +101,7 @@ export const updateUserRoute = createRoute({
 			content: { 'application/json': { schema: managedUserSchema } },
 		},
 		400: {
-			description: 'Invalid user ID',
+			description: 'Invalid user ID or unknown/non-removable role IDs',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		404: {

@@ -14,6 +14,7 @@ import type {
 	UpdateUserStatusParams,
 	UserManagementRepository,
 	UserRoleRepository,
+	UserUpdateResult,
 } from './interfaces'
 
 export const USER_MANAGEMENT_ERRORS = {
@@ -176,11 +177,11 @@ export class UserManagementService {
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
 	 * @param actorId - ID of the user performing the action
-	 * @returns Updated user with roles
+	 * @returns The updated user with roles, and the pre-update snapshot the guards ran against
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
 	 */
-	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData> {
+	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<UserUpdateResult> {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id)
@@ -217,11 +218,7 @@ export class UserManagementService {
 			await this.userRoleRepository.replaceUserRoles(id, params.roleIds, actorId)
 		}
 
-		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id)
-		if (!updatedUser) {
-			throw userManagementErrors.notFound(id)
-		}
-		return updatedUser
+		return { user: await this.getUser(id), previous: existingUser }
 	}
 
 	/**
@@ -230,10 +227,10 @@ export class UserManagementService {
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Status change parameters (includes changedBy for audit + self-lockout check)
-	 * @returns Updated user with roles
+	 * @returns The updated user with roles, and the pre-update snapshot the guards ran against
 	 * @throws Error if self-lockout or invalid transition
 	 */
-	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
+	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<UserUpdateResult> {
 		if (id === params.changedBy) {
 			throw userManagementErrors.selfLockout()
 		}
@@ -251,7 +248,7 @@ export class UserManagementService {
 		if (!updatedUser) {
 			throw userManagementErrors.notFound(id)
 		}
-		return updatedUser
+		return { user: updatedUser, previous: existingUser }
 	}
 
 	/**
