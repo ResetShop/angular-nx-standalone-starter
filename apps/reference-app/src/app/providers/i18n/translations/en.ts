@@ -132,16 +132,10 @@ const en: TranslationSchema = {
 				FIRST_NAME: 'First Name',
 				LAST_NAME: 'Last Name',
 				EMAIL: 'Email',
-				SAVE: 'Save changes',
-				SUCCESS_TOAST: 'User updated successfully.',
 			},
 			ROLES: {
 				TITLE: 'Roles',
 				EMPTY: 'No roles assigned',
-				EDIT_BUTTON: 'Edit roles',
-				DRAWER_TITLE: 'Edit Roles',
-				ROLES_LABEL: 'Roles',
-				SUCCESS_TOAST: 'Roles updated successfully.',
 			},
 			EDIT: {
 				BUTTON: 'Edit user',
