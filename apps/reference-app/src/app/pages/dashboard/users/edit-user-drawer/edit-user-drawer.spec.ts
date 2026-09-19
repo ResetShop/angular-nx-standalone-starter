@@ -88,7 +88,6 @@ describe('EditUserDrawer', () => {
 		options: { user?: Partial<ManagedUser>; actorId?: number; hasPermission?: (id: string) => boolean } = {},
 	) {
 		const view = await render(EditUserDrawer, {
-			inputs: { user: buildUser(options.user) },
 			providers: [
 				{ provide: UsersApi, useValue: usersApiMock },
 				{ provide: RolesApi, useValue: rolesApiMock },
@@ -101,7 +100,7 @@ describe('EditUserDrawer', () => {
 		TestBed.inject(AuthStore).updateCurrentUser(
 			createMockUser({ id: options.actorId ?? 999, hasPermission: options.hasPermission ?? ALL_PERMISSIONS }),
 		)
-		view.fixture.componentInstance.open()
+		view.fixture.componentInstance.open(buildUser(options.user))
 		await advanceTimersByTimeAsync(parseDurationToMs(DRAWER_SPINNER_MIN_DISPLAY))
 		view.fixture.detectChanges()
 		return view

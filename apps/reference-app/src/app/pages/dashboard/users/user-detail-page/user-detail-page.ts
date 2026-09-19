@@ -9,8 +9,8 @@ import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Button } from '@resetshop/ui/button/button'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
+import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 import { UserStatusBadge } from '../user-status-badge/user-status-badge'
-import { EditUserDrawer } from './edit-user-drawer'
 import { UserAccountActions } from './user-account-actions'
 import { UserDangerZone } from './user-danger-zone'
 import { UserProfileSection } from './user-profile-section'
@@ -48,7 +48,7 @@ import { UserRolesSection } from './user-roles-section'
 				@if (store.selectedUser(); as user) {
 					<div class="flex items-center justify-between gap-3">
 						<app-user-status-badge [status]="user.status" />
-						<button (click)="editDrawer.open()" *hasPermission="'admin:users:update'" appButton data-touch-target>
+						<button (click)="editDrawer.open(user)" *hasPermission="'admin:users:update'" appButton data-touch-target>
 							{{ 'USERS.DETAIL.EDIT.BUTTON' | translate }}
 						</button>
 					</div>
@@ -57,10 +57,11 @@ import { UserRolesSection } from './user-roles-section'
 					<app-user-roles-section [user]="user" />
 					<app-user-account-actions [user]="user" />
 					<app-user-danger-zone (deleteConfirmed)="onDeleteConfirmed(user.id)" [user]="user" />
-					<app-edit-user-drawer [user]="user" #editDrawer />
 				}
 			</section>
 		</app-page-shell>
+
+		<app-edit-user-drawer #editDrawer />
 	`,
 })
 export default class UserDetailPage {

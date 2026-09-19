@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import {
 	email as emailValidator,
 	form,
@@ -10,7 +10,7 @@ import {
 import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
-import { computeUserEditDiff, type UserEditFormModel } from '@domain/user-management/user-edit-diff'
+import { computeUserEditDiff, type UserEditDiff, type UserEditFormModel } from '@domain/user-management/user-edit-diff'
 import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
@@ -36,6 +36,9 @@ import { toConfirmChangesEntries } from './user-edit-changes.presenter'
  * Single edit surface for a managed user's profile, roles, and status. Submitting never persists
  * directly: it opens a before → after confirmation of every changed field, and only a confirmed
  * edit is sent — as one request that the backend applies atomically.
+ *
+ * The user to edit is passed to `open(user)`, so one instance can serve every row of a list as well
+ * as a detail page.
  */
 @Component({
 	selector: 'app-edit-user-drawer',
@@ -87,10 +90,10 @@ import { toConfirmChangesEntries } from './user-edit-changes.presenter'
 					<app-form-field [label]="'USERS.DETAIL.EDIT.STATUS_LABEL' | translate">
 						<app-select [formField]="userForm.status" [options]="statusOptions()" />
 					</app-form-field>
-				} @else {
+				} @else if (user(); as editedUser) {
 					<div class="flex flex-col items-start gap-1.5">
 						<span class="text-foreground text-sm font-medium">{{ 'USERS.DETAIL.EDIT.STATUS_LABEL' | translate }}</span>
-						<app-user-status-badge [status]="user().status" />
+						<app-user-status-badge [status]="editedUser.status" />
 					</div>
 				}
 
@@ -136,7 +139,8 @@ import { toConfirmChangesEntries } from './user-edit-changes.presenter'
 	`,
 })
 export class EditUserDrawer {
-	public readonly user = input.required<IManagedUser>()
+	/** The user being edited; set by `open()`. */
+	protected readonly user = signal<IManagedUser | null>(null)
 
 	private readonly usersStore = inject(UsersStore)
 	protected readonly rolesStore = inject(RolesStore)
@@ -150,19 +154,21 @@ export class EditUserDrawer {
 	 * Status is editable only with `admin:users:disable` and never on your own account (self-lockout).
 	 * Otherwise it is shown as a read-only label and never enters the diff or the request.
 	 */
-	protected readonly canEditStatus = computed(
-		() => !this.currentUser.is(this.user()) && !!this.authStore.currentUser()?.hasPermission('admin:users:disable'),
-	)
+	protected readonly canEditStatus = computed(() => {
+		const user = this.user()
+		return !!user && !this.currentUser.is(user) && !!this.authStore.currentUser()?.hasPermission('admin:users:disable')
+	})
 
 	/**
 	 * Roles that cannot be deselected. When an admin edits their OWN account, their admin role is locked
 	 * on so they cannot remove it and lock themselves out. The backend enforces the same rule.
 	 */
 	protected readonly lockedRoleIds = computed(() => {
-		if (!this.currentUser.is(this.user())) {
+		const user = this.user()
+		if (!user || !this.currentUser.is(user)) {
 			return []
 		}
-		const adminRole = this.user().roles.find((role) => role.code === ADMIN_ROLE_CODE)
+		const adminRole = user.roles.find((role) => role.code === ADMIN_ROLE_CODE)
 		return adminRole ? [adminRole.id] : []
 	})
 
@@ -194,10 +200,14 @@ export class EditUserDrawer {
 		}),
 	)
 
-	private readonly diff = computed(() => {
-		const edited = this.canEditStatus() ? this.model() : { ...this.model(), status: this.user().status }
+	private readonly diff = computed<UserEditDiff>(() => {
+		const user = this.user()
+		if (!user) {
+			return { patch: {}, changes: {} }
+		}
+		const edited = this.canEditStatus() ? this.model() : { ...this.model(), status: user.status }
 		const roleNames = new Map(this.rolesStore.allRoles().map((role) => [role.id, role.name]))
-		return computeUserEditDiff(this.user(), edited, roleNames)
+		return computeUserEditDiff(user, edited, roleNames)
 	})
 
 	protected readonly isFormValid = computed(() => this.userForm().errors().length === 0)
@@ -206,7 +216,7 @@ export class EditUserDrawer {
 		toConfirmChangesEntries(this.diff().changes, (key) => this.translation.instant(key)),
 	)
 	protected readonly confirmMessage = computed(() =>
-		this.translation.instant('USERS.DETAIL.EDIT.CONFIRM_DIALOG.MESSAGE').replace('{name}', this.user().fullName),
+		this.translation.instant('USERS.DETAIL.EDIT.CONFIRM_DIALOG.MESSAGE').replace('{name}', this.user()?.fullName ?? ''),
 	)
 
 	private readonly closingAfterSuccess = signal(false)
@@ -222,8 +232,8 @@ export class EditUserDrawer {
 
 	private readonly closeOnSuccessEffect = effect(() => this.closeOnSuccess())
 
-	public open(): void {
-		const user = this.user()
+	public open(user: IManagedUser): void {
+		this.user.set(user)
 		this.model.set({
 			email: user.email,
 			firstName: user.firstName,
@@ -247,8 +257,10 @@ export class EditUserDrawer {
 	}
 
 	protected onChangesConfirmed(): void {
+		const user = this.user()
+		if (!user) return
 		this.toast.markSubmitted()
-		this.usersStore.updateUser({ id: this.user().id, body: this.diff().patch })
+		this.usersStore.updateUser({ id: user.id, body: this.diff().patch })
 	}
 
 	private closeOnSuccess(): void {
