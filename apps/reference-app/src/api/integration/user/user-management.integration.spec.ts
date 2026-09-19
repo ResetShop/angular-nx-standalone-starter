@@ -253,6 +253,24 @@ describe('User management endpoints (/api/users)', () => {
 			expect(body.roles.map((role: { id: number }) => role.id)).toEqual([adminRoleId])
 		})
 
+		it('returns 400 for unknown role IDs', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'unknown-roles@test.com', firstName: 'Unknown', lastName: 'Roles' },
+			})
+			const created = await createResponse.json()
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { roleIds: [99999] },
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Roles not found')
+		})
+
 		it('returns 403 when an admin removes their own admin role', async () => {
 			const response = await authenticatedRequest(app, `/api/users/${adminUserId}`, {
 				method: 'PATCH',
