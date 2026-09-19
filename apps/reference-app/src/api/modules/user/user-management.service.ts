@@ -226,6 +226,9 @@ export class UserManagementService {
 	 * @throws Error if self-lockout or invalid transition
 	 */
 	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
+		// Fast path: a status request always targets a status change, so a self-targeted request is rejected
+		// before the user lookup. assertStatusChangeAllowed repeats this check because it is also the guard
+		// for updateUser, where the self-check only applies once the requested status differs from the current one.
 		if (id === params.changedBy) {
 			throw userManagementErrors.selfLockout()
 		}
