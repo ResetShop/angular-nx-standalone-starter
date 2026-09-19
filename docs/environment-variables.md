@@ -132,17 +132,18 @@ Zed injects `terminal.env` into every integrated terminal it opens, so `npm run 
 
 1. **Use the project-level settings file, not the user-level one.** A `terminal.env` block in the user settings (`~/.config/zed/settings.json`, or `%APPDATA%\Zed\settings.json` on Windows) applies to **every** project opened in Zed, so generic names like `PG_CONNECTION_STRING` would leak into unrelated projects. Create `.zed/settings.json` at the repo root instead:
 
-   ```jsonc
+   ```json
    {
    	"terminal": {
    		"env": {
    			"PG_CONNECTION_STRING": "postgresql://USER:PASSWORD@localhost:5432/DB_NAME",
-   			"PASETO_SECRET_KEY": "<openssl rand -hex 32>",
+   			// Replace with the output of `openssl rand -hex 32` (64 hex characters)
+   			"PASETO_SECRET_KEY": "REPLACE_WITH_64_HEX_CHARS",
    			"PASETO_ISSUER": "local-dev",
    			"COOKIE_SECURE": "false",
-   			"EMAIL_PROVIDER": "noop",
-   		},
-   	},
+   			"EMAIL_PROVIDER": "noop"
+   		}
+   	}
    }
    ```
 
@@ -168,7 +169,7 @@ Zed injects `terminal.env` into every integrated terminal it opens, so `npm run 
    ln -s <main-checkout>/.zed <worktree>/.zed
    ```
 
-   Deleting a junction or symlink removes only the link, never the main file.
+   To remove a link, delete only the link itself: `cmd /c rmdir <worktree>\.zed` on Windows, `rm <worktree>/.zed` (no trailing slash, no `-r`) on macOS / Linux. **Never** use `Remove-Item -Recurse` on the junction: in Windows PowerShell 5.1 it can delete the contents of the main checkout's `.zed` folder instead of just the link.
 
 4. **Keep the file Prettier-formatted.** The `check` target of `npm run ci` / `npm run ci:verify` runs `prettier --check` across the repo, and Prettier does not read `.git/info/exclude`, so an unformatted `.zed/settings.json` fails the local CI gate. Run `npx prettier --write .zed/settings.json` after editing it by hand.
 
@@ -192,6 +193,7 @@ Best for: per-directory automation. Requires [`direnv`](https://direnv.net/) ins
 1. Create a `.envrc` file at the repo root (this name is NOT matched by the `.env*` guard — `.envrc` is fine).
 2. Populate it with `export KEY=value` lines.
 3. Run `direnv allow` once per `.envrc` change.
+4. Keep the file out of git locally: `.envrc` is covered by neither `.gitignore` nor the `.env*` guard, so add a `.envrc` line to `.git/info/exclude` (a per-clone ignore file that is never committed).
 
 direnv loads/unloads the variables automatically when you `cd` in and out of the directory.
 
