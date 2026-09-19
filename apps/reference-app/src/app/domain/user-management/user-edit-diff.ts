@@ -1,0 +1,93 @@
+import type { UserStatus } from '@contracts/user/user.constants'
+import type { UpdateUserRequest } from '@contracts/user/user.types'
+import type { IManagedUser } from './managed-user.interface'
+
+/** The editable facets of a managed user, as held by the edit form. */
+export interface UserEditFormModel {
+	email: string
+	firstName: string
+	lastName: string
+	roleIds: number[]
+	status: UserStatus
+}
+
+/**
+ * The comparable value of each diffable field. Values are raw (not translated): profile fields
+ * verbatim, roles as the alphabetically sorted role names, status as the `UserStatus` value.
+ */
+export interface UserEditValues {
+	firstName: string
+	lastName: string
+	email: string
+	roles: string[]
+	status: UserStatus
+}
+
+export type UserEditField = keyof UserEditValues
+
+/**
+ * The changed fields only, keyed by field. Keys are inserted in display order, so iterating the
+ * record (e.g. `Object.entries`) yields the changes in the order they should be shown.
+ */
+export type UserEditChanges = { [F in UserEditField]?: { before: UserEditValues[F]; after: UserEditValues[F] } }
+
+export interface UserEditDiff {
+	/** Only the changed fields, ready to send as the single update request. */
+	patch: UpdateUserRequest
+	/** The before/after value of every changed field; empty when nothing changed. */
+	changes: UserEditChanges
+}
+
+/**
+ * Compares the edited form against the persisted user and returns both the minimal update payload
+ * and the before/after changes shown for confirmation. Text fields are compared trimmed; roles are
+ * compared as a set, so reordering the same roles is not a change.
+ *
+ * @param roleNames - Name lookup for every role id the form may contain
+ */
+export function computeUserEditDiff(
+	original: IManagedUser,
+	edited: UserEditFormModel,
+	roleNames: ReadonlyMap<number, string>,
+): UserEditDiff {
+	const patch: UpdateUserRequest = {}
+	const changes: UserEditChanges = {}
+
+	for (const field of ['firstName', 'lastName', 'email'] as const) {
+		const after = edited[field].trim()
+		if (after !== original[field]) {
+			patch[field] = after
+			changes[field] = { before: original[field], after }
+		}
+	}
+
+	const editedRoleIds = [...new Set(edited.roleIds)]
+	if (
+		!sameMembers(
+			original.roles.map((role) => role.id),
+			editedRoleIds,
+		)
+	) {
+		patch.roleIds = editedRoleIds
+		changes.roles = {
+			before: sortedNames(original.roles.map((role) => role.name)),
+			after: sortedNames(editedRoleIds.map((id) => roleNames.get(id) ?? String(id))),
+		}
+	}
+
+	if (edited.status !== original.status) {
+		patch.status = edited.status as UpdateUserRequest['status']
+		changes.status = { before: original.status, after: edited.status }
+	}
+
+	return { patch, changes }
+}
+
+function sameMembers(a: readonly number[], b: readonly number[]): boolean {
+	const setA = new Set(a)
+	return setA.size === new Set(b).size && b.every((id) => setA.has(id))
+}
+
+function sortedNames(names: string[]): string[] {
+	return [...names].sort((x, y) => x.localeCompare(y))
+}
