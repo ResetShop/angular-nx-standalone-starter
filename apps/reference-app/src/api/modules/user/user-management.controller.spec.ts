@@ -456,6 +456,122 @@ describe('User Management Controller', () => {
 			expect(loggerSecuritySpy.calls.some(([event]) => event === 'self_admin_removal_blocked')).toBe(true)
 		})
 
+		it('should apply profile, roles, and status in one service call and audit the status change', async () => {
+			mockUpdateUser.mockResolvedValue({
+				user: { ...testManagedUser, firstName: 'Updated', status: UserStatus.DISABLED },
+				previous: testManagedUser,
+			})
+			const body = { firstName: 'Updated', roleIds: [1], status: UserStatus.DISABLED }
+
+			const res = await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body),
+			})
+
+			expect(res.status).toBe(200)
+			expect(mockUpdateUser.calls).toHaveLength(1)
+			expect(mockUpdateUser.calls[0]).toEqual([1, body, ADMIN_USER_ID])
+			expect(loggerSecuritySpy.calls[0]).toEqual([
+				'user_updated',
+				{
+					userId: 1,
+					changes: {
+						email: undefined,
+						firstName: 'Updated',
+						lastName: undefined,
+						roleIds: [1],
+						oldStatus: UserStatus.ACTIVE,
+						newStatus: UserStatus.DISABLED,
+					},
+					actorId: ADMIN_USER_ID,
+				},
+			])
+		})
+
+		it('should take the audited previous status from the service result instead of a separate read', async () => {
+			mockUpdateUser.mockResolvedValue({
+				user: { ...testManagedUser, status: UserStatus.ACTIVE },
+				previous: { ...testManagedUser, status: UserStatus.DISABLED },
+			})
+
+			await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.ACTIVE }),
+			})
+
+			expect(mockGetUser.calls).toHaveLength(0)
+			expect(loggerSecuritySpy.calls[0][1]).toMatchObject({
+				changes: { oldStatus: UserStatus.DISABLED, newStatus: UserStatus.ACTIVE },
+			})
+		})
+
+		it('should return 403 for a status change when the actor lacks admin:users:disable', async () => {
+			mockGetUserPermissions.mockResolvedValue(
+				allUserPermissions.filter((p) => p.name !== permission('admin:users:disable')),
+			)
+
+			const res = await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ firstName: 'Updated', status: UserStatus.DISABLED }),
+			})
+
+			expect(res.status).toBe(403)
+			expect(mockUpdateUser.calls).toHaveLength(0)
+		})
+
+		it('should allow a profile-only update when the actor lacks admin:users:disable', async () => {
+			mockGetUserPermissions.mockResolvedValue(
+				allUserPermissions.filter((p) => p.name !== permission('admin:users:disable')),
+			)
+			mockUpdateUser.mockResolvedValue({ user: testManagedUser, previous: testManagedUser })
+
+			const res = await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ firstName: 'Updated' }),
+			})
+
+			expect(res.status).toBe(200)
+		})
+
+		it('should return 403 and audit when changing your own status', async () => {
+			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT))
+
+			const res = await app.request(`/users/${ADMIN_USER_ID}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
+			})
+
+			expect(res.status).toBe(403)
+			expect(loggerSecuritySpy.calls.some(([event]) => event === 'self_lockout_blocked')).toBe(true)
+		})
+
+		it('should return 422 for an invalid status transition', async () => {
+			mockUpdateUser.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.INVALID_TRANSITION))
+
+			const res = await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.DISABLED }),
+			})
+
+			expect(res.status).toBe(422)
+		})
+
+		it('should return 400 for an invalid status value', async () => {
+			const res = await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status: UserStatus.DELETED }),
+			})
+
+			expect(res.status).toBe(400)
+		})
+
 		it('should return 400 when role IDs are unknown', async () => {
 			mockUpdateUser.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 42`))
 
