@@ -55,20 +55,20 @@ describe('computeUserEditDiff', () => {
 	it('should return an empty patch and no changes when nothing changed', () => {
 		const result = computeUserEditDiff(buildUser(), formFrom(), ROLE_NAMES)
 
-		expect(result).toEqual({ patch: {}, changes: [] })
+		expect(result).toEqual({ patch: {}, changes: {} })
 	})
 
 	it('should include only the changed profile fields', () => {
 		const result = computeUserEditDiff(buildUser(), formFrom({ firstName: 'Grace' }), ROLE_NAMES)
 
 		expect(result.patch).toEqual({ firstName: 'Grace' })
-		expect(result.changes).toEqual([{ field: 'firstName', before: 'Ada', after: 'Grace' }])
+		expect(result.changes).toEqual({ firstName: { before: 'Ada', after: 'Grace' } })
 	})
 
 	it('should ignore surrounding whitespace in text fields', () => {
 		const result = computeUserEditDiff(buildUser(), formFrom({ email: '  ada@example.com ' }), ROLE_NAMES)
 
-		expect(result.changes).toEqual([])
+		expect(result.changes).toEqual({})
 	})
 
 	it('should send the trimmed value for a changed text field', () => {
@@ -81,14 +81,14 @@ describe('computeUserEditDiff', () => {
 		const result = computeUserEditDiff(buildUser(), formFrom({ roleIds: [2, 1] }), ROLE_NAMES)
 
 		expect(result.patch).toEqual({ roleIds: [2, 1] })
-		expect(result.changes).toEqual([{ field: 'roles', before: ['Admin'], after: ['Admin', 'Editor'] }])
+		expect(result.changes).toEqual({ roles: { before: ['Admin'], after: ['Admin', 'Editor'] } })
 	})
 
 	it('should report removing every role as an empty after list', () => {
 		const result = computeUserEditDiff(buildUser(), formFrom({ roleIds: [] }), ROLE_NAMES)
 
 		expect(result.patch).toEqual({ roleIds: [] })
-		expect(result.changes).toEqual([{ field: 'roles', before: ['Admin'], after: [] }])
+		expect(result.changes).toEqual({ roles: { before: ['Admin'], after: [] } })
 	})
 
 	it('should not treat a reordered but identical role set as a change', () => {
@@ -96,7 +96,7 @@ describe('computeUserEditDiff', () => {
 
 		const result = computeUserEditDiff(user, formFrom({ roleIds: [2, 1] }), ROLE_NAMES)
 
-		expect(result.changes).toEqual([])
+		expect(result.changes).toEqual({})
 	})
 
 	it('should de-duplicate role ids in the patch', () => {
@@ -108,14 +108,14 @@ describe('computeUserEditDiff', () => {
 	it('should fall back to the role id when a role name is unknown', () => {
 		const result = computeUserEditDiff(buildUser(), formFrom({ roleIds: [1, 99] }), ROLE_NAMES)
 
-		expect(result.changes).toEqual([{ field: 'roles', before: ['Admin'], after: ['99', 'Admin'] }])
+		expect(result.changes).toEqual({ roles: { before: ['Admin'], after: ['99', 'Admin'] } })
 	})
 
 	it('should include a changed status', () => {
 		const result = computeUserEditDiff(buildUser(), formFrom({ status: UserStatus.DISABLED }), ROLE_NAMES)
 
 		expect(result.patch).toEqual({ status: UserStatus.DISABLED })
-		expect(result.changes).toEqual([{ field: 'status', before: UserStatus.ACTIVE, after: UserStatus.DISABLED }])
+		expect(result.changes).toEqual({ status: { before: UserStatus.ACTIVE, after: UserStatus.DISABLED } })
 	})
 
 	it('should combine every changed field in display order', () => {
@@ -131,6 +131,6 @@ describe('computeUserEditDiff', () => {
 			roleIds: [2],
 			status: UserStatus.DISABLED,
 		})
-		expect(result.changes.map((change) => change.field)).toEqual(['firstName', 'email', 'roles', 'status'])
+		expect(Object.keys(result.changes)).toEqual(['firstName', 'email', 'roles', 'status'])
 	})
 })

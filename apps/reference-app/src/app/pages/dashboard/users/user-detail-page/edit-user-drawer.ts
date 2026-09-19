@@ -10,20 +10,13 @@ import {
 import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
-import {
-	computeUserEditDiff,
-	type UserEditChange,
-	type UserEditFormModel,
-} from '@domain/user-management/user-edit-diff'
+import { computeUserEditDiff, type UserEditFormModel } from '@domain/user-management/user-edit-diff'
 import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Alert, AlertDescription } from '@resetshop/ui/alert/alert'
 import { Button } from '@resetshop/ui/button/button'
-import {
-	ConfirmChangesDialog,
-	type ConfirmChangesEntry,
-} from '@resetshop/ui/confirm-changes-dialog/confirm-changes-dialog'
+import { ConfirmChangesDialog } from '@resetshop/ui/confirm-changes-dialog/confirm-changes-dialog'
 import { Drawer } from '@resetshop/ui/drawer/drawer'
 import { DrawerFooter } from '@resetshop/ui/drawer/drawer-footer'
 import { FormField } from '@resetshop/ui/form-field/form-field'
@@ -37,6 +30,7 @@ import { UsersStore } from '@store/users/users.store'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../../dashboard.constants'
 import { RoleSelector } from '../role-selector/role-selector'
 import { UserStatusBadge } from '../user-status-badge/user-status-badge'
+import { toConfirmChangesEntries } from './user-edit-changes.presenter'
 
 /**
  * Single edit surface for a managed user's profile, roles, and status. Submitting never persists
@@ -207,8 +201,10 @@ export class EditUserDrawer {
 	})
 
 	protected readonly isFormValid = computed(() => this.userForm().errors().length === 0)
-	protected readonly hasChanges = computed(() => this.diff().changes.length > 0)
-	protected readonly confirmEntries = computed(() => this.diff().changes.map((change) => this.toConfirmEntry(change)))
+	protected readonly hasChanges = computed(() => Object.keys(this.diff().changes).length > 0)
+	protected readonly confirmEntries = computed(() =>
+		toConfirmChangesEntries(this.diff().changes, (key) => this.translation.instant(key)),
+	)
 	protected readonly confirmMessage = computed(() =>
 		this.translation.instant('USERS.DETAIL.EDIT.CONFIRM_DIALOG.MESSAGE').replace('{name}', this.user().fullName),
 	)
@@ -267,36 +263,5 @@ export class EditUserDrawer {
 				}, parseDurationToMs(DRAWER_CLOSE_AFTER_SUCCESS_DELAY))
 			}
 		})
-	}
-
-	private toConfirmEntry(change: UserEditChange): ConfirmChangesEntry {
-		const t = (key: Parameters<Translation['instant']>[0]) => this.translation.instant(key)
-		switch (change.field) {
-			case 'roles': {
-				const format = (names: string[]) => (names.length ? names.join(', ') : t('USERS.DETAIL.EDIT.NONE'))
-				return { label: t('USERS.DETAIL.ROLES.TITLE'), before: format(change.before), after: format(change.after) }
-			}
-			case 'status': {
-				const statusKeys = {
-					[UserStatus.ACTIVE]: 'COMMON.STATUS.ACTIVE',
-					[UserStatus.DISABLED]: 'COMMON.STATUS.DISABLED',
-					[UserStatus.DELETED]: 'COMMON.STATUS.DELETED',
-				} as const
-				const format = (status: UserStatus) => t(statusKeys[status])
-				return {
-					label: t('USERS.DETAIL.EDIT.STATUS_LABEL'),
-					before: format(change.before),
-					after: format(change.after),
-				}
-			}
-			default: {
-				const labelKeys = {
-					firstName: 'USERS.DETAIL.PROFILE.FIRST_NAME',
-					lastName: 'USERS.DETAIL.PROFILE.LAST_NAME',
-					email: 'USERS.DETAIL.PROFILE.EMAIL',
-				} as const
-				return { label: t(labelKeys[change.field]), before: change.before, after: change.after }
-			}
-		}
 	}
 }
