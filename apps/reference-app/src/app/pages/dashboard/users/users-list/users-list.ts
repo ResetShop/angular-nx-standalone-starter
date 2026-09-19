@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
-import { Router } from '@angular/router'
+import { RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
@@ -19,6 +19,7 @@ import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateUserDrawer } from '../create-user-drawer/create-user-drawer'
+import { EditUserDrawer } from '../edit-user-drawer/edit-user-drawer'
 import { UserStatusBadge } from '../user-status-badge/user-status-badge'
 import { UserCard } from './user-card'
 
@@ -32,9 +33,11 @@ import { UserCard } from './user-card'
 		DataTable,
 		DataTableCardDef,
 		DataTableCellDef,
+		EditUserDrawer,
 		HasPermissionDirective,
 		PageShell,
 		Pagination,
+		RouterLink,
 		RowActionsMenu,
 		TranslatePipe,
 		UserCard,
@@ -81,6 +84,12 @@ import { UserCard } from './user-card'
 				cardsBelow="sm"
 				tabBleed="4"
 			>
+				<ng-template appDataTableCellDef="fullName" let-value let-row="row">
+					<a [routerLink]="['/dashboard/users', row.id]" class="text-foreground font-medium hover:underline">
+						{{ value }}
+					</a>
+				</ng-template>
+
 				<ng-template appDataTableCellDef="status" let-value>
 					<app-user-status-badge [status]="value" />
 				</ng-template>
@@ -94,7 +103,7 @@ import { UserCard } from './user-card'
 
 				<ng-template appDataTableCardDef let-row>
 					<app-user-card
-						(edit)="goToDetail(row)"
+						(edit)="openEdit(row)"
 						(delete)="confirmDelete(row)"
 						(resetPassword)="confirmResetPassword(row)"
 						[user]="row"
@@ -114,6 +123,8 @@ import { UserCard } from './user-card'
 		</app-page-shell>
 
 		<app-create-user-drawer #createDrawer />
+
+		<app-edit-user-drawer #editDrawer />
 
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
@@ -139,9 +150,9 @@ export default class UsersList {
 
 	private readonly authStore = inject(AuthStore)
 	private readonly translation = inject(Translation)
-	private readonly router = inject(Router)
 	protected readonly currentUser = inject(CurrentUser)
 
+	private readonly editDrawer = viewChild.required<EditUserDrawer>('editDrawer')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialog')
 	private readonly deleteToast = createMutationToast(this.translation.instant('USERS.DELETE_TOAST'))
 
@@ -199,8 +210,8 @@ export default class UsersList {
 		this.store.setSearchQuery(input.value)
 	}
 
-	protected goToDetail(user: IManagedUser): void {
-		void this.router.navigate(['/dashboard/users', user.id])
+	protected openEdit(user: IManagedUser): void {
+		this.editDrawer().open(user)
 	}
 
 	protected getRowActions(row: IManagedUser): readonly (readonly RowAction[])[] {
@@ -211,7 +222,7 @@ export default class UsersList {
 		if (user?.hasPermission('admin:users:update')) {
 			nonDestructive.push({
 				label: this.translation.instant('COMMON.EDIT'),
-				onSelect: () => this.goToDetail(row),
+				onSelect: () => this.openEdit(row),
 			})
 		}
 
