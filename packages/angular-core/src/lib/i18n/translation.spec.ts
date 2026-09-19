@@ -123,6 +123,15 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					ROLES_LABEL: 'Roles',
 					SUCCESS_TOAST: 'Roles updated',
 				},
+				EDIT: {
+					BUTTON: 'Edit user',
+					DRAWER_TITLE: 'Edit User',
+					STATUS_LABEL: 'Status',
+					REVIEW: 'Review',
+					NONE: 'None',
+					SUCCESS_TOAST: 'Updated',
+					CONFIRM_DIALOG: { TITLE: 'Confirm', MESSAGE: 'Review', CONFIRM: 'Save', BEFORE: 'Before', AFTER: 'After' },
+				},
 				ACCOUNT: {
 					TITLE: 'Account',
 					RESET_PASSWORD: 'Reset',
@@ -358,6 +367,21 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					DRAWER_TITLE: 'Editar roles',
 					ROLES_LABEL: 'Roles',
 					SUCCESS_TOAST: 'Roles actualizados',
+				},
+				EDIT: {
+					BUTTON: 'Editar usuario',
+					DRAWER_TITLE: 'Editar usuario',
+					STATUS_LABEL: 'Estado',
+					REVIEW: 'Revisar',
+					NONE: 'Ninguno',
+					SUCCESS_TOAST: 'Actualizado',
+					CONFIRM_DIALOG: {
+						TITLE: 'Confirmar',
+						MESSAGE: 'Revisar',
+						CONFIRM: 'Guardar',
+						BEFORE: 'Antes',
+						AFTER: 'Después',
+					},
 				},
 				ACCOUNT: {
 					TITLE: 'Cuenta',

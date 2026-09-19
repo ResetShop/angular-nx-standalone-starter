@@ -143,6 +143,21 @@ const en: TranslationSchema = {
 				ROLES_LABEL: 'Roles',
 				SUCCESS_TOAST: 'Roles updated successfully.',
 			},
+			EDIT: {
+				BUTTON: 'Edit user',
+				DRAWER_TITLE: 'Edit User',
+				STATUS_LABEL: 'Status',
+				REVIEW: 'Review changes',
+				NONE: 'None',
+				SUCCESS_TOAST: 'User updated successfully.',
+				CONFIRM_DIALOG: {
+					TITLE: 'Confirm changes',
+					MESSAGE: "Review the changes to '{name}' before saving them.",
+					CONFIRM: 'Save changes',
+					BEFORE: 'Before',
+					AFTER: 'After',
+				},
+			},
 			ACCOUNT: {
 				TITLE: 'Account Actions',
 				RESET_PASSWORD: 'Send password reset link',
