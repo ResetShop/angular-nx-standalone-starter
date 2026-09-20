@@ -11,8 +11,13 @@ export interface ConfirmChangesEntry {
 /**
  * A confirmation dialog that lists pending changes as before → after rows and asks the user to
  * confirm them before they are persisted. It composes `ConfirmDialog` (native `<dialog>`, stacking,
- * ESC-to-cancel, animation) and only adds the change list. All text arrives through inputs, so the
- * component renders identically with or without a translation provider.
+ * ESC-to-cancel, animation) and only adds the change list.
+ *
+ * The caller owns translation: every string — the dialog texts, the screen-reader prefixes, and each
+ * row's label and values — arrives already resolved through an input, so the component renders
+ * identically with or without a translation provider. The input defaults are English, which keeps
+ * Storybook and untranslated hosts readable but means an omitted input shows English rather than
+ * failing loudly; pass all of them from a translated host.
  */
 @Component({
 	selector: 'app-confirm-changes-dialog',

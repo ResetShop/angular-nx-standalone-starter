@@ -24,20 +24,26 @@ confirm them before they are persisted. It composes \`ConfirmDialog\`, so it sha
 
 - **Diff rows**: one \`<dt>\`/\`<dd>\` pair per changed field, previous value struck through
 - **Accessible**: screen-reader "Before:" / "After:" prefixes (configurable via \`beforeLabel\` / \`afterLabel\`)
-- **Translation-agnostic**: all text arrives through inputs, already resolved by the caller
+- **Caller owns translation**: all text arrives through inputs, already resolved by the caller — including each row's \`label\`, \`before\` and \`after\`. The defaults are English, so an omitted input renders English instead of failing loudly.
 - **Imperative API**: \`dialog.show()\` / \`dialog.close()\` via template ref
 
 ## Usage
 
 \`\`\`html
 <app-confirm-changes-dialog #dialog
-  title="Confirm changes"
-  message="Review the changes before saving."
-  [changes]="changes"
-  confirmText="Save changes"
+  [title]="'USERS.DETAIL.EDIT.CONFIRM_DIALOG.TITLE' | translate"
+  [message]="confirmMessage()"
+  [changes]="changes()"
+  [beforeLabel]="'USERS.DETAIL.EDIT.CONFIRM_DIALOG.BEFORE' | translate"
+  [afterLabel]="'USERS.DETAIL.EDIT.CONFIRM_DIALOG.AFTER' | translate"
+  [confirmText]="'USERS.DETAIL.EDIT.CONFIRM_DIALOG.CONFIRM' | translate"
+  [cancelText]="'COMMON.CANCEL' | translate"
   (confirmed)="onSave()"
 />
 \`\`\`
+
+Row labels and values are translated by the host too — resolve them when building the
+\`ConfirmChangesEntry[]\`, including any placeholder for an empty value.
 				`,
 			},
 			canvas: {
