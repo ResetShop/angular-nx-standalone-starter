@@ -33,6 +33,12 @@ describe('toConfirmChangesEntries', () => {
 		expect(entries).toEqual([{ label: 'Roles', before: 'Admin, Editor', after: 'None' }])
 	})
 
+	it('renders a single role name without a separator', () => {
+		const entries = toConfirmChangesEntries({ roles: { before: [], after: ['Admin'] } }, translate)
+
+		expect(entries).toEqual([{ label: 'Roles', before: 'None', after: 'Admin' }])
+	})
+
 	it('translates status values', () => {
 		const entries = toConfirmChangesEntries(
 			{ status: { before: UserStatus.ACTIVE, after: UserStatus.DISABLED } },
