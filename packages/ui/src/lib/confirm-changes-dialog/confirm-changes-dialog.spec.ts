@@ -56,6 +56,13 @@ describe('ConfirmChangesDialog', () => {
 		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
 	})
 
+	it('should render no rows when there is nothing to confirm', async () => {
+		await renderAndOpen({ changes: [] })
+
+		expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+		expect(screen.queryAllByRole('term')).toHaveLength(0)
+	})
+
 	it('should render the title and message', async () => {
 		await renderAndOpen()
 
