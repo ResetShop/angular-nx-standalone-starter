@@ -3,9 +3,9 @@ import { ConfirmDialog } from '../confirm-dialog/confirm-dialog'
 
 /** One changed field, with display-ready (already translated/formatted) before and after values. */
 export interface ConfirmChangesEntry {
-	label: string
-	before: string
-	after: string
+	readonly label: string
+	readonly before: string
+	readonly after: string
 }
 
 /**
