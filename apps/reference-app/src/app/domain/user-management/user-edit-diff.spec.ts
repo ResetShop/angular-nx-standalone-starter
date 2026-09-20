@@ -118,6 +118,12 @@ describe('computeUserEditDiff', () => {
 		expect(result.changes).toEqual({ status: { before: UserStatus.ACTIVE, after: UserStatus.DISABLED } })
 	})
 
+	it('should ignore a target status the update endpoint cannot set', () => {
+		const result = computeUserEditDiff(buildUser(), formFrom({ status: UserStatus.DELETED }), ROLE_NAMES)
+
+		expect(result).toEqual({ patch: {}, changes: {} })
+	})
+
 	it('should combine every changed field in display order', () => {
 		const result = computeUserEditDiff(
 			buildUser(),

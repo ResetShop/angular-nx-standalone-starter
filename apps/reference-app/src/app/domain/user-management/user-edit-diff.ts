@@ -1,4 +1,4 @@
-import type { UserStatus } from '@contracts/user/user.constants'
+import { UserStatus } from '@contracts/user/user.constants'
 import type { UpdateUserRequest } from '@contracts/user/user.types'
 import type { IManagedUser } from './managed-user.interface'
 
@@ -41,7 +41,8 @@ export interface UserEditDiff {
 /**
  * Compares the edited form against the persisted user and returns both the minimal update payload
  * and the before/after changes shown for confirmation. Text fields are compared trimmed; roles are
- * compared as a set, so reordering the same roles is not a change.
+ * compared as a set, so reordering the same roles is not a change. A target status the update endpoint
+ * cannot set (`deleted`) is not diffable and never reaches the patch.
  *
  * @param roleNames - Name lookup for every role id the form may contain
  */
@@ -75,12 +76,19 @@ export function computeUserEditDiff(
 		}
 	}
 
-	if (edited.status !== original.status) {
-		patch.status = edited.status as UpdateUserRequest['status']
+	if (edited.status !== original.status && isEditableStatus(edited.status)) {
+		patch.status = edited.status
 		changes.status = { before: original.status, after: edited.status }
 	}
 
 	return { patch, changes }
+}
+
+/** The statuses the update endpoint accepts — `deleted` is reached only through the delete endpoint. */
+type EditableUserStatus = NonNullable<UpdateUserRequest['status']>
+
+function isEditableStatus(status: UserStatus): status is EditableUserStatus {
+	return status !== UserStatus.DELETED
 }
 
 function sameMembers(a: readonly number[], b: readonly number[]): boolean {
