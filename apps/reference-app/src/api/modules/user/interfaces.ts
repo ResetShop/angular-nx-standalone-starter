@@ -63,6 +63,16 @@ export interface UpdateUserParams {
 }
 
 /**
+ * Outcome of an update: the persisted user after the write, plus the snapshot the service read and
+ * guarded against before writing. Audit logging derives before/after values from this pair, so the
+ * logged "before" is exactly the state the update acted on.
+ */
+export interface UserUpdateResult {
+	user: ManagedUserData
+	previous: ManagedUserData
+}
+
+/**
  * Parameters for updating a user's account status
  */
 export interface UpdateUserStatusParams {
@@ -236,8 +246,8 @@ export interface UserManagementService {
 	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	getUser(id: number): Promise<ManagedUserData>
 	createUser(params: CreateUserParams, actorId: number): Promise<CreateUserResponse>
-	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
-	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
+	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<UserUpdateResult>
+	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<UserUpdateResult>
 	deleteUser(id: number, currentUserId: number): Promise<void>
 	/**
 	 * Resets the user's password and returns a confirmation message plus a `sendResetEmail` thunk the

@@ -253,6 +253,43 @@ describe('User management endpoints (/api/users)', () => {
 			expect(body.roles.map((role: { id: number }) => role.id)).toEqual([adminRoleId])
 		})
 
+		it('returns 400 for unknown role IDs', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'unknown-roles@test.com', firstName: 'Unknown', lastName: 'Roles' },
+			})
+			const created = await createResponse.json()
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { roleIds: [99999] },
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Roles not found')
+		})
+
+		it('returns 400 when a non-removable role would be dropped', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'non-removable@test.com', firstName: 'Non', lastName: 'Removable', roleIds: [adminRoleId] },
+			})
+			const created = await createResponse.json()
+
+			// The seeded Administrator role is non-removable, so replacing the set without it must fail.
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { roleIds: [] },
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Cannot remove non-removable roles')
+		})
+
 		it('returns 403 when an admin removes their own admin role', async () => {
 			const response = await authenticatedRequest(app, `/api/users/${adminUserId}`, {
 				method: 'PATCH',

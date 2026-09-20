@@ -11,7 +11,13 @@ import { InMemoryContainer } from '../../container/container.mock'
 import type { PaginatedResponse } from '../../interfaces'
 import { setAuthenticatedUser } from '../../middlewares/verify-access-token.middleware.mock'
 import type { PermissionData, RoleData } from '../access/role/interfaces'
-import type { CreateUserParams, ManagedUserData, UpdateUserParams, UpdateUserStatusParams } from './interfaces'
+import type {
+	CreateUserParams,
+	ManagedUserData,
+	UpdateUserParams,
+	UpdateUserStatusParams,
+	UserUpdateResult,
+} from './interfaces'
 import userManagementController from './user-management.controller'
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
 import { USER_ROLE_ERRORS } from './user-role.errors'
@@ -24,8 +30,8 @@ describe('User Management Controller', () => {
 	>()
 	const mockGetUser = fn<[number], Promise<ManagedUserData>>()
 	const mockCreateUser = fn<[CreateUserParams], Promise<CreateUserResponse>>()
-	const mockUpdateUser = fn<[number, UpdateUserParams], Promise<ManagedUserData>>()
-	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData>>()
+	const mockUpdateUser = fn<[number, UpdateUserParams, number], Promise<UserUpdateResult>>()
+	const mockUpdateUserStatus = fn<[number, UpdateUserStatusParams], Promise<UserUpdateResult>>()
 	const mockDeleteUser = fn<[number, number], Promise<void>>()
 	const mockResetPassword = fn<[number, number], Promise<{ message: string; sendResetEmail: () => Promise<void> }>>()
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>()
@@ -383,7 +389,7 @@ describe('User Management Controller', () => {
 	describe('PATCH /users/:id', () => {
 		it('should update user details', async () => {
 			const updatedUser = { ...testManagedUser, firstName: 'Updated' }
-			mockUpdateUser.mockResolvedValue(updatedUser)
+			mockUpdateUser.mockResolvedValue({ user: updatedUser, previous: testManagedUser })
 
 			const res = await app.request('/users/1', {
 				method: 'PATCH',
@@ -449,16 +455,36 @@ describe('User Management Controller', () => {
 			expect(data.error).toContain(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL)
 			expect(loggerSecuritySpy.calls.some(([event]) => event === 'self_admin_removal_blocked')).toBe(true)
 		})
+
+		it('should return 400 when role IDs are unknown', async () => {
+			mockUpdateUser.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.ROLES_NOT_FOUND}: 42`))
+
+			const res = await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [42] }),
+			})
+
+			expect(res.status).toBe(400)
+		})
+
+		it('should return 400 when a non-removable role would be dropped', async () => {
+			mockUpdateUser.mockRejectedValue(new Error(`${USER_ROLE_ERRORS.NON_REMOVABLE_ROLES}: 1`))
+
+			const res = await app.request('/users/1', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ roleIds: [] }),
+			})
+
+			expect(res.status).toBe(400)
+		})
 	})
 
 	describe('PATCH /users/:id/status', () => {
-		beforeEach(() => {
-			mockGetUser.mockResolvedValue(testManagedUser)
-		})
-
 		it('should update user status', async () => {
 			const disabledUser = { ...testManagedUser, status: UserStatus.DISABLED }
-			mockUpdateUserStatus.mockResolvedValue(disabledUser)
+			mockUpdateUserStatus.mockResolvedValue({ user: disabledUser, previous: testManagedUser })
 
 			const res = await app.request('/users/1/status', {
 				method: 'PATCH',
@@ -470,7 +496,12 @@ describe('User Management Controller', () => {
 			const data = await res.json()
 			expect(data.status).toBe(UserStatus.DISABLED)
 			expect(mockUpdateUserStatus.calls[0]).toEqual([1, { status: UserStatus.DISABLED, changedBy: ADMIN_USER_ID }])
-			expect(loggerSecuritySpy.calls[0][0]).toBe('user_status_changed')
+			expect(loggerSecuritySpy.calls[0]).toEqual([
+				'user_status_changed',
+				{ userId: 1, oldStatus: UserStatus.ACTIVE, newStatus: UserStatus.DISABLED, actorId: ADMIN_USER_ID },
+			])
+			// The audited previous status comes from the service result, not a separate read.
+			expect(mockGetUser.calls).toHaveLength(0)
 		})
 
 		it('should return 403 when trying to change own status', async () => {
