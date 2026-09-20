@@ -552,6 +552,17 @@ describe('UserManagementService', () => {
 			expect(mockUpdateStatus.calls).toEqual([[1, { status: UserStatus.DISABLED, changedBy: 999 }, testTx]])
 		})
 
+		it('should open no transaction when the request carries no writable field', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+
+			await service.updateUser(1, {}, 999)
+
+			expect(transactionCount).toBe(0)
+			expect(mockUpdate.calls).toHaveLength(0)
+			expect(mockReplaceUserRoles.calls).toHaveLength(0)
+			expect(mockUpdateStatus.calls).toHaveLength(0)
+		})
+
 		it('should propagate a role-replace failure raised inside the transaction and skip the status write', async () => {
 			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
 			mockUpdate.mockResolvedValue(testUser)

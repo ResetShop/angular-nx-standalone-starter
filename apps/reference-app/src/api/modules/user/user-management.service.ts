@@ -201,18 +201,21 @@ export class UserManagementService {
 			this.assertStatusChangeAllowed(existingUser, statusChange, actorId)
 		}
 
-		await this.userManagementRepository.runInTransaction(async (tx) => {
-			// Profile history is written only when a profile field is provided (no spurious entry on a roles-only edit).
-			if (params.email !== undefined || params.firstName !== undefined || params.lastName !== undefined) {
-				await this.userManagementRepository.update(id, params, actorId, tx)
-			}
-			if (params.roleIds !== undefined) {
-				await this.userRoleRepository.replaceUserRoles(id, params.roleIds, actorId, tx)
-			}
-			if (statusChange) {
-				await this.writeStatusChange(id, { status: statusChange, changedBy: actorId }, tx)
-			}
-		})
+		// Profile history is written only when a profile field is provided (no spurious entry on a roles-only edit).
+		const writesProfile = params.email !== undefined || params.firstName !== undefined || params.lastName !== undefined
+		if (writesProfile || params.roleIds !== undefined || statusChange) {
+			await this.userManagementRepository.runInTransaction(async (tx) => {
+				if (writesProfile) {
+					await this.userManagementRepository.update(id, params, actorId, tx)
+				}
+				if (params.roleIds !== undefined) {
+					await this.userRoleRepository.replaceUserRoles(id, params.roleIds, actorId, tx)
+				}
+				if (statusChange) {
+					await this.writeStatusChange(id, { status: statusChange, changedBy: actorId }, tx)
+				}
+			})
+		}
 
 		return { user: await this.getUser(id), previous: existingUser }
 	}
