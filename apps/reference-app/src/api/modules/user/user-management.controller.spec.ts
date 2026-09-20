@@ -520,6 +520,10 @@ describe('User Management Controller', () => {
 
 			expect(res.status).toBe(403)
 			expect(mockUpdateUser.calls).toHaveLength(0)
+			expect(loggerSecuritySpy.calls[0]).toEqual([
+				'status_change_blocked',
+				{ actorId: ADMIN_USER_ID, userId: 1, reason: 'Missing admin:users:disable' },
+			])
 		})
 
 		it('should allow a profile-only update when the actor lacks admin:users:disable', async () => {

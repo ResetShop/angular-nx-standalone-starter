@@ -120,6 +120,7 @@ registerRoute(app, updateUserRoute, async (c) => {
 	// The route middleware only requires admin:users:update; a status change carries the same
 	// admin:users:disable requirement as the dedicated status route, so it cannot be bypassed here.
 	if (body.status !== undefined && !(await hasPermission(c, permission('admin:users:disable')))) {
+		logger.security('status_change_blocked', { actorId, userId: id, reason: 'Missing admin:users:disable' })
 		return c.json<ErrorResponse>({ error: 'Forbidden' }, 403)
 	}
 
