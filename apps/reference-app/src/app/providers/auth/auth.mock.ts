@@ -11,6 +11,7 @@ import type {
 	ResetPasswordRequest,
 	ResetPasswordResponse,
 } from '@contracts/auth/auth.types'
+import type { AuthUser, UpdateProfileRequest } from '@contracts/user/user.types'
 import type { Observable } from 'rxjs'
 import { of, throwError } from 'rxjs'
 import type { AuthApi } from './auth.interface'
@@ -144,6 +145,21 @@ export class InMemoryAuthApi implements AuthApi {
 		}
 
 		return of({ message: 'Your password has been reset. You can now sign in.' })
+	}
+
+	public updateProfile(params: UpdateProfileRequest): Observable<AuthUser> {
+		const error = this.errors.get('updateProfile')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		if (!this.authenticatedUser) {
+			return throwError(() => new Error('No session'))
+		}
+
+		this.authenticatedUser = { ...this.authenticatedUser, ...params }
+		const { id, email, firstName, lastName, roles } = this.authenticatedUser
+		return of({ id, email, firstName, lastName, roles })
 	}
 }
 

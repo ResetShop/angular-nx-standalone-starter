@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http'
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing'
 import { TestBed } from '@angular/core/testing'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type { AuthUser } from '@contracts/user/user.types'
 import { HttpAuthApi } from './auth'
 
 describe('HttpAuthApi', () => {
@@ -118,6 +119,22 @@ describe('HttpAuthApi', () => {
 
 			const req = httpMock.expectOne('/api/auth/login')
 			req.flush({ code: 'INVALID_CREDENTIALS' }, { status: 401, statusText: 'Unauthorized' })
+		})
+	})
+
+	describe('updateProfile', () => {
+		it('should send the name fields with PATCH to /api/users/me', () => {
+			const updated: AuthUser = { id: 1, email: 'test@example.com', firstName: 'New', lastName: 'Name', roles: [] }
+
+			service.updateProfile({ firstName: 'New', lastName: 'Name' }).subscribe((response) => {
+				expect(response).toEqual(updated)
+			})
+
+			const req = httpMock.expectOne('/api/users/me')
+			expect(req.request.method).toBe('PATCH')
+			expect(req.request.body).toEqual({ firstName: 'New', lastName: 'Name' })
+
+			req.flush(updated)
 		})
 	})
 })

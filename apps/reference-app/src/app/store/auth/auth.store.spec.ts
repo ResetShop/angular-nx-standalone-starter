@@ -32,6 +32,7 @@ describe('AuthStore', () => {
 			changePassword: fn(),
 			forgotPassword: fn(),
 			resetPassword: fn(),
+			updateProfile: fn(),
 		}
 		loggerMock = { info: fn(), warn: fn(), error: fn(), security: fn() }
 
