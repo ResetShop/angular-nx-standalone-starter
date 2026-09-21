@@ -265,6 +265,16 @@ export class AuthService implements AuthServiceInterface {
 	}
 
 	/**
+	 * Reads the authenticated user's current identity from the database.
+	 *
+	 * @param userId - The user's primary key (the access token's `sub`)
+	 * @returns The stored identity, or null when the account no longer exists
+	 */
+	public async getSessionUser(userId: number): Promise<UserData | null> {
+		return this.userRepository.findById(userId)
+	}
+
+	/**
 	 * Logs out a user by revoking all their refresh tokens.
 	 * Also cleans up any expired tokens for the user.
 	 *

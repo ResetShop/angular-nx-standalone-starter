@@ -228,20 +228,24 @@ registerRoute(app, resetPasswordRoute, async (c) => {
 // Returns the current authenticated user's information with roles and permissions
 // Useful for verifying token validity, getting user data, and frontend authorization
 registerRoute(app, meRoute, async (c) => {
-	const { userRoleService, authPasswordService } = container.cradle
-	const user = (c as AuthenticatedContext).user
+	const { authService, userRoleService, authPasswordService } = container.cradle
+	const tokenUser = (c as AuthenticatedContext).user
+
+	if (!tokenUser) {
+		return c.json({ error: 'Unauthorized' }, 401)
+	}
+
+	const userId = Number(tokenUser.sub)
+
+	const [user, roles, mustChangePassword] = await Promise.all([
+		authService.getSessionUser(userId),
+		userRoleService.getUserRolesWithPermissions(userId),
+		authPasswordService.getMustChangePassword(userId),
+	])
 
 	if (!user) {
 		return c.json({ error: 'Unauthorized' }, 401)
 	}
-
-	const userId = Number(user.sub)
-
-	// Roles (with nested permissions) and the must-change flag are independent reads — run in parallel.
-	const [roles, mustChangePassword] = await Promise.all([
-		userRoleService.getUserRolesWithPermissions(userId),
-		authPasswordService.getMustChangePassword(userId),
-	])
 
 	return c.json<MeResponse>({
 		id: userId,

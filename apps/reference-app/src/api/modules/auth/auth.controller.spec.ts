@@ -5,6 +5,7 @@ import { container } from '../../container/container'
 import { InMemoryContainer } from '../../container/container.mock'
 import { setAuthenticatedUser } from '../../middlewares/verify-access-token.middleware.mock'
 import type { RoleWithPermissions } from '../access/role/interfaces'
+import type { UserData } from '../user/interfaces'
 import authController from './auth.controller'
 
 describe('Auth Controller - /me endpoint', () => {
@@ -28,12 +29,25 @@ describe('Auth Controller - /me endpoint', () => {
 
 	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>()
 	const mockGetMustChangePassword = fn<[number], Promise<boolean>>()
+	const mockGetSessionUser = fn<[number], Promise<UserData | null>>()
+
+	const storedUser: UserData = {
+		id: 1,
+		email: 'test@example.com',
+		firstName: 'John',
+		lastName: 'Doe',
+		status: 'active',
+	}
 
 	beforeEach(() => {
 		clearAllMocks()
 		mockGetMustChangePassword.mockResolvedValue(false)
+		mockGetSessionUser.mockResolvedValue(storedUser)
 		container.use(
 			new InMemoryContainer({
+				authService: {
+					getSessionUser: mockGetSessionUser,
+				},
 				userRoleService: {
 					getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
 				},
@@ -111,6 +125,37 @@ describe('Auth Controller - /me endpoint', () => {
 		expect(res.status).toBe(200)
 		const data = await res.json()
 		expect(data.mustChangePassword).toBe(true)
+	})
+
+	it('should return the stored identity rather than the token claims', async () => {
+		mockGetUserRolesWithPermissions.mockResolvedValue([])
+		mockGetSessionUser.mockResolvedValue({
+			...storedUser,
+			email: 'renamed@example.com',
+			firstName: 'Johnny',
+			lastName: 'Renamed',
+		})
+
+		const res = await app.request('/auth/me', {
+			headers: { Authorization: 'Bearer valid-token' },
+		})
+
+		expect(res.status).toBe(200)
+		const data = await res.json()
+		expect(data).toMatchObject({ id: 1, email: 'renamed@example.com', firstName: 'Johnny', lastName: 'Renamed' })
+		expect(mockGetSessionUser.calls).toEqual([[1]])
+	})
+
+	it('should return 401 when the account no longer exists', async () => {
+		mockGetUserRolesWithPermissions.mockResolvedValue([])
+		mockGetSessionUser.mockResolvedValue(null)
+
+		const res = await app.request('/auth/me', {
+			headers: { Authorization: 'Bearer valid-token' },
+		})
+
+		expect(res.status).toBe(401)
+		expect((await res.json()).error).toBe('Unauthorized')
 	})
 
 	it('should return empty roles array when user has no roles', async () => {
