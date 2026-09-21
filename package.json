@@ -42,8 +42,8 @@
 		"prepare": "husky",
 		"format": "prettier --write --cache .",
 		"format:check": "prettier --check --cache .",
-		"ci": "nx run-many -t check stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache --maxParallel=3",
-		"ci:verify": "nx run-many -t check stylelint lint typecheck && nx run-many -t test test-integration build build-storybook --maxParallel=3",
+		"ci": "nx run-many -t check stylelint lint typecheck test-integration-setup-guard --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache --maxParallel=3",
+		"ci:verify": "nx run-many -t check stylelint lint typecheck test-integration-setup-guard && nx run-many -t test test-integration build build-storybook --maxParallel=3",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app --skip-nx-cache",
 		"storybook": "nx run reference-app:storybook",
@@ -200,6 +200,13 @@
 						"node scripts/check-no-issue-refs-in-comments.mjs",
 						"prettier --check --cache ."
 					]
+				}
+			},
+			"test-integration-setup-guard": {
+				"executor": "nx:run-commands",
+				"cache": false,
+				"options": {
+					"command": "node scripts/check-integration-setup-fails-loud.mjs"
 				}
 			}
 		}

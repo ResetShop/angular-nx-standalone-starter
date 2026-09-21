@@ -180,6 +180,12 @@ jobs:
         with:
           node-version: '24.20'
 
+      # Proves a broken global setup still fails the target, so the step below can go red.
+      # The guard supplies its own (deliberately broken) env per scenario and must not run
+      # concurrently with the suite — both would start embedded-Postgres clusters.
+      - name: Run integration setup fail-loud guard
+        run: npx nx run @app/source:test-integration-setup-guard
+
       - name: Run integration tests
         run: npx nx test-integration reference-app --skip-nx-cache
         env:
