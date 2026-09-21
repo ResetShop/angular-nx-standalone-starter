@@ -2,22 +2,33 @@ import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
-import { InMemoryAuthApi } from '@providers/auth/auth.mock'
+import { createMockLoginResponse } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { advanceTimersByTimeAsync, clearAllMocks, useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
+import {
+	advanceTimersByTimeAsync,
+	clearAllMocks,
+	fn,
+	type MockFn,
+	useFakeTimers,
+	useRealTimers,
+} from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
+import { UIStore } from '@store/ui/ui.store'
+import { NotificationType } from '@store/ui/ui.types'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
+import { NEVER, of, throwError } from 'rxjs'
 import Account from './account'
 
 describe('Account', () => {
 	const user = createMockUser({ firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com' })
+	let authApiMock: Record<keyof AuthApi, MockFn>
 
 	async function renderAccount() {
 		const view = await render(Account, {
 			providers: [
 				provideTranslationMock(),
 				AuthStore,
-				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
+				{ provide: AuthApi, useValue: authApiMock },
 				...provideSignalFormsConfig({}),
 			],
 		})
@@ -42,9 +53,31 @@ describe('Account', () => {
 		return screen.getByRole('alertdialog', { name: 'Confirm changes' })
 	}
 
+	function confirmChanges(dialog: HTMLElement) {
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+		TestBed.tick()
+	}
+
+	function notificationsOf(type: NotificationType) {
+		return TestBed.inject(UIStore)
+			.notifications()
+			.filter((notification) => notification.type === type)
+			.map((notification) => notification.message)
+	}
+
 	beforeEach(() => {
 		clearAllMocks()
 		useFakeTimers()
+		authApiMock = {
+			login: fn(),
+			logout: fn(),
+			refreshToken: fn(),
+			getMe: fn().mockReturnValue(NEVER),
+			changePassword: fn(),
+			forgotPassword: fn(),
+			resetPassword: fn(),
+			updateProfile: fn(),
+		}
 	})
 
 	afterEach(() => {
@@ -126,5 +159,62 @@ describe('Account', () => {
 
 		expect(within(dialog).getByRole('term')).toHaveTextContent('Last Name')
 		expect(within(dialog).getByRole('definition')).toHaveTextContent('After: Hopper')
+	})
+
+	it('saves only the changed fields once the user confirms', async () => {
+		authApiMock.updateProfile.mockReturnValue(NEVER)
+		await renderAccount()
+		typeInto(/last name/i, ' Hopper ')
+
+		confirmChanges(reviewChanges())
+
+		expect(authApiMock.updateProfile.calls).toEqual([[{ lastName: 'Hopper' }]])
+	})
+
+	it('saves nothing when the user cancels the confirmation', async () => {
+		await renderAccount()
+		typeInto(/first name/i, 'Grace')
+
+		fireEvent.click(within(reviewChanges()).getByRole('button', { name: 'Cancel' }))
+		TestBed.tick()
+
+		expect(authApiMock.updateProfile.calls).toEqual([])
+	})
+
+	it('disables the review button while the save is in flight', async () => {
+		authApiMock.updateProfile.mockReturnValue(NEVER)
+		await renderAccount()
+		typeInto(/first name/i, 'Grace')
+
+		confirmChanges(reviewChanges())
+
+		expect(reviewButton()).toBeDisabled()
+	})
+
+	it('shows the saved values and a success toast after saving', async () => {
+		authApiMock.updateProfile.mockReturnValue(
+			of({ ...createMockLoginResponse().user, firstName: 'Grace', lastName: 'Lovelace' }),
+		)
+		await renderAccount()
+		typeInto(/first name/i, 'Grace')
+
+		confirmChanges(reviewChanges())
+
+		expect(screen.getByRole('textbox', { name: /first name/i })).toHaveValue('Grace')
+		expect(reviewButton()).toBeDisabled()
+		expect(notificationsOf(NotificationType.SUCCESS)).toEqual(['Profile updated successfully.'])
+	})
+
+	it('keeps the edits and shows an error toast when saving fails', async () => {
+		authApiMock.updateProfile.mockReturnValue(throwError(() => new Error('Server unavailable')))
+		await renderAccount()
+		typeInto(/first name/i, 'Grace')
+
+		confirmChanges(reviewChanges())
+
+		expect(screen.getByRole('textbox', { name: /first name/i })).toHaveValue('Grace')
+		expect(reviewButton()).toBeEnabled()
+		expect(notificationsOf(NotificationType.ERROR)).toHaveLength(1)
+		expect(notificationsOf(NotificationType.SUCCESS)).toEqual([])
 	})
 })

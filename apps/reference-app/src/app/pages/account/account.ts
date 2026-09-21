@@ -17,12 +17,13 @@ import { Button } from '@resetshop/ui/button/button'
 import { ConfirmChangesDialog } from '@resetshop/ui/confirm-changes-dialog/confirm-changes-dialog'
 import { FormField } from '@resetshop/ui/form-field/form-field'
 import { AuthStore } from '@store/auth/auth.store'
+import { createMutationToast } from '@store/ui/mutation-toast'
 import { toAccountChangesEntries } from './account-profile-changes.presenter'
 
 /**
  * Self-service profile page. The first and last name are editable; the email is shown as static text
  * because changing it requires verification. Submitting never persists directly: it opens a before →
- * after confirmation of every changed field.
+ * after confirmation of every changed field, and only a confirmed edit is saved.
  */
 @Component({
 	selector: 'app-account',
@@ -55,7 +56,11 @@ import { toAccountChangesEntries } from './account-profile-changes.presenter'
 						</dl>
 
 						<div class="flex justify-end sm:col-span-2">
-							<button [disabled]="!isFormValid() || !hasChanges()" type="submit" appButton>
+							<button
+								[disabled]="authStore.isUpdatingProfile() || !isFormValid() || !hasChanges()"
+								type="submit"
+								appButton
+							>
 								{{ 'ACCOUNT.REVIEW' | translate }}
 							</button>
 						</div>
@@ -65,6 +70,7 @@ import { toAccountChangesEntries } from './account-profile-changes.presenter'
 		</app-page-shell>
 
 		<app-confirm-changes-dialog
+			(confirmed)="onChangesConfirmed()"
 			[title]="'ACCOUNT.CONFIRM_DIALOG.TITLE' | translate"
 			[message]="'ACCOUNT.CONFIRM_DIALOG.MESSAGE' | translate"
 			[changes]="confirmEntries()"
@@ -103,6 +109,8 @@ export default class Account {
 		toAccountChangesEntries(this.diff().changes, (key) => this.translation.instant(key)),
 	)
 
+	private readonly toast = createMutationToast(this.translation.instant('ACCOUNT.SUCCESS_TOAST'))
+
 	private readonly syncFromUserEffect = effect(() => {
 		const user = this.authStore.currentUser()
 		untracked(() => {
@@ -113,9 +121,20 @@ export default class Account {
 		})
 	})
 
+	private readonly saveResultEffect = effect(() => {
+		const saving = this.authStore.isUpdatingProfile()
+		const error = this.authStore.updateProfileError()
+		untracked(() => this.toast.handleResult(saving, error))
+	})
+
 	protected onSubmit(event: Event): void {
 		event.preventDefault()
 		if (!this.isFormValid() || !this.hasChanges()) return
 		this.confirmDialog().show()
+	}
+
+	protected onChangesConfirmed(): void {
+		this.toast.markSubmitted()
+		this.authStore.updateProfile(this.diff().patch)
 	}
 }
