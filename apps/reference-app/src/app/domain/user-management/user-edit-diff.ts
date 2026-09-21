@@ -25,6 +25,22 @@ export interface UserEditValues {
 
 export type UserEditField = keyof UserEditValues
 
+/** The fields whose value is free text — every key of `UserEditValues` typed as plain `string`. */
+type UserEditTextField = {
+	[F in UserEditField]: string extends UserEditValues[F] ? F : never
+}[UserEditField]
+
+/**
+ * The text fields, in display order. `satisfies Record<UserEditTextField, true>` makes the compiler
+ * reject a renamed, removed or newly added text field until this map matches `UserEditValues`, so the
+ * comparison loop below cannot silently skip one.
+ */
+const TEXT_FIELDS = Object.keys({
+	firstName: true,
+	lastName: true,
+	email: true,
+} satisfies Record<UserEditTextField, true>) as UserEditTextField[]
+
 /**
  * The changed fields only, keyed by field. Keys are inserted in display order, so iterating the
  * record (e.g. `Object.entries`) yields the changes in the order they should be shown.
@@ -54,7 +70,7 @@ export function computeUserEditDiff(
 	const patch: UpdateUserRequest = {}
 	const changes: UserEditChanges = {}
 
-	for (const field of ['firstName', 'lastName', 'email'] as const) {
+	for (const field of TEXT_FIELDS) {
 		const after = edited[field].trim()
 		if (after !== original[field]) {
 			patch[field] = after
@@ -87,15 +103,18 @@ export function computeUserEditDiff(
 /** The statuses the update endpoint accepts — `deleted` is reached only through the delete endpoint. */
 type EditableUserStatus = NonNullable<UpdateUserRequest['status']>
 
+/** Narrows a status to the values the update endpoint accepts, excluding the terminal `deleted`. */
 function isEditableStatus(status: UserStatus): status is EditableUserStatus {
 	return status !== UserStatus.DELETED
 }
 
+/** Set equality for role ids: same members, regardless of order or repetition. */
 function sameMembers(a: readonly number[], b: readonly number[]): boolean {
 	const setA = new Set(a)
 	return setA.size === new Set(b).size && b.every((id) => setA.has(id))
 }
 
+/** Role names in a stable, locale-aware order so the confirmation rows do not depend on query order. */
 function sortedNames(names: string[]): string[] {
 	return [...names].sort((x, y) => x.localeCompare(y))
 }
