@@ -654,6 +654,18 @@ describe('AuthService', () => {
 			expect(user).toMatchObject({ id: testUser.id, firstName: 'Renamed' })
 		})
 
+		it('should return null for a disabled account', async () => {
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DISABLED })
+
+			expect(await authService.getSessionUser(testUser.id)).toBeNull()
+		})
+
+		it('should return null for a soft-deleted account', async () => {
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DELETED })
+
+			expect(await authService.getSessionUser(testUser.id)).toBeNull()
+		})
+
 		it('should return null when the account no longer exists', async () => {
 			expect(await authService.getSessionUser(999)).toBeNull()
 		})

@@ -79,6 +79,45 @@ describe('GET /api/auth/me', () => {
 		})
 	})
 
+	describe('account status', () => {
+		async function loginFreshMember(email: string, roleCode: string) {
+			const member = await seedUserWithPermissions(getTestDb(), {
+				email,
+				roleCode,
+				permissionNames: [permission('admin:users:read')],
+			})
+			const { cookies } = await loginAs(app, member.email, member.password)
+			return { userId: member.userId, cookies }
+		}
+
+		it('returns 401 once the account is disabled, even with a still-valid token', async () => {
+			const member = await loginFreshMember('me-disabled@test.com', 'me_disabled_member')
+
+			const disable = await authenticatedRequest(app, `/api/users/${member.userId}/status`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { status: 'disabled' },
+			})
+			expect(disable.status).toBe(200)
+
+			const response = await authenticatedRequest(app, '/api/auth/me', { cookies: member.cookies })
+			expect(response.status).toBe(401)
+		})
+
+		it('returns 401 once the account is soft-deleted, even with a still-valid token', async () => {
+			const member = await loginFreshMember('me-deleted@test.com', 'me_deleted_member')
+
+			const remove = await authenticatedRequest(app, `/api/users/${member.userId}`, {
+				method: 'DELETE',
+				cookies: adminCookies,
+			})
+			expect(remove.status).toBe(200)
+
+			const response = await authenticatedRequest(app, '/api/auth/me', { cookies: member.cookies })
+			expect(response.status).toBe(401)
+		})
+	})
+
 	describe('authentication errors', () => {
 		it('returns 401 when no access token is provided', async () => {
 			const response = await app.request('/api/auth/me')
