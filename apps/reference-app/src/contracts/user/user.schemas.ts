@@ -94,6 +94,20 @@ export const updateUserRequestSchema = z.object({
 })
 
 /**
+ * Self-service profile update — the caller's own name only. `.strict()` rejects any other field with 400
+ * instead of dropping it: an email change needs verification, and roles and status are admin-only.
+ */
+export const updateProfileRequestSchema = z
+	.object({
+		firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+		lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+	})
+	.strict()
+	.refine((body) => body.firstName !== undefined || body.lastName !== undefined, {
+		message: 'Provide firstName or lastName',
+	})
+
+/**
  * Update user status request body schema.
  * Only allows non-terminal transitions — use DELETE endpoint for deletion.
  */
