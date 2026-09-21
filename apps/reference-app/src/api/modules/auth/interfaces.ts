@@ -200,7 +200,7 @@ export interface ChangePasswordParams {
 }
 
 /**
- * Service interface for authentication operations: login, logout, token refresh, and password change.
+ * Service interface for authentication operations: login, logout, token refresh, password change, and reading the session user.
  */
 export interface AuthService {
 	authenticate(credentials: AuthCredentials): Promise<AuthResult>
