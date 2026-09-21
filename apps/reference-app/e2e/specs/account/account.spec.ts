@@ -2,13 +2,13 @@ import { expect, test } from '../../fixtures'
 import { AccountPage } from '../../page-objects/account.page'
 import { DashboardPage } from '../../page-objects/dashboard.page'
 import { LoginPage } from '../../page-objects/login.page'
-import { adminPassword, E2E_ACCOUNT_EDITORS } from '../../setup/db-seed'
+import { accountEditorEmail, adminPassword } from '../../setup/db-seed'
 
 // Renames persist through the real API (no route mocks): reading the new name back after a full reload
 // is the point. Each browser project signs in as its own seeded non-admin user so parallel projects
 // never rename the same row.
 test.describe('Account page — non-admin user', () => {
-	const email = () => E2E_ACCOUNT_EDITORS[test.info().project.name as keyof typeof E2E_ACCOUNT_EDITORS]
+	const email = () => accountEditorEmail(test.info().project.name)
 
 	let account: AccountPage
 	test.beforeEach(async ({ page }) => {
