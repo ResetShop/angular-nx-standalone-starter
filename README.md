@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ResetShop/angular-nx-standalone-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/ResetShop/angular-nx-standalone-starter/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE.md)
-[![Node](https://img.shields.io/badge/node-%5E24.18.0-brightgreen.svg)](#1-prerequisites-required)
+[![Node](https://img.shields.io/badge/node-%5E24.20.0-brightgreen.svg)](#1-prerequisites-required)
 
 A fork-ready **Nx monorepo starter**: an SSR-ready Angular 22+ frontend and a Hono backend API, wired with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO-based auth + RBAC. The intentional `TODO` markers throughout are for forkers to fill in — search for them.
 
@@ -13,7 +13,7 @@ A fork-ready **Nx monorepo starter**: an SSR-ready Angular 22+ frontend and a Ho
 
 ## Getting started
 
-**Prerequisites:** Node.js `^24.18.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required).
+**Prerequisites:** Node.js `^24.20.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required).
 
 **1. Create your project** — pick the path that fits:
 
@@ -90,7 +90,7 @@ This guide covers all the setup steps needed to configure this starter repositor
 
 This project requires:
 
-- **Node.js**: `^24.18.0` (matches the `engines` field in `package.json`; `.nvmrc` pins `24.18.0`)
+- **Node.js**: `^24.20.0` (matches the `engines` field in `package.json`; `.nvmrc` pins `24.20.0`)
 - **npm**: Package manager
 
 **Installation Steps:**
