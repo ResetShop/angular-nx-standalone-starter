@@ -112,16 +112,10 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					FIRST_NAME: 'First',
 					LAST_NAME: 'Last',
 					EMAIL: 'Email',
-					SAVE: 'Save',
-					SUCCESS_TOAST: 'Updated',
 				},
 				ROLES: {
 					TITLE: 'Roles',
 					EMPTY: 'None',
-					EDIT_BUTTON: 'Edit roles',
-					DRAWER_TITLE: 'Edit Roles',
-					ROLES_LABEL: 'Roles',
-					SUCCESS_TOAST: 'Roles updated',
 				},
 				EDIT: {
 					BUTTON: 'Edit user',
@@ -357,16 +351,10 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					FIRST_NAME: 'Nombre',
 					LAST_NAME: 'Apellido',
 					EMAIL: 'Correo',
-					SAVE: 'Guardar',
-					SUCCESS_TOAST: 'Actualizado',
 				},
 				ROLES: {
 					TITLE: 'Roles',
 					EMPTY: 'Ninguno',
-					EDIT_BUTTON: 'Editar roles',
-					DRAWER_TITLE: 'Editar roles',
-					ROLES_LABEL: 'Roles',
-					SUCCESS_TOAST: 'Roles actualizados',
 				},
 				EDIT: {
 					BUTTON: 'Editar usuario',
