@@ -6,11 +6,19 @@
  * already publishes a connection string pointing at the `postgres:17`
  * service container.
  */
+import asyncExitHook from 'async-exit-hook'
 import EmbeddedPostgres from 'embedded-postgres'
 import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+
+// Importing `embedded-postgres` registers an async-exit-hook `beforeExit` listener that calls
+// `process.exit(0)` once the event loop drains. Vitest reports a failed run by setting
+// `process.exitCode` and letting the loop drain, so that listener turns every red run green.
+// Only `beforeExit` is removed: `stopEmbeddedPostgres()` already stops the cluster in the global
+// teardown, and the SIGINT/SIGTERM listeners stay in place to shut it down on Ctrl-C.
+asyncExitHook.unhookEvent('beforeExit')
 
 const TEST_DB_NAME = 'test_db'
 const PG_USER = 'postgres'
