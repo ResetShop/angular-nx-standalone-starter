@@ -142,6 +142,21 @@ export interface TranslationSchema {
 				ROLES_LABEL: string
 				SUCCESS_TOAST: string
 			}
+			EDIT: {
+				BUTTON: string
+				DRAWER_TITLE: string
+				STATUS_LABEL: string
+				REVIEW: string
+				NONE: string
+				SUCCESS_TOAST: string
+				CONFIRM_DIALOG: {
+					TITLE: string
+					MESSAGE: string
+					CONFIRM: string
+					BEFORE: string
+					AFTER: string
+				}
+			}
 			ACCOUNT: {
 				TITLE: string
 				RESET_PASSWORD: string
