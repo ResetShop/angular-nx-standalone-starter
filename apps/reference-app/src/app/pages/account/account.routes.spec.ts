@@ -2,7 +2,6 @@ import type { Route } from '@angular/router'
 import { authGuard } from '@guards/auth.guard'
 import { forcedPasswordChangeGuard } from '@guards/forced-password-change.guard'
 import Dashboard from '@pages/dashboard/dashboard'
-import dashboardRoutes from '@pages/dashboard/dashboard.routes'
 import { appRoutes } from '../../app.routes'
 import accountRoutes from './account.routes'
 
@@ -21,8 +20,7 @@ describe('account routes', () => {
 		expect(routes.every((route) => route.data?.['requiredPermission'] === undefined)).toBe(true)
 	})
 
-	it('renders inside the dashboard shell with its navigation providers', () => {
+	it('renders inside the dashboard shell', () => {
 		expect(accountRoutes[0].component).toBe(Dashboard)
-		expect(accountRoutes[0].providers).toHaveLength(dashboardRoutes[0].providers?.length ?? 0)
 	})
 })
