@@ -522,7 +522,7 @@ describe('User Management Controller', () => {
 			expect(mockUpdateUser.calls).toHaveLength(0)
 			expect(loggerSecuritySpy.calls[0]).toEqual([
 				'status_change_blocked',
-				{ actorId: ADMIN_USER_ID, userId: 1, reason: 'Missing admin:users:disable' },
+				{ actorId: ADMIN_USER_ID, userId: 1, reason: `Missing ${permission('admin:users:disable')}` },
 			])
 		})
 

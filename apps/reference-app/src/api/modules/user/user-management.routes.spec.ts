@@ -1,3 +1,4 @@
+import { permission } from '@contracts/permission/permission.constants'
 import { describe, expect, it } from 'vitest'
 import { updateUserRoute, updateUserStatusRoute } from './user-management.routes'
 
@@ -14,7 +15,7 @@ describe('user management route 403 responses', () => {
 
 	it('should keep the status/self-edit description on updateUserRoute', () => {
 		expect(updateUserRoute.responses[403].description).toBe(
-			'Missing admin:users:disable for a status change, own status change, or own admin role removal',
+			`Missing ${permission('admin:users:disable')} for a status change, own status change, or own admin role removal`,
 		)
 	})
 })
