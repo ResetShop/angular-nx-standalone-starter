@@ -13,12 +13,16 @@ import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-// Importing `embedded-postgres` registers an async-exit-hook `beforeExit` listener that calls
-// `process.exit(0)` once the event loop drains. Vitest reports a failed run by setting
-// `process.exitCode` and letting the loop drain, so that listener turns every red run green.
-// Only `beforeExit` is removed: `stopEmbeddedPostgres()` already stops the cluster in the global
-// teardown, and the SIGINT/SIGTERM listeners stay in place to shut it down on Ctrl-C.
+// Importing `embedded-postgres` registers async-exit-hook listeners that corrupt the exit code of
+// the process hosting the global setup:
+// - `beforeExit` calls `process.exit(0)` once the event loop drains. Vitest reports a failed run by
+//   setting `process.exitCode` and letting the loop drain, so it turns every red run green.
+// - `exit` invokes the library's async shutdown hook without a `done` callback, which then throws
+//   and turns a green run red.
+// Both are removed: `stopEmbeddedPostgres()` already stops the cluster in the global teardown. The
+// SIGINT/SIGTERM listeners stay in place to shut the cluster down on Ctrl-C.
 asyncExitHook.unhookEvent('beforeExit')
+asyncExitHook.unhookEvent('exit')
 
 const TEST_DB_NAME = 'test_db'
 const PG_USER = 'postgres'

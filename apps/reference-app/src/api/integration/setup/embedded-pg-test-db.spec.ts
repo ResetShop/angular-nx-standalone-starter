@@ -9,6 +9,12 @@ describe('embedded-pg-test-db exit hooks', () => {
 		expect(asyncExitHook.hookedEvents()).not.toContain('beforeExit')
 	})
 
+	it('removes the exit hook that would throw while the process exits', async () => {
+		await import('./embedded-pg-test-db')
+
+		expect(asyncExitHook.hookedEvents()).not.toContain('exit')
+	})
+
 	it('keeps the signal hooks that stop the cluster on Ctrl-C', async () => {
 		await import('./embedded-pg-test-db')
 
