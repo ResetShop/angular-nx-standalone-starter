@@ -7,19 +7,13 @@ export interface ProfileFormModel {
 	lastName: string
 }
 
-/** The comparable value of each diffable profile field. */
-export interface ProfileValues {
-	firstName: string
-	lastName: string
-}
-
-export type ProfileField = keyof ProfileValues
+export type ProfileField = keyof ProfileFormModel
 
 /**
  * The changed fields only, keyed by field and inserted in display order. Values are raw — the
  * presenter that renders them owns translation.
  */
-export type ProfileChanges = { [F in ProfileField]?: { before: ProfileValues[F]; after: ProfileValues[F] } }
+export type ProfileChanges = { [F in ProfileField]?: { before: ProfileFormModel[F]; after: ProfileFormModel[F] } }
 
 export interface ProfileDiff {
 	/** Only the changed fields, ready to send as the update request. */
