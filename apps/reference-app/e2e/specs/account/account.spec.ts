@@ -21,7 +21,7 @@ test.describe('Account page — non-admin user', () => {
 
 	test('reaches the account page from the sidebar without any admin permission', async ({ page }) => {
 		const dashboard = new DashboardPage(page)
-		await dashboard.sidebar.getByRole('link', { name: 'Account', exact: true }).click()
+		await dashboard.navLink('Account').click()
 
 		await expect(page).toHaveURL(/\/account$/)
 		await expect(account.heading).toBeVisible()
