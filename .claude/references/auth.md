@@ -44,7 +44,7 @@ Authentication uses **HttpOnly cookies** for both access and refresh tokens. Jav
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Identity source:** `GET /api/auth/me` reads `email`, `firstName` and `lastName` from the database by the access token's `sub`. Token claims are frozen at issue time, so they authenticate the request but are never returned as identity.
+**Identity source:** `GET /api/auth/me` reads `email`, `firstName` and `lastName` from the database by the access token's `sub`. Token claims are frozen at issue time, so they authenticate the request but are never returned as identity. `/me` returns 401 for an account that is disabled or soft-deleted, matching what `POST /api/auth/refresh` already enforces.
 
 **Key invariant:** Every protected-route navigation validates the session against the backend. The `tokenRefreshInterceptor` transparently handles 401 → refresh → retry inside `validateSession()`, so an expired access token is refreshed before the error reaches the guard. No APP_INITIALIZER is used for auth — the guards own the full validation lifecycle.
 
