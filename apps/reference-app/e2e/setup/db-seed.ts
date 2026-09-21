@@ -36,6 +36,16 @@ export const E2E_USERS = Object.freeze({
 	viewable: 'e2e-viewable@test.com',
 } as const)
 
+/**
+ * Non-admin users that rename themselves through the real API on the account page, one per browser
+ * project: the projects run in parallel against one database, so a shared user would let one project's
+ * rename overwrite the other's before it is read back.
+ */
+export const E2E_ACCOUNT_EDITORS = Object.freeze({
+	chromium: 'e2e-account-chromium@test.com',
+	firefox: 'e2e-account-firefox@test.com',
+} as const)
+
 /** Result of seeding — IDs the specs need (published to process.env by global-setup). */
 export interface SeededIds {
 	viewableUserId: number
@@ -91,8 +101,12 @@ export async function seedE2eUsers(connectionString: string, password: string): 
 			passwordHash,
 		})
 
+		for (const email of Object.values(E2E_ACCOUNT_EDITORS)) {
+			await seedUser(db, { email, firstName: 'Ada', lastName: 'Lovelace', roleId: restrictedRoleId, passwordHash })
+		}
+
 		// Extra users so the list spans more than one page (default page size 10) and pagination is exercised:
-		// 4 named users + 8 bulk = 12 total. Fixed emails are safe because globalSetup drops all tables first.
+		// 6 named users + 8 bulk = 14 total. Fixed emails are safe because globalSetup drops all tables first.
 		for (let i = 1; i <= 8; i += 1) {
 			await seedUser(db, {
 				email: `e2e-bulk-${i}@test.com`,
