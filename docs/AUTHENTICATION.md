@@ -271,7 +271,7 @@ Exchange refresh token for new access + refresh tokens. Refresh token is read fr
 
 ### GET /api/auth/me
 
-Token introspection endpoint. Returns the current authenticated user's information from the token. Useful for verifying token validity and session management.
+Returns the current authenticated user's information. The access token only identifies the caller (its `sub`); `email`, `firstName` and `lastName` are read from the database, so a rename is visible immediately rather than when the token is next refreshed. Returns 401 when the account behind a still-valid token no longer exists. Useful for verifying session validity.
 
 **Response (200):**
 
