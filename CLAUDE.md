@@ -60,6 +60,9 @@ Use `npm` for all package management and script execution:
 | `npm install <pkg>`        | Add a dependency                                                                  |
 | `npm install -D <pkg>`     | Add a dev dependency                                                              |
 | `npm install -g <pkg>`     | Add a global dependency                                                           |
+| `npm install-scripts ls`   | List dependencies whose install scripts are not yet covered by `allowScripts`     |
+
+**Install-script policy:** npm skips dependency install scripts unless the package is approved in the `allowScripts` map in `package.json`. After adding a dependency, check the list of skipped scripts at the end of the `npm install` output. If one is needed, approve it **by name** with `npm install-scripts approve --no-allow-scripts-pin <pkg>`, so later version bumps don't silently re-block it. Never remove the `@embedded-postgres/*` entries — their postinstall restores the Postgres shared-library symlinks the integration-test harness needs on Linux.
 
 #### CRITICAL: Command Execution Policy
 
@@ -1209,4 +1212,4 @@ The code-reviewer agent checks:
 
 ---
 
-_Last updated: 2026-06-21_
+_Last updated: 2026-09-21_
