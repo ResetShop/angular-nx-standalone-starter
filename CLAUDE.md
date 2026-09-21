@@ -1102,7 +1102,7 @@ This is a mandatory step in the workflow:
 
 #### Two verification paths: cold `ci` vs cache-aware `ci:verify`
 
-There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `lint`, `typecheck`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
+There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `lint`, `typecheck`, `test-integration-setup-guard`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
 
 | Script              | Cache                                                              | Use for                                                                                                                                                                                                       |
 | ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1123,6 +1123,7 @@ The `npm run ci` command runs CI checks in two parallel batches via `nx run-many
 - `stylelint` — CSS/style linting
 - `lint` — TypeScript/ESLint linting
 - `typecheck` — Type-check spec files (`tsc --noEmit`)
+- `test-integration-setup-guard` — runs `test-integration` with a deliberately broken global setup (unreachable external DB; embedded Postgres without `INTEGRATION_TEST_ADMIN_PASSWORD`) and fails unless both runs exit non-zero with the expected setup error (`scripts/check-integration-setup-fails-loud.mjs`). It proves the integration gate can go red. It lives in Batch 1, not Batch 2, because it must not run concurrently with `test-integration`: each embedded-Postgres run sweeps temp cluster directories that lack a `postmaster.pid`, which includes a concurrent run's cluster that is still initialising. `cache: false`. Also runs in the `test-integration` job of `.github/workflows/ci.yml`, before the suite.
 
 **Batch 2 (heavy tasks, parallel — runs only if Batch 1 passes):**
 
