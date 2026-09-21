@@ -3,7 +3,14 @@ dialog:not([open]) {
 }
 
 dialog::backdrop {
-	background-color: oklch(from var(--color-black) l c h / 50%);
+	/*
+	 * Built from `--foreground`, not `--color-foreground`: the theme is declared `@theme inline`, so
+	 * Tailwind inlines its `--color-*` tokens into the utilities it generates and never emits them as
+	 * runtime custom properties. A `var(--color-*)` reference here resolves to nothing, which makes the
+	 * whole declaration invalid and leaves the backdrop transparent. The unprefixed theme tokens are the
+	 * ones that exist at runtime.
+	 */
+	background-color: oklch(from var(--foreground) l c h / 50%);
 }
 
 dialog.confirm-dialog {
