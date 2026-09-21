@@ -50,4 +50,55 @@ test.describe('Account page — non-admin user', () => {
 
 		await expect(account.firstNameInput).toHaveValue(firstName)
 	})
+
+	test('cancelling the confirmation saves nothing', async ({ page }) => {
+		const cancelled = `Cancelled${Date.now()}`
+		const profileUpdates: string[] = []
+		page.on('request', (request) => {
+			if (request.method() === 'PATCH' && request.url().endsWith('/api/users/me')) {
+				profileUpdates.push(request.url())
+			}
+		})
+		await account.goto()
+
+		await account.firstNameInput.fill(cancelled)
+		await account.reviewButton.click()
+		await account.cancelButton.click()
+
+		await expect(account.confirmDialog).toBeHidden()
+		await expect(account.firstNameInput).toHaveValue(cancelled)
+		expect(profileUpdates).toEqual([])
+
+		await page.reload()
+
+		await expect(account.firstNameInput).not.toHaveValue(cancelled)
+	})
+
+	test('an empty first name shows a required error and blocks review', async () => {
+		await account.goto()
+
+		await account.firstNameInput.fill('')
+		await account.firstNameInput.blur()
+
+		await expect(account.fieldError('This field is required')).toBeVisible()
+		await expect(account.reviewButton).toBeDisabled()
+	})
+
+	test('a whitespace-only last name shows a required error and blocks review', async () => {
+		await account.goto()
+
+		await account.lastNameInput.fill('   ')
+		await account.lastNameInput.blur()
+
+		await expect(account.fieldError('This field is required')).toBeVisible()
+		await expect(account.reviewButton).toBeDisabled()
+	})
+
+	test('a name stops accepting input at 100 characters', async () => {
+		await account.goto()
+
+		await account.firstNameInput.fill('A'.repeat(101))
+
+		await expect(account.firstNameInput).toHaveValue('A'.repeat(100))
+	})
 })

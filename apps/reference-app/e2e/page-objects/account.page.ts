@@ -28,6 +28,13 @@ export class AccountPage {
 	get saveChangesButton(): Locator {
 		return this.confirmDialog.getByRole('button', { name: 'Save changes' })
 	}
+	get cancelButton(): Locator {
+		return this.confirmDialog.getByRole('button', { name: 'Cancel' })
+	}
+	/** A validation message rendered under a profile field. */
+	fieldError(message: string): Locator {
+		return this.profile.getByText(message, { exact: true })
+	}
 	get successToast(): Locator {
 		return this.page.getByText('Profile updated successfully.', { exact: true })
 	}
