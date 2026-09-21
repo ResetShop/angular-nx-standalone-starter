@@ -131,16 +131,10 @@ export interface TranslationSchema {
 				FIRST_NAME: string
 				LAST_NAME: string
 				EMAIL: string
-				SAVE: string
-				SUCCESS_TOAST: string
 			}
 			ROLES: {
 				TITLE: string
 				EMPTY: string
-				EDIT_BUTTON: string
-				DRAWER_TITLE: string
-				ROLES_LABEL: string
-				SUCCESS_TOAST: string
 			}
 			EDIT: {
 				BUTTON: string
