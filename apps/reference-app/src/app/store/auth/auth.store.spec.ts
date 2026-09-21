@@ -245,6 +245,60 @@ describe('AuthStore', () => {
 		})
 	})
 
+	describe('updateProfile', () => {
+		function signIn() {
+			authApiMock.login.mockReturnValue(of(mockLoginResponse))
+			store.login({ email: 'test@example.com', password: 'password' })
+		}
+
+		it('replaces currentUser with the server copy on success', () => {
+			signIn()
+			authApiMock.updateProfile.mockReturnValue(of({ ...mockLoginResponse.user, firstName: 'Renamed' }))
+
+			store.updateProfile({ firstName: 'Renamed' })
+
+			expect(authApiMock.updateProfile.calls).toEqual([[{ firstName: 'Renamed' }]])
+			expect(store.currentUser()?.firstName).toBe('Renamed')
+			expect(store.isUpdatingProfile()).toBe(false)
+			expect(store.updateProfileError()).toBeNull()
+		})
+
+		it('reports progress while the request is in flight', () => {
+			signIn()
+			authApiMock.updateProfile.mockReturnValue(NEVER)
+
+			store.updateProfile({ firstName: 'Renamed' })
+
+			expect(store.isUpdatingProfile()).toBe(true)
+		})
+
+		it('keeps the current user, sets the error message and logs on failure', () => {
+			signIn()
+			const original = store.currentUser()
+			authApiMock.updateProfile.mockReturnValue(
+				throwError(() => new HttpErrorResponse({ status: 400, error: { error: 'Invalid name' } })),
+			)
+
+			store.updateProfile({ firstName: '' })
+
+			expect(store.currentUser()).toBe(original)
+			expect(store.isUpdatingProfile()).toBe(false)
+			expect(store.updateProfileError()).toBe('Invalid name')
+			expect(loggerMock.error.calls[0].slice(0, 2)).toEqual(['AuthStore', 'updateProfile failed'])
+		})
+
+		it('clearProfileError resets the error', () => {
+			signIn()
+			authApiMock.updateProfile.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })))
+			store.updateProfile({ firstName: 'Renamed' })
+			expect(store.updateProfileError()).toBe('Failed to update profile')
+
+			store.clearProfileError()
+
+			expect(store.updateProfileError()).toBeNull()
+		})
+	})
+
 	describe('forgotPassword', () => {
 		it('flips resetRequested immediately, without waiting for the request to resolve', () => {
 			// NEVER => the request never completes. The confirmation must still appear, proving the flip
