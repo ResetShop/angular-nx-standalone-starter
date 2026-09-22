@@ -645,6 +645,20 @@ describe('AuthService', () => {
 		})
 	})
 
+	describe('getSessionUser', () => {
+		it('should return the stored identity for the user', async () => {
+			mockUserRepo.addUser({ ...testUser, firstName: 'Renamed' })
+
+			const user = await authService.getSessionUser(testUser.id)
+
+			expect(user).toMatchObject({ id: testUser.id, firstName: 'Renamed' })
+		})
+
+		it('should return null when the account no longer exists', async () => {
+			expect(await authService.getSessionUser(999)).toBeNull()
+		})
+	})
+
 	describe('logout', () => {
 		it('should revoke all tokens for user', async () => {
 			await authService.logout(testUser.id)
