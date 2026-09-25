@@ -14,7 +14,7 @@ describe('user module routing', () => {
 
 	const mockUpdateOwnProfile = fn<[number, UpdateOwnProfileParams], Promise<AuthUser>>()
 	const mockGetUserPermissions = fn<[number], Promise<PermissionData[]>>()
-	const mockGetSessionUser = fn<[number], Promise<UserData | null>>()
+	const mockGetSessionUser = fn<[number], Promise<UserData>>()
 
 	let app: Hono
 

@@ -1,3 +1,4 @@
+import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { AuthUser } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
@@ -13,7 +14,7 @@ import userProfileController from './user-profile.controller'
 describe('User Profile Controller', () => {
 	const CALLER_ID = 42
 
-	const mockGetSessionUser = fn<[number], Promise<UserData | null>>()
+	const mockGetSessionUser = fn<[number], Promise<UserData>>()
 	const mockUpdateOwnProfile = fn<[number, UpdateOwnProfileParams], Promise<AuthUser>>()
 
 	const sessionUser: UserData = {
@@ -82,14 +83,18 @@ describe('User Profile Controller', () => {
 		])
 	})
 
-	it('returns 401 when the caller’s account is not active', async () => {
-		mockGetSessionUser.mockResolvedValue(null)
+	it.each([InternalAuthErrorCode.USER_NOT_FOUND, InternalAuthErrorCode.ACCOUNT_DISABLED])(
+		'returns the same generic 401 and updates nothing when the session is rejected with %s',
+		async (internalCode) => {
+			mockGetSessionUser.mockRejectedValue(new AuthError(internalCode))
 
-		const res = await patchMe({ firstName: 'Grace' })
+			const res = await patchMe({ firstName: 'Grace' })
 
-		expect(res.status).toBe(401)
-		expect(mockUpdateOwnProfile.calls).toHaveLength(0)
-	})
+			expect(res.status).toBe(401)
+			expect(await res.json()).toEqual({ error: 'Unauthorized' })
+			expect(mockUpdateOwnProfile.calls).toHaveLength(0)
+		},
+	)
 
 	it('returns 401 when the account disappears during the update', async () => {
 		mockUpdateOwnProfile.mockRejectedValue(new Error(USER_MANAGEMENT_ERRORS.NOT_FOUND))
