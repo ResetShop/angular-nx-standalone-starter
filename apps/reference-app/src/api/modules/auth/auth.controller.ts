@@ -237,24 +237,28 @@ registerRoute(app, meRoute, async (c) => {
 
 	const userId = Number(tokenUser.sub)
 
-	const [user, roles, mustChangePassword] = await Promise.all([
-		authService.getSessionUser(userId),
-		userRoleService.getUserRolesWithPermissions(userId),
-		authPasswordService.getMustChangePassword(userId),
-	])
+	try {
+		const [user, roles, mustChangePassword] = await Promise.all([
+			authService.getSessionUser(userId),
+			userRoleService.getUserRolesWithPermissions(userId),
+			authPasswordService.getMustChangePassword(userId),
+		])
 
-	if (!user) {
-		return c.json({ error: 'Unauthorized' }, 401)
+		return c.json<MeResponse>({
+			id: userId,
+			email: user.email,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			roles,
+			mustChangePassword,
+		})
+	} catch (error) {
+		// Every rejection reason answers the same 401: the account status is never exposed here.
+		if (isAuthError(error)) {
+			return c.json({ error: 'Unauthorized' }, 401)
+		}
+		throw error
 	}
-
-	return c.json<MeResponse>({
-		id: userId,
-		email: user.email,
-		firstName: user.firstName,
-		lastName: user.lastName,
-		roles,
-		mustChangePassword,
-	})
 })
 
 // POST /api/auth/logout - Revoke all refresh tokens for the user

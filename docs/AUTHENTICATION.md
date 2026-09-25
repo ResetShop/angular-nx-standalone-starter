@@ -271,7 +271,7 @@ Exchange refresh token for new access + refresh tokens. Refresh token is read fr
 
 ### GET /api/auth/me
 
-Returns the current authenticated user's information. The access token only identifies the caller (its `sub`); `email`, `firstName` and `lastName` are read from the database, so a rename is visible immediately rather than when the token is next refreshed. Returns 401 when the account behind a still-valid token no longer exists, is disabled, or is soft-deleted. Useful for verifying session validity.
+Returns the current authenticated user's information. The access token only identifies the caller (its `sub`); `email`, `firstName` and `lastName` are read from the database, so a rename is visible immediately rather than when the token is next refreshed. Returns 401 when the account behind a still-valid token no longer exists, is disabled, or is soft-deleted. All three cases return the same generic `{"error":"Unauthorized"}`: the service raises a typed `AuthError` (`ACCOUNT_DISABLED` or `USER_NOT_FOUND`) that the handler maps without exposing which one it was. Useful for verifying session validity.
 
 **Response (200):**
 

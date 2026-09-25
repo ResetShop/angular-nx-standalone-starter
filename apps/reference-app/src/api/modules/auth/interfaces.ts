@@ -207,7 +207,7 @@ export interface AuthService {
 	refreshToken(token: string): Promise<RefreshResult>
 	logout(userId: number): Promise<void>
 	changePassword(params: ChangePasswordParams): Promise<void>
-	getSessionUser(userId: number): Promise<UserData | null>
+	getSessionUser(userId: number): Promise<UserData>
 }
 
 /**
