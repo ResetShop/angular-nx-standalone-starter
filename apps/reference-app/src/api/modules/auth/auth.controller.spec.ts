@@ -1,3 +1,4 @@
+import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -29,7 +30,7 @@ describe('Auth Controller - /me endpoint', () => {
 
 	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>()
 	const mockGetMustChangePassword = fn<[number], Promise<boolean>>()
-	const mockGetSessionUser = fn<[number], Promise<UserData | null>>()
+	const mockGetSessionUser = fn<[number], Promise<UserData>>()
 
 	const storedUser: UserData = {
 		id: 1,
@@ -146,16 +147,30 @@ describe('Auth Controller - /me endpoint', () => {
 		expect(mockGetSessionUser.calls).toEqual([[1]])
 	})
 
-	it('should return 401 when the account no longer exists', async () => {
+	it.each([InternalAuthErrorCode.USER_NOT_FOUND, InternalAuthErrorCode.ACCOUNT_DISABLED])(
+		'should return the same generic 401 when the session is rejected with %s',
+		async (internalCode) => {
+			mockGetUserRolesWithPermissions.mockResolvedValue([])
+			mockGetSessionUser.mockRejectedValue(new AuthError(internalCode))
+
+			const res = await app.request('/auth/me', {
+				headers: { Authorization: 'Bearer valid-token' },
+			})
+
+			expect(res.status).toBe(401)
+			expect(await res.json()).toEqual({ error: 'Unauthorized' })
+		},
+	)
+
+	it('should propagate a non-auth failure instead of turning it into a 401', async () => {
 		mockGetUserRolesWithPermissions.mockResolvedValue([])
-		mockGetSessionUser.mockResolvedValue(null)
+		mockGetSessionUser.mockRejectedValue(new Error('Database connection failed'))
 
 		const res = await app.request('/auth/me', {
 			headers: { Authorization: 'Bearer valid-token' },
 		})
 
-		expect(res.status).toBe(401)
-		expect((await res.json()).error).toBe('Unauthorized')
+		expect(res.status).toBe(500)
 	})
 
 	it('should return empty roles array when user has no roles', async () => {

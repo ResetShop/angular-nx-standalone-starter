@@ -265,13 +265,27 @@ export class AuthService implements AuthServiceInterface {
 	}
 
 	/**
-	 * Reads the authenticated user's current identity from the database.
+	 * Reads the authenticated user's current identity from the database. A valid access token can outlive
+	 * the account it was issued for, so the stored account is re-checked on every call instead of trusting
+	 * the token's frozen claims.
 	 *
 	 * @param userId - The user's primary key (the access token's `sub`)
-	 * @returns The stored identity, or null when the account no longer exists
+	 * @returns The stored identity of an active account
+	 * @throws AuthError with USER_NOT_FOUND code when the account is gone or soft-deleted
+	 * @throws AuthError with ACCOUNT_DISABLED code when the account is not active
 	 */
-	public async getSessionUser(userId: number): Promise<UserData | null> {
-		return this.userRepository.findById(userId)
+	public async getSessionUser(userId: number): Promise<UserData> {
+		const user = await this.userRepository.findById(userId)
+
+		if (!user || user.status === UserStatus.DELETED) {
+			throw new AuthError(InternalAuthErrorCode.USER_NOT_FOUND)
+		}
+
+		if (user.status !== UserStatus.ACTIVE) {
+			throw new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED)
+		}
+
+		return user
 	}
 
 	/**

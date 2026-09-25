@@ -1,4 +1,4 @@
-import { getInternalErrorMessage, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
+import { getInternalErrorMessage, InternalAuthErrorCode, PublicAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { parseDurationToMs } from '@resetshop/util'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
@@ -646,7 +646,7 @@ describe('AuthService', () => {
 	})
 
 	describe('getSessionUser', () => {
-		it('should return the stored identity for the user', async () => {
+		it('should return the stored identity for an active user', async () => {
 			mockUserRepo.addUser({ ...testUser, firstName: 'Renamed' })
 
 			const user = await authService.getSessionUser(testUser.id)
@@ -654,8 +654,34 @@ describe('AuthService', () => {
 			expect(user).toMatchObject({ id: testUser.id, firstName: 'Renamed' })
 		})
 
-		it('should return null when the account no longer exists', async () => {
-			expect(await authService.getSessionUser(999)).toBeNull()
+		it('should throw ACCOUNT_DISABLED for a disabled account', async () => {
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DISABLED })
+
+			await expect(authService.getSessionUser(testUser.id)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.ACCOUNT_DISABLED),
+			)
+		})
+
+		it('should throw USER_NOT_FOUND for a soft-deleted account', async () => {
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DELETED })
+
+			await expect(authService.getSessionUser(testUser.id)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
+			)
+		})
+
+		it('should throw USER_NOT_FOUND when the account no longer exists', async () => {
+			await expect(authService.getSessionUser(999)).rejects.toThrow(
+				getInternalErrorMessage(InternalAuthErrorCode.USER_NOT_FOUND),
+			)
+		})
+
+		it('should not expose the account status through the public error code', async () => {
+			mockUserRepo.addUser({ ...testUser, status: UserStatus.DELETED })
+
+			await expect(authService.getSessionUser(testUser.id)).rejects.toMatchObject({
+				publicCode: PublicAuthErrorCode.INVALID_CREDENTIALS,
+			})
 		})
 	})
 
