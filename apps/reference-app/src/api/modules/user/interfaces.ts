@@ -260,7 +260,8 @@ export interface UserManagementService {
 }
 
 /**
- * Parameters for a user updating their own profile — name fields only.
+ * The profile fields a user may change on their own account. `updateProfileRequestSchema` is the
+ * authority on which those are.
  */
 export interface UpdateOwnProfileParams {
 	firstName?: string

@@ -5,7 +5,6 @@ import userRoleController from './user-role.controller'
 
 const app = createOpenAPIApp()
 
-// Self-service endpoints: /me
 app.route('/', userProfileController)
 
 // User CRUD management endpoints: /, /:id

@@ -12,7 +12,7 @@ const app = createOpenAPIApp()
 
 /**
  * PATCH /api/users/me
- * Update the authenticated user's own first and/or last name
+ * Self-service update of the caller's own profile
  */
 registerRoute(app, updateProfileRoute, async (c) => {
 	const { authService, userProfileService } = container.cradle

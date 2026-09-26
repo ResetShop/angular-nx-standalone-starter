@@ -21,10 +21,10 @@ export class UserProfileService {
 	}
 
 	/**
-	 * Updates the caller's own first and/or last name and records a profile-history entry.
+	 * Updates the caller's own profile and records a profile-history entry.
 	 *
 	 * @param userId - The caller's primary key, taken from the session
-	 * @param params - The name fields to change
+	 * @param params - The profile fields to change
 	 * @returns The updated user with roles and permissions, in the same shape as `GET /api/auth/me`
 	 * @throws Error if the account no longer exists
 	 */
