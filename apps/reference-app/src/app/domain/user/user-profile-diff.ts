@@ -29,23 +29,19 @@ export interface ProfileDiff {
 }
 
 /**
- * The editable fields in display order, derived from `ProfileValues`: `satisfies Record<…>` makes the
- * compiler reject a renamed, removed or newly added field until this map matches the type.
- */
-const PROFILE_FIELDS = Object.keys({
-	firstName: true,
-	lastName: true,
-} satisfies Record<ProfileField, true>) as ProfileField[]
-
-/**
  * Compares the edited form against the signed-in user and returns both the minimal update payload
  * and the before/after changes shown for confirmation. Values are compared trimmed.
  */
 export function computeProfileDiff(original: IUser, edited: ProfileFormModel): ProfileDiff {
+	// `satisfies` makes the compiler reject a renamed, removed or added field until this list matches the type.
+	const profileFields = Object.keys({
+		firstName: true,
+		lastName: true,
+	} satisfies Record<ProfileField, true>) as ProfileField[]
 	const patch: UpdateProfileRequest = {}
 	const changes: ProfileChanges = {}
 
-	for (const field of PROFILE_FIELDS) {
+	for (const field of profileFields) {
 		const after = edited[field].trim()
 		if (after !== original[field]) {
 			patch[field] = after
