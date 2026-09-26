@@ -1,27 +1,43 @@
 import { Component } from '@angular/core'
 import { provideRouter } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherBell, featherCreditCard, featherLogOut, featherSettings, featherUser } from '@ng-icons/feather-icons'
+import {
+	featherBell,
+	featherCreditCard,
+	featherLogOut,
+	featherMonitor,
+	featherMoon,
+	featherSettings,
+	featherSun,
+	featherUser,
+} from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig, componentWrapperDecorator, moduleMetadata } from '@storybook/angular'
-import { UserMenu, type UserMenuItem } from './user-menu'
+import { type MenuItem } from '../menu/menu'
+import { UserMenu } from './user-menu'
 
 // Link items need a router to resolve their URLs; a blank catch-all keeps the story in place on click.
 @Component({ template: '' })
 class StoryPage {}
 
 // Pages are links; Log out acts in place, so it is the one button.
-const pageLinks: UserMenuItem[] = [
+const pageLinks: MenuItem[] = [
 	{ label: 'Account', icon: 'featherUser', route: '/account' },
 	{ label: 'Billing', icon: 'featherCreditCard', route: '/billing' },
 	{ label: 'Notifications', icon: 'featherBell', route: '/notifications' },
 	{ label: 'Settings', icon: 'featherSettings', route: '/settings' },
 ]
-const sessionActions: UserMenuItem[] = [{ label: 'Log out', icon: 'featherLogOut', onSelect: () => undefined }]
+const sessionActions: MenuItem[] = [{ label: 'Log out', icon: 'featherLogOut', onSelect: () => undefined }]
 
 // Plain DOM (not `@testing-library/*`) because Storybook's lint rule forbids those imports in story files.
-function openMenu(canvasElement: HTMLElement): void {
+async function openMenu(canvasElement: HTMLElement, ...submenuLabels: string[]): Promise<void> {
 	canvasElement.querySelector<HTMLButtonElement>('button')?.click()
+	for (const label of submenuLabels) {
+		// Menus render into an overlay outside the canvas, one frame after the click that opens them.
+		await new Promise((resolve) => setTimeout(resolve, 50))
+		const items = Array.from(document.querySelectorAll<HTMLElement>('[role="menuitem"]'))
+		items.find((item) => item.textContent?.trim() === label)?.click()
+	}
 }
 
 // Pins the tile to the bottom of a sidebar-shaped column, with room beside and above it for the
@@ -46,7 +62,18 @@ const meta: Meta<UserMenu> = {
 		}),
 		moduleMetadata({
 			imports: [NgIcon],
-			providers: [provideIcons({ featherUser, featherCreditCard, featherBell, featherSettings, featherLogOut })],
+			providers: [
+				provideIcons({
+					featherUser,
+					featherCreditCard,
+					featherBell,
+					featherSettings,
+					featherLogOut,
+					featherSun,
+					featherMoon,
+					featherMonitor,
+				}),
+			],
 		}),
 	],
 	args: {
@@ -76,8 +103,8 @@ const meta: Meta<UserMenu> = {
 		items: {
 			control: 'object',
 			description:
-				'A flat `UserMenuItem[]`, or `UserMenuItem[][]` groups with a separator between each pair. An item with a `route` renders as a link; an item with `onSelect` renders as a button. Empty groups are dropped.',
-			table: { type: { summary: 'UserMenuItem[] | UserMenuItem[][]' } },
+				'A flat `MenuItem[]`, or `MenuItem[][]` groups with a separator between each pair. An item with a `route` renders as a link, one with `onSelect` as a button, and one with `items` opens a nested menu. Empty groups are dropped.',
+			table: { type: { summary: 'MenuItem[] | MenuItem[][]' } },
 		},
 		collapsed: {
 			control: 'boolean',
@@ -104,9 +131,9 @@ user-scoped items.
 - The menu always starts with a non-interactive header repeating the avatar, name and email —
   when the sidebar is collapsed it is the only place the user's identity is visible.
 - The trigger's accessible name is the user's name in both states.
-- **Items that lead to a page are links** (\`route\`): they carry a real URL, so they can be opened
-  in a new tab or copied, and are announced as links. **Items that act in place are buttons**
-  (\`onSelect\`), such as Log out. A disabled link drops its URL and is marked \`aria-disabled\`.
+- The menu is a \`Menu\`: **links** (\`route\`) lead to a page and carry a real URL, **actions**
+  (\`onSelect\`) act in place, such as Log out, and **nested menus** (\`items\`) open a menu of their
+  own. See the Menu stories for every item behavior.
 - Built on \`ng-primitives\` \`NgpMenu\`: arrow keys move between items, Enter activates,
   Escape closes and returns focus to the trigger; clicking outside closes it.
 - Opens to the right of the trigger by default (\`placement\`), flipping when there is no room.
@@ -175,4 +202,27 @@ export const OpensUpwards: Story = {
 	args: { placement: 'top' },
 	decorators: [sidebarFooter('w-64')],
 	play: ({ canvasElement }) => openMenu(canvasElement),
+}
+
+/** A nested menu inside the user menu: Theme opens its own menu of choices. */
+export const WithNestedMenu: Story = {
+	args: {
+		items: [
+			pageLinks,
+			[
+				{
+					label: 'Theme',
+					icon: 'featherSun',
+					items: [
+						{ label: 'Light', icon: 'featherSun', onSelect: () => undefined },
+						{ label: 'Dark', icon: 'featherMoon', onSelect: () => undefined },
+						{ label: 'System', icon: 'featherMonitor', onSelect: () => undefined },
+					],
+				},
+			],
+			sessionActions,
+		],
+	},
+	decorators: [sidebarFooter('w-64')],
+	play: ({ canvasElement }) => openMenu(canvasElement, 'Theme'),
 }
