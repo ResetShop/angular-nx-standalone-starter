@@ -1,6 +1,8 @@
 import { Component } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { provideRouter, Router } from '@angular/router'
+import { provideIcons } from '@ng-icons/core'
+import { featherLogOut, featherSun, featherUser } from '@ng-icons/feather-icons'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { render, screen, within } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
@@ -29,7 +31,10 @@ describe('Menu', () => {
 			{
 				imports: [Menu, MenuHeader, NgpMenuTrigger],
 				componentProperties: { items },
-				providers: [provideRouter([{ path: '**', component: BlankPage }])],
+				providers: [
+					provideRouter([{ path: '**', component: BlankPage }]),
+					provideIcons({ featherUser, featherLogOut, featherSun }),
+				],
 			},
 		)
 	}
@@ -206,6 +211,26 @@ describe('Menu', () => {
 			await open(user)
 
 			expect(screen.getByRole('menuitem', { name: 'Delete account' })).toHaveClass('text-destructive')
+
+			await closeAll(user)
+		})
+	})
+
+	describe('icons', () => {
+		it('are hidden from assistive technology on every item kind, since the label names the item', async () => {
+			const user = userEvent.setup()
+			await renderMenu([
+				{ label: 'Account', icon: 'featherUser', route: '/account' },
+				{ label: 'Log out', icon: 'featherLogOut', onSelect: logOut },
+				{ label: 'Theme', icon: 'featherSun', items: [{ label: 'Dark', onSelect: () => undefined }] },
+			])
+
+			await open(user)
+			const icons = screen.getAllByTestId('menu-item-icon')
+
+			expect(icons).toHaveLength(3)
+			icons.forEach((icon) => expect(icon).toHaveAttribute('aria-hidden', 'true'))
+			expect(screen.getByTestId('submenu-indicator')).toHaveAttribute('aria-hidden', 'true')
 
 			await closeAll(user)
 		})

@@ -70,6 +70,12 @@ describe('UserMenu', () => {
 			expect(within(trigger()).queryByText('ada@example.com')).not.toBeInTheDocument()
 		})
 
+		it('hides its ⋮ indicator from assistive technology, leaving the user’s name as its label', async () => {
+			await renderMenu()
+
+			expect(within(trigger()).getByTestId('menu-indicator')).toHaveAttribute('aria-hidden', 'true')
+		})
+
 		it('announces itself as opening a menu', async () => {
 			await renderMenu()
 

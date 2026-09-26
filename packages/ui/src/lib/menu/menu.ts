@@ -101,7 +101,7 @@ export class MenuHeader {}
 						role="menuitem"
 					>
 						@if (item.icon; as icon) {
-							<ng-icon [name]="icon" class="size-4 shrink-0" />
+							<ng-icon [name]="icon" aria-hidden="true" data-testid="menu-item-icon" class="size-4 shrink-0" />
 						}
 						{{ item.label }}
 					</a>
@@ -118,10 +118,15 @@ export class MenuHeader {}
 						type="button"
 					>
 						@if (item.icon; as icon) {
-							<ng-icon [name]="icon" class="size-4 shrink-0" />
+							<ng-icon [name]="icon" aria-hidden="true" data-testid="menu-item-icon" class="size-4 shrink-0" />
 						}
 						{{ item.label }}
-						<ng-icon name="featherChevronRight" class="text-muted-foreground ms-auto size-4 shrink-0" />
+						<ng-icon
+							name="featherChevronRight"
+							aria-hidden="true"
+							data-testid="submenu-indicator"
+							class="text-muted-foreground ms-auto size-4 shrink-0"
+						/>
 					</button>
 					<ng-template #submenu>
 						<app-menu [items]="item.items" />
@@ -139,7 +144,7 @@ export class MenuHeader {}
 						type="button"
 					>
 						@if (item.icon; as icon) {
-							<ng-icon [name]="icon" class="size-4 shrink-0" />
+							<ng-icon [name]="icon" aria-hidden="true" data-testid="menu-item-icon" class="size-4 shrink-0" />
 						}
 						{{ item.label }}
 					</button>

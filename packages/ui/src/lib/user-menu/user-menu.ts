@@ -40,7 +40,12 @@ import { type MenuItemsInput } from '../menu/menu-groups'
 					<span class="text-foreground truncate font-medium">{{ name() }}</span>
 					<span class="text-muted-foreground truncate text-xs">{{ email() }}</span>
 				</span>
-				<ng-icon name="featherMoreVertical" class="text-muted-foreground size-4 shrink-0" />
+				<ng-icon
+					name="featherMoreVertical"
+					aria-hidden="true"
+					data-testid="menu-indicator"
+					class="text-muted-foreground size-4 shrink-0"
+				/>
 			}
 		</button>
 
