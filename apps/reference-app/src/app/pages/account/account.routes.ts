@@ -1,3 +1,4 @@
+import { provideToast } from '@components/toast/toast.provider'
 import Dashboard from '@pages/dashboard/dashboard'
 import { dashboardNavigationConfig } from '@pages/dashboard/dashboard.navigation'
 import { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
@@ -8,7 +9,7 @@ export default [
 		path: '',
 		title: '',
 		component: Dashboard,
-		providers: [provideNavigation(), provideNavigationConfig(dashboardNavigationConfig)],
+		providers: [provideNavigation(), provideNavigationConfig(dashboardNavigationConfig), provideToast()],
 		children: [
 			{
 				path: '',
