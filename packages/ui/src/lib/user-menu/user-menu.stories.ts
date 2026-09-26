@@ -1,18 +1,23 @@
+import { Component } from '@angular/core'
+import { provideRouter } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherBell, featherLogOut, featherSettings, featherUser } from '@ng-icons/feather-icons'
+import { featherBell, featherCreditCard, featherLogOut, featherSettings, featherUser } from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
-import { componentWrapperDecorator, moduleMetadata } from '@storybook/angular'
-import { type RowAction } from '../row-actions-menu/row-action-item'
-import { UserMenu } from './user-menu'
+import { applicationConfig, componentWrapperDecorator, moduleMetadata } from '@storybook/angular'
+import { UserMenu, type UserMenuItem } from './user-menu'
 
-const noop = () => undefined
+// Link items need a router to resolve their URLs; a blank catch-all keeps the story in place on click.
+@Component({ template: '' })
+class StoryPage {}
 
-const accountActions: RowAction[] = [
-	{ label: 'Account', icon: 'featherUser', onSelect: noop },
-	{ label: 'Settings', icon: 'featherSettings', onSelect: noop },
-	{ label: 'Notifications', icon: 'featherBell', onSelect: noop },
+// Pages are links; Log out acts in place, so it is the one button.
+const pageLinks: UserMenuItem[] = [
+	{ label: 'Account', icon: 'featherUser', route: '/account' },
+	{ label: 'Billing', icon: 'featherCreditCard', route: '/billing' },
+	{ label: 'Notifications', icon: 'featherBell', route: '/notifications' },
+	{ label: 'Settings', icon: 'featherSettings', route: '/settings' },
 ]
-const sessionActions: RowAction[] = [{ label: 'Log out', icon: 'featherLogOut', onSelect: noop }]
+const sessionActions: UserMenuItem[] = [{ label: 'Log out', icon: 'featherLogOut', onSelect: () => undefined }]
 
 // Plain DOM (not `@testing-library/*`) because Storybook's lint rule forbids those imports in story files.
 function openMenu(canvasElement: HTMLElement): void {
@@ -36,16 +41,19 @@ const meta: Meta<UserMenu> = {
 	title: 'Components/UserMenu',
 	tags: ['autodocs'],
 	decorators: [
+		applicationConfig({
+			providers: [provideRouter([{ path: '**', component: StoryPage }])],
+		}),
 		moduleMetadata({
 			imports: [NgIcon],
-			providers: [provideIcons({ featherUser, featherSettings, featherBell, featherLogOut })],
+			providers: [provideIcons({ featherUser, featherCreditCard, featherBell, featherSettings, featherLogOut })],
 		}),
 	],
 	args: {
 		name: 'Ada Lovelace',
 		email: 'ada@example.com',
 		initials: 'AL',
-		actions: [accountActions, sessionActions],
+		items: [pageLinks, sessionActions],
 		collapsed: false,
 		placement: 'right-end',
 	},
@@ -65,11 +73,11 @@ const meta: Meta<UserMenu> = {
 			description: 'Shown in the avatar. The caller derives them from the name.',
 			table: { type: { summary: 'string' } },
 		},
-		actions: {
+		items: {
 			control: 'object',
 			description:
-				'Same shape as `RowActionsMenu`: a flat `RowAction[]`, or `RowAction[][]` groups with a separator between each pair. Empty groups are dropped.',
-			table: { type: { summary: 'RowAction[] | RowAction[][]' } },
+				'A flat `UserMenuItem[]`, or `UserMenuItem[][]` groups with a separator between each pair. An item with a `route` renders as a link; an item with `onSelect` renders as a button. Empty groups are dropped.',
+			table: { type: { summary: 'UserMenuItem[] | UserMenuItem[][]' } },
 		},
 		collapsed: {
 			control: 'boolean',
@@ -88,7 +96,7 @@ const meta: Meta<UserMenu> = {
 			description: {
 				component: `
 A tile identifying the signed-in user, pinned to the bottom of a sidebar, that opens a menu of
-user-scoped actions.
+user-scoped items.
 
 ## Behavior
 
@@ -96,11 +104,13 @@ user-scoped actions.
 - The menu always starts with a non-interactive header repeating the avatar, name and email —
   when the sidebar is collapsed it is the only place the user's identity is visible.
 - The trigger's accessible name is the user's name in both states.
-- Built on \`ng-primitives\` \`NgpMenu\`: arrow keys move between items, Enter/Space activates,
+- **Items that lead to a page are links** (\`route\`): they carry a real URL, so they can be opened
+  in a new tab or copied, and are announced as links. **Items that act in place are buttons**
+  (\`onSelect\`), such as Log out. A disabled link drops its URL and is marked \`aria-disabled\`.
+- Built on \`ng-primitives\` \`NgpMenu\`: arrow keys move between items, Enter activates,
   Escape closes and returns focus to the trigger; clicking outside closes it.
 - Opens to the right of the trigger by default (\`placement\`), flipping when there is no room.
-- Items are \`RowActionItem\`s, so icons, disabled and destructive items behave exactly as in
-  \`RowActionsMenu\`. Labels arrive already translated.
+- Labels arrive already translated.
 				`,
 			},
 			canvas: {
@@ -140,6 +150,21 @@ export const LongNameAndEmail: Story = {
 	args: {
 		name: 'Augusta Ada King, Countess of Lovelace',
 		email: 'augusta.ada.king.countess.of.lovelace@analytical-engine.example.com',
+	},
+	decorators: [sidebarFooter('w-64')],
+	play: ({ canvasElement }) => openMenu(canvasElement),
+}
+
+/** A disabled link (no URL, dimmed) next to available ones, and a destructive action. */
+export const DisabledAndDestructiveItems: Story = {
+	args: {
+		items: [
+			[
+				{ label: 'Account', icon: 'featherUser', route: '/account' },
+				{ label: 'Billing', icon: 'featherCreditCard', route: '/billing', disabled: true },
+			],
+			[{ label: 'Delete account', onSelect: () => undefined, variant: 'destructive' }],
+		],
 	},
 	decorators: [sidebarFooter('w-64')],
 	play: ({ canvasElement }) => openMenu(canvasElement),
