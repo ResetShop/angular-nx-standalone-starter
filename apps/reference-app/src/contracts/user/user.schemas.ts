@@ -94,8 +94,9 @@ export const updateUserRequestSchema = z.object({
 })
 
 /**
- * Self-service profile update — the caller's own name only. `.strict()` rejects any other field with 400
- * instead of dropping it: an email change needs verification, and roles and status are admin-only.
+ * Self-service profile update, applied to the caller's own account. `.strict()` rejects any field the
+ * caller may not change with 400 instead of dropping it: an email change needs verification, and roles
+ * and status are admin-only.
  */
 export const updateProfileRequestSchema = z
 	.object({
