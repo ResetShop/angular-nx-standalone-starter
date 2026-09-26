@@ -21,9 +21,9 @@ import { createMutationToast } from '@store/ui/mutation-toast'
 import { toAccountChangesEntries } from './account-profile-changes.presenter'
 
 /**
- * Self-service profile page. The first and last name are editable; the email is shown as static text
- * because changing it requires verification. Submitting never persists directly: it opens a before →
- * after confirmation of every changed field, and only a confirmed edit is saved.
+ * Self-service profile page: the signed-in user editing their own profile. The email is shown as static
+ * text because changing it requires verification. Submitting never persists directly: it opens a
+ * before → after confirmation of every changed field, and only a confirmed edit is saved.
  */
 @Component({
 	selector: 'app-account',
