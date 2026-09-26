@@ -62,6 +62,14 @@ export class InMemoryAuthApi implements AuthApi {
 		this.errors.clear()
 	}
 
+	/**
+	 * The failure a real request gets when it is sent without a session: the backend answers 401 and the
+	 * client surfaces it as an error. Naming the method and the fix keeps a failing test self-explanatory.
+	 */
+	private noSessionError(method: keyof AuthApi): Error {
+		return new Error(`InMemoryAuthApi.${method}: no authenticated user — call setAuthenticatedUser() first`)
+	}
+
 	public setError(method: keyof AuthApi, error: Error): void {
 		this.errors.set(method, error)
 	}
@@ -114,7 +122,7 @@ export class InMemoryAuthApi implements AuthApi {
 			return of(this.authenticatedUser)
 		}
 
-		return throwError(() => new Error('No session'))
+		return throwError(() => this.noSessionError('getMe'))
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
@@ -154,7 +162,7 @@ export class InMemoryAuthApi implements AuthApi {
 		}
 
 		if (!this.authenticatedUser) {
-			return throwError(() => new Error('No session'))
+			return throwError(() => this.noSessionError('updateProfile'))
 		}
 
 		this.authenticatedUser = { ...this.authenticatedUser, ...params }

@@ -43,12 +43,13 @@ describe('InMemoryAuthApi.updateProfile', () => {
 		expect(updated).not.toHaveProperty('mustChangePassword')
 	})
 
-	it('errors when there is no session', () => {
+	it('errors when there is no session, naming the call and how to set one up', () => {
 		let failure: Error | undefined
 
 		api.updateProfile({ firstName: 'Grace' }).subscribe({ error: (error: Error) => (failure = error) })
 
-		expect(failure?.message).toBe('No session')
+		expect(failure?.message).toContain('InMemoryAuthApi.updateProfile')
+		expect(failure?.message).toContain('setAuthenticatedUser()')
 	})
 
 	it('surfaces a configured error', () => {
