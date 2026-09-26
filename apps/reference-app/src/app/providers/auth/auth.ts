@@ -74,9 +74,6 @@ export class HttpAuthApi implements AuthApi {
 		return this.http.post<ResetPasswordResponse>('/api/auth/reset-password', params)
 	}
 
-	/**
-	 * Update the authenticated user's own first and/or last name
-	 */
 	public updateProfile(params: UpdateProfileRequest): Observable<AuthUser> {
 		return this.http.patch<AuthUser>('/api/users/me', params)
 	}

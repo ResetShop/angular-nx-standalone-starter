@@ -288,7 +288,7 @@ export const AuthStore = signalStore(
 			},
 
 			/**
-			 * Update the signed-in user's own name. On success `currentUser` is replaced with the
+			 * Update the signed-in user's own profile. On success `currentUser` is replaced with the
 			 * server's copy, so every view of the user reflects the change without a reload.
 			 */
 			updateProfile: rxMethod<UpdateProfileRequest>(
