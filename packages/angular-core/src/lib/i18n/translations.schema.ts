@@ -261,6 +261,26 @@ export interface TranslationSchema {
 			SPANISH: string
 		}
 	}
+	ACCOUNT: {
+		NAV: string
+		TITLE: string
+		DESCRIPTION: string
+		PROFILE: {
+			TITLE: string
+			FIRST_NAME: string
+			LAST_NAME: string
+			EMAIL: string
+		}
+		REVIEW: string
+		SUCCESS_TOAST: string
+		CONFIRM_DIALOG: {
+			TITLE: string
+			MESSAGE: string
+			CONFIRM: string
+			BEFORE: string
+			AFTER: string
+		}
+	}
 	HEALTH: {
 		NAV: string
 		TITLE: string
