@@ -102,7 +102,7 @@ A complete sidebar navigation component for application layouts.
 - **Responsive**: Adapts to different screen sizes
 - **OnPush Change Detection**: Optimized performance
 - **Expandable Navigation**: Supports hierarchical routes with expand/collapse
-- **Collapsible (Icon Mode)**: Reduces to icon-only rail via toggle button or Ctrl+B (lg breakpoint and above only)
+- **Always Expanded on Desktop**: From 1024px up the sidebar is always shown in full
 - **Responsive Mobile**: Slides in as overlay sheet on mobile viewports (< 1024px)
 
 ## Layout Structure
@@ -110,7 +110,7 @@ A complete sidebar navigation component for application layouts.
 The sidebar is divided into three main sections:
 1. **Header (64px)**: Branding and home link
 2. **Navigation (1fr)**: Scrollable navigation sections with expandable items
-3. **Footer**: The signed-in user's tile and, on wide screens, the collapse toggle
+3. **Footer**: The signed-in user's tile
 
 ## Usage
 
@@ -318,42 +318,12 @@ export const Playground: Story = {
 }
 
 /**
- * Sidebar in collapsed (icon-only) mode.
- * Use the collapse toggle button at the bottom or press Ctrl+B to toggle.
- * Only available at lg breakpoint (1024px) and above.
- */
-export const Collapsed: Story = {
-	decorators: [
-		applicationConfig({
-			providers: [provideEnvironmentInitializer(() => inject(UIStore).setSidebarCollapsed(true))],
-		}),
-	],
-	render: () => ({
-		template: `
-			<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
-				<div class="border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800" style="width: 64px;">
-					<aside appSidebar></aside>
-				</div>
-				<main class="flex-1 p-8">
-					<h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
-						Collapsed Sidebar
-					</h1>
-					<p class="text-gray-600 dark:text-gray-400">
-						The sidebar is in icon-only mode. Click the expand button or press Ctrl+B to expand.
-					</p>
-				</main>
-			</div>
-		`,
-	}),
-}
-
-/**
  * Sidebar at mobile viewport width.
  * On viewports below 1024px the sidebar renders as a fixed overlay sheet
- * with a capped width of min(280px, 80vw). The collapse toggle is hidden.
+ * with a capped width of min(280px, 80vw), and the user menu opens upwards.
  *
  * This story only accurately represents the visual at < 1024px viewport widths,
- * since collapse toggle visibility is driven by real matchMedia in the component.
+ * since the layout switch is driven by real media queries.
  */
 export const Mobile: Story = {
 	parameters: {
@@ -374,7 +344,7 @@ export const Mobile: Story = {
 						Mobile Viewport
 					</h1>
 					<p class="text-sm text-gray-600 dark:text-gray-400">
-						The sidebar slides in as an overlay. Collapse toggle is hidden below lg.
+						The sidebar slides in as an overlay.
 					</p>
 				</main>
 			</div>

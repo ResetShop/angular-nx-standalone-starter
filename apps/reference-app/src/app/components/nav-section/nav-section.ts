@@ -12,22 +12,14 @@ import { NavigationSection } from '@resetshop/angular-core/interfaces/navigation
 	template: `
 		@let sectionName = section().name;
 		@if (showTitle() && sectionName) {
-			@if (!collapsed()) {
-				<div class="flex h-8 items-center px-2 text-xs font-medium text-wrap text-black/70 dark:text-white/70">
-					{{ sectionName | translate }}
-				</div>
-			}
+			<div class="flex h-8 items-center px-2 text-xs font-medium text-wrap text-black/70 dark:text-white/70">
+				{{ sectionName | translate }}
+			</div>
 		}
 		<ul>
 			@for (navItem of navItems(); track navItem.id) {
 				<li>
-					<ng-container
-						*ngComponentOutlet="
-							NavItem;
-							inputs: { item: navItem.route, collapsed: collapsed() };
-							injector: navItem.injector
-						"
-					/>
+					<ng-container *ngComponentOutlet="NavItem; inputs: { item: navItem.route }; injector: navItem.injector" />
 				</li>
 			}
 		</ul>
@@ -38,7 +30,6 @@ export default class NavSection {
 	protected readonly NavItem = NavItem
 	public readonly showTitle = input<boolean>(true)
 	public readonly section = input.required<NavigationSection>()
-	public readonly collapsed = input(false)
 
 	private readonly injector = inject(EnvironmentInjector)
 
