@@ -142,7 +142,7 @@ export class CreateUserDrawer {
 		}),
 	)
 
-	protected readonly isFormValid = computed(() => this.userForm().errors().length === 0)
+	protected readonly isFormValid = computed(() => this.userForm().valid())
 	protected readonly isCreating = computed(() => this.usersStore.isCreating())
 	private readonly closingAfterSuccess = signal(false)
 	protected readonly showSubmitSpinner = computed(() => this.isCreating() || this.closingAfterSuccess())
