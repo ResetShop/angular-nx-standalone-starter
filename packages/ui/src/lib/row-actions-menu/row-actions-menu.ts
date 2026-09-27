@@ -1,11 +1,16 @@
 import { Component, computed, input } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherMoreVertical } from '@ng-icons/feather-icons'
-import { NgpMenu, NgpMenuTrigger } from 'ng-primitives/menu'
-import { NgpSeparator } from 'ng-primitives/separator'
+import { NgpMenuTrigger } from 'ng-primitives/menu'
 import { Button } from '../button/button'
+import { Menu, type MenuAction } from '../menu/menu'
 import { toMenuGroups, type MenuItemsInput } from '../menu/menu-groups'
-import { RowActionItem, type RowAction } from './row-action-item'
+
+/**
+ * A single action exposed in a row-actions menu. Row menus act on their row in place, so they take
+ * `Menu`'s action items only — not links or nested menus.
+ */
+export type RowAction = MenuAction
 
 /**
  * Input shape for `RowActionsMenu.actions`: a flat list of actions, or groups with a separator
@@ -15,19 +20,11 @@ import { RowActionItem, type RowAction } from './row-action-item'
 export type RowActionsInput = MenuItemsInput<RowAction>
 
 /**
- * Vertical-ellipsis (⋮) trigger that opens an `NgpMenu` popover listing the row's actions.
+ * Vertical-ellipsis (⋮) trigger that opens a `Menu` listing the row's actions.
  *
  * Renders nothing when no group contains actions — consumers do not need to guard with `@if`.
- *
- * Behavior:
- * - Click trigger opens the menu (`bottom-start` placement, auto-flip near viewport edges).
- * - Arrow keys navigate items; Enter / Space activates the focused item.
- * - Escape closes the menu; focus returns to the trigger when closed via keyboard.
- * - Click outside the menu closes it.
- *
- * `role="menu"` is applied explicitly because the underlying `NgpMenu` primitive manages
- * roving focus but does not set the ARIA role itself; `role="menuitem"` lives on the item
- * button in `RowActionItem`; separators get `role="separator"` via `NgpSeparator`.
+ * The menu opens `bottom-start` and flips near viewport edges; keyboard handling, separators and
+ * item styling are `Menu`'s.
  *
  * @example
  *   <!-- Flat list — single group, no separators -->
@@ -39,7 +36,7 @@ export type RowActionsInput = MenuItemsInput<RowAction>
 @Component({
 	selector: 'app-row-actions-menu',
 	standalone: true,
-	imports: [Button, NgIcon, NgpMenu, NgpMenuTrigger, NgpSeparator, RowActionItem],
+	imports: [Button, Menu, NgIcon, NgpMenuTrigger],
 	viewProviders: [provideIcons({ featherMoreVertical })],
 	template: `
 		@if (hasActions()) {
@@ -55,30 +52,8 @@ export type RowActionsInput = MenuItemsInput<RowAction>
 				<ng-icon data-icon="start" name="featherMoreVertical" />
 			</button>
 
-			<!--
-				The "fixed" class is required: NgpMenu binds style.left and style.top to the
-				computed overlay position via Floating UI, and those values are no-ops on a default
-				position:static element. Without it the menu still renders into the DOM (tests
-				pass), but lands at the document's static flow location instead of next to the
-				trigger. The ng-primitives schematic template uses position:fixed for the same
-				reason. "w-max" sizes to content; "min-w-[8rem]" enforces a floor for short labels.
-			-->
 			<ng-template #menu>
-				<div
-					ngpMenu
-					role="menu"
-					data-testid="row-actions-menu"
-					class="fixed z-50 flex w-max min-w-[8rem] flex-col overflow-hidden rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-900"
-				>
-					@for (group of nonEmptyGroups(); track $index; let last = $last) {
-						@for (action of group; track $index) {
-							<app-row-action-item [action]="action" />
-						}
-						@if (!last) {
-							<div ngpSeparator role="separator" class="my-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-						}
-					}
-				</div>
+				<app-menu [items]="actions()" data-testid="row-actions-menu" class="min-w-[8rem]" />
 			</ng-template>
 		}
 	`,
@@ -87,7 +62,5 @@ export class RowActionsMenu {
 	public readonly actions = input.required<RowActionsInput>()
 	public readonly triggerLabel = input<string>('Actions')
 
-	protected readonly nonEmptyGroups = computed(() => toMenuGroups(this.actions()))
-
-	protected readonly hasActions = computed(() => this.nonEmptyGroups().length > 0)
+	protected readonly hasActions = computed(() => toMenuGroups(this.actions()).length > 0)
 }
