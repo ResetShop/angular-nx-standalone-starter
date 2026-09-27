@@ -15,9 +15,11 @@ test.describe('Dashboard shell (admin)', () => {
 		await expect(dashboard.sidebar).toBeVisible()
 		await expect(dashboard.navLink('Users')).toBeVisible()
 		await expect(dashboard.authorizationNav).toBeVisible()
-		await expect(dashboard.navLink('Settings')).toBeVisible()
 		await expect(dashboard.navLink('Health')).toBeVisible()
 		await expect(dashboard.sectionLabel('Administration')).toBeVisible()
+		// Account and Settings are reached from the user menu, not the nav.
+		await expect(dashboard.navLink('Account')).toHaveCount(0)
+		await expect(dashboard.navLink('Settings')).toHaveCount(0)
 		await expect(dashboard.breadcrumb).toBeVisible()
 	})
 
@@ -50,7 +52,7 @@ test.describe('Dashboard shell (admin)', () => {
 		// Collapse/expand controls are desktop-only; on mobile the nav is behind a hamburger.
 		await expect(dashboard.openMenuButton).toBeVisible()
 		await dashboard.openMenuButton.click()
-		await expect(dashboard.navLink('Settings')).toBeVisible()
+		await expect(dashboard.navLink('Health')).toBeVisible()
 	})
 
 	test('the authorization landing page shows the Roles and Permissions cards', async ({ page }) => {

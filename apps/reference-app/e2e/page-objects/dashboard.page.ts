@@ -29,7 +29,7 @@ export class DashboardPage {
 		return this.page.getByRole('status').getByText('No module access')
 	}
 
-	/** A sidebar nav link (exact name), e.g. 'Users', 'Settings', 'Health'. */
+	/** A sidebar nav link (exact name), e.g. 'Users', 'Health'. */
 	navLink(name: string): Locator {
 		return this.page.getByRole('link', { name, exact: true })
 	}

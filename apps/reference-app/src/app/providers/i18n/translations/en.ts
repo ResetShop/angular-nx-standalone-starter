@@ -308,7 +308,6 @@ const en: TranslationSchema = {
 			NO_ACCESS_MESSAGE:
 				"Your account doesn't have access to any modules yet. Contact your administrator to request the permissions you need.",
 			DESCRIPTIONS: {
-				SETTINGS: 'Configure your application preferences and language.',
 				HEALTH: 'Monitor the health and status of your application services.',
 				USERS: 'Manage user accounts, their roles, and access permissions.',
 				AUTHORIZATION: 'Manage roles and permissions that control access to the platform.',

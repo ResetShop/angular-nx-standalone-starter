@@ -64,7 +64,7 @@ describe('DashboardHome', () => {
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
 	})
 
-	it('links to the account page with its description', async () => {
+	it('links to the health page with its description', async () => {
 		await render(DashboardHome, {
 			providers: [
 				...baseProviders(),
@@ -72,9 +72,21 @@ describe('DashboardHome', () => {
 			],
 		})
 
-		const accountCard = screen.getByRole('link', { name: /account/i })
+		const healthCard = screen.getByRole('link', { name: /health/i })
 
-		expect(accountCard).toHaveAttribute('href', '/account')
-		expect(accountCard).toHaveTextContent('Your personal details.')
+		expect(healthCard).toHaveAttribute('href', '/dashboard/health')
+		expect(healthCard).toHaveTextContent('Monitor the health and status of your application services.')
+	})
+
+	it('offers no Account or Settings card, since both are reached from the sidebar user menu', async () => {
+		await render(DashboardHome, {
+			providers: [
+				...baseProviders(),
+				{ provide: Navigation, useValue: { ...navigationMock, sections: () => dashboardNavigationConfig.sections } },
+			],
+		})
+
+		expect(screen.queryByRole('link', { name: /account/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('link', { name: /settings/i })).not.toBeInTheDocument()
 	})
 })
