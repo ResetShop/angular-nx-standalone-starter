@@ -303,7 +303,7 @@ const es: TranslationSchema = {
 	DASHBOARD: {
 		BREADCRUMB: 'Panel principal',
 		SECTIONS: {
-			SETTINGS: 'Ajustes y mantenimiento',
+			MAINTENANCE: 'Mantenimiento',
 			ADMIN: 'Administración',
 		},
 		HOME: {

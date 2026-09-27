@@ -298,7 +298,7 @@ export interface TranslationSchema {
 	DASHBOARD: {
 		BREADCRUMB: string
 		SECTIONS: {
-			SETTINGS: string
+			MAINTENANCE: string
 			ADMIN: string
 		}
 		HOME: {

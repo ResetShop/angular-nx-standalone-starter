@@ -10,8 +10,8 @@ export const dashboardNavigationConfig: NavigationConfig = {
 			routes: [{ id: 'dashboard', name: 'DASHBOARD.BREADCRUMB', route: 'dashboard', icon: { featherHome } }],
 		},
 		{
-			id: 'settings',
-			name: 'DASHBOARD.SECTIONS.SETTINGS',
+			id: 'maintenance',
+			name: 'DASHBOARD.SECTIONS.MAINTENANCE',
 			routes: [{ id: 'health', name: 'HEALTH.NAV', route: 'dashboard/health', icon: { featherActivity } }],
 		},
 		{ id: 'admin', name: 'DASHBOARD.SECTIONS.ADMIN', routes: [usersNavigation, authorizationNavigation] },

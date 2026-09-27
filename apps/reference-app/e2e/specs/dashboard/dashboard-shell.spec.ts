@@ -17,6 +17,7 @@ test.describe('Dashboard shell (admin)', () => {
 		await expect(dashboard.authorizationNav).toBeVisible()
 		await expect(dashboard.navLink('Health')).toBeVisible()
 		await expect(dashboard.sectionLabel('Administration')).toBeVisible()
+		await expect(dashboard.sectionLabel('Maintenance')).toBeVisible()
 		// Account and Settings are reached from the user menu, not the nav.
 		await expect(dashboard.navLink('Account')).toHaveCount(0)
 		await expect(dashboard.navLink('Settings')).toHaveCount(0)

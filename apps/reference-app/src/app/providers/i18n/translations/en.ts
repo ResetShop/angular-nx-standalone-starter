@@ -300,7 +300,7 @@ const en: TranslationSchema = {
 	DASHBOARD: {
 		BREADCRUMB: 'Dashboard',
 		SECTIONS: {
-			SETTINGS: 'Settings & Maintenance',
+			MAINTENANCE: 'Maintenance',
 			ADMIN: 'Administration',
 		},
 		HOME: {

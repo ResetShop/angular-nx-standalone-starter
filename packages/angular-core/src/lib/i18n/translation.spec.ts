@@ -207,7 +207,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 		},
 		DASHBOARD: {
 			BREADCRUMB: 'Dashboard',
-			SECTIONS: { SETTINGS: 'Settings', ADMIN: 'Admin' },
+			SECTIONS: { MAINTENANCE: 'Maintenance', ADMIN: 'Admin' },
 			HOME: {
 				NO_ACCESS_TITLE: 'No access',
 				NO_ACCESS_MESSAGE: 'Contact admin',
@@ -460,7 +460,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 		},
 		DASHBOARD: {
 			BREADCRUMB: 'Panel',
-			SECTIONS: { SETTINGS: 'Ajustes', ADMIN: 'Admin' },
+			SECTIONS: { MAINTENANCE: 'Mantenimiento', ADMIN: 'Admin' },
 			HOME: {
 				NO_ACCESS_TITLE: 'Sin acceso',
 				NO_ACCESS_MESSAGE: 'Contacta al admin',

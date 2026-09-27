@@ -37,7 +37,7 @@ export class DashboardPage {
 	get authorizationNav(): Locator {
 		return this.page.getByRole('button', { name: 'Authorization', exact: true })
 	}
-	/** A sidebar section label (plain text), e.g. 'Administration', 'Settings & Maintenance'. Scoped to the
+	/** A sidebar section label (plain text), e.g. 'Administration', 'Maintenance'. Scoped to the
 	 * sidebar so it doesn't collide with the dashboard-home page, which repeats group names as <h2> headings. */
 	sectionLabel(name: string): Locator {
 		return this.sidebar.getByText(name, { exact: true })
