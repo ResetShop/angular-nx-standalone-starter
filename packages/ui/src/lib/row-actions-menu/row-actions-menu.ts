@@ -4,17 +4,15 @@ import { featherMoreVertical } from '@ng-icons/feather-icons'
 import { NgpMenu, NgpMenuTrigger } from 'ng-primitives/menu'
 import { NgpSeparator } from 'ng-primitives/separator'
 import { Button } from '../button/button'
+import { toMenuGroups, type MenuItemsInput } from '../menu/menu-groups'
 import { RowActionItem, type RowAction } from './row-action-item'
 
 /**
- * Input shape for `RowActionsMenu.actions`. Accepts either:
- * - A flat list of actions (no separators rendered).
- * - A list of groups; a separator is rendered between every pair of non-empty groups.
- *
- * Empty groups are skipped so consumers can build groups conditionally without worrying
- * about producing dangling separators.
+ * Input shape for `RowActionsMenu.actions`: a flat list of actions, or groups with a separator
+ * between every pair of non-empty groups. Empty groups are skipped, so consumers can build groups
+ * conditionally without producing dangling separators.
  */
-export type RowActionsInput = readonly RowAction[] | readonly (readonly RowAction[])[]
+export type RowActionsInput = MenuItemsInput<RowAction>
 
 /**
  * Vertical-ellipsis (⋮) trigger that opens an `NgpMenu` popover listing the row's actions.
@@ -89,18 +87,7 @@ export class RowActionsMenu {
 	public readonly actions = input.required<RowActionsInput>()
 	public readonly triggerLabel = input<string>('Actions')
 
-	// Normalize flat / matrix input into a single grouped form, then drop empty groups so
-	// consumers can build groups conditionally without producing dangling separators.
-	protected readonly nonEmptyGroups = computed(() => {
-		const value = this.actions()
-		const groups = this.isMatrix(value) ? value : [value]
-		return groups.filter((group) => group.length > 0)
-	})
+	protected readonly nonEmptyGroups = computed(() => toMenuGroups(this.actions()))
 
 	protected readonly hasActions = computed(() => this.nonEmptyGroups().length > 0)
-
-	// A `RowAction` is a plain object; only the matrix variant has an array as its first element.
-	private isMatrix(value: RowActionsInput): value is readonly (readonly RowAction[])[] {
-		return value.length > 0 && Array.isArray(value[0])
-	}
 }
