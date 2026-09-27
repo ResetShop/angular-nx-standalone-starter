@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import uiComponentGenerator from './index'
+import uiComponentGenerator from './index.ts'
 
 const DEFAULT_DIR = 'packages/ui/src/lib'
 const INDEX_PATH = 'packages/ui/src/index.ts'
