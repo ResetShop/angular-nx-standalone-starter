@@ -70,7 +70,7 @@ Each year a new Node line enters Active LTS and the previous one moves to **Main
 
 - **Planned move:** the starter moves to the new Active LTS line at the **next routine dependency refresh after the rollover** — not on rollover day (deploy targets and native dependencies need time to catch up), and not deferred indefinitely. In practice the starter spends a short period on a Maintenance line, measured in weeks rather than months, and never approaches its end-of-life.
 - **Earlier move** — any of these triggers the bump ahead of the routine refresh:
-  - a security advisory against the Maintenance line that is not backported;
+  - a security fix the Node project ships only on the newer line;
   - a required dependency or tooling upgrade (including an Angular major, see [§4](#4-relationship-to-the-angular-support-matrix)) that drops support for the Maintenance line.
 - **Blocker:** the move is held if the new line is not yet available on the reference app's deploy targets or breaks a native dependency. The block is recorded on the tracking issue and re-evaluated at each subsequent refresh.
 
