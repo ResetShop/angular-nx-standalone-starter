@@ -21,6 +21,21 @@ test.describe('Dashboard shell (admin)', () => {
 		await expect(dashboard.breadcrumb).toBeVisible()
 	})
 
+	test('the user menu shows who is signed in and leads to the settings page', async ({ page }) => {
+		await expect(dashboard.userMenuTrigger).toHaveAccessibleName('Administrador Sistema')
+		await dashboard.userMenuTrigger.click()
+		await dashboard.userMenuItem('Settings').click()
+
+		await expect(page).toHaveURL(/\/dashboard\/settings$/)
+	})
+
+	test('keeps the user menu reachable while the sidebar is collapsed', async () => {
+		await dashboard.collapseButton.click()
+		await dashboard.userMenuTrigger.click()
+
+		await expect(dashboard.userMenuItem('Account')).toBeVisible()
+	})
+
 	test('collapses and expands the sidebar', async () => {
 		await expect(dashboard.collapseButton).toBeVisible()
 		await dashboard.collapseButton.click()

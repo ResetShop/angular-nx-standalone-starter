@@ -42,6 +42,18 @@ export class DashboardPage {
 	sectionLabel(name: string): Locator {
 		return this.sidebar.getByText(name, { exact: true })
 	}
+	/**
+	 * The signed-in user's tile in the sidebar footer. It is the sidebar's only button that opens a menu;
+	 * its accessible name is the user's name, which differs per spec user, so it is found by its popup.
+	 */
+	get userMenuTrigger(): Locator {
+		return this.sidebar.locator('button[aria-haspopup]')
+	}
+	/** An item in the open user menu, by its exact label. */
+	userMenuItem(name: string): Locator {
+		return this.page.getByRole('menu').getByRole('menuitem', { name, exact: true })
+	}
+
 	/** A toast notification matched by its message text. */
 	toast(message: string): Locator {
 		return this.page.getByText(message, { exact: true })
