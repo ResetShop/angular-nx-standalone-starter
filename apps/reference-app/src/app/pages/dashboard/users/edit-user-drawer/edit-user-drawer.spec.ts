@@ -143,6 +143,25 @@ describe('EditUserDrawer', () => {
 		expect(screen.getByRole('button', { name: 'Review changes' })).toBeEnabled()
 	})
 
+	it.each([
+		['first name is empty', /first name/i, ''],
+		['first name is too long', /first name/i, 'A'.repeat(101)],
+		['last name is empty', /last name/i, ''],
+		['email is invalid', /email/i, 'not-an-email'],
+	])('keeps the review button disabled and never opens the confirmation when %s', async (_, field, value) => {
+		await renderOpenDrawer()
+		typeInto(field, value)
+
+		const reviewButton = screen.getByRole('button', { name: 'Review changes' })
+		expect(reviewButton).toBeDisabled()
+
+		fireEvent.click(reviewButton)
+		TestBed.tick()
+
+		expect(screen.queryByRole('alertdialog', { name: 'Confirm changes' })).not.toBeInTheDocument()
+		expect(usersApiMock.update.calls).toHaveLength(0)
+	})
+
 	it('shows the before and after values for review without persisting yet', async () => {
 		await renderOpenDrawer()
 		typeInto(/first name/i, 'Grace')
