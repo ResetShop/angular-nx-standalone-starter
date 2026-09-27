@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-09-27
+
 Version 1.1.0 moves the starter to Angular 22, Nx 23 and TypeScript 6 with strict mode on, and lets every signed-in user manage their own account. It is the largest release since 1.0.0, and it asks something of every fork: read **Fork migration** below before merging.
 
 The first area is the **toolchain**. Angular 22.0, Nx 23.1 and TypeScript 6.0 land together, because each one requires the others ([#534]). Components now rely on Angular 22's default OnPush change detection, and a lint rule keeps it that way ([#551]). `@ngrx/signals` moves from a pinned pre-release to the stable 22.0.0 ([#553]). TypeScript's strict mode is now on across the workspace ([#560]). Turning it on also exposed a real bug: three API routes documented a generic "Forbidden" error instead of their actual reason for refusing ([#555]). Node.js moves to the 24.20.0 LTS release, and a new `docs/node-support-policy.md` explains why the starter follows the LTS line instead of adopting Node 26 ([#535], [#536]). Prettier is pinned to one exact version, so formatting no longer depends on the day you installed ([#559]).
@@ -387,7 +389,8 @@ This is the first tagged version of the starter under the fork-distribution mode
   section headings above are plain text and have no link references here.
 -->
 
-[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.1.0
 [1.0.2]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.2
 [1.0.1]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0
