@@ -1102,7 +1102,7 @@ This is a mandatory step in the workflow:
 
 #### Two verification paths: cold `ci` vs cache-aware `ci:verify`
 
-There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `lint`, `typecheck`, `test-integration-setup-guard`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
+There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `lint`, `typecheck`, `test-integration-setup-guard`, `generators-esm-guard`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
 
 | Script              | Cache                                                              | Use for                                                                                                                                                                                                       |
 | ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1124,6 +1124,7 @@ The `npm run ci` command runs CI checks in two parallel batches via `nx run-many
 - `lint` — TypeScript/ESLint linting
 - `typecheck` — Type-check spec files (`tsc --noEmit`)
 - `test-integration-setup-guard` — runs `test-integration` with a deliberately broken global setup (unreachable external DB; embedded Postgres without `INTEGRATION_TEST_ADMIN_PASSWORD`) and fails unless both runs exit non-zero with the expected setup error (`scripts/check-integration-setup-fails-loud.mjs`). It proves the integration gate can go red. It lives in Batch 1, not Batch 2, because it must not run concurrently with `test-integration`: each embedded-Postgres run sweeps temp cluster directories that lack a `postmaster.pid`, which includes a concurrent run's cluster that is still initialising. `cache: false`. Also runs in the `test-integration` job of `.github/workflows/ci.yml`, after the suite (`if: ${{ !cancelled() }}`, so it runs even when the suite fails and the suite's results always show) and with a 15-minute `timeout-minutes`.
+- `generators-esm-guard` — dry-runs all eight `@resetshop/generators` generators with `NX_VERBOSE_LOGGING=true` and fails if any run errors, lists no files, or shows Nx falling back from native ESM loading to its swc/ts-node CommonJS path (`scripts/check-generators-load-as-esm.mjs`). `cache: false`. Also runs in the `check` job of `.github/workflows/ci.yml`. The rules it enforces are in [`.claude/references/generators.md`](.claude/references/generators.md) → "Writing or changing a generator: native ESM only".
 
 **Batch 2 (heavy tasks, parallel — runs only if Batch 1 passes):**
 
