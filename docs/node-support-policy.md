@@ -74,7 +74,7 @@ Each year a new Node line enters Active LTS and the previous one moves to **Main
   - a required dependency or tooling upgrade (including an Angular major, see [§4](#4-relationship-to-the-angular-support-matrix)) that drops support for the Maintenance line.
 - **Blocker:** the move is held if the new line is not yet available on the reference app's deploy targets or breaks a native dependency. The block is recorded on the tracking issue and re-evaluated at each subsequent refresh.
 
-A major-line bump is a fork-visible change and is always announced in [`CHANGELOG.md`](../CHANGELOG.md) with a **Migration:** note (update your local Node install, your CI, and your deploy target).
+A major-line bump is a fork-visible change and is always announced in [`CHANGELOG.md`](../CHANGELOG.md) with a fork migration note telling forks to update your local Node install, your CI, and your deploy target.
 
 ## 7. Upgrade cadence and the authoritative version
 
