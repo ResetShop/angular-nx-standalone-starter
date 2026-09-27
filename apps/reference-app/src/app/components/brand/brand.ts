@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core'
+import { Component } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherRefreshCw } from '@ng-icons/feather-icons'
@@ -19,13 +19,9 @@ import { Button } from '@resetshop/ui/button/button'
 			class="gap-2 font-semibold"
 		>
 			<ng-icon name="featherRefreshCw" data-icon="start" />
-			@if (!collapsed()) {
-				<span class="min-w-0 truncate">Reset Starter Repo</span>
-			}
+			<span class="min-w-0 truncate">Reset Starter Repo</span>
 		</a>
 	`,
 	viewProviders: [provideIcons({ featherRefreshCw })],
 })
-export class Brand {
-	public readonly collapsed = input(false)
-}
+export class Brand {}
