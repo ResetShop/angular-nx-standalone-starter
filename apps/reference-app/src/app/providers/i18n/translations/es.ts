@@ -303,7 +303,7 @@ const es: TranslationSchema = {
 	DASHBOARD: {
 		BREADCRUMB: 'Panel principal',
 		SECTIONS: {
-			SETTINGS: 'Ajustes y mantenimiento',
+			MAINTENANCE: 'Mantenimiento',
 			ADMIN: 'Administración',
 		},
 		HOME: {
@@ -311,7 +311,6 @@ const es: TranslationSchema = {
 			NO_ACCESS_MESSAGE:
 				'Tu cuenta aún no tiene acceso a ningún módulo. Contacta a tu administrador para solicitar los permisos que necesitas.',
 			DESCRIPTIONS: {
-				SETTINGS: 'Configura las preferencias de tu aplicación e idioma.',
 				HEALTH: 'Monitorea el estado y la salud de los servicios de tu aplicación.',
 				USERS: 'Gestiona las cuentas de usuario, sus roles y permisos de acceso.',
 				AUTHORIZATION: 'Administra los roles y permisos que controlan el acceso a la plataforma.',

@@ -298,14 +298,13 @@ export interface TranslationSchema {
 	DASHBOARD: {
 		BREADCRUMB: string
 		SECTIONS: {
-			SETTINGS: string
+			MAINTENANCE: string
 			ADMIN: string
 		}
 		HOME: {
 			NO_ACCESS_TITLE: string
 			NO_ACCESS_MESSAGE: string
 			DESCRIPTIONS: {
-				SETTINGS: string
 				HEALTH: string
 				USERS: string
 				AUTHORIZATION: string

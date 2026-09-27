@@ -192,6 +192,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'PERMISSIONS.TABLE.HEADER.DESCRIPTION': 'Description',
 
 	// Health
+	'HEALTH.NAV': 'Health',
 	'HEALTH.TITLE': 'Application Health Checker',
 	'HEALTH.LOADING': 'Loading...',
 	'HEALTH.STATUS_LABEL': 'Status:',
@@ -227,6 +228,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	// Common extras
 	'COMMON.LOGOUT': 'Logout',
 	'DASHBOARD.BREADCRUMB': 'Dashboard',
+	'DASHBOARD.HOME.DESCRIPTIONS.HEALTH': 'Monitor the health and status of your application services.',
 }
 
 /**
