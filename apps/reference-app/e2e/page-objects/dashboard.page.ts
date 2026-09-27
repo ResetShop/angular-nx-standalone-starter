@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-/** Page object for the dashboard shell (sidebar nav, breadcrumb, collapse/mobile-drawer, empty state). */
+/** Page object for the dashboard shell (sidebar nav, breadcrumb, mobile drawer, empty state). */
 export class DashboardPage {
 	constructor(private readonly page: Page) {}
 
@@ -9,12 +9,6 @@ export class DashboardPage {
 	}
 	get breadcrumb(): Locator {
 		return this.page.getByRole('navigation', { name: 'Breadcrumb' })
-	}
-	get collapseButton(): Locator {
-		return this.page.getByRole('button', { name: 'Collapse sidebar' })
-	}
-	get expandButton(): Locator {
-		return this.page.getByRole('button', { name: 'Expand sidebar' })
 	}
 	get openMenuButton(): Locator {
 		return this.page.getByRole('button', { name: 'Open navigation menu' })

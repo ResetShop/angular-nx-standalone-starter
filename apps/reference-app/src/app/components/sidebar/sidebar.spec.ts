@@ -12,7 +12,6 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
-import { UIStore } from '@store/ui/ui.store'
 import { render, screen, within } from '@testing-library/angular'
 import { userEvent } from '@testing-library/user-event'
 import { Sidebar } from './sidebar'
@@ -193,9 +192,9 @@ describe('Sidebar', () => {
 		expect(userTile()).toBeInTheDocument()
 	})
 
-	describe('mobile collapse guard', () => {
-		it('collapse toggle button is not rendered when viewport is below lg', async () => {
-			mockMatchMedia(false)
+	describe('always expanded on wide screens', () => {
+		it('offers no control to collapse the sidebar', async () => {
+			mockMatchMedia(true)
 
 			await render(Sidebar, {
 				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
@@ -204,8 +203,8 @@ describe('Sidebar', () => {
 			expect(screen.queryByRole('button', { name: /collapse sidebar|expand sidebar/i })).toBeNull()
 		})
 
-		it('Ctrl+B does not toggle collapse when viewport is below lg', async () => {
-			mockMatchMedia(false)
+		it('keeps the labels and the user tile when Ctrl+B or Cmd+B is pressed', async () => {
+			mockMatchMedia(true)
 			const user = userEvent.setup()
 
 			await render(Sidebar, {
@@ -214,42 +213,11 @@ describe('Sidebar', () => {
 
 			signIn()
 			await user.keyboard('{Control>}b{/Control}')
+			await user.keyboard('{Meta>}b{/Meta}')
 
-			expect(within(userTile()).getByText('Ada Lovelace')).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /reset starter/i })).toBeInTheDocument()
-		})
-
-		it('sidebar does not visually collapse when store is collapsed but viewport is below lg', async () => {
-			mockMatchMedia(false)
-
-			const { fixture } = await render(Sidebar, {
-				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-			})
-
-			signIn()
-			const uiStore = fixture.debugElement.injector.get(UIStore)
-			uiStore.setSidebarCollapsed(true)
-			fixture.detectChanges()
-
+			expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /reset starter repo/i })).toBeInTheDocument()
 			expect(within(userTile()).getByText('Ada Lovelace')).toBeInTheDocument()
-		})
-
-		it('collapse toggle button is rendered and functional when viewport is at lg', async () => {
-			mockMatchMedia(true)
-			const user = userEvent.setup()
-
-			const { fixture } = await render(Sidebar, {
-				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-			})
-
-			const collapseButton = screen.getByRole('button', { name: /collapse sidebar/i })
-			expect(collapseButton).toBeInTheDocument()
-
-			await user.click(collapseButton)
-
-			const uiStore = fixture.debugElement.injector.get(UIStore)
-			expect(uiStore.isSidebarCollapsed()).toBe(true)
 		})
 	})
 
@@ -324,17 +292,6 @@ describe('Sidebar', () => {
 
 			expect(TestBed.inject(AuthStore).currentUser()).toBeNull()
 			expect(TestBed.inject(Router).url).toBe('/auth/login')
-		})
-
-		it('keeps the tile, avatar only, when the sidebar is collapsed', async () => {
-			mockMatchMedia(true)
-			const { fixture } = await renderSignedIn()
-
-			fixture.debugElement.injector.get(UIStore).setSidebarCollapsed(true)
-			fixture.detectChanges()
-
-			expect(within(userTile()).getByText('AL')).toBeInTheDocument()
-			expect(within(userTile()).queryByText('Ada Lovelace')).not.toBeInTheDocument()
 		})
 
 		it('opens the menu beside the tile on wide screens', async () => {

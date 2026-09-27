@@ -22,7 +22,6 @@ import Dashboard from './dashboard'
 
 describe('Dashboard', () => {
 	const mockGlobalLoading = signal(false)
-	const mockSidebarCollapsed = signal(false)
 	const mockSidebarOpen = signal(false)
 
 	const mockNotifications = signal<UINotification[]>([])
@@ -32,8 +31,6 @@ describe('Dashboard', () => {
 		setGlobalLoading: (value: boolean) => mockGlobalLoading.set(value),
 		notifications: mockNotifications,
 		dismissNotification: fn(),
-		isSidebarCollapsed: mockSidebarCollapsed,
-		setSidebarCollapsed: (value: boolean) => mockSidebarCollapsed.set(value),
 		isSidebarOpen: mockSidebarOpen,
 		setSidebarOpen: (value: boolean) => mockSidebarOpen.set(value),
 		toggleSidebar: () => mockSidebarOpen.update((v) => !v),
@@ -82,7 +79,6 @@ describe('Dashboard', () => {
 	beforeEach(() => {
 		clearAllMocks()
 		mockGlobalLoading.set(false)
-		mockSidebarCollapsed.set(false)
 		mockSidebarOpen.set(false)
 	})
 

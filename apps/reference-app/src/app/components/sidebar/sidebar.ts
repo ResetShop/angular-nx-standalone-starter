@@ -5,18 +5,11 @@ import { toSignal } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 import { Brand } from '@components/brand/brand'
 import NavSection from '@components/nav-section/nav-section'
-import { NgIcon, provideIcons } from '@ng-icons/core'
-import {
-	featherChevronsLeft,
-	featherChevronsRight,
-	featherLogOut,
-	featherSettings,
-	featherUser,
-} from '@ng-icons/feather-icons'
+import { provideIcons } from '@ng-icons/core'
+import { featherLogOut, featherSettings, featherUser } from '@ng-icons/feather-icons'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
-import { Button } from '@resetshop/ui/button/button'
 import type { MenuItem } from '@resetshop/ui/menu/menu'
 import { UserMenu } from '@resetshop/ui/user-menu/user-menu'
 import { AuthStore } from '@store/auth/auth.store'
@@ -28,28 +21,19 @@ import { map } from 'rxjs'
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appSidebar]',
 	host: {
-		'[class.collapsed]': 'isCollapsed()',
-		'[attr.data-collapsed]': 'isCollapsed() || null',
 		'[attr.data-mobile-open]': 'uiStore.isSidebarOpen() || null',
-		'(document:keydown.control.b)': 'onCollapseShortcut($event)',
-		'(document:keydown.meta.b)': 'onCollapseShortcut($event)',
 		'(document:keydown.escape)': 'onEscape()',
 	},
-	imports: [Button, NavSection, Brand, NgIcon, UserMenu],
+	imports: [NavSection, Brand, UserMenu],
 	providers: [NavigationState],
-	viewProviders: [
-		provideIcons({ featherChevronsLeft, featherChevronsRight, featherUser, featherSettings, featherLogOut }),
-	],
+	viewProviders: [provideIcons({ featherUser, featherSettings, featherLogOut })],
 	template: `
 		<div class="brand-container">
-			<app-brand [collapsed]="isCollapsed()" />
+			<app-brand />
 		</div>
 		<div class="nav-container">
-			@for (section of sections(); track section.id; let first = $first) {
-				@if (isCollapsed() && !first) {
-					<hr class="border-border" />
-				}
-				<app-nav-section [section]="section" [collapsed]="isCollapsed()" [class.px-2]="!isCollapsed()" />
+			@for (section of sections(); track section.id) {
+				<app-nav-section [section]="section" class="px-2" />
 			}
 		</div>
 		<div class="footer">
@@ -59,31 +43,15 @@ import { map } from 'rxjs'
 					[email]="user.email"
 					[initials]="initials()"
 					[items]="userMenuItems()"
-					[collapsed]="isCollapsed()"
 					[placement]="userMenuPlacement()"
 					class="min-w-0 flex-1"
 				/>
-			}
-			@if (isLgViewport()) {
-				<button
-					(click)="toggleCollapse()"
-					[attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-					class="shrink-0"
-					appButton
-					variant="ghost"
-					size="icon"
-				>
-					<ng-icon
-						[name]="isCollapsed() ? 'featherChevronsRight' : 'featherChevronsLeft'"
-						[size]="isCollapsed() ? '24' : '20'"
-					/>
-				</button>
 			}
 		</div>
 	`,
 	styles: `
 		:host {
-			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_auto] overflow-hidden transition-[width] duration-200;
+			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_auto] overflow-hidden;
 
 			.brand-container {
 				@apply p-2;
@@ -94,22 +62,7 @@ import { map } from 'rxjs'
 			}
 
 			.footer {
-				@apply border-border flex min-h-16 items-center gap-1 border-t p-2;
-			}
-		}
-
-		:host(.collapsed) {
-			.brand-container {
-				@apply border-border border-b;
-			}
-
-			.nav-container {
-				@apply py-2;
-			}
-
-			/* The collapsed rail is too narrow for the tile and the toggle side by side, so they stack. */
-			.footer {
-				@apply flex-col justify-center;
+				@apply border-border flex min-h-16 items-center border-t p-2;
 			}
 		}
 
@@ -140,8 +93,7 @@ export class Sidebar {
 	protected readonly uiStore = inject(UIStore)
 	protected readonly sections = computed(() => this.navigation.sections())
 
-	protected readonly isLgViewport = this.createLgViewportSignal()
-	protected readonly isCollapsed = computed(() => this.isLgViewport() && this.uiStore.isSidebarCollapsed())
+	private readonly isLgViewport = this.createLgViewportSignal()
 
 	protected readonly initials = computed(() => {
 		const user = this.authStore.currentUser()
@@ -170,20 +122,10 @@ export class Sidebar {
 		}
 	})
 
-	protected onCollapseShortcut(event: Event): void {
-		event.preventDefault()
-		if (!this.isLgViewport()) return
-		this.toggleCollapse()
-	}
-
 	protected onEscape(): void {
 		if (this.uiStore.isSidebarOpen()) {
 			this.uiStore.setSidebarOpen(false)
 		}
-	}
-
-	protected toggleCollapse(): void {
-		this.uiStore.setSidebarCollapsed(!this.uiStore.isSidebarCollapsed())
 	}
 
 	private logout(): void {

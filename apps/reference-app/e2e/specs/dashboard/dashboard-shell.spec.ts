@@ -32,25 +32,20 @@ test.describe('Dashboard shell (admin)', () => {
 		await expect(page).toHaveURL(/\/dashboard\/settings$/)
 	})
 
-	test('keeps the user menu reachable while the sidebar is collapsed', async () => {
-		await dashboard.collapseButton.click()
-		await dashboard.userMenuTrigger.click()
+	test('keeps the sidebar expanded on desktop, with no control or shortcut to collapse it', async ({ page }) => {
+		await expect(page.getByRole('button', { name: /collapse sidebar|expand sidebar/i })).toHaveCount(0)
 
-		await expect(dashboard.userMenuItem('Account')).toBeVisible()
-	})
+		await page.keyboard.press('ControlOrMeta+b')
 
-	test('collapses and expands the sidebar', async () => {
-		await expect(dashboard.collapseButton).toBeVisible()
-		await dashboard.collapseButton.click()
-		await expect(dashboard.expandButton).toBeVisible()
-		await dashboard.expandButton.click()
-		await expect(dashboard.collapseButton).toBeVisible()
+		await expect(dashboard.navLink('Health')).toBeVisible()
+		await expect(dashboard.sectionLabel('Maintenance')).toBeVisible()
+		await expect(dashboard.userMenuTrigger).toContainText('Administrador Sistema')
 	})
 
 	test('opens the mobile navigation drawer', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 })
 		await dashboard.goto()
-		// Collapse/expand controls are desktop-only; on mobile the nav is behind a hamburger.
+		// On mobile the nav is behind a hamburger.
 		await expect(dashboard.openMenuButton).toBeVisible()
 		await dashboard.openMenuButton.click()
 		await expect(dashboard.navLink('Health')).toBeVisible()
