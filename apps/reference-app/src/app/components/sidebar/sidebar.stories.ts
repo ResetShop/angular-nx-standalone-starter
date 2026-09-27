@@ -4,6 +4,7 @@ import { Brand } from '@components/brand/brand'
 import NavItem from '@components/nav-item/nav-item'
 import NavSection from '@components/nav-section/nav-section'
 import { mockSidebarNavigationConfig } from '@mocks/navigation.mock'
+import { createMockUser } from '@mocks/user.mock'
 import { provideIcons } from '@ng-icons/core'
 import {
 	featherActivity,
@@ -20,6 +21,7 @@ import { NAVIGATION_CONFIG } from '@resetshop/angular-core/interfaces/navigation
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
 import { Button } from '@resetshop/ui/button/button'
+import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { applicationConfig, moduleMetadata } from '@storybook/angular'
@@ -63,6 +65,17 @@ const meta: Meta<Sidebar> = {
 					featherChevronsRight,
 				}),
 				provideAuthMock(),
+				// The footer shows the signed-in user's tile, so every story signs a user in.
+				provideEnvironmentInitializer(() =>
+					inject(AuthStore).updateCurrentUser(
+						createMockUser({
+							firstName: 'Ada',
+							lastName: 'Lovelace',
+							fullName: 'Ada Lovelace',
+							email: 'ada@example.com',
+						}),
+					),
+				),
 				{ provide: NAVIGATION_CONFIG, useValue: mockSidebarNavigationConfig },
 				Navigation,
 				NavigationState,
@@ -85,7 +98,7 @@ A complete sidebar navigation component for application layouts.
 - **Icon Support**: Integrates with ng-icons for consistent iconography
 - **RouterLink Integration**: Seamless navigation with Angular Router
 - **Branding Area**: Top section for logo or app name
-- **Sign Out Section**: Bottom section for authentication actions
+- **User Tile**: The footer shows the signed-in user's tile, opening a menu of user-scoped links and actions
 - **Responsive**: Adapts to different screen sizes
 - **OnPush Change Detection**: Optimized performance
 - **Expandable Navigation**: Supports hierarchical routes with expand/collapse
@@ -97,7 +110,7 @@ A complete sidebar navigation component for application layouts.
 The sidebar is divided into three main sections:
 1. **Header (64px)**: Branding and home link
 2. **Navigation (1fr)**: Scrollable navigation sections with expandable items
-3. **Footer (64px)**: User actions like sign out
+3. **Footer**: The signed-in user's tile and, on wide screens, the collapse toggle
 
 ## Usage
 
@@ -310,10 +323,15 @@ export const Playground: Story = {
  * Only available at lg breakpoint (1024px) and above.
  */
 export const Collapsed: Story = {
+	decorators: [
+		applicationConfig({
+			providers: [provideEnvironmentInitializer(() => inject(UIStore).setSidebarCollapsed(true))],
+		}),
+	],
 	render: () => ({
 		template: `
 			<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
-				<div class="border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800" style="width: 48px;">
+				<div class="border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800" style="width: 64px;">
 					<aside appSidebar></aside>
 				</div>
 				<main class="flex-1 p-8">

@@ -19,9 +19,10 @@ test.describe('Account page — non-admin user', () => {
 		await expect(page).toHaveURL(/\/dashboard$/)
 	})
 
-	test('reaches the account page from the sidebar without any admin permission', async ({ page }) => {
+	test('reaches the account page from the user menu without any admin permission', async ({ page }) => {
 		const dashboard = new DashboardPage(page)
-		await dashboard.navLink('Account').click()
+		await dashboard.userMenuTrigger.click()
+		await dashboard.userMenuItem('Account').click()
 
 		await expect(page).toHaveURL(/\/account$/)
 		await expect(account.heading).toBeVisible()
