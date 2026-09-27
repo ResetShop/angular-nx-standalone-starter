@@ -128,7 +128,7 @@ export class CreateRoleDrawer {
 		}),
 	)
 
-	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
+	protected readonly isFormValid = computed(() => this.roleForm().valid())
 	protected readonly isCreating = computed(() => this.rolesStore.isCreating())
 	private readonly closingAfterSuccess = signal(false)
 	private readonly nameValue = computed(() => this.model().name)

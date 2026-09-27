@@ -210,7 +210,7 @@ export class EditUserDrawer {
 		return computeUserEditDiff(user, edited, roleNames)
 	})
 
-	protected readonly isFormValid = computed(() => this.userForm().errors().length === 0)
+	protected readonly isFormValid = computed(() => this.userForm().valid())
 	protected readonly hasChanges = computed(() => Object.keys(this.diff().changes).length > 0)
 	protected readonly confirmEntries = computed(() =>
 		toConfirmChangesEntries(this.diff().changes, (key) => this.translation.instant(key)),

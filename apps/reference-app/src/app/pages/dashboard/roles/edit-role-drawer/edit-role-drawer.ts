@@ -135,7 +135,7 @@ export class EditRoleDrawer {
 		}),
 	)
 
-	protected readonly isFormValid = computed(() => this.roleForm().errors().length === 0)
+	protected readonly isFormValid = computed(() => this.roleForm().valid())
 	protected readonly isUpdating = computed(() => this.rolesStore.isUpdating())
 	private readonly closingAfterSuccess = signal(false)
 	protected readonly showSubmitSpinner = computed(() => this.isUpdating() || this.closingAfterSuccess())
