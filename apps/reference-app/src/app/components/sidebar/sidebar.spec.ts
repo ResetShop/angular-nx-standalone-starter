@@ -1,6 +1,8 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
-import { provideRouter } from '@angular/router'
+import { TestBed } from '@angular/core/testing'
+import { provideRouter, Router } from '@angular/router'
+import { createMockUser } from '@mocks/user.mock'
 import { featherActivity, featherHome } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
@@ -9,8 +11,9 @@ import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
 import { clearAllMocks } from '@resetshop/util/test-utils'
+import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
-import { render, screen } from '@testing-library/angular'
+import { render, screen, within } from '@testing-library/angular'
 import { userEvent } from '@testing-library/user-event'
 import { Sidebar } from './sidebar'
 
@@ -68,6 +71,22 @@ describe('Sidebar', () => {
 			breadcrumbs: () => [],
 		},
 	})
+
+	const ada = createMockUser({
+		firstName: 'Ada',
+		lastName: 'Lovelace',
+		fullName: 'Ada Lovelace',
+		email: 'ada@example.com',
+	})
+
+	function signIn(user = ada): void {
+		TestBed.inject(AuthStore).updateCurrentUser(user)
+		TestBed.tick()
+	}
+
+	function userTile(): HTMLElement {
+		return screen.getByRole('button', { name: 'Ada Lovelace' })
+	}
 
 	const mockSettingsSection: NavigationSection = {
 		id: 'settings',
@@ -128,16 +147,6 @@ describe('Sidebar', () => {
 		expect(healthLink).toBeInTheDocument()
 	})
 
-	it('should render sign out button with link variant styling', async () => {
-		await render(Sidebar, {
-			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		})
-
-		const signOutButton = screen.getByRole('button', { name: /Logout/i })
-		expect(signOutButton).toBeInTheDocument()
-		expect(signOutButton).toHaveAttribute('variant', 'link')
-	})
-
 	it('should have correct route on navigation items', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
@@ -145,23 +154,6 @@ describe('Sidebar', () => {
 
 		const healthLink = screen.getByRole('link', { name: /salud/i })
 		expect(healthLink).toHaveAttribute('href', '/health')
-	})
-
-	it('should route to login page on sign out', async () => {
-		const user = userEvent.setup()
-
-		const { detectChanges } = await render(Sidebar, {
-			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
-		})
-
-		const signOutButton = screen.getByRole('button', { name: /Logout/i })
-		expect(signOutButton).toBeInTheDocument()
-
-		await user.click(signOutButton)
-		await detectChanges()
-
-		// The logout method is called on the component
-		expect(signOutButton).toBeInTheDocument()
 	})
 
 	it('should render multiple navigation sections with different content', async () => {
@@ -190,18 +182,15 @@ describe('Sidebar', () => {
 		expect(brandLink).toHaveAttribute('href', '/dashboard')
 	})
 
-	it('should have proper structure with all sections and sign out button', async () => {
+	it('should have proper structure with all sections and the user tile', async () => {
 		await render(Sidebar, {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection, mockAdminSection])],
 		})
+		signIn()
 
-		const sectionTitles = screen.getByText('Ajustes y mantenimiento')
-		const adminTitle = screen.getByText('Administración')
-		const signOutButton = screen.getByRole('button', { name: /Logout/i })
-
-		expect(sectionTitles).toBeInTheDocument()
-		expect(adminTitle).toBeInTheDocument()
-		expect(signOutButton).toBeInTheDocument()
+		expect(screen.getByText('Ajustes y mantenimiento')).toBeInTheDocument()
+		expect(screen.getByText('Administración')).toBeInTheDocument()
+		expect(userTile()).toBeInTheDocument()
 	})
 
 	describe('mobile collapse guard', () => {
@@ -223,9 +212,10 @@ describe('Sidebar', () => {
 				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 			})
 
+			signIn()
 			await user.keyboard('{Control>}b{/Control}')
 
-			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+			expect(within(userTile()).getByText('Ada Lovelace')).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /reset starter/i })).toBeInTheDocument()
 		})
 
@@ -236,12 +226,13 @@ describe('Sidebar', () => {
 				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 			})
 
+			signIn()
 			const uiStore = fixture.debugElement.injector.get(UIStore)
 			uiStore.setSidebarCollapsed(true)
 			fixture.detectChanges()
 
 			expect(screen.getByRole('link', { name: /reset starter repo/i })).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+			expect(within(userTile()).getByText('Ada Lovelace')).toBeInTheDocument()
 		})
 
 		it('collapse toggle button is rendered and functional when viewport is at lg', async () => {
@@ -259,6 +250,105 @@ describe('Sidebar', () => {
 
 			const uiStore = fixture.debugElement.injector.get(UIStore)
 			expect(uiStore.isSidebarCollapsed()).toBe(true)
+		})
+	})
+
+	describe('user menu', () => {
+		async function renderSignedIn() {
+			const view = await render(Sidebar, {
+				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+			})
+			signIn()
+			return view
+		}
+
+		async function openUserMenu(user: ReturnType<typeof userEvent.setup>): Promise<HTMLElement> {
+			await user.click(userTile())
+			TestBed.tick()
+			return screen.getByRole('menu')
+		}
+
+		it('replaces the footer Logout button with the signed-in user’s tile', async () => {
+			await renderSignedIn()
+
+			expect(within(userTile()).getByText('Ada Lovelace')).toBeInTheDocument()
+			expect(within(userTile()).getByText('ada@example.com')).toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: /logout/i })).not.toBeInTheDocument()
+		})
+
+		it('shows initials from the first and last name', async () => {
+			await renderSignedIn()
+
+			expect(within(userTile()).getByText('AL')).toBeInTheDocument()
+		})
+
+		it('falls back to a single initial when the last name is empty', async () => {
+			await render(Sidebar, {
+				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+			})
+			signIn(createMockUser({ firstName: 'Ada', lastName: '', fullName: 'Ada', email: 'ada@example.com' }))
+
+			expect(within(screen.getByRole('button', { name: 'Ada' })).getByText('A')).toBeInTheDocument()
+		})
+
+		it('renders nothing for the user while nobody is signed in', async () => {
+			await render(Sidebar, {
+				providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
+			})
+
+			expect(screen.queryByRole('button', { name: 'Ada Lovelace' })).not.toBeInTheDocument()
+		})
+
+		it('links to the Account and Settings pages and offers logging out', async () => {
+			const user = userEvent.setup()
+			await renderSignedIn()
+
+			const menu = await openUserMenu(user)
+
+			expect(within(menu).getByRole('menuitem', { name: 'Account' })).toHaveAttribute('href', '/account')
+			expect(within(menu).getByRole('menuitem', { name: 'Settings' })).toHaveAttribute('href', '/dashboard/settings')
+			expect(within(menu).getByRole('menuitem', { name: 'Logout' })).toHaveAttribute('type', 'button')
+
+			await user.keyboard('{Escape}')
+			TestBed.tick()
+		})
+
+		it('logs out from the menu and routes to the login page', async () => {
+			const user = userEvent.setup()
+			const { fixture } = await renderSignedIn()
+
+			await openUserMenu(user)
+			await user.click(screen.getByRole('menuitem', { name: 'Logout' }))
+			await fixture.whenStable()
+			TestBed.tick()
+
+			expect(TestBed.inject(AuthStore).currentUser()).toBeNull()
+			expect(TestBed.inject(Router).url).toBe('/auth/login')
+		})
+
+		it('keeps the tile, avatar only, when the sidebar is collapsed', async () => {
+			mockMatchMedia(true)
+			const { fixture } = await renderSignedIn()
+
+			fixture.debugElement.injector.get(UIStore).setSidebarCollapsed(true)
+			fixture.detectChanges()
+
+			expect(within(userTile()).getByText('AL')).toBeInTheDocument()
+			expect(within(userTile()).queryByText('Ada Lovelace')).not.toBeInTheDocument()
+		})
+
+		it('opens the menu beside the tile on wide screens', async () => {
+			mockMatchMedia(true)
+			await renderSignedIn()
+
+			expect(userTile()).toHaveAttribute('data-placement', 'right-end')
+		})
+
+		it('opens the menu upwards in the narrow mobile drawer', async () => {
+			mockMatchMedia(false)
+			await renderSignedIn()
+
+			expect(userTile()).toHaveAttribute('data-placement', 'top')
 		})
 	})
 })
