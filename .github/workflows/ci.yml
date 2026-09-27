@@ -190,6 +190,18 @@ jobs:
           PG_TEST_CONNECTION_STRING: ${{ vars.PG_TEST_CONNECTION_STRING }}
           INTEGRATION_TEST_ADMIN_PASSWORD: ${{ secrets.INTEGRATION_TEST_ADMIN_PASSWORD }}
 
+      # Proves a broken global setup still fails the target, so the step above can go red.
+      # It runs after the suite, and even when the suite failed, so the suite's results are
+      # reported whatever happens to the guard. Steps run one at a time, which the guard needs:
+      # it must not run concurrently with the suite, since both start embedded-Postgres clusters.
+      # The guard supplies its own (deliberately broken) env per scenario. The timeout lets the
+      # runner kill the whole process tree if a spawned run hangs, instead of waiting for the
+      # 6-hour job default.
+      - name: Run integration setup fail-loud guard
+        if: ${{ !cancelled() }}
+        timeout-minutes: 15
+        run: npx nx run @app/source:test-integration-setup-guard
+
   e2e:
     needs: setup
     runs-on: ubuntu-latest

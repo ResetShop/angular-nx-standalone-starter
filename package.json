@@ -42,8 +42,8 @@
 		"prepare": "husky",
 		"format": "prettier --write --cache .",
 		"format:check": "prettier --check --cache .",
-		"ci": "nx run-many -t check stylelint lint typecheck --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache --maxParallel=3",
-		"ci:verify": "nx run-many -t check stylelint lint typecheck && nx run-many -t test test-integration build build-storybook --maxParallel=3",
+		"ci": "nx run-many -t check stylelint lint typecheck test-integration-setup-guard --skip-nx-cache && nx run-many -t test test-integration build build-storybook --skip-nx-cache --maxParallel=3",
+		"ci:verify": "nx run-many -t check stylelint lint typecheck test-integration-setup-guard && nx run-many -t test test-integration build build-storybook --maxParallel=3",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app --skip-nx-cache",
 		"storybook": "nx run reference-app:storybook",
@@ -138,6 +138,7 @@
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/user-event": "^14.6.1",
+		"@types/async-exit-hook": "2.0.2",
 		"@types/node": "^24.13.3",
 		"@types/nodemailer": "^7.0.9",
 		"@types/pg": "^8.16.0",
@@ -145,6 +146,7 @@
 		"@vitest/eslint-plugin": "^1.6.9",
 		"@vitest/ui": "^4.0.16",
 		"angular-eslint": "22.1.0",
+		"async-exit-hook": "2.0.1",
 		"baseline-browser-mapping": "^2.9.11",
 		"drizzle-kit": "^0.31.8",
 		"embedded-postgres": "^17.9.0-beta.17",
@@ -198,6 +200,13 @@
 						"node scripts/check-no-issue-refs-in-comments.mjs",
 						"prettier --check --cache ."
 					]
+				}
+			},
+			"test-integration-setup-guard": {
+				"executor": "nx:run-commands",
+				"cache": false,
+				"options": {
+					"command": "node scripts/check-integration-setup-fails-loud.mjs"
 				}
 			}
 		}
