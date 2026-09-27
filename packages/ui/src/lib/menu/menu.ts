@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common'
 import { Component, computed, contentChild, Directive, input } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -71,7 +72,7 @@ export class MenuHeader {}
 @Component({
 	selector: 'app-menu',
 	standalone: true,
-	imports: [NgIcon, NgpMenuItem, NgpSeparator, NgpSubmenuTrigger, RouterLink],
+	imports: [NgIcon, NgpMenuItem, NgpSeparator, NgpSubmenuTrigger, NgTemplateOutlet, RouterLink],
 	hostDirectives: [NgpMenu],
 	viewProviders: [provideIcons({ featherChevronRight })],
 	host: {
@@ -83,6 +84,13 @@ export class MenuHeader {}
 			'bg-card text-card-foreground border-border fixed z-50 flex w-max max-w-72 flex-col overflow-hidden rounded-md border shadow-md',
 	},
 	template: `
+		<ng-template #itemContent let-item>
+			@if (item.icon; as icon) {
+				<ng-icon [name]="icon" aria-hidden="true" data-testid="menu-item-icon" class="size-4 shrink-0" />
+			}
+			{{ item.label }}
+		</ng-template>
+
 		<ng-content select="[appMenuHeader]" />
 		@for (group of groups(); track $index; let first = $first) {
 			@if (header() || !first) {
@@ -100,10 +108,7 @@ export class MenuHeader {}
 						ngpMenuItem
 						role="menuitem"
 					>
-						@if (item.icon; as icon) {
-							<ng-icon [name]="icon" aria-hidden="true" data-testid="menu-item-icon" class="size-4 shrink-0" />
-						}
-						{{ item.label }}
+						<ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
 					</a>
 				} @else if (item.items !== undefined) {
 					<button
@@ -117,10 +122,7 @@ export class MenuHeader {}
 						role="menuitem"
 						type="button"
 					>
-						@if (item.icon; as icon) {
-							<ng-icon [name]="icon" aria-hidden="true" data-testid="menu-item-icon" class="size-4 shrink-0" />
-						}
-						{{ item.label }}
+						<ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
 						<ng-icon
 							name="featherChevronRight"
 							aria-hidden="true"
@@ -143,10 +145,7 @@ export class MenuHeader {}
 						role="menuitem"
 						type="button"
 					>
-						@if (item.icon; as icon) {
-							<ng-icon [name]="icon" aria-hidden="true" data-testid="menu-item-icon" class="size-4 shrink-0" />
-						}
-						{{ item.label }}
+						<ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
 					</button>
 				}
 			}
