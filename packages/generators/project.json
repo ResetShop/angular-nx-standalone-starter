@@ -39,7 +39,7 @@
 		"lint": {
 			"executor": "@nx/eslint:lint",
 			"options": {
-				"lintFilePatterns": ["packages/generators/src/**/*.ts"]
+				"lintFilePatterns": ["packages/generators/src/**/*.ts", "packages/generators/*.ts"]
 			}
 		}
 	}

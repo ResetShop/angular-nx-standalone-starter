@@ -344,7 +344,7 @@ export default [
 		// Generators are loaded by Nx as native ES modules; keep CommonJS globals out of them so a
 		// generator can never depend on Nx's silent CommonJS fallback.
 		name: 'generators-esm-only',
-		files: ['packages/generators/src/**/*.ts'],
+		files: ['packages/generators/**/*.ts'],
 		rules: {
 			'no-restricted-syntax': [
 				'error',

@@ -179,7 +179,7 @@ If that native load throws, Nx does **not** fail. It silently registers swc/ts-n
 
 ### The rules
 
-- **Templates:** locate the `files/` directory with `resolveTemplateDir(import.meta.url)` from `packages/generators/src/utils/resolve-template-dir.ts`. Never use `__dirname` / `__filename`; ESLint rejects them anywhere under `packages/generators/src/`.
+- **Templates:** locate the `files/` directory with `resolveTemplateDir(import.meta.url)` from `packages/generators/src/utils/resolve-template-dir.ts`. Never use `__dirname` / `__filename`; ESLint rejects them anywhere in `packages/generators`, including `vitest.config.ts`.
 - **Type imports:** use `import type` for anything used only as a type (`Tree`, schema interfaces). `verbatimModuleSyntax` in `packages/generators/tsconfig.json` makes a missing `type` a compile error.
 - **Relative imports:** write the explicit `.ts` extension (`'../store/index.ts'`). `moduleResolution: nodenext` rejects extension-less relative imports, and `rewriteRelativeImportExtensions` rewrites them to `.js` in the `build` output.
 - **Syntax:** use only erasable TypeScript. `erasableSyntaxOnly` rejects enums (use `Object.freeze()`), parameter properties and namespaces.
