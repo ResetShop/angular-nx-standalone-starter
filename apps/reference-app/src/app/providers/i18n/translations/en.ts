@@ -263,6 +263,26 @@ const en: TranslationSchema = {
 			SPANISH: 'Spanish',
 		},
 	},
+	ACCOUNT: {
+		NAV: 'Account',
+		TITLE: 'Account',
+		DESCRIPTION: 'Your personal details.',
+		PROFILE: {
+			TITLE: 'Profile',
+			FIRST_NAME: 'First Name',
+			LAST_NAME: 'Last Name',
+			EMAIL: 'Email',
+		},
+		REVIEW: 'Review changes',
+		SUCCESS_TOAST: 'Profile updated successfully.',
+		CONFIRM_DIALOG: {
+			TITLE: 'Confirm changes',
+			MESSAGE: 'Review the changes to your profile before saving them.',
+			CONFIRM: 'Save changes',
+			BEFORE: 'Before',
+			AFTER: 'After',
+		},
+	},
 	HEALTH: {
 		NAV: 'Health',
 		TITLE: 'Application Health Checker',

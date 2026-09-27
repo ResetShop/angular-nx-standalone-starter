@@ -26,19 +26,18 @@ import {
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
 import { USER_ROLE_ERRORS } from './user-role.errors'
 
-const ERROR_STATUS_MAP = [
-	[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
-	[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
-	[USER_MANAGEMENT_ERRORS.SELF_LOCKOUT, 403],
-	[USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL, 403],
-	[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
-	[USER_ROLE_ERRORS.ROLES_NOT_FOUND, 400],
-	[USER_ROLE_ERRORS.NON_REMOVABLE_ROLES, 400],
-] as const
-
 function resolveErrorStatus(error: unknown): { message: string; status: 400 | 403 | 404 | 409 | 422 } | null {
 	if (!(error instanceof Error)) return null
-	for (const [prefix, status] of ERROR_STATUS_MAP) {
+	const errorStatuses = [
+		[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
+		[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
+		[USER_MANAGEMENT_ERRORS.SELF_LOCKOUT, 403],
+		[USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL, 403],
+		[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
+		[USER_ROLE_ERRORS.ROLES_NOT_FOUND, 400],
+		[USER_ROLE_ERRORS.NON_REMOVABLE_ROLES, 400],
+	] as const
+	for (const [prefix, status] of errorStatuses) {
 		if (error.message.startsWith(prefix)) return { message: error.message, status }
 	}
 	return null

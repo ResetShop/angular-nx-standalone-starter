@@ -7,6 +7,7 @@ import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
 import { render, screen } from '@testing-library/angular'
+import { dashboardNavigationConfig } from '../../dashboard.navigation'
 import DashboardHome from './dashboard-home'
 
 describe('DashboardHome', () => {
@@ -61,5 +62,19 @@ describe('DashboardHome', () => {
 		fixture.detectChanges()
 
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
+	})
+
+	it('links to the account page with its description', async () => {
+		await render(DashboardHome, {
+			providers: [
+				...baseProviders(),
+				{ provide: Navigation, useValue: { ...navigationMock, sections: () => dashboardNavigationConfig.sections } },
+			],
+		})
+
+		const accountCard = screen.getByRole('link', { name: /account/i })
+
+		expect(accountCard).toHaveAttribute('href', '/account')
+		expect(accountCard).toHaveTextContent('Your personal details.')
 	})
 })

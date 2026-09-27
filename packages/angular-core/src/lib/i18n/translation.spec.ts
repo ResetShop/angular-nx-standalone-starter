@@ -186,6 +186,15 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			DESCRIPTION: 'Configure',
 			LANGUAGE: { LABEL: 'Language', ENGLISH: 'English', SPANISH: 'Spanish' },
 		},
+		ACCOUNT: {
+			NAV: 'Account',
+			TITLE: 'Account',
+			DESCRIPTION: 'Details',
+			PROFILE: { TITLE: 'Profile', FIRST_NAME: 'First', LAST_NAME: 'Last', EMAIL: 'Email' },
+			REVIEW: 'Review',
+			SUCCESS_TOAST: 'Updated',
+			CONFIRM_DIALOG: { TITLE: 'Confirm', MESSAGE: 'Review', CONFIRM: 'Save', BEFORE: 'Before', AFTER: 'After' },
+		},
 		HEALTH: {
 			NAV: 'Health',
 			TITLE: 'Health',
@@ -430,6 +439,15 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			TITLE: 'Ajustes',
 			DESCRIPTION: 'Configurar',
 			LANGUAGE: { LABEL: 'Idioma', ENGLISH: 'Inglés', SPANISH: 'Español' },
+		},
+		ACCOUNT: {
+			NAV: 'Cuenta',
+			TITLE: 'Cuenta',
+			DESCRIPTION: 'Datos',
+			PROFILE: { TITLE: 'Perfil', FIRST_NAME: 'Nombre', LAST_NAME: 'Apellido', EMAIL: 'Correo' },
+			REVIEW: 'Revisar',
+			SUCCESS_TOAST: 'Actualizado',
+			CONFIRM_DIALOG: { TITLE: 'Confirmar', MESSAGE: 'Revisar', CONFIRM: 'Guardar', BEFORE: 'Antes', AFTER: 'Después' },
 		},
 		HEALTH: {
 			NAV: 'Salud',

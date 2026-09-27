@@ -1,5 +1,5 @@
 import type { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse } from '@contracts/user/user.types'
+import type { AuthUser, CreateUserResponse } from '@contracts/user/user.types'
 import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
@@ -257,4 +257,20 @@ export interface UserManagementService {
 	 * controller dispatches best-effort AFTER the response (so the response isn't blocked on SMTP).
 	 */
 	resetPassword(id: number, currentUserId: number): Promise<{ message: string; sendResetEmail: () => Promise<void> }>
+}
+
+/**
+ * The profile fields a user may change on their own account. `updateProfileRequestSchema` is the
+ * authority on which those are.
+ */
+export interface UpdateOwnProfileParams {
+	firstName?: string
+	lastName?: string
+}
+
+/**
+ * Self-service profile service: the caller editing their own identity fields.
+ */
+export interface UserProfileService {
+	updateOwnProfile(userId: number, params: UpdateOwnProfileParams): Promise<AuthUser>
 }

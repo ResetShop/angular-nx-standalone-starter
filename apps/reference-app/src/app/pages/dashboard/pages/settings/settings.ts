@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core'
-import { form, schema, FormField as SignalFormField } from '@angular/forms/signals'
+import { form, FormField as SignalFormField } from '@angular/forms/signals'
 import { PageShell } from '@components/page-shell/page-shell'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { type Language, Translation } from '@resetshop/angular-core/i18n/translation'
@@ -10,9 +10,6 @@ import type { SelectOption } from '@resetshop/ui/select/select-option'
 interface SettingsForm {
 	language: string
 }
-
-// eslint-disable-next-line @typescript-eslint/no-empty-function -- signal forms requires a schema callback even when no validators are needed
-const noValidation = schema<SettingsForm>(() => {})
 
 @Component({
 	selector: 'app-settings',
@@ -33,7 +30,7 @@ export default class Settings {
 	protected readonly translation = inject(Translation)
 
 	private readonly model = signal<SettingsForm>({ language: this.translation.currentLanguage() })
-	protected readonly settingsForm = form(this.model, noValidation)
+	protected readonly settingsForm = form(this.model)
 
 	protected readonly languageOptions = computed<SelectOption[]>(() => [
 		{ value: 'en', label: this.translation.instant('SETTINGS.LANGUAGE.ENGLISH') },

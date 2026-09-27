@@ -71,6 +71,7 @@ export default class DashboardHome {
 		const keyMap: Record<string, TranslationKey> = {
 			settings: 'DASHBOARD.HOME.DESCRIPTIONS.SETTINGS',
 			health: 'DASHBOARD.HOME.DESCRIPTIONS.HEALTH',
+			account: 'ACCOUNT.DESCRIPTION',
 			users: 'DASHBOARD.HOME.DESCRIPTIONS.USERS',
 			authorization: 'DASHBOARD.HOME.DESCRIPTIONS.AUTHORIZATION',
 		}
