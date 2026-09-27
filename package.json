@@ -139,7 +139,7 @@
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/user-event": "^14.6.1",
 		"@types/async-exit-hook": "2.0.2",
-		"@types/node": "^24.13.3",
+		"@types/node": "^24.19.0",
 		"@types/nodemailer": "^7.0.9",
 		"@types/pg": "^8.16.0",
 		"@typescript-eslint/utils": "^8.50.0",
