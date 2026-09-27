@@ -151,6 +151,11 @@ jobs:
       - name: Run repo-wide guards
         run: npx nx run @app/source:check
 
+      # Dry-runs every generator and fails if one errors or Nx falls back from native ESM loading
+      # to its swc/ts-node CommonJS path.
+      - name: Run generators native-ESM guard
+        run: npx nx run generators:generators-esm-guard
+
   test-integration:
     needs: setup
     runs-on: ubuntu-latest

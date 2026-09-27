@@ -1,4 +1,4 @@
-<!-- Source: CLAUDE.md | Last updated: 2026-09-18 -->
+<!-- Source: CLAUDE.md | Last updated: 2026-09-27 -->
 
 # Generators Reference
 
@@ -157,6 +157,41 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 - **Side effect:** when `exportFromIndex` is `true` (default), appends `export { <Class> } from './lib/<kebab>/<kebab>'` to `packages/ui/src/index.ts`. Duplicate appends are guarded — re-running the generator with the same name is idempotent for the index.
 - **Don't forget:** fill in the empty template/styles, replace the stub spec assertion with a semantic query, document each public `input()` in `argTypes`, and adjust the story `title` if the component belongs under a non-`Components/` namespace (e.g., `UI / Card`).
 - **Spec:** `packages/generators/src/generators/ui-component/index.spec.ts`.
+
+---
+
+## Writing or changing a generator: native ESM only
+
+`packages/generators` is `"type": "module"`, and every generator must load and run as a **native ES module**. Nothing in the package may depend on CommonJS.
+
+### How Nx loads a local generator
+
+Nx resolves the generator's `factory` from `generators.json` to its `index.ts` **source** file. On Node 24 it loads that file with Node's native TypeScript type stripping. Because the package is `"type": "module"`, Node treats the file as ESM. Relative imports inside it resolve under ESM rules too.
+
+If that native load throws, Nx does **not** fail. It silently registers swc/ts-node and recompiles the generator to **CommonJS**, where `__dirname` and extension-less `require` exist. This fallback only shows up under `NX_VERBOSE_LOGGING=true`, as a line such as `Native ESM named export linkage failed; falling back to swc/ts-node + tsconfig-paths`. The fallback hides ESM bugs: a generator can work only by accident, and a generator that loads natively can still crash on a CommonJS global. Its known triggers:
+
+| Trigger                                                 | Example                                             | Native ESM error                          |
+| ------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------- |
+| A type imported as a value                              | `import { Tree, generateFiles } from '@nx/devkit'`  | `does not provide an export named 'Tree'` |
+| An extension-less relative import                       | `import storeGenerator from '../store/index'`       | `Cannot find module …/store/index`        |
+| TypeScript syntax that stripping can't erase            | `enum`, constructor parameter properties, namespace | `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`       |
+| A CommonJS global (fails at run time, with no fallback) | `joinPathFragments(__dirname, 'files')`             | `__dirname is not defined`                |
+
+### The rules
+
+- **Templates:** locate the `files/` directory with `resolveTemplateDir(import.meta.url)` from `packages/generators/src/utils/resolve-template-dir.ts`. Never use `__dirname` / `__filename`; ESLint rejects them anywhere in `packages/generators`, including `vitest.config.ts`.
+- **Type imports:** use `import type` for anything used only as a type (`Tree`, schema interfaces). `verbatimModuleSyntax` in `packages/generators/tsconfig.json` makes a missing `type` a compile error.
+- **Relative imports:** write the explicit `.ts` extension (`'../store/index.ts'`). `moduleResolution: nodenext` rejects extension-less relative imports, and `rewriteRelativeImportExtensions` rewrites them to `.js` in the `build` output.
+- **Syntax:** use only erasable TypeScript. `erasableSyntaxOnly` rejects enums (use `Object.freeze()`), parameter properties and namespaces.
+
+### How it is enforced
+
+- **Statically:** `npm run typecheck` enforces the tsconfig options above, and `npm run lint` enforces the ESLint rule above.
+- **End to end:** the `generators:generators-esm-guard` target (`scripts/check-generators-load-as-esm.mjs`) dry-runs all eight generators with `NX_VERBOSE_LOGGING=true`. It fails if any run errors, lists no files, or prints a fallback notice. It runs in Batch 1 of `npm run ci` / `ci:verify` and in the `check` job of `.github/workflows/ci.yml`.
+
+Vitest specs alone can't catch these bugs. Vitest provides `__dirname` and resolves extension-less imports itself, so a spec passes even when the generator fails under Nx.
+
+Forks that add their own generators to `packages/generators` follow the same rules, and must add them to the `GENERATORS` list in `scripts/check-generators-load-as-esm.mjs`.
 
 ---
 

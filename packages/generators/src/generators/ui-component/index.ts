@@ -1,5 +1,6 @@
 import type { Tree } from '@nx/devkit'
 import { generateFiles, joinPathFragments, logger, names } from '@nx/devkit'
+import { resolveTemplateDir } from '../../utils/resolve-template-dir.ts'
 
 interface UiComponentGeneratorSchema {
 	name: string
@@ -19,7 +20,7 @@ export default async function uiComponentGenerator(tree: Tree, schema: UiCompone
 	const inlineTemplate = schema.inlineTemplate ?? true
 	const inlineStyle = schema.inlineStyle ?? true
 
-	generateFiles(tree, joinPathFragments(__dirname, 'files'), targetDir, {
+	generateFiles(tree, resolveTemplateDir(import.meta.url), targetDir, {
 		name: n.fileName,
 		className: n.className,
 		fileName: n.fileName,

@@ -1,8 +1,11 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		"module": "ESNext",
-		"moduleResolution": "bundler",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"rewriteRelativeImportExtensions": true,
+		"verbatimModuleSyntax": true,
+		"erasableSyntaxOnly": true,
 		"types": ["node"],
 		"ignoreDeprecations": "6.0"
 	},
