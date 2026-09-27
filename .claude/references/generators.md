@@ -186,7 +186,7 @@ If that native load throws, Nx does **not** fail. It silently registers swc/ts-n
 
 ### How it is enforced
 
-- **Statically:** `npm run typecheck` / `npm run lint` apply the tsconfig options and the ESLint rule above.
+- **Statically:** `npm run typecheck` enforces the tsconfig options above, and `npm run lint` enforces the ESLint rule above.
 - **End to end:** the `generators:generators-esm-guard` target (`scripts/check-generators-load-as-esm.mjs`) dry-runs all eight generators with `NX_VERBOSE_LOGGING=true`. It fails if any run errors, lists no files, or prints a fallback notice. It runs in Batch 1 of `npm run ci` / `ci:verify` and in the `check` job of `.github/workflows/ci.yml`.
 
 Vitest specs alone can't catch these bugs. Vitest provides `__dirname` and resolves extension-less imports itself, so a spec passes even when the generator fails under Nx.
