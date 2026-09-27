@@ -147,6 +147,8 @@ Conflicts here come from upstream adding/removing/upgrading dependencies while y
 
 **Version-disagreement tiebreaker:** if upstream bumps a dependency to a version your fork has intentionally pinned to something different, prefer upstream's version unless your fork has a documented reason to diverge. Track the divergence in a fork-local note (commit message or PR description) so the next merge author knows it's deliberate.
 
+**`engines.node` conflicts:** accept upstream's value, and update your fork's local Node install, CI, and deploy target to match. The starter supports a single Node.js line on purpose — see [`node-support-policy.md`](node-support-policy.md) for the policy, the upgrade cadence, and every file that must agree with `engines.node`.
+
 ### `package-lock.json`
 
 Always **delete and regenerate**:

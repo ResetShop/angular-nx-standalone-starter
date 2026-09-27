@@ -13,7 +13,7 @@ A fork-ready **Nx monorepo starter**: an SSR-ready Angular 22+ frontend and a Ho
 
 ## Getting started
 
-**Prerequisites:** Node.js `^24.20.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required).
+**Prerequisites:** Node.js `^24.20.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required); Node version policy in [`docs/node-support-policy.md`](./docs/node-support-policy.md).
 
 **1. Create your project** — pick the path that fits:
 
@@ -90,7 +90,7 @@ This guide covers all the setup steps needed to configure this starter repositor
 
 This project requires:
 
-- **Node.js**: `^24.20.0` (matches the `engines` field in `package.json`; `.nvmrc` pins `24.20.0`)
+- **Node.js**: `^24.20.0` (matches the `engines` field in `package.json`; `.nvmrc` pins `24.20.0`). The starter tracks the Node.js Active LTS line; see [`docs/node-support-policy.md`](./docs/node-support-policy.md) for why, and for when the version changes.
 - **npm**: Package manager. The npm bundled with Node `24.20.0` skips dependency install scripts unless the package is approved in the `allowScripts` map in `package.json`. When you add a dependency that ships an install script, `npm install` ends with a list of skipped scripts. Review it and approve by name with `npm install-scripts approve --no-allow-scripts-pin <pkg>` (`npm install-scripts ls` lists anything still unreviewed).
 
 **Installation Steps:**
