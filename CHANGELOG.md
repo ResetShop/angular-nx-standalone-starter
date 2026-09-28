@@ -6,6 +6,129 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-09-27
+
+Version 1.1.0 moves the starter to Angular 22, Nx 23 and TypeScript 6 with strict mode on, and lets every signed-in user manage their own account. It is the largest release since 1.0.0, and it asks something of every fork: read **Fork migration** below before merging.
+
+The first area is the **toolchain**. Angular 22.0, Nx 23.1 and TypeScript 6.0 land together, because each one requires the others ([#534]). Components now rely on Angular 22's default OnPush change detection, and a lint rule keeps it that way ([#551]). `@ngrx/signals` moves from a pinned pre-release to the stable 22.0.0 ([#553]). TypeScript's strict mode is now on across the workspace ([#560]). Turning it on also exposed a real bug: three API routes documented a generic "Forbidden" error instead of their actual reason for refusing ([#555]). Node.js moves to the 24.20.0 LTS release, and a new `docs/node-support-policy.md` explains why the starter follows the LTS line instead of adopting Node 26 ([#535], [#536]). Prettier is pinned to one exact version, so formatting no longer depends on the day you installed ([#559]).
+
+The second is **account self-service**. Any signed-in user can open `/account` and change their own name. A before → after summary is shown before anything is saved, and the new endpoint can only ever edit the caller's own account ([#454]). Changing the email address stays admin-only until the new address can be verified; that is planned for 1.2.0 ([#588]). The sidebar footer now shows the signed-in user, with a menu for Account, Settings and Log out ([#586]), and the desktop sidebar no longer collapses ([#604]). `GET /api/auth/me` now reads the account from the database instead of from the session token. A rename therefore appears on the next page load, and a disabled user is signed out on their next navigation instead of up to 15 minutes later ([#454]).
+
+The third is **user administration**. Admins edit a user's profile, roles and status in one drawer, check the changes as a before → after list, and save them in a single transaction. A failed role change can no longer leave an edit half-applied ([#453]). The user and role drawers no longer accept an invalid form ([#589]). Permission descriptions now follow the selected language ([#572]), and the row actions menu is built on the new shared `Menu` component ([#601]).
+
+The fourth is **testing and CI**. Until now the integration suite could not fail: a failing run still exited successfully. It now fails properly, so a fork may see failures that were already there ([#585]). The code generators work again; they had broken under ES modules ([#590]). The shared Playwright fixture no longer hangs at teardown ([#557]), and the upstream guard checks run again when a stacked pull request is retargeted ([#583]). On the release side, an unused `nx release` configuration is removed and a protection rule for version tags is specified ([#486]).
+
+Documentation gains a single reference for Angular dependency injection ([#482]) and setup instructions for the Zed editor ([#575]).
+
+### Fork migration
+
+Every fork:
+
+- [#535] - Use Node.js 24.20.0 or later (`nvm use` reads `.nvmrc`), and move any Node version pins in your own CI or deployment configuration to 24.20.
+- [#534], [#535] - After merging, reinstall from scratch with `rm -rf node_modules package-lock.json && npm install`. A partial install cannot resolve Angular 22's dependencies. If you add a dependency that runs install scripts, approve it in `allowScripts` (`npm install-scripts ls` lists the skipped ones).
+- [#560] - Fix the null-safety errors that strict mode reports in your own code, or set `"strict": false` in your `tsconfig.base.json` while you work through them.
+- [#559] - If you kept your own Prettier version, expect a one-time reformat.
+- [#585] - Expect integration-test failures that already existed to show up on your first run.
+
+If your fork ships its own language files (the `TranslationSchema` type-check lists every missing or unknown key):
+
+- [#454], [#453], [#572] - Add the `ACCOUNT`, `USERS.DETAIL.EDIT.*` and `PERMISSIONS.DESCRIPTIONS` keys, including a description for each permission you added.
+- [#453], [#586] - Remove `USERS.DETAIL.PROFILE.SAVE`, `USERS.DETAIL.PROFILE.SUCCESS_TOAST`, `USERS.DETAIL.ROLES.{EDIT_BUTTON,DRAWER_TITLE,ROLES_LABEL,SUCCESS_TOAST}` and `DASHBOARD.HOME.DESCRIPTIONS.SETTINGS`, and rename `DASHBOARD.SECTIONS.SETTINGS` to `DASHBOARD.SECTIONS.MAINTENANCE`.
+
+If your fork changed or reuses any of the following:
+
+- [#453] - The Edit Roles drawer or the inline profile form: move your changes into `edit-user-drawer.ts`. Code that calls `updateUser` or `updateUserStatus` on the service reads `.user` from the result.
+- [#586], [#604] - The sidebar footer or the collapsible sidebar: use the user menu, and remove uses of `setSidebarCollapsed()`, `isSidebarCollapsed()`, `[collapsed]` bindings and the Ctrl+B / Cmd+B shortcut. In end-to-end tests, open the menu with `DashboardPage.userMenuTrigger` and `userMenuItem(name)`, and drop `collapseButton` / `expandButton`.
+- [#601] - `RowActionItem`: use `Menu` instead, and import `RowAction` from `@resetshop/ui/row-actions-menu/row-actions-menu`.
+- [#482] - Your own routes under `users` or `authorization`: nest them under the new parent routes and remove per-page provider registrations.
+- [#534] - Components that implement `FormValueControl` with a two-way `touched` model: split it into a `touched` input and a `touch` output. If you run `nx migrate` yourself, delete the `extendedDiagnostics` suppressions and the `esModuleInterop: false` line it writes.
+- [#589] - Forms that check `form().errors().length === 0`: use `form().valid()`.
+- [#555] - Your own API routes: declare domain-specific response codes after `...commonResponses`, or they are overwritten.
+- [#590] - Your own generators: follow the ES module rules and add them to the `GENERATORS` list in `scripts/check-generators-load-as-esm.mjs`.
+- [#454] - Your own `AuthApi` or `AuthService` implementations or mocks: add `updateProfile` and `getSessionUser`.
+
+Behaviour that changes with no action needed:
+
+- [#454] - Disabled or deleted users are signed out on their next navigation, and `/me` returns the stored name and email instead of the token's claims.
+- [#453] - `PATCH /api/users/{id}` answers `400` instead of `500` for unknown role ids.
+- [#486] - Repository rulesets are not copied to forks or mirrors. Create your own if you want protected tags.
+
+### Full changes
+
+See every merged pull request in [v1.1.0](https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.1.0).
+
+### Changes
+
+#### Toolchain and runtime
+
+- [#534] - Upgrades the starter to Nx 23.1, Angular 22 and TypeScript 6.
+- [#560] - Enables TypeScript strict mode across the workspace.
+- [#551] - Relies on Angular 22's default OnPush change detection and enforces it with a lint rule.
+- [#553] - Moves `@ngrx/signals` from the `22.0.0-beta.0` pin to the stable `22.0.0`.
+- [#535] - Refreshes Node.js to the 24.20.0 LTS and adds an install-script allowlist.
+- [#536] - Documents the Node.js support policy for forks.
+- [#559] - Pins Prettier to one exact version and absorbs the one-time reformat.
+- [#568] - Fixes the `@swc/helpers` version conflict so `npm ls` reports no errors.
+
+#### Account and navigation
+
+- [#454] - Adds the self-service Account page and makes `/me` read the account from the database.
+- [#586] - Replaces the sidebar Logout button with a user menu for Account, Settings and Log out.
+- [#604] - Removes the collapsible desktop sidebar.
+
+#### User and role administration
+
+- [#453] - Edits a user in one drawer, confirmed as a before → after list and saved in one transaction.
+- [#589] - Stops the user and role drawers from submitting an invalid form.
+- [#572] - Shows permission descriptions in the selected language.
+- [#601] - Builds the row actions menu on the shared `Menu` component.
+
+#### API and authorization
+
+- [#556] - Adds a single accessor for reading the signed-in user in request handlers.
+- [#555] - Keeps each route's own 403 description in the generated OpenAPI document.
+
+#### Testing, CI and release
+
+- [#585] - Makes the integration suite fail when its run fails.
+- [#590] - Makes every code generator run as an ES module.
+- [#557] - Stops the shared Playwright fixture from hanging at teardown.
+- [#583] - Re-runs the upstream guard checks when a stacked pull request is retargeted.
+- [#486] - Specifies the version-tag protection rule and removes the unused `nx release` configuration.
+
+#### Documentation
+
+- [#482] - Gathers the Angular dependency-injection guidance into one reference.
+- [#575] - Documents delivering environment variables from the Zed editor.
+- [#558] - Fixes the Cookie Security table in the authentication guide.
+
+[#453]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/453
+[#454]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/454
+[#482]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/482
+[#486]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/486
+[#534]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/534
+[#535]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/535
+[#536]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/536
+[#551]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/551
+[#553]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/553
+[#555]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/555
+[#556]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/556
+[#557]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/557
+[#558]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/558
+[#559]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/559
+[#560]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/560
+[#568]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/568
+[#572]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/572
+[#575]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/575
+[#583]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/583
+[#585]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/585
+[#586]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/586
+[#588]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/588
+[#589]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/589
+[#590]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/590
+[#601]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/601
+[#604]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/604
+
 ## [1.0.2] — 2026-07-24
 
 ### Added
@@ -266,7 +389,8 @@ This is the first tagged version of the starter under the fork-distribution mode
   section headings above are plain text and have no link references here.
 -->
 
-[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/ResetShop/angular-nx-standalone-starter/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.1.0
 [1.0.2]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.2
 [1.0.1]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.0.0
