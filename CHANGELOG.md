@@ -587,6 +587,7 @@ Every fork:
 
 If your fork changed or reuses any of the following:
 
+- [#265] - Code written against the single-app layout (root-level `src/`, `project.json` and `tsconfig.app.json`): its root-relative imports no longer resolve. Import from `apps/reference-app/...` paths or the `@resetshop/*` aliases instead.
 - [#292] - `defaultProject` in `nx.json`: upstream removes it, so drop it when you resolve the merge and name the project in every `nx` command (for example `nx run <your-app>:serve`).
 
 Behaviour that changes with no action needed:
