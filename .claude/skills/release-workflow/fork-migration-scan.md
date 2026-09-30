@@ -13,8 +13,10 @@ Forks merge `upstream/main` into their own repository (`npm run upstream:pull`).
 
 ## Inputs
 
-- `P` — the previous release tag: `git describe --tags --abbrev=0 --match 'v*' origin/develop`.
-- `END` — `origin/develop` for a release. When re-running the scan over a past release window, use that release's tag.
+- `P` — the previous release tag: `git tag --list 'v*' --sort=-v:refname | head -n 1`. Not `git describe` from `develop`: release tags sit on `main`'s release merge commits, outside `develop`'s history, so `git describe` returns an older tag.
+- `END` — `origin/develop` for a release. To re-run the scan over a **past** release window, use the `develop` state that release shipped:
+  - from v1.0.2 onward the tag is on `main`'s release merge, so use its second parent, `<tag>^2`;
+  - v1.0.0 and v1.0.1 were tagged directly on `develop` commits, so use the tag itself.
 
 ## Steps
 
