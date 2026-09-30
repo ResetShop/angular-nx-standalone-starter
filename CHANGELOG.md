@@ -561,97 +561,127 @@ See every merged pull request in [v1.0.0](https://github.com/ResetShop/angular-n
 [#471]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/471
 [#480]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/480
 
-## 1.0.0-beta.3 — 2026-04-07
+## [1.0.0-beta.0 – 1.0.0-beta.3] — 2026-04-07
 
-Final Epic 2 cleanup. Closes the milestone (`Monorepo restructure + fork distribution`).
+The four pre-releases 1.0.0-beta.0 to 1.0.0-beta.3, cut on 2026-04-06 and 2026-04-07, introduced the fork-distribution model: the starter became a `packages/*` + `apps/reference-app` workspace, gained an app schematic that generates a fork's own app from the reference app, and gained `scope:starter`/`scope:app` boundaries between starter code and fork code. A fork created at an earlier beta has actions to take: read **Fork migration** below before merging. Four follow-ups were recorded but not shipped in these pre-releases: separating `isServerless()` from the app-specific environment constant in `@resetshop/hono-core` ([#258]), a codebase-wide sweep of hardcoded millisecond constants ([#259]), starter presets for the app schematic ([#260]), and end-to-end specs for the reference app ([#261]).
 
-### Changed
+The first area is the **workspace layout**. The single-app repository became an Nx workspace ([#265]), and the code every app shares moved into five packages behind `@resetshop/*` aliases: framework-free helpers in `@resetshop/util` ([#266]), 14 presentational components in `@resetshop/ui` ([#267]), the i18n, theme, navigation and logger providers in `@resetshop/angular-core` ([#268]), the Hono backend infrastructure in `@resetshop/hono-core` ([#269]), and the code generators in `@resetshop/generators` ([#275]). Leftover `@libs/*` aliases from an abandoned `libs/` layout were removed ([#298]).
 
-- **`.github/workflows/ci.yml`** — replaced four stale `nx run app:*` references (`stylelint`, `e2e`, `build:production`, `build-storybook`) with the current `nx run reference-app:*` invocations. The legacy `app` project name was removed when `apps/reference-app` was created in Epic 1; the CI workflow had not been updated alongside.
-- **`.github/workflows/ci.yml`** — aligned all worker jobs to `node-version: 22.20` to match the `setup` job that builds the `node_modules` cache. Prior version mismatch (`22.12` on workers vs `22.20` on setup) was ABI-compatible but misleading.
-- **`.github/workflows/upstream-guards.yml`** — removed redundant `&& github.event.pull_request != null` null checks from both job `if:` conditions. The `pull_request` event guarantees the field is non-null; the `github.repository ==` check alone is the meaningful gate.
-- **`docs/forking.md`** — top-of-file status banner flipped from "target state with planned callouts" to "live as it exists today" now that Epic 2 is complete.
+The second is the **reference app**. Everything app-specific (stores, providers, API modules, database schemas, contracts) now lives in `apps/reference-app`, which replaces the old root-level `src/` and imports the shared code through the package aliases; the Tailwind configuration moved to the workspace root so every project uses the same theme ([#273]). Every project exposes the targets it needs, so CI runs the same checks everywhere ([#286]), and the integration tests are skipped instead of failing when no test database is configured ([#285]). A review pass fixed generator templates that still imported the removed `@libs/*` paths and would have produced code that failed the type-check ([#307]).
 
-### Fixed
+The third is **fork distribution**. `npm run generate:app -- --name="My App"` clones the reference app into `apps/<slug>`, which is how a fork creates its own app ([#290]), and `docs/forking.md` documents the whole workflow: who owns which paths, the initial setup, creating an app, and merging upstream ([#291]). Beta.1 enforced the boundary: starter projects are tagged `scope:starter`, fork apps `scope:app`, starter code may not depend on fork code, and lint rejects relative imports across the `apps/` and `packages/` boundary ([#292]). Beta.2 added upstream-only CI guards that keep pull requests away from fork-owned paths and require a changelog entry, together with a pull request template ([#293]). Beta.3 closed the milestone by pointing the CI jobs and the reference app's `serve-static` target at `reference-app`, which still referred to the old `app` project and output folder ([#294]).
 
-- **`apps/reference-app/project.json`** `serve-static` target — `staticFilePath` was `"dist/app/browser"` (the old single-app output dir). Build's `outputPath` is `"dist/reference-app"`, so the correct serve path is `"dist/reference-app/browser"`. The target had been silently serving from a non-existent directory.
-- **`apps/reference-app/src/api/utils/password.ts`** comment — said `"copied to dist/app/server/wordlists/"`. Updated to `dist/reference-app/server/wordlists/`. Runtime was unaffected (the code uses `import.meta.dirname`), but the comment misled developers debugging wordlist loading.
+The fourth is the **contributor process**. A coding-agent collaboration policy forbids recommending shortcuts on the assumption that the repository has a single maintainer, and `CLAUDE.md` makes it a hard constraint ([#262]).
 
-## 1.0.0-beta.2 — 2026-04-07
+The **foundations** below were finished in the single-app starter before beta.0, and every fork inherits them. Frontend state moved to NgRx Signal Store, with a store per domain for authentication, users, roles, permissions and the UI ([#33]). New users receive a generated passphrase in a welcome email, and their account carries a `mustChangePassword` flag ([#114]).
 
-Adds the upstream CI guard layer that protects the starter contract on incoming PRs.
+### Fork migration
 
-### Added
+Every fork:
 
-- **`.github/workflows/upstream-guards.yml`** — single workflow with two jobs:
-  - **`boundary-guard`** — fails if a PR touches any path under `apps/` other than `apps/reference-app` or its subdirectories. Sibling-named directories (e.g. `apps/reference-app-staging/`) are deliberately treated as offending. Bypass label: `allow-app-change`.
-  - **`changelog-guard`** — fails if a PR modifies starter-owned code (anything under `packages/`, `apps/reference-app/`, `scripts/`, `docs/`, `drizzle/`, `e2e/`, `.github/`, `.claude/`, plus the root config files) without adding an entry to `CHANGELOG.md`. Bypass label: `skip-changelog`. `CHANGELOG.md` itself is intentionally excluded from the trigger to avoid a circular requirement.
-  - Both jobs are gated to `github.repository == 'ResetShop/angular-nx-standalone-starter'` so they never fire on forks. Both re-evaluate when bypass labels are added or removed via `pull_request: types: [opened, synchronize, reopened, labeled, unlabeled]`.
-- **`.github/pull_request_template.md`** — Fork-distribution checklist (CHANGELOG entry, no fork-owned paths touched, CI guards reviewed). Top comment notes the template applies to PRs against the upstream repo only; forks may delete or replace it.
+- [#292] - In `apps/<your-app>/project.json`, change the tag `scope:shared` to `scope:app`, so the `scope:starter`/`scope:app` boundary rules in `eslint.config.mjs` apply to your app.
+- [#292] - Replace any relative import from `apps/<your-app>` into `packages/` (`../../packages/...`) with its `@resetshop/*` alias; lint now reports it as an error.
+- [#292] - If your fork's primary branch is not `main`, set `defaultBase` in `nx.json` to its name after merging; upstream changes it from `master` to `main`.
+- [#294] - In `apps/<your-app>/project.json`, set the `serve-static` target's `staticFilePath` to `dist/<your-app>/browser`.
+- [#294] - Expect the `stylelint`, `e2e`, `build` and `storybook` jobs in `.github/workflows/ci.yml` to pass and to check `reference-app` only; add jobs for `apps/<your-app>` if you want CI to cover it.
 
-### Changed
+If your fork changed or reuses any of the following:
 
-- **`docs/forking.md`** — §9 (CI guards) converted from planned to active tense; §5 (conflict resolution) forward reference to PR 2.4 resolved.
+- [#292] - `defaultProject` in `nx.json`: upstream removes it, so drop it when you resolve the merge and name the project in every `nx` command (for example `nx run <your-app>:serve`).
 
-## 1.0.0-beta.1 — 2026-04-07
+Behaviour that changes with no action needed:
 
-Adds the starter/app boundary enforcement layer on top of the structural restructure shipped in `1.0.0-beta.0`.
+- [#293] - Pull requests in your fork open with the upstream template; its changelog and boundary checklist items do not apply to you. Replace or delete `.github/pull_request_template.md` if you want your own.
 
-### Added
+### Changes
 
-- **Nx tag scheme `scope:starter` / `scope:app`** — all upstream-owned projects (`packages/*` and `apps/reference-app`) carry `scope:starter`; fork-generated apps emit `scope:app` from the schematic. The schematic's tag rewrite now actually fires against the renamed workspace.
-- **ESLint `@nx/enforce-module-boundaries` `depConstraints` for `scope:*`** — `scope:starter` projects may only depend on other `scope:starter` projects; `scope:app` projects may depend on both `scope:starter` and `scope:app`. Stacks with the existing `type:*` constraints.
-- **ESLint cross-boundary relative-import bans** — two new flat-config blocks (`no-cross-boundary-relative-imports-from-packages` and `no-cross-boundary-relative-imports-from-apps`) using depth-agnostic `^(\.\./)+(apps|packages)/` regex patterns. Forces consumers to use the `@<scope>/*` package aliases instead of relative paths across the boundary.
+#### Workspace layout
 
-### Changed
+- [#265] - Prepares the repository root for an Nx workspace of packages and apps.
+- [#266] - Adds `@resetshop/util` for framework-free helpers and types.
+- [#267] - Adds `@resetshop/ui` with 14 presentational components.
+- [#268] - Adds `@resetshop/angular-core` for the shared Angular providers.
+- [#269] - Adds `@resetshop/hono-core` for the Hono backend infrastructure.
+- [#275] - Adds `@resetshop/generators` with the code generators.
+- [#298] - Removes the dead `@libs/*` aliases and the duplicated paths in the TypeScript configuration.
 
-- **`nx.json` `defaultBase` changed from `master` to `main`** — matches the actual upstream branch name; fixes silent breakage of `nx affected` and Nx Cloud CIPE diffs. **Fork action:** if your fork's primary branch is not `main`, change `defaultBase` once to match your branch name after merging this version.
+#### Reference app
 
-### Removed
+- [#273] - Moves the app into `apps/reference-app`, wired to the `@resetshop/*` packages.
+- [#286] - Gives every project the build, test, type-check, lint and style-lint targets it needs.
+- [#285] - Skips the integration tests when `PG_TEST_CONNECTION_STRING` is not set.
+- [#307] - Fixes generator templates that still imported the removed `@libs/*` paths.
 
-- **`nx.json` `defaultProject`** — relied on by direct `nx` CLI calls which are forbidden by CLAUDE.md's command policy. Removing it eliminates a fork-merge conflict surface and forces explicit project naming in every command.
+#### Fork distribution
 
-## 1.0.0-beta.0 — 2026-04-06
+- [#290] - Adds the `@resetshop/generators:app` schematic that creates a fork's app from the reference app, and moves `isServerless()` into `@resetshop/hono-core`.
+- [#291] - Documents the forking workflow in `docs/forking.md` and starts `CHANGELOG.md`.
+- [#292] - Enforces the starter/app boundary with `scope:starter`/`scope:app` tags and lint rules against relative imports across it.
+- [#293] - Adds the upstream boundary and changelog guards and a pull request template.
+- [#294] - Points the CI jobs and the reference app's `serve-static` target at `reference-app` instead of the old `app` project and output folder.
 
-This is the first tagged version of the starter under the fork-distribution model. Forks created after this version should track the changelog entries above as the canonical record of what has changed since their initial fork point.
+#### Contributor process
 
-### Added
+- [#262] - Adds the coding-agent collaboration policy against shortcuts based on a solo-maintainer assumption.
 
-- **Fork-distribution model.** The repository is now designed to be forked rather than consumed as a published package set. Starter code lives in `packages/*` and `apps/reference-app`; fork apps live in `apps/<your-app>`.
-- **`@resetshop/generators:app` schematic** — clones `apps/reference-app` into `apps/<slug>` for new app creation. Invoked via `npm run generate:app -- --name="My App"`. Includes 20 unit tests and a smoke-test pass against the live workspace.
-- **`docs/forking.md`** — full forking workflow documentation: ownership boundaries, initial setup, app creation, upstream merge process with conflict resolution conventions, the changelog contract, and what NOT to do.
-- **README forking section** — quickstart snippet pointing at `docs/forking.md`.
-- **`packages/hono-core` exports `isServerless()`** — moved from a per-app helper file in `apps/reference-app/src/api/utils/environment.ts` so backend modules across multiple apps can share the same runtime check.
-- **Uniform CI target set** — every project under `packages/*` and `apps/*` now exposes the targets it legitimately needs (`build`, `test`, `typecheck`, `lint`, `stylelint`, `build-storybook` where applicable).
-- **`CLAUDE.md` Canonical App Creation Workflow section** — explicit policy that new apps must always be created via the schematic; direct hand-copying of `apps/reference-app` is forbidden.
-- **Coding agent collaboration policy** — `.claude/references/coding-agent-policies.md` codifies the rule against shortcut framings on solo-maintainer assumptions, plus other anti-patterns. Referenced from `CLAUDE.md` as a hard constraint.
+#### Foundations before the fork-distribution model
 
-### Changed
+- [#33] - Sets up NgRx Signal Store for frontend state management.
+- [#121] - Adds the Signal Store infrastructure and the authentication state.
+- [#122] - Adds the user management state slice.
+- [#123] - Adds the roles state slice.
+- [#124] - Adds the permissions state slice.
+- [#125] - Adds the UI state slice.
+- [#126] - Cleans up and documents the Signal Store state management.
+- [#114] - Manages the passwords of new users by email.
+- [#115] - Adds an SMTP email service built on Nodemailer.
+- [#116] - Adds a Diceware passphrase generator and the welcome email builder.
+- [#117] - Adds a `mustChangePassword` flag to the authentication flow.
+- [#118] - Generates a password when a user is created and sends it in a welcome email.
+- [#119] - Updates the Bruno API documentation for email-based user creation.
 
-- **Monorepo restructured** under `packages/*` and `apps/reference-app/src/`. UI components live in `@resetshop/ui`, Angular providers in `@resetshop/angular-core`, Hono backend infrastructure in `@resetshop/hono-core`, framework-free utilities in `@resetshop/util`, and Nx generators in `@resetshop/generators`. All app-specific code (stores, providers, API modules, drizzle schemas, contracts) lives under `apps/reference-app/src/`.
-- **Tailwind config moved to workspace root.** `tailwind.config.css` now lives at the workspace root and globs into both `apps/*` and `packages/*` via `@source` directives, so all projects pick up the same theme.
-- **Backend imports migrated from relative `'../../openapi-app'` to `@resetshop/hono-core`** across the reference app's API controllers and repositories. Forks consuming the reference template see no behavioural change but should use the package alias for any new backend code.
-- **`package.json` `dependencies` and `devDependencies` strictly alphabetized** — minimizes conflict surface for forks adding their own dependencies.
-
-### Removed
-
-- **Single-app starter layout.** The original root-level `src/`, `project.json`, `tsconfig.app.json`, `tsconfig.spec.json`, `playwright.config.ts`, `vitest.config.ts`, `vitest.integration.config.ts`, and `tools/` directories have been removed. Their content lives under `apps/reference-app/` or `packages/*/eslint/` now. **Fork action:** any fork-local imports via the old root-relative paths must be updated to use `apps/reference-app/...` paths or `@resetshop/*` aliases.
-- **`apps/reference-app/src/api/openapi-app.ts`** and **`apps/reference-app/src/api/utils/environment.ts`** — replaced by `@resetshop/hono-core` exports.
-
-### Notes — deferred work tracked in GitHub Issues
-
-- **`hono-core` environment.ts split** — `isServerless()` currently sits next to an app-specific `environment` constant with a pre-existing type unsoundness. To be split. ([#258](https://github.com/ResetShop/angular-nx-standalone-starter/issues/258))
-- **Hardcoded millisecond constants sweep** — codebase-wide migration to the duration-string utilities. ([#259](https://github.com/ResetShop/angular-nx-standalone-starter/issues/259))
-- **Pluggable starter scope options** — the `app` schematic currently only supports a full clone of `reference-app`. A future iteration will add `--starter` presets. ([#260](https://github.com/ResetShop/angular-nx-standalone-starter/issues/260))
-- **`apps/reference-app` e2e test coverage** — Playwright config exists but no specs. ([#261](https://github.com/ResetShop/angular-nx-standalone-starter/issues/261))
+[#33]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/33
+[#114]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/114
+[#115]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/115
+[#116]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/116
+[#117]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/117
+[#118]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/118
+[#119]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/119
+[#121]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/121
+[#122]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/122
+[#123]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/123
+[#124]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/124
+[#125]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/125
+[#126]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/126
+[#258]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/258
+[#259]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/259
+[#260]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/260
+[#261]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/261
+[#262]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/262
+[#265]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/265
+[#266]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/266
+[#267]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/267
+[#268]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/268
+[#269]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/269
+[#273]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/273
+[#275]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/275
+[#285]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/285
+[#286]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/286
+[#290]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/290
+[#291]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/291
+[#292]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/292
+[#293]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/293
+[#294]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/294
+[#298]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/298
+[#307]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/307
 
 <!--
-  Link references. The v1.0.0 and v1.0.1 tags are already published; their links
-  below resolve to the corresponding GitHub releases. From 1.0.2 onward the tag
-  and release are created automatically by .github/workflows/release.yml when
-  the release PR merges into main.
-  The beta releases (1.0.0-beta.0–beta.3) were never tagged upstream, so their
-  section headings above are plain text and have no link references here.
+  Version link references: each resolves to that version's GitHub release. From
+  1.0.2 onward the tag and release are created automatically by
+  .github/workflows/release.yml when the release PR merges into main.
+  The pre-releases (1.0.0-beta.0 to beta.3) were never tagged, so their shared
+  section has no link reference here. Its heading still starts with "## [", so
+  the release workflow's extraction of 1.0.0 stops at it.
 -->
 
 [1.1.0]: https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.1.0
