@@ -188,9 +188,6 @@ Each version has one section, written by the upstream maintainers when that vers
 4. one line per issue, grouped by theme.
 
 When you merge upstream, read the **Fork migration** section of every version between the one you last merged and the new one. Version numbers follow upstream's milestone plan rather than strict semantic versioning, so even a patch version can list actions. `npm run upstream:pull` prints the new CHANGELOG text and pauses for confirmation when it mentions "migration" or "breaking", or has a `### Removed` heading.
-
-Sections up to and including 1.0.2 use an earlier format: detailed entries under `### Added`, `### Changed`, `### Removed` and `### Fixed`, with each entry's fork action in its **Migration:** note. Read those notes, and anything under `### Removed`, the same way.
-
 ---
 
 ## 7. What NOT to do
