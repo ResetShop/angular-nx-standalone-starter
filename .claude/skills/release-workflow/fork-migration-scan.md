@@ -6,10 +6,12 @@ Pull requests do not write CHANGELOG entries, so nobody records these actions wh
 
 ## Why forks need this
 
-Forks merge `upstream/main` into their own repository (`npm run upstream:pull`). What reaches them depends on the path, per the ownership table in [`docs/forking.md`](../../../docs/forking.md) §2:
+Forks merge `upstream/main` into their own repository (`npm run upstream:pull`). The ownership table in [`docs/forking.md`](../../../docs/forking.md) §2 says what each path is, but what matters for a fork is **whether a change reaches code the fork owns**:
 
-- **`packages/*`, root config, `scripts/`, `drizzle/`, `.github/workflows/`, `e2e/`** arrive in the fork on merge. A breaking change here breaks the fork's build, tests or runtime directly.
-- **`apps/reference-app`** also arrives, but a fork's own app (`apps/<your-app>`) is a **copy** made when the fork generated it. Changes to the reference app reach a fork's app only through code the fork copied or reuses. They belong in the "if your fork changed or reuses" group, never in "every fork".
+- **Shared code and shared rules reach every fork.** `packages/*`, root config (`package.json`, `tsconfig.base.json`, `nx.json`, `eslint.config.mjs`), `scripts/`, `drizzle/` and `.github/workflows/` arrive on merge. A rule defined there — a lint rule, a compiler option, a `TranslationSchema` key — applies to the fork's own app too, even when the pull request only fixed the reference app to comply with it.
+- **Reference-app code reaches a fork only through copies.** A fork's own app (`apps/<your-app>`) is a copy of `apps/reference-app` made when the fork generated it. A change to the reference app's own code matters to a fork only where the fork copied or reuses that code.
+
+So classify by **where the rule or contract lives**, not by where the example change was made.
 
 ## Inputs
 
@@ -17,6 +19,9 @@ Forks merge `upstream/main` into their own repository (`npm run upstream:pull`).
 - `END` — `origin/develop` for a release. To re-run the scan over a **past** release window, use the `develop` state that release shipped:
   - from v1.0.2 onward the tag is on `main`'s release merge, so use its second parent, `<tag>^2`;
   - v1.0.0 and v1.0.1 were tagged directly on `develop` commits, so use the tag itself.
+- `OUT` — where the evidence table goes: `workspace/RELEASE.md` for a release, or a scratch file when re-running over a past window.
+
+**Always exclude `CHANGELOG.md`** from every diff in this procedure (`-- . ':!CHANGELOG.md'`). It is the output, not an input; in windows from before release-time notes, each pull request also edited it, and reading those edits would copy old notes instead of checking the code.
 
 ## Steps
 
@@ -28,38 +33,52 @@ Forks merge `upstream/main` into their own repository (`npm run upstream:pull`).
 
    Take the pull request number from `Merge pull request #N from …` subjects, or from a trailing `(#N)` on squash merges. Skip the release-prep pull request and Dependabot pull requests that only bump patch or minor versions.
 
-2. **For each pull request, read its description and its exact file list.**
+2. **For each pull request, read its description, its issues and its exact file list.**
 
    ```bash
    gh pr view N --json number,title,body,closingIssuesReferences,milestone
-   git diff --name-status -M <merge-sha>^1 <merge-sha>
+   git diff --name-status -M <merge-sha>^1 <merge-sha> -- . ':!CHANGELOG.md'
    ```
 
-   Use `git diff` for the file list, not `gh pr view --json files`, which stops at 100 files. The pull request's closing issues are the issues a checklist line cites.
+   Use `git diff` for the file list, not `gh pr view --json files`, which stops at 100 files. The issue a checklist line cites is the pull request's closing issue; when `closingIssuesReferences` is empty (stacked slices of one issue usually are), take it from the `[#N]` prefix of the title, then from a `Part of #N` line in the body.
 
 3. **Inspect every surface below that the file list touches**, with `git diff <merge-sha>^1 <merge-sha> -- <path>`:
 
-   | Surface                  | Paths                                                                                                                                                                                        | Fork action when…                                                                                                                    | Group                                                     |
-   | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
-   | Removed or renamed code  | Status `D` or `R` under `packages/`, `apps/reference-app/src/`, `scripts/`, `e2e/`; removed `export` lines in `packages/**/*.ts`                                                             | A file, export, function, component or path-alias import a fork may use disappears or moves                                          | If you changed or reuse                                   |
-   | Translation keys         | `packages/angular-core/src/lib/i18n/translations.schema.ts`, `apps/reference-app/src/app/providers/i18n/translations/{en,es}.ts`                                                             | A key is added, removed or renamed in `TranslationSchema`. Forks with their own language files fail the type-check until they match. | Language files                                            |
-   | API contracts            | `apps/reference-app/src/contracts/**`, `src/api/**/*.routes.ts`, `docs/api/**/*.bru`, service and API interfaces                                                                             | A request or response shape, status code or interface a fork implements or mocks changes                                             | If you changed or reuse, or no action (status codes only) |
-   | Database and environment | `drizzle/**`, `apps/reference-app/src/db/schema/**`, `src/api/config/*.env.ts`                                                                                                               | A migration must run, or a new required environment variable appears                                                                 | Every fork                                                |
-   | Toolchain                | `package.json` (`engines`, `packageManager`, `allowScripts`, major versions of Angular, Nx, TypeScript, `@ngrx/*`, Prettier), `.nvmrc`, `tsconfig.base.json`, `nx.json`, `eslint.config.mjs` | The Node version, a core major version, a compiler or lint rule, or the install procedure changes                                    | Every fork                                                |
-   | Generators               | `packages/generators/**`, the `GENERATORS` list in `scripts/check-generators-load-as-esm.mjs`                                                                                                | Generator rules or templates change, affecting forks that add their own generators                                                   | If you changed or reuse                                   |
-   | Routes and providers     | `apps/reference-app/src/app/**/*.routes.ts`, `app.routes.ts`, `app.config.ts`, `provide*` functions, route `providers` arrays                                                                | Route structure or provider registration changes                                                                                     | If you changed or reuse                                   |
-   | Runtime behaviour        | Any of the above, or the pull request description                                                                                                                                            | Behaviour changes (sessions, authentication, status codes) with nothing for the fork to edit                                         | No action needed                                          |
+   | Surface                              | What to look at                                                                                                                                                                                                                                                          | Fork action when…                                                                                                                                                                                     | Group                                                                 |
+   | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+   | Removed or renamed code              | Status `D` or `R` under `packages/`, `apps/reference-app/src/`, `apps/reference-app/e2e/`, `scripts/`; removed `export` lines in `packages/**/*.ts`                                                                                                                      | A file, export, function, component, page-object member or path-alias import a fork may use disappears or moves                                                                                       | If you changed or reuse                                               |
+   | Changed signatures                   | Exported functions, classes and interfaces in `packages/**` and in reference-app services, stores and API tokens: changed parameters or return types, new interface members, component `input()` / `output()` / `model()` changes                                        | Code that calls, implements, mocks or binds them must change                                                                                                                                          | If you changed or reuse                                               |
+   | Translation keys                     | `packages/angular-core/src/lib/i18n/translations.schema.ts`; also the reference app's `translations/{en,es}.ts` and `translation.mock.ts`                                                                                                                                | A key is added, removed or renamed in `TranslationSchema`. Forks' language files, their `translation.mock.ts`, and typed call sites that use a removed key all fail the type-check until they match.  | Language files                                                        |
+   | API contracts                        | `apps/reference-app/src/contracts/**`, `src/api/**/*.routes.ts`, controllers and services. `docs/api/**/*.bru` only corroborates.                                                                                                                                        | A request or response shape, status code, route order or interface a fork implements, calls or mocks changes                                                                                          | If you changed or reuse, or no action (status codes only)             |
+   | Database and environment             | `drizzle/**`, `apps/reference-app/src/db/schema/**`, `src/api/config/*.env.ts`                                                                                                                                                                                           | A migration must run, or a new required environment variable appears                                                                                                                                  | Every fork                                                            |
+   | Toolchain and workspace              | `package.json` (`engines`, `packageManager`, `allowScripts`, `scripts`, `nx.targets`, major versions), `.nvmrc`, `tsconfig.base.json` and every `tsconfig*.json` (including per-package and `.storybook`), `nx.json`, `project.json` targets, `.github/workflows/ci.yml` | The Node version, a core major version, a compiler option, a target, or the install procedure changes. When a version changes, also tell forks to update their own pins (CI, deployment, `.nvmrc`).   | Every fork                                                            |
+   | Lint and compiler rules              | `eslint.config.mjs`, `tsconfig.base.json`                                                                                                                                                                                                                                | A rule is added or tightened. **Check its `files` glob and its severity**: an `error` on `**/*.ts` fails the fork's own code on its next lint, even if the pull request only fixed the reference app. | Every fork                                                            |
+   | Guards and catalogues forks extend   | New or changed specs and scripts that iterate over something forks add to: permission definitions, theme tokens, the `GENERATORS` list in `scripts/check-generators-load-as-esm.mjs`, the integration setup guard                                                        | A fork's own additions must now satisfy the guard (a description per permission, a token per theme, an entry per generator)                                                                           | If you changed or reuse                                               |
+   | Fixed patterns forks may have copied | Any bug fix in a code shape forks are likely to have reproduced in their own app: route response ordering, form validity checks, provider registration                                                                                                                   | Forks that copied the pattern carry the same bug. Tell them to apply the same fix to their copies.                                                                                                    | If you changed or reuse                                               |
+   | Generators                           | `packages/generators/**` templates and rules                                                                                                                                                                                                                             | Generator rules or templates change, affecting forks that add their own generators                                                                                                                    | If you changed or reuse                                               |
+   | Routes and providers                 | `apps/reference-app/src/app/**/*.routes.ts`, `app.routes.ts`, `app.config.ts`, `provide*` functions, route `providers` arrays                                                                                                                                            | Route structure or provider registration changes                                                                                                                                                      | If you changed or reuse                                               |
+   | Settings forks must recreate         | `docs/forking.md`, `docs/release-process.md` §6                                                                                                                                                                                                                          | Upstream now relies on a repository setting (ruleset, secret, label) that forks and mirrors do not inherit                                                                                            | No action needed (say what to create if they want the same guarantee) |
+   | CI outcomes                          | Test runners, guards and workflows                                                                                                                                                                                                                                       | A fork's CI that passed before will now fail, or report failures it used to hide                                                                                                                      | Every fork ("Expect … on your first run")                             |
+   | Runtime behaviour                    | Any of the above, or the pull request description                                                                                                                                                                                                                        | Behaviour changes (sessions, authentication, status codes) with nothing for the fork to edit                                                                                                          | No action needed                                                      |
 
-4. **Write one line per action**, in the group given by the table, and merge duplicates across pull requests into one line citing every issue involved.
+4. **Check the net toolchain change across the whole window**, not only pull request by pull request. A dependency can move through several pull requests (a major bump to a pre-release, then to a stable range), and each step alone can look minor:
+
+   ```bash
+   git diff P END -- package.json .nvmrc tsconfig.base.json nx.json eslint.config.mjs
+   ```
+
+5. **Read the framework's own migration notes on a major bump.** When Angular, Nx or TypeScript changes major version, changed **defaults** (change detection, hydration, HTTP backend, router options) do not appear in any diff. Read the framework's update guide and the `nx migrate` output (`migrations.json`, and the pull request that ran it) for defaults that change behaviour, and list those in the no-action group, or in "every fork" when a fork must opt out.
+
+6. **Write one line per action**, in the group given by the table, and merge duplicates across pull requests into one line citing every issue involved. One issue may appear in several groups when it causes several actions.
 
    ```markdown
    - [#N] - <What the fork must do, as an instruction>.
    - [#A], [#B] - <One action caused by two changes>.
    ```
 
-   State the action, not the change: "Use Node.js 24.20.0 or later", not "Node.js was upgraded".
+   State the action, not the change: "Use Node.js 24.20.0 or later", not "Node.js was upgraded". Name the concrete values a fork needs (keys, commands, file paths).
 
-5. **Record the evidence** for every line in a table in `workspace/RELEASE.md`:
+7. **Record the evidence** for every line in a table in `OUT`:
 
    | Issue | Pull request | Path(s) | What changed | Group and action |
    | ----- | ------------ | ------- | ------------ | ---------------- |
@@ -75,13 +94,14 @@ The checklist groups, in this order, each introduced by a sentence and listed on
 3. **If your fork changed or reuses any of the following:**
 4. **Behaviour that changes with no action needed:**
 
-The v1.1.0 section of `CHANGELOG.md` is the reference for tone and granularity.
+The most recent release section in `CHANGELOG.md` is the reference for tone and granularity (when re-running over a past window, the section just before it).
 
 **When the scan finds nothing**, the release section has **no `### Fork migration` heading**, and its opening paragraph says "No fork action is needed." `upstream:pull` pauses a fork's merge whenever the new CHANGELOG text contains "migration" or "breaking" (`detectChangelogWarnings` in `scripts/lib/upstream-pull.helpers.mjs`). An empty `### Fork migration` heading in every release would make that pause fire every time, and forks would learn to skip it.
 
 ## Not fork actions
 
-- Refactors that change no exported name, file path, contract or behaviour.
-- Changes to tests, stories or documentation only.
+- Refactors that change no exported name, file path, signature, contract or behaviour.
+- Changes to tests or stories only — **unless** they add a guard that constrains what forks add (see "Guards and catalogues forks extend").
+- Changes to documentation only — **unless** they describe a setting forks must recreate (see "Settings forks must recreate").
 - Changes to upstream-only workflows gated on `github.repository == 'ResetShop/angular-nx-standalone-starter'`.
-- Dependency patch and minor updates, unless they change `engines` or require a reinstall.
+- Dependency patch and minor updates, unless they change `engines`, require a reinstall, or complete a major bump across the window (step 4).
