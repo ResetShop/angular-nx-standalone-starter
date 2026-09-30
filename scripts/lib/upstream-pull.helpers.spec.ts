@@ -76,6 +76,12 @@ describe('detectChangelogWarnings', () => {
 		expect(warnings.hasAny).toBe(true)
 	})
 
+	it('pauses on a Fork migration heading on its own', () => {
+		const warnings = detectChangelogWarnings('+### Fork migration')
+		expect(warnings.hasMigrationMention).toBe(true)
+		expect(warnings.hasAny).toBe(true)
+	})
+
 	// A release with nothing for forks to do omits the Fork migration heading and must not pause
 	// the merge: a pause that fires on every release teaches forks to skip it.
 	it('does not pause on a release section with no fork action', () => {
