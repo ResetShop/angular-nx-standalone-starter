@@ -16,7 +16,8 @@ assignees: ''
 These steps are executed by the [`release-workflow`](../../.claude/skills/release-workflow/SKILL.md) skill, with user approval pauses:
 
 - Verify the milestone has no open issues besides this one.
-- Promote the `## [Unreleased]` entries in `CHANGELOG.md` to `## [X.Y.Z] — YYYY-MM-DD` and update the link references.
+- Write the `## [X.Y.Z] — YYYY-MM-DD` section of `CHANGELOG.md` from the issues and pull requests shipped since the previous tag: a narrative per theme, the fork-migration checklist (only when a fork must act), a link to every merged pull request, and one line per issue.
+- Rewrite this milestone's description as a one-paragraph summary of that narrative.
 - Bump the `version` field in the root `package.json` to `X.Y.Z` (+ regenerate `package-lock.json`).
 - Run `npm run ci` cold (`--skip-nx-cache`) and dry-run the release-notes extraction.
 - Open the release-prep PR against `develop`.
@@ -40,6 +41,7 @@ No manual action required:
 ## Acceptance criteria
 
 - [ ] `npm run ci` passes cold (no cache).
-- [ ] `CHANGELOG.md` has no `## [Unreleased]` items that belong in this release.
+- [ ] `CHANGELOG.md` has a `## [X.Y.Z]` section that lists every issue shipped in this release exactly once, and a fork-migration checklist backed by the pull requests' diffs.
+- [ ] The milestone description summarises the same narrative.
 - [ ] The `package.json` `version` matches the GitHub Release tag.
 - [ ] Forks can pull the new tag without merge conflicts on starter-owned files.

@@ -15,15 +15,15 @@ feature PRs ──▶ develop ──(automated release PR)──▶ main ──�
 | `develop` | Integration branch and GitHub default. All feature PRs.     | Ordinary PR merges                                                                                       |
 | `main`    | Stable, release-only. What forks track and Railway deploys. | Exclusively via the automated `develop → main` release PR (plus the hotfix exception, [§4](#4-hotfixes)) |
 
-Every merge to `main` therefore corresponds to exactly one released, tagged, CHANGELOG-documented version.
+Every merge to `main` therefore corresponds to exactly one released, tagged, CHANGELOG-documented version. Feature PRs never edit `CHANGELOG.md`: each version's notes are written once, when the version is prepared (see [§3](#3-conventions-the-automation-relies-on)).
 
 ## 2. The three-piece automation
 
-| Piece                                                              | Kind              | What it does                                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`/release-workflow`](../.claude/skills/release-workflow/SKILL.md) | Claude Code skill | Prepares the release from its release issue: milestone-complete check, CHANGELOG promotion, version bump, cold CI gate, extraction dry-run, release-prep PR against `develop`. Two user-approval pauses.                                                                             |
-| `.github/workflows/prepare-release-pr.yml`                         | GitHub Action     | Fires when a PR closing a `🚀 release`-labeled issue merges into `develop`. Re-checks the milestone, then creates/updates the `develop → main` release PR and dispatches CI against `develop`. Never merges.                                                                         |
-| `.github/workflows/release.yml`                                    | GitHub Action     | Fires on push to `main`. If `v<package.json version>` is not yet a tag, extracts that version's `CHANGELOG.md` section (hard failure if missing) and runs `gh release create` — curated notes plus the auto-generated PR list. Idempotent: pushes without a version bump are no-ops. |
+| Piece                                                              | Kind              | What it does                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`/release-workflow`](../.claude/skills/release-workflow/SKILL.md) | Claude Code skill | Prepares the release from its release issue: milestone-complete check, **writes the release notes** from the PRs merged since the previous tag (including the fork-migration checklist), rewrites the milestone description, version bump, cold CI gate, extraction dry-run, release-prep PR against `develop`. Two user-approval pauses. |
+| `.github/workflows/prepare-release-pr.yml`                         | GitHub Action     | Fires when a PR closing a `🚀 release`-labeled issue merges into `develop`. Re-checks the milestone, then creates/updates the `develop → main` release PR and dispatches CI against `develop`. Never merges.                                                                                                                              |
+| `.github/workflows/release.yml`                                    | GitHub Action     | Fires on push to `main`. If `v<package.json version>` is not yet a tag, extracts that version's `CHANGELOG.md` section (hard failure if missing) and runs `gh release create` — curated notes plus the auto-generated PR list. Idempotent: pushes without a version bump are no-ops.                                                      |
 
 **What triggers what:**
 
@@ -37,6 +37,7 @@ Every merge to `main` therefore corresponds to exactly one released, tagged, CHA
 - **Milestone title = version.** The release issue's milestone (`1.0.2`) is the single source for the target version; the skill and the milestone gate both resolve it from there.
 - **`🚀 release` label.** Applied by the release issue template; `prepare-release-pr.yml` ignores merged PRs whose closed issues don't carry it — that is what makes the workflow a no-op for every ordinary feature PR.
 - **Version bump ↔ CHANGELOG coupling.** `release.yml` fails hard when `## [X.Y.Z]` is missing from `CHANGELOG.md`, so a version bump can never ship without its notes. The inverse is covered by the tag-idempotency check: a CHANGELOG-only merge without a bump simply releases nothing.
+- **Release notes are written at release time.** PRs do not edit `CHANGELOG.md`. `/release-workflow` reads the PRs merged since the previous tag and writes the version's section: a narrative per theme, a **Fork migration** checklist of what forks must do, a link to every merged PR, and one line per issue grouped by theme. It works out the fork actions from each PR's description and diff ([`fork-migration-scan.md`](../.claude/skills/release-workflow/fork-migration-scan.md)), and rewrites the milestone description from the same narrative. The `### Fork migration` heading appears **only when a fork must act**: `npm run upstream:pull` pauses a fork's merge whenever new CHANGELOG text says "migration" or "breaking", and a heading in every release would make that pause meaningless.
 - **Single root bump.** Only the root `package.json` version matters. `packages/*` versions are inert under the fork-distribution model and are never bumped.
 - **Tags are `v`-prefixed** (`v1.0.2`); CHANGELOG headings are bare (`## [1.0.2] — YYYY-MM-DD`).
 - **CI signal on the release PR.** The `develop → main` PR is created by `GITHUB_TOKEN`, which cannot trigger `on: pull_request` workflows (GitHub's anti-recursion rule). `prepare-release-pr.yml` therefore dispatches `ci.yml` against `develop` explicitly — the CI evidence for a release lives on that `develop` run, not on the release PR's checks tab.
@@ -45,9 +46,9 @@ Every merge to `main` therefore corresponds to exactly one released, tagged, CHA
 
 The one flow that bypasses `develop`:
 
-1. Branch off `main` (`hotfix/<issue>-<kebab-title>`), fix, **bump the patch version**, add the CHANGELOG section for the new version, PR back to `main`.
+1. Branch off `main` (`hotfix/<issue>-<kebab-title>`), fix, **bump the patch version**, and PR back to `main`. The hotfix PR is its own release prep, so it also adds the version's section by hand at the top of `CHANGELOG.md`, in the same format as a regular release but sized to the fix. Work out any fork action with the steps in [`fork-migration-scan.md`](../.claude/skills/release-workflow/fork-migration-scan.md) over `<last-tag>..main`, and include `### Fork migration` only if a fork must act. Add the `[X.Y.Z]` link line at the bottom of the file, and set the milestone description if the hotfix has a milestone.
 2. Merging that PR triggers `release.yml` exactly like a normal release — the version bump is what makes it release (no separate hotfix mechanism exists).
-3. **Back-merge `main → develop`** immediately afterwards via a PR, so `develop` contains the fix and the next regular release doesn't regress it.
+3. **Back-merge `main → develop`** immediately afterwards via a PR, so `develop` contains the fix and the next regular release doesn't regress it. If `CHANGELOG.md` conflicts because `develop` already gained a newer section in the same place, keep the sections ordered by version.
 
 ## 5. Dry-running the automation
 
@@ -63,7 +64,7 @@ gh workflow run release.yml --ref main -f dry_run=true
 
 `prepare-release-pr.yml` also accepts `version` (override the `package.json` value) and `force` (skip the milestone-complete check — use when an open issue is deliberately deferred).
 
-The notes extraction can be simulated locally at any time:
+The notes extraction can be simulated locally at any time. This is the command `/release-workflow` runs in its Verify phase; the skill links here rather than repeating it, so keep it identical to the `awk` in `release.yml`:
 
 ```bash
 awk -v ver="1.0.2" '
