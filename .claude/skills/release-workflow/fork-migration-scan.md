@@ -1,6 +1,6 @@
 # Fork migration scan
 
-Procedure for [`/release-workflow`](SKILL.md) Phase 1 step 6. It works out, at release time, **which changes in the release window require a fork to act, and what the fork must do**. The result is the release section's `### Fork migration` checklist.
+Procedure for [`/release-workflow`](SKILL.md) Phase 1 step 5. It works out, at release time, **which changes in the release window require a fork to act, and what the fork must do**. The result is the release section's `### Fork migration` checklist.
 
 Pull requests do not write CHANGELOG entries, so nobody records these actions while the milestone is in progress. This scan is where they are found. It reads what each merged pull request says **and** what its diff changed on the surfaces a fork depends on. A pull request description is a lead, never a substitute for reading the diff.
 
@@ -18,7 +18,7 @@ So classify by **where the rule or contract lives**, not by where the example ch
 
 ## Inputs
 
-- `P` — the previous release tag: `git tag --list 'v*' --sort=-v:refname | head -n 1`. Not `git describe` from `develop`: release tags sit on `main`'s release merge commits, outside `develop`'s history, so `git describe` returns an older tag.
+- `P` — the previous release tag: `git tag --list 'v*' --sort=-v:refname | grep -v -- '-' | head -n 1` (release tags only). Not `git describe` from `develop`: release tags sit on `main`'s release merge commits, outside `develop`'s history, so `git describe` returns an older tag.
 - `END` — `origin/develop` for a release. To re-run the scan over a **past** release window, use the `develop` state that release shipped:
   - from v1.0.2 onward the tag is on `main`'s release merge, so use its second parent, `<tag>^2`;
   - v1.0.0 and v1.0.1 were tagged directly on `develop` commits, so use the tag itself.
@@ -34,7 +34,7 @@ So classify by **where the rule or contract lives**, not by where the example ch
    git log --first-parent --format='%H %s' P..END
    ```
 
-   Take the pull request number from `Merge pull request #N from …` subjects, or from a trailing `(#N)` on squash merges. Skip the release-prep pull request and Dependabot pull requests that only bump patch or minor versions.
+   Take the pull request number from `Merge pull request #N from …` subjects, or from a trailing `(#N)` on squash merges. Skip the release-prep pull request, hotfix back-merge pull requests (`main → develop`; their changes shipped in the hotfix version), and Dependabot pull requests that only bump patch or minor versions.
 
 2. **For each pull request, read its description, its issues and its exact file list.**
 
