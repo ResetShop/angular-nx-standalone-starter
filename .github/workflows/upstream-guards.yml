@@ -1,36 +1,32 @@
 name: Upstream Guards
 
-# Enforces the fork-distribution model on the upstream repository:
+# Enforces the fork-distribution model on the upstream repository with one guard:
 #
-#   1. boundary-guard — upstream PRs must not modify apps/<non-reference-app>/ paths.
-#      Bypass label: `allow-app-change`.
+#   boundary-guard — upstream PRs must not modify apps/<non-reference-app>/ paths.
+#   Bypass label: `allow-app-change`.
 #
-#   2. changelog-guard — upstream PRs that touch starter-owned code must add
-#      an entry to CHANGELOG.md under `## [Unreleased]`.
-#      Bypass label: `skip-changelog`.
+# It does NOT run on forks (gated by the `if:` expression in the job).
 #
-# Both guards do NOT run on forks (gated by the `if:` expression in each job).
+# There is deliberately no CHANGELOG guard: pull requests do not edit CHANGELOG.md.
+# Release notes are written once per release by the /release-workflow skill, which
+# reads what the merged pull requests changed (see docs/release-process.md).
 #
 # Coverage spans both long-lived branches: `develop` (day-to-day integration —
 # where every feature PR lands) and `main` (release-only — defense-in-depth at
-# the release boundary; both guards are diff-based, so they work unchanged
-# against any base/head pair, and changelog-guard is a natural no-op on release
-# PRs since CHANGELOG.md is always part of that diff).
-#
-# Note: the two jobs share boilerplate (checkout, label check). Any fix in one
-# job should generally be mirrored in the other.
+# the release boundary; the guard is diff-based, so it works unchanged against
+# any base/head pair).
 
 on:
   pull_request:
     branches: [develop, main]
-    # Re-evaluate when bypass labels are added or removed so a contributor can
-    # apply `allow-app-change` / `skip-changelog` and have the guard re-run
-    # without having to push a new commit.
+    # Re-evaluate when the bypass label is added or removed so a contributor can
+    # apply `allow-app-change` and have the guard re-run without having to push a
+    # new commit.
     #
     # `edited` covers a base-branch change: GitHub auto-retargets a stacked PR to
-    # `develop` when the PR below it merges, and without this the guards never run
-    # for it — leaving both required checks pending and the PR unmergeable. Both jobs
-    # diff `base.sha..head.sha`, so they evaluate the new base correctly.
+    # `develop` when the PR below it merges, and without this the guard never runs
+    # for it — leaving its required check pending and the PR unmergeable. The job
+    # diffs `base.sha..head.sha`, so it evaluates the new base correctly.
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
 
 jobs:
@@ -100,75 +96,3 @@ jobs:
           fi
 
           echo "OK: no app-boundary violations found."
-
-  changelog-guard:
-    name: Require CHANGELOG entry for starter-code changes
-    runs-on: ubuntu-latest
-    if: github.repository == 'ResetShop/angular-nx-standalone-starter'
-    steps:
-      - name: Check out PR
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check for `skip-changelog` bypass label
-        id: bypass
-        env:
-          LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
-        run: |
-          set -euo pipefail
-          if printf '%s' "$LABELS_JSON" | jq -e 'any(. == "skip-changelog")' > /dev/null; then
-            echo "bypass=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Changelog guard bypassed by skip-changelog label."
-          else
-            echo "bypass=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Verify CHANGELOG entry when starter-owned code is touched
-        if: steps.bypass.outputs.bypass != 'true'
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-
-          changed_files=$(git diff --name-only "$BASE_SHA..$HEAD_SHA")
-
-          # Anything matching one of these prefixes / files is considered
-          # starter-owned for the purposes of the changelog contract. Keep
-          # this list in sync with the ownership boundary table in
-          # docs/forking.md §2.
-          #
-          # CHANGELOG.md is intentionally NOT in this list — it IS the
-          # requirement, not the trigger. Adding it here would create a
-          # circular check (touching CHANGELOG.md would demand touching
-          # CHANGELOG.md).
-          starter_touched=$(printf '%s\n' "$changed_files" \
-            | grep -E '^(packages/|apps/reference-app/|scripts/|docs/|drizzle/|e2e/|\.github/|\.claude/|package\.json$|package-lock\.json$|nx\.json$|tsconfig\.base\.json$|tsconfig\.json$|eslint\.config\.mjs$|prettier\.config\.mjs$|\.stylelintrc\.json$|tailwind\.config\.css$|drizzle\.config\.ts$|migrations\.json$|vitest\.config\.ts$|vitest\.integration\.config\.ts$|AGENTS\.md$|CLAUDE\.md$|README\.md$)' \
-            || true)
-
-          if [ -z "$starter_touched" ]; then
-            echo "OK: no starter-owned files touched; CHANGELOG entry not required."
-            exit 0
-          fi
-
-          # -x matches the whole line, preventing false positives from paths
-          # like 'old/CHANGELOG.md' or 'docs/CHANGELOG.md'.
-          if printf '%s\n' "$changed_files" | grep -qx 'CHANGELOG.md'; then
-            echo "OK: CHANGELOG.md updated alongside starter-owned changes."
-            exit 0
-          fi
-
-          echo "::error::This PR modifies starter-owned code but does not update CHANGELOG.md."
-          echo ""
-          echo "Starter-owned files touched by this PR:"
-          printf '%s\n' "$starter_touched" | sed 's/^/  - /'
-          echo ""
-          echo "Add an entry under '## [Unreleased]' in CHANGELOG.md describing"
-          echo "the change. Categorise it under one of: Added, Changed, Removed,"
-          echo "Fixed, Deprecated, or Security (Keep a Changelog 1.1.0)."
-          echo ""
-          echo "If this PR genuinely has no fork-visible impact (typo fix,"
-          echo "comment-only change, internal-only refactor with no contract"
-          echo "change), apply the 'skip-changelog' label to bypass this guard."
-          exit 1

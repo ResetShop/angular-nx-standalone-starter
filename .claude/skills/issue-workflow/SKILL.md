@@ -15,6 +15,8 @@ Orchestrates the complete lifecycle for resolving a GitHub issue in this project
 
 Example: `/issue-workflow https://github.com/ResetShop/angular-nx-standalone-starter/issues/349`
 
+> **Release notes and release issues:** feature pull requests never edit `CHANGELOG.md`. Release notes are written once per release, at release time, by [`release-workflow`](../release-workflow/SKILL.md), which reads what the merged pull requests changed. For a release-management issue (label `🚀 release`, e.g. "Release v1.2.0"), use `/release-workflow` instead of this flow.
+
 ---
 
 ## Phase 1 — Setup
@@ -58,11 +60,6 @@ Do not proceed to Phase 3 until the user explicitly approves.
 1. Execute the plan steps from `workspace/PLAN.md` in order.
 2. Create one atomic git commit per logical unit of work.
 3. Before writing new components, services, or files: check whether a matching generator exists in `packages/generators/src/generators/`. If one exists, use it. If none exists, inform the user and proceed only after acknowledgment.
-4. **Update the `CHANGELOG.md` — this is mandatory, not optional.** Every issue resolved through this workflow MUST add an entry under the `## [Unreleased]` section before the work is considered complete. This is the single hardest thing to remember and the easiest to skip — do not skip it.
-   - **Subsection:** `### Added` for new features/files/endpoints, `### Changed` for modifications to existing behavior (including any fork-visible breaking change), `### Fixed` for bug fixes. Create the subsection under `## [Unreleased]` if it does not already exist.
-   - **Entry format** (match the existing entries' density): a **bold lead-in** naming what changed, then prose covering the concrete files/APIs touched, and — for any breaking change — an explicit **Migration:** note describing what a fork must do. End every entry with the issue link `([#<issue>](<issue-url>))`.
-   - **Commit it** as its own atomic commit, message `[#<issue>] - Document <feature> in CHANGELOG`, OR fold it into the final logical commit of the feature. It must land before Phase 6.
-   - If the change is genuinely invisible to forks (no behavior, API, schema, file, doc, or tooling change — e.g. a comment-only tweak), state that explicitly to the user and skip the entry. This exemption is rare; when in doubt, add the entry.
 
 ### Commit rules
 
@@ -122,7 +119,6 @@ Present this message:
 
 **Purpose:** Push, create the PR, and update the original issue.
 
-0. **CHANGELOG gate.** Before pushing, verify a `## [Unreleased]` entry for this issue exists (`git diff <default-branch>...HEAD -- CHANGELOG.md` must be non-empty, unless the rare fork-invisible exemption from Phase 3 step 4 was explicitly declared to the user). If it is missing, stop and add it now (Phase 3 step 4) — do not push or open the PR without it.
 1. Run `git push -u origin <branch-name>`.
 2. Create the PR using `gh pr create` with:
    - Title: `[#<issue>] - <issue-title>`
@@ -186,7 +182,7 @@ These are hard constraints active throughout the entire workflow:
 - Never use direct `nx` commands — always `npm run <task>`.
 - Never prefix git commands with `cd` — the working directory is already at project root.
 - Never open the PR before `npm run ci` passes and the `code-reviewer` agent has run.
-- Never open the PR without a `CHANGELOG.md` entry under `## [Unreleased]` for the issue (see Phase 3 step 4 and the Phase 6 CHANGELOG gate), unless the rare fork-invisible exemption was explicitly declared to the user.
+- Never edit `CHANGELOG.md` in a feature pull request — release notes are written at release time by `/release-workflow`.
 - Never open the PR without a GitHub closing keyword (`Closes #<issue>`) linking the originating issue in the PR body (see Phase 6 step 2). The title's `[#<issue>]` prefix does not create the link; the body keyword is mandatory and has no exemption — the workflow always originates from a real issue.
 - Never skip the Plan phase — even trivial changes benefit from a brief plan documenting scope and rationale.
 - Never use HEREDOC (`$(cat <<'EOF'...)`) substitution in commit messages.

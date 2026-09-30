@@ -40,19 +40,20 @@ The rest of this document is the internal workflow for org members.
 - **Body:** include a `Closes #<issue>` line so the PR links and auto-closes its issue on merge.
 - Keep the PR scoped to a single issue.
 
-## CHANGELOG requirement
+## Release notes
 
-Every PR that touches starter-owned code (`packages/*`, `apps/reference-app`, root config, `scripts/`,
-`.github/`, `docs/`) must add an entry under `## [Unreleased]` in [`CHANGELOG.md`](./CHANGELOG.md).
-This is enforced by the `changelog-guard` job in `.github/workflows/upstream-guards.yml`.
+Do not edit [`CHANGELOG.md`](./CHANGELOG.md) in a pull request. Release notes are written once per
+release, at release time, by the maintainers with the `/release-workflow` Claude Code skill. It reads
+what the merged pull requests changed and writes the release section, including what forks must do.
 
-Two bypass labels exist for legitimate exceptions (applying or removing a label re-runs the guard, so
-you don't need to push a new commit):
+A clear pull request description helps it: say what changed, and anything a fork would have to adapt
+(a renamed export, a new translation key, a changed endpoint).
 
-- `skip-changelog` — for typo fixes, comment-only edits, or internal refactors with no fork-visible impact.
-- `allow-app-change` — for a PR that legitimately modifies a path under `apps/` other than `apps/reference-app`.
+## Bypass label
 
-Note: the root community-health files (this `CONTRIBUTING.md`, `SECURITY.md`, and `CODE_OF_CONDUCT.md`) are **not** matched by the `changelog-guard` regex, so changes to them won't be flagged automatically — please add a CHANGELOG entry voluntarily when a change to them is fork-visible (e.g. a policy change).
+One bypass label exists, for a pull request that legitimately modifies a path under `apps/` other than
+`apps/reference-app` (for example, renaming the reference app): `allow-app-change`. Applying or removing
+it re-runs the boundary guard, so you don't need to push a new commit.
 
 ## CI gate
 
