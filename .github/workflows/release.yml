@@ -71,8 +71,8 @@ jobs:
           set -euo pipefail
           # Literal-match awk (index, not regex) so version dots are not
           # metacharacters. Prints the body between `## [<version>]` and the
-          # next `## [` heading. `## [Unreleased]` always sits above the
-          # version sections, so the exit condition never matches it first.
+          # next `## [` heading. Sections are ordered newest first, so the
+          # exit condition stops at the previous version's heading.
           # Failing on an empty result forces every version bump to ship with
           # its CHANGELOG section.
           notes=$(awk -v ver="$VERSION" '
@@ -82,7 +82,7 @@ jobs:
             found { print }
           ' CHANGELOG.md)
           if [ -z "${notes//[[:space:]]/}" ]; then
-            echo "::error::No '## [${VERSION}]' section found in CHANGELOG.md. Promote the Unreleased section before merging to main." >&2
+            echo "::error::No '## [${VERSION}]' section found in CHANGELOG.md. Add the release section with /release-workflow before merging to main." >&2
             exit 1
           fi
           # Temp file avoids quoting issues when passing the notes to

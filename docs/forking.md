@@ -180,9 +180,16 @@ If upstream is producing conflicts in `apps/<your-app>`, **something has gone wr
 
 [`CHANGELOG.md`](../CHANGELOG.md) at the repo root is the single source of truth for what changed upstream. **Read it before every upstream merge.**
 
-The format follows [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/). The starter's CI will enforce that any upstream PR touching starter-owned code must add an entry under `## [Unreleased]` (see [§9](#9-ci-guards-on-the-upstream-repository)).
+Each version has one section, written by the upstream maintainers when that version is released. In order, it contains:
 
-When you merge upstream, scan the entries between the version you last merged and the current head. Anything marked **breaking**, **migration**, or appearing under a `### Removed` heading needs your attention.
+1. a short summary of what changed and why;
+2. **`### Fork migration`**: what your fork must do, grouped into actions for every fork, for forks that ship their own language files, for forks that changed or reuse specific code, and behaviour that changes with no action needed. **It appears only when a fork has to act.** A version with nothing to do says "No fork action is needed." in its summary instead;
+3. a link to every pull request merged in that version;
+4. one line per issue, grouped by theme.
+
+When you merge upstream, read the **Fork migration** section of every version between the one you last merged and the new one. Version numbers follow upstream's milestone plan rather than strict semantic versioning, so even a patch version can list actions. `npm run upstream:pull` prints the new CHANGELOG text and pauses for confirmation when it mentions "migration" or "breaking", or has a `### Removed` heading.
+
+Sections up to and including 1.0.2 use an earlier format: detailed entries under `### Added`, `### Changed`, `### Removed` and `### Fixed`, with each entry's fork action in its **Migration:** note. Read those notes, and anything under `### Removed`, the same way.
 
 ---
 
@@ -203,8 +210,7 @@ If you fix a bug in `packages/*` or improve `apps/reference-app`, **send it upst
 1. Fork the upstream repo (or use your existing fork as a contributor branch).
 2. Create a topic branch off `upstream/main`.
 3. Apply only the starter-relevant change.
-4. Add a `## [Unreleased]` entry in [`CHANGELOG.md`](../CHANGELOG.md) describing the change.
-5. Open a PR against `ResetShop/angular-nx-standalone-starter`.
+4. Open a PR against `ResetShop/angular-nx-standalone-starter`. Do not edit [`CHANGELOG.md`](../CHANGELOG.md): upstream writes the release notes when it releases. Describe in the PR anything a fork would have to adapt.
 
 Once it's merged upstream, you can drop your local copy and pick it up via the next `git merge upstream/main`.
 
@@ -212,14 +218,15 @@ Once it's merged upstream, you can drop your local copy and pick it up via the n
 
 ## 9. CI guards on the upstream repository
 
-The upstream repository runs two guard jobs on every PR via `.github/workflows/upstream-guards.yml` (gated to only run on `ResetShop/angular-nx-standalone-starter` via a `github.repository ==` check, so they don't fire on forks):
+The upstream repository runs one guard job on every PR via `.github/workflows/upstream-guards.yml` (gated to only run on `ResetShop/angular-nx-standalone-starter` via a `github.repository ==` check, so it doesn't fire on forks):
 
-1. **Boundary guard** — Fails if a PR touches any path under `apps/` other than `apps/reference-app` or its subdirectories. Ensures upstream PRs never modify fork-owned paths. Sibling-named directories such as `apps/reference-app-staging/` are deliberately treated as offending. Bypass label: `allow-app-change` (for the rare legitimate case of renaming the reference app).
-2. **Changelog guard** — Fails if a PR modifies starter-owned code without adding an entry to `CHANGELOG.md`. Starter-owned paths are: anything under `packages/`, `apps/reference-app/`, `scripts/`, `docs/`, `drizzle/`, `e2e/`, `.github/`, `.claude/`, plus the root files `package.json`, `package-lock.json`, `nx.json`, `tsconfig.base.json`, `tsconfig.json`, `eslint.config.mjs`, `prettier.config.mjs`, `.stylelintrc.json`, `tailwind.config.css`, `drizzle.config.ts`, `migrations.json`, `vitest.config.ts`, `vitest.integration.config.ts`, `AGENTS.md`, `CLAUDE.md`, and `README.md`. (`CHANGELOG.md` itself is intentionally excluded — it is the requirement, not the trigger.) Bypass label: `skip-changelog` (for trivial typo / comment-only PRs with no fork-visible impact).
+- **Boundary guard** — Fails if a PR touches any path under `apps/` other than `apps/reference-app` or its subdirectories. Ensures upstream PRs never modify fork-owned paths. Sibling-named directories such as `apps/reference-app-staging/` are deliberately treated as offending. Bypass label: `allow-app-change` (for the rare legitimate case of renaming the reference app).
 
-A PR template at `.github/pull_request_template.md` reminds contributors of both guards as a checklist before opening the PR. The template applies to all PRs in the repo where it lives, including fork-internal PRs — fork maintainers may delete or replace it with their own.
+There is deliberately no CHANGELOG guard: PRs do not edit `CHANGELOG.md`, because the release notes are written at release time ([§6](#6-the-changelog-contract)).
 
-These guards do not run on forks, so your fork's PRs are unaffected. They exist solely to keep the upstream contract honest.
+A PR template at `.github/pull_request_template.md` reminds contributors of the boundary guard, and that PRs don't edit `CHANGELOG.md`, as a checklist before opening the PR. The template applies to all PRs in the repo where it lives, including fork-internal PRs — fork maintainers may delete or replace it with their own.
+
+The guard does not run on forks, so your fork's PRs are unaffected. It exists solely to keep the upstream contract honest.
 
 **Repository rulesets are likewise not inherited.** Branch and tag protection live in GitHub repository settings, not in the tree, so nothing about them travels with a fork or a `--mirror` push. If you want the same guarantees your fork must configure its own — see [`docs/release-process.md`](release-process.md) §6 for the settings upstream depends on, including the `v*` tag ruleset specification you can adapt to your own tag prefix and branch names.
 

@@ -60,6 +60,55 @@ describe('detectChangelogWarnings', () => {
 		].join('\n')
 		expect(detectChangelogWarnings(diff).hasAny).toBe(false)
 	})
+
+	it('pauses on a release section that has a Fork migration checklist', () => {
+		const diff = [
+			'+## [1.2.0] — 2026-11-02',
+			'+',
+			'+Version 1.2.0 adds passkeys. Read **Fork migration** below before merging.',
+			'+',
+			'+### Fork migration',
+			'+',
+			'+- [#700] - Add the `PASSKEYS` keys to your own language files.',
+		].join('\n')
+		const warnings = detectChangelogWarnings(diff)
+		expect(warnings.hasMigrationMention).toBe(true)
+		expect(warnings.hasAny).toBe(true)
+	})
+
+	it('pauses on a Fork migration heading on its own', () => {
+		const warnings = detectChangelogWarnings('+### Fork migration')
+		expect(warnings.hasMigrationMention).toBe(true)
+		expect(warnings.hasAny).toBe(true)
+	})
+
+	// A release with nothing for forks to do omits the Fork migration heading and must not pause
+	// the merge: a pause that fires on every release teaches forks to skip it.
+	it('does not pause on a release section with no fork action', () => {
+		const diff = [
+			'+## [1.1.1] — 2026-10-15',
+			'+',
+			'+Version 1.1.1 changes how releases are documented. No fork action is needed.',
+			'+',
+			'+### Full changes',
+			'+',
+			'+See every merged pull request in [v1.1.1](https://github.com/ResetShop/angular-nx-standalone-starter/releases/tag/v1.1.1).',
+			'+',
+			'+### Changes',
+			'+',
+			'+#### Release process',
+			'+',
+			'+- [#615] - Writes the release notes at release time.',
+			'+',
+			'+[#615]: https://github.com/ResetShop/angular-nx-standalone-starter/issues/615',
+		].join('\n')
+		expect(detectChangelogWarnings(diff)).toEqual({
+			hasRemovedSection: false,
+			hasBreakingMention: false,
+			hasMigrationMention: false,
+			hasAny: false,
+		})
+	})
 })
 
 describe('isLockfileOnlyConflict', () => {
