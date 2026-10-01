@@ -15,6 +15,7 @@ import { Button } from '@resetshop/ui/button/button'
 @Component({
 	selector: 'app-cash-transaction-details',
 	standalone: true,
+	host: { class: 'block' },
 	imports: [Badge, Button, DatePipe, RouterLink, TranslatePipe],
 	template: `
 		<section

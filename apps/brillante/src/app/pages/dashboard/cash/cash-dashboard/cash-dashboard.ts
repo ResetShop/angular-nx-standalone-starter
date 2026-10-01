@@ -51,7 +51,7 @@ import { CashTransactionDetails } from '../cash-transaction-details/cash-transac
 				<div class="bg-muted h-9 w-full animate-pulse rounded-md sm:w-32"></div>
 			</div>
 
-			<div pageActions class="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+			<div pageActions class="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:gap-4">
 				<label class="text-foreground flex flex-col gap-1 text-sm font-medium">
 					<span>{{ 'CASH.FILTERS.FROM' | translate }}</span>
 					<input
@@ -111,7 +111,7 @@ import { CashTransactionDetails } from '../cash-transaction-details/cash-transac
 					</p>
 				</div>
 			} @else {
-				<div class="grid gap-4 lg:grid-cols-3">
+				<div class="grid gap-4 sm:gap-6 lg:grid-cols-3">
 					<div class="min-w-0 lg:col-span-2">
 						<app-data-table
 							[columns]="columns()"
@@ -136,7 +136,7 @@ import { CashTransactionDetails } from '../cash-transaction-details/cash-transac
 						(deleteRequested)="deleteDialog().show()"
 						[transaction]="store.selectedTransaction()"
 						[canManage]="canManage()"
-						class="lg:col-span-1"
+						class="lg:col-span-1 lg:self-start"
 					/>
 				</div>
 			}

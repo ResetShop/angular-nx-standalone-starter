@@ -6,10 +6,11 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 @Component({
 	selector: 'app-cash-totals-summary',
 	standalone: true,
+	host: { class: 'block' },
 	imports: [TranslatePipe],
 	template: `
 		<section [attr.aria-label]="'CASH.TOTALS.LABEL' | translate">
-			<dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+			<dl class="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
 				<div class="border-border bg-card rounded-lg border p-4">
 					<dt class="text-muted-foreground text-sm">{{ 'CASH.TOTALS.INCOMES' | translate }}</dt>
 					<dd class="mt-1 text-2xl font-semibold text-green-700 dark:text-green-400">{{ incomes() }}</dd>
