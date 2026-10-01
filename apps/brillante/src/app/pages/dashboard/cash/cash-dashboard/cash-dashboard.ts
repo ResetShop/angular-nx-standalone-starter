@@ -1,5 +1,4 @@
 import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
-import { RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Permission, UserRole } from '@contracts/permission/permission.constants'
 import { oldestBrowsableDay, parseDateInputValue, toDateInputValue } from '@domain/cash/cash-date'
@@ -20,6 +19,7 @@ import type { ColumnDef } from '@tanstack/angular-table'
 import { format } from 'date-fns'
 import { CashTotalsSummary } from '../cash-totals-summary/cash-totals-summary'
 import { CashTransactionDetails } from '../cash-transaction-details/cash-transaction-details'
+import { CashTransactionDrawer } from '../cash-transaction-drawer/cash-transaction-drawer'
 
 @Component({
 	selector: 'app-cash-dashboard',
@@ -30,11 +30,11 @@ import { CashTransactionDetails } from '../cash-transaction-details/cash-transac
 		Button,
 		CashTotalsSummary,
 		CashTransactionDetails,
+		CashTransactionDrawer,
 		ConfirmDialog,
 		DataTable,
 		DataTableCellDef,
 		PageShell,
-		RouterLink,
 		TranslatePipe,
 	],
 	template: `
@@ -86,7 +86,9 @@ import { CashTransactionDetails } from '../cash-transaction-details/cash-transac
 					</button>
 				}
 				@if (canManage() && store.canOperateRegister()) {
-					<a appButton routerLink="/dashboard/cash/new">{{ 'CASH.ACTIONS.CREATE' | translate }}</a>
+					<button (click)="transactionDrawer().openCreate()" appButton type="button">
+						{{ 'CASH.ACTIONS.CREATE' | translate }}
+					</button>
 					<button
 						(click)="closeDialog().show()"
 						[disabled]="store.isClosing()"
@@ -133,6 +135,7 @@ import { CashTransactionDetails } from '../cash-transaction-details/cash-transac
 						</app-data-table>
 					</div>
 					<app-cash-transaction-details
+						(editRequested)="transactionDrawer().openEdit($event)"
 						(deleteRequested)="deleteDialog().show()"
 						[transaction]="store.selectedTransaction()"
 						[canManage]="canManage()"
@@ -141,6 +144,8 @@ import { CashTransactionDetails } from '../cash-transaction-details/cash-transac
 				</div>
 			}
 		</app-page-shell>
+
+		<app-cash-transaction-drawer #transactionDrawerRef />
 
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
@@ -167,6 +172,7 @@ export default class CashDashboard {
 
 	protected readonly dateInputClasses =
 		'border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 rounded-md border px-3 text-base focus:ring-1 focus:outline-none disabled:opacity-50 sm:text-sm'
+	protected readonly transactionDrawer = viewChild.required<CashTransactionDrawer>('transactionDrawerRef')
 	protected readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialogRef')
 	protected readonly closeDialog = viewChild.required<ConfirmDialog>('closeDialogRef')
 

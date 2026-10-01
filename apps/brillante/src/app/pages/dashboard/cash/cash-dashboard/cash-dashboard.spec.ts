@@ -5,7 +5,11 @@ import { Permission, UserRole } from '@contracts/permission/permission.constants
 import { createMockUser } from '@mocks/user.mock'
 import { CashConceptApi } from '@providers/cash-concept/cash-concept.interface'
 import { CashApi } from '@providers/cash/cash.interface'
-import { createMockCashTransactionDto, createMockConceptDto } from '@providers/cash/cash.mock'
+import {
+	createMockCashTransactionDto,
+	createMockConceptDto,
+	createMockPaymentMethodDto,
+} from '@providers/cash/cash.mock'
 import { mockBranch, provideCashTestEnvironment, seedSession } from '@providers/cash/cash.testing'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import {
@@ -43,6 +47,9 @@ describe('CashDashboard', () => {
 			parent: createMockConceptDto({ id: 2, description: 'Gastos', parent: null }),
 		}),
 	})
+
+	const concept = createMockConceptDto({ id: 1, description: 'Ventas', parent: null })
+	const subconcept = createMockConceptDto({ id: 11, description: 'Venta de accesorios', parent: concept })
 
 	beforeEach(() => {
 		useFakeTimers()
@@ -230,7 +237,7 @@ describe('CashDashboard', () => {
 		it('should not offer creating or closing on an unopened register', async () => {
 			await renderDashboard()
 
-			expect(screen.queryByRole('link', { name: 'New transaction' })).not.toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'New transaction' })).not.toBeInTheDocument()
 			expect(screen.queryByRole('button', { name: 'Close cash register' })).not.toBeInTheDocument()
 		})
 
@@ -249,7 +256,7 @@ describe('CashDashboard', () => {
 		it('should offer creating a transaction and closing the register to managers', async () => {
 			await renderDashboard()
 
-			expect(screen.getByRole('link', { name: 'New transaction' })).toHaveAttribute('href', '/dashboard/cash/new')
+			expect(screen.getByRole('button', { name: 'New transaction' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: 'Close cash register' })).toBeInTheDocument()
 			expect(screen.queryByRole('button', { name: 'Open cash register' })).not.toBeInTheDocument()
 		})
@@ -257,11 +264,48 @@ describe('CashDashboard', () => {
 		it('should hide the write actions from a user that only reads', async () => {
 			await renderAsReader()
 
-			expect(screen.queryByRole('link', { name: 'New transaction' })).not.toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'New transaction' })).not.toBeInTheDocument()
 			expect(screen.queryByRole('button', { name: 'Close cash register' })).not.toBeInTheDocument()
 			fireEvent.click(screen.getByRole('button', { name: 'View details of transaction 1' }))
 			TestBed.tick()
 			expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+		})
+
+		it('should open the create drawer from the new transaction button', async () => {
+			conceptApiMock.getAll.mockReturnValue(of([{ ...concept, children: [subconcept] }]))
+			paymentMethodApiMock.getAll.mockReturnValue(of([createMockPaymentMethodDto()]))
+			await renderDashboard()
+			expect(screen.queryByRole('heading', { name: 'Create transaction' })).not.toBeInTheDocument()
+
+			fireEvent.click(screen.getByRole('button', { name: 'New transaction' }))
+			TestBed.tick()
+			await advanceTimersByTimeAsync(1000)
+
+			expect(screen.getByRole('heading', { name: 'Create transaction' })).toBeInTheDocument()
+			expect(screen.getByLabelText('Amount')).toBeInTheDocument()
+		})
+
+		it('should open the edit drawer prefilled with the selected transaction', async () => {
+			conceptApiMock.getAll.mockReturnValue(of([{ ...concept, children: [subconcept] }]))
+			paymentMethodApiMock.getAll.mockReturnValue(of([createMockPaymentMethodDto()]))
+			await renderDashboard()
+			fireEvent.click(screen.getByRole('button', { name: 'View details of transaction 1' }))
+			TestBed.tick()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+			TestBed.tick()
+			await advanceTimersByTimeAsync(1000)
+
+			expect(screen.getByRole('heading', { name: 'Edit transaction' })).toBeInTheDocument()
+			expect(screen.getByLabelText(/^Note/)).toHaveValue(income.note)
+		})
+
+		it('should not offer editing to a user that only reads', async () => {
+			await renderAsReader()
+			fireEvent.click(screen.getByRole('button', { name: 'View details of transaction 1' }))
+			TestBed.tick()
+
+			expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
 		})
 
 		it('should ask for confirmation before closing the register', async () => {

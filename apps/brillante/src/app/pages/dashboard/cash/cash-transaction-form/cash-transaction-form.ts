@@ -11,42 +11,23 @@ import { TransactionTypeId, type CashTransaction } from '@domain/cash/cash-trans
 import type { PaymentMethod } from '@domain/cash/payment-method.model'
 import { AppTranslation } from '@providers/i18n/app-translation'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
-import { Alert, AlertDescription } from '@resetshop/ui/alert/alert'
 import { Badge } from '@resetshop/ui/badge/badge'
-import { Button } from '@resetshop/ui/button/button'
 import { FormField } from '@resetshop/ui/form-field/form-field'
 import { Select } from '@resetshop/ui/select/select'
 import type { SelectOption } from '@resetshop/ui/select/select-option'
-import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { PaymentInput } from '../payment-input/payment-input'
 
 /**
- * Create / edit form of a cash transaction. Presentational: the page supplies the catalogues and
- * the transaction being edited (none when creating) and reacts to the emitted draft.
+ * Fields of the create / edit cash transaction form. Presentational: the hosting drawer supplies
+ * the catalogues and the transaction being edited (none when creating), renders the submit button
+ * (associated through `formId`) and reacts to the emitted draft.
  */
 @Component({
 	selector: 'app-cash-transaction-form',
 	standalone: true,
-	imports: [
-		Alert,
-		AlertDescription,
-		Badge,
-		Button,
-		FormField,
-		PaymentInput,
-		Select,
-		SignalFormField,
-		Spinner,
-		TranslatePipe,
-	],
+	imports: [Badge, FormField, PaymentInput, Select, SignalFormField, TranslatePipe],
 	template: `
-		<form (submit)="onSubmit($event)" novalidate class="flex max-w-2xl flex-col gap-4">
-			@if (error()) {
-				<div appAlert variant="destructive">
-					<p appAlertDescription>{{ error() }}</p>
-				</div>
-			}
-
+		<form (submit)="onSubmit($event)" [id]="formId" novalidate class="flex flex-col gap-4">
 			<app-form-field [label]="'CASH.FORM.CONCEPT' | translate">
 				<app-select
 					[formField]="cashForm.parentConceptId"
@@ -90,18 +71,6 @@ import { PaymentInput } from '../payment-input/payment-input'
 					{{ userName() }}
 				</p>
 			}
-
-			<div class="flex gap-3">
-				<button [disabled]="submitting() || !isFormValid()" appButton type="submit">
-					@if (submitting()) {
-						<app-spinner data-icon="start" />
-					}
-					{{ submitLabel() }}
-				</button>
-				<button (click)="cancelled.emit()" appButton type="button" variant="outline">
-					{{ 'COMMON.CANCEL' | translate }}
-				</button>
-			</div>
 		</form>
 	`,
 })
@@ -113,10 +82,11 @@ export class CashTransactionForm {
 	public readonly transaction = input<CashTransaction | null>(null)
 	public readonly userName = input('')
 	public readonly submitting = input(false)
-	public readonly error = input<string | null>(null)
 
 	public readonly submitted = output<CashTransactionDraft>()
-	public readonly cancelled = output<void>()
+
+	/** Id of the form element, for a submit button rendered outside this component. */
+	public readonly formId = 'cash-transaction-form'
 
 	private readonly translation = inject(AppTranslation)
 
@@ -151,7 +121,9 @@ export class CashTransactionForm {
 	)
 
 	protected readonly isEdit = computed(() => this.transaction() !== null)
-	protected readonly isFormValid = computed(() => this.cashForm().valid())
+	public readonly isFormValid = computed(() => this.cashForm().valid())
+	/** True once the user changed a field; the drawer asks for confirmation before discarding. */
+	public readonly isDirty = computed(() => this.cashForm().dirty())
 
 	protected readonly selectedParent = computed(() =>
 		this.concepts().find((concept) => String(concept.id) === this.cashForm.parentConceptId().value()),
@@ -169,10 +141,6 @@ export class CashTransactionForm {
 	protected readonly kindLabel = computed(() =>
 		this.translation.instant(this.isIncome() ? 'CASH.TYPE.INCOME' : 'CASH.TYPE.EXPENSE'),
 	)
-	protected readonly submitLabel = computed(() => {
-		if (this.submitting()) return this.translation.instant('COMMON.SAVING')
-		return this.translation.instant(this.isEdit() ? 'CASH.FORM.SUBMIT_EDIT' : 'CASH.FORM.SUBMIT_CREATE')
-	})
 
 	/** Keeps the subconcept inside the chosen concept: picks its first one when the parent changes. */
 	private readonly syncConceptEffect = effect(() => {

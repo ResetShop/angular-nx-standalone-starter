@@ -16,6 +16,8 @@ import { RepairStore } from '@store/repair/repair.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { format, isValid, parseISO } from 'date-fns'
+import { RepairCreateDrawer } from '../repair-create-drawer/repair-create-drawer'
+import { RepairEditDrawer } from '../repair-edit-drawer/repair-edit-drawer'
 import { RepairStatusBadge } from '../repair-status-badge/repair-status-badge'
 
 function formatDateTime(date: Date | null): string {
@@ -32,6 +34,8 @@ function formatDateTime(date: Date | null): string {
 		DataTableCellDef,
 		PageShell,
 		Pagination,
+		RepairCreateDrawer,
+		RepairEditDrawer,
 		RepairStatusBadge,
 		RouterLink,
 		RowActionsMenu,
@@ -63,9 +67,9 @@ function formatDateTime(date: Date | null): string {
 						class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-base focus:ring-1 focus:outline-none sm:text-sm"
 					/>
 					@if (canManage()) {
-						<a appButton routerLink="/dashboard/repairs/new" class="w-full sm:w-auto">
+						<button (click)="createDrawer().open()" appButton type="button" class="w-full sm:w-auto">
 							{{ 'REPAIRS.PAGE.NEW_BUTTON' | translate }}
-						</a>
+						</button>
 					}
 				</div>
 
@@ -149,6 +153,9 @@ function formatDateTime(date: Date | null): string {
 			}
 		</app-page-shell>
 
+		<app-repair-create-drawer #createDrawerRef />
+		<app-repair-edit-drawer #editDrawerRef />
+
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
 			[message]="deleteMessage()"
@@ -167,6 +174,8 @@ export default class RepairsList {
 	private readonly translation = inject(AppTranslation)
 
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('confirmDeleteDialog')
+	protected readonly createDrawer = viewChild.required<RepairCreateDrawer>('createDrawerRef')
+	private readonly editDrawer = viewChild.required<RepairEditDrawer>('editDrawerRef')
 	private readonly deleteToast = createMutationToast(this.translation.instant('REPAIRS.DELETE_TOAST'))
 
 	protected readonly dateFrom = signal('')
@@ -250,16 +259,18 @@ export default class RepairsList {
 				onSelect: () => void this.router.navigate(['/dashboard/repairs', row.id]),
 			},
 		]
-		const destructive: RowAction[] = this.canManage()
-			? [
-					{
-						label: this.translation.instant('COMMON.DELETE'),
-						onSelect: () => this.confirmDelete(row),
-						variant: 'destructive',
-					},
-				]
-			: []
-		return [view, destructive]
+		if (!this.canManage()) return [view]
+		const edit: RowAction[] = [
+			{ label: this.translation.instant('REPAIRS.ACTIONS.EDIT'), onSelect: () => this.openEditDrawer(row) },
+		]
+		const destructive: RowAction[] = [
+			{
+				label: this.translation.instant('COMMON.DELETE'),
+				onSelect: () => this.confirmDelete(row),
+				variant: 'destructive',
+			},
+		]
+		return [view, edit, destructive]
 	}
 
 	protected onDeleteConfirmed(): void {
@@ -268,6 +279,12 @@ export default class RepairsList {
 		this.deleteToast.markSubmitted()
 		this.store.deleteRepair(repair.id)
 		this.repairToDelete.set(null)
+	}
+
+	/** Deselects the stored repair first so the drawer always edits a freshly loaded one. */
+	private openEditDrawer(repair: Repair): void {
+		this.store.selectRepair(null)
+		this.editDrawer().open(repair)
 	}
 
 	private confirmDelete(repair: Repair): void {

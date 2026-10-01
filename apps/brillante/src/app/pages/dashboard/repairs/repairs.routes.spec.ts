@@ -1,6 +1,4 @@
 import type { Route } from '@angular/router'
-import { Permission } from '@contracts/permission/permission.constants'
-import { permissionGuard } from '@guards/permission.guard'
 import routes from './repairs.routes'
 
 describe('repairs routes', () => {
@@ -17,28 +15,17 @@ describe('repairs routes', () => {
 		}
 	})
 
-	it('serves the list, the intake form and the detail page in that order', () => {
-		expect(children.map((child) => child.path)).toEqual(['', 'new', ':id'])
+	it('serves the list and the detail page, with no separate create or edit page', () => {
+		expect(children.map((child) => child.path)).toEqual(['', ':id'])
 	})
 
 	it('titles every page with a translation key', () => {
-		expect(children.map((child) => child.title)).toEqual([
-			'REPAIRS.PAGE.TITLE',
-			'REPAIRS.CREATE.TITLE',
-			'REPAIRS.DETAIL.TITLE',
-		])
+		expect(children.map((child) => child.title)).toEqual(['REPAIRS.PAGE.TITLE', 'REPAIRS.DETAIL.TITLE'])
 	})
 
-	it('requires the manage permission to open a new repair', () => {
-		const create = children.find((child) => child.path === 'new')
-
-		expect(create?.canActivate).toEqual([permissionGuard])
-		expect(create?.data).toEqual({ requiredPermission: Permission.REPAIRS_MANAGE })
-	})
-
-	it('leaves reading routes to the dashboard permission', () => {
-		for (const path of ['', ':id']) {
-			expect(children.find((child) => child.path === path)?.canActivate).toBeUndefined()
+	it('leaves the reading routes to the dashboard permission', () => {
+		for (const child of children) {
+			expect(child.canActivate).toBeUndefined()
 		}
 	})
 

@@ -1,5 +1,6 @@
 import { applyEach, max, min, required, schema } from '@angular/forms/signals'
 import type { PaymentMethodDto } from '@contracts/cash/payment-method.types'
+import { shouldGenerateTransaction } from '@domain/repair/repair.functions'
 import type { Repair, RepairPayment, RepairStatus, RepairTrackingChanges } from '@domain/repair/repair.model'
 
 export interface RepairPaymentFormRow {
@@ -70,6 +71,20 @@ export function toTrackingChanges(
 		warrantyTerm: model.warrantyTerm,
 		payments: model.payments.map((row) => toPayment(row, paymentMethods, stored)),
 	}
+}
+
+/** A repair closed with a price registers its cash transaction, so its payments are captured. */
+export function generatesTransaction(model: RepairTrackingFormModel): boolean {
+	return shouldGenerateTransaction(Number(model.statusId), model.price)
+}
+
+export function paymentsTotal(model: RepairTrackingFormModel): number {
+	return model.payments.reduce((sum, row) => sum + row.amount, 0)
+}
+
+/** The payments that settle a closed repair must add up to its price. */
+export function paymentsMismatch(model: RepairTrackingFormModel): boolean {
+	return generatesTransaction(model) && Math.abs(paymentsTotal(model) - model.price) > 0.005
 }
 
 export const repairTrackingSchema = schema<RepairTrackingFormModel>((tracking) => {

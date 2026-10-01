@@ -1,6 +1,5 @@
 import { DatePipe } from '@angular/common'
 import { Component, computed, inject, input, output } from '@angular/core'
-import { RouterLink } from '@angular/router'
 import type { CashTransaction } from '@domain/cash/cash-transaction.model'
 import { formatMoney } from '@domain/cash/money'
 import { AppTranslation } from '@providers/i18n/app-translation'
@@ -16,7 +15,7 @@ import { Button } from '@resetshop/ui/button/button'
 	selector: 'app-cash-transaction-details',
 	standalone: true,
 	host: { class: 'block' },
-	imports: [Badge, Button, DatePipe, RouterLink, TranslatePipe],
+	imports: [Badge, Button, DatePipe, TranslatePipe],
 	template: `
 		<section
 			[attr.aria-label]="'CASH.DETAILS.TITLE' | translate"
@@ -74,9 +73,9 @@ import { Button } from '@resetshop/ui/button/button'
 				@if (canManage()) {
 					<div class="flex flex-wrap gap-3">
 						@if (tx.editable) {
-							<a [routerLink]="['/dashboard/cash', tx.id, 'edit']" appButton variant="outline">
+							<button (click)="editRequested.emit(tx)" appButton variant="outline" type="button">
 								{{ 'CASH.ACTIONS.EDIT' | translate }}
-							</a>
+							</button>
 						}
 						<button (click)="deleteRequested.emit()" appButton variant="destructive" type="button">
 							{{ 'CASH.ACTIONS.DELETE' | translate }}
@@ -93,6 +92,7 @@ export class CashTransactionDetails {
 	public readonly transaction = input<CashTransaction | null>(null)
 	public readonly canManage = input(false)
 	public readonly loading = input(false)
+	public readonly editRequested = output<CashTransaction>()
 	public readonly deleteRequested = output<void>()
 
 	private readonly translation = inject(AppTranslation)

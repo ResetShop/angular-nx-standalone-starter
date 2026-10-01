@@ -1,3 +1,4 @@
+import { Component, input, output } from '@angular/core'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import type { TransactionConceptDto } from '@contracts/cash/cash-concept.types'
 import type { CashTransactionDraft } from '@domain/cash/cash-request.mapper'
@@ -11,6 +12,34 @@ import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import { CashTransactionForm } from './cash-transaction-form'
+
+/** Stands in for the drawer, which renders the submit button outside the form component. */
+@Component({
+	selector: 'app-form-host',
+	standalone: true,
+	imports: [CashTransactionForm],
+	template: `
+		<app-cash-transaction-form
+			(submitted)="submitted.emit($event)"
+			[concepts]="concepts()"
+			[paymentMethods]="paymentMethods()"
+			[transaction]="transaction()"
+			[userName]="userName()"
+			[submitting]="submitting()"
+			#formRef
+		/>
+		<button [attr.form]="formRef.formId" [disabled]="!formRef.isFormValid()" type="submit">Save</button>
+		<output>{{ formRef.isDirty() ? 'dirty' : 'pristine' }}</output>
+	`,
+})
+class FormHost {
+	public readonly concepts = input.required<readonly TransactionConceptDto[]>()
+	public readonly paymentMethods = input.required<readonly PaymentMethod[]>()
+	public readonly transaction = input<CashTransaction | null>(null)
+	public readonly userName = input('')
+	public readonly submitting = input(false)
+	public readonly submitted = output<CashTransactionDraft>()
+}
 
 const salesParent = createMockConceptDto({ id: 1, description: 'Ventas', parent: null })
 const salesAccessories = createMockConceptDto({ id: 11, description: 'Accesorios', parent: salesParent })
@@ -40,18 +69,16 @@ describe('CashTransactionForm', () => {
 		inputs: {
 			transaction?: CashTransaction | null
 			submitting?: boolean
-			error?: string | null
 			userName?: string
 		} = {},
 	) {
 		const submitted = fn<[CashTransactionDraft], void>()
-		const cancelled = fn<[], void>()
-		const view = await render(CashTransactionForm, {
+		const view = await render(FormHost, {
 			inputs: { concepts, paymentMethods: [cash, transfer], userName: 'clerk', ...inputs },
-			on: { submitted, cancelled },
+			on: { submitted },
 			providers: [{ provide: Translation, useValue: cashTranslation }, ...provideSignalFormsConfig({})],
 		})
-		return { ...view, submitted, cancelled }
+		return { ...view, submitted }
 	}
 
 	async function pickOption(combobox: HTMLElement, name: string) {
@@ -102,7 +129,7 @@ describe('CashTransactionForm', () => {
 
 	it('should keep saving disabled until the amount and the note are valid', async () => {
 		await renderForm()
-		const save = screen.getByRole('button', { name: 'Save transaction' })
+		const save = screen.getByRole('button', { name: 'Save' })
 		expect(save).toBeDisabled()
 
 		await userEvent.type(screen.getByLabelText('Amount'), '1500')
@@ -119,7 +146,7 @@ describe('CashTransactionForm', () => {
 		await userEvent.tab()
 
 		expect(await screen.findByText('Must be at least 10 characters')).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: 'Save transaction' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
 	})
 
 	it('should reject an amount below one', async () => {
@@ -129,7 +156,7 @@ describe('CashTransactionForm', () => {
 		await userEvent.type(screen.getByLabelText('Amount'), '0')
 		await userEvent.tab()
 
-		expect(screen.getByRole('button', { name: 'Save transaction' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
 	})
 
 	it('should emit the draft of a new transaction', async () => {
@@ -138,7 +165,7 @@ describe('CashTransactionForm', () => {
 		await pickOption(screen.getAllByRole('combobox')[1], 'Reparaciones')
 		await pickOption(screen.getAllByRole('combobox')[2], 'Transferencia')
 		await fillValidForm()
-		await userEvent.click(screen.getByRole('button', { name: 'Save transaction' }))
+		await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
 		expect(submitted.calls).toHaveLength(1)
 		const draft = submitted.calls[0][0]
@@ -151,7 +178,7 @@ describe('CashTransactionForm', () => {
 	it('should not emit while the form is invalid', async () => {
 		const { submitted } = await renderForm()
 
-		await userEvent.click(screen.getByRole('button', { name: 'Save transaction' }))
+		await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
 		expect(submitted.calls).toHaveLength(0)
 	})
@@ -175,28 +202,26 @@ describe('CashTransactionForm', () => {
 		expect(screen.getByLabelText(/^Note/)).toHaveValue('Compra de insumos')
 		expect(screen.getByLabelText('Date and time')).toBeInTheDocument()
 
-		await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+		await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
 		expect(submitted.calls[0][0]).toEqual(expect.objectContaining({ id: 9, note: 'Compra de insumos' }))
 	})
 
-	it('should show the error returned by the store', async () => {
-		await renderForm({ error: 'The transaction could not be created.' })
+	it('should not emit while a submission is in flight', async () => {
+		const { submitted } = await renderForm({ submitting: true })
+		await fillValidForm()
 
-		expect(screen.getByRole('alert')).toHaveTextContent('The transaction could not be created.')
+		await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+		expect(submitted.calls).toHaveLength(0)
 	})
 
-	it('should disable saving and show progress while submitting', async () => {
-		await renderForm({ submitting: true })
+	it('should report itself dirty only after the user changes a field', async () => {
+		await renderForm()
+		expect(screen.getByRole('status')).toHaveTextContent('pristine')
 
-		expect(screen.getByRole('button', { name: 'Saving...' })).toBeDisabled()
-	})
+		await userEvent.type(screen.getByLabelText(/^Note/), 'Venta')
 
-	it('should emit cancelled', async () => {
-		const { cancelled } = await renderForm()
-
-		await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-
-		expect(cancelled.calls).toHaveLength(1)
+		expect(screen.getByRole('status')).toHaveTextContent('dirty')
 	})
 })

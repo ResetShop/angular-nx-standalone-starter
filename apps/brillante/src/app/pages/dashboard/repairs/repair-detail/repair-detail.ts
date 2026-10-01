@@ -3,10 +3,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
 import { Permission } from '@contracts/permission/permission.constants'
 import { canGenerateVoucher } from '@domain/repair/repair.functions'
-import { applyDeviceChanges, applyTrackingChanges } from '@domain/repair/repair.mapper'
-import type { RepairDeviceChanges } from '@domain/repair/repair.model'
+import type { Repair } from '@domain/repair/repair.model'
 import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherArrowLeft, featherPrinter, featherTrash2 } from '@ng-icons/feather-icons'
+import { featherArrowLeft, featherEdit2, featherPrinter, featherTrash2 } from '@ng-icons/feather-icons'
 import { AppTranslation } from '@providers/i18n/app-translation'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Button } from '@resetshop/ui/button/button'
@@ -16,12 +15,11 @@ import { RepairStore } from '@store/repair/repair.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UIStore } from '@store/ui/ui.store'
 import { NotificationType } from '@store/ui/ui.types'
+import { RepairEditDrawer } from '../repair-edit-drawer/repair-edit-drawer'
 import { RepairStatusBadge } from '../repair-status-badge/repair-status-badge'
 import { RepairVoucherPrinter } from '../repair-voucher/repair-voucher.printer'
-import { RepairDeviceForm } from './repair-device-form'
 import { RepairHistory } from './repair-history'
 import { RepairSummary } from './repair-summary'
-import { type RepairTrackingSubmission, RepairTrackingForm } from './repair-tracking-form'
 
 @Component({
 	selector: 'app-repair-detail',
@@ -31,15 +29,14 @@ import { type RepairTrackingSubmission, RepairTrackingForm } from './repair-trac
 		ConfirmDialog,
 		NgIcon,
 		PageShell,
-		RepairDeviceForm,
+		RepairEditDrawer,
 		RepairHistory,
 		RepairStatusBadge,
 		RepairSummary,
-		RepairTrackingForm,
 		RouterLink,
 		TranslatePipe,
 	],
-	viewProviders: [provideIcons({ featherArrowLeft, featherPrinter, featherTrash2 })],
+	viewProviders: [provideIcons({ featherArrowLeft, featherEdit2, featherPrinter, featherTrash2 })],
 	template: `
 		<a
 			routerLink="/dashboard/repairs"
@@ -60,6 +57,10 @@ import { type RepairTrackingSubmission, RepairTrackingForm } from './repair-trac
 								{{ 'REPAIRS.DETAIL.PRINT_VOUCHER' | translate }}
 							</button>
 							@if (canManage()) {
+								<button (click)="onEditClick(repair)" appButton type="button" variant="outline">
+									<ng-icon data-icon="start" name="featherEdit2" size="16" />
+									{{ 'COMMON.EDIT' | translate }}
+								</button>
 								<button (click)="onDeleteClick()" appButton type="button" variant="destructive">
 									<ng-icon data-icon="start" name="featherTrash2" size="16" />
 									{{ 'COMMON.DELETE' | translate }}
@@ -70,25 +71,12 @@ import { type RepairTrackingSubmission, RepairTrackingForm } from './repair-trac
 
 					<app-repair-summary [repair]="repair" />
 
-					@if (canManage()) {
-						<app-repair-device-form
-							(save)="onSaveDevice($event)"
-							[repair]="repair"
-							[saving]="store.isUpdatingDevice()"
-						/>
-						<app-repair-tracking-form
-							(save)="onSaveTracking($event)"
-							[repair]="repair"
-							[statuses]="store.statuses()"
-							[paymentMethods]="store.paymentMethods()"
-							[saving]="store.isUpdatingTracking()"
-						/>
-					}
-
 					<app-repair-history [entries]="store.history()" />
 				}
 			</section>
 		</app-page-shell>
+
+		<app-repair-edit-drawer #editDrawerRef />
 
 		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
@@ -112,9 +100,8 @@ export default class RepairDetail {
 
 	private readonly repairId = Number(this.route.snapshot.paramMap.get('id'))
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('confirmDeleteDialog')
+	private readonly editDrawer = viewChild.required<RepairEditDrawer>('editDrawerRef')
 
-	private readonly deviceToast = createMutationToast(this.translation.instant('REPAIRS.DEVICE.SUCCESS_TOAST'))
-	private readonly trackingToast = createMutationToast(this.translation.instant('REPAIRS.TRACKING.SUCCESS_TOAST'))
 	private readonly deleteToast = createMutationToast(this.translation.instant('REPAIRS.DELETE_TOAST'))
 
 	protected readonly canManage = computed(
@@ -129,18 +116,6 @@ export default class RepairDetail {
 	protected readonly deleteMessage = computed(() =>
 		this.translation.instant('REPAIRS.DELETE_DIALOG.MESSAGE').replace('{id}', String(this.repairId)),
 	)
-
-	private readonly deviceToastEffect = effect(() => {
-		const updating = this.store.isUpdatingDevice()
-		const error = this.store.mutationError().updateDevice
-		untracked(() => this.deviceToast.handleResult(updating, error))
-	})
-
-	private readonly trackingToastEffect = effect(() => {
-		const updating = this.store.isUpdatingTracking()
-		const error = this.store.mutationError().updateTracking
-		untracked(() => this.trackingToast.handleResult(updating, error))
-	})
 
 	// Toast then leave the page once the viewed repair is deleted: the page has nothing left to show.
 	private readonly deleteSuccessEffect = effect(() => {
@@ -162,18 +137,8 @@ export default class RepairDetail {
 		}
 	}
 
-	protected onSaveDevice(changes: RepairDeviceChanges): void {
-		const repair = this.store.selectedRepair()
-		if (!repair) return
-		this.deviceToast.markSubmitted()
-		this.store.updateDeviceInfo(applyDeviceChanges(repair, changes))
-	}
-
-	protected onSaveTracking({ changes, generateTransaction }: RepairTrackingSubmission): void {
-		const repair = this.store.selectedRepair()
-		if (!repair) return
-		this.trackingToast.markSubmitted()
-		this.store.updateTrackingInfo({ repair: applyTrackingChanges(repair, changes), generateTransaction })
+	protected onEditClick(repair: Repair): void {
+		this.editDrawer().open(repair)
 	}
 
 	protected onPrint(): void {

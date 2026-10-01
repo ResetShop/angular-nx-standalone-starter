@@ -5,6 +5,7 @@ import { Permission } from '@contracts/permission/permission.constants'
 import { RepairStatusId } from '@contracts/repair/repair-status.constants'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
+import { CustomerApi } from '@providers/customer/customer.interface'
 import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import { RepairApi } from '@providers/repair/repair.interface'
@@ -13,6 +14,7 @@ import { Translation } from '@resetshop/angular-core/i18n/translation'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
+	fn,
 	type MockFn,
 	spyOn,
 	useFakeTimers,
@@ -29,6 +31,7 @@ import RepairsList from './repairs-list'
 describe('RepairsList', () => {
 	let repairApiMock: Record<keyof RepairApi, MockFn>
 	let paymentMethodApiMock: Record<keyof PaymentMethodApi, MockFn>
+	let customerApiMock: Record<keyof CustomerApi, MockFn>
 
 	const ada = createMockRepairDto({ id: 11, lastUpdate: '2024-05-03T10:00:00.000Z' })
 	const grace = createMockRepairDto({
@@ -51,6 +54,14 @@ describe('RepairsList', () => {
 		spyOn(console, 'error')
 		repairApiMock = createRepairApiMock()
 		paymentMethodApiMock = createPaymentMethodApiMock()
+		customerApiMock = {
+			getAll: fn(),
+			getById: fn(),
+			getByEmail: fn(),
+			getByDni: fn(),
+			create: fn(),
+			update: fn(),
+		}
 		repairApiMock.getAll.mockReturnValue(of([ada, grace]))
 		repairApiMock.getAllByDate.mockReturnValue(of([ada]))
 		repairApiMock.getStatuses.mockReturnValue(of(MOCK_REPAIR_STATUSES))
@@ -69,6 +80,7 @@ describe('RepairsList', () => {
 			provideIdentityMock(),
 			{ provide: RepairApi, useValue: repairApiMock },
 			{ provide: PaymentMethodApi, useValue: paymentMethodApiMock },
+			{ provide: CustomerApi, useValue: customerApiMock },
 			{ provide: OfficeBranchStore, useValue: { currentBranch: signal(null) } },
 			{ provide: Translation, useValue: repairsTranslation },
 		]
@@ -283,13 +295,21 @@ describe('RepairsList', () => {
 		it('offers creating repairs to users who can manage them', async () => {
 			await renderList({ canManage: true })
 
-			expect(screen.getByRole('link', { name: 'New repair' })).toHaveAttribute('href', '/dashboard/repairs/new')
+			expect(screen.getByRole('button', { name: 'New repair' })).toBeInTheDocument()
 		})
 
 		it('hides creating repairs from read-only users', async () => {
 			await renderList({ canManage: false })
 
-			expect(screen.queryByRole('link', { name: 'New repair' })).not.toBeInTheDocument()
+			expect(screen.queryByRole('button', { name: 'New repair' })).not.toBeInTheDocument()
+		})
+
+		it('offers editing from the row actions to users who can manage repairs', async () => {
+			const view = await renderList({ canManage: true })
+
+			await openRowActions(view, 'Ada Lovelace')
+
+			expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
 		})
 
 		it('offers deleting from the row actions to users who can manage repairs', async () => {
@@ -307,6 +327,58 @@ describe('RepairsList', () => {
 
 			expect(screen.getByRole('menuitem', { name: 'View details' })).toBeInTheDocument()
 			expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
+			expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeInTheDocument()
+		})
+	})
+
+	describe('drawers', () => {
+		it('opens the create drawer from the new repair button', async () => {
+			const view = await renderList()
+
+			fireEvent.click(screen.getByRole('button', { name: 'New repair' }))
+			await settle(view)
+
+			expect(screen.getByRole('heading', { name: 'New repair' })).toBeInTheDocument()
+			expect(screen.getByLabelText(/^National ID/)).toBeInTheDocument()
+		})
+
+		it('does not navigate away to create a repair', async () => {
+			const view = await renderList()
+			const navigate = spyOn(TestBed.inject(Router), 'navigate')
+
+			fireEvent.click(screen.getByRole('button', { name: 'New repair' }))
+			await settle(view, 50)
+
+			expect(navigate.calls).toHaveLength(0)
+		})
+
+		it('loads the repair and opens the edit drawer from the row actions', async () => {
+			repairApiMock.getById.mockReturnValue(of(ada))
+			const view = await renderList()
+			await openRowActions(view, 'Ada Lovelace')
+
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+			await settle(view)
+
+			expect(repairApiMock.getById.calls[0][0]).toBe(11)
+			expect(screen.getByRole('heading', { name: 'Edit repair #11' })).toBeInTheDocument()
+			expect(screen.getByLabelText(/^Model/)).toHaveValue('S21')
+		})
+
+		it('loads the repair again when it is edited a second time', async () => {
+			repairApiMock.getById.mockReturnValue(of(ada))
+			const view = await renderList()
+			await openRowActions(view, 'Ada Lovelace')
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+			await settle(view)
+			fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+			await settle(view)
+			await openRowActions(view, 'Ada Lovelace')
+
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+			await settle(view)
+
+			expect(repairApiMock.getById.calls).toHaveLength(2)
 		})
 	})
 

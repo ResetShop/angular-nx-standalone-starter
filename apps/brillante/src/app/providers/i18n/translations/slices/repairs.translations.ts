@@ -28,6 +28,7 @@ export const repairsEn = {
 		},
 		ACTIONS: {
 			VIEW: 'View details',
+			EDIT: 'Edit',
 		},
 		DELETE_DIALOG: {
 			TITLE: 'Delete repair',
@@ -58,7 +59,6 @@ export const repairsEn = {
 		},
 		CREATE: {
 			TITLE: 'New repair',
-			BACK: 'Back to repairs',
 			CUSTOMER_SECTION: 'Customer',
 			DEVICE_SECTION: 'Device',
 			TRACKING_SECTION: 'Repair details',
@@ -83,14 +83,16 @@ export const repairsEn = {
 			CREATED_BY: 'Created by',
 			PRINT_VOUCHER: 'Print voucher',
 		},
+		EDIT_DRAWER: {
+			TITLE: 'Edit repair',
+			SAVE: 'Save changes',
+		},
 		DEVICE: {
 			TITLE: 'Device information',
-			SAVE: 'Save device information',
 			SUCCESS_TOAST: 'Device information updated successfully.',
 		},
 		TRACKING: {
 			TITLE: 'Repair tracking',
-			SAVE: 'Save tracking',
 			SUCCESS_TOAST: 'Repair updated successfully.',
 			PAYMENTS: 'Payments',
 			PAYMENTS_HINT:
@@ -158,6 +160,7 @@ export const repairsEs: typeof repairsEn = {
 		},
 		ACTIONS: {
 			VIEW: 'Ver detalle',
+			EDIT: 'Editar',
 		},
 		DELETE_DIALOG: {
 			TITLE: 'Eliminar reparación',
@@ -189,7 +192,6 @@ export const repairsEs: typeof repairsEn = {
 		},
 		CREATE: {
 			TITLE: 'Nueva reparación',
-			BACK: 'Volver a reparaciones',
 			CUSTOMER_SECTION: 'Cliente',
 			DEVICE_SECTION: 'Equipo',
 			TRACKING_SECTION: 'Datos de la reparación',
@@ -214,14 +216,16 @@ export const repairsEs: typeof repairsEn = {
 			CREATED_BY: 'Usuario creador',
 			PRINT_VOUCHER: 'Imprimir comprobante',
 		},
+		EDIT_DRAWER: {
+			TITLE: 'Editar reparación',
+			SAVE: 'Guardar cambios',
+		},
 		DEVICE: {
 			TITLE: 'Información del equipo',
-			SAVE: 'Guardar información del equipo',
 			SUCCESS_TOAST: 'Información del equipo actualizada con éxito.',
 		},
 		TRACKING: {
 			TITLE: 'Seguimiento de la reparación',
-			SAVE: 'Guardar seguimiento',
 			SUCCESS_TOAST: 'Reparación actualizada con éxito.',
 			PAYMENTS: 'Pagos',
 			PAYMENTS_HINT:

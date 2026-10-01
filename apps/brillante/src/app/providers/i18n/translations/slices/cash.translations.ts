@@ -15,7 +15,6 @@ export const cashEn = {
 			CLOSE_REGISTER: 'Close cash register',
 			EDIT: 'Edit',
 			DELETE: 'Delete',
-			BACK: 'Back to the cash register',
 		},
 		TOTALS: {
 			LABEL: 'Totals of the selected period',
@@ -131,7 +130,6 @@ export const cashEs: typeof cashEn = {
 			CLOSE_REGISTER: 'Cerrar caja',
 			EDIT: 'Editar',
 			DELETE: 'Borrar',
-			BACK: 'Volver a la caja',
 		},
 		TOTALS: {
 			LABEL: 'Totales del período seleccionado',

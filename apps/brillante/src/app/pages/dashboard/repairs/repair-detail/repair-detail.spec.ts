@@ -122,33 +122,48 @@ describe('RepairDetail', () => {
 		expect(screen.getByRole('alert')).toHaveTextContent('Failed to load repair')
 	})
 
-	it('renders the summary, the forms and the history of the repair', async () => {
+	it('renders the summary and the history of the repair, without inline forms', async () => {
 		await renderDetail()
 
 		expect(screen.getByRole('heading', { name: 'Repair #9' })).toBeInTheDocument()
 		expect(screen.getByRole('heading', { name: 'Summary' })).toBeInTheDocument()
-		expect(screen.getByRole('heading', { name: 'Device information' })).toBeInTheDocument()
-		expect(screen.getByRole('heading', { name: 'Repair tracking' })).toBeInTheDocument()
 		expect(screen.getByRole('heading', { name: 'Status history' })).toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument()
 	})
 
-	it('hides the forms and the delete action from users who cannot manage repairs', async () => {
+	it('hides the edit and delete actions from users who cannot manage repairs', async () => {
 		await renderDetail({ canManage: false })
 
 		expect(screen.getByRole('heading', { name: 'Summary' })).toBeInTheDocument()
-		expect(screen.queryByRole('heading', { name: 'Device information' })).not.toBeInTheDocument()
-		expect(screen.queryByRole('heading', { name: 'Repair tracking' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
 		expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
 		expect(screen.getByRole('button', { name: 'Print voucher' })).toBeInTheDocument()
 	})
 
-	describe('updating', () => {
+	describe('editing', () => {
+		async function openEditDrawer(view: Awaited<ReturnType<typeof renderDetail>>): Promise<void> {
+			fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+			await settle(view)
+		}
+
+		it('opens the edit drawer with the stored values without loading the repair again', async () => {
+			const view = await renderDetail()
+
+			await openEditDrawer(view)
+
+			expect(screen.getByRole('heading', { name: 'Edit repair #9' })).toBeInTheDocument()
+			expect(screen.getByLabelText(/^Model/)).toHaveValue('S21')
+			expect(screen.getByRole('combobox', { name: /^Status/ })).toHaveValue(String(RepairStatusId.ENTERED))
+			expect(repairApiMock.getById.calls).toHaveLength(1)
+		})
+
 		it('saves the device information and reloads the repair', async () => {
 			repairApiMock.updateDeviceInfo.mockReturnValue(of([1]))
 			const view = await renderDetail()
+			await openEditDrawer(view)
 
 			fireEvent.input(screen.getByLabelText(/^Model/), { target: { value: 'S22' } })
-			fireEvent.click(screen.getByRole('button', { name: 'Save device information' }))
+			fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 			await settle(view, 50)
 
 			const body = repairApiMock.updateDeviceInfo.calls[0][0] as { id: number; device: { model: string } }
@@ -160,9 +175,10 @@ describe('RepairDetail', () => {
 		it('saves the tracking with the current user and reloads the history', async () => {
 			repairApiMock.updateTrackingInfo.mockReturnValue(of([1]))
 			const view = await renderDetail()
+			await openEditDrawer(view)
 
 			selectOption(screen.getByRole('combobox', { name: /^Status/ }), String(RepairStatusId.IN_PROGRESS))
-			fireEvent.click(screen.getByRole('button', { name: 'Save tracking' }))
+			fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 			await settle(view, 50)
 
 			const request = repairApiMock.updateTrackingInfo.calls[0][0] as {
@@ -174,18 +190,6 @@ describe('RepairDetail', () => {
 			expect(request.user.id).toBe(5)
 			expect(request.generateTransaction).toBe(false)
 			expect(repairApiMock.getHistory.calls).toHaveLength(2)
-		})
-
-		it('announces a failed tracking update', async () => {
-			repairApiMock.updateTrackingInfo.mockReturnValue(throwError(() => new Error('boom')))
-			const view = await renderDetail()
-			const notifications = spyOn(TestBed.inject(UIStore), 'showNotification')
-
-			selectOption(screen.getByRole('combobox', { name: /^Status/ }), String(RepairStatusId.IN_PROGRESS))
-			fireEvent.click(screen.getByRole('button', { name: 'Save tracking' }))
-			await settle(view, 50)
-
-			expect(notifications.calls[0][0]).toEqual({ type: 'error', message: 'Failed to update the repair' })
 		})
 	})
 
