@@ -1,0 +1,116 @@
+{
+	"name": "brillante",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"includedScripts": [],
+	"projectType": "application",
+	"prefix": "app",
+	"sourceRoot": "apps/brillante/src",
+	"tags": ["type:app", "scope:app"],
+	"targets": {
+		"build": {
+			"executor": "@angular/build:application",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/brillante",
+				"browser": "apps/brillante/src/main.ts",
+				"polyfills": [],
+				"index": "apps/brillante/src/index.html",
+				"tsConfig": "apps/brillante/tsconfig.app.json",
+				"assets": [
+					"apps/brillante/src/assets",
+					{
+						"glob": "**/*",
+						"input": "public"
+					}
+				],
+				"styles": ["apps/brillante/src/styles.css"]
+			},
+			"configurations": {
+				"production": {
+					"budgets": [
+						{
+							"type": "initial",
+							"maximumWarning": "500kb",
+							"maximumError": "1mb"
+						},
+						{
+							"type": "anyComponentStyle",
+							"maximumWarning": "4kb",
+							"maximumError": "8kb"
+						}
+					],
+					"outputHashing": "all"
+				},
+				"development": {
+					"optimization": false,
+					"extractLicenses": false,
+					"sourceMap": true
+				}
+			},
+			"defaultConfiguration": "production"
+		},
+		"serve": {
+			"continuous": true,
+			"executor": "@angular/build:dev-server",
+			"configurations": {
+				"production": {
+					"buildTarget": "brillante:build:production"
+				},
+				"development": {
+					"buildTarget": "brillante:build:development"
+				}
+			},
+			"defaultConfiguration": "development"
+		},
+		"extract-i18n": {
+			"executor": "@angular/build:extract-i18n",
+			"options": {
+				"buildTarget": "brillante:build"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["apps/brillante/src"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/{projectName}"],
+			"options": {
+				"config": "apps/brillante/vitest.config.ts",
+				"reportsDirectory": "{projectRoot}/coverage/app"
+			},
+			"configurations": {
+				"ui": {
+					"watch": true
+				}
+			}
+		},
+		"serve-static": {
+			"continuous": true,
+			"executor": "@nx/web:file-server",
+			"options": {
+				"buildTarget": "brillante:build",
+				"port": 4200,
+				"staticFilePath": "dist/brillante/browser",
+				"spa": true
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p apps/brillante/tsconfig.spec.json"
+			}
+		},
+		"stylelint": {
+			"executor": "nx-stylelint:lint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": ["**/*.css"]
+			}
+		}
+	}
+}

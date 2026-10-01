@@ -1,0 +1,52 @@
+import type { Route } from '@angular/router'
+import { Permission } from '@contracts/permission/permission.constants'
+import { permissionGuard } from '@guards/permission.guard'
+import routes from './repairs.routes'
+
+describe('repairs routes', () => {
+	const children: Route[] = routes[0].children ?? []
+
+	it('declares one parent route that owns the section providers', () => {
+		expect(routes).toHaveLength(1)
+		expect(routes[0].providers).toHaveLength(6)
+	})
+
+	it('does not repeat providers on the child pages', () => {
+		for (const child of children) {
+			expect(child.providers).toBeUndefined()
+		}
+	})
+
+	it('serves the list, the intake form and the detail page in that order', () => {
+		expect(children.map((child) => child.path)).toEqual(['', 'new', ':id'])
+	})
+
+	it('titles every page with a translation key', () => {
+		expect(children.map((child) => child.title)).toEqual([
+			'REPAIRS.PAGE.TITLE',
+			'REPAIRS.CREATE.TITLE',
+			'REPAIRS.DETAIL.TITLE',
+		])
+	})
+
+	it('requires the manage permission to open a new repair', () => {
+		const create = children.find((child) => child.path === 'new')
+
+		expect(create?.canActivate).toEqual([permissionGuard])
+		expect(create?.data).toEqual({ requiredPermission: Permission.REPAIRS_MANAGE })
+	})
+
+	it('leaves reading routes to the dashboard permission', () => {
+		for (const path of ['', ':id']) {
+			expect(children.find((child) => child.path === path)?.canActivate).toBeUndefined()
+		}
+	})
+
+	it('lazy loads every page component', async () => {
+		for (const child of children) {
+			const component = await (child.loadComponent as () => Promise<unknown>)()
+
+			expect(component).toBeDefined()
+		}
+	})
+})

@@ -1,0 +1,80 @@
+import { provideRouter } from '@angular/router'
+import { clearAllMocks } from '@resetshop/util/test-utils'
+import { render, screen } from '@testing-library/angular'
+import { Brand } from './brand'
+
+describe('Brand', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
+	const defaultProviders = () => [provideRouter([])]
+
+	it('should create the brand component', async () => {
+		const { fixture } = await render(Brand, {
+			providers: defaultProviders(),
+		})
+
+		expect(fixture.componentInstance).toBeTruthy()
+	})
+
+	it('should render brand link button with the brand name', async () => {
+		await render(Brand, {
+			providers: defaultProviders(),
+		})
+
+		const link = screen.getByRole('link', { name: /brillante/i })
+		expect(link).toBeInTheDocument()
+	})
+
+	it('should link to the dashboard root', async () => {
+		await render(Brand, {
+			providers: defaultProviders(),
+		})
+
+		const link = screen.getByRole('link', { name: /brillante/i })
+		expect(link).toHaveAttribute('href', '/dashboard')
+	})
+
+	it('should render icon within the brand button', async () => {
+		await render(Brand, {
+			providers: defaultProviders(),
+		})
+
+		const link = screen.getByRole('link', { name: /brillante/i })
+		expect(link).toBeInTheDocument()
+
+		const text = screen.getByText('Brillante')
+		expect(text).toBeInTheDocument()
+	})
+
+	it('should apply button styling with variant and size', async () => {
+		await render(Brand, {
+			providers: defaultProviders(),
+		})
+
+		const link = screen.getByRole('link', { name: /brillante/i })
+		expect(link).toHaveAttribute('variant', 'default')
+		expect(link).toHaveAttribute('size', 'sm')
+	})
+
+	it('should apply gap styling for icon and text spacing', async () => {
+		await render(Brand, {
+			providers: defaultProviders(),
+		})
+
+		const link = screen.getByRole('link', { name: /brillante/i })
+		expect(link).toHaveClass('gap-2')
+		expect(link).toHaveClass('font-semibold')
+	})
+
+	it('should render with proper semantic structure', async () => {
+		await render(Brand, {
+			providers: defaultProviders(),
+		})
+
+		const link = screen.getByRole('link')
+		expect(link).toBeInTheDocument()
+		expect(link).toHaveTextContent(/Brillante/)
+	})
+})
