@@ -6,11 +6,11 @@ import type { RepairIntake } from '@domain/repair/repair.model'
 import type { IUser } from '@domain/user/user.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { CustomerApi } from '@providers/customer/customer.interface'
-import { RepairApi } from '@providers/repair/repair.interface'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
 import { NEVER, of, throwError } from 'rxjs'
 import { RepairIntakeStore } from './repair-intake.store'
+import { RepairApi } from './repair.interface'
 import { RepairStore } from './repair.store'
 
 const CUSTOMER_DTO: CustomerDto = {

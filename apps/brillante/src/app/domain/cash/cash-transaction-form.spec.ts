@@ -1,5 +1,5 @@
 import type { TransactionConceptDto } from '@contracts/cash/cash-concept.types'
-import { createMockCashTransactionDto, createMockConceptDto } from '@providers/cash/cash.mock'
+import { createMockCashTransactionDto, createMockConceptDto } from '@pages/dashboard/cash/cash.mock'
 import {
 	type CashTransactionFormModel,
 	type CashTransactionFormSource,

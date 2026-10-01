@@ -1,9 +1,9 @@
 import { provideToast } from '@components/toast/toast.provider'
 import { provideCashConcept } from '@providers/cash-concept/cash-concept.provider'
-import { provideCash } from '@providers/cash/cash.provider'
 import { providePaymentMethod } from '@providers/payment-method/payment-method.provider'
 import type { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
-import { CashStore } from '@store/cash/cash.store'
+import { provideCash } from './cash.provider'
+import { CashStore } from './cash.store'
 
 /**
  * Cash register section. Reading is guarded by the parent dashboard route; creating and editing

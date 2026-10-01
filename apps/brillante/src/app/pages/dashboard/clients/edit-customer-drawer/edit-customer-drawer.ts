@@ -17,9 +17,9 @@ import { Drawer } from '@resetshop/ui/drawer/drawer'
 import { DrawerFooter } from '@resetshop/ui/drawer/drawer-footer'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { parseDurationToMs } from '@resetshop/util'
-import { CustomersStore } from '@store/customers/customers.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../clients.constants'
+import { CustomersStore } from '../customers.store'
 
 /**
  * Edits an existing customer. The customer is passed to `open(customer)`, so one instance serves

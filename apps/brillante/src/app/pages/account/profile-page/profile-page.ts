@@ -16,8 +16,8 @@ import { Alert, AlertDescription, AlertTitle } from '@resetshop/ui/alert/alert'
 import { Button } from '@resetshop/ui/button/button'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { AuthStore } from '@store/auth/auth.store'
-import { ProfileStore } from '@store/customers/profile.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
+import { ProfileStore } from '../profile.store'
 
 /**
  * The signed-in user's own profile. Every account can edit its name; customer accounts also

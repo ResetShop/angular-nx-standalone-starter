@@ -1,4 +1,4 @@
-import { createMockCashTransactionDto } from '@providers/cash/cash.mock'
+import { createMockCashTransactionDto } from '@pages/dashboard/cash/cash.mock'
 import { summarizeTransactions, toSignedAmount } from './cash-totals'
 import { toCashTransaction } from './cash-transaction.mapper'
 

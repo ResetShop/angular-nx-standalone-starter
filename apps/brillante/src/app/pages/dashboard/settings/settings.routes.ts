@@ -4,8 +4,8 @@ import { permissionGuard } from '@guards/permission.guard'
 import { provideCashConcept } from '@providers/cash-concept/cash-concept.provider'
 import { provideUser } from '@providers/user/user.provider'
 import type { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
-import { CashConceptsStore } from '@store/cash-concepts/cash-concepts.store'
-import { ManagedUsersStore } from '@store/managed-users/managed-users.store'
+import { CashConceptsStore } from './concepts/cash-concepts.store'
+import { ManagedUsersStore } from './user-management/managed-users.store'
 
 /**
  * Settings area mounted at `dashboard/settings`. Each section that talks to its own API is a

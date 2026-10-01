@@ -1,7 +1,7 @@
 import { provideToast } from '@components/toast/toast.provider'
 import { provideCustomer } from '@providers/customer/customer.provider'
 import type { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
-import { CustomersStore } from '@store/customers/customers.store'
+import { CustomersStore } from './customers.store'
 
 export default [
 	{

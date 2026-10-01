@@ -1,7 +1,7 @@
 import { DEVICE_TYPES } from '@contracts/repair/device-type.constants'
 import { RepairStatusId } from '@contracts/repair/repair-status.constants'
 import { createMockUser } from '@mocks/user.mock'
-import { createMockRepairDto } from '@providers/repair/repair.mock'
+import { createMockRepairDto } from '@pages/dashboard/repairs/repair.mock'
 import {
 	applyDeviceChanges,
 	applyTrackingChanges,

@@ -1,6 +1,6 @@
 import type { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
-import type { RepairApi } from '@providers/repair/repair.interface'
 import { fn, type MockFn } from '@resetshop/util/test-utils'
+import type { RepairApi } from '../repair.interface'
 
 /**
  * Structurally linked mock of the repair API: every method is a `fn()` the spec configures.

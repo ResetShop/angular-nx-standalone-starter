@@ -11,7 +11,6 @@ import { Drawer } from '@resetshop/ui/drawer/drawer'
 import { DrawerFooter } from '@resetshop/ui/drawer/drawer-footer'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { parseDurationToMs } from '@resetshop/util'
-import { RepairStore } from '@store/repair/repair.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { RepairDeviceFields } from '../repair-device-fields/repair-device-fields'
 import { toDeviceChanges } from '../repair-device-fields/repair-device.form'
@@ -21,6 +20,7 @@ import {
 	paymentsMismatch,
 	toTrackingChanges,
 } from '../repair-tracking-fields/repair-tracking.form'
+import { RepairStore } from '../repair.store'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../repairs.constants'
 import {
 	editFormModelFromRepair,

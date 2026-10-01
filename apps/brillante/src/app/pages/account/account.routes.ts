@@ -2,7 +2,7 @@ import { provideToast } from '@components/toast/toast.provider'
 import { provideCustomer } from '@providers/customer/customer.provider'
 import { provideUser } from '@providers/user/user.provider'
 import type { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
-import { ProfileStore } from '@store/customers/profile.store'
+import { ProfileStore } from './profile.store'
 
 export default [
 	{

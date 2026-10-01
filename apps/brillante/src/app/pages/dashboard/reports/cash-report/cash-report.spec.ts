@@ -4,7 +4,6 @@ import { formatReportDay } from '@domain/report/cash-report.format'
 import { provideSliceTranslationMock } from '@mocks/slice-translation.mock'
 import { reportsEn } from '@providers/i18n/translations/slices/reports.translations'
 import { InMemoryOfficeBranchApi, provideOfficeBranchMock } from '@providers/office-branch/office-branch.mock'
-import { createMockCashReportTransaction, InMemoryReportApi, provideReportMock } from '@providers/report/report.mock'
 import {
 	advanceTimersByTime,
 	advanceTimersByTimeAsync,
@@ -16,6 +15,7 @@ import {
 } from '@resetshop/util/test-utils'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
+import { createMockCashReportTransaction, InMemoryReportApi, provideReportMock } from '../report.mock'
 import CashReport from './cash-report'
 
 describe('CashReport', () => {

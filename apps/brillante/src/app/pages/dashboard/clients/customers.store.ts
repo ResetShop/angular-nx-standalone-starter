@@ -14,7 +14,7 @@ import { Logger } from '@resetshop/angular-core/logger/logger.token'
 import { extractErrorMessage } from '@resetshop/angular-core/store/extract-error-message'
 import { parseDurationToMs } from '@resetshop/util'
 import { catchError, debounceTime, EMPTY, map, type Observable, of, pipe, switchMap, tap } from 'rxjs'
-import { SEARCH_DEBOUNCE_DELAY } from '../store.constants'
+import { SEARCH_DEBOUNCE_DELAY } from '../../../store/store.constants'
 import type { CustomersMutationError, CustomersReadError } from './customers.types'
 import { initialCustomersState } from './customers.types'
 

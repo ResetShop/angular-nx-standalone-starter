@@ -2,11 +2,11 @@ import { Component, signal } from '@angular/core'
 import { form, provideSignalFormsConfig } from '@angular/forms/signals'
 import type { PaymentFormModel } from '@domain/cash/cash-transaction-form'
 import type { PaymentMethod } from '@domain/cash/payment-method.model'
-import { cashTranslation } from '@providers/cash/cash.testing'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
+import { cashTranslation } from '../cash.testing'
 import { PaymentInput } from './payment-input'
 
 const cash: PaymentMethod = { id: 1, description: 'Efectivo', allowsInstallments: false, installments: [] }

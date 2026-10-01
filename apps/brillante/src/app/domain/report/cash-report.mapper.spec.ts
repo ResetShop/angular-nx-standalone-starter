@@ -1,4 +1,4 @@
-import { createMockCashReportTransaction } from '@providers/report/report.mock'
+import { createMockCashReportTransaction } from '@pages/dashboard/reports/report.mock'
 import { mapCashReportEntries } from './cash-report.mapper'
 
 describe('mapCashReportEntries', () => {

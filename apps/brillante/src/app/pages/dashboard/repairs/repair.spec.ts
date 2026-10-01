@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http'
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing'
 import { TestBed } from '@angular/core/testing'
 import type { CreateRepairRequest, RepairWriteDto, UpdateTrackingInfoRequest } from '@contracts/repair/repair.types'
-import { environment } from '../../environments/environment'
+import { environment } from '../../../environments/environment'
 import { HttpRepairApi } from './repair'
 import { createMockRepairDto } from './repair.mock'
 

@@ -13,9 +13,9 @@ import { FormField } from '@resetshop/ui/form-field/form-field'
 import { type RowAction, RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { Select } from '@resetshop/ui/select/select'
 import type { SelectOption } from '@resetshop/ui/select/select-option'
-import { CashConceptsStore } from '@store/cash-concepts/cash-concepts.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import type { ColumnDef } from '@tanstack/angular-table'
+import { CashConceptsStore } from './cash-concepts.store'
 import { ConceptDrawer } from './concept-drawer/concept-drawer'
 
 interface ConceptFilterForm {

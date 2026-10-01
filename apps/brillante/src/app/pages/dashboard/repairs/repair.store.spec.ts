@@ -8,8 +8,6 @@ import type { Repair } from '@domain/repair/repair.model'
 import type { IUser } from '@domain/user/user.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
-import { RepairApi } from '@providers/repair/repair.interface'
-import { createMockRepairDto, MOCK_REPAIR_STATUSES } from '@providers/repair/repair.mock'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -21,6 +19,8 @@ import {
 import { AuthStore } from '@store/auth/auth.store'
 import { OfficeBranchStore } from '@store/office-branch/office-branch.store'
 import { NEVER, of, throwError } from 'rxjs'
+import { RepairApi } from './repair.interface'
+import { createMockRepairDto, MOCK_REPAIR_STATUSES } from './repair.mock'
 import { RepairStore } from './repair.store'
 
 const PAYMENT_METHODS: PaymentMethodDto[] = [

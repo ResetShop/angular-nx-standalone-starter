@@ -11,10 +11,10 @@ import { DrawerFooter } from '@resetshop/ui/drawer/drawer-footer'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { parseDurationToMs } from '@resetshop/util'
 import { AuthStore } from '@store/auth/auth.store'
-import { CashStore } from '@store/cash/cash.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { CashTransactionForm } from '../cash-transaction-form/cash-transaction-form'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../cash.constants'
+import { CashStore } from '../cash.store'
 
 /**
  * Single drawer that creates a cash transaction (`openCreate()`) or edits one (`openEdit(tx)`).

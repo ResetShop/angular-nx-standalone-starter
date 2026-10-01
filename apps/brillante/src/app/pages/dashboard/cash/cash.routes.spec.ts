@@ -5,7 +5,6 @@ import { TestBed } from '@angular/core/testing'
 import { provideRouter, type Route } from '@angular/router'
 import { RouterTestingHarness } from '@angular/router/testing'
 import { provideAuthMock } from '@providers/auth/auth.mock'
-import { cashTranslation, readOnlyCashUser, signInAndAssignBranch } from '@providers/cash/cash.testing'
 import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { provideOfficeBranchMock } from '@providers/office-branch/office-branch.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
@@ -13,6 +12,7 @@ import { useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
 import { environment } from '../../../environments/environment'
 import CashDashboard from './cash-dashboard/cash-dashboard'
 import routes from './cash.routes'
+import { cashTranslation, readOnlyCashUser, signInAndAssignBranch } from './cash.testing'
 
 @Component({ selector: 'app-blank', standalone: true, template: '' })
 class Blank {}

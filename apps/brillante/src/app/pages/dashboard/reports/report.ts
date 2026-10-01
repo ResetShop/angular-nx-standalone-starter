@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http'
 import { inject, Injectable } from '@angular/core'
 import type { CashReportRequest, CashReportTransactionDto } from '@contracts/report/cash-report.types'
 import type { Observable } from 'rxjs'
-import { environment } from '../../environments/environment'
+import { environment } from '../../../environments/environment'
 import type { ReportApi } from './report.interface'
 
 @Injectable({ providedIn: 'root' })

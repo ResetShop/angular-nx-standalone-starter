@@ -1,6 +1,6 @@
-import { cashTranslation } from '@providers/cash/cash.testing'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { render, screen } from '@testing-library/angular'
+import { cashTranslation } from '../cash.testing'
 import { CashTotalsSummary } from './cash-totals-summary'
 
 describe('CashTotalsSummary', () => {

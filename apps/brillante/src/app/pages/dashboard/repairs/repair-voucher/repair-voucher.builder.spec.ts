@@ -1,6 +1,6 @@
 import { mapRepairDto } from '@domain/repair/repair.mapper'
 import type { Repair } from '@domain/repair/repair.model'
-import { createMockRepairDto } from '@providers/repair/repair.mock'
+import { createMockRepairDto } from '../repair.mock'
 import { buildRepairVoucherHtml, type RepairVoucherLabels } from './repair-voucher.builder'
 
 const LABELS: RepairVoucherLabels = {

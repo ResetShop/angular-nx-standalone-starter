@@ -11,9 +11,9 @@ import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
 import { type RowAction, RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { AuthStore } from '@store/auth/auth.store'
-import { CustomersStore } from '@store/customers/customers.store'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { CreateCustomerDrawer } from '../create-customer-drawer/create-customer-drawer'
+import { CustomersStore } from '../customers.store'
 import { EditCustomerDrawer } from '../edit-customer-drawer/edit-customer-drawer'
 
 @Component({

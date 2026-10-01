@@ -1,9 +1,9 @@
 import { mapRepairDto } from '@domain/repair/repair.mapper'
 import type { Repair } from '@domain/repair/repair.model'
-import { createMockRepairDto } from '@providers/repair/repair.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
+import { createMockRepairDto } from '../repair.mock'
 import { repairsTranslation } from '../testing/repairs-translation.mock'
 import { RepairSummary } from './repair-summary'
 

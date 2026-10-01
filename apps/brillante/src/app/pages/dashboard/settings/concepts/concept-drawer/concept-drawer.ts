@@ -14,9 +14,9 @@ import { Select } from '@resetshop/ui/select/select'
 import type { SelectOption } from '@resetshop/ui/select/select-option'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { parseDurationToMs } from '@resetshop/util'
-import { CashConceptsStore } from '@store/cash-concepts/cash-concepts.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../../settings.constants'
+import { CashConceptsStore } from '../cash-concepts.store'
 
 interface ConceptFormModel {
 	description: string

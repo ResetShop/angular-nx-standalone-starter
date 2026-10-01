@@ -2,19 +2,15 @@ import { TestBed } from '@angular/core/testing'
 import type { CashTransactionDto, CashTransactionQuery } from '@contracts/cash/cash-transaction.types'
 import type { CashTransactionDraft } from '@domain/cash/cash-request.mapper'
 import { CashConceptApi } from '@providers/cash-concept/cash-concept.interface'
-import { CashApi } from '@providers/cash/cash.interface'
-import {
-	createMockCashTransactionDto,
-	createMockConceptDto,
-	createMockPaymentMethodDto,
-} from '@providers/cash/cash.mock'
-import { mockBranch, provideCashTestEnvironment, signInAndAssignBranch } from '@providers/cash/cash.testing'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { OfficeBranchStore } from '@store/office-branch/office-branch.store'
 import { startOfDay } from 'date-fns'
 import { NEVER, of, throwError } from 'rxjs'
+import { CashApi } from './cash.interface'
+import { createMockCashTransactionDto, createMockConceptDto, createMockPaymentMethodDto } from './cash.mock'
 import { CashStore } from './cash.store'
+import { mockBranch, provideCashTestEnvironment, signInAndAssignBranch } from './cash.testing'
 
 describe('CashStore', () => {
 	let store: InstanceType<typeof CashStore>

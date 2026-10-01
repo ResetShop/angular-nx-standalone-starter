@@ -12,10 +12,10 @@ import { Drawer } from '@resetshop/ui/drawer/drawer'
 import { DrawerFooter } from '@resetshop/ui/drawer/drawer-footer'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { parseDurationToMs } from '@resetshop/util'
-import { CustomersStore } from '@store/customers/customers.store'
 import { UIStore } from '@store/ui/ui.store'
 import { NotificationType, type UINotification } from '@store/ui/ui.types'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../clients.constants'
+import { CustomersStore } from '../customers.store'
 
 /**
  * Creates a customer. The API answers with the customer and a `created` flag: when a customer with

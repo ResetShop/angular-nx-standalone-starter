@@ -1,12 +1,12 @@
 import type { CashTransactionDto } from '@contracts/cash/cash-transaction.types'
 import { toCashTransaction } from '@domain/cash/cash-transaction.mapper'
 import type { CashTransaction } from '@domain/cash/cash-transaction.model'
-import { createMockCashTransactionDto, createMockConceptDto } from '@providers/cash/cash.mock'
-import { cashTranslation } from '@providers/cash/cash.testing'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
+import { createMockCashTransactionDto, createMockConceptDto } from '../cash.mock'
+import { cashTranslation } from '../cash.testing'
 import { CashTransactionDetails } from './cash-transaction-details'
 
 describe('CashTransactionDetails', () => {

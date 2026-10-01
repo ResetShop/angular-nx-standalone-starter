@@ -13,13 +13,13 @@ import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { AuthStore } from '@store/auth/auth.store'
-import { CashStore } from '@store/cash/cash.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import type { ColumnDef } from '@tanstack/angular-table'
 import { format } from 'date-fns'
 import { CashTotalsSummary } from '../cash-totals-summary/cash-totals-summary'
 import { CashTransactionDetails } from '../cash-transaction-details/cash-transaction-details'
 import { CashTransactionDrawer } from '../cash-transaction-drawer/cash-transaction-drawer'
+import { CashStore } from '../cash.store'
 
 @Component({
 	selector: 'app-cash-dashboard',

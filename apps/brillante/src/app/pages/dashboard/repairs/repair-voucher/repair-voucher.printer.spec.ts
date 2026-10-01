@@ -1,7 +1,6 @@
 import { DOCUMENT } from '@angular/common'
 import { TestBed } from '@angular/core/testing'
 import { mapRepairDto } from '@domain/repair/repair.mapper'
-import { createMockRepairDto } from '@providers/repair/repair.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import {
 	advanceTimersByTime,
@@ -11,6 +10,7 @@ import {
 	useFakeTimers,
 	useRealTimers,
 } from '@resetshop/util/test-utils'
+import { createMockRepairDto } from '../repair.mock'
 import { repairsTranslation } from '../testing/repairs-translation.mock'
 import { RepairVoucherPrinter } from './repair-voucher.printer'
 

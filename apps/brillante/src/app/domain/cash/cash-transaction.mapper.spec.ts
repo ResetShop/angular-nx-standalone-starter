@@ -1,5 +1,5 @@
 import type { CashTransactionDto } from '@contracts/cash/cash-transaction.types'
-import { createMockCashTransactionDto } from '@providers/cash/cash.mock'
+import { createMockCashTransactionDto } from '@pages/dashboard/cash/cash.mock'
 import { toCashTransaction } from './cash-transaction.mapper'
 
 describe('toCashTransaction', () => {

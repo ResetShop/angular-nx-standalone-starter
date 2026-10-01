@@ -9,7 +9,7 @@ import type {
 import type { OfficeBranchDto } from '@contracts/office-branch/office-branch.types'
 import { format } from 'date-fns'
 import type { Observable } from 'rxjs'
-import { environment } from '../../environments/environment'
+import { environment } from '../../../environments/environment'
 import type { CashApi } from './cash.interface'
 
 @Injectable({ providedIn: 'root' })

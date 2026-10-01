@@ -1,6 +1,6 @@
-import { provideReport } from '@providers/report/report.provider'
 import type { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
-import { CashReportStore } from '@store/cash-report/cash-report.store'
+import { CashReportStore } from './cash-report/cash-report.store'
+import { provideReport } from './report.provider'
 
 /**
  * Reports area mounted at `dashboard/reports`. Reading reports is guarded by the dashboard route.

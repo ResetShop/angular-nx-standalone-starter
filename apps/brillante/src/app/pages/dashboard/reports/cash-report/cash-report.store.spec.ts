@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing'
 import type { CashReportRequest } from '@contracts/report/cash-report.types'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { ReportApi } from '@providers/report/report.interface'
-import { createMockCashReportTransaction } from '@providers/report/report.mock'
 import { clearAllMocks, fn, type MockFn, spyOn } from '@resetshop/util/test-utils'
 import { NEVER, of, throwError } from 'rxjs'
+import { ReportApi } from '../report.interface'
+import { createMockCashReportTransaction } from '../report.mock'
 import { CashReportStore } from './cash-report.store'
 
 describe('CashReportStore', () => {

@@ -2,13 +2,6 @@ import { TestBed } from '@angular/core/testing'
 import type { CashTransactionRequest } from '@contracts/cash/cash-transaction.types'
 import { toCashTransaction } from '@domain/cash/cash-transaction.mapper'
 import { CashConceptApi } from '@providers/cash-concept/cash-concept.interface'
-import { CashApi } from '@providers/cash/cash.interface'
-import {
-	createMockCashTransactionDto,
-	createMockConceptDto,
-	createMockPaymentMethodDto,
-} from '@providers/cash/cash.mock'
-import { provideCashTestEnvironment, seedSession } from '@providers/cash/cash.testing'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@resetshop/ui/drawer/drawer-loading'
 import { parseDurationToMs } from '@resetshop/util'
@@ -21,11 +14,14 @@ import {
 	useFakeTimers,
 	useRealTimers,
 } from '@resetshop/util/test-utils'
-import { CashStore } from '@store/cash/cash.store'
 import { UIStore } from '@store/ui/ui.store'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { NEVER, of, throwError } from 'rxjs'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../cash.constants'
+import { CashApi } from '../cash.interface'
+import { createMockCashTransactionDto, createMockConceptDto, createMockPaymentMethodDto } from '../cash.mock'
+import { CashStore } from '../cash.store'
+import { provideCashTestEnvironment, seedSession } from '../cash.testing'
 import { CashTransactionDrawer } from './cash-transaction-drawer'
 
 describe('CashTransactionDrawer', () => {

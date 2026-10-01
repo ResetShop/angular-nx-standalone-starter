@@ -4,13 +4,6 @@ import type { CashTransactionQuery } from '@contracts/cash/cash-transaction.type
 import { Permission, UserRole } from '@contracts/permission/permission.constants'
 import { createMockUser } from '@mocks/user.mock'
 import { CashConceptApi } from '@providers/cash-concept/cash-concept.interface'
-import { CashApi } from '@providers/cash/cash.interface'
-import {
-	createMockCashTransactionDto,
-	createMockConceptDto,
-	createMockPaymentMethodDto,
-} from '@providers/cash/cash.mock'
-import { mockBranch, provideCashTestEnvironment, seedSession } from '@providers/cash/cash.testing'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import {
 	advanceTimersByTimeAsync,
@@ -22,11 +15,14 @@ import {
 	useRealTimers,
 } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
-import { CashStore } from '@store/cash/cash.store'
 import { UIStore } from '@store/ui/ui.store'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
 import { startOfDay } from 'date-fns'
 import { NEVER, of, throwError } from 'rxjs'
+import { CashApi } from '../cash.interface'
+import { createMockCashTransactionDto, createMockConceptDto, createMockPaymentMethodDto } from '../cash.mock'
+import { CashStore } from '../cash.store'
+import { mockBranch, provideCashTestEnvironment, seedSession } from '../cash.testing'
 import CashDashboard from './cash-dashboard'
 
 describe('CashDashboard', () => {

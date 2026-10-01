@@ -9,12 +9,12 @@ import type { RepairIntake } from '@domain/repair/repair.model'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { CustomerApi } from '@providers/customer/customer.interface'
-import { RepairApi } from '@providers/repair/repair.interface'
 import { Logger } from '@resetshop/angular-core/logger/logger.token'
 import { extractErrorMessage } from '@resetshop/angular-core/store/extract-error-message'
 import { AuthStore } from '@store/auth/auth.store'
 import { catchError, EMPTY, map, type Observable, of, pipe, switchMap, tap, throwError } from 'rxjs'
 import { initialRepairIntakeState } from './repair-intake.types'
+import { RepairApi } from './repair.interface'
 import { RepairStore } from './repair.store'
 
 /**

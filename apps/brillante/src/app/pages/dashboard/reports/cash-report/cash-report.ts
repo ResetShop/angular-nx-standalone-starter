@@ -17,9 +17,9 @@ import { FormField } from '@resetshop/ui/form-field/form-field'
 import { Select } from '@resetshop/ui/select/select'
 import type { SelectOption } from '@resetshop/ui/select/select-option'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
-import { CashReportStore } from '@store/cash-report/cash-report.store'
 import { OfficeBranchStore } from '@store/office-branch/office-branch.store'
 import type { ColumnDef } from '@tanstack/angular-table'
+import { CashReportStore } from './cash-report.store'
 import { downloadCsv } from './download-csv'
 
 interface CashReportFilterForm {

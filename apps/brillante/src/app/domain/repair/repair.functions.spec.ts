@@ -1,5 +1,5 @@
 import { RepairStatusId } from '@contracts/repair/repair-status.constants'
-import { createMockRepairDto } from '@providers/repair/repair.mock'
+import { createMockRepairDto } from '@pages/dashboard/repairs/repair.mock'
 import { canGenerateVoucher, isFinishedStatus, shouldGenerateTransaction } from './repair.functions'
 import { mapRepairDto } from './repair.mapper'
 import type { Repair } from './repair.model'

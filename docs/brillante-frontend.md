@@ -47,11 +47,16 @@ apps/brillante/src/
   contracts/   wire DTOs of the Brillante API + the permission catalogue
   app/
     domain/    models and DTO → model mappers
-    providers/ API tokens (interface + Http impl + in-memory mock + provideX()) and i18n
-    store/     NgRx Signal Stores (rxMethod, per-operation errors)
+    providers/ API tokens shared by several modules (interface + Http impl + in-memory mock + provideX()), identity, i18n
+    store/     stores shared across the app (auth, office branch, ui)
     guards/ interceptors/
     pages/     auth, dashboard shell and one folder per module
 ```
+
+A module's own store and API provider live next to its routes, so the `providers` array of its parent route only
+references siblings: `pages/dashboard/cash/{cash.routes,cash.store,cash.types,cash.provider,cash.ts,cash.interface,cash.mock}.ts`.
+The same holds for `repairs`, `clients`, `account`, `reports` and the settings sub-sections. APIs used by several
+modules (customer, user, cash concept, payment method, office branch) stay in `providers/`.
 
 Modules (routes under `/dashboard`): `clients`, `repairs`, `cash`, `reports`, `settings`; plus `/account` (profile).
 

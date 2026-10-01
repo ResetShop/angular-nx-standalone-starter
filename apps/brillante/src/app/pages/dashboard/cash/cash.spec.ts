@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing'
 import type { CashActorDto, CashTransactionRequest } from '@contracts/cash/cash-transaction.types'
 import type { OfficeBranchDto } from '@contracts/office-branch/office-branch.types'
 import { clearAllMocks } from '@resetshop/util/test-utils'
-import { environment } from '../../environments/environment'
+import { environment } from '../../../environments/environment'
 import { HttpCashApi } from './cash'
 import { createMockCashTransactionDto, createMockConceptDto, createMockPaymentMethodDto } from './cash.mock'
 

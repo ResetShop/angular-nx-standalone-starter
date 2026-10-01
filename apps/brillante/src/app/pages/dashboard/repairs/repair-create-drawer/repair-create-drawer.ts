@@ -10,10 +10,10 @@ import { DrawerFooter } from '@resetshop/ui/drawer/drawer-footer'
 import { FormField } from '@resetshop/ui/form-field/form-field'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 import { parseDurationToMs } from '@resetshop/util'
-import { RepairIntakeStore } from '@store/repair/repair-intake.store'
-import { RepairStore } from '@store/repair/repair.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { RepairDeviceFields } from '../repair-device-fields/repair-device-fields'
+import { RepairIntakeStore } from '../repair-intake.store'
+import { RepairStore } from '../repair.store'
 import { DRAWER_CLOSE_AFTER_SUCCESS_DELAY } from '../repairs.constants'
 import {
 	DNI_PATTERN,
