@@ -1,3 +1,4 @@
+import type { CashTransactionDto } from '@contracts/cash/cash-transaction.types'
 import { createMockCashTransactionDto } from '@providers/cash/cash.mock'
 import { toCashTransaction } from './cash-transaction.mapper'
 
@@ -93,5 +94,49 @@ describe('toCashTransaction', () => {
 		})
 
 		expect(transaction.editable).toBe(false)
+	})
+
+	it('should map a row as the production API sends it: numeric amounts, bare payment methods, 0/1 flags', () => {
+		const row = {
+			id: 34805,
+			date: '2026-09-30T15:57:34.000Z',
+			note: 'Compra de hojas A4 x2',
+			concept: {
+				id: 289,
+				description: 'Insumos diarios',
+				userAssignable: 1,
+				parent: { id: 165, description: 'Compra de Insumos', userAssignable: 1 },
+				transactionType: { id: 0, description: 'Egreso' },
+				children: [],
+			},
+			amount: 19000,
+			paymentMethod: { id: 1, description: 'Efectivo' },
+			payments: [{ amount: 19000, paymentMethod: { id: 1, description: 'Efectivo' } }],
+			audit: {
+				createdBy: { userName: 'juan' },
+				createdAt: '2026-09-30T15:57:34.000Z',
+				updatedAt: '2026-09-30T15:57:34.000Z',
+			},
+		} as unknown as CashTransactionDto
+
+		const transaction = toCashTransaction(row)
+
+		expect(transaction.amount).toBe(19000)
+		expect(transaction.kind).toBe('expense')
+		expect(transaction.editable).toBe(true)
+		expect(transaction.paymentMethod).toEqual({
+			id: 1,
+			description: 'Efectivo',
+			allowsInstallments: false,
+			installments: [],
+		})
+		expect(transaction.payments[0].amount).toBe(19000)
+	})
+
+	it('should flag a system concept flagged 0 as not editable', () => {
+		const dto = createMockCashTransactionDto()
+		const row = { ...dto, concept: { ...dto.concept, userAssignable: 0 } } as unknown as CashTransactionDto
+
+		expect(toCashTransaction(row).editable).toBe(false)
 	})
 })

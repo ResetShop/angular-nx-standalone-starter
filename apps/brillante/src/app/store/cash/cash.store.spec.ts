@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing'
-import type { CashTransactionQuery } from '@contracts/cash/cash-transaction.types'
+import type { CashTransactionDto, CashTransactionQuery } from '@contracts/cash/cash-transaction.types'
 import type { CashTransactionDraft } from '@domain/cash/cash-request.mapper'
 import { CashConceptApi } from '@providers/cash-concept/cash-concept.interface'
 import { CashApi } from '@providers/cash/cash.interface'
@@ -147,6 +147,14 @@ describe('CashStore', () => {
 			expect(store.readError().list).toBe('The transactions could not be loaded.')
 			expect(store.hasReadError()).toBe(true)
 			expect(store.isLoadingList()).toBe(false)
+		})
+
+		it('should stop loading and report a failure when a row cannot be mapped', () => {
+			cashApiMock.getAll.mockReturnValue(of([{ id: 1 } as unknown as CashTransactionDto]))
+			setupStore()
+
+			expect(store.isLoadingList()).toBe(false)
+			expect(store.readError().list).toBe('The transactions could not be loaded.')
 		})
 
 		it('should report a concepts failure', () => {

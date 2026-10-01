@@ -1,7 +1,7 @@
 import type { OfficeBranchDto } from '../office-branch/office-branch.types'
 import type { UserDto } from '../user/user.types'
 import type { TransactionConceptDto } from './cash-concept.types'
-import type { PaymentMethodDto } from './payment-method.types'
+import type { PaymentMethodRefDto } from './payment-method.types'
 
 /**
  * Operation (sale, repair, purchase) a cash transaction was generated from.
@@ -12,9 +12,9 @@ export interface OperationDto {
 }
 
 export interface PaymentDto {
-	/** Decimal string, e.g. `"1500.00"`. */
-	amount: string
-	paymentMethod: PaymentMethodDto
+	/** Decimal string (e.g. `"1500.00"`) or a plain number, depending on the column the API read it from. */
+	amount: string | number
+	paymentMethod: PaymentMethodRefDto
 }
 
 export interface CashTransactionAuditDto {
@@ -32,12 +32,12 @@ export interface CashTransactionAuditDto {
 export interface CashTransactionDto {
 	id: number
 	concept: TransactionConceptDto
-	amount: string
+	amount: string | number
 	date: string
 	note: string
 	audit: CashTransactionAuditDto
 	operation: OperationDto | null
-	paymentMethod: PaymentMethodDto
+	paymentMethod: PaymentMethodRefDto
 	payments: PaymentDto[]
 	officeBranch?: OfficeBranchDto
 }

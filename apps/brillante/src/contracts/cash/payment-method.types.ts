@@ -3,7 +3,7 @@
  */
 export interface InstallmentDto {
 	installments: number
-	interestRate: string
+	interestRate: string | number
 }
 
 export interface PaymentMethodDto {
@@ -28,3 +28,10 @@ export const PaymentMethodId = Object.freeze({
 } as const)
 
 export type PaymentMethodId = (typeof PaymentMethodId)[keyof typeof PaymentMethodId]
+
+/**
+ * Payment method as embedded in cash transactions: the API sends only the id and description there,
+ * while `GET /cash/getPaymentMethods` also sends the installment plans.
+ */
+export type PaymentMethodRefDto = Pick<PaymentMethodDto, 'id' | 'description'> &
+	Partial<Pick<PaymentMethodDto, 'allowsInstallments' | 'installments'>>

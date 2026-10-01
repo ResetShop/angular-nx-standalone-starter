@@ -17,18 +17,19 @@ export function toCashTransaction(dto: CashTransactionDto): CashTransaction {
 		id: dto.id,
 		concept: dto.concept,
 		kind: dto.concept.transactionType.id === TransactionTypeId.INCOME ? 'income' : 'expense',
-		amount: parseFloat(dto.amount),
+		amount: Number(dto.amount),
 		date: parseISO(dto.date),
 		note: dto.note ?? '',
 		operation: dto.operation ?? null,
 		paymentMethod: toPaymentMethod(dto.paymentMethod),
 		payments: (dto.payments ?? []).map((payment) => ({
-			amount: parseFloat(payment.amount),
+			amount: Number(payment.amount),
 			paymentMethod: toPaymentMethod(payment.paymentMethod),
 		})),
 		createdAt: parseOptionalDate(dto.audit?.createdAt),
 		updatedAt: parseOptionalDate(dto.audit?.updatedAt),
 		createdByUserName: dto.audit?.createdBy?.userName ?? null,
-		editable: dto.concept.userAssignable && (parent?.userAssignable ?? true),
+		// The API flags concepts with 0/1 rather than booleans.
+		editable: Boolean(dto.concept.userAssignable) && Boolean(parent?.userAssignable ?? true),
 	}
 }

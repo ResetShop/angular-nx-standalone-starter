@@ -1,4 +1,4 @@
-import type { PaymentMethodDto } from '@contracts/cash/payment-method.types'
+import type { PaymentMethodRefDto } from '@contracts/cash/payment-method.types'
 
 export interface Installment {
 	readonly installments: number
@@ -13,20 +13,20 @@ export interface PaymentMethod {
 }
 
 /**
- * Maps the wire payment method, parsing the decimal interest rates. A method with a single
+ * Maps the wire payment method (the `GET /cash` rows embed only its id and description), parsing the decimal interest rates. A method with a single
  * instalment plan offers no real choice, so its instalments are dropped.
  */
-export function toPaymentMethod(dto: PaymentMethodDto): PaymentMethod {
+export function toPaymentMethod(dto: PaymentMethodRefDto): PaymentMethod {
 	return {
 		id: dto.id,
 		description: dto.description,
-		allowsInstallments: dto.allowsInstallments,
+		allowsInstallments: dto.allowsInstallments ?? false,
 		installments:
-			dto.installments.length <= 1
+			(dto.installments ?? []).length <= 1
 				? []
-				: dto.installments.map((plan) => ({
+				: (dto.installments ?? []).map((plan) => ({
 						installments: plan.installments,
-						interestRate: parseFloat(plan.interestRate),
+						interestRate: parseFloat(String(plan.interestRate)),
 					})),
 	}
 }

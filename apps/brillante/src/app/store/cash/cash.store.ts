@@ -18,7 +18,7 @@ import { Logger } from '@resetshop/angular-core/logger/logger.token'
 import { AuthStore } from '@store/auth/auth.store'
 import { OfficeBranchStore } from '@store/office-branch/office-branch.store'
 import { startOfDay } from 'date-fns'
-import { catchError, EMPTY, pipe, switchMap, tap } from 'rxjs'
+import { catchError, EMPTY, map, pipe, switchMap, tap } from 'rxjs'
 import type { CashMutationError, CashReadError } from './cash.types'
 import { createInitialCashState } from './cash.types'
 
@@ -102,9 +102,10 @@ export const CashStore = signalStore(
 					),
 					switchMap((query) =>
 						api.getAll(query).pipe(
+							// Mapping runs before `tap` so a malformed row reaches the error handler instead of leaving the list loading forever.
+							map((rows) => rows.map(toCashTransaction)),
 							tap({
-								next: (rows) => {
-									const transactions = rows.map(toCashTransaction)
+								next: (transactions) => {
 									const selectedId = store.selectedTransaction()?.id
 									patchState(store, {
 										transactions,
