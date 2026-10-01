@@ -268,8 +268,13 @@ export class RepairCreateDrawer {
 
 	protected onLookup(event: Event): void {
 		event.preventDefault()
-		const dni = this.model().dni.trim()
-		if (!DNI_PATTERN.test(dni)) return
+		// People type national ids with dots or spaces ("30.111.222"); the API only knows the digits.
+		const dni = this.model().dni.replace(/\D/g, '')
+		if (dni !== this.model().dni) this.model.update((current) => ({ ...current, dni }))
+		if (!DNI_PATTERN.test(dni)) {
+			this.repairForm.dni().markAsTouched()
+			return
+		}
 		this.lookedUpDni = dni
 		this.intakeStore.lookupCustomer(Number(dni))
 	}

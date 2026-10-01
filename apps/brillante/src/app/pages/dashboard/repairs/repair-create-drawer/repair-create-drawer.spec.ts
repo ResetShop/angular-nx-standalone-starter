@@ -203,6 +203,17 @@ describe('RepairCreateDrawer', () => {
 			expect(screen.getByLabelText(/^First name/)).toBeEnabled()
 		})
 
+		it('looks a DNI typed with dots up by its digits', async () => {
+			customerApiMock.getByDni.mockReturnValue(of(null))
+			const view = await renderAndOpen()
+			type(/^National ID/, '30.123.456')
+
+			lookup()
+			await settle(view)
+
+			expect(customerApiMock.getByDni.calls[0][0]).toBe(30123456)
+		})
+
 		it('does not look an invalid DNI up', async () => {
 			const view = await renderAndOpen()
 			type(/^National ID/, '12')

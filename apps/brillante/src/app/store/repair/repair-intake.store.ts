@@ -42,11 +42,13 @@ export const RepairIntakeStore = signalStore(
 					tap(() => patchState(store, { lookupStatus: 'loading', readError: { lookup: null } })),
 					switchMap((dni) =>
 						customerApi.getByDni(dni).pipe(
+							// Mapping runs before `tap` so a malformed customer reaches the error handler instead of leaving the lookup loading forever.
+							map((customer) => (customer ? mapCustomerDto(customer) : null)),
 							tap({
 								next: (customer) =>
 									patchState(store, {
 										lookupStatus: customer ? 'found' : 'not-found',
-										customer: customer ? mapCustomerDto(customer) : null,
+										customer,
 									}),
 								error: (err) => {
 									loggerService.error('RepairIntakeStore', 'lookupCustomer failed', err)

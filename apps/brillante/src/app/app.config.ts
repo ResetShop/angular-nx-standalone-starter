@@ -13,6 +13,7 @@ import {
 	withExperimentalAutoCleanupInjectors,
 	withViewTransitions,
 } from '@angular/router'
+import { provideOverlayContainers } from '@configs/overlay-container.config'
 import { projectConfig } from '@configs/project.config'
 import { Analytics } from '@providers/analytics/analytics'
 import { provideAuth, withNavigationPermissionCheck } from '@providers/auth/auth.provider'
@@ -74,6 +75,7 @@ export const appConfig: ApplicationConfig = {
 		Analytics,
 		UIStore,
 		provideTheme(),
+		provideOverlayContainers(),
 		provideProjectConfig(projectConfig),
 		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },
 
