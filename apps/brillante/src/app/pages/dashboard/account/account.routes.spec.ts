@@ -12,7 +12,7 @@ import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
-import { environment } from '../../environments/environment'
+import { environment } from '../../../environments/environment'
 import routes from './account.routes'
 import ProfilePage from './profile-page/profile-page'
 

@@ -58,7 +58,7 @@ references siblings: `pages/dashboard/cash/{cash.routes,cash.store,cash.types,ca
 The same holds for `repairs`, `clients`, `account`, `reports` and the settings sub-sections. APIs used by several
 modules (customer, user, cash concept, payment method, office branch) stay in `providers/`.
 
-Modules (routes under `/dashboard`): `clients`, `repairs`, `cash`, `reports`, `settings`; plus `/account` (profile).
+Modules (routes under `/dashboard`): `clients`, `repairs`, `cash`, `reports`, `settings`; plus `/dashboard/account` (profile).
 
 ## Where this app deviates from `reference-app`
 

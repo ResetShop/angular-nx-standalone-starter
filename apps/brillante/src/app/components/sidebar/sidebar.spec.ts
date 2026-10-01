@@ -277,7 +277,7 @@ describe('Sidebar', () => {
 
 			const menu = await openUserMenu(user)
 
-			expect(within(menu).getByRole('menuitem', { name: 'Account' })).toHaveAttribute('href', '/account')
+			expect(within(menu).getByRole('menuitem', { name: 'Account' })).toHaveAttribute('href', '/dashboard/account')
 			expect(within(menu).getByRole('menuitem', { name: 'Settings' })).toHaveAttribute('href', '/dashboard/settings')
 			expect(within(menu).getByRole('menuitem', { name: 'Logout' })).toHaveAttribute('type', 'button')
 

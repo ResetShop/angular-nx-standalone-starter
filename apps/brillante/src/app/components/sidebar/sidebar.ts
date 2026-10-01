@@ -113,7 +113,7 @@ export class Sidebar {
 	// reads the current language signal, so the labels follow a language switch.
 	protected readonly userMenuItems = computed<MenuItem[][]>(() => [
 		[
-			{ label: this.translation.instant('ACCOUNT.NAV'), icon: 'featherUser', route: '/account' },
+			{ label: this.translation.instant('ACCOUNT.NAV'), icon: 'featherUser', route: '/dashboard/account' },
 			{ label: this.translation.instant('SETTINGS.NAV'), icon: 'featherSettings', route: '/dashboard/settings' },
 		],
 		[{ label: this.translation.instant('COMMON.LOGOUT'), icon: 'featherLogOut', onSelect: () => this.logout() }],

@@ -59,6 +59,11 @@ export default [
 				loadChildren: () => import('./reports/reports.routes'),
 			},
 			{
+				path: 'account',
+				title: 'ACCOUNT.TITLE',
+				loadChildren: () => import('./account/account.routes'),
+			},
+			{
 				path: 'settings',
 				title: 'SETTINGS.TITLE',
 				loadChildren: () => import('./settings/settings.routes'),
