@@ -1,8 +1,10 @@
+import { logger } from '@resetshop/util'
 import { Hono } from 'hono'
 import { createApiApp } from './app'
 import { container } from './container/container'
 import {
 	type DatabaseBindings,
+	type DeferrableContext,
 	requestDatabaseMiddleware,
 	requireConnectionString,
 	withRequestDatabase,
@@ -18,11 +20,6 @@ interface ScheduledEvent {
 	readonly scheduledTime: number
 }
 
-/** Minimal shape of Cloudflare's `ExecutionContext` that the Worker passes to its handlers. */
-interface WorkerExecutionContext {
-	waitUntil(promise: Promise<unknown>): void
-}
-
 /**
  * Cloudflare Worker entry point. `wrangler.jsonc` routes only `/api/*` here (`run_worker_first`);
  * every other path is served as a static asset with the SPA fallback.
@@ -33,17 +30,18 @@ app.route('/', createApiApp())
 
 /**
  * Cron Trigger handler: purges expired refresh tokens. Replaces the in-process timer a long-lived
- * server would use; `IS_SERVERLESS=true` selects the transaction-scoped advisory lock that is safe
- * behind Hyperdrive's transaction pooling.
+ * server would use. Serverless mode takes a transaction-scoped advisory lock, because Hyperdrive's
+ * transaction pooling cannot hold a session-level one; the purge is idempotent, so two overlapping
+ * runs are harmless and the lock only avoids duplicated work.
  */
 async function scheduled(
 	event: ScheduledEvent,
 	bindings: WorkerBindings,
-	executionCtx: WorkerExecutionContext,
+	executionCtx: DeferrableContext,
 ): Promise<void> {
 	await withRequestDatabase(requireConnectionString(bindings), executionCtx, async () => {
 		const result = await container.cradle.tokenMaintenanceService.cleanupExpiredTokens()
-		console.log(`[Cron ${event.cron}] Token cleanup finished: ${JSON.stringify(result)}`)
+		logger.info('Cron', `${event.cron}: token cleanup finished ${JSON.stringify(result)}`)
 	})
 }
 

@@ -25,6 +25,7 @@ The reference backend assumes a long-lived Node server. These are the places whe
 | Rate limiting              | `hono-rate-limiter`, in memory                     | Cloudflare Rate Limiting bindings (`middlewares/rate-limit.middleware.ts`)                                                                                                                           |
 | Scheduled cleanup          | `setInterval` in the process                       | Cron Trigger (`triggers.crons`) calling `scheduled()`                                                                                                                                                |
 | Invalid environment config | `process.exit(1)`                                  | Throws `EnvValidationError` (logged as FATAL). On Workers `process.exit` cancels the request with no message                                                                                         |
+| Client IP for throttling   | `x-forwarded-for`, then `x-real-ip`                | `cf-connecting-ip` only: Cloudflare sets it and a caller cannot forge it. The proxy headers are a Node-only fallback                                                                                 |
 
 Contracts that collided with Brillante's frontend DTOs were renamed on the frontend side with a `legacy-` prefix
 (`legacy-user.types.ts`, `legacy-permission.constants.ts`, `legacy-pagination.types.ts`) so the backend files stay
@@ -37,22 +38,32 @@ cannot express the reference app's "5 per 15 minutes". `RATE_LIMIT_POLICY` (limi
 source of truth; a spec checks that `wrangler.jsonc` declares exactly those bindings. The authoritative brute-force
 defence is the database-backed per-account lockout (`AUTH_MAX_FAILED_ATTEMPTS`, `AUTH_LOCKOUT_DURATION`). The reference
 app's `AUTH_CHANGE_PASSWORD_RATE_LIMIT_*` and `TOKEN_CLEANUP_INTERVAL` variables do not exist here.
-The client IP comes from `cf-connecting-ip` (set by Cloudflare, not forgeable), with proxy headers only as a Node fallback.
+
+The limiters fail closed: a missing or failing binding answers `503` and logs the cause on every request, because
+throttling also protects forgot-password (email flooding), refresh and the other password flows. A request that reaches
+the Worker without `cf-connecting-ip` (for example a service-binding subrequest) shares one `unknown` bucket. IPv6
+clients are keyed on their full address, not their /64, so a client with a whole /64 can spread across buckets; the
+per-account lockout still applies.
 
 ## Cloudflare requirements
 
-- **Workers Paid plan.** The Free plan allows 10 ms of CPU per request; one bcrypt check takes about 300 ms.
+- **Workers Paid plan.** The Free plan allows 10 ms of CPU per request ([Workers limits](https://developers.cloudflare.com/workers/platform/limits/));
+  one bcrypt check at cost 12 took about 300 ms in a local run, which is a measurement, not a Cloudflare figure.
 - **Hyperdrive with query caching disabled.** Hyperdrive caches reads by default and never invalidates them on writes,
   which would serve stale lockout counters, refresh-token reuse checks and user status.
   `wrangler hyperdrive create <name> --connection-string=<url> --caching-disabled`, then put the printed id in
   `wrangler.jsonc`. The database must accept TLS; a private database needs Cloudflare Tunnel or Workers VPC.
 - **Secrets** (`wrangler secret put`): `PASETO_SECRET_KEY` (64 hex characters), `CRON_SECRET` (at least 32 characters).
-- **Vars**: `IS_SERVERLESS=true` (selects transaction-scoped advisory locks, required behind Hyperdrive),
-  `PASETO_ISSUER`, `COOKIE_SECURE` are in `wrangler.jsonc`. Set **`CORS_ORIGIN` to the public origin** before deploying:
-  password-reset links are built from it and the default points at `localhost`.
+- **Vars** in `wrangler.jsonc`: `IS_SERVERLESS=true` (transaction-scoped advisory locks; the Worker runtime also forces
+  serverless mode on its own, so a deployment that forgets the flag cannot take a session lock through Hyperdrive),
+  `PASETO_ISSUER`, `COOKIE_SECURE`, `EMAIL_PROVIDER=noop`. **`CORS_ORIGIN` is required on Workers**: set it to the public
+  origin, in `wrangler.jsonc` or in the dashboard (`keep_vars` keeps dashboard variables across deploys). Without it the
+  Worker answers `500` and logs `FATAL ... CORS_ORIGIN`, because password-reset links are built from it and a `localhost`
+  default would put dead links in emails.
 - **Email is not solved yet.** Port 25 is blocked on Workers and SMTP over TLS has not been verified there. The planned
-  providers are the Cloudflare Email Service binding (beta) with an HTTP provider as fallback. Until one exists, use
-  `EMAIL_PROVIDER=noop` and do not rely on reset or welcome emails.
+  providers are the Cloudflare Email Service binding (beta, needs the Workers Paid plan to reach arbitrary recipients) with
+  an HTTP provider as fallback. `wrangler.jsonc` sets `EMAIL_PROVIDER=noop`, so **reset and welcome emails are not
+  sent** until a provider exists; the default (`nodemailer`) would fail without SMTP settings.
 
 ## Commands
 
@@ -76,9 +87,17 @@ No `.env` file may exist in the tree.
 checks what only the Workers runtime can break: static assets and SPA fallback, login with HttpOnly cookies, `/me`,
 role-protected routes, refresh rotation, that forgot-password work after the response stored a reset token
 (`SMOKE_DATABASE_URL`), that 40 parallel requests from two users never see each other (`SMOKE_SECOND_EMAIL`/`_PASSWORD`),
-the 429 and `Retry-After` of the rate limit, and the Cron handler (`SMOKE_CHECK_SCHEDULED=1`, local only). Run it again
+the 429 and `Retry-After` of the rate limit, and the Cron handler (`SMOKE_CHECK_SCHEDULED=1`, through the
+`/cdn-cgi/local/scheduled` URL that `wrangler dev` prints, local only). Run it again
 against a staging deployment: Hyperdrive behaviour, CPU time per login, email delivery and cookies on the real domain
 cannot be proven locally.
+
+## Database client behaviour
+
+The per-request client opens its connection lazily on the first query (requests that never touch the database, such as the
+API docs or a rejected token, open none), has a 10 s connect timeout and a 25 s query timeout, and logs connection errors
+instead of throwing them. The Cron cleanup takes a transaction-scoped advisory lock, which Hyperdrive's transaction pooling
+can keep; the purge is idempotent, so two overlapping runs are harmless and the lock only avoids duplicated work.
 
 ## Known gaps
 

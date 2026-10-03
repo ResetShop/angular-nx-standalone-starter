@@ -1,3 +1,4 @@
+import { logger, parseDurationToMs } from '@resetshop/util'
 import type { Context, ExecutionContext, MiddlewareHandler } from 'hono'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Client, type Pool } from 'pg'
@@ -15,7 +16,23 @@ export interface DatabaseBindings {
 }
 
 /** The slice of Cloudflare's `ExecutionContext` this module needs. */
-type DeferrableContext = Pick<ExecutionContext, 'waitUntil'>
+export type DeferrableContext = Pick<ExecutionContext, 'waitUntil'>
+
+/** The part of a `pg.Client` the scope manages directly; the rest is forwarded untouched. */
+export type DatabaseClient = Pick<Client, 'connect' | 'end' | 'on'>
+
+/** Creates the client for one request or scheduled run. Replaceable so tests can observe it. */
+export type DatabaseClientFactory = (connectionString: string) => DatabaseClient
+
+/**
+ * Hyperdrive pools connections at the edge, so opening one per request is cheap, but a stalled
+ * connect or query must not hold the request (or the `waitUntil` task that closes it) forever.
+ */
+function createPgClient(connectionString: string): DatabaseClient {
+	const connectTimeout = parseDurationToMs('10s')
+	const queryTimeout = parseDurationToMs('25s')
+	return new Client({ connectionString, connectionTimeoutMillis: connectTimeout, query_timeout: queryTimeout })
+}
 
 /**
  * A Postgres client owned by exactly one request (or one scheduled run). The connection is opened
@@ -25,7 +42,11 @@ type DeferrableContext = Pick<ExecutionContext, 'waitUntil'>
 class RequestDatabaseScope {
 	private connection: Promise<void> | null = null
 
-	constructor(public readonly client: Client) {}
+	constructor(public readonly client: DatabaseClient) {
+		// Without a listener, a connection that drops while idle (between queries, or while the closing
+		// task waits for deferred work) is an uncaught exception instead of a failed query.
+		client.on('error', (error: Error) => logger.warn('Database', `Request-scoped client error: ${error.message}`))
+	}
 
 	/** Starts connecting on first use. pg queues queries issued while the connection is opening. */
 	public ensureConnected(): void {
@@ -125,8 +146,9 @@ export async function withRequestDatabase<T>(
 	connectionString: string,
 	executionCtx: DeferrableContext,
 	work: () => Promise<T>,
+	createClient: DatabaseClientFactory = createPgClient,
 ): Promise<T> {
-	const scope = new RequestDatabaseScope(new Client({ connectionString }))
+	const scope = new RequestDatabaseScope(createClient(connectionString))
 	const deferredWork = trackDeferredWork(executionCtx)
 
 	try {

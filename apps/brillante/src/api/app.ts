@@ -51,7 +51,7 @@ function lazyCors(): ReturnType<typeof cors> {
 	let corsMiddleware: ReturnType<typeof cors> | null = null
 	return (c, next) => {
 		corsMiddleware ??= cors({
-			origin: httpEnv.CORS_ORIGIN.split(','),
+			origin: httpEnv.CORS_ORIGIN.split(',').map((origin) => origin.trim()),
 			credentials: true,
 			allowHeaders: ['Content-Type', 'Authorization'],
 			allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

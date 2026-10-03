@@ -1,6 +1,6 @@
 import { clearAllMocks, fn, spyOn } from '@resetshop/util/test-utils'
 import { Hono } from 'hono'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
 	getClientIp,
 	loginRateLimiter,
@@ -66,26 +66,39 @@ describe('rate limit middleware', () => {
 		expect(limit.calls).toEqual([[{ key: '203.0.113.7' }]])
 	})
 
-	it('allows the request and reports the gap once when the binding is not configured', async () => {
-		const warnSpy = spyOn(console, 'warn')
+	it('refuses with 503 and logs every time when the binding is not configured', async () => {
+		const errorSpy = spyOn(console, 'error')
 		const app = createApp()
 
 		const first = await post(app, undefined)
 		const second = await post(app, {})
 
-		expect(first.status).toBe(200)
-		expect(second.status).toBe(200)
-		expect(warnSpy.calls.filter(([message]) => String(message).includes('LOGIN_RATE_LIMITER'))).toHaveLength(1)
+		expect(first.status).toBe(503)
+		expect(second.status).toBe(503)
+		expect(errorSpy.calls.filter(([message]) => String(message).includes('LOGIN_RATE_LIMITER'))).toHaveLength(2)
 	})
 
-	it('allows the request when the binding itself fails', async () => {
-		const warnSpy = spyOn(console, 'warn')
+	it('refuses with 503 and logs the cause when the binding itself fails', async () => {
+		const errorSpy = spyOn(console, 'error')
 		const limit = fn<[{ key: string }], Promise<{ success: boolean }>>().mockRejectedValue(new Error('binding down'))
 
 		const response = await post(createApp(), { LOGIN_RATE_LIMITER: bindingFrom(limit) })
 
-		expect(response.status).toBe(200)
-		expect(warnSpy.calls.some(([message]) => String(message).includes('binding down'))).toBe(true)
+		expect(response.status).toBe(503)
+		expect(errorSpy.calls.some(([message]) => String(message).includes('binding down'))).toBe(true)
+	})
+
+	it('does not run the handler when it refuses', async () => {
+		const reached = fn<[], void>()
+		const app = new Hono<{ Bindings: RateLimitBindings }>()
+		app.post('/api/auth/login', loginRateLimiter, (c) => {
+			reached()
+			return c.json({ ok: true })
+		})
+
+		await post(app as ReturnType<typeof createApp>, undefined)
+
+		expect(reached.calls).toHaveLength(0)
 	})
 })
 
@@ -101,6 +114,30 @@ describe('getClientIp', () => {
 		expect(await ipFor({ 'cf-connecting-ip': '1.1.1.1', 'x-forwarded-for': '2.2.2.2', 'x-real-ip': '3.3.3.3' })).toBe(
 			'1.1.1.1',
 		)
+	})
+
+	describe('on Cloudflare Workers', () => {
+		const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+
+		beforeEach(() => {
+			Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'Cloudflare-Workers' }, configurable: true })
+		})
+
+		afterEach(() => {
+			if (originalNavigator) {
+				Object.defineProperty(globalThis, 'navigator', originalNavigator)
+			} else {
+				Reflect.deleteProperty(globalThis, 'navigator')
+			}
+		})
+
+		it('ignores x-forwarded-for and x-real-ip, which the caller controls', async () => {
+			expect(await ipFor({ 'x-forwarded-for': '2.2.2.2', 'x-real-ip': '3.3.3.3' })).toBe('unknown')
+		})
+
+		it('still uses cf-connecting-ip', async () => {
+			expect(await ipFor({ 'cf-connecting-ip': '1.1.1.1', 'x-forwarded-for': '2.2.2.2' })).toBe('1.1.1.1')
+		})
 	})
 
 	it('falls back to the first x-forwarded-for entry, then x-real-ip, then "unknown"', async () => {

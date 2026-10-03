@@ -37,12 +37,19 @@
 	],
 	// Daily purge of expired refresh tokens (the `scheduled` handler in src/api/worker.ts).
 	"triggers": { "crons": ["17 3 * * *"] },
-	// Non-secret configuration. Secrets are set with `wrangler secret put`: PASETO_SECRET_KEY, CRON_SECRET
-	// and, when an SMTP provider is used, SMTP_USER and SMTP_PASS. CORS_ORIGIN must also be set to the
-	// public origin of the app before deploying: password-reset links are built from it.
+	// Variables set in the Cloudflare dashboard (for example CORS_ORIGIN) survive `wrangler deploy`
+	// instead of being deleted because they are not listed below.
+	"keep_vars": true,
+	// Non-secret configuration. Secrets are set with `wrangler secret put`: PASETO_SECRET_KEY and CRON_SECRET.
+	// CORS_ORIGIN is required on Workers (the Worker refuses to serve requests without it): set it to the
+	// public origin of the app, here or in the dashboard. Password-reset links are built from it.
 	"vars": {
 		"IS_SERVERLESS": "true",
 		"PASETO_ISSUER": "brillante",
 		"COOKIE_SECURE": "true",
+		// No email provider that works on Workers exists yet (port 25 is blocked and SMTP over TLS is
+		// unverified there), so reset and welcome emails are NOT sent. Replace with a real provider once
+		// one is implemented; the default (nodemailer) would fail without SMTP settings.
+		"EMAIL_PROVIDER": "noop",
 	},
 }

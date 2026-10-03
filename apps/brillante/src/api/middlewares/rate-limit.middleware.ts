@@ -1,5 +1,6 @@
 import { logger } from '@resetshop/util'
 import type { Context, MiddlewareHandler } from 'hono'
+import { isCloudflareWorker } from '../helpers/request-database'
 
 /**
  * Subset of the Cloudflare Workers Rate Limiting binding that these middlewares rely on.
@@ -31,13 +32,15 @@ export type RateLimitBindings = Partial<Record<RateLimiterBindingName, RateLimit
 
 /**
  * Returns the client IP. `cf-connecting-ip` is set by Cloudflare's edge and cannot be forged by the
- * client, so it wins; the proxy headers are fallbacks for Node-based runs (integration tests, local
- * servers). Falls back to 'unknown' when no IP can be determined.
+ * client. On Workers it is the only source: a request that reaches the Worker without it (for
+ * example a service-binding subrequest) shares the 'unknown' bucket instead of letting the caller
+ * choose its own key through `x-forwarded-for`. The proxy headers are fallbacks for Node-based
+ * runs (integration tests, local servers) only.
  */
 export function getClientIp(c: Context): string {
 	const cloudflareIp = c.req.header('cf-connecting-ip')
-	if (cloudflareIp) {
-		return cloudflareIp
+	if (cloudflareIp || isCloudflareWorker()) {
+		return cloudflareIp ?? 'unknown'
 	}
 	const forwarded = c.req.header('x-forwarded-for')
 	if (forwarded) {
@@ -46,30 +49,30 @@ export function getClientIp(c: Context): string {
 	return c.req.header('x-real-ip') ?? 'unknown'
 }
 
-function createRateLimiter(bindingName: RateLimiterBindingName, endpoint: string): MiddlewareHandler {
-	let warnedMissingBinding = false
+/**
+ * Throttling is part of the protection of login, token refresh and the password flows (forgot
+ * password would otherwise allow email flooding), so a limiter that cannot decide refuses the
+ * request instead of letting it through. Every such failure is logged.
+ */
+function unavailable(c: Context, endpoint: string, reason: string): Response {
+	logger.error('RateLimit', `${reason}; refusing ${endpoint}`)
+	return c.json({ error: 'Service temporarily unavailable. Please try again later.' }, 503)
+}
 
+function createRateLimiter(bindingName: RateLimiterBindingName, endpoint: string): MiddlewareHandler {
 	return async (c, next) => {
 		const binding = (c.env as RateLimitBindings | undefined)?.[bindingName]
-
 		if (!binding) {
-			// A missing binding is a deployment misconfiguration; throttling is the secondary defence, so
-			// the request proceeds, but the gap is reported once per isolate.
-			if (!warnedMissingBinding) {
-				warnedMissingBinding = true
-				logger.warn('RateLimit', `Binding ${bindingName} is not configured; ${endpoint} is not IP-throttled`)
-			}
-			return next()
+			return unavailable(c, endpoint, `Binding ${bindingName} is not configured`)
 		}
 
 		const ip = getClientIp(c)
-		const allowed = await binding.limit({ key: ip }).then(
-			({ success }) => success,
-			(error: unknown) => {
-				logger.warn('RateLimit', `Binding ${bindingName} failed; allowing request: ${String(error)}`)
-				return true
-			},
-		)
+		let allowed: boolean
+		try {
+			allowed = (await binding.limit({ key: ip })).success
+		} catch (error) {
+			return unavailable(c, endpoint, `Binding ${bindingName} failed: ${String(error)}`)
+		}
 
 		if (!allowed) {
 			logger.security('rate_limit_hit', { endpoint, ip })

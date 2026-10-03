@@ -201,16 +201,9 @@ async function checkScheduled() {
 		console.log('SKIP  scheduled handler check (set SMOKE_CHECK_SCHEDULED=1, local wrangler dev only)')
 		return
 	}
-	const response = await fetch(
-		`${baseUrl}/cdn-cgi/local/explorer/api/local/scheduled?worker=brillante`,
-		json({ cron: '17 3 * * *' }),
-	)
-	const body = await response.json().catch(() => ({}))
-	report(
-		response.status === 200 && body.success === true,
-		'Cron handler runs the token cleanup',
-		`status ${response.status}`,
-	)
+	// The trigger URL `wrangler dev` prints at startup; it exists only on the local dev server.
+	const response = await fetch(`${baseUrl}/cdn-cgi/local/scheduled?cron=${encodeURIComponent('17 3 * * *')}`)
+	report(response.status === 200, 'Cron handler runs the token cleanup', `status ${response.status}`)
 }
 
 const admin = createSession()

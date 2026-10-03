@@ -1,6 +1,13 @@
+import { deferAfterResponse } from '@resetshop/hono-core'
 import { sql } from 'drizzle-orm'
+import { Hono } from 'hono'
 import { createFakeExecutionContext } from '../../helpers/fake-execution-context.testing'
-import { createRequestScopedPool, withRequestDatabase } from '../../helpers/request-database'
+import {
+	createRequestScopedPool,
+	type DatabaseBindings,
+	requestDatabaseMiddleware,
+	withRequestDatabase,
+} from '../../helpers/request-database'
 import { getTestDb } from '../setup/db-helpers'
 import { getTestConnectionString } from '../setup/env-helpers'
 
@@ -69,5 +76,40 @@ describe('request-scoped database client', () => {
 			sql`select count(*)::int as n from pg_stat_activity where pid = ${scopePid}`,
 		)
 		expect(stillConnected.rows[0].n).toBe(0)
+	})
+
+	it('keeps the connection open for work deferred through deferAfterResponse on a real Hono context', async () => {
+		// Pins the assumption the tracking relies on: the `c.executionCtx` that deferAfterResponse
+		// reads is the object whose `waitUntil` the middleware wrapped.
+		const app = new Hono<{ Bindings: DatabaseBindings }>()
+		app.use('*', requestDatabaseMiddleware())
+		let deferredQueryResult: 'ran' | 'failed' | 'pending' = 'pending'
+		app.get('/deferred', (c) => {
+			deferAfterResponse(
+				c,
+				async () => {
+					await new Promise((resolve) => setTimeout(resolve, 30))
+					await createRequestScopedPool().query('select 1')
+					deferredQueryResult = 'ran'
+				},
+				{
+					onError: () => {
+						deferredQueryResult = 'failed'
+					},
+				},
+			)
+			return c.text('ok')
+		})
+		const executionCtx = createFakeExecutionContext()
+
+		const response = await app.fetch(
+			new Request('https://brillante.test/deferred'),
+			{ HYPERDRIVE: { connectionString } },
+			executionCtx,
+		)
+		await executionCtx.settled()
+
+		expect(response.status).toBe(200)
+		expect(deferredQueryResult).toBe('ran')
 	})
 })

@@ -1,18 +1,38 @@
 /**
  * @vitest-environment node
  */
+import { clearAllMocks, fn, spyOn } from '@resetshop/util/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createFakeExecutionContext } from './fake-execution-context.testing'
 import {
 	createRequestScopedPool,
+	type DatabaseClient,
 	isCloudflareWorker,
 	requireConnectionString,
 	withRequestDatabase,
 } from './request-database'
 
-// Nothing listens here, so any test that opens a connection fails: the tests below rely on that to
-// prove the connection is only opened when a query is issued.
-const UNREACHABLE_CONNECTION_STRING = 'postgres://nobody:none@127.0.0.1:1/none'
+/**
+ * Records how the scope drives its client. `connectFails` makes `connect()` reject the way an
+ * unreachable database does.
+ */
+function createFakeClient(options: { connectFails?: boolean } = {}) {
+	const events: string[] = []
+	const connect = fn<[], Promise<void>>().mockImplementation(() => {
+		events.push('connect')
+		return options.connectFails ? Promise.reject(new Error('connect failed')) : Promise.resolve()
+	})
+	const end = fn<[], Promise<void>>().mockImplementation(() => {
+		events.push('end')
+		return Promise.resolve()
+	})
+	const on = fn<[string, (error: Error) => void], unknown>()
+	const query = fn<[string], Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] })
+	// REASON: `connect` is overloaded (callback and promise forms) and `on` returns the client, so the
+	// recording mocks cannot satisfy `Pick<Client, ...>` structurally; the scope only uses these members.
+	const client = { connect, end, on, query } as unknown as DatabaseClient
+	return { client, connect, end, on, query, events }
+}
 
 describe('isCloudflareWorker', () => {
 	const originalNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
@@ -70,45 +90,127 @@ describe('createRequestScopedPool', () => {
 })
 
 describe('withRequestDatabase', () => {
+	beforeEach(() => {
+		clearAllMocks()
+	})
+
 	it('does not open a connection for work that never queries', async () => {
+		const fake = createFakeClient()
 		const executionCtx = createFakeExecutionContext()
 
-		const result = await withRequestDatabase(UNREACHABLE_CONNECTION_STRING, executionCtx, () => Promise.resolve('done'))
+		const result = await withRequestDatabase(
+			'postgres://unused',
+			executionCtx,
+			() => Promise.resolve('done'),
+			() => fake.client,
+		)
 		await executionCtx.settled()
 
 		expect(result).toBe('done')
-		expect(executionCtx.tasks).toHaveLength(1)
+		expect(fake.connect.calls).toHaveLength(0)
+		expect(fake.end.calls).toHaveLength(0)
 	})
 
-	it('hands the closing step to the platform instead of dropping it when the work throws', async () => {
+	it('connects on the first query only and reuses the connection for later queries', async () => {
+		const fake = createFakeClient()
+		const executionCtx = createFakeExecutionContext()
+
+		await withRequestDatabase(
+			'postgres://unused',
+			executionCtx,
+			async () => {
+				await createRequestScopedPool().query('select 1')
+				await createRequestScopedPool().query('select 2')
+			},
+			() => fake.client,
+		)
+		await executionCtx.settled()
+
+		expect(fake.connect.calls).toHaveLength(1)
+		expect(fake.query.calls).toEqual([['select 1'], ['select 2']])
+		expect(fake.end.calls).toHaveLength(1)
+	})
+
+	it('hands the closing step to the platform and closes the connection when the work throws', async () => {
+		const fake = createFakeClient()
 		const executionCtx = createFakeExecutionContext()
 
 		await expect(
-			withRequestDatabase(UNREACHABLE_CONNECTION_STRING, executionCtx, () => Promise.reject(new Error('boom'))),
+			withRequestDatabase(
+				'postgres://unused',
+				executionCtx,
+				async () => {
+					await createRequestScopedPool().query('select 1')
+					throw new Error('boom')
+				},
+				() => fake.client,
+			),
 		).rejects.toThrow('boom')
-
 		await executionCtx.settled()
+
 		expect(executionCtx.tasks).toHaveLength(1)
+		expect(fake.end.calls).toHaveLength(1)
 	})
 
-	it('keeps tracking work that the wrapped work defers, and waits for it before closing', async () => {
+	it('waits for work the wrapped work defers before closing the connection', async () => {
+		const fake = createFakeClient()
 		const executionCtx = createFakeExecutionContext()
-		const order: string[] = []
 
-		await withRequestDatabase(UNREACHABLE_CONNECTION_STRING, executionCtx, () => {
-			executionCtx.waitUntil(
-				new Promise<void>((resolve) =>
-					setTimeout(() => {
-						order.push('deferred work finished')
-						resolve()
-					}, 20),
-				),
-			)
-			return Promise.resolve()
-		})
-		order.push('response returned')
+		await withRequestDatabase(
+			'postgres://unused',
+			executionCtx,
+			async () => {
+				await createRequestScopedPool().query('select 1')
+				executionCtx.waitUntil(
+					new Promise<void>((resolve) =>
+						setTimeout(() => {
+							fake.events.push('deferred work finished')
+							resolve()
+						}, 20),
+					),
+				)
+			},
+			() => fake.client,
+		)
+		fake.events.push('response returned')
 		await executionCtx.settled()
 
-		expect(order).toEqual(['response returned', 'deferred work finished'])
+		expect(fake.events).toEqual(['connect', 'response returned', 'deferred work finished', 'end'])
+	})
+
+	it('still closes cleanly when the connection could not be opened', async () => {
+		const fake = createFakeClient({ connectFails: true })
+		const executionCtx = createFakeExecutionContext()
+
+		await withRequestDatabase(
+			'postgres://unreachable',
+			executionCtx,
+			async () => {
+				await createRequestScopedPool().query('select 1')
+			},
+			() => fake.client,
+		)
+
+		await expect(executionCtx.settled()).resolves.toBeUndefined()
+		expect(fake.connect.calls).toHaveLength(1)
+	})
+
+	it('registers an error listener so a dropped idle connection is logged instead of thrown', async () => {
+		const warnSpy = spyOn(console, 'warn')
+		const fake = createFakeClient()
+		const executionCtx = createFakeExecutionContext()
+
+		await withRequestDatabase(
+			'postgres://unused',
+			executionCtx,
+			() => Promise.resolve(),
+			() => fake.client,
+		)
+		await executionCtx.settled()
+
+		const [eventName, listener] = fake.on.calls[0]
+		expect(eventName).toBe('error')
+		listener(new Error('connection reset'))
+		expect(warnSpy.calls.some(([message]) => String(message).includes('connection reset'))).toBe(true)
 	})
 })

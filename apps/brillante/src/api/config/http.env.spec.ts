@@ -2,6 +2,18 @@ import { clearAllMocks } from '@resetshop/util/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { type HttpEnv, httpEnv, isServerless, parseHttpEnv, resetHttpEnv, seedHttpEnv } from './http.env'
 
+function pretendToRunOnCloudflareWorkers(): () => void {
+	const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+	Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'Cloudflare-Workers' }, configurable: true })
+	return () => {
+		if (original) {
+			Object.defineProperty(globalThis, 'navigator', original)
+		} else {
+			Reflect.deleteProperty(globalThis, 'navigator')
+		}
+	}
+}
+
 describe('parseHttpEnv', () => {
 	beforeEach(() => {
 		clearAllMocks()
@@ -61,6 +73,27 @@ describe('parseHttpEnv', () => {
 		})
 	})
 
+	describe('CORS_ORIGIN', () => {
+		it('defaults to the local dev origin outside Cloudflare Workers', () => {
+			expect(parseHttpEnv({}).CORS_ORIGIN).toBe('http://localhost:4200')
+		})
+
+		it('trims the configured value', () => {
+			expect(parseHttpEnv({ CORS_ORIGIN: ' https://brillante.example ' }).CORS_ORIGIN).toBe('https://brillante.example')
+		})
+
+		it('is required on Cloudflare Workers, where the localhost default would put dead links in reset emails', () => {
+			const restore = pretendToRunOnCloudflareWorkers()
+			try {
+				expect(() => parseHttpEnv({})).toThrow(/CORS_ORIGIN/)
+				expect(() => parseHttpEnv({ CORS_ORIGIN: '  ' })).toThrow(/CORS_ORIGIN/)
+				expect(parseHttpEnv({ CORS_ORIGIN: 'https://brillante.example' }).CORS_ORIGIN).toBe('https://brillante.example')
+			} finally {
+				restore()
+			}
+		})
+	})
+
 	describe('HttpEnv type', () => {
 		it('is assignable from a parseHttpEnv result', () => {
 			const result: HttpEnv = parseHttpEnv({})
@@ -93,6 +126,16 @@ describe('seedHttpEnv / resetHttpEnv / httpEnv proxy / isServerless', () => {
 	it('isServerless() returns true when IS_SERVERLESS is seeded as "true"', () => {
 		seedHttpEnv({ IS_SERVERLESS: 'true' })
 		expect(isServerless()).toBe(true)
+	})
+
+	it('isServerless() is true on Cloudflare Workers even without IS_SERVERLESS, so no session lock is taken', () => {
+		seedHttpEnv()
+		const restore = pretendToRunOnCloudflareWorkers()
+		try {
+			expect(isServerless()).toBe(true)
+		} finally {
+			restore()
+		}
 	})
 
 	it('httpEnv returns the same cached value across repeated property reads', () => {

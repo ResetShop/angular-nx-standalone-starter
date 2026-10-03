@@ -30,7 +30,7 @@ export class NodemailerRepository implements EmailRepository {
 
 		// SMTP_HOST/USER/PASS are typed `string | undefined` (schema `.optional()`), but emailEnv's
 		// superRefine guarantees they are present whenever EMAIL_PROVIDER=nodemailer — the proxy
-		// process.exit(1)s at boot otherwise. The casts make that contract explicit at the call site.
+		// rejects the config on first access otherwise. The casts make that contract explicit at the call site.
 		this.transporter = nodemailer.createTransport({
 			host: emailEnv.SMTP_HOST as string,
 			port: emailEnv.SMTP_PORT,

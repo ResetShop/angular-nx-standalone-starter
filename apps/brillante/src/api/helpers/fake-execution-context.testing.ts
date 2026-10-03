@@ -4,6 +4,7 @@
  */
 export interface FakeExecutionContext {
 	readonly tasks: Promise<unknown>[]
+	readonly props: Record<string, unknown>
 	waitUntil(task: Promise<unknown>): void
 	passThroughOnException(): void
 	settled(): Promise<void>
@@ -14,6 +15,7 @@ export function createFakeExecutionContext(): FakeExecutionContext {
 
 	return {
 		tasks,
+		props: {},
 		waitUntil(task) {
 			tasks.push(task)
 		},
