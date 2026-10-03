@@ -1,4 +1,4 @@
-import { PERMISSION_DEFINITIONS, Permission, UserRole } from './permission.constants'
+import { PERMISSION_DEFINITIONS, Permission, UserRole } from './legacy-permission.constants'
 
 describe('permission catalogue', () => {
 	const identifierPattern = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/

@@ -1,5 +1,5 @@
 import type { CustomerDto } from '../client/client.types'
-import type { UserDto } from '../user/user.types'
+import type { UserDto } from '../user/legacy-user.types'
 
 export interface RepairStatusDto {
 	id: number

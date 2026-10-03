@@ -1,9 +1,48 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "brillante",
+	// Worker that serves the API. Only /api/* reaches it (see `assets.run_worker_first`).
+	"main": "apps/brillante/src/api/worker.ts",
+	// Wrangler bundles the Worker with the app's path aliases (@config, @contracts, @schema, ...).
+	"tsconfig": "apps/brillante/tsconfig.json",
 	"compatibility_date": "2026-10-01",
+	// nodejs_compat: node:crypto (PASETO, hashing), node:async_hooks (request-scoped database client).
+	// nodejs_compat_populate_process_env: vars and secrets are readable through process.env, which the
+	// typed env proxies in src/api/config read.
+	"compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
 	"assets": {
 		"directory": "./dist/brillante/browser",
 		"not_found_handling": "single-page-application",
+		// Run the Worker before the asset lookup for the API only; the SPA is served without invoking it.
+		"run_worker_first": ["/api/*"],
+	},
+	"observability": { "enabled": true },
+	// Postgres goes through Hyperdrive. The configuration MUST be created with query caching disabled
+	// (`wrangler hyperdrive create <name> --connection-string=... --caching-disabled`): Hyperdrive caches
+	// reads by default and never invalidates them on writes, which would serve stale lockout counters,
+	// refresh-token reuse checks and user status.
+	// Replace the id below with the one printed by that command. For `wrangler dev`, set
+	// CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE to a local Postgres connection string.
+	"hyperdrive": [{ "binding": "HYPERDRIVE", "id": "00000000000000000000000000000000" }],
+	// Per-IP throttling, one binding per endpoint. Cloudflare only supports 10 s or 60 s windows.
+	// These values must match RATE_LIMIT_POLICY in src/api/middlewares/rate-limit.middleware.ts; a spec
+	// enforces it. Counters are per Cloudflare location and eventually consistent: the database-backed
+	// per-account lockout remains the authoritative brute-force defence.
+	"ratelimits": [
+		{ "name": "LOGIN_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } },
+		{ "name": "REFRESH_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } },
+		{ "name": "CHANGE_PASSWORD_RATE_LIMITER", "namespace_id": "1003", "simple": { "limit": 5, "period": 60 } },
+		{ "name": "FORGOT_PASSWORD_RATE_LIMITER", "namespace_id": "1004", "simple": { "limit": 5, "period": 60 } },
+		{ "name": "RESET_PASSWORD_RATE_LIMITER", "namespace_id": "1005", "simple": { "limit": 5, "period": 60 } },
+	],
+	// Daily purge of expired refresh tokens (the `scheduled` handler in src/api/worker.ts).
+	"triggers": { "crons": ["17 3 * * *"] },
+	// Non-secret configuration. Secrets are set with `wrangler secret put`: PASETO_SECRET_KEY, CRON_SECRET
+	// and, when an SMTP provider is used, SMTP_USER and SMTP_PASS. CORS_ORIGIN must also be set to the
+	// public origin of the app before deploying: password-reset links are built from it.
+	"vars": {
+		"IS_SERVERLESS": "true",
+		"PASETO_ISSUER": "brillante",
+		"COOKIE_SECURE": "true",
 	},
 }

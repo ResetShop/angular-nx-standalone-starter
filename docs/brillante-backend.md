@@ -1,0 +1,88 @@
+# Brillante backend on Cloudflare Workers
+
+`apps/brillante/src/{api,db,contracts}` hold a copy of the reference app's Hono + Drizzle + PASETO backend (users,
+roles, permissions, cookie authentication), adapted to run as a **Cloudflare Worker** next to the SPA's static assets.
+The frontend does not call it yet: Brillante's screens still use the legacy API and Auth0 until the frontend swap lands.
+
+```
+Browser ── same origin ──► Cloudflare Worker (wrangler.jsonc)
+                             ├─ static assets, SPA fallback   (/*)
+                             └─ Hono API                      (/api/*, Worker runs first)
+                                  ├─ Postgres via Hyperdrive   (one client per request)
+                                  ├─ Rate Limiting bindings    (per-IP throttling)
+                                  └─ Cron Trigger → scheduled() (expired-token cleanup)
+```
+
+## What differs from the reference app
+
+The reference backend assumes a long-lived Node server. These are the places where that does not hold on Workers.
+
+| Area                       | Reference app                                      | Brillante Worker                                                                                                                                                                                     |
+| -------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Entry point                | `server.ts` (Node server, SSR, static files, cron) | `src/api/worker.ts` exporting `fetch` and `scheduled`; `src/api/app.ts` builds the API; assets are served by Cloudflare (`assets.run_worker_first: ["/api/*"]`)                                      |
+| Database connection        | One shared `pg` Pool in the DI container           | One `pg` client per request through the Hyperdrive binding (`helpers/request-database.ts`). A Pool shared across requests hangs the Worker. Node scripts and integration tests still use the Pool    |
+| Work after the response    | Runs on the event loop                             | `deferAfterResponse` uses `waitUntil`; the request's database client is closed only after every `waitUntil` task has settled, otherwise the work (for example the reset email) silently does nothing |
+| Rate limiting              | `hono-rate-limiter`, in memory                     | Cloudflare Rate Limiting bindings (`middlewares/rate-limit.middleware.ts`)                                                                                                                           |
+| Scheduled cleanup          | `setInterval` in the process                       | Cron Trigger (`triggers.crons`) calling `scheduled()`                                                                                                                                                |
+| Invalid environment config | `process.exit(1)`                                  | Throws `EnvValidationError` (logged as FATAL). On Workers `process.exit` cancels the request with no message                                                                                         |
+
+Contracts that collided with Brillante's frontend DTOs were renamed on the frontend side with a `legacy-` prefix
+(`legacy-user.types.ts`, `legacy-permission.constants.ts`, `legacy-pagination.types.ts`) so the backend files stay
+identical to the reference app and upstream merges stay mechanical.
+
+### Rate limiting is coarse by design
+
+Cloudflare's binding supports only 10 s or 60 s windows, is per Cloudflare location and is eventually consistent. It
+cannot express the reference app's "5 per 15 minutes". `RATE_LIMIT_POLICY` (limit per 60 s per endpoint) is the single
+source of truth; a spec checks that `wrangler.jsonc` declares exactly those bindings. The authoritative brute-force
+defence is the database-backed per-account lockout (`AUTH_MAX_FAILED_ATTEMPTS`, `AUTH_LOCKOUT_DURATION`). The reference
+app's `AUTH_CHANGE_PASSWORD_RATE_LIMIT_*` and `TOKEN_CLEANUP_INTERVAL` variables do not exist here.
+The client IP comes from `cf-connecting-ip` (set by Cloudflare, not forgeable), with proxy headers only as a Node fallback.
+
+## Cloudflare requirements
+
+- **Workers Paid plan.** The Free plan allows 10 ms of CPU per request; one bcrypt check takes about 300 ms.
+- **Hyperdrive with query caching disabled.** Hyperdrive caches reads by default and never invalidates them on writes,
+  which would serve stale lockout counters, refresh-token reuse checks and user status.
+  `wrangler hyperdrive create <name> --connection-string=<url> --caching-disabled`, then put the printed id in
+  `wrangler.jsonc`. The database must accept TLS; a private database needs Cloudflare Tunnel or Workers VPC.
+- **Secrets** (`wrangler secret put`): `PASETO_SECRET_KEY` (64 hex characters), `CRON_SECRET` (at least 32 characters).
+- **Vars**: `IS_SERVERLESS=true` (selects transaction-scoped advisory locks, required behind Hyperdrive),
+  `PASETO_ISSUER`, `COOKIE_SECURE` are in `wrangler.jsonc`. Set **`CORS_ORIGIN` to the public origin** before deploying:
+  password-reset links are built from it and the default points at `localhost`.
+- **Email is not solved yet.** Port 25 is blocked on Workers and SMTP over TLS has not been verified there. The planned
+  providers are the Cloudflare Email Service binding (beta) with an HTTP provider as fallback. Until one exists, use
+  `EMAIL_PROVIDER=noop` and do not rely on reset or welcome emails.
+
+## Commands
+
+| Command                                     | What it does                                                                              |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `npm run dev:brillante:worker`              | Builds the SPA and runs the Worker locally with `wrangler dev`                            |
+| `npm run drizzle:push-migrations:brillante` | Pushes the schema to `PG_CONNECTION_STRING`                                               |
+| `npm run drizzle:seed:brillante`            | Seeds the admin role, permissions and the admin user (`SEED_ADMIN_EMAIL`/`_PASSWORD`)     |
+| `npm run sync:permissions:brillante`        | Inserts permissions added to the catalogue (does not grant them to roles)                 |
+| `npm run test:integration:brillante`        | Integration suite against Postgres (`PG_TEST_CONNECTION_STRING`, or an embedded Postgres) |
+| `npm run smoke:brillante:worker`            | End-to-end check of a running Worker (see below)                                          |
+| `npm run deploy:brillante`                  | Builds the SPA and deploys the Worker with its assets                                     |
+
+For `wrangler dev`, set `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE` to a local Postgres URL and pass
+secrets with `--var NAME:value` (for example `npm run dev:brillante:worker -- --var PASETO_SECRET_KEY:<64 hex>`).
+No `.env` file may exist in the tree.
+
+### Worker smoke test
+
+`npm run smoke:brillante:worker` runs against a live Worker (`SMOKE_BASE_URL`, default `http://localhost:8787`) and
+checks what only the Workers runtime can break: static assets and SPA fallback, login with HttpOnly cookies, `/me`,
+role-protected routes, refresh rotation, that forgot-password work after the response stored a reset token
+(`SMOKE_DATABASE_URL`), that 40 parallel requests from two users never see each other (`SMOKE_SECOND_EMAIL`/`_PASSWORD`),
+the 429 and `Retry-After` of the rate limit, and the Cron handler (`SMOKE_CHECK_SCHEDULED=1`, local only). Run it again
+against a staging deployment: Hyperdrive behaviour, CPU time per login, email delivery and cookies on the real domain
+cannot be proven locally.
+
+## Known gaps
+
+- No email provider that works on Workers (see above).
+- `hono-rate-limiter` is no longer imported by Brillante, but the package stays in the root `package.json` because
+  the reference app still uses it.
+- The `docs/api/*.bru` Bruno collection targets the reference app; the endpoints are identical, only the base URL differs.

@@ -1,5 +1,5 @@
 import { InjectionToken } from '@angular/core'
-import type { Auth0Profile, AuthenticatedUserDto } from '@contracts/user/user.types'
+import type { Auth0Profile, AuthenticatedUserDto } from '@contracts/user/legacy-user.types'
 import type { Observable } from 'rxjs'
 
 export interface AuthApi {

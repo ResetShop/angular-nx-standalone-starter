@@ -1,5 +1,5 @@
 import type { OfficeBranchDto } from '../office-branch/office-branch.types'
-import type { UserDto } from '../user/user.types'
+import type { UserDto } from '../user/legacy-user.types'
 import type { TransactionConceptDto } from './cash-concept.types'
 import type { PaymentMethodRefDto } from './payment-method.types'
 

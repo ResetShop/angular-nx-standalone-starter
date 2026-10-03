@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
-import { Permission, UserRole } from '@contracts/permission/permission.constants'
+import { Permission, UserRole } from '@contracts/permission/legacy-permission.constants'
 import { oldestBrowsableDay, parseDateInputValue, toDateInputValue } from '@domain/cash/cash-date'
 import { toSignedAmount } from '@domain/cash/cash-totals'
 import type { CashTransaction } from '@domain/cash/cash-transaction.model'

@@ -111,6 +111,13 @@
 			"options": {
 				"lintFilePatterns": ["**/*.css"]
 			}
+		},
+		"test-integration": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"command": "vitest run --config apps/brillante/vitest.integration.config.ts"
+			}
 		}
 	}
 }

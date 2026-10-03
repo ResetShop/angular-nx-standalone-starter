@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { Router, RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import type { Repair } from '@domain/repair/repair.model'
 import { AppTranslation } from '@providers/i18n/app-translation'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'

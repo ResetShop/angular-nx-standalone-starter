@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, untracked, viewChild } from '@angular/core'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { canGenerateVoucher } from '@domain/repair/repair.functions'
 import type { Repair } from '@domain/repair/repair.model'
 import { NgIcon, provideIcons } from '@ng-icons/core'

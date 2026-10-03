@@ -1,7 +1,7 @@
 import type { Provider } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import type { OfficeBranchDto } from '@contracts/office-branch/office-branch.types'
-import { Permission, UserRole } from '@contracts/permission/permission.constants'
+import { Permission, UserRole } from '@contracts/permission/legacy-permission.constants'
 import type { IUser } from '@domain/user/user.interface'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'

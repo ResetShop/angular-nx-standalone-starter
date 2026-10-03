@@ -1,5 +1,5 @@
 import { provideToast } from '@components/toast/toast.provider'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { permissionGuard } from '@guards/permission.guard'
 import { provideCashConcept } from '@providers/cash-concept/cash-concept.provider'
 import { provideUser } from '@providers/user/user.provider'

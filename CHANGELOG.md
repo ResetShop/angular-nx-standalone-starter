@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Added
+
+- `apps/brillante` gains a backend that runs as a Cloudflare Worker: the reference app's Hono, Drizzle and PASETO user, role and authentication API, adapted for Workers. It uses one database client per request through Hyperdrive, Cloudflare Rate Limiting bindings in place of `hono-rate-limiter`, and a Cron Trigger for the expired-token cleanup. See `docs/brillante-backend.md`.
+
+### Changed
+
+- The environment variable proxies (`createEnvHandler`) in Brillante's backend throw an `EnvValidationError` instead of calling `process.exit(1)`, because `process.exit` cancels the request without a message on Workers.
+- Brillante's frontend DTOs that collided with the backend contracts are renamed with a `legacy-` prefix (`legacy-user.types.ts`, `legacy-permission.constants.ts`, `legacy-pagination.types.ts`).
+
 ## [1.1.0] — 2026-09-27
 
 Version 1.1.0 moves the starter to Angular 22, Nx 23 and TypeScript 6 with strict mode on, and lets every signed-in user manage their own account. It is the largest release since 1.0.0, and it asks something of every fork: read **Fork migration** below before merging.

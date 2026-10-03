@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { customerTranslation } from '@domain/customer/customer-translation.mock'
 import { createMockCustomerDto } from '@domain/customer/customer.mock'
 import { createMockUser } from '@mocks/user.mock'

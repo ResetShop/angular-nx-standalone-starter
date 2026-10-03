@@ -1,5 +1,5 @@
 import { signal } from '@angular/core'
-import { UserRole } from '@contracts/permission/permission.constants'
+import { UserRole } from '@contracts/permission/legacy-permission.constants'
 import { provideSliceTranslationMock } from '@mocks/slice-translation.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { settingsEn } from '@providers/i18n/translations/slices/settings.translations'

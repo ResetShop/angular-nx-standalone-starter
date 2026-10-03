@@ -1,4 +1,4 @@
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import {
 	featherBarChart2,
 	featherDollarSign,

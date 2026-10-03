@@ -1,6 +1,6 @@
 import { inject } from '@angular/core'
 import type { CustomerDto } from '@contracts/client/client.types'
-import type { UserDto } from '@contracts/user/user.types'
+import type { UserDto } from '@contracts/user/legacy-user.types'
 import type { CustomerDetails } from '@domain/customer/customer.interface'
 import { mapCustomerDtoToCustomer, mapCustomerToDto } from '@domain/customer/customer.mapper'
 import { Customer } from '@domain/customer/customer.model'

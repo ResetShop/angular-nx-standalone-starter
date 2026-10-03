@@ -1,5 +1,5 @@
 import { provideRouter } from '@angular/router'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { InMemoryAuthApi } from '@providers/auth/auth.mock'

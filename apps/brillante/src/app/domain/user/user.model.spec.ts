@@ -1,4 +1,4 @@
-import { PERMISSION_DEFINITIONS, Permission, UserRole } from '@contracts/permission/permission.constants'
+import { PERMISSION_DEFINITIONS, Permission, UserRole } from '@contracts/permission/legacy-permission.constants'
 import { User } from './user.model'
 
 function buildUser(roleIds: number[], overrides: Partial<ConstructorParameters<typeof User>[0]> = {}): User {

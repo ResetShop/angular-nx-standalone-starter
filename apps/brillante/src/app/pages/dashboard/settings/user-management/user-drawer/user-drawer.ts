@@ -7,7 +7,7 @@ import {
 	schema,
 	FormField as SignalFormField,
 } from '@angular/forms/signals'
-import type { CreateUserRequest } from '@contracts/user/user.types'
+import type { CreateUserRequest } from '@contracts/user/legacy-user.types'
 import type { IUser } from '@domain/user/user.interface'
 import { AppTranslation } from '@providers/i18n/app-translation'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'

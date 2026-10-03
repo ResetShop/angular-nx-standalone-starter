@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, signal, untracked } from '@angular
 import { apply, form, readonly, required } from '@angular/forms/signals'
 import { CustomerFormFields } from '@components/customer-form-fields/customer-form-fields'
 import { PageShell } from '@components/page-shell/page-shell'
-import { UserRole } from '@contracts/permission/permission.constants'
+import { UserRole } from '@contracts/permission/legacy-permission.constants'
 import {
 	createEmptyCustomerForm,
 	type CustomerFormModel,

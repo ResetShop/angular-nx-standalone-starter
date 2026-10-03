@@ -1,5 +1,5 @@
-import { PERMISSION_DEFINITIONS, type UserRole } from '@contracts/permission/permission.constants'
-import type { RoleDto } from '@contracts/user/user.types'
+import { PERMISSION_DEFINITIONS, type UserRole } from '@contracts/permission/legacy-permission.constants'
+import type { RoleDto } from '@contracts/user/legacy-user.types'
 import type { IUser } from './user.interface'
 
 export interface UserProps {

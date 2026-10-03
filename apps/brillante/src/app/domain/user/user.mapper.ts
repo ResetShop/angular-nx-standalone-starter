@@ -1,4 +1,4 @@
-import type { UserDto } from '@contracts/user/user.types'
+import type { UserDto } from '@contracts/user/legacy-user.types'
 import { User } from './user.model'
 
 export function mapUserDtoToUser(dto: UserDto): User {
