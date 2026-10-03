@@ -102,6 +102,29 @@ API docs or a rejected token, open none), has a 10 s connect timeout and a 25 s 
 instead of throwing them. The Cron cleanup takes a transaction-scoped advisory lock, which Hyperdrive's transaction pooling
 can keep; the purge is idempotent, so two overlapping runs are harmless and the lock only avoids duplicated work.
 
+## Password reset: implementation notes
+
+**Status.** The API side exists and is tested; the flow cannot be completed end to end yet.
+
+| Piece                                                                                                    | State                                                                                                   |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`, single-use hashed tokens (1 h expiry) | Implemented (copied from the reference app), covered by unit and integration specs                      |
+| Token created after the response on Workers                                                              | Verified by the worker smoke test (`forgot-password work after the response stored a reset token`)      |
+| Email delivery                                                                                           | **Not working**: `EMAIL_PROVIDER=noop`, so no link is ever sent                                         |
+| Frontend pages (request link, set new password)                                                          | **Not present** in `apps/brillante`; they exist only in the reference app and arrive with the auth swap |
+
+**Open point: the reset link origin.** The link is built from the first entry of `CORS_ORIGIN`
+(`password-reset.service.ts`), which is `https://app.brillante.com`. On a preview deployment (a `workers.dev` address) a
+link would therefore point at production. Nothing breaks today because no email is sent. When emails are enabled:
+
+- Keep `CORS_ORIGIN` as an allow-list for genuinely cross-origin callers. The SPA and the API share one origin on the
+  Worker, so previews do not need to be listed for the app itself to work.
+- Build the link from the request's own origin when it matches the allow-list, and fall back to the first configured
+  origin otherwise (never trust an arbitrary `Host` or `Origin` value).
+- If per-version preview URLs must be allowed, support wildcard entries (for example
+  `https://*-brillante.<account>.workers.dev`) in the allow-list and in the "required on Workers" check.
+- Update the specs for `buildResetUrl`, `http.env` and the CORS middleware accordingly.
+
 ## Known gaps
 
 - No email provider that works on Workers (see above).
