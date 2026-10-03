@@ -56,10 +56,13 @@ per-account lockout still applies.
 - **Secrets** (`wrangler secret put`): `PASETO_SECRET_KEY` (64 hex characters), `CRON_SECRET` (at least 32 characters).
 - **Vars** in `wrangler.jsonc`: `IS_SERVERLESS=true` (transaction-scoped advisory locks; the Worker runtime also forces
   serverless mode on its own, so a deployment that forgets the flag cannot take a session lock through Hyperdrive),
-  `PASETO_ISSUER`, `COOKIE_SECURE`, `EMAIL_PROVIDER=noop`. **`CORS_ORIGIN` is required on Workers**: set it to the public
-  origin, in `wrangler.jsonc` or in the dashboard (`keep_vars` keeps dashboard variables across deploys). Without it the
+  `PASETO_ISSUER`, `COOKIE_SECURE`, `EMAIL_PROVIDER=noop` and `CORS_ORIGIN=https://app.brillante.com`. **`CORS_ORIGIN` is
+  required on Workers** (`keep_vars` keeps variables set in the dashboard across deploys). Without it the
   Worker answers `500` and logs `FATAL ... CORS_ORIGIN`, because password-reset links are built from it and a `localhost`
   default would put dead links in emails.
+- **Custom domain.** `wrangler.jsonc` declares no route, so a deploy is reachable on its `workers.dev` address only.
+  Attach `app.brillante.com` to the Worker (dashboard, or a `routes` entry with `custom_domain: true`) before relying on
+  cookies or reset links: both assume that origin.
 - **Email is not solved yet.** Port 25 is blocked on Workers and SMTP over TLS has not been verified there. The planned
   providers are the Cloudflare Email Service binding (beta, needs the Workers Paid plan to reach arbitrary recipients) with
   an HTTP provider as fallback. `wrangler.jsonc` sets `EMAIL_PROVIDER=noop`, so **reset and welcome emails are not

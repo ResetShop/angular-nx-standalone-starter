@@ -41,9 +41,10 @@
 	// instead of being deleted because they are not listed below.
 	"keep_vars": true,
 	// Non-secret configuration. Secrets are set with `wrangler secret put`: PASETO_SECRET_KEY and CRON_SECRET.
-	// CORS_ORIGIN is required on Workers (the Worker refuses to serve requests without it): set it to the
-	// public origin of the app, here or in the dashboard. Password-reset links are built from it.
+	// CORS_ORIGIN is required on Workers (the Worker refuses to serve requests without it). It is the
+	// public origin of the app, and password-reset links are built from it. `wrangler dev --var` overrides it locally.
 	"vars": {
+		"CORS_ORIGIN": "https://app.brillante.com",
 		"IS_SERVERLESS": "true",
 		"PASETO_ISSUER": "brillante",
 		"COOKIE_SECURE": "true",
