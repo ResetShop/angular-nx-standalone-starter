@@ -63,3 +63,7 @@ Thumbs.db
 
 # Wrangler local dev state
 .wrangler/
+
+# Database dumps hold real data and stay on the operator's machine (see scripts/check-no-sql-dumps.mjs)
+*.dump.sql
+legacy-dumps/
