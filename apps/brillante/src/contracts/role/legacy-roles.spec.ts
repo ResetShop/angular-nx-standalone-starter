@@ -6,7 +6,7 @@ import { ADMIN_ROLE_CODE } from './role.constants'
 describe('LEGACY_ROLES', () => {
 	it('covers the seven legacy role ids exactly once, in id order', () => {
 		expect(LEGACY_ROLES.map((legacyRole) => legacyRole.id)).toEqual([1, 2, 3, 4, 5, 6, 7])
-		expect(LEGACY_ROLES.map((legacyRole) => legacyRole.id)).toEqual(Object.values(UserRole).sort())
+		expect(LEGACY_ROLES.map((legacyRole) => legacyRole.id)).toEqual(Object.values(UserRole).sort((a, b) => a - b))
 	})
 
 	it('gives every role a unique code and a unique name', () => {
@@ -36,7 +36,7 @@ describe('LEGACY_ROLES', () => {
 
 describe('LEGACY_ROLE_PERMISSION_MATRIX', () => {
 	it('has an entry for every legacy role code', () => {
-		expect(Object.keys(LEGACY_ROLE_PERMISSION_MATRIX).sort()).toEqual(Object.values(LegacyRoleCode).sort())
+		expect(Object.keys(LEGACY_ROLE_PERMISSION_MATRIX).sort()).toEqual([...Object.values(LegacyRoleCode)].sort())
 	})
 
 	it('lists for each role exactly the permissions the frontend table grants to its id', () => {
@@ -49,6 +49,48 @@ describe('LEGACY_ROLE_PERMISSION_MATRIX', () => {
 		}
 	})
 
+	it('matches the legacy route guards, written out literally', () => {
+		const everything = [
+			'repairs:repair:read',
+			'repairs:repair:manage',
+			'clients:client:read',
+			'clients:client:manage',
+			'cash:transaction:read',
+			'cash:transaction:manage',
+			'reports:cash:read',
+			'settings:office_branch:manage',
+			'settings:user:manage',
+			'settings:cash_concept:manage',
+		]
+		const staff = [
+			'repairs:repair:read',
+			'repairs:repair:manage',
+			'clients:client:read',
+			'clients:client:manage',
+			'cash:transaction:read',
+			'cash:transaction:manage',
+			'settings:office_branch:manage',
+			'settings:user:manage',
+			'settings:cash_concept:manage',
+		]
+
+		expect(LEGACY_ROLE_PERMISSION_MATRIX).toEqual({
+			admin: everything,
+			owner: everything,
+			counter_clerk: staff,
+			repairman: ['repairs:repair:read', 'repairs:repair:manage', 'settings:cash_concept:manage'],
+			customer: [],
+			employee: [
+				'repairs:repair:read',
+				'repairs:repair:manage',
+				'cash:transaction:read',
+				'cash:transaction:manage',
+				'settings:cash_concept:manage',
+			],
+			accountant: ['reports:cash:read'],
+		})
+	})
+
 	it('grants customers nothing, as in the legacy guards', () => {
 		expect(LEGACY_ROLE_PERMISSION_MATRIX[LegacyRoleCode.CUSTOMER]).toEqual([])
 	})
@@ -58,6 +100,8 @@ describe('LEGACY_ROLE_PERMISSION_MATRIX', () => {
 		const matrixPermissions = Object.values(LEGACY_ROLE_PERMISSION_MATRIX).flat()
 
 		expect(matrixPermissions.length).toBeGreaterThan(0)
+		// If this fails, a matrix permission was added to the catalogue: decide whether to grant it to the roles and
+		// update the seed instead of letting the matrix and the database silently diverge.
 		expect(matrixPermissions.some((identifier) => catalogue.has(identifier))).toBe(false)
 	})
 })

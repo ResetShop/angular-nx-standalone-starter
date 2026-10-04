@@ -1,7 +1,15 @@
 import { eq, sql } from 'drizzle-orm'
 import type { DrizzleTransaction } from '../api/helpers/drizzle-postgres-connector'
-import { LEGACY_ROLES, LEGACY_ROLES_TO_SEED, type LegacyRoleDefinition } from '../contracts/role/legacy-roles'
+import {
+	LEGACY_ROLES,
+	LEGACY_ROLES_TO_SEED,
+	LegacyRoleCode,
+	type LegacyRoleDefinition,
+} from '../contracts/role/legacy-roles'
 import { role } from './schema/role'
+
+/** Key of the advisory lock that serialises seed runs; it must differ from the other advisory lock keys of the app. */
+const SEED_LEGACY_ROLES_LOCK_KEY = 0x53454c52 // "SELR" in hex (Seed LEgacy Roles)
 
 export interface SeedLegacyRolesResult {
 	readonly created: readonly string[]
@@ -42,30 +50,61 @@ async function seedLegacyRole(
 }
 
 /**
+ * Moves the role id sequence past the highest legacy id without ever lowering it. `pg_sequence_last_value`
+ * includes ids already handed out to transactions that have not committed, which `MAX(id)` cannot see, and
+ * keeps ids of roles deleted since from being reused.
+ */
+async function advanceRoleIdSequence(tx: DrizzleTransaction): Promise<void> {
+	const highestLegacyId = Math.max(...LEGACY_ROLES.map((legacyRole) => legacyRole.id))
+	await tx.execute(sql`
+		SELECT setval(
+			pg_get_serial_sequence('public.role', 'id'),
+			GREATEST(
+				(SELECT COALESCE(MAX(id), 0) FROM public.role),
+				${highestLegacyId},
+				COALESCE(pg_sequence_last_value(pg_get_serial_sequence('public.role', 'id')::regclass), 0)
+			)
+		)
+	`)
+}
+
+async function assertAdministratorRole(tx: DrizzleTransaction): Promise<void> {
+	const adminDefinition = LEGACY_ROLES.find((legacyRole) => legacyRole.code === LegacyRoleCode.ADMIN)
+	if (!adminDefinition) {
+		throw new Error('The legacy role definitions have no Administrator')
+	}
+
+	const [admin] = await tx.select({ id: role.id }).from(role).where(eq(role.code, adminDefinition.code))
+	if (!admin) {
+		throw new Error('The Administrator role does not exist; run the database seed first')
+	}
+	if (admin.id !== adminDefinition.id) {
+		throw new Error(`The Administrator role has id ${admin.id}, expected the legacy id ${adminDefinition.id}`)
+	}
+}
+
+/**
  * Creates the legacy roles 2 to 7 (Owner, Counter clerk, Repairman, Customer, Employee, Accountant) with their
  * legacy ids and no permissions. The Administrator (id 1) belongs to the reference seed and must exist already.
- * Afterwards the id sequence is moved past the highest legacy id, so roles created later never collide.
  *
- * Idempotent: running it again changes nothing.
+ * Idempotent: running it again changes nothing. A transaction-scoped advisory lock serialises concurrent runs, so
+ * the second one sees the roles the first created instead of failing on a unique violation.
  */
 export async function seedLegacyRoles(tx: DrizzleTransaction): Promise<SeedLegacyRolesResult> {
-	const adminDefinition = LEGACY_ROLES[0]
-	const [admin] = await tx.select({ id: role.id }).from(role).where(eq(role.code, adminDefinition.code))
-	if (!admin || admin.id !== adminDefinition.id) {
-		throw new Error(`The Administrator role must exist with id ${adminDefinition.id}; run the database seed first`)
-	}
+	await tx.execute(sql`SELECT pg_advisory_xact_lock(${SEED_LEGACY_ROLES_LOCK_KEY})`)
+	await assertAdministratorRole(tx)
 
 	const created: string[] = []
 	const existing: string[] = []
 	for (const definition of LEGACY_ROLES_TO_SEED) {
 		const outcome = await seedLegacyRole(tx, definition)
-		;(outcome === 'created' ? created : existing).push(definition.code)
+		if (outcome === 'created') {
+			created.push(definition.code)
+		} else {
+			existing.push(definition.code)
+		}
 	}
 
-	const highestLegacyId = Math.max(...LEGACY_ROLES.map((legacyRole) => legacyRole.id))
-	await tx.execute(
-		sql`SELECT setval(pg_get_serial_sequence('role', 'id'), GREATEST((SELECT MAX(id) FROM role), ${highestLegacyId}))`,
-	)
-
+	await advanceRoleIdSequence(tx)
 	return { created, existing }
 }

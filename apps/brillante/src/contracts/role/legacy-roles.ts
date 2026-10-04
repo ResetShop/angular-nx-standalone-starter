@@ -88,16 +88,10 @@ export const LEGACY_ROLES_TO_SEED: readonly LegacyRoleDefinition[] = Object.free
 	LEGACY_ROLES.filter((legacyRole) => legacyRole.code !== LegacyRoleCode.ADMIN),
 )
 
-function buildRolePermissionMatrix(): Readonly<Record<LegacyRoleCode, readonly Permission[]>> {
-	const matrix = Object.fromEntries(
-		LEGACY_ROLES.map((legacyRole) => [
-			legacyRole.code,
-			PERMISSION_DEFINITIONS.filter((definition) => definition.roles.includes(legacyRole.id)).map(
-				(definition) => definition.identifier,
-			),
-		]),
-	) as Record<LegacyRoleCode, readonly Permission[]>
-	return Object.freeze(matrix)
+function permissionsOf(roleId: UserRole): readonly Permission[] {
+	return PERMISSION_DEFINITIONS.filter((definition) => definition.roles.includes(roleId)).map(
+		(definition) => definition.identifier,
+	)
 }
 
 /**
@@ -106,5 +100,12 @@ function buildRolePermissionMatrix(): Readonly<Record<LegacyRoleCode, readonly P
  * database only knows the `admin:*` permissions, and only the Administrator role is granted any of them.
  * Granting these requires adding them to `PERMISSION_DEFINITIONS` first.
  */
-export const LEGACY_ROLE_PERMISSION_MATRIX: Readonly<Record<LegacyRoleCode, readonly Permission[]>> =
-	buildRolePermissionMatrix()
+export const LEGACY_ROLE_PERMISSION_MATRIX = Object.freeze({
+	[LegacyRoleCode.ADMIN]: permissionsOf(UserRole.ADMIN),
+	[LegacyRoleCode.OWNER]: permissionsOf(UserRole.OWNER),
+	[LegacyRoleCode.COUNTER_CLERK]: permissionsOf(UserRole.COUNTER_CLERK),
+	[LegacyRoleCode.REPAIRMAN]: permissionsOf(UserRole.REPAIRMAN),
+	[LegacyRoleCode.CUSTOMER]: permissionsOf(UserRole.CUSTOMER),
+	[LegacyRoleCode.EMPLOYEE]: permissionsOf(UserRole.EMPLOYEE),
+	[LegacyRoleCode.ACCOUNTANT]: permissionsOf(UserRole.ACCOUNTANT),
+} satisfies Record<LegacyRoleCode, readonly Permission[]>)
