@@ -149,6 +149,44 @@ and quoted strings. Binary (`_binary '...'`) and hex literals are rejected, as i
 reads (`user`, `user_role` and the six reference columns), so a wrong file fails loudly instead of reporting "nothing to
 import". Zero and out-of-range MySQL dates are read as no date.
 
+### Legacy user import (writer, CLI and runbook)
+
+`npm run drizzle:import-legacy-users:brillante -- --dump <path> [--dry-run] [--already-provisioned 1] [--report <path>]`
+reads the local MySQL dump, plans against the database `PG_CONNECTION_STRING` points at and writes the users in **one
+transaction**. It prints the target (host, port and database name, never credentials) first. `--dump` is mandatory;
+unknown options are rejected. It refuses to write when the plan has a conflict, when a user declared with
+`--already-provisioned` is missing from the target, or when a role the users need does not exist (this is also checked on
+a dry run, so a clean preview means the real run will not fail on those). Re-running it is a no-op: users already present
+with the same id and email are reported as `unchanged`.
+
+What gets written, per imported user: the `user` row with its legacy id, trimmed names, lower-cased email (or the
+placeholder), status, legacy timestamps; one `user_role` row (role id equals the legacy role id); and an `authentication`
+row whose password hash is of a random secret that is never shown, with `must_change_password` set. Nobody can log in
+with an imported account until a password reset gives it a real password (Slice 4). Afterwards the `user` id sequence
+moves to 999, so the next user created gets id 1000; it is never lowered.
+
+**Runbook** (the prototype Supabase database):
+
+1. **Reset the app tables.** The database must hold only what the seed creates. In the `public` schema drop the app
+   tables (`authentication`, `password_reset_token`, `permission`, `permission_route`, `refresh_token`, `role`,
+   `role_history`, `role_permission`, `role_permission_history`, `user`, `user_profile_history`, `user_role`,
+   `user_role_history`, `user_status_history`) and the `user_status` enum, with `CASCADE`. Do not drop the `public`
+   schema itself: Supabase's own roles depend on its grants. This deletes the current test users.
+2. **Push the schema:** `npm run drizzle:push-migrations:brillante`.
+3. **Seed:** `SEED_ADMIN_EMAIL=admin@brillantestore.com SEED_ADMIN_PASSWORD=<strong password> npm run drizzle:seed:brillante`.
+   It creates user 1 (the administrator, legacy user 1), the Administrator role with the 14 `admin:*` permissions and the
+   six legacy roles without permissions.
+4. **Dry run:** `npm run drizzle:import-legacy-users:brillante -- --dump <path to the local dump> --already-provisioned 1 --dry-run`.
+   Expected on the current dump: create 16, excluded 32 customers, legacy user 1 already in the target, placeholder
+   emails for legacy ids 2, 7 and 8, no conflicts.
+5. **Apply:** the same command without `--dry-run`. It reports `Imported 16 user(s)`.
+6. **Verify:** 17 users (the seeded administrator plus 16 imported): 12 active and 5 disabled, roles admin 5, counter
+   clerk 9, employee 2, accountant 1, ids 1 to 14, 16, 17 and 23, and a second run that reports `unchanged: 16` and
+   imports nothing. The next user created gets id 1000. (These counts were rehearsed on a fresh local database.)
+
+For hosts whose certificate chain Node cannot verify (Supabase), append `?uselibpqcompat=true&sslmode=require` to the
+connection string, as for the other database scripts. The dump never leaves the machine; pass its path on the command line.
+
 ### Deployment and checks on Cloudflare
 
 While this is a prototype there is a single Worker, `brillante`, and a single database; separating staging from production
