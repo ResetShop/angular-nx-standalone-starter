@@ -1,48 +1,45 @@
-import type { CustomerDto } from '../client/client.types'
+import type { z } from 'zod'
+import type {
+	assignRoleToUserRequestSchema,
+	authUserSchema,
+	createUserRequestSchema,
+	createUserResponseSchema,
+	managedUserSchema,
+	replaceUserRolesRequestSchema,
+	resetPasswordResponseSchema,
+	updateProfileRequestSchema,
+	updateUserRequestSchema,
+	updateUserStatusRequestSchema,
+	userDataSchema,
+} from './user.schemas'
 
-export interface RoleDto {
-	id: number
-	description: string
-}
+// ============================================================================
+// User Data Types
+// ============================================================================
 
-export interface UserDto {
-	id: number
-	userName: string
-	firstName: string | null
-	lastName: string | null
-	avatar: string | null
-	email: string
-	roles: RoleDto[]
-	hasFinishedRegistration: boolean
-	customer?: CustomerDto | null
-}
+export type UserData = z.infer<typeof userDataSchema>
+export type AuthUser = z.infer<typeof authUserSchema>
 
-/**
- * Response of `POST /users/authenticate`: the user plus the API-issued JWT.
- */
-export interface AuthenticatedUserDto extends UserDto {
-	token: string
-}
+// ============================================================================
+// Managed User Types (User Management API)
+// ============================================================================
 
-/**
- * Profile returned by Auth0 after a successful login. It is forwarded verbatim to the API,
- * which resolves (or creates) the matching Brillante user by email.
- */
-export interface Auth0Profile {
-	email?: string
-	name?: string
-	nickname?: string
-	picture?: string
-	sub?: string
-	[claim: string]: unknown
-}
+export type ManagedUser = z.infer<typeof managedUserSchema>
+export type CreateUserRequest = z.infer<typeof createUserRequestSchema>
+export type CreateUserResponse = z.infer<typeof createUserResponseSchema>
+export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>
+export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>
 
-export interface CreateUserRequest {
-	email: string
-	firstName: string
-	lastName: string
-	userName: string
-	roles: RoleDto[]
-}
+// ============================================================================
+// Self-Service Profile Types
+// ============================================================================
 
-export type UpdateUserRequest = Partial<CreateUserRequest> & { id: number }
+export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>
+
+// ============================================================================
+// User Role Request Types
+// ============================================================================
+
+export type AssignRoleToUserRequest = z.infer<typeof assignRoleToUserRequestSchema>
+export type ReplaceUserRolesRequest = z.infer<typeof replaceUserRolesRequestSchema>
+export type UpdateUserStatusRequest = z.infer<typeof updateUserStatusRequestSchema>

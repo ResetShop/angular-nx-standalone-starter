@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing'
-import type { AuthenticatedUserDto } from '@contracts/user/user.types'
+import type { AuthenticatedUserDto } from '@contracts/user/legacy-user.types'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { AuthSession } from './auth-session'
 

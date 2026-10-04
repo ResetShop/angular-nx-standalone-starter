@@ -60,3 +60,6 @@ Thumbs.db
 .claude/worktrees
 .claude/settings.local.json
 .claude/skills/angular/
+
+# Wrangler local dev state
+.wrangler/

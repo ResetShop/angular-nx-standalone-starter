@@ -1,6 +1,6 @@
 import { Component, computed, inject, viewChild } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { formatDisplayDate } from '@domain/customer/customer-form'
 import type { ICustomer } from '@domain/customer/customer.interface'
 import { AppTranslation } from '@providers/i18n/app-translation'

@@ -1,4 +1,4 @@
-import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
+import { PERMISSION_DEFINITIONS } from '@contracts/permission/legacy-permission.constants'
 import en from './translations/en'
 import es from './translations/es'
 

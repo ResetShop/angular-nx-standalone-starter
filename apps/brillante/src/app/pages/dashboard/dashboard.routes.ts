@@ -1,5 +1,5 @@
 import { provideToast } from '@components/toast/toast.provider'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { officeBranchGuard } from '@guards/office-branch.guard'
 import { permissionGuard } from '@guards/permission.guard'
 import Dashboard from '@pages/dashboard/dashboard'

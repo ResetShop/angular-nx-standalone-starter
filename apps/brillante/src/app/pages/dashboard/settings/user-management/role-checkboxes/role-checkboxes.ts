@@ -1,6 +1,6 @@
 import { Component, computed, forwardRef, inject, linkedSignal, model } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
-import { UserRole } from '@contracts/permission/permission.constants'
+import { UserRole } from '@contracts/permission/legacy-permission.constants'
 import { AppTranslation } from '@providers/i18n/app-translation'
 import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-custom-control'
 import { AuthStore } from '@store/auth/auth.store'

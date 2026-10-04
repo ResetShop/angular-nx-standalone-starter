@@ -9,7 +9,10 @@
 			"@resetshop/ui/*": ["../../packages/ui/src/lib/*"],
 			"@resetshop/angular-core": ["../../packages/angular-core/src/index.ts"],
 			"@resetshop/angular-core/*": ["../../packages/angular-core/src/lib/*"],
+			"@resetshop/hono-core": ["../../packages/hono-core/src/index.ts"],
+			"@resetshop/hono-core/*": ["../../packages/hono-core/src/lib/*"],
 			"@components/*": ["src/app/components/*"],
+			"@config/*": ["src/api/config/*"],
 			"@configs/*": ["src/app/configs/*"],
 			"@contracts/*": ["src/contracts/*"],
 			"@directives/*": ["src/app/directives/*"],
@@ -17,6 +20,7 @@
 			"@guards/*": ["src/app/guards/*"],
 			"@pages/*": ["src/app/pages/*"],
 			"@providers/*": ["src/app/providers/*"],
+			"@schema/*": ["src/db/schema/*"],
 			"@store/*": ["src/app/store/*"]
 		},
 		"ignoreDeprecations": "6.0"

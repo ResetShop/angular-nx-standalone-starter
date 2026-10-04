@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing'
 import type { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router'
 import { provideRouter, UrlTree } from '@angular/router'
-import type { AuthenticatedUserDto } from '@contracts/user/user.types'
+import type { AuthenticatedUserDto } from '@contracts/user/legacy-user.types'
 import { AuthSession } from '@providers/auth/auth-session'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { InMemoryAuthApi } from '@providers/auth/auth.mock'

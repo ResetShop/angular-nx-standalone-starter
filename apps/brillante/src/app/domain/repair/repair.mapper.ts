@@ -10,7 +10,7 @@ import type {
 	RepairWriteDto,
 	UpdateTrackingInfoRequest,
 } from '@contracts/repair/repair.types'
-import type { UserDto } from '@contracts/user/user.types'
+import type { UserDto } from '@contracts/user/legacy-user.types'
 import type { IUser } from '@domain/user/user.interface'
 import { parseISO } from 'date-fns'
 import type {

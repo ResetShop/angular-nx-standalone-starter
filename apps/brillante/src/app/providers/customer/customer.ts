@@ -6,7 +6,7 @@ import type {
 	CustomerDto,
 	UpdateCustomerRequest,
 } from '@contracts/client/client.types'
-import type { PaginatedRows } from '@contracts/common/pagination.types'
+import type { PaginatedRows } from '@contracts/common/legacy-pagination.types'
 import type { Observable } from 'rxjs'
 import { environment } from '../../environments/environment'
 import type { CustomerApi } from './customer.interface'

@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core'
 import type { CustomerDto } from '@contracts/client/client.types'
-import type { CreateUserRequest, UpdateUserRequest, UserDto } from '@contracts/user/user.types'
+import type { CreateUserRequest, UpdateUserRequest, UserDto } from '@contracts/user/legacy-user.types'
 import type { Observable } from 'rxjs'
 
 export interface UserApi {

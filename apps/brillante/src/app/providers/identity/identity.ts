@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core'
 import { AuthService } from '@auth0/auth0-angular'
-import type { Auth0Profile } from '@contracts/user/user.types'
+import type { Auth0Profile } from '@contracts/user/legacy-user.types'
 import { filter, map, type Observable, switchMap, take } from 'rxjs'
 import type { IdentityApi } from './identity.interface'
 

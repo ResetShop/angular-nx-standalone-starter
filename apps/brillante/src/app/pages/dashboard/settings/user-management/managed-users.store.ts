@@ -1,5 +1,5 @@
 import { computed, inject } from '@angular/core'
-import type { CreateUserRequest, UpdateUserRequest } from '@contracts/user/user.types'
+import type { CreateUserRequest, UpdateUserRequest } from '@contracts/user/legacy-user.types'
 import { mapUserDtoToUser } from '@domain/user/user.mapper'
 import { patchState, signalStore, withComputed, withHooks, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'

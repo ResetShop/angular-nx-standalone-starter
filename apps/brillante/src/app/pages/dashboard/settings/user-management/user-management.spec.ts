@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
-import type { UserDto } from '@contracts/user/user.types'
+import type { UserDto } from '@contracts/user/legacy-user.types'
 import { provideSliceTranslationMock } from '@mocks/slice-translation.mock'
 import { createMockUserDto } from '@mocks/user-dto.mock'
 import { createMockUser } from '@mocks/user.mock'

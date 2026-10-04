@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { provideRouter } from '@angular/router'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { provideSliceTranslationMock, setLanguageMock } from '@mocks/slice-translation.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'

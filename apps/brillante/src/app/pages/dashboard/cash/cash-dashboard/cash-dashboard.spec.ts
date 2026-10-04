@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing'
 import { provideRouter } from '@angular/router'
 import type { CashTransactionQuery } from '@contracts/cash/cash-transaction.types'
-import { Permission, UserRole } from '@contracts/permission/permission.constants'
+import { Permission, UserRole } from '@contracts/permission/legacy-permission.constants'
 import { createMockUser } from '@mocks/user.mock'
 import { CashConceptApi } from '@providers/cash-concept/cash-concept.interface'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'

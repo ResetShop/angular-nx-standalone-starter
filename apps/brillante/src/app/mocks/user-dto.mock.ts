@@ -1,4 +1,4 @@
-import type { UserDto } from '@contracts/user/user.types'
+import type { UserDto } from '@contracts/user/legacy-user.types'
 
 /**
  * Create a wire-format user for API stubs. Override specific fields as needed.

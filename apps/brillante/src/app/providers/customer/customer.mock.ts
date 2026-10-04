@@ -5,7 +5,7 @@ import type {
 	CustomerDto,
 	UpdateCustomerRequest,
 } from '@contracts/client/client.types'
-import type { PaginatedRows } from '@contracts/common/pagination.types'
+import type { PaginatedRows } from '@contracts/common/legacy-pagination.types'
 import { type Observable, of, throwError } from 'rxjs'
 import type { CustomerApi } from './customer.interface'
 import { CustomerApi as CustomerApiToken } from './customer.interface'

@@ -1,5 +1,7 @@
 # Environment Variables
 
+> **Brillante (Cloudflare Worker):** `apps/brillante` reads the same variables with a few differences: `CORS_ORIGIN` is required on Workers, `AUTH_CHANGE_PASSWORD_RATE_LIMIT_*` and `TOKEN_CLEANUP_INTERVAL` do not exist, and non-secret values live in `wrangler.jsonc` while secrets are set with `wrangler secret put`. See [`brillante-backend.md`](brillante-backend.md).
+
 This document is the single source of truth for **what environment variables exist**, **what they mean**, and **how to deliver them to `process.env`** without committing a `.env` file.
 
 ---

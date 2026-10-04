@@ -1,6 +1,6 @@
 import { computed, inject } from '@angular/core'
 import type { CustomerDto } from '@contracts/client/client.types'
-import type { PaginatedRows, SearchPaginationParams } from '@contracts/common/pagination.types'
+import type { PaginatedRows, SearchPaginationParams } from '@contracts/common/legacy-pagination.types'
 import type { CustomerDetails } from '@domain/customer/customer.interface'
 import {
 	mapCustomerDtoToCustomer,

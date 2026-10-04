@@ -1,84 +1,96 @@
 /**
- * Brillante authorisation catalogue. The backend authorises through numeric roles, so each
- * permission identifier (module:resource:action) maps to the roles allowed to hold it; the
- * frontend derives `User.hasPermission()` from that mapping.
+ * Permission definitions using the 3-part format (module:resource:action).
+ *
+ * Single source of truth for both backend middleware (requirePermission)
+ * and frontend authorization (route guards, sidebar filtering, button visibility).
+ *
+ * The `description` here is the English source of truth for the database — it seeds the
+ * `permission.description` column and is what the permissions endpoint returns. It is not the
+ * display text: the Permissions page renders `PERMISSIONS.DESCRIPTIONS[identifier]` from the
+ * active language's translation file, falling back to this string.
+ *
+ * To add a new permission:
+ * 1. Add an entry to PERMISSION_DEFINITIONS with identifier and description
+ * 2. Add the same description under PERMISSIONS.DESCRIPTIONS[identifier] in every translation
+ *    file (apps/reference-app/src/app/providers/i18n/translations/), translated per language —
+ *    enforced by permission-descriptions.spec.ts
+ * 3. Run `npm run sync:permissions` to insert it into the database
  */
-export const UserRole = Object.freeze({
-	ADMIN: 1,
-	OWNER: 2,
-	COUNTER_CLERK: 3,
-	REPAIRMAN: 4,
-	CUSTOMER: 5,
-	EMPLOYEE: 6,
-	ACCOUNTANT: 7,
-} as const)
 
-export type UserRole = (typeof UserRole)[keyof typeof UserRole]
+// ============================================================================
+// Branded type and validation
+// ============================================================================
 
-export const Permission = Object.freeze({
-	REPAIRS_READ: 'repairs:repair:read',
-	REPAIRS_MANAGE: 'repairs:repair:manage',
-	CLIENTS_READ: 'clients:client:read',
-	CLIENTS_MANAGE: 'clients:client:manage',
-	CASH_READ: 'cash:transaction:read',
-	CASH_MANAGE: 'cash:transaction:manage',
-	REPORTS_CASH_READ: 'reports:cash:read',
-	SETTINGS_OFFICE_BRANCHES_MANAGE: 'settings:office_branch:manage',
-	SETTINGS_USERS_MANAGE: 'settings:user:manage',
-	SETTINGS_CASH_CONCEPTS_MANAGE: 'settings:cash_concept:manage',
-} as const)
+/**
+ * Branded type for permission identifiers in module:resource:action format.
+ * Ensures compile-time safety when passing identifiers to backend middleware.
+ */
+export type PermissionName = string & { readonly __brand: 'PermissionName' }
 
-export type Permission = (typeof Permission)[keyof typeof Permission]
+const PERMISSION_PATTERN = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/
 
-export interface PermissionDefinition {
-	readonly identifier: Permission
-	readonly description: string
-	readonly roles: readonly UserRole[]
+/**
+ * Validates and brands a permission identifier string.
+ * @throws Error if format is invalid
+ */
+export function permission(name: string): PermissionName {
+	if (!PERMISSION_PATTERN.test(name)) {
+		throw new Error(
+			`Invalid permission name: "${name}". Must be in module:resource:action format (e.g., 'admin:users:create')`,
+		)
+	}
+	return name as PermissionName
 }
 
-const { ADMIN, OWNER, COUNTER_CLERK, REPAIRMAN, EMPLOYEE, ACCOUNTANT } = UserRole
+/**
+ * Type guard that checks if a string is a valid permission identifier.
+ * Does not throw — returns false for invalid formats.
+ */
+export function isPermissionName(name: string): name is PermissionName {
+	return PERMISSION_PATTERN.test(name)
+}
 
-export const PERMISSION_DEFINITIONS: readonly PermissionDefinition[] = [
-	{
-		identifier: Permission.REPAIRS_READ,
-		description: 'View repairs',
-		roles: [ADMIN, OWNER, COUNTER_CLERK, REPAIRMAN, EMPLOYEE],
-	},
-	{
-		identifier: Permission.REPAIRS_MANAGE,
-		description: 'Create, update and delete repairs',
-		roles: [ADMIN, OWNER, COUNTER_CLERK, REPAIRMAN, EMPLOYEE],
-	},
-	{ identifier: Permission.CLIENTS_READ, description: 'View clients', roles: [ADMIN, OWNER, COUNTER_CLERK] },
-	{
-		identifier: Permission.CLIENTS_MANAGE,
-		description: 'Create and update clients',
-		roles: [ADMIN, OWNER, COUNTER_CLERK],
-	},
-	{
-		identifier: Permission.CASH_READ,
-		description: 'View cash transactions',
-		roles: [ADMIN, OWNER, COUNTER_CLERK, EMPLOYEE],
-	},
-	{
-		identifier: Permission.CASH_MANAGE,
-		description: 'Create, update and delete cash transactions',
-		roles: [ADMIN, OWNER, COUNTER_CLERK, EMPLOYEE],
-	},
-	{ identifier: Permission.REPORTS_CASH_READ, description: 'View cash reports', roles: [ADMIN, OWNER, ACCOUNTANT] },
-	{
-		identifier: Permission.SETTINGS_OFFICE_BRANCHES_MANAGE,
-		description: 'Manage office branches',
-		roles: [ADMIN, OWNER, COUNTER_CLERK],
-	},
-	{
-		identifier: Permission.SETTINGS_USERS_MANAGE,
-		description: 'Manage users',
-		roles: [ADMIN, OWNER, COUNTER_CLERK],
-	},
-	{
-		identifier: Permission.SETTINGS_CASH_CONCEPTS_MANAGE,
-		description: 'Manage cash transaction concepts',
-		roles: [ADMIN, OWNER, COUNTER_CLERK, REPAIRMAN, EMPLOYEE],
-	},
-]
+// ============================================================================
+// Permission definitions — the single array you edit to add new permissions
+// ============================================================================
+
+export const PERMISSION_DEFINITIONS = [
+	// Permission management
+	{ identifier: 'admin:permissions:read', description: 'View all system permissions' },
+	// User management
+	{ identifier: 'admin:users:create', description: 'Create new users' },
+	{ identifier: 'admin:users:read', description: 'View user details' },
+	{ identifier: 'admin:users:update', description: 'Update user information' },
+	{ identifier: 'admin:users:delete', description: 'Delete users' },
+	{ identifier: 'admin:users:reset_password', description: 'Reset user passwords' },
+	{ identifier: 'admin:users:disable', description: 'Manage user account status' },
+	// Role management
+	{ identifier: 'admin:roles:create', description: 'Create new roles' },
+	{ identifier: 'admin:roles:read', description: 'View role details' },
+	{ identifier: 'admin:roles:update', description: 'Update roles' },
+	{ identifier: 'admin:roles:delete', description: 'Delete roles' },
+	// User-role assignment management
+	{ identifier: 'admin:user_roles:read', description: 'View user role assignments' },
+	{ identifier: 'admin:user_roles:assign', description: 'Assign roles to users' },
+	{ identifier: 'admin:user_roles:remove', description: 'Remove roles from users' },
+] as const
+
+// ============================================================================
+// Seed data
+// ============================================================================
+
+function parseIdentifier(identifier: string): { module: string; resource: string; action: string } {
+	const [module, resource, action] = identifier.split(':')
+	return { module, resource, action }
+}
+
+/**
+ * All permission definitions for DB seeding.
+ * Derived from PERMISSION_DEFINITIONS — module, resource, and action
+ * are parsed from the identifier.
+ */
+export const PERMISSIONS_SEED_DATA = PERMISSION_DEFINITIONS.map((p) => ({
+	name: p.identifier,
+	description: p.description,
+	...parseIdentifier(p.identifier),
+}))

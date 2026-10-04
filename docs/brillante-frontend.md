@@ -2,8 +2,10 @@
 
 `apps/brillante` is a **frontend-only** rebuild of the legacy Brillante management app ("Shine") on top of this starter.
 It was generated with the canonical schematic (`npm run generate:app -- --name="Brillante"`) and then reduced to an
-Angular SPA that talks to the **existing production Brillante REST API**. The backend is out of scope: nothing under
-`apps/brillante` contains an API, a database schema or a server.
+Angular SPA that talks to the **existing production Brillante REST API**. A Hono + Drizzle backend for users and
+authentication now lives beside it (`apps/brillante/src/api`, running as a Cloudflare Worker, see
+[`brillante-backend.md`](brillante-backend.md)), but the screens do not call it yet: they still use the legacy API and
+Auth0 until the frontend swap lands.
 
 > **Status:** prototype. It is built to the starter's rules (see `CLAUDE.md`) but has not been exercised against the live
 > API with a real Auth0 account — see [Open items](#open-items).
@@ -36,7 +38,7 @@ SPA identifier, not a secret.
 3. `jwtInterceptor` sends `Authorization: Bearer <jwt>` to the API; `unauthorizedInterceptor` ends the session on a 401.
 
 The API authorises by **numeric roles** (admin, owner, counter clerk, repairman, customer, employee, accountant). The
-starter authorises by **permissions**, so `src/contracts/permission/permission.constants.ts` maps each
+starter authorises by **permissions**, so `src/contracts/permission/legacy-permission.constants.ts` maps each
 `module:resource:action` permission to the roles that hold it (taken from the legacy route guards) and `User` derives
 `hasPermission()` from the user's roles. Navigation, `permissionGuard` and the UI all use that one catalogue.
 
@@ -62,7 +64,8 @@ Modules (routes under `/dashboard`): `clients`, `repairs`, `cash`, `reports`, `s
 
 ## Where this app deviates from `reference-app`
 
-- No SSR, no Hono server, no Drizzle, no integration tests, no Playwright project (there is no backend to seed).
+- No SSR and no Playwright project. The Hono API runs as a Cloudflare Worker, with its own Drizzle schema and integration
+  tests (see [`brillante-backend.md`](brillante-backend.md)).
 - Storybook targets were removed from the project: `.storybook/` is wired to `apps/reference-app` only.
 - Translations: `TranslationSchema` is starter-owned and `Translation.instant()` only accepts its keys. Brillante keys
   live in per-module slice files (`providers/i18n/translations/slices/*`) composed into `en.ts`/`es.ts`, and

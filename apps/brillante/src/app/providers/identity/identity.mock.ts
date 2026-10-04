@@ -1,5 +1,5 @@
 import { makeEnvironmentProviders } from '@angular/core'
-import type { Auth0Profile } from '@contracts/user/user.types'
+import type { Auth0Profile } from '@contracts/user/legacy-user.types'
 import { type Observable, of } from 'rxjs'
 import type { IdentityApi } from './identity.interface'
 import { IdentityApi as IdentityApiToken } from './identity.interface'

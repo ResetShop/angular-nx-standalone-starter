@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core'
 import { form, FormField as SignalFormField } from '@angular/forms/signals'
 import { PageShell } from '@components/page-shell/page-shell'
-import { Permission } from '@contracts/permission/permission.constants'
+import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { featherList, featherMapPin, featherUsers } from '@ng-icons/feather-icons'
 import type { AppTranslationKey } from '@providers/i18n/app-translations'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'

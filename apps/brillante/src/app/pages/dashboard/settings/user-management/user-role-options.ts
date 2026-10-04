@@ -1,4 +1,4 @@
-import { UserRole } from '@contracts/permission/permission.constants'
+import { UserRole } from '@contracts/permission/legacy-permission.constants'
 import type { AppTranslationKey } from '@providers/i18n/app-translations'
 
 export interface UserRoleOption {

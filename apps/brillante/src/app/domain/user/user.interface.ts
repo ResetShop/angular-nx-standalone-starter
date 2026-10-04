@@ -1,4 +1,4 @@
-import type { RoleDto } from '@contracts/user/user.types'
+import type { RoleDto } from '@contracts/user/legacy-user.types'
 
 export interface IUser {
 	readonly id: number

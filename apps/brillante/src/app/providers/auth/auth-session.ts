@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core'
-import type { AuthenticatedUserDto } from '@contracts/user/user.types'
+import type { AuthenticatedUserDto } from '@contracts/user/legacy-user.types'
 
 const SESSION_STORAGE_KEY = 'currentUser'
 
