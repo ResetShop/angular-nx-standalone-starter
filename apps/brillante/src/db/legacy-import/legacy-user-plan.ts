@@ -25,6 +25,8 @@ export type LegacyImportPlanEntry =
 export interface LegacyImportPlan {
 	readonly entries: readonly LegacyImportPlanEntry[]
 	readonly excluded: readonly { readonly legacyId: number; readonly reason: LegacyExclusionReason }[]
+	/** Legacy ids of users that already exist in the target and were not imported. */
+	readonly provisionedLegacyIds: readonly number[]
 	readonly placeholderEmailIds: readonly number[]
 }
 
@@ -82,6 +84,7 @@ export function planLegacyUserImport(
 		excluded: classifications.flatMap((entry) =>
 			entry.kind === 'excluded' ? [{ legacyId: entry.legacyId, reason: entry.reason }] : [],
 		),
+		provisionedLegacyIds: classifications.flatMap((entry) => (entry.kind === 'provisioned' ? [entry.legacyId] : [])),
 		placeholderEmailIds: records.filter((record) => record.emailIsPlaceholder).map((record) => record.legacyId),
 	}
 }

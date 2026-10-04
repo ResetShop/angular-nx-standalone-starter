@@ -19,6 +19,7 @@ function formatReferences(references: readonly LegacyUserReferenceSummary[]): st
 		...references.map(
 			(reference) =>
 				`  ${reference.table}.${reference.column}: ${reference.rows} rows, ${reference.toImportedUsers} to imported users, ` +
+				`${reference.toProvisionedUsers} to users already in the target, ` +
 				`${reference.toExcludedUsers} to excluded users (${reference.distinctExcludedUsers} distinct), ` +
 				`${reference.nullValues} null, ${reference.otherValues} other`,
 		),
@@ -40,9 +41,10 @@ export function formatImportReport(
 			countBy(plan.entries, (entry) => entry.action),
 		),
 		...formatCounts(
-			'Excluded',
+			'Excluded (customers and unusable roles)',
 			countBy(plan.excluded, (entry) => entry.reason),
 		),
+		`Already in the target, not imported (legacy ids): ${plan.provisionedLegacyIds.join(', ') || 'none'}`,
 		`Users with a generated placeholder email (legacy ids): ${plan.placeholderEmailIds.join(', ') || 'none'}`,
 		...(conflicts.length > 0
 			? ['Conflicts:', ...conflicts.map((conflict) => `  legacy id ${conflict.legacyId}: ${conflict.reason}`)]

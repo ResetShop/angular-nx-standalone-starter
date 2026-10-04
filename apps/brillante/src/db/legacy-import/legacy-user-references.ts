@@ -1,26 +1,33 @@
 import type { LegacyUserReferenceColumn } from './legacy-user-source'
 
-/** How the values of one legacy column relate to the users the import keeps and leaves out. */
+/** How the values of one legacy column relate to the legacy users: imported, already in the target, or customers. */
 export interface LegacyUserReferenceSummary {
 	readonly table: string
 	readonly column: string
 	readonly rows: number
 	readonly toImportedUsers: number
+	/** Rows that point at a user which already exists in the target, such as the seeded administrator. */
+	readonly toProvisionedUsers: number
+	/** Rows that point at a user the import leaves out (the customers). */
 	readonly toExcludedUsers: number
 	/** Distinct excluded users that rows point at. */
 	readonly distinctExcludedUsers: number
 	readonly nullValues: number
-	/** Values that are neither an imported nor an excluded user, such as the 0 that stands for the system. */
+	/** Values that are no legacy user at all, such as the 0 that stands for the system. */
 	readonly otherValues: number
 }
 
-function summarizeColumn(
-	reference: LegacyUserReferenceColumn,
-	importedIds: ReadonlySet<number>,
-	excludedIds: ReadonlySet<number>,
-): LegacyUserReferenceSummary {
+/** The legacy user ids by what the import does with them. */
+export interface LegacyUserIdGroups {
+	readonly imported: ReadonlySet<number>
+	readonly provisioned: ReadonlySet<number>
+	readonly excluded: ReadonlySet<number>
+}
+
+function summarizeColumn(reference: LegacyUserReferenceColumn, groups: LegacyUserIdGroups): LegacyUserReferenceSummary {
 	const excludedSeen = new Set<number>()
 	let toImportedUsers = 0
+	let toProvisionedUsers = 0
 	let toExcludedUsers = 0
 	let nullValues = 0
 	let otherValues = 0
@@ -28,9 +35,11 @@ function summarizeColumn(
 	for (const userId of reference.userIds) {
 		if (userId === null) {
 			nullValues += 1
-		} else if (importedIds.has(userId)) {
+		} else if (groups.imported.has(userId)) {
 			toImportedUsers += 1
-		} else if (excludedIds.has(userId)) {
+		} else if (groups.provisioned.has(userId)) {
+			toProvisionedUsers += 1
+		} else if (groups.excluded.has(userId)) {
 			toExcludedUsers += 1
 			excludedSeen.add(userId)
 		} else {
@@ -43,6 +52,7 @@ function summarizeColumn(
 		column: reference.column,
 		rows: reference.userIds.length,
 		toImportedUsers,
+		toProvisionedUsers,
 		toExcludedUsers,
 		distinctExcludedUsers: excludedSeen.size,
 		nullValues,
@@ -56,8 +66,7 @@ function summarizeColumn(
  */
 export function summarizeUserReferences(
 	references: readonly LegacyUserReferenceColumn[],
-	importedIds: ReadonlySet<number>,
-	excludedIds: ReadonlySet<number>,
+	groups: LegacyUserIdGroups,
 ): LegacyUserReferenceSummary[] {
-	return references.map((reference) => summarizeColumn(reference, importedIds, excludedIds))
+	return references.map((reference) => summarizeColumn(reference, groups))
 }

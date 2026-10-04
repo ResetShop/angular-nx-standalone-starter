@@ -74,15 +74,21 @@ describe('classifyLegacyUsers', () => {
 		expect(result).toMatchObject({ kind: 'excluded', reason: LegacyExclusionReason.UNKNOWN_ROLE })
 	})
 
-	it('excludes the users the operator skips, whatever their role', () => {
+	it('leaves alone the users that already exist in the target, whatever their role', () => {
 		const results = classifyLegacyUsers(
 			[user({ id: 1 }), user({ id: 2 })],
 			[role(1, UserRole.ADMIN), role(2, UserRole.ADMIN)],
-			{ skipLegacyUserIds: [1] },
+			{ alreadyProvisionedLegacyUserIds: [1] },
 		)
 
-		expect(results[0]).toEqual({ kind: 'excluded', legacyId: 1, reason: LegacyExclusionReason.SKIPPED_BY_OPERATOR })
+		expect(results[0]).toEqual({ kind: 'provisioned', legacyId: 1 })
 		expect(results[1].kind).toBe('import')
+	})
+
+	it('imports an administrator like any other staff user when it is not provisioned', () => {
+		const [result] = classifyLegacyUsers([user({ id: 1 })], [role(1, UserRole.ADMIN)])
+
+		expect(result.kind === 'import' && result.record.roleId).toBe(UserRole.ADMIN)
 	})
 
 	describe('email', () => {
@@ -148,7 +154,7 @@ describe('classifyLegacyUsers', () => {
 
 		const results = classifyLegacyUsers(users, [])
 
-		expect(results.map((result) => (result.kind === 'excluded' ? result.legacyId : result.record.legacyId))).toEqual([
+		expect(results.map((result) => (result.kind === 'import' ? result.record.legacyId : result.legacyId))).toEqual([
 			3, 1, 2,
 		])
 	})

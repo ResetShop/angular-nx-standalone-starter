@@ -127,9 +127,14 @@ from the database and writes nothing yet (the writer and the `--dry-run` CLI com
 Rules: a user is imported when its single active role is any legacy role except Cliente; the legacy ids are kept as the
 new user ids and the role ids as the new role ids; emails are trimmed and lower-cased and a missing one becomes
 `no-email-<id>@placeholder.local`; `enabled=0` maps to `disabled` and `deleted=1` to `deleted`; the legacy user name,
-avatar and has-finished-registration flag are dropped; no history rows are written. Users can be left out explicitly
-(the administrator the starter seed already created is not imported). The user id sequence will move to 1000 after the
+avatar and has-finished-registration flag are dropped; no history rows are written. Users that already exist in the target
+are not imported again: the administrator the starter seed creates is legacy user 1, so it is listed as already in the target
+and the only users the import excludes are the customers. The user id sequence will move to 1000 after the
 import so users created later never reuse a legacy id.
+
+**Seeded administrator.** The administrator created by `drizzle:seed:brillante` is legacy user 1. For the real import the
+database is seeded with `SEED_ADMIN_EMAIL=admin@brillantestore.com` (the other seed fields stay as they are), so the new
+user id 1, its email and the Administrator role line up with the legacy record.
 
 **The dump stays local.** It holds real personal data. `npm run ci` and the pre-commit hook run
 `scripts/check-no-sql-dumps.mjs`, which fails on any tracked or unignored `*.sql`, `*.dump`, `*.bak`, `*.sql.gz` or

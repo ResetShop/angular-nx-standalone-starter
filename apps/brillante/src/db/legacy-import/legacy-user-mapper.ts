@@ -8,8 +8,6 @@ export const LegacyExclusionReason = Object.freeze({
 	NO_ACTIVE_ROLE: 'no-active-role',
 	MULTIPLE_ROLES: 'multiple-roles',
 	UNKNOWN_ROLE: 'unknown-role',
-	/** The operator asked to leave the user out, for example the administrator the seed already created. */
-	SKIPPED_BY_OPERATOR: 'skipped-by-operator',
 } as const)
 
 export type LegacyExclusionReason = (typeof LegacyExclusionReason)[keyof typeof LegacyExclusionReason]
@@ -32,11 +30,13 @@ export interface ImportedUserRecord {
 
 export type LegacyUserClassification =
 	| { readonly kind: 'import'; readonly record: ImportedUserRecord }
+	/** The user already exists in the target (for example the administrator created by the seed): nothing to import. */
+	| { readonly kind: 'provisioned'; readonly legacyId: number }
 	| { readonly kind: 'excluded'; readonly legacyId: number; readonly reason: LegacyExclusionReason }
 
 export interface ClassifyLegacyUsersOptions {
-	/** Legacy ids to leave out of the import regardless of their role. */
-	readonly skipLegacyUserIds?: readonly number[]
+	/** Legacy ids of users that already exist in the target and must not be imported again. */
+	readonly alreadyProvisionedLegacyUserIds?: readonly number[]
 }
 
 /** The address standing in for a missing legacy email. It is unique per user and never deliverable. */
@@ -84,7 +84,7 @@ function excluded(legacyId: number, reason: LegacyExclusionReason): LegacyUserCl
 
 /**
  * Decides, for every legacy user, whether it is imported and as what. In scope are the users whose single active
- * role is any legacy role but Cliente. Dropped on purpose: the legacy user name, the avatar and the
+ * role is any legacy role but Cliente; the users listed as already provisioned are left alone. Dropped on purpose: the legacy user name, the avatar and the
  * has-finished-registration flag, which the new model has no place for.
  */
 export function classifyLegacyUsers(
@@ -92,14 +92,14 @@ export function classifyLegacyUsers(
 	userRoles: readonly LegacyUserRoleRow[],
 	options: ClassifyLegacyUsersOptions = {},
 ): LegacyUserClassification[] {
-	const skipped = new Set(options.skipLegacyUserIds ?? [])
+	const provisioned = new Set(options.alreadyProvisionedLegacyUserIds ?? [])
 	const knownRoleIds = new Set<number>(LEGACY_ROLES.map((legacyRole) => legacyRole.id))
 	const customerRoleId = LEGACY_ROLES.find((legacyRole) => legacyRole.code === LegacyRoleCode.CUSTOMER)?.id
 	const activeRoleIds = groupActiveRoleIds(userRoles)
 
 	return users.map((user) => {
 		const roleIds = activeRoleIds.get(user.id) ?? []
-		if (skipped.has(user.id)) return excluded(user.id, LegacyExclusionReason.SKIPPED_BY_OPERATOR)
+		if (provisioned.has(user.id)) return { kind: 'provisioned', legacyId: user.id }
 		if (roleIds.length === 0) return excluded(user.id, LegacyExclusionReason.NO_ACTIVE_ROLE)
 		if (roleIds.length > 1) return excluded(user.id, LegacyExclusionReason.MULTIPLE_ROLES)
 		const [roleId] = roleIds

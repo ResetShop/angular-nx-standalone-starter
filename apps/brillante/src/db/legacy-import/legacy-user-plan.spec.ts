@@ -65,8 +65,18 @@ describe('planLegacyUserImport', () => {
 		])
 	})
 
-	it('carries the excluded users and the ids with placeholder emails', () => {
+	it('carries the excluded users, the users already in the target and the ids with placeholder emails', () => {
 		const users: LegacyUserRow[] = [
+			{
+				id: 1,
+				firstName: 'E',
+				lastName: 'F',
+				email: 'e@example.test',
+				enabled: true,
+				deleted: false,
+				createdAt: null,
+				updatedAt: null,
+			},
 			{
 				id: 2,
 				firstName: 'A',
@@ -89,12 +99,14 @@ describe('planLegacyUserImport', () => {
 			},
 		]
 		const roles: LegacyUserRoleRow[] = [
+			{ userId: 1, roleId: UserRole.ADMIN, enabled: true, deleted: false },
 			{ userId: 2, roleId: UserRole.EMPLOYEE, enabled: true, deleted: false },
 			{ userId: 3, roleId: UserRole.CUSTOMER, enabled: true, deleted: false },
 		]
 
-		const plan = planLegacyUserImport(classifyLegacyUsers(users, roles), [])
+		const plan = planLegacyUserImport(classifyLegacyUsers(users, roles, { alreadyProvisionedLegacyUserIds: [1] }), [])
 
+		expect(plan.provisionedLegacyIds).toEqual([1])
 		expect(plan.placeholderEmailIds).toEqual([2])
 		expect(plan.excluded).toEqual([{ legacyId: 3, reason: 'customer-only' }])
 	})
@@ -103,17 +115,17 @@ describe('planLegacyUserImport', () => {
 describe('summarizeUserReferences', () => {
 	it('counts references to imported users, excluded users, nulls and other values', () => {
 		const summary = summarizeUserReferences(
-			[{ table: 'sh_cash_transaction', column: 'created_user_id', userIds: [2, 2, 7, 7, 8, null, 0] }],
-			new Set([2]),
-			new Set([7, 8]),
+			[{ table: 'sh_cash_transaction', column: 'created_user_id', userIds: [2, 2, 1, 7, 7, 8, null, 0] }],
+			{ imported: new Set([2]), provisioned: new Set([1]), excluded: new Set([7, 8]) },
 		)
 
 		expect(summary).toEqual([
 			{
 				table: 'sh_cash_transaction',
 				column: 'created_user_id',
-				rows: 7,
+				rows: 8,
 				toImportedUsers: 2,
+				toProvisionedUsers: 1,
 				toExcludedUsers: 3,
 				distinctExcludedUsers: 2,
 				nullValues: 1,
@@ -123,7 +135,11 @@ describe('summarizeUserReferences', () => {
 	})
 
 	it('reports an empty column', () => {
-		const [summary] = summarizeUserReferences([{ table: 't', column: 'c', userIds: [] }], new Set(), new Set())
+		const [summary] = summarizeUserReferences([{ table: 't', column: 'c', userIds: [] }], {
+			imported: new Set(),
+			provisioned: new Set(),
+			excluded: new Set(),
+		})
 
 		expect(summary.rows).toBe(0)
 	})
@@ -135,13 +151,13 @@ describe('formatImportReport', () => {
 			{ ...imported(2, 'first.person@example.test') },
 			{ ...imported(3, 'second.person@example.test') },
 			{ kind: 'excluded', legacyId: 9, reason: 'customer-only' },
+			{ kind: 'provisioned', legacyId: 1 },
 		],
 		[{ id: 3, email: 'other@example.test' }],
 	)
 	const references = summarizeUserReferences(
-		[{ table: 'sh_cash_transaction', column: 'created_user_id', userIds: [2, 9] }],
-		new Set([2, 3]),
-		new Set([9]),
+		[{ table: 'sh_cash_transaction', column: 'created_user_id', userIds: [2, 9, 1] }],
+		{ imported: new Set([2, 3]), provisioned: new Set([1]), excluded: new Set([9]) },
 	)
 
 	it('lists planned actions, exclusion reasons, conflicts and reference counts', () => {
@@ -151,7 +167,11 @@ describe('formatImportReport', () => {
 		expect(report).toContain('conflict: 1')
 		expect(report).toContain('customer-only: 1')
 		expect(report).toContain('legacy id 3: id-taken-by-other-email')
-		expect(report).toContain('sh_cash_transaction.created_user_id: 2 rows, 1 to imported users, 1 to excluded users')
+		expect(report).toContain('Already in the target, not imported (legacy ids): 1')
+		expect(report).toContain(
+			'sh_cash_transaction.created_user_id: 3 rows, 1 to imported users, 1 to users already in the target, 1 to excluded users',
+		)
+		expect(report).not.toContain('skipped')
 	})
 
 	it('never prints names or emails', () => {
@@ -164,7 +184,7 @@ describe('formatImportReport', () => {
 		const report = formatImportReport(planLegacyUserImport([], []))
 
 		expect(report).toContain('Planned: none')
-		expect(report).toContain('Excluded: none')
+		expect(report).toContain('Excluded (customers and unusable roles): none')
 		expect(report).toContain('Conflicts: none')
 	})
 })
