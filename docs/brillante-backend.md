@@ -75,6 +75,7 @@ per-account lockout still applies.
 | `npm run dev:brillante:worker`              | Builds the SPA and runs the Worker locally with `wrangler dev`                            |
 | `npm run drizzle:push-migrations:brillante` | Pushes the schema to `PG_CONNECTION_STRING`                                               |
 | `npm run drizzle:seed:brillante`            | Seeds the admin role, permissions and the admin user (`SEED_ADMIN_EMAIL`/`_PASSWORD`)     |
+| `npm run drizzle:seed-roles:brillante`      | Adds the legacy roles 2 to 7 to a database seeded before they existed (idempotent)        |
 | `npm run sync:permissions:brillante`        | Inserts permissions added to the catalogue (does not grant them to roles)                 |
 | `npm run test:integration:brillante`        | Integration suite against Postgres (`PG_TEST_CONNECTION_STRING`, or an embedded Postgres) |
 | `npm run smoke:brillante:worker`            | End-to-end check of a running Worker (see below)                                          |
@@ -94,6 +95,21 @@ the 429 and `Retry-After` of the rate limit, and the Cron handler (`SMOKE_CHECK_
 `/cdn-cgi/local/scheduled` URL that `wrangler dev` prints, local only). Run it again
 against a deployment: Hyperdrive behaviour, CPU time per login, email delivery and cookies on the real domain
 cannot be proven locally.
+
+### Roles
+
+`drizzle:seed:brillante` creates the reference seed's Administrator (id 1, all 14 `admin:*` permissions) and then the six
+other legacy roles with their legacy ids and **no permissions**: 2 `owner` (Brillante), 3 `counter_clerk` (Encargado Local),
+4 `repairman` (Taller), 5 `customer` (Cliente), 6 `employee` (Empleado), 7 `accountant` (Contador). None of them is
+removable. The ids match the legacy ones on purpose (user import and the frontend's interim role table use them), so
+`seedLegacyRoles` fails loudly if a legacy code sits under another id or an unrelated role holds a legacy id, and it moves
+the id sequence past 7 so later roles never collide. It is idempotent; `drizzle:seed-roles:brillante` runs only this step
+on an already seeded database.
+
+`LEGACY_ROLE_PERMISSION_MATRIX` (`contracts/role/legacy-roles.ts`) lists the Brillante domain permissions each legacy role
+would hold. It is derived from the frontend's interim table and is **not applied**: the database only knows the `admin:*`
+permissions, so until domain permissions are added to `PERMISSION_DEFINITIONS` only administrators can use the user
+management API (owners and counter clerks lose it until permissions are assigned to their roles).
 
 ### Deployment and checks on Cloudflare
 

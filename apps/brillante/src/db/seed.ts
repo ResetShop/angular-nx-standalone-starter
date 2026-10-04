@@ -9,6 +9,7 @@ import { permission } from './schema/permission'
 import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 import { createDefaultPromptFn, resolveSeedAdminCredentials, type SeedAdminCredentials } from './seed-admin-credentials'
+import { seedLegacyRoles } from './seed-legacy-roles'
 
 /**
  * Creates the admin user and its authentication record, or returns the existing user's id.
@@ -87,13 +88,17 @@ async function seedPermissions(tx: DrizzleTransaction, adminRoleId: number): Pro
 	console.log('✅ Permissions assigned to Administrator role')
 }
 
-/** Runs the full bootstrap inside a transaction: admin user, role, role assignment, permissions. */
+/** Runs the full bootstrap inside a transaction: admin user, role, role assignment, permissions, legacy roles. */
 async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdminCredentials): Promise<void> {
 	const adminUserId = await seedAdminUser(tx, credentials)
 	const adminRoleId = await seedAdminRole(tx)
 	await tx.insert(userRole).values({ userId: adminUserId, roleId: adminRoleId }).onConflictDoNothing()
 	console.log('✅ Administrator role assigned to admin user')
 	await seedPermissions(tx, adminRoleId)
+	const legacyRoles = await seedLegacyRoles(tx)
+	console.log(
+		`✅ Legacy roles without permissions: ${legacyRoles.created.length} created, ${legacyRoles.existing.length} already present`,
+	)
 }
 
 /**

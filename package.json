@@ -64,6 +64,8 @@
 		"drizzle:push-migrations:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push --config apps/brillante/drizzle.config.ts",
 		"drizzle:seed:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/seed.ts",
 		"drizzle:seed:brillante:local": "tsx --env-file=.env --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/seed.ts",
+		"drizzle:seed-roles:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/seed-roles.ts",
+		"drizzle:seed-roles:brillante:local": "tsx --env-file=.env --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/seed-roles.ts",
 		"sync:permissions:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/sync-permissions.ts",
 		"sync:permissions:brillante:local": "tsx --env-file=.env --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/sync-permissions.ts",
 		"test:watch": "nx run reference-app:test --watch",
