@@ -214,6 +214,7 @@
 					"parallel": false,
 					"commands": [
 						"node scripts/check-no-env-files.mjs",
+						"node scripts/check-no-sql-dumps.mjs",
 						"node scripts/check-no-issue-refs-in-comments.mjs",
 						"prettier --check --cache ."
 					]

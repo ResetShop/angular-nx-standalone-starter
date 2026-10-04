@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 - `apps/brillante` gains a backend that runs as a Cloudflare Worker: the reference app's Hono, Drizzle and PASETO user, role and authentication API, adapted for Workers. It uses one database client per request through Hyperdrive, Cloudflare Rate Limiting bindings in place of `hono-rate-limiter`, and a Cron Trigger for the expired-token cleanup. See `docs/brillante-backend.md`.
 - `apps/brillante` seeds the six legacy Brillante roles (ids 2 to 7: owner, counter clerk, repairman, customer, employee, accountant) with their legacy ids and no permissions, next to the reference seed's Administrator, plus `npm run drizzle:seed-roles:brillante` for databases seeded earlier and a typed, not-applied `LEGACY_ROLE_PERMISSION_MATRIX`.
+- `apps/brillante/src/db/legacy-import/`: the pure core of the legacy staff-user import (MySQL dump parser, `LegacyUserSource`, classification rules, conflict-aware plan, references report with no personal data), and `scripts/check-no-sql-dumps.mjs`, a guard (pre-commit and `check` target) that fails on database dump files that git does not ignore.
 
 ### Changed
 
