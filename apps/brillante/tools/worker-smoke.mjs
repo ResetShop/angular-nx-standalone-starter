@@ -35,6 +35,16 @@ function report(ok, name, detail = '') {
 const randomClientIp = () => `203.0.113.${Math.floor(Math.random() * 250) + 1}`
 
 /**
+ * Cloudflare's edge rejects client requests that carry `cf-connecting-ip` (error 1000) and sets it itself, so the
+ * simulated client address is only sent to a local `wrangler dev`. Against a deployment every check shares the
+ * runner's real address.
+ */
+const isLocalTarget = ['localhost', '127.0.0.1', '[::1]'].includes(new URL(baseUrl).hostname)
+const clientIpHeader = (ip) => (isLocalTarget ? { 'cf-connecting-ip': ip } : {})
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
  * Minimal cookie jar (name -> value, plus the raw Set-Cookie lines for attribute checks) for one
  * simulated client. Cloudflare's edge sets `cf-connecting-ip`; locally the script supplies it.
  */
@@ -48,7 +58,7 @@ function createSession() {
 		const response = await fetch(`${baseUrl}${path}`, {
 			redirect: 'manual',
 			...init,
-			headers: { 'cf-connecting-ip': clientIp, ...(cookieHeader ? { cookie: cookieHeader } : {}), ...init.headers },
+			headers: { ...clientIpHeader(clientIp), ...(cookieHeader ? { cookie: cookieHeader } : {}), ...init.headers },
 		})
 		for (const line of response.headers.getSetCookie()) {
 			rawSetCookies.push(line)
@@ -173,25 +183,36 @@ async function checkConcurrencyIsolation(admin) {
 
 async function checkRateLimit() {
 	const ip = randomClientIp()
+	if (!isLocalTarget) {
+		// The earlier logins from this address already used part of the 60 s window.
+		console.log('      waiting 65 s so the rate limit window of this address is empty')
+		await sleep(65_000)
+	}
+	// Locally the binding is exact (5 per window). At the edge Cloudflare's Rate Limiting binding is
+	// eventually consistent and permissive, so the check only requires that throttling kicks in within a bounded
+	// number of attempts; the database-backed lockout stays the authoritative brute-force defence.
+	const maxAttempts = isLocalTarget ? 8 : 60
 	const statuses = []
 	let retryAfter = null
-	for (let attempt = 0; attempt < 8; attempt += 1) {
+	for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
 		const response = await fetch(
 			`${baseUrl}/api/auth/login`,
-			json({ email: 'nobody@smoke.test', password: 'wrong-password-123' }, { 'cf-connecting-ip': ip }),
+			json({ email: 'nobody@smoke.test', password: 'wrong-password-123' }, clientIpHeader(ip)),
 		)
 		statuses.push(response.status)
 		retryAfter ??= response.headers.get('retry-after')
+		if (!isLocalTarget && response.status === 429) break
 	}
+	const firstThrottled = statuses.indexOf(429)
 	report(
-		statuses.slice(0, 5).every((s) => s === 401),
-		'first 5 attempts per IP reach the handler',
-		statuses.join(' '),
+		isLocalTarget ? statuses.slice(0, 5).every((s) => s === 401) : firstThrottled !== 0,
+		'first attempts per IP reach the handler',
+		statuses.slice(0, 8).join(' '),
 	)
 	report(
-		statuses.slice(5).every((s) => s === 429),
+		isLocalTarget ? statuses.slice(5).every((s) => s === 429) : firstThrottled > 0,
 		'attempts beyond the limit are throttled with 429',
-		statuses.join(' '),
+		firstThrottled > 0 ? `first 429 on attempt ${firstThrottled + 1} of ${statuses.length}` : statuses.join(' '),
 	)
 	report(retryAfter === '60', 'throttled response carries Retry-After matching the window', `Retry-After ${retryAfter}`)
 }

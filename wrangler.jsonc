@@ -23,7 +23,7 @@
 	// refresh-token reuse checks and user status.
 	// Replace the id below with the one printed by that command. For `wrangler dev`, set
 	// CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE to a local Postgres connection string.
-	"hyperdrive": [{ "binding": "HYPERDRIVE", "id": "00000000000000000000000000000000" }],
+	"hyperdrive": [{ "binding": "HYPERDRIVE", "id": "0a40d9d9937840f9a37c72d7447d0bb0" }],
 	// Per-IP throttling, one binding per endpoint. Cloudflare only supports 10 s or 60 s windows.
 	// These values must match RATE_LIMIT_POLICY in src/api/middlewares/rate-limit.middleware.ts; a spec
 	// enforces it. Counters are per Cloudflare location and eventually consistent: the database-backed
@@ -44,7 +44,7 @@
 	// CORS_ORIGIN is required on Workers (the Worker refuses to serve requests without it). It is the
 	// public origin of the app, and password-reset links are built from it. `wrangler dev --var` overrides it locally.
 	"vars": {
-		"CORS_ORIGIN": "https://app.brillante.com",
+		"CORS_ORIGIN": "https://brillante.ramiro-0ae.workers.dev",
 		"IS_SERVERLESS": "true",
 		"PASETO_ISSUER": "brillante",
 		"COOKIE_SECURE": "true",

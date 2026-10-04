@@ -56,12 +56,12 @@ per-account lockout still applies.
 - **Secrets** (`wrangler secret put`): `PASETO_SECRET_KEY` (64 hex characters), `CRON_SECRET` (at least 32 characters).
 - **Vars** in `wrangler.jsonc`: `IS_SERVERLESS=true` (transaction-scoped advisory locks; the Worker runtime also forces
   serverless mode on its own, so a deployment that forgets the flag cannot take a session lock through Hyperdrive),
-  `PASETO_ISSUER`, `COOKIE_SECURE`, `EMAIL_PROVIDER=noop` and `CORS_ORIGIN=https://app.brillante.com`. **`CORS_ORIGIN` is
+  `PASETO_ISSUER`, `COOKIE_SECURE`, `EMAIL_PROVIDER=noop` and `CORS_ORIGIN` (the public origin of the Worker). **`CORS_ORIGIN` is
   required on Workers** (`keep_vars` keeps variables set in the dashboard across deploys). Without it the
   Worker answers `500` and logs `FATAL ... CORS_ORIGIN`, because password-reset links are built from it and a `localhost`
   default would put dead links in emails.
 - **Custom domain.** `wrangler.jsonc` declares no route, so a deploy is reachable on its `workers.dev` address only.
-  Attach `app.brillante.com` to the Worker (dashboard, or a `routes` entry with `custom_domain: true`) before relying on
+  Attach the production domain to the Worker (dashboard, or a `routes` entry with `custom_domain: true`) before relying on
   cookies or reset links: both assume that origin.
 - **Email is not solved yet.** Port 25 is blocked on Workers and SMTP over TLS has not been verified there. The planned
   providers are the Cloudflare Email Service binding (beta, needs the Workers Paid plan to reach arbitrary recipients) with
@@ -92,8 +92,31 @@ role-protected routes, refresh rotation, that forgot-password work after the res
 (`SMOKE_DATABASE_URL`), that 40 parallel requests from two users never see each other (`SMOKE_SECOND_EMAIL`/`_PASSWORD`),
 the 429 and `Retry-After` of the rate limit, and the Cron handler (`SMOKE_CHECK_SCHEDULED=1`, through the
 `/cdn-cgi/local/scheduled` URL that `wrangler dev` prints, local only). Run it again
-against a staging deployment: Hyperdrive behaviour, CPU time per login, email delivery and cookies on the real domain
+against a deployment: Hyperdrive behaviour, CPU time per login, email delivery and cookies on the real domain
 cannot be proven locally.
+
+### Deployment and checks on Cloudflare
+
+While this is a prototype there is a single Worker, `brillante`, and a single database; separating staging from production
+is future work. Setup: create the Hyperdrive config with `--caching-disabled` and put its id in `wrangler.jsonc`; push
+the schema and seed an admin with `drizzle:push-migrations:brillante` and `drizzle:seed:brillante`
+(`PG_CONNECTION_STRING`, with `uselibpqcompat=true&sslmode=require` for hosts whose certificate chain Node cannot
+verify); set the secrets with `wrangler secret put PASETO_SECRET_KEY` and `CRON_SECRET`; then `npm run deploy:brillante`.
+Run the smoke test with `SMOKE_BASE_URL=<worker url>`. Against a deployment the script omits `cf-connecting-ip`
+(the edge rejects client requests that carry it, error 1000), so all checks share the runner's address and the
+rate-limit check first waits 65 s for its window to empty. The scheduled-handler check is local only.
+
+Results on the Workers Paid plan: a bcrypt login (cost 12) used 300 to 630 ms of CPU, other endpoints under 80 ms, no
+`exceededCpu`, no database errors, and all smoke checks passed. Notes:
+
+- A plan change only reaches a Worker on its next deployment; until then requests still ran under the Free limits.
+- The Workers Free plan is not workable: it cut off most requests with `exceededCpu` (503).
+- Cloudflare's Rate Limiting binding is permissive at the edge: the 5 per 60 s policy first returned 429 after 10 to 28
+  attempts from one address (locally it is exact). The DB-backed per-account lockout is the authoritative defence; use
+  a zone WAF rate limiting rule if a strict per-IP limit is needed.
+- Hyperdrive's default origin connection limit (20) exhausted the 15 clients of Supabase's session pooler
+  (`EMAXCONNSESSION`) and made parallel requests fail. Set it below the pooler's limit:
+  `wrangler hyperdrive update <id> --origin-connection-limit 8`.
 
 ## Database client behaviour
 
@@ -114,7 +137,7 @@ can keep; the purge is idempotent, so two overlapping runs are harmless and the 
 | Frontend pages (request link, set new password)                                                          | **Not present** in `apps/brillante`; they exist only in the reference app and arrive with the auth swap |
 
 **Open point: the reset link origin.** The link is built from the first entry of `CORS_ORIGIN`
-(`password-reset.service.ts`), which is `https://app.brillante.com`. On a preview deployment (a `workers.dev` address) a
+(`password-reset.service.ts`), which is the `workers.dev` address until a custom domain is attached. On a preview deployment (a `workers.dev` address) a
 link would therefore point at production. Nothing breaks today because no email is sent. When emails are enabled:
 
 - Keep `CORS_ORIGIN` as an allow-list for genuinely cross-origin callers. The SPA and the API share one origin on the
