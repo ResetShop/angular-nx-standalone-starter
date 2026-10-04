@@ -1,3 +1,4 @@
+import type { LegacyUserClassification } from './legacy-user-mapper'
 import type { LegacyUserReferenceColumn } from './legacy-user-source'
 
 /** How the values of one legacy column relate to the legacy users: imported, already in the target, or customers. */
@@ -22,6 +23,19 @@ export interface LegacyUserIdGroups {
 	readonly imported: ReadonlySet<number>
 	readonly provisioned: ReadonlySet<number>
 	readonly excluded: ReadonlySet<number>
+}
+
+/** Groups the legacy user ids of a classification by what the import does with them. */
+export function groupLegacyUserIds(classifications: readonly LegacyUserClassification[]): LegacyUserIdGroups {
+	const groups = { imported: new Set<number>(), provisioned: new Set<number>(), excluded: new Set<number>() }
+	for (const classification of classifications) {
+		if (classification.kind === 'import') {
+			groups.imported.add(classification.record.legacyId)
+		} else {
+			groups[classification.kind].add(classification.legacyId)
+		}
+	}
+	return groups
 }
 
 function summarizeColumn(reference: LegacyUserReferenceColumn, groups: LegacyUserIdGroups): LegacyUserReferenceSummary {

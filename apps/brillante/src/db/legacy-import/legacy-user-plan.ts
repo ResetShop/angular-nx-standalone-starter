@@ -11,6 +11,8 @@ export const LegacyImportConflictReason = Object.freeze({
 	ID_TAKEN_BY_OTHER_EMAIL: 'id-taken-by-other-email',
 	/** The email is taken in the target by a user with another id. */
 	EMAIL_TAKEN_BY_OTHER_ID: 'email-taken-by-other-id',
+	/** The dump holds the same legacy id more than once. */
+	DUPLICATE_ID_IN_IMPORT: 'duplicate-id-in-import',
 	/** Two imported users resolve to the same email. */
 	DUPLICATE_EMAIL_IN_IMPORT: 'duplicate-email-in-import',
 } as const)
@@ -39,7 +41,9 @@ function conflictFor(
 	existingById: ReadonlyMap<number, string>,
 	existingByEmail: ReadonlyMap<string, number>,
 	importEmails: ReadonlyMap<string, number>,
+	importIds: ReadonlyMap<number, number>,
 ): LegacyImportConflictReason | null {
+	if ((importIds.get(record.legacyId) ?? 0) > 1) return LegacyImportConflictReason.DUPLICATE_ID_IN_IMPORT
 	const existingEmail = existingById.get(record.legacyId)
 	if (existingEmail !== undefined && existingEmail !== record.email) {
 		return LegacyImportConflictReason.ID_TAKEN_BY_OTHER_EMAIL
@@ -51,9 +55,9 @@ function conflictFor(
 	return (importEmails.get(record.email) ?? 0) > 1 ? LegacyImportConflictReason.DUPLICATE_EMAIL_IN_IMPORT : null
 }
 
-function countEmails(records: readonly ImportedUserRecord[]): Map<string, number> {
-	const counts = new Map<string, number>()
-	for (const record of records) counts.set(record.email, (counts.get(record.email) ?? 0) + 1)
+function countBy<K>(records: readonly ImportedUserRecord[], key: (record: ImportedUserRecord) => K): Map<K, number> {
+	const counts = new Map<K, number>()
+	for (const record of records) counts.set(key(record), (counts.get(key(record)) ?? 0) + 1)
 	return counts
 }
 
@@ -69,10 +73,11 @@ export function planLegacyUserImport(
 	const records = classifications.flatMap((entry) => (entry.kind === 'import' ? [entry.record] : []))
 	const existingById = new Map(existingUsers.map((existing) => [existing.id, existing.email.toLowerCase()]))
 	const existingByEmail = new Map(existingUsers.map((existing) => [existing.email.toLowerCase(), existing.id]))
-	const importEmails = countEmails(records)
+	const importEmails = countBy(records, (record) => record.email)
+	const importIds = countBy(records, (record) => record.legacyId)
 
 	const entries = records.map((record): LegacyImportPlanEntry => {
-		const reason = conflictFor(record, existingById, existingByEmail, importEmails)
+		const reason = conflictFor(record, existingById, existingByEmail, importEmails, importIds)
 		if (reason) return { action: 'conflict', legacyId: record.legacyId, reason }
 		return existingById.has(record.legacyId)
 			? { action: 'unchanged', legacyId: record.legacyId }

@@ -8,7 +8,7 @@
  */
 
 /** Extensions of files that carry database dumps or backups. */
-const DUMP_FILE_PATTERN = /\.(sql|dump|bak|sql\.gz|sql\.zip)$/i
+const DUMP_FILE_PATTERN = /\.(sql|dump|dmp|bak|sql\.(gz|zip|bz2|xz|7z))$/i
 
 /** Directories that legitimately hold SQL: the generated Drizzle migrations. */
 export const ALLOWED_SQL_DIRECTORIES = Object.freeze(['drizzle/'])

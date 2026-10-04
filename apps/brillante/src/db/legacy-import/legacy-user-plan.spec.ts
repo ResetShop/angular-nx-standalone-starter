@@ -3,7 +3,7 @@ import { UserStatus } from '../../contracts/user/user.constants'
 import { formatImportReport } from './legacy-import-report'
 import { classifyLegacyUsers, type LegacyUserClassification } from './legacy-user-mapper'
 import { hasConflicts, LegacyImportConflictReason, planLegacyUserImport } from './legacy-user-plan'
-import { summarizeUserReferences } from './legacy-user-references'
+import { groupLegacyUserIds, summarizeUserReferences } from './legacy-user-references'
 import type { LegacyUserRoleRow, LegacyUserRow } from './legacy-user-source'
 
 function imported(id: number, email: string): LegacyUserClassification {
@@ -53,6 +53,15 @@ describe('planLegacyUserImport', () => {
 
 		expect(plan.entries).toEqual([
 			{ action: 'conflict', legacyId: 5, reason: LegacyImportConflictReason.EMAIL_TAKEN_BY_OTHER_ID },
+		])
+	})
+
+	it('flags the same legacy id appearing twice, even with different emails', () => {
+		const plan = planLegacyUserImport([imported(5, 'a@example.test'), imported(5, 'b@example.test')], [])
+
+		expect(plan.entries.map((entry) => entry.action === 'conflict' && entry.reason)).toEqual([
+			LegacyImportConflictReason.DUPLICATE_ID_IN_IMPORT,
+			LegacyImportConflictReason.DUPLICATE_ID_IN_IMPORT,
 		])
 	})
 
@@ -109,6 +118,20 @@ describe('planLegacyUserImport', () => {
 		expect(plan.provisionedLegacyIds).toEqual([1])
 		expect(plan.placeholderEmailIds).toEqual([2])
 		expect(plan.excluded).toEqual([{ legacyId: 3, reason: 'customer-only' }])
+	})
+})
+
+describe('groupLegacyUserIds', () => {
+	it('groups the classified legacy ids by what the import does with them', () => {
+		const groups = groupLegacyUserIds([
+			imported(2, 'a@example.test'),
+			{ kind: 'provisioned', legacyId: 1 },
+			{ kind: 'excluded', legacyId: 9, reason: 'customer-only' },
+		])
+
+		expect([...groups.imported]).toEqual([2])
+		expect([...groups.provisioned]).toEqual([1])
+		expect([...groups.excluded]).toEqual([9])
 	})
 })
 

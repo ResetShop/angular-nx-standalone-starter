@@ -1,5 +1,14 @@
 import { MysqlDumpParseError, parseMysqlDump } from './mysql-dump-parser'
 
+function messageOf(action: () => unknown): string {
+	try {
+		action()
+	} catch (error) {
+		return (error as Error).message
+	}
+	return ''
+}
+
 describe('parseMysqlDump', () => {
 	it('reads the rows of a multi-row INSERT keyed by column name', () => {
 		const dump = "INSERT INTO `pet` (`id`, `name`) VALUES\n\t(1, 'Rex'),\n\t(2, 'Mia');\n"
@@ -71,6 +80,18 @@ describe('parseMysqlDump', () => {
 		expect([...parseMysqlDump(dump, ['toy']).keys()]).toEqual(['toy'])
 	})
 
+	it('finds statements written in lower case or indented, but not text inside comments', () => {
+		const dump = '-- insert into `ghost` (`id`) values (1);\n  insert into `pet` (`id`) values (1);\n'
+
+		expect([...parseMysqlDump(dump).keys()]).toEqual(['pet'])
+	})
+
+	it('rejects a string that ends in a lone backslash instead of dropping characters', () => {
+		const dump = "INSERT INTO `pet` (`id`, `note`) VALUES (1, 'x\\"
+
+		expect(() => parseMysqlDump(dump)).toThrow(/closing quote/)
+	})
+
 	it('returns no tables for a dump without INSERT statements', () => {
 		expect(parseMysqlDump('-- empty\n').size).toBe(0)
 	})
@@ -89,12 +110,21 @@ describe('parseMysqlDump', () => {
 
 			expect(() => parseMysqlDump(dump)).toThrow(MysqlDumpParseError)
 			expect(() => parseMysqlDump(dump)).toThrow(/closing quote/)
-			expect(() => parseMysqlDump(dump)).not.toThrow(/secret-name/)
+			expect(messageOf(() => parseMysqlDump(dump))).not.toContain('secret-name')
 		})
 
 		it('rejects a tuple with fewer values than columns', () => {
 			expect(() => parseMysqlDump('INSERT INTO `pet` (`id`, `name`) VALUES (1);\n')).toThrow(/expected ","/)
 		})
+
+		it.each(["_binary 'abc'", '0x1F2E', 'CURRENT_TIMESTAMP', '1.2.3'])(
+			'rejects the unsupported literal %s',
+			(literal) => {
+				const dump = 'INSERT INTO `pet` (`id`, `blob`) VALUES (1, ' + literal + ');\n'
+
+				expect(() => parseMysqlDump(dump)).toThrow(/a number, NULL or a quoted string/)
+			},
+		)
 
 		it('rejects a statement that does not follow the expected INSERT shape', () => {
 			expect(() => parseMysqlDump('INSERT INTO pet VALUES (1);\n')).toThrow(/INSERT INTO `table`/)

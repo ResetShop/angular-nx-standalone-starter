@@ -137,9 +137,17 @@ database is seeded with `SEED_ADMIN_EMAIL=admin@brillantestore.com` (the other s
 user id 1, its email and the Administrator role line up with the legacy record.
 
 **The dump stays local.** It holds real personal data. `npm run ci` and the pre-commit hook run
-`scripts/check-no-sql-dumps.mjs`, which fails on any tracked or unignored `*.sql`, `*.dump`, `*.bak`, `*.sql.gz` or
-`*.sql.zip` outside `drizzle/`. Keep the dump outside the repository, or name it `*.dump.sql` or put it under
-`legacy-dumps/`, which `.gitignore` covers. Specs build their dumps from invented data; none is derived from the real one.
+`scripts/check-no-sql-dumps.mjs`, which scans the whole working tree and fails on any tracked or unignored `*.sql`,
+`*.dump`, `*.dmp`, `*.bak` or `*.sql.gz|zip|bz2|xz|7z` outside `drizzle/` at the repository root (so an unrelated stray
+`.sql` file also blocks a commit until it is removed or ignored). Keep the dump outside the repository, or name it
+`*.dump.sql` or put it under a `legacy-dumps/` directory, which `.gitignore` covers. The check is a safety net, not a
+scanner: other extensions and renamed files are not detected. Specs build their dumps from invented data; none is derived
+from the real one.
+
+The parser accepts only what the legacy export contains: `INSERT INTO` statements at the start of a line, numbers, NULL
+and quoted strings. Binary (`_binary '...'`) and hex literals are rejected, as is a dump missing any table the import
+reads (`user`, `user_role` and the six reference columns), so a wrong file fails loudly instead of reporting "nothing to
+import". Zero and out-of-range MySQL dates are read as no date.
 
 ### Deployment and checks on Cloudflare
 

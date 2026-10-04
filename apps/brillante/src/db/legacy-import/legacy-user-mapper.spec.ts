@@ -62,6 +62,12 @@ describe('classifyLegacyUsers', () => {
 		expect(result).toMatchObject({ kind: 'excluded', reason: LegacyExclusionReason.NO_ACTIVE_ROLE })
 	})
 
+	it('counts a repeated identical active role row as one role', () => {
+		const [result] = classifyLegacyUsers([user({ id: 9 })], [role(9, UserRole.OWNER), role(9, UserRole.OWNER)])
+
+		expect(result.kind).toBe('import')
+	})
+
 	it('excludes a user with more than one active role, as the plan assumes exactly one', () => {
 		const [result] = classifyLegacyUsers([user({ id: 9 })], [role(9, UserRole.OWNER), role(9, UserRole.EMPLOYEE)])
 

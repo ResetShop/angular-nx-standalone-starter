@@ -69,13 +69,14 @@ function toRecord(user: LegacyUserRow, roleId: number): ImportedUserRecord {
 	}
 }
 
+/** The distinct active role ids of each user: a repeated identical role row is one role, not two. */
 function groupActiveRoleIds(userRoles: readonly LegacyUserRoleRow[]): Map<number, number[]> {
-	const byUser = new Map<number, number[]>()
+	const byUser = new Map<number, Set<number>>()
 	for (const userRole of userRoles) {
 		if (userRole.deleted || !userRole.enabled) continue
-		byUser.set(userRole.userId, [...(byUser.get(userRole.userId) ?? []), userRole.roleId])
+		byUser.set(userRole.userId, (byUser.get(userRole.userId) ?? new Set<number>()).add(userRole.roleId))
 	}
-	return byUser
+	return new Map([...byUser].map(([userId, roleIds]) => [userId, [...roleIds]]))
 }
 
 function excluded(legacyId: number, reason: LegacyExclusionReason): LegacyUserClassification {

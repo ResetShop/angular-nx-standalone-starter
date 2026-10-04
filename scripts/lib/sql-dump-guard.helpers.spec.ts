@@ -8,6 +8,10 @@ describe('findForbiddenDumpFiles', () => {
 			'backup.sql.gz',
 			'old.BAK',
 			'export.sql.zip',
+			'export.sql.bz2',
+			'export.sql.xz',
+			'export.sql.7z',
+			'oracle.dmp',
 		]
 
 		expect(findForbiddenDumpFiles(paths)).toEqual(paths)
