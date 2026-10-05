@@ -103,8 +103,7 @@ Modules (routes under `/dashboard`): `clients`, `repairs`, `cash`, `reports`, `s
   smoke script, not yet by a real staff account against the deployed Worker.
 - Customers (role 5) were not migrated, so the customer registration branch of the profile page cannot be reached by a
   signed-in customer until they are.
-- The Auth0 tenant and its `environment.auth0` settings are no longer used by the code; they are removed with the
-  Auth0 package in the next slice.
+- The Auth0 tenant is no longer used. It can be shut down once the legacy API is retired; nothing in this repository refers to it.
 - Role-to-permission mapping follows the legacy route guards; legacy "everyone except accountant" access is narrowed to the
   internal roles, and the legacy finished-registration redirect for customers is not ported.
 - Several store methods blocks exceed the 50-line function limit (the same shape as the reference stores); the cold CI and

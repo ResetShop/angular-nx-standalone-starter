@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - `npm run send:onboarding-emails:brillante`: emails the migrated active users a one-day, single-use password link (dry run by default, `--apply` sends, failures by user id only, Ethereal refused unless every recipient is on a reserved test domain). The reset-token helpers move to `reset-token.ts` and are shared with the self-service reset. The runbook is in `docs/brillante-backend.md`.
 - `GET /api/auth/legacy-token` in `apps/brillante`: an HS256 token for the legacy API (`sub` = user id, signed with the new optional `LEGACY_JWT_SECRET`, `LEGACY_JWT_EXPIRY` defaults to 1 hour; 503 while unset), checked against the legacy server's `express-jwt` 5 and `jsonwebtoken` 8.
 - `apps/brillante`'s frontend signs in against its own backend with the starter's cookie session (login, forgot and reset password, forced password change pages and guards, session refresh) instead of Auth0. The screens that still call the legacy API get their bearer token from `GET /api/auth/legacy-token`, renewed before it expires and retried once on a 401. `npm run dev:brillante` proxies `/api` to the local Worker.
+- `apps/brillante` no longer depends on Auth0: the `@auth0/auth0-angular` package, `environment.auth0` and the Auth0 profile and `/users/authenticate` response types are removed.
 
 ### Changed
 

@@ -2,7 +2,7 @@
 
 `apps/brillante/src/{api,db,contracts}` hold a copy of the reference app's Hono + Drizzle + PASETO backend (users,
 roles, permissions, cookie authentication), adapted to run as a **Cloudflare Worker** next to the SPA's static assets.
-The frontend does not call it yet: Brillante's screens still use the legacy API and Auth0 until the frontend swap lands.
+The frontend signs in against it with the cookie session; the screens that still call the legacy API get their bearer token from it (see [Legacy API token bridge](#legacy-api-token-bridge)).
 
 ```
 Browser ── same origin ──► Cloudflare Worker (wrangler.jsonc)
@@ -163,7 +163,7 @@ with the same id and email are reported as `unchanged`.
 What gets written, per imported user: the `user` row with its legacy id, trimmed names, lower-cased email (or the
 placeholder), status, legacy timestamps; one `user_role` row (role id equals the legacy role id); and an `authentication`
 row whose password hash is of a random secret that is never shown, with `must_change_password` set. Nobody can log in
-with an imported account until a password reset gives it a real password (Slice 4). Afterwards the `user` id sequence
+with an imported account until a password reset gives it a real password (see "Onboarding the migrated users"). Afterwards the `user` id sequence
 moves to 999, so the next user created gets id 1000; it is never lowered.
 
 **Runbook** (the prototype Supabase database):

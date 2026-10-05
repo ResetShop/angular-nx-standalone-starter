@@ -105,7 +105,7 @@ export const meResponseSchema = authUserSchema.extend({
 	mustChangePassword: z.boolean(),
 })
 
-/** A token the legacy API accepts, so the screens that still call it keep working after Auth0 is gone. */
+/** A token the legacy API accepts, so the screens that still call it keep working with the cookie session. */
 export const legacyTokenResponseSchema = z.object({
 	token: z.string(),
 	expiresAt: z.string(),

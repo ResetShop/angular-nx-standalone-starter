@@ -17,26 +17,6 @@ export interface UserDto {
 	customer?: CustomerDto | null
 }
 
-/**
- * Response of `POST /users/authenticate`: the user plus the API-issued JWT.
- */
-export interface AuthenticatedUserDto extends UserDto {
-	token: string
-}
-
-/**
- * Profile returned by Auth0 after a successful login. It is forwarded verbatim to the API,
- * which resolves (or creates) the matching Brillante user by email.
- */
-export interface Auth0Profile {
-	email?: string
-	name?: string
-	nickname?: string
-	picture?: string
-	sub?: string
-	[claim: string]: unknown
-}
-
 export interface CreateUserRequest {
 	email: string
 	firstName: string
