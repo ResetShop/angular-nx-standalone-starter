@@ -1,4 +1,5 @@
 import { LEGACY_ROLES } from '@contracts/role/legacy-roles'
+import type { OpenAPIHono } from '@hono/zod-openapi'
 import { parseDurationToMs } from '@resetshop/util'
 import { authentication } from '@schema/authentication'
 import { passwordResetToken } from '@schema/password-reset-token'
@@ -22,7 +23,9 @@ import { ONBOARDING_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import { hashResetToken } from '../../modules/auth/reset-token'
 import { createPasswordHasher } from '../../services/password/password-hasher'
+import { loginAs } from '../setup/auth-helpers'
 import { getTestDb } from '../setup/db-helpers'
+import { createTestApp } from '../setup/test-app'
 
 /** Invented legacy staff: two active ones, a disabled one, one without email, and a customer. */
 const dump = buildDump(
@@ -161,5 +164,63 @@ describe('onboarding of the imported users', () => {
 			expect(result.sentUserIds).toEqual([])
 			expect(await tx.select().from(passwordResetToken)).toEqual([])
 		})
+	})
+})
+
+describe('redeeming an onboarding link', () => {
+	const email = 'onboarding-e2e@onboarding.example'
+	const chosenPassword = 'Chosen-By-The-User-9!'
+	let app: OpenAPIHono
+	let userId: number
+
+	beforeAll(() => {
+		app = createTestApp()
+	})
+
+	beforeEach(async () => {
+		seedHttpEnv({ CORS_ORIGIN: 'https://app.test' })
+		const db = getTestDb()
+		const [created] = await db
+			.insert(user)
+			.values({ firstName: 'Ola', lastName: 'Onboarded', email })
+			.returning({ id: user.id })
+		userId = created.id
+		await db.insert(authentication).values({
+			userId,
+			passwordHash: await createPasswordHasher()('unusable-random-secret'),
+			mustChangePassword: true,
+		})
+	})
+
+	afterEach(async () => {
+		// Cascades to the authentication and password_reset_token rows.
+		await getTestDb().delete(user).where(eq(user.email, email))
+	})
+
+	async function mail(): Promise<{ token: string; sent: number[] }> {
+		const target = new DrizzleOnboardingTarget(getTestDb() as unknown as DrizzleTransaction)
+		let text = ''
+		const result = await runOnboarding(
+			target,
+			{ send: async (_to, content) => void (text = content.text) },
+			{ dryRun: false, requestedUserIds: [userId], tokenLifetimeMs: parseDurationToMs('1d'), pauseBetweenSendsMs: 0 },
+		)
+		return { token: /token=([\w-]+)/.exec(text)?.[1] ?? '', sent: [...result.sentUserIds] }
+	}
+
+	it('lets the user choose a password with the emailed link, and a re-run no longer mails them', async () => {
+		const { token, sent } = await mail()
+		expect(sent).toEqual([userId])
+
+		const reset = await app.request('/api/auth/reset-password', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.52.0.1' },
+			body: JSON.stringify({ token, newPassword: chosenPassword }),
+		})
+		expect(reset.status).toBe(200)
+		expect((await loginAs(app, email, chosenPassword)).response.status).toBe(200)
+
+		const rerun = await mail()
+		expect(rerun.sent).toEqual([])
 	})
 })

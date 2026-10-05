@@ -41,12 +41,15 @@ export interface OnboardingResult {
 	readonly report: string
 }
 
-function formatReport(
-	selection: OnboardingSelection,
-	sent: readonly number[],
-	failed: readonly number[],
-	dryRun: boolean,
-): string {
+interface SendOutcome {
+	sent: readonly number[]
+	failed: readonly number[]
+	notAttempted: readonly number[]
+	failureKinds: ReadonlyMap<string, number>
+}
+
+function formatReport(selection: OnboardingSelection, outcome: SendOutcome, dryRun: boolean): string {
+	const { sent, failed, notAttempted, failureKinds } = outcome
 	const skippedByReason = new Map<string, number[]>()
 	for (const { userId, reason } of selection.skipped) {
 		skippedByReason.set(reason, [...(skippedByReason.get(reason) ?? []), userId])
@@ -60,6 +63,12 @@ function formatReport(
 		skippedLines.length > 0 ? ['Skipped:', ...skippedLines].join('\n') : 'Skipped: none',
 		dryRun ? 'Sent: none (dry run)' : `Sent: ${sent.length}`,
 		dryRun ? '' : `Failed: ${failed.length}${failed.length > 0 ? ` (user ids ${failed.join(', ')})` : ''}`,
+		failureKinds.size > 0
+			? `Failure kinds: ${[...failureKinds].map(([kind, count]) => `${kind} x${count}`).join(', ')}`
+			: '',
+		notAttempted.length > 0
+			? `Not attempted after repeated failures: ${notAttempted.length} (user ids ${notAttempted.join(', ')})`
+			: '',
 	]
 		.filter((line) => line !== '')
 		.join('\n')
@@ -101,22 +110,39 @@ export async function runOnboarding(
 
 	const sent: number[] = []
 	const failed: number[] = []
+	const failureKinds = new Map<string, number>()
+	// A broken provider fails every send and each attempt replaces the user's previous link, so stop early.
+	const maxConsecutiveFailures = 3
+	let consecutiveFailures = 0
 	if (!options.dryRun) {
 		for (const [index, candidate] of selection.recipients.entries()) {
+			if (consecutiveFailures >= maxConsecutiveFailures) break
 			if (index > 0) await pause(options.pauseBetweenSendsMs)
 			try {
 				await sendTo(candidate, target, mailer, new Date(now().getTime() + options.tokenLifetimeMs))
 				sent.push(candidate.userId)
-			} catch {
+				consecutiveFailures = 0
+			} catch (error) {
 				failed.push(candidate.userId)
+				consecutiveFailures++
+				// Only the error class is kept: its message can contain the address.
+				const kind = error instanceof Error ? error.name : 'non-Error'
+				failureKinds.set(kind, (failureKinds.get(kind) ?? 0) + 1)
 			}
 		}
 	}
+	const notAttempted = options.dryRun
+		? []
+		: selection.recipients.filter((r) => !sent.includes(r.userId) && !failed.includes(r.userId))
 
 	return {
 		selection,
 		sentUserIds: sent,
 		failedUserIds: failed,
-		report: formatReport(selection, sent, failed, options.dryRun),
+		report: formatReport(
+			selection,
+			{ sent, failed, notAttempted: notAttempted.map((r) => r.userId), failureKinds },
+			options.dryRun,
+		),
 	}
 }

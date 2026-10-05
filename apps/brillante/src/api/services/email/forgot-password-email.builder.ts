@@ -1,7 +1,7 @@
 import { appEnv } from '../../config/app.env'
 import { PASSWORD_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import type { EmailContent, EmailLanguage } from './email-builder.utils'
-import { escapeHtml, resolveEmailLanguage } from './email-builder.utils'
+import { escapeHtml, formatExpiryDuration, resolveEmailLanguage } from './email-builder.utils'
 
 export interface ForgotPasswordEmailParams {
 	firstName: string
@@ -58,21 +58,6 @@ export function buildForgotPasswordEmail(params: ForgotPasswordEmailParams, lang
 		text: buildTextContent(params, t, expiryNote),
 		html: buildHtmlContent(params, t, resolvedLang, expiryNote),
 	}
-}
-
-// Render a duration string (e.g. '1h', '15m') as human-readable bilingual copy ('1 hour', '15 minutos').
-function formatExpiryDuration(duration: string, lang: EmailLanguage): string {
-	const match = /^(\d+)([smhd])$/.exec(duration)
-	if (!match) return duration
-
-	const amount = Number(match[1])
-	const unit = match[2] as 's' | 'm' | 'h' | 'd'
-	const words = {
-		en: { s: 'second', m: 'minute', h: 'hour', d: 'day' },
-		es: { s: 'segundo', m: 'minuto', h: 'hora', d: 'día' },
-	} as const
-
-	return `${amount} ${words[lang][unit]}${amount === 1 ? '' : 's'}`
 }
 
 function buildTextContent(

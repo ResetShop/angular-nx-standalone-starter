@@ -1,5 +1,5 @@
 import { UserStatus } from '../../contracts/user/user.constants'
-import { assertEtherealRecipientsAreFake } from './fake-address-guard'
+import { assertEtherealRecipientsAreFake, assertProviderDelivers } from './fake-address-guard'
 import type { OnboardingCandidate } from './onboarding-recipients'
 
 function recipient(userId: number, email: string): OnboardingCandidate {
@@ -43,5 +43,19 @@ describe('assertEtherealRecipientsAreFake', () => {
 	it('does not treat a domain that merely contains a reserved word as reserved', () => {
 		expect(() => assertEtherealRecipientsAreFake('ethereal', [recipient(2, 'x@notexample.com')])).toThrow()
 		expect(() => assertEtherealRecipientsAreFake('ethereal', [recipient(2, 'x@test.com')])).toThrow()
+	})
+})
+
+describe('assertProviderDelivers', () => {
+	it('refuses to apply with the noop provider when somebody would be mailed', () => {
+		expect(() => assertProviderDelivers('noop', false, [recipient(2, 'a@example.test')])).toThrow(/nobody receives/)
+	})
+
+	it.each([
+		['a dry run', 'noop', true, [recipient(2, 'a@example.test')]],
+		['no recipients', 'noop', false, []],
+		['another provider', 'nodemailer', false, [recipient(2, 'a@example.test')]],
+	] as const)('allows %s', (_label, provider, dryRun, recipients) => {
+		expect(() => assertProviderDelivers(provider, dryRun, recipients)).not.toThrow()
 	})
 })

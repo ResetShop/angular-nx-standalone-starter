@@ -1,7 +1,7 @@
 import { appEnv } from '../../config/app.env'
 import { ONBOARDING_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import type { EmailContent, EmailLanguage } from './email-builder.utils'
-import { escapeHtml, resolveEmailLanguage } from './email-builder.utils'
+import { escapeHtml, formatExpiryDuration, resolveEmailLanguage } from './email-builder.utils'
 
 export interface OnboardingEmailParams {
 	firstName: string
@@ -39,21 +39,6 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 		team: 'El equipo de Brillante',
 	},
 } as const)
-
-const DURATION_WORDS = Object.freeze({
-	en: { s: 'second', m: 'minute', h: 'hour', d: 'day' },
-	es: { s: 'segundo', m: 'minuto', h: 'hora', d: 'día' },
-} as const)
-
-// Render a duration string (e.g. '1d', '15m') as human-readable copy ('1 day', '15 minutos').
-function formatExpiryDuration(duration: string, lang: EmailLanguage): string {
-	const match = /^(\d+)([smhd])$/.exec(duration)
-	if (!match) return duration
-
-	const amount = Number(match[1])
-	const word = DURATION_WORDS[lang][match[2] as 's' | 'm' | 'h' | 'd']
-	return `${amount} ${word}${amount === 1 ? '' : 's'}`
-}
 
 /**
  * Build the email that invites a migrated user to choose a password. It carries a single-use link valid for

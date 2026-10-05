@@ -142,4 +142,28 @@ describe('runOnboarding', () => {
 		expect(result.sentUserIds).toEqual([])
 		expect(result.report).toContain('Recipients: 0 (user ids none)')
 	})
+
+	it('stops after three consecutive failures and reports the error kinds, never the messages', async () => {
+		send.mockImplementation(async (to) => {
+			throw new TypeError(`550 ${to} rejected`)
+		})
+
+		const result = await run([candidate(2), candidate(3), candidate(4), candidate(5), candidate(6)])
+
+		expect(result.failedUserIds).toEqual([2, 3, 4])
+		expect(result.report).toContain('Failure kinds: TypeError x3')
+		expect(result.report).toContain('Not attempted after repeated failures: 2 (user ids 5, 6)')
+		expect(result.report).not.toMatch(/example\.test|rejected/)
+	})
+
+	it('does not count non-consecutive failures towards stopping', async () => {
+		send.mockImplementation(async (to) => {
+			if (to !== 'user4@example.test') throw new Error('boom')
+		})
+
+		const result = await run([candidate(2), candidate(3), candidate(4), candidate(5), candidate(6)])
+
+		expect(result.sentUserIds).toEqual([4])
+		expect(result.failedUserIds).toEqual([2, 3, 5, 6])
+	})
 })

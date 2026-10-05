@@ -25,3 +25,16 @@ export function assertEtherealRecipientsAreFake(provider: string, recipients: re
 		)
 	}
 }
+
+/** With the noop provider an applied run would issue reset links that nobody receives. */
+export function assertProviderDelivers(
+	provider: string,
+	dryRun: boolean,
+	recipients: readonly OnboardingCandidate[],
+): void {
+	if (provider === 'noop' && !dryRun && recipients.length > 0) {
+		throw new SafeImportError(
+			'EMAIL_PROVIDER=noop would issue reset links that nobody receives. Configure a real provider, or ethereal for fake users.',
+		)
+	}
+}

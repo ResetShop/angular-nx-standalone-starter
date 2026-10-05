@@ -11,7 +11,7 @@ import { NoopEmailRepository } from '../api/services/email/noop-email.repository
 import { describeConnectionTarget, formatImportFailure } from './legacy-import/import-legacy-users.output'
 import { SafeImportError } from './legacy-import/safe-import-error'
 import { DrizzleOnboardingTarget } from './onboarding/drizzle-onboarding-target'
-import { assertEtherealRecipientsAreFake } from './onboarding/fake-address-guard'
+import { assertEtherealRecipientsAreFake, assertProviderDelivers } from './onboarding/fake-address-guard'
 import { type OnboardingMailer, runOnboarding } from './onboarding/onboarding'
 import { parseSendOnboardingEmailsArgs } from './onboarding/send-onboarding-emails.args'
 
@@ -57,11 +57,7 @@ async function sendOnboardingEmails(): Promise<number> {
 			pauseBetweenSendsMs: parseDurationToMs('500ms'),
 			precheck: ({ recipients }) => {
 				assertEtherealRecipientsAreFake(provider, recipients)
-				if (provider === 'noop' && !args.dryRun && recipients.length > 0) {
-					throw new SafeImportError(
-						'EMAIL_PROVIDER=noop would issue reset links that nobody receives. Configure a real provider, or ethereal for fake users.',
-					)
-				}
+				assertProviderDelivers(provider, args.dryRun, recipients)
 			},
 		})
 		console.log(result.report)
