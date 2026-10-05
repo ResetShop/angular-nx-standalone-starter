@@ -60,6 +60,7 @@
 		"test:integration:brillante": "nx test-integration brillante --skip-nx-cache",
 		"dev:brillante:worker": "npm run build:brillante && wrangler dev",
 		"smoke:brillante:worker": "node apps/brillante/tools/worker-smoke.mjs",
+		"smoke:brillante:legacy-bridge": "tsx --tsconfig apps/brillante/tsconfig.json apps/brillante/tools/legacy-bridge-smoke.ts",
 		"drizzle:create-migrations:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./node_modules/drizzle-kit/bin.cjs generate --config apps/brillante/drizzle.config.ts",
 		"drizzle:push-migrations:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push --config apps/brillante/drizzle.config.ts",
 		"drizzle:seed:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/seed.ts",

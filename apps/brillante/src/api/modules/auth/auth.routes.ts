@@ -5,6 +5,7 @@ import {
 	cleanupTokensResponseSchema,
 	forgotPasswordRequestSchema,
 	forgotPasswordResponseSchema,
+	legacyTokenResponseSchema,
 	loginErrorResponseSchema,
 	loginRequestSchema,
 	loginResponseSchema,
@@ -190,6 +191,26 @@ export const meRoute = createRoute({
 		200: {
 			description: 'Current user information',
 			content: { 'application/json': { schema: meResponseSchema } },
+		},
+		...commonResponses,
+	},
+})
+
+export const legacyTokenRoute = createRoute({
+	method: 'get',
+	path: '/legacy-token',
+	tags: ['Auth'],
+	summary: 'Get a legacy API token',
+	description:
+		'Returns an HS256 JWT with the claims the legacy Brillante API validates (sub = the user id), for the signed-in user.',
+	responses: {
+		200: {
+			description: 'Token for the legacy API',
+			content: { 'application/json': { schema: legacyTokenResponseSchema } },
+		},
+		503: {
+			description: 'The legacy token bridge is not configured on this deployment',
+			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,
 	},

@@ -12,11 +12,25 @@
  * Direct `process.env[...]` access is ESLint-forbidden everywhere except files
  * matching `*.env.ts`.
  */
+import { parseDurationToMs } from '@resetshop/util'
 import { z } from 'zod'
-import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../constants/auth.constants'
+import {
+	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_LEGACY_TOKEN_EXPIRY,
+	DEFAULT_REFRESH_TOKEN_EXPIRY,
+} from '../constants/auth.constants'
 import { createEnvHandler } from './env-utils'
 
 const DEFAULT_CLOCK_TOLERANCE = '1m'
+
+function isDuration(value: string): boolean {
+	try {
+		parseDurationToMs(value)
+		return true
+	} catch {
+		return false
+	}
+}
 
 const TokenEnvSchema = z.object({
 	PASETO_SECRET_KEY: z
@@ -29,6 +43,15 @@ const TokenEnvSchema = z.object({
 	PASETO_ACCESS_TOKEN_EXPIRY: z.string().min(1).default(DEFAULT_ACCESS_TOKEN_EXPIRY),
 	PASETO_REFRESH_TOKEN_EXPIRY: z.string().min(1).default(DEFAULT_REFRESH_TOKEN_EXPIRY),
 	PASETO_CLOCK_TOLERANCE: z.string().min(1).default(DEFAULT_CLOCK_TOLERANCE),
+	// Shared HS256 secret of the legacy API. A blank, too short or missing value reads as unset: the legacy-token
+	// endpoint then answers 503, and a bad value here can never take the PASETO login down with it.
+	LEGACY_JWT_SECRET: z.string().min(32).optional().catch(undefined),
+	// A value that is not a duration string falls back to the default for the same reason.
+	LEGACY_JWT_EXPIRY: z
+		.string()
+		.refine(isDuration)
+		.default(DEFAULT_LEGACY_TOKEN_EXPIRY)
+		.catch(DEFAULT_LEGACY_TOKEN_EXPIRY),
 	COOKIE_SECURE: z
 		.string()
 		.optional()

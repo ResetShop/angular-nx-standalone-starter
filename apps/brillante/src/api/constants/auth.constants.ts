@@ -30,6 +30,9 @@ export const REFRESH_TOKEN_EXPIRY_BUFFER = '1h'
  */
 export const DEFAULT_ACCESS_TOKEN_EXPIRY = '15m'
 
+/** Lifetime of the HS256 token the legacy API accepts. The legacy API itself never expires its tokens; ours do. */
+export const DEFAULT_LEGACY_TOKEN_EXPIRY = '1h'
+
 /**
  * Default refresh token expiry (duration string notation).
  * Configurable via PASETO_REFRESH_TOKEN_EXPIRY environment variable.
