@@ -24,8 +24,8 @@ describe('LEGACY_ROLES', () => {
 		})
 	})
 
-	it('marks every role as not removable', () => {
-		expect(LEGACY_ROLES.every((legacyRole) => !legacyRole.removable)).toBe(true)
+	it('makes every role removable except the Administrator, so staff can change roles', () => {
+		expect(LEGACY_ROLES.filter((legacyRole) => !legacyRole.removable).map((legacyRole) => legacyRole.id)).toEqual([1])
 	})
 
 	it('seeds every role but the Administrator', () => {
@@ -49,7 +49,7 @@ describe('LEGACY_ROLE_PERMISSION_MATRIX', () => {
 		}
 	})
 
-	it('matches the legacy route guards, written out literally', () => {
+	it('matches the legacy route guards except user management, written out literally', () => {
 		const everything = [
 			'repairs:repair:read',
 			'repairs:repair:manage',
@@ -62,6 +62,8 @@ describe('LEGACY_ROLE_PERMISSION_MATRIX', () => {
 			'settings:user:manage',
 			'settings:cash_concept:manage',
 		]
+		// User management runs on the backend's admin permissions, which only the Administrator role holds.
+		const withoutUserManagement = everything.filter((permission) => permission !== 'settings:user:manage')
 		const staff = [
 			'repairs:repair:read',
 			'repairs:repair:manage',
@@ -70,13 +72,12 @@ describe('LEGACY_ROLE_PERMISSION_MATRIX', () => {
 			'cash:transaction:read',
 			'cash:transaction:manage',
 			'settings:office_branch:manage',
-			'settings:user:manage',
 			'settings:cash_concept:manage',
 		]
 
 		expect(LEGACY_ROLE_PERMISSION_MATRIX).toEqual({
 			admin: everything,
-			owner: everything,
+			owner: withoutUserManagement,
 			counter_clerk: staff,
 			repairman: ['repairs:repair:read', 'repairs:repair:manage', 'settings:cash_concept:manage'],
 			customer: [],

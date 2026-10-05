@@ -74,7 +74,7 @@ export const PERMISSION_DEFINITIONS: readonly PermissionDefinition[] = [
 	{
 		identifier: Permission.SETTINGS_USERS_MANAGE,
 		description: 'Manage users',
-		roles: [ADMIN, OWNER, COUNTER_CLERK],
+		roles: [ADMIN],
 	},
 	{
 		identifier: Permission.SETTINGS_CASH_CONCEPTS_MANAGE,

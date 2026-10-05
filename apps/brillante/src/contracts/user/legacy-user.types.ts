@@ -16,13 +16,3 @@ export interface UserDto {
 	hasFinishedRegistration: boolean
 	customer?: CustomerDto | null
 }
-
-export interface CreateUserRequest {
-	email: string
-	firstName: string
-	lastName: string
-	userName: string
-	roles: RoleDto[]
-}
-
-export type UpdateUserRequest = Partial<CreateUserRequest> & { id: number }

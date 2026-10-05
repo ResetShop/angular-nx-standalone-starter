@@ -64,12 +64,7 @@ describe('ProfilePage', () => {
 		}
 		authApi = new InMemoryAuthApi()
 		userApiMock = {
-			getAll: fn(),
-			getById: fn(),
-			register: fn(),
-			update: fn(),
 			updateCustomerUser: fn(),
-			delete: fn(),
 		}
 		customerApiMock.getByEmail.mockReturnValue(of(createMockCustomerDto({ id: 3 })))
 	})

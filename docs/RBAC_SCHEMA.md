@@ -67,7 +67,7 @@ Defines role names and descriptions.
 **Field Notes:**
 
 - `code`: Programmatic identifier for the role (e.g., 'admin', 'editor'). Used in code to reference roles.
-- `removable`: When false, prevents deletion of system-critical roles (e.g., Administrator).
+- `removable`: When false, prevents deletion of system-critical roles (e.g., Administrator) and taking the role off a user who holds it. Brillante seeds its legacy roles other than the Administrator as removable.
 
 **Relations:**
 

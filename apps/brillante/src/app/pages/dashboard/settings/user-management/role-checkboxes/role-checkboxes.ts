@@ -1,4 +1,4 @@
-import { Component, computed, forwardRef, inject, linkedSignal, model } from '@angular/core'
+import { Component, computed, forwardRef, inject, input, linkedSignal, model } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import { UserRole } from '@contracts/permission/legacy-permission.constants'
 import { AppTranslation } from '@providers/i18n/app-translation'
@@ -20,6 +20,7 @@ import { USER_ROLE_OPTIONS } from '../user-role-options'
 					<input
 						(change)="toggle(option.id)"
 						[checked]="selectedSet().has(option.id)"
+						[disabled]="option.locked"
 						type="checkbox"
 						class="border-input text-default focus:ring-ring h-4 w-4 rounded"
 					/>
@@ -34,6 +35,8 @@ export class RoleCheckboxes extends FormFieldCustomControl implements FormValueC
 	private readonly authStore = inject(AuthStore)
 
 	public readonly value = model<number[]>([])
+	/** Roles that stay checked and cannot be toggled, because the backend refuses removing them. */
+	public readonly lockedIds = input<readonly number[]>([])
 
 	protected readonly options = computed(() => {
 		const user = this.authStore.currentUser()
@@ -42,7 +45,11 @@ export class RoleCheckboxes extends FormFieldCustomControl implements FormValueC
 		return USER_ROLE_OPTIONS.filter(
 			(option) =>
 				canGrantPrivileged || assigned.has(option.id) || (option.id !== UserRole.ADMIN && option.id !== UserRole.OWNER),
-		).map((option) => ({ id: option.id, label: this.translation.instant(option.labelKey) }))
+		).map((option) => ({
+			id: option.id,
+			label: this.translation.instant(option.labelKey),
+			locked: this.lockedIds().includes(option.id),
+		}))
 	})
 
 	protected readonly containerClasses = computed(() => {

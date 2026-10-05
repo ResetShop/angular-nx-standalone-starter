@@ -71,11 +71,27 @@ describe('seedLegacyRoles', () => {
 		})
 
 		expect(outcome.result.created).toEqual(LEGACY_ROLES_TO_SEED.map((legacyRole) => legacyRole.code))
+		expect(outcome.result.updated).toEqual([])
 		expect(outcome.result.existing).toEqual([])
 		expect(outcome.roles.map((row) => [row.id, row.code, row.name, row.removable])).toEqual(
 			LEGACY_ROLES.map((legacyRole) => [legacyRole.id, legacyRole.code, legacyRole.name, legacyRole.removable]),
 		)
 		expect(outcome.granted).toEqual([])
+	})
+
+	it('makes roles seeded as non-removable removable, leaving the Administrator alone', async () => {
+		const outcome = await inRolledBackTransaction(async (tx) => {
+			await resetToAdministratorOnly(tx)
+			await seedLegacyRoles(tx)
+			await tx.update(role).set({ removable: false })
+			const result = await seedLegacyRoles(tx)
+			const roles = await tx.select({ code: role.code, removable: role.removable }).from(role).orderBy(role.id)
+			return { result, roles }
+		})
+
+		expect(outcome.result.updated).toEqual(LEGACY_ROLES_TO_SEED.map((legacyRole) => legacyRole.code))
+		expect(outcome.result.created).toEqual([])
+		expect(outcome.roles.filter((row) => !row.removable).map((row) => row.code)).toEqual([LEGACY_ROLES[0].code])
 	})
 
 	it('is idempotent', async () => {
