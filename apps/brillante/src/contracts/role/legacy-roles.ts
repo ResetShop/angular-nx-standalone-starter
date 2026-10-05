@@ -96,7 +96,7 @@ function permissionsOf(roleId: UserRole): readonly Permission[] {
 
 /**
  * The Brillante domain permissions each legacy role would hold, derived from the frontend's interim table so
- * the two cannot drift. It is documentation for the future permission catalogue and is NOT applied: the
+ * the two cannot drift (user management is admin-only because it runs on the backend's admin permissions). It is documentation for the future permission catalogue and is NOT applied: the
  * database only knows the `admin:*` permissions, and only the Administrator role is granted any of them.
  * Granting these requires adding them to `PERMISSION_DEFINITIONS` first.
  */

@@ -109,7 +109,7 @@ on an already seeded database.
 `LEGACY_ROLE_PERMISSION_MATRIX` (`contracts/role/legacy-roles.ts`) lists the Brillante domain permissions each legacy role
 would hold. It is derived from the frontend's interim table and is **not applied**: the database only knows the `admin:*`
 permissions, so until domain permissions are added to `PERMISSION_DEFINITIONS` only administrators can use the user
-management API (owners and counter clerks lose it until permissions are assigned to their roles).
+management API (owners and counter clerks lose it until permissions are assigned to their roles). The frontend's user management screen calls that API, so it is admin-only for the same reason.
 
 ### Legacy user import (core)
 

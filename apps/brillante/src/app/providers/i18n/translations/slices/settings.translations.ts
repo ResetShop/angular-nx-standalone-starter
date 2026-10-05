@@ -9,7 +9,7 @@ export const settingsEn = {
 			},
 			USER_MANAGEMENT: {
 				TITLE: 'User management',
-				DESCRIPTION: 'Register users, edit their details and assign their roles.',
+				DESCRIPTION: 'Edit users, assign their roles and disable or delete their accounts.',
 			},
 			CASH_CONCEPTS: {
 				TITLE: 'Cash concepts',
@@ -49,17 +49,16 @@ export const settingsEn = {
 	MANAGED_USERS: {
 		NAV: 'User management',
 		TITLE: 'User management',
-		DESCRIPTION: 'Register users, edit their details and assign their roles.',
+		DESCRIPTION: 'Edit users, assign their roles and disable or delete their accounts.',
 		SEARCH: 'Search users...',
-		CREATE_BUTTON: 'Create user',
 		NO_ROLES: 'No roles',
 		TABLE: {
 			CAPTION: 'Users list',
 			HEADER: {
 				NAME: 'Name',
-				USER_NAME: 'Username',
 				EMAIL: 'Email',
 				ROLES: 'Roles',
+				STATUS: 'Status',
 			},
 		},
 		ROLES: {
@@ -72,26 +71,32 @@ export const settingsEn = {
 			ACCOUNTANT: 'Accountant',
 		},
 		DRAWER: {
-			CREATE_TITLE: 'Create user',
 			EDIT_TITLE: 'Edit user',
 			FIRST_NAME: 'First name',
 			LAST_NAME: 'Last name',
-			USER_NAME: 'Username',
 			EMAIL: 'Email',
 			ROLES_LABEL: 'Roles',
+			OWN_ROLES_NOTE: 'You cannot change your own roles.',
+			LOCKED_ROLES_NOTE: 'Roles already assigned cannot be removed.',
+		},
+		STATUS: {
+			ACTIVE: 'Active',
+			DISABLED: 'Disabled',
+		},
+		ACTIONS: {
+			DISABLE: 'Disable',
+			ENABLE: 'Enable',
 		},
 		DELETE_DIALOG: {
 			TITLE: 'Delete user',
 			MESSAGE: "Are you sure you want to delete '{name}'? This action cannot be undone.",
 		},
 		SUCCESS: {
-			CREATED: 'User created successfully.',
 			UPDATED: 'User updated successfully.',
 			DELETED: 'User deleted successfully.',
 		},
 		ERRORS: {
 			LOAD: 'Failed to load users',
-			CREATE: 'Failed to create user',
 			UPDATE: 'Failed to update user',
 			DELETE: 'Failed to delete user',
 		},
@@ -168,7 +173,7 @@ export const settingsEs: typeof settingsEn = {
 			},
 			USER_MANAGEMENT: {
 				TITLE: 'Gestión de usuarios',
-				DESCRIPTION: 'Registrá usuarios, editá sus datos y asignales roles.',
+				DESCRIPTION: 'Editá usuarios, asignales roles y deshabilitá o eliminá sus cuentas.',
 			},
 			CASH_CONCEPTS: {
 				TITLE: 'Conceptos de caja',
@@ -209,17 +214,16 @@ export const settingsEs: typeof settingsEn = {
 	MANAGED_USERS: {
 		NAV: 'Gestión de usuarios',
 		TITLE: 'Gestión de usuarios',
-		DESCRIPTION: 'Registrá usuarios, editá sus datos y asignales roles.',
+		DESCRIPTION: 'Editá usuarios, asignales roles y deshabilitá o eliminá sus cuentas.',
 		SEARCH: 'Buscar usuarios...',
-		CREATE_BUTTON: 'Crear usuario',
 		NO_ROLES: 'Sin roles',
 		TABLE: {
 			CAPTION: 'Lista de usuarios',
 			HEADER: {
 				NAME: 'Nombre',
-				USER_NAME: 'Usuario',
 				EMAIL: 'Correo electrónico',
 				ROLES: 'Roles',
+				STATUS: 'Estado',
 			},
 		},
 		ROLES: {
@@ -232,26 +236,32 @@ export const settingsEs: typeof settingsEn = {
 			ACCOUNTANT: 'Contador',
 		},
 		DRAWER: {
-			CREATE_TITLE: 'Crear usuario',
 			EDIT_TITLE: 'Editar usuario',
 			FIRST_NAME: 'Nombre',
 			LAST_NAME: 'Apellido',
-			USER_NAME: 'Usuario',
 			EMAIL: 'Correo electrónico',
 			ROLES_LABEL: 'Roles',
+			OWN_ROLES_NOTE: 'No podés cambiar tus propios roles.',
+			LOCKED_ROLES_NOTE: 'Los roles ya asignados no se pueden quitar.',
+		},
+		STATUS: {
+			ACTIVE: 'Activo',
+			DISABLED: 'Deshabilitado',
+		},
+		ACTIONS: {
+			DISABLE: 'Deshabilitar',
+			ENABLE: 'Habilitar',
 		},
 		DELETE_DIALOG: {
 			TITLE: 'Eliminar usuario',
 			MESSAGE: "¿Seguro que querés eliminar a '{name}'? Esta acción no se puede deshacer.",
 		},
 		SUCCESS: {
-			CREATED: 'Usuario creado correctamente.',
 			UPDATED: 'Usuario actualizado correctamente.',
 			DELETED: 'Usuario eliminado correctamente.',
 		},
 		ERRORS: {
 			LOAD: 'No se pudieron cargar los usuarios',
-			CREATE: 'No se pudo crear el usuario',
 			UPDATE: 'No se pudo actualizar el usuario',
 			DELETE: 'No se pudo eliminar el usuario',
 		},

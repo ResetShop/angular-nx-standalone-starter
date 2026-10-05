@@ -77,12 +77,7 @@ describe('ProfileStore', () => {
 			getLegacyToken: fn(),
 		}
 		userApiMock = {
-			getAll: fn(),
-			getById: fn(),
-			register: fn(),
-			update: fn(),
 			updateCustomerUser: fn(),
-			delete: fn(),
 		}
 	})
 

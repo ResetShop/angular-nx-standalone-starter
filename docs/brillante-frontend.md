@@ -51,6 +51,12 @@ starter authorises by **permissions**, so `src/contracts/permission/legacy-permi
 `module:resource:action` permission to the roles that hold it (taken from the legacy route guards) and `User` derives
 `hasPermission()` from the user's roles. Navigation, `permissionGuard` and the UI all use that one catalogue.
 
+### User management
+
+`/dashboard/settings/user-management` runs on the new backend (`GET /api/users`, `PATCH /api/users/{id}`, `DELETE /api/users/{id}`, through `ManagedUsersApi` next to the page), not on the legacy API. It lists every user with their roles and status, edits name, email and roles (only the fields that changed are sent), disables or enables an account and deletes it. The page is **admin-only**: the backend's user endpoints require `admin:users:*` permissions, which only the Administrator role holds, so the frontend permission `settings:user:manage` is granted to the administrator alone. The backend refuses changing one's own status, deleting one's own account and dropping one's own administrator role, so the signed-in user only gets the edit action, and the drawer does not offer them their own roles. Roles that are not removable (all seven legacy roles are seeded that way) stay checked once assigned, because the backend refuses removing them; only additions work until that rule changes.
+
+**Creating users is not available** until the real email provider exists: the backend emails a generated password to a new user, and nobody is added during the migration. The page has no create button and the drawer only edits.
+
 ## Structure
 
 ```

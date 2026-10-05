@@ -1,20 +1,18 @@
-import type { IUser } from '@domain/user/user.interface'
+import type { ManagedUser } from '@domain/user/managed-user.interface'
 
 export interface ManagedUsersReadError {
 	list: string | null
 }
 
 export interface ManagedUsersMutationError {
-	create: string | null
 	update: string | null
 	delete: string | null
 }
 
 export interface ManagedUsersState {
-	users: IUser[]
+	users: ManagedUser[]
 	searchQuery: string
 	isLoadingList: boolean
-	isCreating: boolean
 	isUpdating: boolean
 	isDeleting: boolean
 	readError: ManagedUsersReadError
@@ -25,9 +23,8 @@ export const initialManagedUsersState: ManagedUsersState = {
 	users: [],
 	searchQuery: '',
 	isLoadingList: false,
-	isCreating: false,
 	isUpdating: false,
 	isDeleting: false,
 	readError: { list: null },
-	mutationError: { create: null, update: null, delete: null },
+	mutationError: { update: null, delete: null },
 }

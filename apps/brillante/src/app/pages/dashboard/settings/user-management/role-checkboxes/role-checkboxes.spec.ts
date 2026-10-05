@@ -44,6 +44,18 @@ describe('RoleCheckboxes', () => {
 		expect(screen.getByRole('checkbox', { name: 'Owner' })).toBeChecked()
 	})
 
+	it('should keep locked roles checked and disabled', async () => {
+		const currentUser = signal(createMockUser({ hasRole: (id: number) => id === UserRole.ADMIN }))
+		await render(RoleCheckboxes, {
+			inputs: { value: [UserRole.OWNER, UserRole.EMPLOYEE], lockedIds: [UserRole.OWNER] },
+			providers: [provideSliceTranslationMock(settingsEn), { provide: AuthStore, useValue: { currentUser } }],
+		})
+
+		expect(screen.getByRole('checkbox', { name: 'Owner' })).toBeChecked()
+		expect(screen.getByRole('checkbox', { name: 'Owner' })).toBeDisabled()
+		expect(screen.getByRole('checkbox', { name: 'Employee' })).toBeEnabled()
+	})
+
 	it('should offer the owner role to an owner', async () => {
 		await renderComponent([], [UserRole.OWNER])
 

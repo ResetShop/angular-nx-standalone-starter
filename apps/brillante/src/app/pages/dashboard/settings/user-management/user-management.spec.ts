@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
-import type { UserDto } from '@contracts/user/legacy-user.types'
+import { UserStatus } from '@contracts/user/user.constants'
+import type { ManagedUser as ManagedUserDto } from '@contracts/user/user.types'
+import { createManagedUserDto } from '@domain/user/managed-user.mock'
 import { provideSliceTranslationMock } from '@mocks/slice-translation.mock'
-import { createMockUserDto } from '@mocks/user-dto.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { settingsEn } from '@providers/i18n/translations/slices/settings.translations'
-import { InMemoryUserApi, provideUserMock } from '@providers/user/user.mock'
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
@@ -17,27 +17,32 @@ import {
 import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
+import { InMemoryManagedUsersApi, provideManagedUsersMock } from './managed-users.mock'
 import UserManagement from './user-management'
 
 describe('UserManagement', () => {
-	let api: InMemoryUserApi
+	let api: InMemoryManagedUsersApi
 
-	const ana = createMockUserDto({
+	const role = (id: number, name: string): ManagedUserDto['roles'][number] => ({
+		id,
+		name,
+		code: name.toLowerCase(),
+		description: null,
+		removable: false,
+		createdAt: null,
+		updatedAt: null,
+	})
+	const ana = createManagedUserDto({
 		id: 1,
 		firstName: 'Ana',
 		lastName: 'Gomez',
-		userName: 'agomez',
 		email: 'ana@shop.com',
-		roles: [
-			{ id: 1, description: 'ADMIN' },
-			{ id: 6, description: 'EMPLOYEE' },
-		],
+		roles: [role(1, 'Administrator'), role(6, 'Employee')],
 	})
-	const bruno = createMockUserDto({
+	const bruno = createManagedUserDto({
 		id: 2,
 		firstName: 'Bruno',
 		lastName: 'Diaz',
-		userName: 'bdiaz',
 		email: 'bruno@shop.com',
 		roles: [],
 	})
@@ -46,7 +51,7 @@ describe('UserManagement', () => {
 		useFakeTimers()
 		clearAllMocks()
 		spyOn(console, 'error')
-		api = new InMemoryUserApi()
+		api = new InMemoryManagedUsersApi()
 		api.seed([ana, bruno])
 	})
 
@@ -61,7 +66,7 @@ describe('UserManagement', () => {
 		const view = await render(UserManagement, {
 			providers: [
 				provideAuthMock(),
-				provideUserMock(api),
+				provideManagedUsersMock(api),
 				provideSliceTranslationMock(settingsEn),
 				...provideSignalFormsConfig({}),
 			],
@@ -79,20 +84,40 @@ describe('UserManagement', () => {
 		await advanceTimersByTimeAsync(50)
 	}
 
-	function savedUsers(): UserDto[] {
-		let users: UserDto[] = []
+	function savedUsers(): ManagedUserDto[] {
+		let users: ManagedUserDto[] = []
 		api.getAll().subscribe((result) => (users = result))
 		return users
 	}
 
-	it('should list every user with username, email and translated roles', async () => {
+	function notificationMessages(): string[] {
+		return TestBed.inject(UIStore)
+			.notifications()
+			.map((item) => item.message)
+	}
+
+	it('should list every user with email, translated roles and status', async () => {
 		await renderPage()
 
 		const anaRow = screen.getByRole('row', { name: /Ana Gomez/ })
-		expect(anaRow).toHaveTextContent('agomez')
 		expect(anaRow).toHaveTextContent('ana@shop.com')
 		expect(anaRow).toHaveTextContent('Administrator, Employee')
+		expect(anaRow).toHaveTextContent('Active')
 		expect(screen.getByRole('row', { name: /Bruno Diaz/ })).toHaveTextContent('No roles')
+	})
+
+	it('should show a disabled user as disabled', async () => {
+		api.seed([ana, createManagedUserDto({ ...bruno, status: UserStatus.DISABLED })])
+
+		await renderPage()
+
+		expect(screen.getByRole('row', { name: /Bruno Diaz/ })).toHaveTextContent('Disabled')
+	})
+
+	it('should not offer creating users', async () => {
+		await renderPage()
+
+		expect(screen.queryByRole('button', { name: /create user/i })).not.toBeInTheDocument()
 	})
 
 	it('should show the read error when the users cannot be loaded', async () => {
@@ -113,15 +138,6 @@ describe('UserManagement', () => {
 		expect(screen.getByRole('row', { name: /Bruno Diaz/ })).toBeInTheDocument()
 	})
 
-	it('should open the create drawer', async () => {
-		const view = await renderPage()
-
-		fireEvent.click(screen.getByRole('button', { name: 'Create user' }))
-		view.fixture.detectChanges()
-
-		expect(screen.getByRole('dialog', { name: 'Create user' })).toBeInTheDocument()
-	})
-
 	it('should open the edit drawer with the chosen user', async () => {
 		const view = await renderPage()
 
@@ -132,6 +148,46 @@ describe('UserManagement', () => {
 
 		expect(screen.getByRole('dialog', { name: 'Edit user' })).toBeInTheDocument()
 		expect(screen.getByRole('textbox', { name: /first name/i })).toHaveValue('Bruno')
+	})
+
+	it('should disable an active user and announce it', async () => {
+		const view = await renderPage()
+
+		await openRowMenu(/Bruno Diaz/)
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Disable' }))
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		expect(savedUsers().find((user) => user.id === 2)?.status).toBe(UserStatus.DISABLED)
+		expect(screen.getByRole('row', { name: /Bruno Diaz/ })).toHaveTextContent('Disabled')
+		expect(notificationMessages()).toEqual(['User updated successfully.'])
+	})
+
+	it('should offer enabling a disabled user', async () => {
+		api.seed([ana, createManagedUserDto({ ...bruno, status: UserStatus.DISABLED })])
+		const view = await renderPage()
+
+		await openRowMenu(/Bruno Diaz/)
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Enable' }))
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		expect(savedUsers().find((user) => user.id === 2)?.status).toBe(UserStatus.ACTIVE)
+	})
+
+	it('should announce the failure when a status change fails', async () => {
+		api.setError('update', new Error('boom'))
+		const view = await renderPage()
+
+		await openRowMenu(/Bruno Diaz/)
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Disable' }))
+		TestBed.tick()
+		view.fixture.detectChanges()
+
+		expect(notificationMessages()).toEqual(['Failed to update user'])
+		expect(savedUsers().find((user) => user.id === 2)?.status).toBe(UserStatus.ACTIVE)
 	})
 
 	it('should delete a user after confirmation and announce it', async () => {
@@ -152,11 +208,7 @@ describe('UserManagement', () => {
 
 		expect(savedUsers().map((user) => user.id)).toEqual([1])
 		expect(screen.queryByRole('row', { name: /Bruno Diaz/ })).not.toBeInTheDocument()
-		expect(
-			TestBed.inject(UIStore)
-				.notifications()
-				.map((item) => item.message),
-		).toEqual(['User deleted successfully.'])
+		expect(notificationMessages()).toEqual(['User deleted successfully.'])
 	})
 
 	it('should not delete anything when the confirmation is cancelled', async () => {
@@ -182,20 +234,17 @@ describe('UserManagement', () => {
 		TestBed.tick()
 		view.fixture.detectChanges()
 
-		expect(
-			TestBed.inject(UIStore)
-				.notifications()
-				.map((item) => item.message),
-		).toEqual(['Failed to delete user'])
+		expect(notificationMessages()).toEqual(['Failed to delete user'])
 		expect(savedUsers()).toHaveLength(2)
 	})
 
-	it('should not offer deleting the signed-in user', async () => {
+	it('should only offer editing the signed-in user, never disabling or deleting', async () => {
 		await renderPage()
 
 		await openRowMenu(/Ana Gomez/)
 
 		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Disable' })).not.toBeInTheDocument()
 		expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
 	})
 })

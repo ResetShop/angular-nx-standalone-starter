@@ -2,9 +2,9 @@ import { provideToast } from '@components/toast/toast.provider'
 import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { permissionGuard } from '@guards/permission.guard'
 import { provideCashConcept } from '@providers/cash-concept/cash-concept.provider'
-import { provideUser } from '@providers/user/user.provider'
 import type { NamedRoute } from '@resetshop/angular-core/interfaces/navigation'
 import { CashConceptsStore } from './concepts/cash-concepts.store'
+import { provideManagedUsers } from './user-management/managed-users.provider'
 import { ManagedUsersStore } from './user-management/managed-users.store'
 
 /**
@@ -46,7 +46,7 @@ export default [
 		title: '',
 		canActivate: [permissionGuard],
 		data: { requiredPermission: Permission.SETTINGS_USERS_MANAGE },
-		providers: [provideUser(), ManagedUsersStore, provideToast()],
+		providers: [provideManagedUsers(), ManagedUsersStore, provideToast()],
 		children: [
 			{
 				path: '',

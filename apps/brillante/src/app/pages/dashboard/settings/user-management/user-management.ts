@@ -1,9 +1,9 @@
 import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
-import type { IUser } from '@domain/user/user.interface'
+import { UserStatus } from '@contracts/user/user.constants'
+import type { ManagedUser } from '@domain/user/managed-user.interface'
 import { AppTranslation } from '@providers/i18n/app-translation'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
-import { Button } from '@resetshop/ui/button/button'
 import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 import { DataTable } from '@resetshop/ui/data-table/data-table'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
@@ -16,12 +16,13 @@ import { UserDrawer } from './user-drawer/user-drawer'
 import { USER_ROLE_OPTIONS } from './user-role-options'
 
 /**
- * Lists every user and opens the drawers that register, edit or delete them. The route is
- * guarded by the permission to manage users, so the page itself does not re-check it.
+ * Lists every user and opens the drawer that edits one, or the actions that disable, enable or delete it. The route is
+ * guarded by the permission to manage users, so the page itself does not re-check it. Creating users is not offered
+ * until the backend can email the new user a link to choose a password.
  */
 @Component({
 	selector: 'app-user-management',
-	imports: [Button, ConfirmDialog, DataTable, DataTableCellDef, PageShell, RowActionsMenu, TranslatePipe, UserDrawer],
+	imports: [ConfirmDialog, DataTable, DataTableCellDef, PageShell, RowActionsMenu, TranslatePipe, UserDrawer],
 	template: `
 		<app-page-shell
 			[loading]="store.isLoadingList()"
@@ -30,10 +31,7 @@ import { USER_ROLE_OPTIONS } from './user-role-options'
 		>
 			<p pageDescription>{{ 'MANAGED_USERS.DESCRIPTION' | translate }}</p>
 
-			<div
-				pageActions
-				class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-			>
+			<div pageActions class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
 				<input
 					(input)="onSearchInput($event)"
 					[placeholder]="'MANAGED_USERS.SEARCH' | translate"
@@ -41,9 +39,6 @@ import { USER_ROLE_OPTIONS } from './user-role-options'
 					type="search"
 					class="border-input bg-background text-foreground focus:border-ring focus:ring-ring h-9 w-full max-w-sm rounded-md border px-3 text-base focus:ring-1 focus:outline-none sm:text-sm"
 				/>
-				<button (click)="userDrawer().openCreate()" appButton class="w-full sm:w-auto">
-					{{ 'MANAGED_USERS.CREATE_BUTTON' | translate }}
-				</button>
 			</div>
 
 			<app-data-table
@@ -81,8 +76,9 @@ export default class UserManagement {
 	protected readonly userDrawer = viewChild.required<UserDrawer>('userDrawerRef')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialogRef')
 	private readonly deleteToast = createMutationToast(this.translation.instant('MANAGED_USERS.SUCCESS.DELETED'))
+	private readonly statusToast = createMutationToast(this.translation.instant('MANAGED_USERS.SUCCESS.UPDATED'))
 
-	protected readonly userToDelete = signal<IUser | null>(null)
+	protected readonly userToDelete = signal<ManagedUser | null>(null)
 	protected readonly deleteMessage = computed(() =>
 		this.translation
 			.instant('MANAGED_USERS.DELETE_DIALOG.MESSAGE')
@@ -95,14 +91,24 @@ export default class UserManagement {
 		untracked(() => this.deleteToast.handleResult(deleting, error))
 	})
 
-	protected readonly columns = computed((): ColumnDef<IUser, unknown>[] => [
+	private readonly statusToastEffect = effect(() => {
+		const updating = this.store.isUpdating()
+		const error = this.store.mutationError().update
+		untracked(() => this.statusToast.handleResult(updating, error))
+	})
+
+	protected readonly columns = computed((): ColumnDef<ManagedUser, unknown>[] => [
 		{ accessorKey: 'fullName', header: this.translation.instant('MANAGED_USERS.TABLE.HEADER.NAME') },
-		{ accessorKey: 'userName', header: this.translation.instant('MANAGED_USERS.TABLE.HEADER.USER_NAME') },
 		{ accessorKey: 'email', header: this.translation.instant('MANAGED_USERS.TABLE.HEADER.EMAIL') },
 		{
 			id: 'roles',
 			header: this.translation.instant('MANAGED_USERS.TABLE.HEADER.ROLES'),
 			accessorFn: (user) => this.describeRoles(user),
+		},
+		{
+			id: 'status',
+			header: this.translation.instant('MANAGED_USERS.TABLE.HEADER.STATUS'),
+			accessorFn: (user) => this.describeStatus(user),
 		},
 		{ id: 'actions', header: '', enableSorting: false },
 	])
@@ -111,21 +117,28 @@ export default class UserManagement {
 		this.store.setSearchQuery((event.target as HTMLInputElement).value)
 	}
 
-	protected getRowActions(user: IUser): readonly (readonly RowAction[])[] {
-		const isSelf = this.authStore.currentUser()?.id === user.id
+	protected getRowActions(user: ManagedUser): readonly (readonly RowAction[])[] {
 		const edit: RowAction = {
 			label: this.translation.instant('COMMON.EDIT'),
 			onSelect: () => this.userDrawer().openEdit(user),
+		}
+		// The backend refuses changing the status of, or deleting, one's own account.
+		if (this.authStore.currentUser()?.id === user.id) return [[edit]]
+
+		const isActive = user.status === UserStatus.ACTIVE
+		const toggleStatus: RowAction = {
+			label: this.translation.instant(isActive ? 'MANAGED_USERS.ACTIONS.DISABLE' : 'MANAGED_USERS.ACTIONS.ENABLE'),
+			onSelect: () => this.changeStatus(user, isActive ? UserStatus.DISABLED : UserStatus.ACTIVE),
 		}
 		const remove: RowAction = {
 			label: this.translation.instant('COMMON.DELETE'),
 			onSelect: () => this.confirmDelete(user),
 			variant: 'destructive',
 		}
-		return [[edit], isSelf ? [] : [remove]]
+		return [[edit, toggleStatus], [remove]]
 	}
 
-	protected confirmDelete(user: IUser): void {
+	protected confirmDelete(user: ManagedUser): void {
 		this.userToDelete.set(user)
 		this.deleteDialog().show()
 	}
@@ -139,7 +152,18 @@ export default class UserManagement {
 		this.userToDelete.set(null)
 	}
 
-	private describeRoles(user: IUser): string {
+	private changeStatus(user: ManagedUser, status: typeof UserStatus.ACTIVE | typeof UserStatus.DISABLED): void {
+		this.statusToast.markSubmitted()
+		this.store.updateUser({ id: user.id, changes: { status } })
+	}
+
+	private describeStatus(user: ManagedUser): string {
+		return this.translation.instant(
+			user.status === UserStatus.ACTIVE ? 'MANAGED_USERS.STATUS.ACTIVE' : 'MANAGED_USERS.STATUS.DISABLED',
+		)
+	}
+
+	private describeRoles(user: ManagedUser): string {
 		if (user.roles.length === 0) return this.translation.instant('MANAGED_USERS.NO_ROLES')
 		return user.roles
 			.map((role) => {

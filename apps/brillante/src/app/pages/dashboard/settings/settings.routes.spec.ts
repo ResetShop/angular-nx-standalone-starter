@@ -163,7 +163,7 @@ describe('settings routes', () => {
 			])
 		})
 
-		it('should serve user management wired to the HTTP user API through the section providers', async () => {
+		it('should serve user management wired to the backend user API through the section providers', async () => {
 			configure([Permission.SETTINGS_USERS_MANAGE])
 			const http = TestBed.inject(HttpTestingController)
 
@@ -171,7 +171,7 @@ describe('settings routes', () => {
 			TestBed.tick()
 
 			expect(page).toBeInstanceOf(UserManagement)
-			http.expectOne(`${environment.apiUrl}/users`).flush([])
+			http.expectOne((request) => request.url === '/api/users').flush({ data: [], total: 0, offset: 0, limit: 500 })
 			http.verify()
 		})
 
@@ -182,7 +182,7 @@ describe('settings routes', () => {
 			await (await RouterTestingHarness.create()).navigateByUrl('/user-management')
 
 			expect(TestBed.inject(Router).url).toBe('/dashboard')
-			http.expectNone(`${environment.apiUrl}/users`)
+			http.expectNone((request) => request.url === '/api/users')
 		})
 
 		it('should serve the concepts page wired to the HTTP cash concept API through the section providers', async () => {
