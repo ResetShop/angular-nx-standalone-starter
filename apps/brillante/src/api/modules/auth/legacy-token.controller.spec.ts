@@ -1,4 +1,5 @@
 import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
+import { parseDurationToMs } from '@resetshop/util'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -51,10 +52,11 @@ describe('Auth Controller - /legacy-token endpoint', () => {
 		const res = await request()
 
 		expect(res.status).toBe(200)
+		expect(res.headers.get('Cache-Control')).toBe('no-store')
 		const { token, expiresAt } = await res.json()
 		const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString())
 		expect(claims.sub).toBe(7)
-		expect(new Date(expiresAt).getTime() - Date.now()).toBeGreaterThan(59 * 60 * 1000)
+		expect(new Date(expiresAt).getTime() - Date.now()).toBeGreaterThan(parseDurationToMs('59m'))
 	})
 
 	it('answers 503 and signs nothing while the legacy secret is not configured', async () => {

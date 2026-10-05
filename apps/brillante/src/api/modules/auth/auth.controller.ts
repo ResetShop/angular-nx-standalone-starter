@@ -29,7 +29,7 @@ import {
 	REFRESH_TOKEN_COOKIE_NAME,
 } from '../../constants/auth.constants'
 import { container } from '../../container/container'
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
+import { type AuthenticatedContext, getAuthenticatedUser } from '../../middlewares/verify-access-token.middleware'
 import { buildBaseCookieOptions } from './auth.config'
 import {
 	changePasswordRoute,
@@ -231,18 +231,13 @@ registerRoute(app, resetPasswordRoute, async (c) => {
 // The legacy API signs { sub: <user id> } with a shared secret and checks nothing else, so the same user id (staff keep
 // their legacy ids) is all it needs. Only an active, signed-in user gets one.
 registerRoute(app, legacyTokenRoute, async (c) => {
-	const tokenUser = (c as AuthenticatedContext).user
-	if (!tokenUser) {
-		return c.json({ error: 'Unauthorized' }, 401)
-	}
-
 	const secret = tokenEnv.LEGACY_JWT_SECRET
 	if (!secret) {
 		logger.error('LegacyToken', 'LEGACY_JWT_SECRET is not configured')
 		return c.json({ error: 'Legacy token bridge is not configured' }, 503)
 	}
 
-	const userId = Number(tokenUser.sub)
+	const userId = Number(getAuthenticatedUser(c).sub)
 	try {
 		await container.cradle.authService.getSessionUser(userId)
 	} catch (error) {
@@ -253,6 +248,8 @@ registerRoute(app, legacyTokenRoute, async (c) => {
 	}
 
 	const { token, expiresAt } = signLegacyToken(userId, secret, tokenEnv.LEGACY_JWT_EXPIRY)
+	// A bearer credential must never be cached by a browser or an intermediary.
+	c.header('Cache-Control', 'no-store')
 	return c.json({ token, expiresAt: expiresAt.toISOString() }, 200)
 })
 
