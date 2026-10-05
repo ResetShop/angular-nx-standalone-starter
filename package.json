@@ -67,6 +67,8 @@
 		"drizzle:seed-roles:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/seed-roles.ts",
 		"drizzle:import-legacy-users:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/import-legacy-users.ts",
 		"drizzle:import-legacy-users:brillante:local": "tsx --env-file=.env --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/import-legacy-users.ts",
+		"send:onboarding-emails:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/send-onboarding-emails.ts",
+		"send:onboarding-emails:brillante:local": "tsx --env-file=.env --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/send-onboarding-emails.ts",
 		"drizzle:seed-roles:brillante:local": "tsx --env-file=.env --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/seed-roles.ts",
 		"sync:permissions:brillante": "tsx --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/sync-permissions.ts",
 		"sync:permissions:brillante:local": "tsx --env-file=.env --tsconfig apps/brillante/tsconfig.json ./apps/brillante/src/db/sync-permissions.ts",

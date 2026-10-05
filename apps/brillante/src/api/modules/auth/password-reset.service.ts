@@ -1,9 +1,7 @@
 import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { UserStatus } from '@contracts/user/user.constants'
 import { logger, parseDurationToMs } from '@resetshop/util'
-import { createHash, randomBytes } from 'crypto'
-import { httpEnv } from '../../config/http.env'
-import { PASSWORD_RESET_PATH, PASSWORD_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
+import { PASSWORD_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import { buildForgotPasswordEmail } from '../../services/email/forgot-password-email.builder'
 import { type EmailService } from '../../services/email/interfaces'
 import { type UserRepository } from '../user/interfaces'
@@ -13,6 +11,7 @@ import {
 	type PasswordResetTokenRepository,
 	type RefreshTokenRepository,
 } from './interfaces'
+import { buildPasswordResetUrl, generateResetToken, hashResetToken } from './reset-token'
 
 interface PasswordResetServiceDeps {
 	userRepository: UserRepository
@@ -69,16 +68,16 @@ export class PasswordResetService implements IPasswordResetService {
 		// Only the latest link should be valid — drop any outstanding unused tokens first.
 		await this.passwordResetTokenRepository.invalidateAllForUser(user.id)
 
-		const rawToken = randomBytes(32).toString('base64url')
+		const rawToken = generateResetToken()
 		await this.passwordResetTokenRepository.create({
 			userId: user.id,
-			tokenHash: this.hashToken(rawToken),
+			tokenHash: hashResetToken(rawToken),
 			expiresAt: new Date(Date.now() + parseDurationToMs(PASSWORD_RESET_TOKEN_EXPIRY)),
 		})
 
 		const emailContent = buildForgotPasswordEmail({
 			firstName: user.firstName,
-			resetUrl: this.buildResetUrl(rawToken),
+			resetUrl: buildPasswordResetUrl(rawToken),
 		})
 		await this.emailService.send({ to: user.email, ...emailContent })
 	}
@@ -90,7 +89,7 @@ export class PasswordResetService implements IPasswordResetService {
 	 * @throws AuthError RESET_TOKEN_INVALID for any missing/expired/used token or inactive user
 	 */
 	public async resetPassword(token: string, newPassword: string): Promise<void> {
-		const tokenHash = this.hashToken(token)
+		const tokenHash = hashResetToken(token)
 		const record = await this.passwordResetTokenRepository.findByTokenHash(tokenHash)
 		if (!record || record.usedAt !== null || record.expiresAt < new Date()) {
 			throw new AuthError(InternalAuthErrorCode.RESET_TOKEN_INVALID)
@@ -109,16 +108,5 @@ export class PasswordResetService implements IPasswordResetService {
 
 		await this.refreshTokenRepository.revokeAllForUser(record.userId)
 		logger.security('password_reset_completed', { userId: record.userId })
-	}
-
-	private hashToken(token: string): string {
-		return createHash('sha256').update(token).digest('hex')
-	}
-
-	private buildResetUrl(rawToken: string): string {
-		// httpEnv.CORS_ORIGIN is the configured frontend origin (defaults to the dev server in the schema).
-		// Take the first origin if a comma-separated list is configured, and strip any trailing slash.
-		const origin = httpEnv.CORS_ORIGIN.split(',')[0].trim().replace(/\/$/, '')
-		return `${origin}${PASSWORD_RESET_PATH}?token=${encodeURIComponent(rawToken)}`
 	}
 }

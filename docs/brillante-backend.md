@@ -191,6 +191,18 @@ moves to 999, so the next user created gets id 1000; it is never lowered.
 For hosts whose certificate chain Node cannot verify (Supabase), append `?uselibpqcompat=true&sslmode=require` to the
 connection string, as for the other database scripts. The dump never leaves the machine; pass its path on the command line.
 
+### Onboarding the migrated users
+
+The imported users have unusable random passwords and `must_change_password`. `npm run send:onboarding-emails:brillante` emails each one a single-use link, built from the first `CORS_ORIGIN` plus `/auth/reset-password/confirm?token=`, that lets them choose a password through the existing reset flow (`POST /api/auth/reset-password`). The link is valid for one day (`ONBOARDING_RESET_TOKEN_EXPIRY`); only its SHA-256 hash is stored, and issuing a new one replaces any unused link of the same user.
+
+Recipients are the active users who still have `must_change_password` and a real address: the seeded administrator (who already has a password), disabled users and users with the generated `no-email-<id>@placeholder.local` address are skipped. With the 2026 dump that is the 11 imported active users.
+
+- Without `--apply` the command is a dry run: it issues nothing and sends nothing, and prints counts and user ids only (never names or addresses).
+- `--user-ids 2,3` narrows the selection; an id that does not exist aborts before anything is sent.
+- Failures are counted by user id; the exit code is 1 if any send failed, and a re-run mails everybody again with fresh links.
+- `EMAIL_PROVIDER=noop` refuses `--apply`. `EMAIL_PROVIDER=ethereal` stores every message on a third-party server, so the command refuses it unless every recipient uses a reserved test domain (`.test`, `.example`, `.invalid`, `.localhost`, `example.com/org/net`): rehearse it against a local database with invented users, never against the real one.
+- Real emails need the frontend reset page and a real provider that works on the target runtime; until then only run the dry run against the production database.
+
 ### Deployment and checks on Cloudflare
 
 While this is a prototype there is a single Worker, `brillante`, and a single database; separating staging from production
