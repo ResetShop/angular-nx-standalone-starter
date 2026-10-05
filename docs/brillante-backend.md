@@ -207,7 +207,7 @@ Recipients are the active users who still have `must_change_password` and a real
 
 The screens that still call the legacy Heroku API cannot change: its `/users/authenticate` signs `{ sub: <user id> }` with HS256 under a shared secret and its middleware (express-jwt 5) checks only the signature and `exp`. `GET /api/auth/legacy-token` gives a signed-in, active user the same kind of token: `sub` is their id (staff keep their legacy ids, so it resolves to the same person), plus `iat` and an `exp` of `LEGACY_JWT_EXPIRY` (1 hour by default; the legacy tokens never expire). A frontend asks for a new one when the legacy API answers 401.
 
-- The secret is `LEGACY_JWT_SECRET`, at least 32 characters. Until it is set the endpoint answers 503; nothing is ever signed with a placeholder outside the tests.
+- The secret is `LEGACY_JWT_SECRET`, of whatever length the legacy server uses (blank is refused, surrounding whitespace is dropped). Until it is set the endpoint answers 503; nothing is ever signed with a placeholder outside the tests.
 - **Set the real value** with `wrangler secret put LEGACY_JWT_SECRET` (it must equal the legacy server's `SECRET`) and in your local environment.
 - Once the real secret is available, `LEGACY_JWT_SECRET=<secret> npm run smoke:brillante:legacy-bridge` checks that the real legacy API accepts our token (status 200) and refuses one under a wrong secret (401); it prints status codes only.
 - Compatibility was checked against `jsonwebtoken` 8.5.1 and `express-jwt` 5.3.3, the versions the legacy server uses: a token is accepted, and an expired one or one under another secret is rejected. The specs check the same rules with an independent HS256 verifier, since those packages are not dependencies of this repo.

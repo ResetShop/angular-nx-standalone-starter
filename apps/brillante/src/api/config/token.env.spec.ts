@@ -168,11 +168,23 @@ describe('seedTokenEnv / resetTokenEnv / tokenEnv proxy', () => {
 			expect(parseTokenEnv(validMinimalEnv()).LEGACY_JWT_SECRET).toBeUndefined()
 		})
 
-		it.each(['short', ''])('reads %j as unset instead of failing the whole token env', (value) => {
+		it.each(['', '   ', '\r\n'])('reads %j as unset instead of failing the whole token env', (value) => {
 			const env = parseTokenEnv(validMinimalEnv({ LEGACY_JWT_SECRET: value }))
 
 			expect(env.LEGACY_JWT_SECRET).toBeUndefined()
 			expect(env.PASETO_ISSUER).toBe('test-issuer')
+		})
+
+		it('accepts a short secret, since its length is set by the legacy server', () => {
+			expect(parseTokenEnv(validMinimalEnv({ LEGACY_JWT_SECRET: 'legacy-secret' })).LEGACY_JWT_SECRET).toBe(
+				'legacy-secret',
+			)
+		})
+
+		it('drops whitespace around the secret', () => {
+			expect(parseTokenEnv(validMinimalEnv({ LEGACY_JWT_SECRET: ' legacy-secret\r\n' })).LEGACY_JWT_SECRET).toBe(
+				'legacy-secret',
+			)
 		})
 
 		it('falls back to one hour when the expiry is not a duration', () => {

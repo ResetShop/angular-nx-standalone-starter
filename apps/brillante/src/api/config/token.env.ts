@@ -43,9 +43,10 @@ const TokenEnvSchema = z.object({
 	PASETO_ACCESS_TOKEN_EXPIRY: z.string().min(1).default(DEFAULT_ACCESS_TOKEN_EXPIRY),
 	PASETO_REFRESH_TOKEN_EXPIRY: z.string().min(1).default(DEFAULT_REFRESH_TOKEN_EXPIRY),
 	PASETO_CLOCK_TOLERANCE: z.string().min(1).default(DEFAULT_CLOCK_TOLERANCE),
-	// Shared HS256 secret of the legacy API. A blank, too short or missing value reads as unset: the legacy-token
-	// endpoint then answers 503, and a bad value here can never take the PASETO login down with it.
-	LEGACY_JWT_SECRET: z.string().min(32).optional().catch(undefined),
+	// Shared HS256 secret of the legacy API. Its length is whatever the legacy server uses, so only a blank value is
+	// refused; surrounding whitespace (a pasted newline) is dropped. A blank or missing value reads as unset: the
+	// legacy-token endpoint then answers 503, and a bad value here can never take the PASETO login down with it.
+	LEGACY_JWT_SECRET: z.string().trim().min(1).optional().catch(undefined),
 	// A value that is not a duration string falls back to the default for the same reason.
 	LEGACY_JWT_EXPIRY: z
 		.string()

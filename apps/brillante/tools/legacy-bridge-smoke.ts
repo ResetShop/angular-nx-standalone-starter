@@ -9,7 +9,8 @@
  */
 import { signLegacyToken } from '../src/api/modules/auth/legacy-token'
 
-const secret = process.env['LEGACY_JWT_SECRET']
+// Read like the backend reads it: surrounding whitespace is dropped and a blank value counts as unset.
+const secret = process.env['LEGACY_JWT_SECRET']?.trim()
 if (!secret) {
 	console.error('LEGACY_JWT_SECRET is not set: nothing to check.')
 	process.exit(1)
