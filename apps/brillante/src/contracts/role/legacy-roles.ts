@@ -28,8 +28,8 @@ export interface LegacyRoleDefinition {
 
 /**
  * All seven legacy roles in id order. The Administrator entry mirrors the role created by the reference
- * seed (`src/db/seed.ts`) field for field; the other six are created by `seedLegacyRoles` and, like the
- * Administrator, cannot be removed from the role management screen.
+ * seed (`src/db/seed.ts`) field for field and cannot be removed. The other six are created by `seedLegacyRoles`
+ * as removable: staff change jobs, and a role that is not removable can never be taken off a user.
  */
 export const LEGACY_ROLES: readonly LegacyRoleDefinition[] = Object.freeze([
 	{
@@ -44,42 +44,42 @@ export const LEGACY_ROLES: readonly LegacyRoleDefinition[] = Object.freeze([
 		code: LegacyRoleCode.OWNER,
 		name: 'Brillante',
 		description: 'Owner of the business',
-		removable: false,
+		removable: true,
 	},
 	{
 		id: UserRole.COUNTER_CLERK,
 		code: LegacyRoleCode.COUNTER_CLERK,
 		name: 'Encargado Local',
 		description: 'Store counter clerk in charge of a branch',
-		removable: false,
+		removable: true,
 	},
 	{
 		id: UserRole.REPAIRMAN,
 		code: LegacyRoleCode.REPAIRMAN,
 		name: 'Taller',
 		description: 'Repair workshop technician',
-		removable: false,
+		removable: true,
 	},
 	{
 		id: UserRole.CUSTOMER,
 		code: LegacyRoleCode.CUSTOMER,
 		name: 'Cliente',
 		description: 'Customer of the store',
-		removable: false,
+		removable: true,
 	},
 	{
 		id: UserRole.EMPLOYEE,
 		code: LegacyRoleCode.EMPLOYEE,
 		name: 'Empleado',
 		description: 'Store employee',
-		removable: false,
+		removable: true,
 	},
 	{
 		id: UserRole.ACCOUNTANT,
 		code: LegacyRoleCode.ACCOUNTANT,
 		name: 'Contador',
 		description: 'Accountant with access to reports',
-		removable: false,
+		removable: true,
 	},
 ])
 

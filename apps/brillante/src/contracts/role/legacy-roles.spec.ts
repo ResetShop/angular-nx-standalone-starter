@@ -24,8 +24,8 @@ describe('LEGACY_ROLES', () => {
 		})
 	})
 
-	it('marks every role as not removable', () => {
-		expect(LEGACY_ROLES.every((legacyRole) => !legacyRole.removable)).toBe(true)
+	it('makes every role removable except the Administrator, so staff can change roles', () => {
+		expect(LEGACY_ROLES.filter((legacyRole) => !legacyRole.removable).map((legacyRole) => legacyRole.id)).toEqual([1])
 	})
 
 	it('seeds every role but the Administrator', () => {

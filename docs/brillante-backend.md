@@ -100,11 +100,16 @@ cannot be proven locally.
 
 `drizzle:seed:brillante` creates the reference seed's Administrator (id 1, all 14 `admin:*` permissions) and then the six
 other legacy roles with their legacy ids and **no permissions**: 2 `owner` (Brillante), 3 `counter_clerk` (Encargado Local),
-4 `repairman` (Taller), 5 `customer` (Cliente), 6 `employee` (Empleado), 7 `accountant` (Contador). None of them is
-removable. The ids match the legacy ones on purpose (user import and the frontend's interim role table use them), so
+4 `repairman` (Taller), 5 `customer` (Cliente), 6 `employee` (Empleado), 7 `accountant` (Contador). The six are
+**removable** (staff change jobs, and the backend never lets a user lose a non-removable role) while the Administrator is
+not. `removable` also decides whether `DELETE /api/roles/{id}` may delete the role, so an administrator could now delete
+a legacy role, which cascades to the users holding it and leaves a hole in the legacy numbering that the user import and
+the frontend's role table rely on; no screen offers it, and `seedLegacyRoles` recreates a deleted role (not its
+assignments). The seed sets the flag on every run, so a flag changed by hand on a legacy role is reverted by the next run.
+The ids match the legacy ones on purpose (user import and the frontend's interim role table use them), so
 `seedLegacyRoles` fails loudly if a legacy code sits under another id or an unrelated role holds a legacy id, and it moves
-the id sequence past 7 so later roles never collide. It is idempotent; `drizzle:seed-roles:brillante` runs only this step
-on an already seeded database.
+the id sequence past 7 so later roles never collide. It is idempotent, and it makes roles seeded earlier as non-removable removable; `drizzle:seed-roles:brillante` runs only
+this step on an already seeded database (run it once after deploying the change that made the roles removable).
 
 `LEGACY_ROLE_PERMISSION_MATRIX` (`contracts/role/legacy-roles.ts`) lists the Brillante domain permissions each legacy role
 would hold. It is derived from the frontend's interim table and is **not applied**: the database only knows the `admin:*`

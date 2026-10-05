@@ -97,7 +97,7 @@ async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdmin
 	await seedPermissions(tx, adminRoleId)
 	const legacyRoles = await seedLegacyRoles(tx)
 	console.log(
-		`✅ Legacy roles without permissions: ${legacyRoles.created.length} created, ${legacyRoles.existing.length} already present`,
+		`✅ Legacy roles without permissions: ${legacyRoles.created.length} created, ${legacyRoles.updated.length} made removable, ${legacyRoles.existing.length} already up to date`,
 	)
 }
 

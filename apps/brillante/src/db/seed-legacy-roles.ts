@@ -13,11 +13,14 @@ const SEED_LEGACY_ROLES_LOCK_KEY = 0x53454c52 // "SELR" in hex (Seed LEgacy Role
 
 export interface SeedLegacyRolesResult {
 	readonly created: readonly string[]
+	/** Roles that existed with a different `removable` flag, which was corrected. */
+	readonly updated: readonly string[]
 	readonly existing: readonly string[]
 }
 
 /**
- * Creates one legacy role with its legacy id, or confirms an identical one exists. A role that already
+ * Creates one legacy role with its legacy id, or confirms one exists (correcting its `removable` flag, the only
+ * property whose meaning changed after the first seed). A role that already
  * holds the code under a different id, or an unrelated role holding the id, means the database has
  * diverged from the legacy numbering; that is an error, never silently skipped, because user import
  * and the frontend rely on the ids.
@@ -25,13 +28,19 @@ export interface SeedLegacyRolesResult {
 async function seedLegacyRole(
 	tx: DrizzleTransaction,
 	definition: LegacyRoleDefinition,
-): Promise<'created' | 'existing'> {
-	const [byCode] = await tx.select({ id: role.id }).from(role).where(eq(role.code, definition.code))
+): Promise<'created' | 'updated' | 'existing'> {
+	const [byCode] = await tx
+		.select({ id: role.id, removable: role.removable })
+		.from(role)
+		.where(eq(role.code, definition.code))
 	if (byCode) {
 		if (byCode.id !== definition.id) {
 			throw new Error(`Role "${definition.code}" exists with id ${byCode.id}, expected the legacy id ${definition.id}`)
 		}
-		return 'existing'
+		if (byCode.removable === definition.removable) return 'existing'
+
+		await tx.update(role).set({ removable: definition.removable }).where(eq(role.id, definition.id))
+		return 'updated'
 	}
 
 	const [byId] = await tx.select({ code: role.code }).from(role).where(eq(role.id, definition.id))
@@ -87,7 +96,7 @@ async function assertAdministratorRole(tx: DrizzleTransaction): Promise<void> {
  * Creates the legacy roles 2 to 7 (Owner, Counter clerk, Repairman, Customer, Employee, Accountant) with their
  * legacy ids and no permissions. The Administrator (id 1) belongs to the reference seed and must exist already.
  *
- * Idempotent: running it again changes nothing. A transaction-scoped advisory lock serialises concurrent runs, so
+ * Idempotent: running it again changes nothing. Roles seeded earlier as non-removable become removable. A transaction-scoped advisory lock serialises concurrent runs, so
  * the second one sees the roles the first created instead of failing on a unique violation.
  */
 export async function seedLegacyRoles(tx: DrizzleTransaction): Promise<SeedLegacyRolesResult> {
@@ -95,16 +104,14 @@ export async function seedLegacyRoles(tx: DrizzleTransaction): Promise<SeedLegac
 	await assertAdministratorRole(tx)
 
 	const created: string[] = []
+	const updated: string[] = []
 	const existing: string[] = []
 	for (const definition of LEGACY_ROLES_TO_SEED) {
 		const outcome = await seedLegacyRole(tx, definition)
-		if (outcome === 'created') {
-			created.push(definition.code)
-		} else {
-			existing.push(definition.code)
-		}
+		const bucket = { created, updated, existing }[outcome]
+		bucket.push(definition.code)
 	}
 
 	await advanceRoleIdSequence(tx)
-	return { created, existing }
+	return { created, updated, existing }
 }
