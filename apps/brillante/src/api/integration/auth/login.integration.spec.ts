@@ -60,6 +60,15 @@ describe('POST /api/auth/login', () => {
 		})
 	})
 
+	describe('email case', () => {
+		it('signs in with the email in any case', async () => {
+			const { response } = await loginAs(app, 'Admin@SISTEMA.com', adminPassword)
+
+			expect(response.status).toBe(200)
+			expect((await response.json()).user.email).toBe('admin@sistema.com')
+		})
+	})
+
 	describe('authentication errors', () => {
 		it('returns 401 for non-existent email', async () => {
 			const { response } = await loginAs(app, 'nonexistent@test.com', 'password')
