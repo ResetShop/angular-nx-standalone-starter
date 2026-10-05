@@ -1,0 +1,47 @@
+meta {
+  name: Get Legacy Token
+  type: http
+  seq: 21
+}
+
+get {
+  url: {{baseUrl}}/auth/legacy-token
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Legacy Token
+
+  Returns an HS256 JWT for the legacy Brillante API: `sub` is the signed-in user's id, signed with the legacy
+  shared secret (`LEGACY_JWT_SECRET`), with `iat` and an `exp` of `LEGACY_JWT_EXPIRY` (default 1 hour).
+  The screens that still call the legacy API send it as `Authorization: Bearer <token>`.
+
+  ## Contract Types
+
+  - Response: `legacyTokenResponseSchema` in `@contracts/auth/auth.schemas`
+
+  ## Authentication
+
+  Uses the HttpOnly `access_token` cookie, like the rest of the protected endpoints.
+
+  ## Responses
+
+  | Status | Meaning |
+  |--------|---------|
+  | 200 | `{ token, expiresAt }` |
+  | 401 | No session, or the account is no longer active |
+  | 503 | `LEGACY_JWT_SECRET` is not configured on this deployment |
+}
+
+assert {
+  res.status: eq 200
+  res.body.token: isString
+  res.body.expiresAt: isString
+}
+
+tests {
+  test("should return a three-segment JWT", function() {
+    expect(res.body.token.split(".")).to.have.lengthOf(3);
+  });
+}

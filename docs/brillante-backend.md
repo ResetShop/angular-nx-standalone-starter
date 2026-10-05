@@ -203,6 +203,16 @@ Recipients are the active users who still have `must_change_password` and a real
 - `EMAIL_PROVIDER=noop` refuses `--apply`. `EMAIL_PROVIDER=ethereal` stores every message on a third-party server, so the command refuses it unless every recipient uses a reserved test domain (`.test`, `.example`, `.invalid`, `.localhost`, `example.com/org/net`): rehearse it against a local database with invented users, never against the real one.
 - Real emails need the frontend reset page and a real provider that works on the target runtime; until then only run the dry run against the production database.
 
+### Legacy API token bridge
+
+The screens that still call the legacy Heroku API cannot change: its `/users/authenticate` signs `{ sub: <user id> }` with HS256 under a shared secret and its middleware (express-jwt 5) checks only the signature and `exp`. `GET /api/auth/legacy-token` gives a signed-in, active user the same kind of token: `sub` is their id (staff keep their legacy ids, so it resolves to the same person), plus `iat` and an `exp` of `LEGACY_JWT_EXPIRY` (1 hour by default; the legacy tokens never expire). A frontend asks for a new one when the legacy API answers 401.
+
+- The secret is `LEGACY_JWT_SECRET`, at least 32 characters. Until it is set the endpoint answers 503; nothing is ever signed with a placeholder outside the tests.
+- **Set the real value** with `wrangler secret put LEGACY_JWT_SECRET` (it must equal the legacy server's `SECRET`) and in your local environment.
+- Once the real secret is available, `LEGACY_JWT_SECRET=<secret> npm run smoke:brillante:legacy-bridge` checks that the real legacy API accepts our token (status 200) and refuses one under a wrong secret (401); it prints status codes only.
+- Compatibility was checked against `jsonwebtoken` 8.5.1 and `express-jwt` 5.3.3, the versions the legacy server uses: a token is accepted, and an expired one or one under another secret is rejected. The specs check the same rules with an independent HS256 verifier, since those packages are not dependencies of this repo.
+- Not handled on purpose: the legacy `/users/authenticate` is public and mints a token for any email in the body, and unknown emails register as customers. That is the legacy API's behaviour and stays until it is retired; users created in the new backend get ids from 1000, and no new users are added during the migration.
+
 ### Deployment and checks on Cloudflare
 
 While this is a prototype there is a single Worker, `brillante`, and a single database; separating staging from production

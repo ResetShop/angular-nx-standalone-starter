@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - `apps/brillante/src/db/legacy-import/`: the pure core of the legacy staff-user import (MySQL dump parser, `LegacyUserSource`, classification rules, conflict-aware plan, references report with no personal data), and `scripts/check-no-sql-dumps.mjs`, a guard (pre-commit and `check` target) that fails on database dump files that git does not ignore.
 - `npm run drizzle:import-legacy-users:brillante`: imports the legacy staff users from a local MySQL dump in one transaction (a dry run is the default and `--apply` writes; re-runs are no-ops; conflicts and missing roles abort before writing; failures never print personal data), with random unusable passwords and `must_change_password`, and moves the user id sequence to 1000. The runbook is in `docs/brillante-backend.md`.
 - `npm run send:onboarding-emails:brillante`: emails the migrated active users a one-day, single-use password link (dry run by default, `--apply` sends, failures by user id only, Ethereal refused unless every recipient is on a reserved test domain). The reset-token helpers move to `reset-token.ts` and are shared with the self-service reset. The runbook is in `docs/brillante-backend.md`.
+- `GET /api/auth/legacy-token` in `apps/brillante`: an HS256 token for the legacy API (`sub` = user id, signed with the new optional `LEGACY_JWT_SECRET`, `LEGACY_JWT_EXPIRY` defaults to 1 hour; 503 while unset), checked against the legacy server's `express-jwt` 5 and `jsonwebtoken` 8.
 
 ### Changed
 

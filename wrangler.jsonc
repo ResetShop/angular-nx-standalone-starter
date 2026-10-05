@@ -40,7 +40,7 @@
 	// Variables set in the Cloudflare dashboard (for example CORS_ORIGIN) survive `wrangler deploy`
 	// instead of being deleted because they are not listed below.
 	"keep_vars": true,
-	// Non-secret configuration. Secrets are set with `wrangler secret put`: PASETO_SECRET_KEY and CRON_SECRET.
+	// Non-secret configuration. Secrets are set with `wrangler secret put`: PASETO_SECRET_KEY, CRON_SECRET and LEGACY_JWT_SECRET (the legacy API's signing secret).
 	// CORS_ORIGIN is required on Workers (the Worker refuses to serve requests without it). It is the
 	// public origin of the app, and password-reset links are built from it. `wrangler dev --var` overrides it locally.
 	"vars": {

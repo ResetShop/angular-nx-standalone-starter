@@ -162,4 +162,18 @@ describe('seedTokenEnv / resetTokenEnv / tokenEnv proxy', () => {
 		seedTokenEnv({ PASETO_ISSUER: 'second' })
 		expect(tokenEnv.PASETO_ISSUER).toBe('second')
 	})
+
+	describe('LEGACY_JWT_SECRET', () => {
+		it('is optional', () => {
+			expect(parseTokenEnv(validMinimalEnv()).LEGACY_JWT_SECRET).toBeUndefined()
+		})
+
+		it('throws when set to fewer than 32 characters', () => {
+			expect(() => parseTokenEnv(validMinimalEnv({ LEGACY_JWT_SECRET: 'short' }))).toThrow(/at least 32 characters/)
+		})
+
+		it('defaults the legacy token lifetime to one hour', () => {
+			expect(parseTokenEnv(validMinimalEnv()).LEGACY_JWT_EXPIRY).toBe('1h')
+		})
+	})
 })

@@ -22,6 +22,7 @@ import { createOpenAPIApp, deferAfterResponse, registerRoute } from '@resetshop/
 import { logger, parseDurationToSeconds } from '@resetshop/util'
 import { timingSafeEqual } from 'crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import { tokenEnv } from '../../config/token.env'
 import {
 	ACCESS_TOKEN_COOKIE_NAME,
 	MIN_CRON_SECRET_LENGTH,
@@ -34,12 +35,14 @@ import {
 	changePasswordRoute,
 	cleanupTokensRoute,
 	forgotPasswordRoute,
+	legacyTokenRoute,
 	loginRoute,
 	logoutRoute,
 	meRoute,
 	refreshRoute,
 	resetPasswordRoute,
 } from './auth.routes'
+import { signLegacyToken } from './legacy-token'
 
 const app = createOpenAPIApp()
 
@@ -222,6 +225,35 @@ registerRoute(app, resetPasswordRoute, async (c) => {
 		logger.error('ResetPassword', 'resetPassword failed', error)
 		return c.json({ error: 'Failed to reset password' }, 500)
 	}
+})
+
+// GET /api/auth/legacy-token - HS256 token for the legacy API
+// The legacy API signs { sub: <user id> } with a shared secret and checks nothing else, so the same user id (staff keep
+// their legacy ids) is all it needs. Only an active, signed-in user gets one.
+registerRoute(app, legacyTokenRoute, async (c) => {
+	const tokenUser = (c as AuthenticatedContext).user
+	if (!tokenUser) {
+		return c.json({ error: 'Unauthorized' }, 401)
+	}
+
+	const secret = tokenEnv.LEGACY_JWT_SECRET
+	if (!secret) {
+		logger.error('LegacyToken', 'LEGACY_JWT_SECRET is not configured')
+		return c.json({ error: 'Legacy token bridge is not configured' }, 503)
+	}
+
+	const userId = Number(tokenUser.sub)
+	try {
+		await container.cradle.authService.getSessionUser(userId)
+	} catch (error) {
+		if (isAuthError(error)) {
+			return c.json({ error: 'Unauthorized' }, 401)
+		}
+		throw error
+	}
+
+	const { token, expiresAt } = signLegacyToken(userId, secret, tokenEnv.LEGACY_JWT_EXPIRY)
+	return c.json({ token, expiresAt: expiresAt.toISOString() }, 200)
 })
 
 // GET /api/auth/me - Token introspection endpoint

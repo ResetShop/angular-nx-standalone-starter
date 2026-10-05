@@ -13,7 +13,11 @@
  * matching `*.env.ts`.
  */
 import { z } from 'zod'
-import { DEFAULT_ACCESS_TOKEN_EXPIRY, DEFAULT_REFRESH_TOKEN_EXPIRY } from '../constants/auth.constants'
+import {
+	DEFAULT_ACCESS_TOKEN_EXPIRY,
+	DEFAULT_LEGACY_TOKEN_EXPIRY,
+	DEFAULT_REFRESH_TOKEN_EXPIRY,
+} from '../constants/auth.constants'
 import { createEnvHandler } from './env-utils'
 
 const DEFAULT_CLOCK_TOLERANCE = '1m'
@@ -29,6 +33,10 @@ const TokenEnvSchema = z.object({
 	PASETO_ACCESS_TOKEN_EXPIRY: z.string().min(1).default(DEFAULT_ACCESS_TOKEN_EXPIRY),
 	PASETO_REFRESH_TOKEN_EXPIRY: z.string().min(1).default(DEFAULT_REFRESH_TOKEN_EXPIRY),
 	PASETO_CLOCK_TOLERANCE: z.string().min(1).default(DEFAULT_CLOCK_TOLERANCE),
+	// Shared HS256 secret of the legacy API. Optional so that nothing else needs it; the legacy-token endpoint
+	// answers 503 while it is unset instead of signing with a guessable value.
+	LEGACY_JWT_SECRET: z.string().min(32, 'LEGACY_JWT_SECRET must be at least 32 characters').optional(),
+	LEGACY_JWT_EXPIRY: z.string().min(1).default(DEFAULT_LEGACY_TOKEN_EXPIRY),
 	COOKIE_SECURE: z
 		.string()
 		.optional()

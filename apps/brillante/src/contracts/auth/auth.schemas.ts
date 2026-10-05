@@ -105,6 +105,12 @@ export const meResponseSchema = authUserSchema.extend({
 	mustChangePassword: z.boolean(),
 })
 
+/** A token the legacy API accepts, so the screens that still call it keep working after Auth0 is gone. */
+export const legacyTokenResponseSchema = z.object({
+	token: z.string(),
+	expiresAt: z.string(),
+})
+
 export const logoutResponseSchema = z.object({
 	message: z.string(),
 })
