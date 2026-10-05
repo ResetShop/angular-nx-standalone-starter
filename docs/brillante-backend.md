@@ -114,7 +114,7 @@ management API (owners and counter clerks lose it until permissions are assigned
 ### Legacy user import (core)
 
 `apps/brillante/src/db/legacy-import/` holds the pure part of the import of the legacy staff users; it reads nothing
-from the database and writes nothing yet (the writer and the `--dry-run` CLI come in the next PR).
+from the database and writes nothing; the writer, the CLI and the runbook are in the next section.
 
 | Module                                                 | Role                                                                                                             |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
@@ -151,10 +151,11 @@ import". Zero and out-of-range MySQL dates are read as no date.
 
 ### Legacy user import (writer, CLI and runbook)
 
-`npm run drizzle:import-legacy-users:brillante -- --dump <path> [--dry-run] [--already-provisioned 1] [--report <path>]`
-reads the local MySQL dump, plans against the database `PG_CONNECTION_STRING` points at and writes the users in **one
+`npm run drizzle:import-legacy-users:brillante -- --dump <path> [--apply] [--already-provisioned 1] [--report <path>]`
+(note the `--` that lets npm pass the options on) reads the local MySQL dump, plans against the database `PG_CONNECTION_STRING` points at and writes the users in **one
 transaction**. It prints the target (host, port and database name, never credentials) first. `--dump` is mandatory;
-unknown options are rejected. It refuses to write when the plan has a conflict, when a user declared with
+unknown options and stray arguments are rejected (a mistyped flag is never ignored). **Without `--apply` nothing is written**:
+the default is a dry run (`--dry-run` is accepted as its explicit spelling), rolled back at the end. It refuses to write when the plan has a conflict, when a user declared with
 `--already-provisioned` is missing from the target, or when a role the users need does not exist (this is also checked on
 a dry run, so a clean preview means the real run will not fail on those). Re-running it is a no-op: users already present
 with the same id and email are reported as `unchanged`.
@@ -170,19 +171,22 @@ moves to 999, so the next user created gets id 1000; it is never lowered.
 1. **Reset the app tables.** The database must hold only what the seed creates. In the `public` schema drop the app
    tables (`authentication`, `password_reset_token`, `permission`, `permission_route`, `refresh_token`, `role`,
    `role_history`, `role_permission`, `role_permission_history`, `user`, `user_profile_history`, `user_role`,
-   `user_role_history`, `user_status_history`) and the `user_status` enum, with `CASCADE`. Do not drop the `public`
+   `user_role_history`, `user_status_history`) and the `user_status` and `route_type` enums, with `CASCADE`. Do not drop the `public`
    schema itself: Supabase's own roles depend on its grants. This deletes the current test users.
+   Export `PG_CONNECTION_STRING` in the shell session for every command below (the repo forbids `.env*` files, so do not use
+   the `:local` script variants).
+
 2. **Push the schema:** `npm run drizzle:push-migrations:brillante`.
 3. **Seed:** `SEED_ADMIN_EMAIL=admin@brillantestore.com SEED_ADMIN_PASSWORD=<strong password> npm run drizzle:seed:brillante`.
    It creates user 1 (the administrator, legacy user 1), the Administrator role with the 14 `admin:*` permissions and the
    six legacy roles without permissions.
-4. **Dry run:** `npm run drizzle:import-legacy-users:brillante -- --dump <path to the local dump> --already-provisioned 1 --dry-run`.
+4. **Dry run:** `npm run drizzle:import-legacy-users:brillante -- --dump <path to the local dump> --already-provisioned 1`.
    Expected on the current dump: create 16, excluded 32 customers, legacy user 1 already in the target, placeholder
    emails for legacy ids 2, 7 and 8, no conflicts.
-5. **Apply:** the same command without `--dry-run`. It reports `Imported 16 user(s)`.
+5. **Apply:** the same command with `--apply`. It reports `Imported 16 user(s)`.
 6. **Verify:** 17 users (the seeded administrator plus 16 imported): 12 active and 5 disabled, roles admin 5, counter
    clerk 9, employee 2, accountant 1, ids 1 to 14, 16, 17 and 23, and a second run that reports `unchanged: 16` and
-   imports nothing. The next user created gets id 1000. (These counts were rehearsed on a fresh local database.)
+   imports nothing. The next user created gets id 1000. (These counts were rehearsed on a fresh local database and then obtained on the prototype Supabase database.)
 
 For hosts whose certificate chain Node cannot verify (Supabase), append `?uselibpqcompat=true&sslmode=require` to the
 connection string, as for the other database scripts. The dump never leaves the machine; pass its path on the command line.

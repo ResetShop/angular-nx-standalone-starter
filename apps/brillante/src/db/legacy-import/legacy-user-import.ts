@@ -9,9 +9,12 @@ import {
 } from './legacy-user-plan'
 import { groupLegacyUserIds, summarizeUserReferences } from './legacy-user-references'
 import type { LegacyUserSource } from './legacy-user-source'
+import { SafeImportError } from './safe-import-error'
 
 /** What the import needs from the database it writes to. */
 export interface LegacyUserImportTarget {
+	/** Serialises concurrent imports; called before anything is read so the plan is made on a stable snapshot. */
+	acquireImportLock(): Promise<void>
 	readExistingUsers(): Promise<readonly ExistingUser[]>
 	/** Ids of the roles that exist in the target; the legacy roles must have been seeded. */
 	readRoleIds(): Promise<readonly number[]>
@@ -33,7 +36,7 @@ export interface LegacyUserImportResult {
 }
 
 /** The plan has conflicts, so nothing was written. The message is the report, which holds no personal data. */
-export class LegacyUserImportConflictError extends Error {
+export class LegacyUserImportConflictError extends SafeImportError {
 	constructor(public readonly report: string) {
 		super(`The import has conflicts with the target database; nothing was written.\n${report}`)
 		this.name = 'LegacyUserImportConflictError'
@@ -44,7 +47,7 @@ function assertProvisionedUsersExist(provisionedIds: readonly number[], existing
 	const existingIds = new Set(existing.map((user) => user.id))
 	const missing = provisionedIds.filter((id) => !existingIds.has(id))
 	if (missing.length > 0) {
-		throw new Error(
+		throw new SafeImportError(
 			`Legacy user id(s) ${missing.join(', ')} are declared as already in the target, but the target has no user with ` +
 				'that id. Seed the administrator first, or do not declare the id.',
 		)
@@ -55,7 +58,7 @@ function assertRolesExist(records: readonly ImportedUserRecord[], roleIds: reado
 	const known = new Set(roleIds)
 	const missing = [...new Set(records.map((record) => record.roleId))].filter((roleId) => !known.has(roleId))
 	if (missing.length > 0) {
-		throw new Error(`The target has no role with id ${missing.join(', ')}; run the roles seed first.`)
+		throw new SafeImportError(`The target has no role with id ${missing.join(', ')}; run the roles seed first.`)
 	}
 }
 
@@ -73,6 +76,7 @@ export async function runLegacyUserImport(
 	target: LegacyUserImportTarget,
 	options: LegacyUserImportOptions,
 ): Promise<LegacyUserImportResult> {
+	await target.acquireImportLock()
 	const [users, userRoles, references] = await Promise.all([
 		source.readUsers(),
 		source.readUserRoles(),

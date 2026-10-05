@@ -31,9 +31,15 @@ function sourceOf(users: LegacyUserRow[], roles: LegacyUserRoleRow[]): LegacyUse
 
 describe('runLegacyUserImport', () => {
 	let writeUsers: MockFn<[readonly unknown[]], Promise<void>>
+	let events: string[]
 
 	function targetOf(existing: ExistingUser[], roleIds: number[] = [1, 2, 3, 4, 5, 6, 7]): LegacyUserImportTarget {
-		return { readExistingUsers: async () => existing, readRoleIds: async () => roleIds, writeUsers }
+		return {
+			acquireImportLock: async () => void events.push('lock'),
+			readExistingUsers: async () => (events.push('read'), existing),
+			readRoleIds: async () => roleIds,
+			writeUsers,
+		}
 	}
 
 	const source = sourceOf(
@@ -53,6 +59,7 @@ describe('runLegacyUserImport', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
+		events = []
 		writeUsers = fn<[readonly unknown[]], Promise<void>>()
 		writeUsers.mockResolvedValue(undefined)
 	})
@@ -68,6 +75,15 @@ describe('runLegacyUserImport', () => {
 		expect(result.report).toContain('create: 2')
 		expect(result.report).toContain('customer-only: 1')
 		expect(result.report).toContain('Already in the target, not imported (legacy ids): 1')
+	})
+
+	it('takes the import lock before reading the target, so the plan is made on a stable snapshot', async () => {
+		await runLegacyUserImport(source, targetOf([{ id: 1, email: 'seed@example.test' }]), {
+			dryRun: true,
+			alreadyProvisionedLegacyUserIds: [1],
+		})
+
+		expect(events).toEqual(['lock', 'read'])
 	})
 
 	it('writes nothing on a dry run but still plans against the target and reports', async () => {

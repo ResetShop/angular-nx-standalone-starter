@@ -7,6 +7,7 @@ import {
 	type LegacyUserSource,
 } from './legacy-user-source'
 import { type DumpRow, type DumpTables, parseMysqlDump } from './mysql-dump-parser'
+import { SafeImportError } from './safe-import-error'
 
 /**
  * Reads a MySQL `datetime` (no zone) as UTC. Anything that is not a real calendar date and time, including the
@@ -36,7 +37,7 @@ function where(table: string, rowNumber: number): string {
 function requireText(row: DumpRow, column: string, location: string): string {
 	const value = row[column]
 	if (value === null || value === undefined) {
-		throw new Error(`The legacy dump has a ${location} without ${column}`)
+		throw new SafeImportError(`The legacy dump has a ${location} without ${column}`)
 	}
 	return value
 }
@@ -44,7 +45,7 @@ function requireText(row: DumpRow, column: string, location: string): string {
 function toInteger(row: DumpRow, column: string, location: string): number {
 	const parsed = Number(requireText(row, column, location))
 	if (!Number.isInteger(parsed)) {
-		throw new Error(`The legacy dump has a ${location} with a non-integer ${column}`)
+		throw new SafeImportError(`The legacy dump has a ${location} with a non-integer ${column}`)
 	}
 	return parsed
 }
@@ -109,7 +110,7 @@ export class MysqlDumpUserSource implements LegacyUserSource {
 	private requireTable(table: string): readonly DumpRow[] {
 		const rows = this.parsed().get(table)
 		if (!rows) {
-			throw new Error(`The legacy dump has no INSERT statements for the table ${table}`)
+			throw new SafeImportError(`The legacy dump has no INSERT statements for the table ${table}`)
 		}
 		return rows
 	}

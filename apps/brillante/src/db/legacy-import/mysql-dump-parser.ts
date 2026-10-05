@@ -1,3 +1,5 @@
+import { SafeImportError } from './safe-import-error'
+
 /** A value of an `INSERT` tuple: the unquoted text of a literal or the content of a string, `null` for SQL NULL. */
 export type SqlValue = string | null
 
@@ -10,7 +12,7 @@ export type DumpTables = ReadonlyMap<string, readonly DumpRow[]>
  * Thrown when the dump does not have the expected shape. The message carries the offset and the expectation,
  * never the surrounding text: the dump holds personal data and errors end up in terminals and logs.
  */
-export class MysqlDumpParseError extends Error {
+export class MysqlDumpParseError extends SafeImportError {
 	constructor(expectation: string, offset: number) {
 		super(`Cannot parse the MySQL dump at offset ${offset}: expected ${expectation}`)
 		this.name = 'MysqlDumpParseError'

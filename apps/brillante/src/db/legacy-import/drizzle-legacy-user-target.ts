@@ -14,9 +14,6 @@ import type { ExistingUser } from './legacy-user-plan'
  */
 export const FIRST_NEW_USER_ID = 1000
 
-/** Arbitrary constant identifying the import in `pg_advisory_xact_lock`; it must differ from the other lock keys. */
-const IMPORT_LEGACY_USERS_LOCK_KEY = 0x494d5055 // "IMPU" in hex (IMport Users)
-
 /**
  * `LegacyUserImportTarget` over a Drizzle transaction. Everything runs in the caller's transaction, so a failure
  * anywhere leaves the database as it was.
@@ -30,6 +27,12 @@ export class DrizzleLegacyUserImportTarget implements LegacyUserImportTarget {
 		private readonly tx: DrizzleTransaction,
 		private readonly hashPassword: (plain: string) => Promise<string>,
 	) {}
+
+	/** Takes a transaction-scoped advisory lock (key "IMPU" in hex, distinct from the app's other lock keys). */
+	public async acquireImportLock(): Promise<void> {
+		const importUsersLockKey = 0x494d5055
+		await this.tx.execute(sql`SELECT pg_advisory_xact_lock(${importUsersLockKey})`)
+	}
 
 	public async readExistingUsers(): Promise<readonly ExistingUser[]> {
 		return this.tx.select({ id: user.id, email: user.email }).from(user)
@@ -46,8 +49,6 @@ export class DrizzleLegacyUserImportTarget implements LegacyUserImportTarget {
 	 */
 	public async writeUsers(records: readonly ImportedUserRecord[]): Promise<void> {
 		if (records.length === 0) return
-		await this.tx.execute(sql`SELECT pg_advisory_xact_lock(${IMPORT_LEGACY_USERS_LOCK_KEY})`)
-
 		await this.tx.insert(user).values(records.map(toUserValues))
 		await this.tx.insert(userRole).values(records.map((record) => ({ userId: record.legacyId, roleId: record.roleId })))
 		await this.tx.insert(authentication).values(await this.unusableCredentials(records))
@@ -66,17 +67,19 @@ export class DrizzleLegacyUserImportTarget implements LegacyUserImportTarget {
 		)
 	}
 
+	/**
+	 * Moves the id sequence to `FIRST_NEW_USER_ID - 1` so the next user gets `FIRST_NEW_USER_ID`, never lowering it:
+	 * it is read by name, together with the highest id, and the target is the largest of the three. `setval` is not
+	 * transactional, so a failed commit afterwards leaves a harmless gap.
+	 */
 	private async advanceUserIdSequence(): Promise<void> {
-		await this.tx.execute(sql`
-			SELECT setval(
-				pg_get_serial_sequence('public."user"', 'id'),
-				GREATEST(
-					(SELECT COALESCE(MAX(id), 0) FROM public."user"),
-					${FIRST_NEW_USER_ID - 1},
-					COALESCE(pg_sequence_last_value(pg_get_serial_sequence('public."user"', 'id')::regclass), 0)
-				)
+		const [row] = (
+			await this.tx.execute(
+				sql`SELECT (SELECT COALESCE(MAX(id), 0) FROM public."user") AS max_id, last_value FROM public.user_id_seq`,
 			)
-		`)
+		).rows as { max_id: string | number; last_value: string | number }[]
+		const target = Math.max(Number(row.max_id), FIRST_NEW_USER_ID - 1, Number(row.last_value))
+		await this.tx.execute(sql`SELECT setval('public.user_id_seq', ${target})`)
 	}
 }
 
