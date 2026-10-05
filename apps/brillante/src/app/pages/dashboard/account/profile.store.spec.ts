@@ -1,14 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http'
 import { TestBed } from '@angular/core/testing'
 import { UserRole } from '@contracts/permission/legacy-permission.constants'
-import type { AuthenticatedUserDto, UserDto } from '@contracts/user/legacy-user.types'
+import type { UserDto } from '@contracts/user/legacy-user.types'
 import type { CustomerDetails } from '@domain/customer/customer.interface'
 import { createMockCustomerDto } from '@domain/customer/customer.mock'
 import { createMockUser } from '@mocks/user.mock'
-import { AuthSession } from '@providers/auth/auth-session'
-import { provideAuthMock } from '@providers/auth/auth.mock'
+import { AuthApi } from '@providers/auth/auth.interface'
 import { CustomerApi } from '@providers/customer/customer.interface'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { UserApi } from '@providers/user/user.interface'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
@@ -20,6 +18,7 @@ describe('ProfileStore', () => {
 	let authStore: InstanceType<typeof AuthStore>
 	let customerApiMock: Record<keyof CustomerApi, MockFn>
 	let userApiMock: Record<keyof UserApi, MockFn>
+	let authApiMock: Record<keyof AuthApi, MockFn>
 
 	const customerRole = { id: UserRole.CUSTOMER, description: 'customer' }
 	const details: CustomerDetails = {
@@ -36,8 +35,7 @@ describe('ProfileStore', () => {
 		TestBed.configureTestingModule({
 			providers: [
 				ProfileStore,
-				provideAuthMock(),
-				provideIdentityMock(),
+				{ provide: AuthApi, useValue: authApiMock },
 				{ provide: CustomerApi, useValue: customerApiMock },
 				{ provide: UserApi, useValue: userApiMock },
 			],
@@ -59,7 +57,6 @@ describe('ProfileStore', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
-		localStorage.clear()
 		customerApiMock = {
 			getAll: fn(),
 			getById: fn(),
@@ -67,6 +64,17 @@ describe('ProfileStore', () => {
 			getByDni: fn(),
 			create: fn(),
 			update: fn(),
+		}
+		authApiMock = {
+			login: fn(),
+			logout: fn(),
+			refreshToken: fn(),
+			getMe: fn(),
+			changePassword: fn(),
+			forgotPassword: fn(),
+			resetPassword: fn(),
+			updateProfile: fn(),
+			getLegacyToken: fn(),
 		}
 		userApiMock = {
 			getAll: fn(),
@@ -187,19 +195,6 @@ describe('ProfileStore', () => {
 			expect(authStore.currentUser()?.hasRole(UserRole.CUSTOMER)).toBe(true)
 		})
 
-		it('keeps the persisted session in sync without losing its token', () => {
-			const session: AuthenticatedUserDto = { ...response, firstName: 'Old', token: 'jwt' }
-			localStorage.setItem('currentUser', JSON.stringify(session))
-			TestBed.resetTestingModule()
-			setupStore()
-
-			store.saveProfile({ firstName: 'Ana Maria', lastName: 'Perez', customer: details })
-
-			const stored = TestBed.inject(AuthSession).read()
-			expect(stored?.token).toBe('jwt')
-			expect(stored?.firstName).toBe('Ana Maria')
-		})
-
 		it('is saving while the request is pending', () => {
 			userApiMock.updateCustomerUser.mockReturnValue(NEVER)
 			setupStore()
@@ -235,8 +230,10 @@ describe('ProfileStore', () => {
 	})
 
 	describe('saveProfile for a staff account', () => {
-		it('updates only the name through the user endpoint and refreshes the session user', () => {
-			userApiMock.update.mockReturnValue(of([1]))
+		it('updates only the name through the backend profile endpoint and refreshes the session user', () => {
+			authApiMock.updateProfile.mockReturnValue(
+				of({ id: 5, email: 'clerk@brillante.test', firstName: 'Carla', lastName: 'Gomez', roles: [] }),
+			)
 			setupStore()
 			authStore.updateCurrentUser(
 				createMockUser({
@@ -248,14 +245,14 @@ describe('ProfileStore', () => {
 
 			store.saveProfile({ firstName: 'Carla', lastName: 'Gomez', customer: null })
 
-			expect(userApiMock.update.calls).toEqual([[{ id: 5, firstName: 'Carla', lastName: 'Gomez' }]])
+			expect(authApiMock.updateProfile.calls).toEqual([[{ firstName: 'Carla', lastName: 'Gomez' }]])
 			expect(userApiMock.updateCustomerUser.calls).toHaveLength(0)
 			expect(authStore.currentUser()?.fullName).toBe('Carla Gomez')
 			expect(authStore.currentUser()?.hasRole(UserRole.COUNTER_CLERK)).toBe(true)
 		})
 
 		it('records the error when the update fails', () => {
-			userApiMock.update.mockReturnValue(throwError(() => new Error('boom')))
+			authApiMock.updateProfile.mockReturnValue(throwError(() => new Error('boom')))
 			setupStore()
 
 			store.saveProfile({ firstName: 'Carla', lastName: 'Gomez', customer: null })
@@ -265,6 +262,7 @@ describe('ProfileStore', () => {
 	})
 
 	it('does nothing but stop saving when nobody is signed in', () => {
+		authApiMock.logout.mockReturnValue(of(undefined))
 		setupStore()
 		authStore.logout()
 		TestBed.tick()
@@ -272,7 +270,7 @@ describe('ProfileStore', () => {
 		store.saveProfile({ firstName: 'Carla', lastName: 'Gomez', customer: null })
 
 		expect(store.isSaving()).toBe(false)
-		expect(userApiMock.update.calls).toHaveLength(0)
+		expect(authApiMock.updateProfile.calls).toHaveLength(0)
 	})
 
 	it('clears every error on demand', () => {

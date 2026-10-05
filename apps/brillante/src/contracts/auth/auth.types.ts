@@ -5,6 +5,7 @@ import type {
 	cleanupTokensResponseSchema,
 	forgotPasswordRequestSchema,
 	forgotPasswordResponseSchema,
+	legacyTokenResponseSchema,
 	loginRequestSchema,
 	loginResponseSchema,
 	logoutResponseSchema,
@@ -39,6 +40,8 @@ export type ChangePasswordResponse = z.infer<typeof changePasswordResponseSchema
 export type ForgotPasswordResponse = z.infer<typeof forgotPasswordResponseSchema>
 
 export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>
+
+export type LegacyTokenResponse = z.infer<typeof legacyTokenResponseSchema>
 
 export type MeResponse = z.infer<typeof meResponseSchema>
 

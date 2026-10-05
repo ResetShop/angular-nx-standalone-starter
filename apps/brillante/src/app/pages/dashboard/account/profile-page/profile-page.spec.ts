@@ -1,12 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http'
+import { inject, provideEnvironmentInitializer } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import { UserRole } from '@contracts/permission/legacy-permission.constants'
-import type { AuthenticatedUserDto, UserDto } from '@contracts/user/legacy-user.types'
+import type { UserDto } from '@contracts/user/legacy-user.types'
 import { customerTranslation } from '@domain/customer/customer-translation.mock'
 import { createMockCustomerDto } from '@domain/customer/customer.mock'
-import { provideAuthMock } from '@providers/auth/auth.mock'
+import { mapUserDtoToUser } from '@domain/user/user.mapper'
+import { createMockMeResponse, InMemoryAuthApi, provideAuthMock } from '@providers/auth/auth.mock'
 import { CustomerApi } from '@providers/customer/customer.interface'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { UserApi } from '@providers/user/user.interface'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import {
@@ -27,8 +28,9 @@ import ProfilePage from './profile-page'
 describe('ProfilePage', () => {
 	let customerApiMock: Record<keyof CustomerApi, MockFn>
 	let userApiMock: Record<keyof UserApi, MockFn>
+	let authApi: InMemoryAuthApi
 
-	const customerUser: AuthenticatedUserDto = {
+	const customerUser: UserDto = {
 		id: 11,
 		userName: 'ana_perez_11',
 		firstName: 'Ana',
@@ -37,9 +39,8 @@ describe('ProfilePage', () => {
 		email: 'ana@brillante.test',
 		roles: [{ id: UserRole.CUSTOMER, description: 'customer' }],
 		hasFinishedRegistration: true,
-		token: 'jwt',
 	}
-	const staffUser: AuthenticatedUserDto = {
+	const staffUser: UserDto = {
 		...customerUser,
 		id: 5,
 		email: 'clerk@brillante.test',
@@ -61,6 +62,7 @@ describe('ProfilePage', () => {
 			create: fn(),
 			update: fn(),
 		}
+		authApi = new InMemoryAuthApi()
 		userApiMock = {
 			getAll: fn(),
 			getById: fn(),
@@ -77,12 +79,11 @@ describe('ProfilePage', () => {
 		localStorage.clear()
 	})
 
-	async function renderPage(session: AuthenticatedUserDto) {
-		localStorage.setItem('currentUser', JSON.stringify(session))
+	async function renderPage(session: UserDto) {
 		const view = await render(ProfilePage, {
 			providers: [
-				provideAuthMock(),
-				provideIdentityMock(),
+				provideAuthMock(authApi),
+				provideEnvironmentInitializer(() => inject(AuthStore).updateCurrentUser(mapUserDtoToUser(session))),
 				{ provide: CustomerApi, useValue: customerApiMock },
 				{ provide: UserApi, useValue: userApiMock },
 				{ provide: Translation, useValue: customerTranslation },
@@ -221,12 +222,10 @@ describe('ProfilePage', () => {
 
 		it('shows a loading state while the customer record loads', async () => {
 			customerApiMock.getByEmail.mockReturnValue(NEVER)
-			localStorage.setItem('currentUser', JSON.stringify(customerUser))
-
 			await render(ProfilePage, {
 				providers: [
-					provideAuthMock(),
-					provideIdentityMock(),
+					provideAuthMock(authApi),
+					provideEnvironmentInitializer(() => inject(AuthStore).updateCurrentUser(mapUserDtoToUser(customerUser))),
 					{ provide: CustomerApi, useValue: customerApiMock },
 					{ provide: UserApi, useValue: userApiMock },
 					{ provide: Translation, useValue: customerTranslation },
@@ -265,8 +264,10 @@ describe('ProfilePage', () => {
 			expect(screen.queryByTestId('profile-incomplete')).not.toBeInTheDocument()
 		})
 
-		it('saves only the name through the user endpoint', async () => {
-			userApiMock.update.mockReturnValue(of([1]))
+		it('saves only the name through the backend profile endpoint', async () => {
+			authApi.setAuthenticatedUser(
+				createMockMeResponse({ id: 5, email: 'clerk@brillante.test', firstName: 'Carla', lastName: 'Gomez' }),
+			)
 			const view = await renderPage(staffUser)
 			type(/last name/i, 'Gomez Diaz')
 			view.fixture.detectChanges()
@@ -275,7 +276,6 @@ describe('ProfilePage', () => {
 			TestBed.tick()
 			view.fixture.detectChanges()
 
-			expect(userApiMock.update.calls).toEqual([[{ id: 5, firstName: 'Carla', lastName: 'Gomez Diaz' }]])
 			expect(userApiMock.updateCustomerUser.calls).toHaveLength(0)
 			expect(TestBed.inject(AuthStore).currentUser()?.fullName).toBe('Carla Gomez Diaz')
 		})

@@ -1,18 +1,20 @@
 import { provideHttpClient } from '@angular/common/http'
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing'
 import { TestBed } from '@angular/core/testing'
-import { clearAllMocks } from '@resetshop/util/test-utils'
-import { environment } from '../../environments/environment'
+import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type { AuthUser } from '@contracts/user/user.types'
 import { HttpAuthApi } from './auth'
 
 describe('HttpAuthApi', () => {
-	let api: HttpAuthApi
+	let service: HttpAuthApi
 	let httpMock: HttpTestingController
 
 	beforeEach(() => {
-		clearAllMocks()
-		TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] })
-		api = TestBed.inject(HttpAuthApi)
+		TestBed.configureTestingModule({
+			providers: [HttpAuthApi, provideHttpClient(), provideHttpClientTesting()],
+		})
+
+		service = TestBed.inject(HttpAuthApi)
 		httpMock = TestBed.inject(HttpTestingController)
 	})
 
@@ -20,17 +22,160 @@ describe('HttpAuthApi', () => {
 		httpMock.verify()
 	})
 
-	it('posts the Auth0 profile to /users/authenticate wrapped in a `user` field', () => {
-		const profile = { email: 'jdoe@brillante.test', name: 'Jane Doe' }
-		const response = { id: 1, email: 'jdoe@brillante.test', token: 'jwt' }
-		let result: unknown
+	describe('login', () => {
+		it('should make POST request to /api/auth/login', () => {
+			const loginRequest: LoginRequest = {
+				email: 'test@example.com',
+				password: 'password123',
+			}
 
-		api.authenticate(profile).subscribe((value) => (result = value))
+			const mockResponse: LoginResponse = {
+				user: {
+					id: 1,
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+					roles: [],
+				},
+				mustChangePassword: false,
+			}
 
-		const req = httpMock.expectOne(`${environment.apiUrl}/users/authenticate`)
-		expect(req.request.method).toBe('POST')
-		expect(req.request.body).toEqual({ user: profile })
-		req.flush(response)
-		expect(result).toEqual(response)
+			service.login(loginRequest).subscribe((response) => {
+				expect(response).toEqual(mockResponse)
+			})
+
+			const req = httpMock.expectOne('/api/auth/login')
+			expect(req.request.method).toBe('POST')
+			expect(req.request.body).toEqual(loginRequest)
+
+			req.flush(mockResponse)
+		})
+	})
+
+	describe('logout', () => {
+		it('should make POST request to /api/auth/logout', () => {
+			service.logout().subscribe()
+
+			const req = httpMock.expectOne('/api/auth/logout')
+			expect(req.request.method).toBe('POST')
+			expect(req.request.body).toEqual({})
+
+			req.flush(null)
+		})
+	})
+
+	describe('refreshToken', () => {
+		it('should make POST request to /api/auth/refresh', () => {
+			const mockResponse: RefreshResponse = {}
+
+			service.refreshToken().subscribe((response) => {
+				expect(response).toEqual(mockResponse)
+			})
+
+			const req = httpMock.expectOne('/api/auth/refresh')
+			expect(req.request.method).toBe('POST')
+			expect(req.request.body).toEqual({})
+
+			req.flush(mockResponse)
+		})
+	})
+
+	describe('getMe', () => {
+		it('should make GET request to /api/auth/me', () => {
+			const mockResponse: MeResponse = {
+				id: 1,
+				email: 'test@example.com',
+				firstName: 'Test',
+				lastName: 'User',
+				roles: [],
+				mustChangePassword: false,
+			}
+
+			service.getMe().subscribe((response) => {
+				expect(response).toEqual(mockResponse)
+			})
+
+			const req = httpMock.expectOne('/api/auth/me')
+			expect(req.request.method).toBe('GET')
+
+			req.flush(mockResponse)
+		})
+	})
+
+	describe('error handling', () => {
+		it('should propagate HTTP errors', () => {
+			const loginRequest: LoginRequest = {
+				email: 'test@example.com',
+				password: 'wrong-password',
+			}
+
+			service.login(loginRequest).subscribe({
+				next: () => expect.unreachable('should have failed'),
+				error: (error) => {
+					expect(error.status).toBe(401)
+					expect(error.error.code).toBe('INVALID_CREDENTIALS')
+				},
+			})
+
+			const req = httpMock.expectOne('/api/auth/login')
+			req.flush({ code: 'INVALID_CREDENTIALS' }, { status: 401, statusText: 'Unauthorized' })
+		})
+	})
+
+	describe('updateProfile', () => {
+		it('should PATCH the changed fields to /api/users/me and return the updated user with its roles', () => {
+			const updated: AuthUser = {
+				id: 7,
+				email: 'ada@example.com',
+				firstName: 'Grace',
+				lastName: 'Hopper',
+				roles: [
+					{
+						id: 2,
+						code: 'owner',
+						name: 'Owner',
+						description: null,
+						removable: false,
+						createdAt: null,
+						updatedAt: null,
+						permissions: [],
+					},
+				],
+			}
+			let received: AuthUser | undefined
+
+			service.updateProfile({ firstName: 'Grace', lastName: 'Hopper' }).subscribe((response) => (received = response))
+
+			const req = httpMock.expectOne('/api/users/me')
+			expect(req.request.method).toBe('PATCH')
+			expect(req.request.body).toEqual({ firstName: 'Grace', lastName: 'Hopper' })
+
+			req.flush(updated)
+
+			expect(received).toEqual(updated)
+		})
+
+		it('should send only the fields the caller changed', () => {
+			service.updateProfile({ lastName: 'Hopper' }).subscribe()
+
+			const req = httpMock.expectOne('/api/users/me')
+
+			expect(req.request.body).toEqual({ lastName: 'Hopper' })
+			req.flush({ id: 7, email: 'ada@example.com', firstName: 'Ada', lastName: 'Hopper', roles: [] })
+		})
+	})
+
+	describe('getLegacyToken', () => {
+		it('should GET /api/auth/legacy-token', () => {
+			let received: unknown
+
+			service.getLegacyToken().subscribe((response) => (received = response))
+
+			const req = httpMock.expectOne('/api/auth/legacy-token')
+			expect(req.request.method).toBe('GET')
+			req.flush({ token: 'a.b.c', expiresAt: '2026-10-05T13:00:00.000Z' })
+
+			expect(received).toEqual({ token: 'a.b.c', expiresAt: '2026-10-05T13:00:00.000Z' })
+		})
 	})
 })

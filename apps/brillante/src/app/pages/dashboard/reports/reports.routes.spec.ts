@@ -7,7 +7,6 @@ import { RouterTestingHarness } from '@angular/router/testing'
 import { provideSliceTranslationMock } from '@mocks/slice-translation.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { reportsEn } from '@providers/i18n/translations/slices/reports.translations'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { provideOfficeBranchMock } from '@providers/office-branch/office-branch.mock'
 import { clearAllMocks, spyOn, useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
 import { environment } from '../../../environments/environment'
@@ -51,7 +50,6 @@ describe('reports routes', () => {
 				provideHttpClient(),
 				provideHttpClientTesting(),
 				provideAuthMock(),
-				provideIdentityMock(),
 				provideOfficeBranchMock(),
 				provideSliceTranslationMock(reportsEn),
 				...provideSignalFormsConfig({}),

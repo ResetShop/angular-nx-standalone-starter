@@ -1,16 +1,15 @@
-import type { Provider } from '@angular/core'
+import { type EnvironmentProviders, inject, provideEnvironmentInitializer, type Provider } from '@angular/core'
 import { TestBed } from '@angular/core/testing'
 import type { OfficeBranchDto } from '@contracts/office-branch/office-branch.types'
 import { Permission, UserRole } from '@contracts/permission/legacy-permission.constants'
 import type { IUser } from '@domain/user/user.interface'
+import { User } from '@domain/user/user.model'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { CashConceptApi } from '@providers/cash-concept/cash-concept.interface'
 import { mockTranslation, type TranslationStub } from '@providers/i18n/translation.mock'
 import { cashEn } from '@providers/i18n/translations/slices/cash.translations'
-import { IdentityApi } from '@providers/identity/identity.interface'
-import { InMemoryIdentityApi } from '@providers/identity/identity.mock'
 import { OfficeBranchApi } from '@providers/office-branch/office-branch.interface'
 import { InMemoryOfficeBranchApi } from '@providers/office-branch/office-branch.mock'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
@@ -27,6 +26,9 @@ function flatten(tree: object, prefix = ''): Record<string, string> {
 }
 
 const cashEnglish = flatten(cashEn)
+
+/** The user `seedSession` signs in when the test environment is created. */
+let seededUser: IUser | null = null
 
 /**
  * Translation stub for cash specs: resolves the cash keys with their English copy, every other key
@@ -48,13 +50,15 @@ export interface CashTestApis {
  * Providers every cash spec needs: the three API tokens, the session plumbing behind `AuthStore`
  * and the translation stub.
  */
-export function provideCashTestEnvironment(apis: CashTestApis): Provider[] {
+export function provideCashTestEnvironment(apis: CashTestApis): (Provider | EnvironmentProviders)[] {
 	return [
+		provideEnvironmentInitializer(() => {
+			if (seededUser) inject(AuthStore).updateCurrentUser(seededUser)
+		}),
 		{ provide: CashApi, useValue: apis.cashApi },
 		{ provide: CashConceptApi, useValue: apis.conceptApi },
 		{ provide: PaymentMethodApi, useValue: apis.paymentMethodApi },
 		{ provide: AuthApi, useValue: new InMemoryAuthApi() },
-		{ provide: IdentityApi, useValue: new InMemoryIdentityApi() },
 		{ provide: OfficeBranchApi, useValue: new InMemoryOfficeBranchApi() },
 		{ provide: Translation, useValue: cashTranslation },
 	]
@@ -88,19 +92,15 @@ export function seedSession(
 	branch: OfficeBranchDto | null = mockBranch,
 ): void {
 	localStorage.clear()
-	localStorage.setItem(
-		'currentUser',
-		JSON.stringify({
-			id: 5,
-			userName: 'clerk',
-			firstName: 'Ana',
-			lastName: 'Gómez',
-			email: 'ana@brillante.test',
-			avatar: null,
-			roles,
-			hasFinishedRegistration: true,
-			token: 'test-token',
-		}),
-	)
+	seededUser = new User({
+		id: 5,
+		userName: 'clerk',
+		firstName: 'Ana',
+		lastName: 'Gómez',
+		email: 'ana@brillante.test',
+		avatar: null,
+		roles,
+		hasFinishedRegistration: true,
+	})
 	if (branch) localStorage.setItem('officeBranch.current', JSON.stringify(branch))
 }

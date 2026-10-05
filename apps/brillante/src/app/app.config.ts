@@ -17,7 +17,6 @@ import { provideOverlayContainers } from '@configs/overlay-container.config'
 import { projectConfig } from '@configs/project.config'
 import { Analytics } from '@providers/analytics/analytics'
 import { provideAuth, withNavigationPermissionCheck } from '@providers/auth/auth.provider'
-import { provideIdentity } from '@providers/identity/identity.provider'
 import { provideProjectConfig } from '@providers/project/project.provider'
 import type { Language } from '@resetshop/angular-core/i18n/translation'
 import { initializeTranslation } from '@resetshop/angular-core/i18n/translation.initializer'
@@ -27,9 +26,10 @@ import { provideTheme } from '@resetshop/angular-core/theme/theme'
 import { UIStore } from '@store/ui/ui.store'
 import { appRoutes } from './app.routes'
 import { environment } from './environments/environment'
+import { authInterceptor } from './interceptors/auth.interceptor'
 import { forbiddenInterceptor } from './interceptors/forbidden.interceptor'
-import { jwtInterceptor } from './interceptors/jwt.interceptor'
-import { unauthorizedInterceptor } from './interceptors/unauthorized.interceptor'
+import { legacyTokenInterceptor } from './interceptors/legacy-token.interceptor'
+import { tokenRefreshInterceptor } from './interceptors/token-refresh.interceptor'
 
 function initializeAnalytics() {
 	return async () => {
@@ -47,7 +47,9 @@ export const appConfig: ApplicationConfig = {
 		provideBrowserGlobalErrorListeners(),
 		provideZonelessChangeDetection(),
 		provideRouter(appRoutes, withViewTransitions(), withExperimentalAutoCleanupInjectors()),
-		provideHttpClient(withInterceptors([jwtInterceptor, unauthorizedInterceptor, forbiddenInterceptor])),
+		provideHttpClient(
+			withInterceptors([authInterceptor, legacyTokenInterceptor, tokenRefreshInterceptor, forbiddenInterceptor]),
+		),
 
 		// Initializers
 		provideAppInitializer(initializeAnalytics()),
@@ -79,9 +81,8 @@ export const appConfig: ApplicationConfig = {
 		provideProjectConfig(projectConfig),
 		{ provide: TitleStrategy, useClass: NavigationTitleStrategy },
 
-		// Identity (Auth0) and the Brillante API session; `withNavigationPermissionCheck()` routes
+		// The cookie session of the app's backend; `withNavigationPermissionCheck()` routes
 		// `NAVIGATION_PERMISSION_CHECK` through `AuthStore.currentUser`.
-		provideIdentity(),
 		provideAuth(withNavigationPermissionCheck()),
 	],
 }

@@ -6,7 +6,6 @@ import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { RepairStatusId } from '@contracts/repair/repair-status.constants'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import {
@@ -63,7 +62,6 @@ describe('RepairDetail', () => {
 			providers: [
 				provideRouter([]),
 				provideAuthMock(),
-				provideIdentityMock(),
 				{ provide: RepairApi, useValue: repairApiMock },
 				{ provide: PaymentMethodApi, useValue: paymentMethodApiMock },
 				{ provide: OfficeBranchStore, useValue: { currentBranch: signal(null) } },
@@ -101,7 +99,6 @@ describe('RepairDetail', () => {
 			providers: [
 				provideRouter([]),
 				provideAuthMock(),
-				provideIdentityMock(),
 				{ provide: RepairApi, useValue: repairApiMock },
 				{ provide: PaymentMethodApi, useValue: paymentMethodApiMock },
 				{ provide: OfficeBranchStore, useValue: { currentBranch: signal(null) } },

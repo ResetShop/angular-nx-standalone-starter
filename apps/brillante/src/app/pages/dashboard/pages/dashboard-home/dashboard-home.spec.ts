@@ -4,8 +4,6 @@ import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { InMemoryAuthApi } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { IdentityApi } from '@providers/identity/identity.interface'
-import { InMemoryIdentityApi } from '@providers/identity/identity.mock'
 import type { NavigationSection } from '@resetshop/angular-core/interfaces/navigation'
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
@@ -28,7 +26,6 @@ describe('DashboardHome', () => {
 				provideRouter([]),
 				provideTranslationMock(),
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
-				{ provide: IdentityApi, useValue: new InMemoryIdentityApi() },
 				{ provide: Navigation, useValue: { sections: () => sections, breadcrumbs: () => [] } },
 			],
 		})

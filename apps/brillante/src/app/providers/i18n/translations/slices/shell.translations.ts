@@ -12,15 +12,6 @@ export const shellEn = {
 				MANAGEMENT: 'Management',
 			},
 		},
-		LOGIN: {
-			PAGE_TITLE: 'Sign in',
-			TITLE: 'Brillante Store',
-			DESCRIPTION: 'Shine - management system. Sign in with your Brillante account to continue.',
-			BUTTON: 'Sign in',
-			SIGNING_IN: 'Signing in...',
-			ERROR: 'We could not sign you in. Please try again.',
-			NO_ACCOUNT: 'Your Auth0 session is not linked to a Brillante user yet. Contact an administrator.',
-		},
 		HOME: {
 			WELCOME: 'Hello, {name}',
 			DESCRIPTION: 'Pick a module to get started.',
@@ -60,16 +51,6 @@ export const shellEs: typeof shellEn = {
 				OPERATIONS: 'Operaciones',
 				MANAGEMENT: 'Administración',
 			},
-		},
-		LOGIN: {
-			PAGE_TITLE: 'Iniciar sesión',
-			TITLE: 'Brillante Store',
-			DESCRIPTION: 'Shine - Sistema de gestión. Iniciá sesión con tu cuenta de Brillante para continuar.',
-			BUTTON: 'Iniciar sesión',
-			SIGNING_IN: 'Iniciando sesión...',
-			ERROR: 'No pudimos iniciar tu sesión. Intentá nuevamente.',
-			NO_ACCOUNT:
-				'Tu sesión de Auth0 todavía no está vinculada a un usuario de Brillante. Contactá a un administrador.',
 		},
 		HOME: {
 			WELCOME: 'Hola, {name}',

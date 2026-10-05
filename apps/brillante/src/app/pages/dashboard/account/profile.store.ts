@@ -8,7 +8,7 @@ import type { IUser } from '@domain/user/user.interface'
 import { mapUserDtoToUser } from '@domain/user/user.mapper'
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
-import { AuthSession } from '@providers/auth/auth-session'
+import { AuthApi } from '@providers/auth/auth.interface'
 import { CustomerApi } from '@providers/customer/customer.interface'
 import { UserApi } from '@providers/user/user.interface'
 import { Logger } from '@resetshop/angular-core/logger/logger.token'
@@ -61,9 +61,9 @@ function toUpdatedUserDto(current: IUser, params: SaveProfileParams, response: P
 /**
  * ProfileStore - Signal Store for the signed-in user's own profile.
  *
- * Staff accounts edit their name through the user endpoint; customers additionally complete their
+ * Staff accounts edit their name through the backend's own profile endpoint; customers additionally complete their
  * customer registration, saved together with the user in one request. After a successful save the
- * session (store and persisted copy) is refreshed so the whole app shows the new details.
+ * signed-in user is refreshed so the whole app shows the new details.
  */
 export const ProfileStore = signalStore(
 	{ providedIn: 'root' },
@@ -72,13 +72,13 @@ export const ProfileStore = signalStore(
 		const customerApi = inject(CustomerApi)
 		const userApi = inject(UserApi)
 		const authStore = inject(AuthStore)
-		const authSession = inject(AuthSession)
+		const authApi = inject(AuthApi)
 		const loggerService = inject(Logger)
 
 		function saveUser(current: IUser, params: SaveProfileParams): Observable<UserDto> {
 			if (!params.customer) {
-				return userApi
-					.update({ id: current.id, firstName: params.firstName, lastName: params.lastName })
+				return authApi
+					.updateProfile({ firstName: params.firstName, lastName: params.lastName })
 					.pipe(map(() => toUpdatedUserDto(current, params, null)))
 			}
 			const customerDto: CustomerDto = mapCustomerToDto({ ...params.customer, id: store.customer()?.id })
@@ -93,10 +93,6 @@ export const ProfileStore = signalStore(
 
 		function applySavedProfile(updated: UserDto, params: SaveProfileParams): void {
 			authStore.updateCurrentUser(mapUserDtoToUser(updated))
-			const session = authSession.read()
-			if (session) {
-				authSession.write({ ...session, ...updated })
-			}
 			patchState(store, {
 				isSaving: false,
 				customer: params.customer ? new Customer({ ...params.customer, id: store.customer()?.id }) : store.customer(),

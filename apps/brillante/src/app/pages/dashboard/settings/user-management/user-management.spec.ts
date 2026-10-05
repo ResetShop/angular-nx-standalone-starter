@@ -6,7 +6,6 @@ import { createMockUserDto } from '@mocks/user-dto.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { settingsEn } from '@providers/i18n/translations/slices/settings.translations'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { InMemoryUserApi, provideUserMock } from '@providers/user/user.mock'
 import {
 	advanceTimersByTimeAsync,
@@ -62,7 +61,6 @@ describe('UserManagement', () => {
 		const view = await render(UserManagement, {
 			providers: [
 				provideAuthMock(),
-				provideIdentityMock(),
 				provideUserMock(api),
 				provideSliceTranslationMock(settingsEn),
 				...provideSignalFormsConfig({}),
