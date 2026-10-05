@@ -233,7 +233,7 @@ registerRoute(app, resetPasswordRoute, async (c) => {
 registerRoute(app, legacyTokenRoute, async (c) => {
 	const secret = tokenEnv.LEGACY_JWT_SECRET
 	if (!secret) {
-		logger.error('LegacyToken', 'LEGACY_JWT_SECRET is not configured')
+		logger.error('LegacyToken', 'LEGACY_JWT_SECRET is missing or blank')
 		return c.json({ error: 'Legacy token bridge is not configured' }, 503)
 	}
 

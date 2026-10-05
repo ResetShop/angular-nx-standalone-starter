@@ -68,6 +68,18 @@ describe('Auth Controller - /legacy-token endpoint', () => {
 		expect(await res.json()).toEqual({ error: 'Legacy token bridge is not configured' })
 	})
 
+	it('signs with a short secret, because the legacy server decides its length', async () => {
+		seedTokenEnv({ LEGACY_JWT_SECRET: 'short-legacy' })
+
+		expect((await request()).status).toBe(200)
+	})
+
+	it('answers 503 for a blank secret', async () => {
+		seedTokenEnv({ LEGACY_JWT_SECRET: '   ' })
+
+		expect((await request()).status).toBe(503)
+	})
+
 	it('answers 401 when the account is no longer active', async () => {
 		getSessionUser.mockRejectedValue(new AuthError(InternalAuthErrorCode.ACCOUNT_DISABLED))
 
