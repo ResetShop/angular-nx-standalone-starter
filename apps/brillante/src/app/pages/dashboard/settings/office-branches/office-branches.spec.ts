@@ -5,7 +5,6 @@ import { provideSliceTranslationMock } from '@mocks/slice-translation.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { settingsEn } from '@providers/i18n/translations/slices/settings.translations'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { InMemoryOfficeBranchApi, provideOfficeBranchMock } from '@providers/office-branch/office-branch.mock'
 import {
 	advanceTimersByTimeAsync,
@@ -45,7 +44,6 @@ describe('OfficeBranches', () => {
 			providers: [
 				provideRouter([]),
 				provideAuthMock(),
-				provideIdentityMock(),
 				provideOfficeBranchMock(api),
 				provideSliceTranslationMock(settingsEn),
 			],

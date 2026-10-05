@@ -1,12 +1,76 @@
 import { makeEnvironmentProviders } from '@angular/core'
-import type { Auth0Profile, AuthenticatedUserDto } from '@contracts/user/legacy-user.types'
-import { type Observable, of, throwError } from 'rxjs'
+import type {
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	ForgotPasswordRequest,
+	ForgotPasswordResponse,
+	LegacyTokenResponse,
+	LoginRequest,
+	LoginResponse,
+	MeResponse,
+	RefreshResponse,
+	ResetPasswordRequest,
+	ResetPasswordResponse,
+} from '@contracts/auth/auth.types'
+import type { AuthUser, UpdateProfileRequest } from '@contracts/user/user.types'
+import { parseDurationToMs } from '@resetshop/util'
+import type { Observable } from 'rxjs'
+import { of, throwError } from 'rxjs'
 import type { AuthApi } from './auth.interface'
 import { AuthApi as AuthApiToken } from './auth.interface'
 
+export function createMockLoginResponse(overrides: Partial<LoginResponse> = {}): LoginResponse {
+	return {
+		user: {
+			id: 1,
+			email: 'test@example.com',
+			firstName: 'Test',
+			lastName: 'User',
+			roles: [],
+		},
+		mustChangePassword: false,
+		...overrides,
+	}
+}
+
+export function createMockMeResponse(overrides: Partial<MeResponse> = {}): MeResponse {
+	return {
+		id: 1,
+		email: 'test@example.com',
+		firstName: 'Test',
+		lastName: 'User',
+		roles: [],
+		mustChangePassword: false,
+		...overrides,
+	}
+}
+
 export class InMemoryAuthApi implements AuthApi {
+	private authenticatedUser: MeResponse | null = null
+	private loginResponse: LoginResponse | null = null
 	private errors = new Map<string, Error>()
-	private response: AuthenticatedUserDto | null = null
+
+	public setAuthenticatedUser(user: MeResponse): void {
+		this.authenticatedUser = user
+	}
+
+	public setLoginResponse(response: LoginResponse): void {
+		this.loginResponse = response
+	}
+
+	public clear(): void {
+		this.authenticatedUser = null
+		this.loginResponse = null
+		this.errors.clear()
+	}
+
+	/**
+	 * The failure a real request gets when it is sent without a session: the backend answers 401 and the
+	 * client surfaces it as an error. Naming the method and the fix keeps a failing test self-explanatory.
+	 */
+	private noSessionError(method: keyof AuthApi): Error {
+		return new Error(`InMemoryAuthApi.${method}: no authenticated user — call setAuthenticatedUser() first`)
+	}
 
 	public setError(method: keyof AuthApi, error: Error): void {
 		this.errors.set(method, error)
@@ -16,26 +80,105 @@ export class InMemoryAuthApi implements AuthApi {
 		this.errors.clear()
 	}
 
-	public setResponse(response: AuthenticatedUserDto): void {
-		this.response = response
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	public login(_params: LoginRequest): Observable<LoginResponse> {
+		const error = this.errors.get('login')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		if (this.loginResponse) {
+			return of(this.loginResponse)
+		}
+
+		// REASON: Matches the real HttpErrorResponse shape that auth.store.ts inspects via error.code
+		return throwError(() => ({ error: { code: 'INVALID_CREDENTIALS' } }))
 	}
 
-	public authenticate(profile: Auth0Profile): Observable<AuthenticatedUserDto> {
-		const error = this.errors.get('authenticate')
-		if (error) return throwError(() => error)
-		return of(
-			this.response ?? {
-				id: 1,
-				userName: profile.nickname ?? 'user',
-				firstName: profile.name ?? '',
-				lastName: '',
-				avatar: profile.picture ?? null,
-				email: profile.email ?? '',
-				roles: [],
-				hasFinishedRegistration: true,
-				token: 'in-memory-token',
-			},
-		)
+	public logout(): Observable<void> {
+		const error = this.errors.get('logout')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		this.authenticatedUser = null
+		return of(undefined)
+	}
+
+	public refreshToken(): Observable<RefreshResponse> {
+		const error = this.errors.get('refreshToken')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({})
+	}
+
+	public getMe(): Observable<MeResponse> {
+		const error = this.errors.get('getMe')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		if (this.authenticatedUser) {
+			return of(this.authenticatedUser)
+		}
+
+		return throwError(() => this.noSessionError('getMe'))
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	public changePassword(_params: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+		const error = this.errors.get('changePassword')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({ message: 'Password changed successfully' })
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	public forgotPassword(_params: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {
+		const error = this.errors.get('forgotPassword')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({ message: 'If an account exists for that email, a password-reset link has been sent.' })
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface contract requires the parameter
+	public resetPassword(_params: ResetPasswordRequest): Observable<ResetPasswordResponse> {
+		const error = this.errors.get('resetPassword')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({ message: 'Your password has been reset. You can now sign in.' })
+	}
+
+	public updateProfile(params: UpdateProfileRequest): Observable<AuthUser> {
+		const error = this.errors.get('updateProfile')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		if (!this.authenticatedUser) {
+			return throwError(() => this.noSessionError('updateProfile'))
+		}
+
+		this.authenticatedUser = { ...this.authenticatedUser, ...params }
+		const { id, email, firstName, lastName, roles } = this.authenticatedUser
+		return of({ id, email, firstName, lastName, roles })
+	}
+
+	public getLegacyToken(): Observable<LegacyTokenResponse> {
+		const error = this.errors.get('getLegacyToken')
+		if (error) {
+			return throwError(() => error)
+		}
+
+		return of({ token: 'mock.legacy.token', expiresAt: new Date(Date.now() + parseDurationToMs('1h')).toISOString() })
 	}
 }
 

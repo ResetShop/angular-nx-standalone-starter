@@ -5,8 +5,6 @@ import { Permission } from '@contracts/permission/legacy-permission.constants'
 import { createMockUser } from '@mocks/user.mock'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { InMemoryAuthApi } from '@providers/auth/auth.mock'
-import { IdentityApi } from '@providers/identity/identity.interface'
-import { InMemoryIdentityApi } from '@providers/identity/identity.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks, fn, type MockFn } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
@@ -51,7 +49,6 @@ describe('permissionGuard', () => {
 				AuthStore,
 				provideRouter([]),
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
-				{ provide: IdentityApi, useValue: new InMemoryIdentityApi() },
 				{ provide: UIStore, useValue: uiStoreMock },
 				{ provide: Translation, useValue: translationMock },
 			],

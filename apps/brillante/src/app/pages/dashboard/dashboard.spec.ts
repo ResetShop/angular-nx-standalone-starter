@@ -8,7 +8,6 @@ import { createMockUser } from '@mocks/user.mock'
 import { featherActivity } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { provideOfficeBranchMock } from '@providers/office-branch/office-branch.mock'
 import type { BreadcrumbItem, NavigationSection } from '@resetshop/angular-core/interfaces/navigation'
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
@@ -48,7 +47,6 @@ describe('Dashboard', () => {
 		provideHttpClient(),
 		provideHttpClientTesting(),
 		provideAuthMock(),
-		provideIdentityMock(),
 		provideOfficeBranchMock(),
 		NavigationState,
 		{ provide: UIStore, useValue: mockUIStore },

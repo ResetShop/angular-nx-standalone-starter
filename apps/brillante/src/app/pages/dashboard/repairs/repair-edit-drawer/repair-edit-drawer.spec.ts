@@ -6,7 +6,6 @@ import { RepairStatusId } from '@contracts/repair/repair-status.constants'
 import { mapRepairDto } from '@domain/repair/repair.mapper'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@resetshop/ui/drawer/drawer-loading'
@@ -64,7 +63,6 @@ describe('RepairEditDrawer', () => {
 		const view = await render(RepairEditDrawer, {
 			providers: [
 				provideAuthMock(),
-				provideIdentityMock(),
 				{ provide: RepairApi, useValue: repairApiMock },
 				{ provide: PaymentMethodApi, useValue: paymentMethodApiMock },
 				{ provide: OfficeBranchStore, useValue: { currentBranch: signal(null) } },

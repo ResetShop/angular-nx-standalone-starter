@@ -6,7 +6,6 @@ import { provideSliceTranslationMock, setLanguageMock } from '@mocks/slice-trans
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { settingsEn } from '@providers/i18n/translations/slices/settings.translations'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import {
 	advanceTimersByTime,
 	advanceTimersByTimeAsync,
@@ -34,7 +33,6 @@ describe('SettingsHome', () => {
 			providers: [
 				provideRouter([]),
 				provideAuthMock(),
-				provideIdentityMock(),
 				provideSliceTranslationMock(settingsEn),
 				...provideSignalFormsConfig({}),
 			],

@@ -6,7 +6,6 @@ import { RepairStatusId } from '@contracts/repair/repair-status.constants'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { CustomerApi } from '@providers/customer/customer.interface'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import {
@@ -77,7 +76,6 @@ describe('RepairsList', () => {
 		return [
 			provideRouter([]),
 			provideAuthMock(),
-			provideIdentityMock(),
 			{ provide: RepairApi, useValue: repairApiMock },
 			{ provide: PaymentMethodApi, useValue: paymentMethodApiMock },
 			{ provide: CustomerApi, useValue: customerApiMock },

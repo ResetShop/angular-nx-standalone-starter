@@ -7,7 +7,6 @@ import { RouterTestingHarness } from '@angular/router/testing'
 import { customerTranslation } from '@domain/customer/customer-translation.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { useFakeTimers, useRealTimers } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
@@ -47,7 +46,6 @@ describe('clients routes', () => {
 				provideHttpClient(),
 				provideHttpClientTesting(),
 				provideAuthMock(),
-				provideIdentityMock(),
 				{ provide: Translation, useValue: customerTranslation },
 			],
 		})

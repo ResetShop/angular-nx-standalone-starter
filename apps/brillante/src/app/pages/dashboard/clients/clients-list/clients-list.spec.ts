@@ -5,7 +5,6 @@ import { createMockCustomerDto } from '@domain/customer/customer.mock'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { CustomerApi } from '@providers/customer/customer.interface'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import {
 	advanceTimersByTimeAsync,
@@ -58,7 +57,6 @@ describe('ClientsList', () => {
 		const view = await render(ClientsList, {
 			providers: [
 				provideAuthMock(),
-				provideIdentityMock(),
 				{ provide: CustomerApi, useValue: apiMock },
 				{ provide: Translation, useValue: customerTranslation },
 			],
@@ -86,7 +84,6 @@ describe('ClientsList', () => {
 		await render(ClientsList, {
 			providers: [
 				provideAuthMock(),
-				provideIdentityMock(),
 				{ provide: CustomerApi, useValue: apiMock },
 				{ provide: Translation, useValue: customerTranslation },
 			],

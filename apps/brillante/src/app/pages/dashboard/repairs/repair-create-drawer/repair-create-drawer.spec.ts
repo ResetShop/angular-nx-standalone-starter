@@ -5,7 +5,6 @@ import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { createMockUser } from '@mocks/user.mock'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { CustomerApi } from '@providers/customer/customer.interface'
-import { provideIdentityMock } from '@providers/identity/identity.mock'
 import { PaymentMethodApi } from '@providers/payment-method/payment-method.interface'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { DRAWER_SPINNER_MIN_DISPLAY } from '@resetshop/ui/drawer/drawer-loading'
@@ -80,7 +79,6 @@ describe('RepairCreateDrawer', () => {
 		const view = await render(RepairCreateDrawer, {
 			providers: [
 				provideAuthMock(),
-				provideIdentityMock(),
 				{ provide: RepairApi, useValue: repairApiMock },
 				{ provide: CustomerApi, useValue: customerApiMock },
 				{ provide: PaymentMethodApi, useValue: paymentMethodApiMock },
