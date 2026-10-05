@@ -65,7 +65,7 @@ export const managedUserSchema = z.object({
  * Password is auto-generated server-side and sent via welcome email.
  */
 export const createUserRequestSchema = z.object({
-	email: z.email(),
+	email: z.email().toLowerCase(),
 	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
 	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH),
 	roleIds: z.array(z.number().int().positive()).optional(),
@@ -86,7 +86,7 @@ export const createUserResponseSchema = managedUserSchema.extend({
  * `status` only allows non-terminal values — use the DELETE endpoint for deletion.
  */
 export const updateUserRequestSchema = z.object({
-	email: z.email().optional(),
+	email: z.email().toLowerCase().optional(),
 	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),

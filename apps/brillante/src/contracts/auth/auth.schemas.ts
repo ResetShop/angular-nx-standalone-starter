@@ -8,7 +8,7 @@ import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from './auth.constants'
 // ============================================================================
 
 export const loginRequestSchema = z.object({
-	email: z.string().email('Invalid email format'),
+	email: z.string().email('Invalid email format').toLowerCase(),
 	password: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH, 'Password is required'),
 })
 
@@ -35,7 +35,7 @@ export const changePasswordRequestSchema = z
  * whether the email belongs to an active account (no user enumeration).
  */
 export const forgotPasswordRequestSchema = z.object({
-	email: z.string().email('Invalid email format'),
+	email: z.string().email('Invalid email format').toLowerCase(),
 })
 
 /**

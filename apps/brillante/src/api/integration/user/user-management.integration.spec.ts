@@ -127,6 +127,23 @@ describe('User management endpoints (/api/users)', () => {
 			expect(retry.status).toBe(201)
 		})
 
+		it('stores the email in lowercase and refuses a duplicate that differs only by case', async () => {
+			const created = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'Mixed.Case@Test.com', firstName: 'Mixed', lastName: 'Case' },
+			})
+			expect(created.status).toBe(201)
+			expect((await created.json()).email).toBe('mixed.case@test.com')
+
+			const duplicate = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'MIXED.CASE@test.com', firstName: 'Mixed', lastName: 'Again' },
+			})
+			expect(duplicate.status).toBe(409)
+		})
+
 		it('returns 409 for duplicate email', async () => {
 			const response = await authenticatedRequest(app, '/api/users', {
 				method: 'POST',
