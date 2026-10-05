@@ -24,3 +24,18 @@ export function escapeHtml(value: string): string {
 		.replace(/"/g, '&quot;')
 		.replace(/'/g, '&#39;')
 }
+
+/** Renders a duration string (e.g. '1d', '15m') as human-readable bilingual copy ('1 day', '15 minutos'). */
+export function formatExpiryDuration(duration: string, lang: EmailLanguage): string {
+	const match = /^(\d+)([smhd])$/.exec(duration)
+	if (!match) return duration
+
+	const amount = Number(match[1])
+	const unit = match[2] as 's' | 'm' | 'h' | 'd'
+	const words = {
+		en: { s: 'second', m: 'minute', h: 'hour', d: 'day' },
+		es: { s: 'segundo', m: 'minuto', h: 'hora', d: 'día' },
+	} as const
+
+	return `${amount} ${words[lang][unit]}${amount === 1 ? '' : 's'}`
+}

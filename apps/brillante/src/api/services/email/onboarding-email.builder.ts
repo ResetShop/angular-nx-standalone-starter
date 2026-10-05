@@ -1,89 +1,69 @@
 import { appEnv } from '../../config/app.env'
-import { PASSWORD_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
+import { ONBOARDING_RESET_TOKEN_EXPIRY } from '../../constants/auth.constants'
 import type { EmailContent, EmailLanguage } from './email-builder.utils'
 import { escapeHtml, formatExpiryDuration, resolveEmailLanguage } from './email-builder.utils'
 
-export interface ForgotPasswordEmailParams {
+export interface OnboardingEmailParams {
 	firstName: string
-	/** Absolute reset-link URL containing the raw token; rendered as the email's CTA. */
+	/** Absolute link that lets the user choose a password; it carries the raw single-use token. */
 	resetUrl: string
 }
 
-// File-local bilingual email translations. The {duration} placeholder in expiryNote is resolved at
-// build time from PASSWORD_RESET_TOKEN_EXPIRY, so the email body can never drift from the constant.
+// File-local bilingual copy. The {duration} placeholder in expiryNote is resolved at build time from
+// ONBOARDING_RESET_TOKEN_EXPIRY, so the email body can never drift from the constant.
 const EMAIL_TRANSLATIONS = Object.freeze({
 	en: {
-		subject: 'Reset your password',
+		subject: 'Set your password for the new Brillante system',
 		greeting: 'Hello',
-		intro: 'We received a request to reset your password. Click the button below to choose a new one.',
-		cta: 'Reset password',
+		intro:
+			'Your Brillante account has been moved to the new management system, and it no longer uses Auth0. Choose a password to sign in with your email address.',
+		cta: 'Choose my password',
 		linkFallback: 'Or paste this link into your browser:',
 		expiryNote: 'This link expires in {duration} and can be used only once.',
-		ignore:
-			'If you did not request a password reset, you can safely ignore this email — your password will not change.',
+		expired: 'If it expires before you use it, ask an administrator to send you a new one.',
 		footer: 'This is an automated message. Please do not reply to this email.',
 		signOff: 'Best regards,',
-		team: 'The Team',
+		team: 'The Brillante team',
 	},
 	es: {
-		subject: 'Restablece tu contraseña',
+		subject: 'Elegí tu contraseña para el nuevo sistema de Brillante',
 		greeting: 'Hola',
 		intro:
-			'Recibimos una solicitud para restablecer tu contraseña. Haz clic en el botón de abajo para elegir una nueva.',
-		cta: 'Restablecer contraseña',
-		linkFallback: 'O pega este enlace en tu navegador:',
+			'Tu cuenta de Brillante pasó al nuevo sistema de gestión, que ya no usa Auth0. Elegí una contraseña para ingresar con tu correo electrónico.',
+		cta: 'Elegir mi contraseña',
+		linkFallback: 'O pegá este enlace en tu navegador:',
 		expiryNote: 'Este enlace caduca en {duration} y solo se puede usar una vez.',
-		ignore:
-			'Si no solicitaste restablecer tu contraseña, puedes ignorar este correo de forma segura — tu contraseña no cambiará.',
+		expired: 'Si caduca antes de que lo uses, pedile a un administrador que te envíe uno nuevo.',
 		footer: 'Este es un mensaje automatizado. Por favor, no respondas a este correo electrónico.',
-		signOff: 'Saludos cordiales,',
-		team: 'El Equipo',
+		signOff: 'Saludos,',
+		team: 'El equipo de Brillante',
 	},
 } as const)
 
 /**
- * Build the self-service password-reset email (contains the reset link). Returns subject, HTML, and
- * plain text. The link carries a single-use, time-limited token; the email never contains a password.
+ * Build the email that invites a migrated user to choose a password. It carries a single-use link valid for
+ * `ONBOARDING_RESET_TOKEN_EXPIRY`; it never contains a password.
  *
  * @param params Recipient first name and the absolute reset URL
- * @param lang Optional language override. Falls back to APP_LANGUAGE env var, then 'en'.
+ * @param lang Optional language override. Falls back to the APP_LANGUAGE env var, then 'en'.
  */
-export function buildForgotPasswordEmail(params: ForgotPasswordEmailParams, lang?: string): EmailContent {
+export function buildOnboardingEmail(params: OnboardingEmailParams, lang?: string): EmailContent {
 	const resolvedLang = resolveEmailLanguage(lang ?? appEnv.APP_LANGUAGE)
 	const t = EMAIL_TRANSLATIONS[resolvedLang]
-	const expiryNote = t.expiryNote.replace('{duration}', formatExpiryDuration(PASSWORD_RESET_TOKEN_EXPIRY, resolvedLang))
+	const expiryNote = t.expiryNote.replace(
+		'{duration}',
+		formatExpiryDuration(ONBOARDING_RESET_TOKEN_EXPIRY, resolvedLang),
+	)
 
 	return {
 		subject: t.subject,
-		text: buildTextContent(params, t, expiryNote),
-		html: buildHtmlContent(params, t, resolvedLang, expiryNote),
+		text: `${t.greeting} ${params.firstName},\n\n${t.intro}\n\n${t.linkFallback}\n${params.resetUrl}\n\n${expiryNote} ${t.expired}\n\n${t.footer}\n\n${t.signOff}\n${t.team}`,
+		html: buildHtml(params, t, resolvedLang, expiryNote),
 	}
 }
 
-function buildTextContent(
-	{ firstName, resetUrl }: ForgotPasswordEmailParams,
-	t: (typeof EMAIL_TRANSLATIONS)[EmailLanguage],
-	expiryNote: string,
-): string {
-	return `${t.greeting} ${firstName},
-
-${t.intro}
-
-${t.linkFallback}
-${resetUrl}
-
-${expiryNote}
-
-${t.ignore}
-
-${t.footer}
-
-${t.signOff}
-${t.team}`
-}
-
-function buildHtmlContent(
-	{ firstName, resetUrl }: ForgotPasswordEmailParams,
+function buildHtml(
+	{ firstName, resetUrl }: OnboardingEmailParams,
 	t: (typeof EMAIL_TRANSLATIONS)[EmailLanguage],
 	lang: EmailLanguage,
 	expiryNote: string,
@@ -109,10 +89,8 @@ function buildHtmlContent(
     <p style="color: #666; font-size: 13px;">${t.linkFallback}<br><a href="${safeResetUrl}">${safeResetUrl}</a></p>
 
     <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
-        <p style="margin: 0;">${expiryNote}</p>
+        <p style="margin: 0;">${expiryNote} ${t.expired}</p>
     </div>
-
-    <p>${t.ignore}</p>
 
     <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
 

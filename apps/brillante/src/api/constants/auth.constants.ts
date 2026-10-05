@@ -48,5 +48,11 @@ export const ACCESS_TOKEN_COOKIE_NAME = 'access_token'
  */
 export const PASSWORD_RESET_TOKEN_EXPIRY = '1h'
 
+/**
+ * Expiry for the reset links sent when existing users are onboarded in bulk (duration string). Longer than the
+ * self-service window because the emails go out together and are read when people get to them.
+ */
+export const ONBOARDING_RESET_TOKEN_EXPIRY = '1d'
+
 /** Frontend path where users complete a password reset (raw token passed as the `token` query param). */
 export const PASSWORD_RESET_PATH = '/auth/reset-password/confirm'
