@@ -51,6 +51,12 @@ describe('assertProviderDelivers', () => {
 		expect(() => assertProviderDelivers('noop', false, [recipient(2, 'a@example.test')])).toThrow(/nobody receives/)
 	})
 
+	it('refuses to apply with the cloudflare provider, which a Node script cannot reach', () => {
+		expect(() => assertProviderDelivers('cloudflare', false, [recipient(2, 'a@example.test')])).toThrow(
+			/only works inside the Worker/,
+		)
+	})
+
 	it.each([
 		['a dry run', 'noop', true, [recipient(2, 'a@example.test')]],
 		['no recipients', 'noop', false, []],

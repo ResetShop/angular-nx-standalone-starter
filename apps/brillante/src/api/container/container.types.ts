@@ -76,7 +76,7 @@ import type { PasetoConfig } from '../services/paseto/paseto.config'
  *   └── UserRoleService
  *
  * EmailService
- *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
+ *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal' | 'cloudflare' | 'noop')
  * PasetoService ──► pasetoConfig (value)
  *
  * Middleware/Controllers resolve services lazily at runtime.

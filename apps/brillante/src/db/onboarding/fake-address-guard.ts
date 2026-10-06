@@ -26,15 +26,24 @@ export function assertEtherealRecipientsAreFake(provider: string, recipients: re
 	}
 }
 
-/** With the noop provider an applied run would issue reset links that nobody receives. */
+/**
+ * With the noop provider an applied run would issue reset links that nobody receives, and the cloudflare provider
+ * sends through a Worker binding that a Node script does not have (use Cloudflare's SMTP endpoint with nodemailer).
+ */
 export function assertProviderDelivers(
 	provider: string,
 	dryRun: boolean,
 	recipients: readonly OnboardingCandidate[],
 ): void {
-	if (provider === 'noop' && !dryRun && recipients.length > 0) {
+	if (dryRun || recipients.length === 0) return
+	if (provider === 'noop') {
 		throw new SafeImportError(
 			'EMAIL_PROVIDER=noop would issue reset links that nobody receives. Configure a real provider, or ethereal for fake users.',
+		)
+	}
+	if (provider === 'cloudflare') {
+		throw new SafeImportError(
+			'EMAIL_PROVIDER=cloudflare only works inside the Worker. From this command send through the Cloudflare SMTP endpoint with EMAIL_PROVIDER=nodemailer (see docs/brillante-backend.md).',
 		)
 	}
 }

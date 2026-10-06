@@ -56,17 +56,24 @@ per-account lockout still applies.
 - **Secrets** (`wrangler secret put`): `PASETO_SECRET_KEY` (64 hex characters), `CRON_SECRET` (at least 32 characters).
 - **Vars** in `wrangler.jsonc`: `IS_SERVERLESS=true` (transaction-scoped advisory locks; the Worker runtime also forces
   serverless mode on its own, so a deployment that forgets the flag cannot take a session lock through Hyperdrive),
-  `PASETO_ISSUER`, `COOKIE_SECURE`, `EMAIL_PROVIDER=noop` and `CORS_ORIGIN` (the public origin of the Worker). **`CORS_ORIGIN` is
+  `PASETO_ISSUER`, `COOKIE_SECURE`, `EMAIL_PROVIDER=cloudflare`, `EMAIL_FROM` (and optionally `EMAIL_FROM_NAME`) and `CORS_ORIGIN` (the public origin of the app, first in the list). **`CORS_ORIGIN` is
   required on Workers** (`keep_vars` keeps variables set in the dashboard across deploys). Without it the
   Worker answers `500` and logs `FATAL ... CORS_ORIGIN`, because password-reset links are built from it and a `localhost`
   default would put dead links in emails.
 - **Custom domain.** `wrangler.jsonc` declares no route, so a deploy is reachable on its `workers.dev` address only.
   Attach the production domain to the Worker (dashboard, or a `routes` entry with `custom_domain: true`) before relying on
   cookies or reset links: both assume that origin.
-- **Email is not solved yet.** Port 25 is blocked on Workers and SMTP over TLS has not been verified there. The planned
-  providers are the Cloudflare Email Service binding (beta, needs the Workers Paid plan to reach arbitrary recipients) with
-  an HTTP provider as fallback. `wrangler.jsonc` sets `EMAIL_PROVIDER=noop`, so **reset and welcome emails are not
-  sent** until a provider exists; the default (`nodemailer`) would fail without SMTP settings.
+- **Email goes through the Cloudflare Email Service binding.** `wrangler.jsonc` declares `"send_email": [{ "name": "EMAIL" }]`
+  and sets `EMAIL_PROVIDER=cloudflare` with `EMAIL_FROM` (default `no-reply@brillantestore.com`). Sending to arbitrary
+  recipients needs the Workers Paid plan, which includes 3,000 emails a month (then $0.35 per 1,000). Before it can send, onboard the sender domain under **Compute > Email Service > Email Sending** in the dashboard (the
+  domain must use Cloudflare DNS; the SPF, DKIM, DMARC and bounce records are added for you and can take a few minutes to
+  propagate) and make sure `EMAIL_FROM` is an address of that domain.
+  - A refused message fails with the Email Service error code (for example `E_SENDER_NOT_VERIFIED`), which the log shows;
+    the binding's own message is not logged because it may name the recipient.
+  - The binding is handed to the repository per request (`helpers/request-email.ts`), so emails sent after the response
+    (the password reset link) keep working.
+  - Under `wrangler dev` the binding is simulated: the message is written to `.wrangler/tmp/email` and logged, nothing is
+    sent (add `"remote": true` to the binding to send for real, to test addresses only).
 
 ## Commands
 
@@ -206,7 +213,7 @@ Recipients are the active users who still have `must_change_password` and a real
 - `--user-ids 2,3` narrows the selection; an id that does not exist aborts before anything is sent.
 - Failures are counted by user id; the exit code is 1 if any send failed, and a re-run mails everybody again with fresh links.
 - `EMAIL_PROVIDER=noop` refuses `--apply`. `EMAIL_PROVIDER=ethereal` stores every message on a third-party server, so the command refuses it unless every recipient uses a reserved test domain (`.test`, `.example`, `.invalid`, `.localhost`, `example.com/org/net`): rehearse it against a local database with invented users, never against the real one.
-- Real emails need the frontend reset page and a real provider that works on the target runtime; until then only run the dry run against the production database.
+- Real emails need a provider the command can reach from your machine. The Worker's binding is not available to a Node script, so use the Cloudflare Email Service SMTP endpoint (beta) with the existing `nodemailer` provider: `EMAIL_PROVIDER=nodemailer`, `SMTP_HOST=smtp.mx.cloudflare.net`, `SMTP_PORT=465`, `SMTP_SECURE=true`, `SMTP_USER=api_token`, `SMTP_PASS=<a Cloudflare API token with the Email Sending: Edit permission>` and `SMTP_FROM=no-reply@brillantestore.com`. Create a dedicated API token for this run, revoke it afterwards, and note it is not a Worker secret. Keep those values out of the repository (see `docs/environment-variables.md`), run the dry run first, then send to one user with `--user-ids` before sending to everybody.
 
 ### Legacy API token bridge
 
@@ -256,12 +263,11 @@ can keep; the purge is idempotent, so two overlapping runs are harmless and the 
 | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`, single-use hashed tokens (1 h expiry) | Implemented (copied from the reference app), covered by unit and integration specs                      |
 | Token created after the response on Workers                                                              | Verified by the worker smoke test (`forgot-password work after the response stored a reset token`)      |
-| Email delivery                                                                                           | **Not working**: `EMAIL_PROVIDER=noop`, so no link is ever sent                                         |
+| Email delivery                                                                                           | Cloudflare Email Service binding (`EMAIL_PROVIDER=cloudflare`); needs the sender domain onboarded       |
 | Frontend pages (request link, set new password)                                                          | **Not present** in `apps/brillante`; they exist only in the reference app and arrive with the auth swap |
 
 **Open point: the reset link origin.** The link is built from the first entry of `CORS_ORIGIN`
-(`password-reset.service.ts`), which is the `workers.dev` address until a custom domain is attached. On a preview deployment (a `workers.dev` address) a
-link would therefore point at production. Nothing breaks today because no email is sent. When emails are enabled:
+(`password-reset.service.ts`); `wrangler.jsonc` lists the app domain (`app.brillantestore.com`) first, so links point at it. A preview deployment on a `workers.dev` address would send links to production unless it overrides `CORS_ORIGIN` (`wrangler dev --var`). Possible hardening:
 
 - Keep `CORS_ORIGIN` as an allow-list for genuinely cross-origin callers. The SPA and the API share one origin on the
   Worker, so previews do not need to be listed for the app itself to work.
@@ -273,7 +279,6 @@ link would therefore point at production. Nothing breaks today because no email 
 
 ## Known gaps
 
-- No email provider that works on Workers (see above).
 - `hono-rate-limiter` is no longer imported by Brillante, but the package stays in the root `package.json` because
   the reference app still uses it.
 - The `docs/api/*.bru` Bruno collection targets the reference app; the endpoints are identical, only the base URL differs.

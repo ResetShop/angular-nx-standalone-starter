@@ -35,6 +35,10 @@
 		{ "name": "FORGOT_PASSWORD_RATE_LIMITER", "namespace_id": "1004", "simple": { "limit": 5, "period": 60 } },
 		{ "name": "RESET_PASSWORD_RATE_LIMITER", "namespace_id": "1005", "simple": { "limit": 5, "period": 60 } },
 	],
+	// Cloudflare Email Service: sends the password reset and onboarding emails (EMAIL_PROVIDER=cloudflare). The
+	// sender domain of EMAIL_FROM must be onboarded under Compute > Email Service > Email Sending. `wrangler dev`
+	// simulates the binding (the message is logged, not sent) unless `"remote": true` is added.
+	"send_email": [{ "name": "EMAIL" }],
 	// Daily purge of expired refresh tokens (the `scheduled` handler in src/api/worker.ts).
 	"triggers": { "crons": ["17 3 * * *"] },
 	// Variables set in the Cloudflare dashboard (for example CORS_ORIGIN) survive `wrangler deploy`
@@ -44,13 +48,13 @@
 	// CORS_ORIGIN is required on Workers (the Worker refuses to serve requests without it). It is the
 	// public origin of the app, and password-reset links are built from it. `wrangler dev --var` overrides it locally.
 	"vars": {
-		"CORS_ORIGIN": "https://brillante.ramiro-0ae.workers.dev",
+		"CORS_ORIGIN": "https://app.brillantestore.com, https://brillante.ramiro-0ae.workers.dev",
 		"IS_SERVERLESS": "true",
 		"PASETO_ISSUER": "brillante",
 		"COOKIE_SECURE": "true",
-		// No email provider that works on Workers exists yet (port 25 is blocked and SMTP over TLS is
-		// unverified there), so reset and welcome emails are NOT sent. Replace with a real provider once
-		// one is implemented; the default (nodemailer) would fail without SMTP settings.
-		"EMAIL_PROVIDER": "noop",
+		// Reset, welcome and onboarding emails go through the Cloudflare Email Service binding above.
+		"EMAIL_PROVIDER": "cloudflare",
+		"EMAIL_FROM": "no-reply@brillantestore.com",
+		"EMAIL_FROM_NAME": "Brillante",
 	},
 }
