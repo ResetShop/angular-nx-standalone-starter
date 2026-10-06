@@ -86,6 +86,13 @@ export const settingsEn = {
 		ACTIONS: {
 			DISABLE: 'Disable',
 			ENABLE: 'Enable',
+			RESET_PASSWORD: 'Reset password',
+		},
+		RESET_DIALOG: {
+			TITLE: 'Reset password',
+			MESSAGE:
+				"Reset the password of '{name}'? A temporary password will be emailed to {email}, and it must be changed at the next sign-in. The current password stops working now.",
+			CONFIRM: 'Reset password',
 		},
 		DELETE_DIALOG: {
 			TITLE: 'Delete user',
@@ -94,9 +101,11 @@ export const settingsEn = {
 		SUCCESS: {
 			UPDATED: 'User updated successfully.',
 			DELETED: 'User deleted successfully.',
+			PASSWORD_RESET: 'Password reset. The temporary password is being emailed to the user.',
 		},
 		ERRORS: {
 			LOAD: 'Failed to load users',
+			RESET_PASSWORD: 'Failed to reset the password',
 			UPDATE: 'Failed to update user',
 			DELETE: 'Failed to delete user',
 		},
@@ -251,6 +260,13 @@ export const settingsEs: typeof settingsEn = {
 		ACTIONS: {
 			DISABLE: 'Deshabilitar',
 			ENABLE: 'Habilitar',
+			RESET_PASSWORD: 'Restablecer contraseña',
+		},
+		RESET_DIALOG: {
+			TITLE: 'Restablecer contraseña',
+			MESSAGE:
+				"¿Querés restablecer la contraseña de '{name}'? Se le va a enviar una contraseña temporal a {email}, y deberá cambiarla en su próximo ingreso. La contraseña actual deja de funcionar ahora.",
+			CONFIRM: 'Restablecer contraseña',
 		},
 		DELETE_DIALOG: {
 			TITLE: 'Eliminar usuario',
@@ -259,9 +275,11 @@ export const settingsEs: typeof settingsEn = {
 		SUCCESS: {
 			UPDATED: 'Usuario actualizado correctamente.',
 			DELETED: 'Usuario eliminado correctamente.',
+			PASSWORD_RESET: 'Contraseña restablecida. La contraseña temporal se está enviando por correo al usuario.',
 		},
 		ERRORS: {
 			LOAD: 'No se pudieron cargar los usuarios',
+			RESET_PASSWORD: 'No se pudo restablecer la contraseña',
 			UPDATE: 'No se pudo actualizar el usuario',
 			DELETE: 'No se pudo eliminar el usuario',
 		},

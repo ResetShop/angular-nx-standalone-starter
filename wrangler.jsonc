@@ -56,5 +56,7 @@
 		"EMAIL_PROVIDER": "cloudflare",
 		"EMAIL_FROM": "no-reply@brillantestore.com",
 		"EMAIL_FROM_NAME": "Brillante",
+		// Language of the emails (the staff speaks Spanish); the frontend default is Spanish too.
+		"APP_LANGUAGE": "es",
 	},
 }

@@ -9,6 +9,8 @@ export interface ManagedUsersApi {
 	/** Changes any combination of name, email, roles and status in one atomic request. */
 	update(id: number, body: UpdateUserRequest): Observable<ManagedUser>
 	delete(id: number): Observable<unknown>
+	/** Sets a temporary password and emails it to the user, who must change it at the next sign-in. */
+	resetPassword(id: number): Observable<unknown>
 }
 
 export const ManagedUsersApi = new InjectionToken<ManagedUsersApi>('ManagedUsersApi')

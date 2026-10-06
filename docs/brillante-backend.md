@@ -70,6 +70,8 @@ per-account lockout still applies.
   propagate) and make sure `EMAIL_FROM` is an address of that domain.
   - A refused message fails with the Email Service error code (for example `E_SENDER_NOT_VERIFIED`), which the log shows;
     the binding's own message is not logged because it may name the recipient.
+  - The emails are written in Spanish (`APP_LANGUAGE=es` in `wrangler.jsonc`). The admin password reset email carries the
+    temporary password and a link to the sign-in page (`/auth/login` on the first `CORS_ORIGIN`).
   - The binding is handed to the repository per request (`helpers/request-email.ts`), so emails sent after the response
     (the password reset link) keep working.
   - Under `wrangler dev` the binding is simulated: the message is written to `.wrangler/tmp/email` and logged, nothing is

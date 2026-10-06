@@ -6,6 +6,8 @@ export interface ResetPasswordEmailParams {
 	firstName: string
 	email: string
 	password: string
+	/** Absolute link to the sign-in page. */
+	loginUrl: string
 }
 
 // File-local bilingual email translations
@@ -17,6 +19,7 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 		credentialsHeader: 'Your new login credentials:',
 		emailLabel: 'Email:',
 		passwordLabel: 'Temporary Password',
+		signInLabel: 'Sign in here:',
 		changeWarning:
 			'IMPORTANT: Please change this temporary password immediately after your next login for security reasons.',
 		footer: 'This is an automated message. Please do not reply to this email.',
@@ -30,6 +33,7 @@ const EMAIL_TRANSLATIONS = Object.freeze({
 		credentialsHeader: 'Tus nuevas credenciales de inicio de sesión:',
 		emailLabel: 'Correo electrónico:',
 		passwordLabel: 'Contraseña temporal',
+		signInLabel: 'Ingresá acá:',
 		changeWarning:
 			'IMPORTANTE: Por favor, cambia esta contraseña temporal inmediatamente después de tu próximo inicio de sesión por razones de seguridad.',
 		footer: 'Este es un mensaje automatizado. Por favor, no respondas a este correo electrónico.',
@@ -58,7 +62,7 @@ export function buildResetPasswordEmail(params: ResetPasswordEmailParams, lang?:
 }
 
 function buildTextContent(
-	{ firstName, email, password }: ResetPasswordEmailParams,
+	{ firstName, email, password, loginUrl }: ResetPasswordEmailParams,
 	t: (typeof EMAIL_TRANSLATIONS)[EmailLanguage],
 ): string {
 	return `${t.greeting} ${firstName},
@@ -69,6 +73,8 @@ ${t.credentialsHeader}
 ${t.emailLabel} ${email}
 ${t.passwordLabel}: ${password}
 
+${t.signInLabel} ${loginUrl}
+
 ${t.changeWarning}
 
 ${t.footer}
@@ -78,13 +84,14 @@ ${t.team}`
 }
 
 function buildHtmlContent(
-	{ firstName, email, password }: ResetPasswordEmailParams,
+	{ firstName, email, password, loginUrl }: ResetPasswordEmailParams,
 	t: (typeof EMAIL_TRANSLATIONS)[EmailLanguage],
 	lang: EmailLanguage,
 ): string {
 	const safeFirstName = escapeHtml(firstName)
 	const safeEmail = escapeHtml(email)
 	const safePassword = escapeHtml(password)
+	const safeLoginUrl = escapeHtml(loginUrl)
 
 	return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -102,6 +109,8 @@ function buildHtmlContent(
         <p style="margin: 10px 0;"><strong>${t.emailLabel}</strong> ${safeEmail}</p>
         <p style="margin: 10px 0;"><strong>${t.passwordLabel}:</strong> <code style="background-color: #e8e8e8; padding: 2px 6px; border-radius: 3px;">${safePassword}</code></p>
     </div>
+
+    <p><strong>${t.signInLabel}</strong> <a href="${safeLoginUrl}">${safeLoginUrl}</a></p>
 
     <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
         <p style="margin: 0;"><strong>${t.changeWarning}</strong></p>

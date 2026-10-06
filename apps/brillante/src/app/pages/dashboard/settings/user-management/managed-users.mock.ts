@@ -37,6 +37,13 @@ export class InMemoryManagedUsersApi implements ManagedUsersApi {
 		return of(updated)
 	}
 
+	public resetPassword(id: number): Observable<unknown> {
+		const error = this.errors.get('resetPassword')
+		if (error) return throwError(() => error)
+		if (!this.users.some((user) => user.id === id)) return throwError(() => new Error(`User ${id} not found`))
+		return of({ message: 'Password reset successfully' })
+	}
+
 	public delete(id: number): Observable<unknown> {
 		const error = this.errors.get('delete')
 		if (error) return throwError(() => error)

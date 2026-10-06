@@ -41,10 +41,12 @@ export const ManagedUsersStore = signalStore(
 	{ providedIn: 'root' },
 	withState(initialManagedUsersState),
 	withComputed((store) => ({
-		isAnyLoading: computed(() => store.isLoadingList() || store.isUpdating() || store.isDeleting()),
+		isAnyLoading: computed(
+			() => store.isLoadingList() || store.isUpdating() || store.isDeleting() || store.isResettingPassword(),
+		),
 		hasReadError: computed(() => Object.values(store.readError()).some((e) => e !== null)),
 		hasMutationError: computed(() => Object.values(store.mutationError()).some((e) => e !== null)),
-		isMutating: computed(() => store.isUpdating() || store.isDeleting()),
+		isMutating: computed(() => store.isUpdating() || store.isDeleting() || store.isResettingPassword()),
 		filteredUsers: computed(() => {
 			const query = store.searchQuery().trim().toLowerCase()
 			if (!query) return store.users()
@@ -100,7 +102,7 @@ export const ManagedUsersStore = signalStore(
 			clearErrors(): void {
 				patchState(store, {
 					readError: { list: null },
-					mutationError: { update: null, delete: null },
+					mutationError: { update: null, delete: null, resetPassword: null },
 				})
 			},
 		}
@@ -138,6 +140,37 @@ export const ManagedUsersStore = signalStore(
 											store.mutationError(),
 											'update',
 											translation.instant('MANAGED_USERS.ERRORS.UPDATE'),
+										),
+									})
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			/** The list does not change, so there is nothing to reload after a reset. */
+			resetPassword: rxMethod<number>(
+				pipe(
+					tap(() =>
+						patchState(store, {
+							isResettingPassword: true,
+							mutationError: patchMutationError(store.mutationError(), 'resetPassword', null),
+						}),
+					),
+					switchMap((id) =>
+						api.resetPassword(id).pipe(
+							tap({
+								next: () => patchState(store, { isResettingPassword: false }),
+								error: (err) => {
+									loggerService.error('ManagedUsersStore', 'resetPassword failed', err)
+									patchState(store, {
+										isResettingPassword: false,
+										mutationError: patchMutationError(
+											store.mutationError(),
+											'resetPassword',
+											translation.instant('MANAGED_USERS.ERRORS.RESET_PASSWORD'),
 										),
 									})
 								},

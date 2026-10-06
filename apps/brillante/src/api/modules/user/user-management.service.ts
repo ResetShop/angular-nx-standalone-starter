@@ -2,6 +2,8 @@ import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
+import { LOGIN_PATH } from '../../constants/auth.constants'
+import { buildAppUrl } from '../../helpers/app-url'
 import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
@@ -298,7 +300,7 @@ export class UserManagementService {
 	}
 
 	private async sendResetPasswordEmail(email: string, firstName: string, password: string): Promise<void> {
-		const emailContent = buildResetPasswordEmail({ firstName, email, password })
+		const emailContent = buildResetPasswordEmail({ firstName, email, password, loginUrl: buildAppUrl(LOGIN_PATH) })
 		await this.emailService.send({ to: email, ...emailContent })
 	}
 

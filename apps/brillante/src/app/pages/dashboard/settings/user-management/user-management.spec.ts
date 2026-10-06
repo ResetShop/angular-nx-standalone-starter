@@ -10,6 +10,7 @@ import { settingsEn } from '@providers/i18n/translations/slices/settings.transla
 import {
 	advanceTimersByTimeAsync,
 	clearAllMocks,
+	fn,
 	spyOn,
 	useFakeTimers,
 	useRealTimers,
@@ -17,6 +18,7 @@ import {
 import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
 import { fireEvent, render, screen, within } from '@testing-library/angular'
+import { type Observable, of } from 'rxjs'
 import { InMemoryManagedUsersApi, provideManagedUsersMock } from './managed-users.mock'
 import UserManagement from './user-management'
 
@@ -238,13 +240,74 @@ describe('UserManagement', () => {
 		expect(savedUsers()).toHaveLength(2)
 	})
 
-	it('should only offer editing the signed-in user, never disabling or deleting', async () => {
+	it('should reset the password of a user after confirmation and announce it', async () => {
+		const resetPassword = fn<[number], Observable<unknown>>()
+		resetPassword.mockReturnValue(of({ message: 'ok' }))
+		api.resetPassword = resetPassword
+		const view = await renderPage()
+
+		await openRowMenu(/Bruno Diaz/)
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Reset password' }))
+		view.fixture.detectChanges()
+
+		expect(screen.getByText(/A temporary password will be emailed to bruno@shop.com/)).toBeInTheDocument()
+
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Reset password' }))
+		TestBed.tick()
+		await advanceTimersByTimeAsync(1000)
+		view.fixture.detectChanges()
+
+		expect(resetPassword.calls).toEqual([[2]])
+		expect(notificationMessages()).toEqual(['Password reset. The temporary password is being emailed to the user.'])
+	})
+
+	it('should not offer resetting the password of a disabled user', async () => {
+		api.seed([ana, createManagedUserDto({ ...bruno, status: UserStatus.DISABLED })])
+		await renderPage()
+
+		await openRowMenu(/Bruno Diaz/)
+
+		expect(screen.getByRole('menuitem', { name: 'Enable' })).toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Reset password' })).not.toBeInTheDocument()
+	})
+
+	it('should not reset anything when the confirmation is cancelled', async () => {
+		const resetPassword = fn<[number], Observable<unknown>>()
+		resetPassword.mockReturnValue(of({ message: 'ok' }))
+		api.resetPassword = resetPassword
+		const view = await renderPage()
+
+		await openRowMenu(/Bruno Diaz/)
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Reset password' }))
+		view.fixture.detectChanges()
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cancel' }))
+		view.fixture.detectChanges()
+
+		expect(resetPassword.calls).toEqual([])
+	})
+
+	it('should announce the failure when the password cannot be reset', async () => {
+		api.setError('resetPassword', new Error('boom'))
+		const view = await renderPage()
+
+		await openRowMenu(/Bruno Diaz/)
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Reset password' }))
+		view.fixture.detectChanges()
+		fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Reset password' }))
+		TestBed.tick()
+		view.fixture.detectChanges()
+
+		expect(notificationMessages()).toEqual(['Failed to reset the password'])
+	})
+
+	it('should only offer editing the signed-in user, never disabling, resetting or deleting', async () => {
 		await renderPage()
 
 		await openRowMenu(/Ana Gomez/)
 
 		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
 		expect(screen.queryByRole('menuitem', { name: 'Disable' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Reset password' })).not.toBeInTheDocument()
 		expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument()
 	})
 })
