@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'crypto'
-import { httpEnv } from '../../config/http.env'
 import { PASSWORD_RESET_PATH } from '../../constants/auth.constants'
+import { buildAppUrl } from '../../helpers/app-url'
 
 /** A new single-use reset token: 256 bits from the system CSPRNG, URL-safe. Only its hash is ever stored. */
 export function generateResetToken(): string {
@@ -13,10 +13,8 @@ export function hashResetToken(token: string): string {
 }
 
 /**
- * The link that completes a reset. `httpEnv.CORS_ORIGIN` is the configured frontend origin; when it is a
- * comma-separated list the first origin is used, and a trailing slash is dropped.
+ * The link that completes a reset, on the app's public origin (see `appOrigin`).
  */
 export function buildPasswordResetUrl(rawToken: string): string {
-	const origin = httpEnv.CORS_ORIGIN.split(',')[0].trim().replace(/\/$/, '')
-	return `${origin}${PASSWORD_RESET_PATH}?token=${encodeURIComponent(rawToken)}`
+	return `${buildAppUrl(PASSWORD_RESET_PATH)}?token=${encodeURIComponent(rawToken)}`
 }

@@ -8,6 +8,7 @@ describe('buildResetPasswordEmail', () => {
 		firstName: 'John',
 		email: 'john.doe@example.com',
 		password: 'TempPass123_xyz',
+		loginUrl: 'https://app.test/auth/login',
 	}
 
 	beforeEach(() => {
@@ -45,6 +46,25 @@ describe('buildResetPasswordEmail', () => {
 			seedAppEnv({ APP_LANGUAGE: 'es' })
 			const result = buildResetPasswordEmail(mockParams)
 			expect(result.subject).toBe('Tu contraseña ha sido restablecida')
+		})
+	})
+
+	describe('Sign-in link', () => {
+		it('should link to the sign-in page in the text and the HTML, in English and in Spanish', () => {
+			const english = buildResetPasswordEmail(mockParams)
+			seedAppEnv({ APP_LANGUAGE: 'es' })
+			const spanish = buildResetPasswordEmail(mockParams)
+
+			expect(english.text).toContain('Sign in here: https://app.test/auth/login')
+			expect(english.html).toContain('href="https://app.test/auth/login"')
+			expect(spanish.text).toContain('Ingresá acá: https://app.test/auth/login')
+			expect(spanish.html).toContain('href="https://app.test/auth/login"')
+		})
+
+		it('should escape the link in the HTML', () => {
+			const result = buildResetPasswordEmail({ ...mockParams, loginUrl: 'https://app.test/?a=1&b="2"' })
+
+			expect(result.html).toContain('a=1&amp;b=&quot;2&quot;')
 		})
 	})
 
@@ -105,6 +125,7 @@ describe('buildResetPasswordEmail', () => {
 				firstName: '<b>Joe&"Ann</b>',
 				email: 'joe&ann@example.com',
 				password: 'p<a>ss',
+				loginUrl: mockParams.loginUrl,
 			})
 
 			expect(result.html).toContain('&lt;b&gt;Joe&amp;&quot;Ann&lt;/b&gt;')
@@ -118,6 +139,7 @@ describe('buildResetPasswordEmail', () => {
 				firstName: '<b>Joe&"Ann</b>',
 				email: 'joe&ann@example.com',
 				password: 'p<a>ss',
+				loginUrl: mockParams.loginUrl,
 			})
 
 			expect(result.text).toContain('<b>Joe&"Ann</b>')
@@ -133,6 +155,7 @@ describe('buildResetPasswordEmail', () => {
 				firstName: 'Jane',
 				email: 'jane.smith@example.com',
 				password: 'DifferentPass456',
+				loginUrl: mockParams.loginUrl,
 			})
 
 			expect(result1.text).not.toBe(result2.text)

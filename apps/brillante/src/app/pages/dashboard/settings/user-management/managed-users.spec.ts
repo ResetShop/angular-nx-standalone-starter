@@ -53,6 +53,14 @@ describe('HttpManagedUsersApi', () => {
 		req.flush(createManagedUserDto({ id: 7 }))
 	})
 
+	it('posts a password reset for a user', () => {
+		api.resetPassword(7).subscribe()
+
+		const req = httpMock.expectOne('/api/users/7/reset-password')
+		expect(req.request.method).toBe('POST')
+		req.flush({ message: 'Password reset successfully' })
+	})
+
 	it('deletes a user', () => {
 		api.delete(7).subscribe()
 

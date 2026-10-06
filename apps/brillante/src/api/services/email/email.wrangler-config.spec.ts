@@ -22,6 +22,10 @@ describe('wrangler.jsonc email configuration', () => {
 		expect(config.send_email?.map((binding) => binding.name)).toEqual(['EMAIL'])
 	})
 
+	it('sends the emails in Spanish', () => {
+		expect(config.vars?.['APP_LANGUAGE']).toBe('es')
+	})
+
 	it('selects the Cloudflare provider with a sender, which the email env accepts', () => {
 		const vars = config.vars ?? {}
 

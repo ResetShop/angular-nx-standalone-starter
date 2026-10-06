@@ -16,9 +16,9 @@ import { UserDrawer } from './user-drawer/user-drawer'
 import { USER_ROLE_OPTIONS } from './user-role-options'
 
 /**
- * Lists every user and opens the drawer that edits one, or the actions that disable, enable or delete it. The route is
- * guarded by the permission to manage users, so the page itself does not re-check it. Creating users is not offered
- * until the backend can email the new user a link to choose a password.
+ * Lists every user and opens the drawer that edits one, or the actions that disable, enable, reset the password of or
+ * delete it. The route is guarded by the permission to manage users, so the page itself does not re-check it. Creating
+ * users is not offered until the backend can email the new user a link to choose a password.
  */
 @Component({
 	selector: 'app-user-management',
@@ -59,6 +59,14 @@ import { USER_ROLE_OPTIONS } from './user-role-options'
 		<app-user-drawer #userDrawerRef />
 
 		<app-confirm-dialog
+			(confirmed)="onResetConfirmed()"
+			[message]="resetMessage()"
+			[title]="'MANAGED_USERS.RESET_DIALOG.TITLE' | translate"
+			[confirmText]="'MANAGED_USERS.RESET_DIALOG.CONFIRM' | translate"
+			#resetDialogRef
+		/>
+
+		<app-confirm-dialog
 			(confirmed)="onDeleteConfirmed()"
 			[message]="deleteMessage()"
 			[title]="'MANAGED_USERS.DELETE_DIALOG.TITLE' | translate"
@@ -75,10 +83,19 @@ export default class UserManagement {
 
 	protected readonly userDrawer = viewChild.required<UserDrawer>('userDrawerRef')
 	private readonly deleteDialog = viewChild.required<ConfirmDialog>('deleteDialogRef')
+	private readonly resetDialog = viewChild.required<ConfirmDialog>('resetDialogRef')
 	private readonly deleteToast = createMutationToast(this.translation.instant('MANAGED_USERS.SUCCESS.DELETED'))
 	private readonly statusToast = createMutationToast(this.translation.instant('MANAGED_USERS.SUCCESS.UPDATED'))
+	private readonly resetToast = createMutationToast(this.translation.instant('MANAGED_USERS.SUCCESS.PASSWORD_RESET'))
 
 	protected readonly userToDelete = signal<ManagedUser | null>(null)
+	protected readonly userToReset = signal<ManagedUser | null>(null)
+	protected readonly resetMessage = computed(() =>
+		this.translation
+			.instant('MANAGED_USERS.RESET_DIALOG.MESSAGE')
+			.replace('{name}', this.userToReset()?.fullName ?? '')
+			.replace('{email}', this.userToReset()?.email ?? ''),
+	)
 	protected readonly deleteMessage = computed(() =>
 		this.translation
 			.instant('MANAGED_USERS.DELETE_DIALOG.MESSAGE')
@@ -95,6 +112,12 @@ export default class UserManagement {
 		const updating = this.store.isUpdating()
 		const error = this.store.mutationError().update
 		untracked(() => this.statusToast.handleResult(updating, error))
+	})
+
+	private readonly resetToastEffect = effect(() => {
+		const resetting = this.store.isResettingPassword()
+		const error = this.store.mutationError().resetPassword
+		untracked(() => this.resetToast.handleResult(resetting, error))
 	})
 
 	protected readonly columns = computed((): ColumnDef<ManagedUser, unknown>[] => [
@@ -122,7 +145,7 @@ export default class UserManagement {
 			label: this.translation.instant('COMMON.EDIT'),
 			onSelect: () => this.userDrawer().openEdit(user),
 		}
-		// The backend refuses changing the status of, or deleting, one's own account.
+		// The backend refuses changing the status of, resetting the password of, or deleting one's own account.
 		if (this.authStore.currentUser()?.id === user.id) return [[edit]]
 
 		const isActive = user.status === UserStatus.ACTIVE
@@ -130,12 +153,31 @@ export default class UserManagement {
 			label: this.translation.instant(isActive ? 'MANAGED_USERS.ACTIONS.DISABLE' : 'MANAGED_USERS.ACTIONS.ENABLE'),
 			onSelect: () => this.changeStatus(user, isActive ? UserStatus.DISABLED : UserStatus.ACTIVE),
 		}
+		const resetPassword: RowAction = {
+			label: this.translation.instant('MANAGED_USERS.ACTIONS.RESET_PASSWORD'),
+			onSelect: () => this.confirmReset(user),
+		}
 		const remove: RowAction = {
 			label: this.translation.instant('COMMON.DELETE'),
 			onSelect: () => this.confirmDelete(user),
 			variant: 'destructive',
 		}
-		return [[edit, toggleStatus], [remove]]
+		// A disabled account cannot sign in, so a temporary password for it would only be noise.
+		return [isActive ? [edit, toggleStatus, resetPassword] : [edit, toggleStatus], [remove]]
+	}
+
+	protected confirmReset(user: ManagedUser): void {
+		this.userToReset.set(user)
+		this.resetDialog().show()
+	}
+
+	protected onResetConfirmed(): void {
+		const user = this.userToReset()
+		if (!user) return
+
+		this.resetToast.markSubmitted()
+		this.store.resetPassword(user.id)
+		this.userToReset.set(null)
 	}
 
 	protected confirmDelete(user: ManagedUser): void {

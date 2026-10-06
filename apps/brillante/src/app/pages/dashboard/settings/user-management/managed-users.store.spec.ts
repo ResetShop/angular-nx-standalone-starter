@@ -24,7 +24,7 @@ describe('ManagedUsersStore', () => {
 		clearAllMocks()
 		spyOn(console, 'error')
 
-		apiMock = { getAll: fn(), update: fn(), delete: fn() }
+		apiMock = { getAll: fn(), update: fn(), delete: fn(), resetPassword: fn() }
 		apiMock.getAll.mockReturnValue(of([]))
 	})
 
@@ -39,7 +39,8 @@ describe('ManagedUsersStore', () => {
 			expect(store.isUpdating()).toBe(false)
 			expect(store.isDeleting()).toBe(false)
 			expect(store.readError()).toEqual({ list: null })
-			expect(store.mutationError()).toEqual({ update: null, delete: null })
+			expect(store.mutationError()).toEqual({ update: null, delete: null, resetPassword: null })
+			expect(store.isResettingPassword()).toBe(false)
 		})
 	})
 
@@ -160,6 +161,41 @@ describe('ManagedUsersStore', () => {
 		})
 	})
 
+	describe('resetPassword', () => {
+		it('should reset the password without reloading the list', () => {
+			apiMock.getAll.mockReturnValue(of([createManagedUserDto({ id: 3 })]))
+			setupStore()
+			apiMock.resetPassword.mockReturnValue(of({ message: 'ok' }))
+
+			store.resetPassword(3)
+
+			expect(apiMock.resetPassword.calls).toEqual([[3]])
+			expect(apiMock.getAll.calls).toHaveLength(1)
+			expect(store.isResettingPassword()).toBe(false)
+			expect(store.mutationError().resetPassword).toBeNull()
+		})
+
+		it('should be resetting while the request is pending', () => {
+			setupStore()
+			apiMock.resetPassword.mockReturnValue(NEVER)
+
+			store.resetPassword(3)
+
+			expect(store.isResettingPassword()).toBe(true)
+			expect(store.isMutating()).toBe(true)
+		})
+
+		it('should record the error when it fails', () => {
+			setupStore()
+			apiMock.resetPassword.mockReturnValue(throwError(() => new Error('boom')))
+
+			store.resetPassword(3)
+
+			expect(store.mutationError().resetPassword).toBe('MANAGED_USERS.ERRORS.RESET_PASSWORD')
+			expect(store.isResettingPassword()).toBe(false)
+		})
+	})
+
 	describe('errors', () => {
 		it('should clear one mutation error, or all errors', () => {
 			setupStore()
@@ -169,7 +205,11 @@ describe('ManagedUsersStore', () => {
 			store.deleteUser(3)
 
 			store.clearMutationError('update')
-			expect(store.mutationError()).toEqual({ update: null, delete: 'MANAGED_USERS.ERRORS.DELETE' })
+			expect(store.mutationError()).toEqual({
+				update: null,
+				delete: 'MANAGED_USERS.ERRORS.DELETE',
+				resetPassword: null,
+			})
 
 			store.clearErrors()
 			expect(store.hasMutationError()).toBe(false)

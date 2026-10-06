@@ -7,6 +7,7 @@ export interface ManagedUsersReadError {
 export interface ManagedUsersMutationError {
 	update: string | null
 	delete: string | null
+	resetPassword: string | null
 }
 
 export interface ManagedUsersState {
@@ -15,6 +16,7 @@ export interface ManagedUsersState {
 	isLoadingList: boolean
 	isUpdating: boolean
 	isDeleting: boolean
+	isResettingPassword: boolean
 	readError: ManagedUsersReadError
 	mutationError: ManagedUsersMutationError
 }
@@ -25,6 +27,7 @@ export const initialManagedUsersState: ManagedUsersState = {
 	isLoadingList: false,
 	isUpdating: false,
 	isDeleting: false,
+	isResettingPassword: false,
 	readError: { list: null },
-	mutationError: { update: null, delete: null },
+	mutationError: { update: null, delete: null, resetPassword: null },
 }

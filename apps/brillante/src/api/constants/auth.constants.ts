@@ -59,3 +59,6 @@ export const ONBOARDING_RESET_TOKEN_EXPIRY = '1d'
 
 /** Frontend path where users complete a password reset (raw token passed as the `token` query param). */
 export const PASSWORD_RESET_PATH = '/auth/reset-password/confirm'
+
+/** Path of the sign-in page, linked from the emails that give a user new credentials. */
+export const LOGIN_PATH = '/auth/login'

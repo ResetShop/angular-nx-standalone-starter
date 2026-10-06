@@ -31,4 +31,8 @@ export class HttpManagedUsersApi implements ManagedUsersApi {
 	public delete(id: number): Observable<unknown> {
 		return this.http.delete(`/api/users/${id}`)
 	}
+
+	public resetPassword(id: number): Observable<unknown> {
+		return this.http.post(`/api/users/${id}/reset-password`, {})
+	}
 }
