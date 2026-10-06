@@ -1,9 +1,9 @@
 /**
  * Email env sub-schema.
  *
- * Covers email provider selection and SMTP credentials. The cross-field
- * refinement that requires `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` when
- * `EMAIL_PROVIDER=nodemailer` is enforced inside the schema itself.
+ * Covers email provider selection, SMTP credentials and the Cloudflare Email Service sender. The cross-field
+ * refinements that require `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` when `EMAIL_PROVIDER=nodemailer` and `EMAIL_FROM`
+ * when `EMAIL_PROVIDER=cloudflare` are enforced inside the schema itself.
  *
  * Consumers must import `emailEnv` (or `parseEmailEnv` / `seedEmailEnv` for
  * tests). Direct `process.env[...]` access is ESLint-forbidden everywhere
@@ -17,7 +17,7 @@ const DEFAULT_SMTP_FROM = 'noreply@example.com'
 
 const EmailEnvSchema = z
 	.object({
-		EMAIL_PROVIDER: z.enum(['nodemailer', 'ethereal', 'noop']).default('nodemailer'),
+		EMAIL_PROVIDER: z.enum(['nodemailer', 'ethereal', 'cloudflare', 'noop']).default('nodemailer'),
 		SMTP_HOST: z.string().optional(),
 		SMTP_USER: z.string().optional(),
 		SMTP_PASS: z.string().optional(),
@@ -27,8 +27,19 @@ const EmailEnvSchema = z
 			.optional()
 			.transform((v) => v === 'true'),
 		SMTP_FROM: z.string().default(DEFAULT_SMTP_FROM),
+		// Sender of the Cloudflare Email Service provider: an address of a domain onboarded to Email Service.
+		EMAIL_FROM: z.email().optional(),
+		EMAIL_FROM_NAME: z.string().min(1).optional(),
 	})
 	.superRefine((data, ctx) => {
+		if (data.EMAIL_PROVIDER === 'cloudflare' && !data.EMAIL_FROM) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['EMAIL_FROM'],
+				message:
+					'EMAIL_FROM is required when EMAIL_PROVIDER=cloudflare (an address of a domain onboarded to Email Service)',
+			})
+		}
 		if (data.EMAIL_PROVIDER !== 'nodemailer') return
 		const missing: Array<'SMTP_HOST' | 'SMTP_USER' | 'SMTP_PASS'> = []
 		if (!data.SMTP_HOST) missing.push('SMTP_HOST')

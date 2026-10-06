@@ -1,6 +1,7 @@
 export const EMAIL_PROVIDERS = Object.freeze({
 	NODEMAILER: 'nodemailer',
 	ETHEREAL: 'ethereal',
+	CLOUDFLARE: 'cloudflare',
 	NOOP: 'noop',
 } as const)
 

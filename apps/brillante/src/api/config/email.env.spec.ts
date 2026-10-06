@@ -24,8 +24,36 @@ describe('parseEmailEnv', () => {
 			expect(parseEmailEnv({ EMAIL_PROVIDER: 'noop' }).EMAIL_PROVIDER).toBe('noop')
 		})
 
+		it('accepts "cloudflare" with a sender address', () => {
+			expect(
+				parseEmailEnv({ EMAIL_PROVIDER: 'cloudflare', EMAIL_FROM: 'no-reply@brillantestore.com' }).EMAIL_PROVIDER,
+			).toBe('cloudflare')
+		})
+
 		it('rejects unknown providers', () => {
 			expect(() => parseEmailEnv({ EMAIL_PROVIDER: 'sendgrid' })).toThrow()
+		})
+	})
+
+	describe('Cloudflare sender', () => {
+		it('requires EMAIL_FROM when EMAIL_PROVIDER=cloudflare, without asking for SMTP settings', () => {
+			expect(() => parseEmailEnv({ EMAIL_PROVIDER: 'cloudflare' })).toThrow(/EMAIL_FROM is required/)
+			expect(() => parseEmailEnv({ EMAIL_PROVIDER: 'cloudflare' })).not.toThrow(/SMTP_HOST/)
+		})
+
+		it('rejects a sender that is not an email address', () => {
+			expect(() => parseEmailEnv({ EMAIL_PROVIDER: 'cloudflare', EMAIL_FROM: 'not-an-address' })).toThrow()
+		})
+
+		it('takes an optional display name and does not need the sender for other providers', () => {
+			const env = parseEmailEnv({
+				EMAIL_PROVIDER: 'cloudflare',
+				EMAIL_FROM: 'no-reply@brillantestore.com',
+				EMAIL_FROM_NAME: 'Brillante',
+			})
+
+			expect(env.EMAIL_FROM_NAME).toBe('Brillante')
+			expect(parseEmailEnv(minimalEtherealEnv()).EMAIL_FROM).toBeUndefined()
 		})
 	})
 

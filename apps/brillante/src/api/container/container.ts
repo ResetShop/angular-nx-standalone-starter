@@ -21,6 +21,7 @@ import { UserProfileService } from '../modules/user/user-profile.service'
 import { DrizzleUserRoleRepository } from '../modules/user/user-role.repository'
 import { UserRoleService } from '../modules/user/user-role.service'
 import { DrizzleUserRepository } from '../modules/user/user.repository'
+import { CloudflareEmailRepository } from '../services/email/cloudflare-email.repository'
 import { EmailService } from '../services/email/email.service'
 import { EtherealEmailRepository } from '../services/email/ethereal-email.repository'
 import { EMAIL_PROVIDERS } from '../services/email/interfaces'
@@ -54,6 +55,7 @@ function resolveEmailRepository() {
 	const provider = emailEnv.EMAIL_PROVIDER
 	if (provider === EMAIL_PROVIDERS.NOOP) return asClass(NoopEmailRepository).singleton()
 	if (provider === EMAIL_PROVIDERS.ETHEREAL) return asClass(EtherealEmailRepository).singleton()
+	if (provider === EMAIL_PROVIDERS.CLOUDFLARE) return asClass(CloudflareEmailRepository).singleton()
 	return asClass(NodemailerRepository).singleton()
 }
 

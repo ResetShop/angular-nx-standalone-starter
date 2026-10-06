@@ -9,10 +9,11 @@ import {
 	requireConnectionString,
 	withRequestDatabase,
 } from './helpers/request-database'
+import { type EmailBindings, requestEmailMiddleware } from './helpers/request-email'
 import type { RateLimitBindings } from './middlewares/rate-limit.middleware'
 
 /** Bindings declared in `wrangler.jsonc` that the API reads from `c.env`. */
-type WorkerBindings = DatabaseBindings & RateLimitBindings
+type WorkerBindings = DatabaseBindings & RateLimitBindings & EmailBindings
 
 /** The slice of Cloudflare's scheduled-event controller this Worker uses. */
 interface ScheduledEvent {
@@ -26,6 +27,7 @@ interface ScheduledEvent {
  */
 const app = new Hono<{ Bindings: WorkerBindings }>()
 app.use('*', requestDatabaseMiddleware())
+app.use('*', requestEmailMiddleware())
 app.route('/', createApiApp())
 
 /**
