@@ -15,21 +15,21 @@ Entries are `proposed` or `accepted`. Every proposal is reviewed line by line by
 
 Table names are decided per context in the review sessions. Known legacy tables:
 
-| Legacy table                                                | Context             | Proposed name       | Status                                                      |
-| ----------------------------------------------------------- | ------------------- | ------------------- | ----------------------------------------------------------- |
-| `sh_administration_office_branch`                           | Organization        | `office_branch`     | proposed; mapping in [organization](domain/organization.md) |
-| `sh_tab_transaction_type`                                   | Treasury            | to be decided       | pending                                                     |
-| `sh_tab_payment_methods`                                    | Treasury            | to be decided       | pending                                                     |
-| `sh_tab_payment_method_installments`                        | Treasury            | to be decided       | pending                                                     |
-| `sh_tab_transaction_concept`                                | Treasury            | to be decided       | pending                                                     |
-| `sh_cash_transaction`                                       | Treasury            | to be decided       | pending                                                     |
-| `sh_fix_customer` (formerly `sh_fix_client`)                | Customers           | `customer`          | proposed                                                    |
-| `sh_fix_repair`                                             | Workshop            | `repair`            | proposed                                                    |
-| `sh_fix_repair_status_history`                              | Workshop            | to be decided       | pending                                                     |
-| `sh_fix_tab_status`                                         | Workshop            | `repair_status`     | proposed                                                    |
-| `sh_fix_transaction`                                        | Workshop / Treasury | owner to be decided | pending                                                     |
-| `user`, `role`, `user_role`                                 | Identity            | already migrated    | n/a                                                         |
-| `sh_administration_branch`, `sh_administration_user_branch` | Organization        | not carried over    | proposed; see [organization](domain/organization.md)        |
+| Legacy table                                                | Context             | Proposed name       | Status                                                                     |
+| ----------------------------------------------------------- | ------------------- | ------------------- | -------------------------------------------------------------------------- |
+| `sh_administration_office_branch`                           | Organization        | `office_branch`     | proposed; see [organization](domain/organization.md)                       |
+| `sh_tab_transaction_type`                                   | Treasury            | `movement_type`     | proposed; see [treasury-reference-data](domain/treasury-reference-data.md) |
+| `sh_tab_payment_methods`                                    | Treasury            | `payment_method`    | proposed; see [treasury-reference-data](domain/treasury-reference-data.md) |
+| `sh_tab_payment_method_installments`                        | Treasury            | deferred to Stage 3 | proposed; see [treasury-reference-data](domain/treasury-reference-data.md) |
+| `sh_tab_transaction_concept`                                | Treasury            | to be decided       | pending                                                                    |
+| `sh_cash_transaction`                                       | Treasury            | to be decided       | pending                                                                    |
+| `sh_fix_customer` (formerly `sh_fix_client`)                | Customers           | `customer`          | proposed                                                                   |
+| `sh_fix_repair`                                             | Workshop            | `repair`            | proposed                                                                   |
+| `sh_fix_repair_status_history`                              | Workshop            | to be decided       | pending                                                                    |
+| `sh_fix_tab_status`                                         | Workshop            | `repair_status`     | proposed                                                                   |
+| `sh_fix_transaction`                                        | Workshop / Treasury | owner to be decided | pending                                                                    |
+| `user`, `role`, `user_role`                                 | Identity            | already migrated    | n/a                                                                        |
+| `sh_administration_branch`, `sh_administration_user_branch` | Organization        | not carried over    | proposed; see [organization](domain/organization.md)                       |
 
 ## 2. Spanish → English terms
 

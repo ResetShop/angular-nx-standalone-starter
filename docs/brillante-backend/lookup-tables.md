@@ -13,11 +13,11 @@ with an identity and a lifecycle; its `code` is the value the domain works with.
 | Values that need a stable machine name and a translated label      | Values that belong to one row of another table (installment plans: data of a payment method) |
 
 Initial inventory, to be confirmed in the review sessions of each context: repair status, device type, movement type,
-payment method.
+(the payment method is a hybrid table, see below).
 
 **Hybrid tables.** An ordinary table staff edit may still contain rows the domain must recognise (for example the movement
 concept used for the register opening). Such a table gets a nullable, unique `code` column for the system-significant
-rows only. Whether payment method is a lookup or such a hybrid table is decided in the Treasury review.
+rows only. Payment method is such a hybrid table (see [treasury-reference-data](domain/treasury-reference-data.md)).
 
 ## 2. Shape
 
@@ -69,7 +69,7 @@ and keeps displaying them in existing records. Re-enabling is setting `status` b
 
 During Stage 1 the legacy MySQL database cannot be changed, so:
 
-- Catalogues that exist in MySQL (repair status, movement type, payment method) are read through the bridge schemas; the
+- Catalogues that exist in MySQL (repair status, movement type; the hybrid payment method table is read the same way) are read through the bridge schemas; the
   repository maps each **legacy id to a `code`** with an explicit table kept in the infrastructure layer. The Spanish text
   in those rows is ignored.
 - Catalogues that have no MySQL table (device type) are served by a **static adapter** behind the same port.
