@@ -25,10 +25,12 @@ Two terms are reserved from the start, because the identity module and the busin
 
 ## Terms
 
-| Term                           | Context      | Kind      | Definition                                                                                                                         | Document                                                       | Status   |
-| ------------------------------ | ------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------- |
-| Office branch (`OfficeBranch`) | Organization | Entity    | A place where the business operates and records cash and repairs. Not "branch" alone, which collides with source-control branches. | [organization](domain/organization.md)                         | proposed |
-| Office branch code (`code`)    | Organization | Attribute | A short machine-readable name derived from the office branch name: lower case, spaces replaced by underscores.                     | [organization](domain/organization.md)                         | proposed |
-| Record status (`status`)       | Shared       | Enum      | The lifecycle of a stored record: `active`, `disabled` or `deleted`. Not the same as a workflow state such as the repair status.   | [naming conventions](naming-conventions.md#5-lifecycle-status) | accepted |
+| Term                             | Context      | Kind           | Definition                                                                                                                         | Document                                                       | Status   |
+| -------------------------------- | ------------ | -------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------- |
+| Movement type (`MovementType`)   | Treasury     | Lookup         | Whether a cash movement takes money out (`expense`) or brings money in (`income`). The set is reviewed in Stage 3.                 | [treasury-reference-data](domain/treasury-reference-data.md)   | proposed |
+| Office branch (`OfficeBranch`)   | Organization | Entity         | A place where the business operates and records cash and repairs. Not "branch" alone, which collides with source-control branches. | [organization](domain/organization.md)                         | proposed |
+| Office branch code (`code`)      | Organization | Attribute      | A short machine-readable name derived from the office branch name: lower case, spaces replaced by underscores.                     | [organization](domain/organization.md)                         | proposed |
+| Payment method (`PaymentMethod`) | Treasury     | Reference data | The way a payment was made, such as cash or a card.                                                                                | [treasury-reference-data](domain/treasury-reference-data.md)   | proposed |
+| Record status (`status`)         | Shared       | Enum           | The lifecycle of a stored record: `active`, `disabled` or `deleted`. Not the same as a workflow state such as the repair status.   | [naming conventions](naming-conventions.md#5-lifecycle-status) | accepted |
 
-Exception: office branches have no record status or audit columns until their lifecycle follow-up; see the Organization document.
+Exceptions: office branches have no record status or audit columns, and payment methods have no audit columns, until their Stage 3 follow-ups; see the Organization and Treasury reference data documents.

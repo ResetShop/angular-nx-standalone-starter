@@ -131,12 +131,12 @@ index `WHERE status <> 'deleted'`, named `<table>_<columns>_live_key`.
 
 ## 11. Translations
 
-- **System-defined, closed lists** (repair status, movement type, device type, payment method): the lookup row has a
+- **System-defined, closed lists** (repair status, movement type, device type): the lookup row has a
   stable English `code` and an English `name`; the frontend shows the Spanish label chosen by `code`. The API returns
   `code` and `name`, never Spanish text.
 - **The `record_status` values** are an enum, not a lookup: the frontend translates them by value, and the API returns the
   value.
-- **Data that staff create and edit** (movement concepts, office branches): stored exactly as typed and never translated.
+- **Data that staff create and edit** (movement concepts, payment methods, office branches): stored exactly as typed and never translated.
   Giving such entries a code by slugifying their names is possible later and is out of scope for now.
 
 ## 12. Lookup data
